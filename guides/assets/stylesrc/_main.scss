@@ -17,19 +17,27 @@ body.guide {
 
   -webkit-tap-highlight-color:rgba(38, 27, 35, 0);
 
-  // ----------------------------------------------------------------------------
+  html.translated-rtl & {
+    direction: rtl;
+
+    p {
+      text-align: right;
+    }
+  }
+
+    // ----------------------------------------------------------------------------
   // Typographic Baseline
   // ----------------------------------------------------------------------------
   
   :root {
-    font-family: Inter, sans-serif;
+    font-family: Inter, "Noto Sans Arabic", "Heebo", sans-serif;
     font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
   }
   @supports (font-variation-settings: normal) {
     :root { font-family: InterVariable, sans-serif; }
   }
 
-  font-family: Inter, sans-serif;
+  font-family: Inter, "Noto Sans Arabic", "Heebo", sans-serif;
   font-size: 1rem; /* 16px */
   font-style: normal;
   font-weight: 400;
@@ -128,7 +136,7 @@ body.guide {
   // TODO: media queries to increase font size, current sizes are for desktop, so drop base to mobile appropriate and MQ up twice (min width 60/120 em, minheight 30/60em)
   h1 {
     color: $rf-brand;
-    font-family: 'Calibre', sans-serif;
+    font-family: 'Calibre', "Noto Sans Arabic", "Heebo", sans-serif;
     font-size: 3rem; /* 48px */
     font-weight: 700; /* Light */
     line-height: 1em;
@@ -138,7 +146,7 @@ body.guide {
   } // h1
 
   h2 {
-    font-family: 'Calibre', sans-serif;
+    font-family: 'Calibre', "Noto Sans Arabic", "Heebo", sans-serif;
     font-size: 2.25rem; // Calibre is smaller than inter at the same size
     font-weight: 700; /* Bold */
 
@@ -264,10 +272,12 @@ body.guide {
   } // dl
   
   // :where(&[dir="ltr"]) dd { margin-left: 1.5em; }
-  // :where(&[dir="rtl"]) dd { margin-right: 1.5em; }
+  // :where(&[dir="rtl"]) dd,
+  //  html.translated-rtl dd { margin-right: 1.5em; }
 
   // :where(&[dir="ltr"]) :is(dd) { margin-left: 0; padding-left: 0; }
-  // :where(&[dir="rtl"]) :is(dd) { margin-right: 0; padding-right: 0; }
+  // :where(&[dir="rtl"]) :is(dd),
+  //  html.translated-rtl :is(dd) { margin-right: 0; padding-right: 0; }
 
   li {
     margin-bottom: 0.5em;
@@ -277,7 +287,7 @@ body.guide {
 
   pre, code {
     font-size: 1rem;
-    font-family: "IBM Plex Mono", "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+    font-family: "IBM Plex Mono", "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace !important;
     line-height: 1.5;
     margin: 1em 0;
     overflow: auto;
@@ -328,7 +338,8 @@ body.guide {
     padding: 1em;
 
     :where(body[dir="ltr"]) & { text-align: left; }
-    :where(body[dir="rtl"]) & { text-align: right; }
+    :where(body[dir="rtl"]) &,
+    html.translated-rtl & { text-align: right; }
 
     @include media('>desktop') { // 1024
       max-width: calc(55rem + 420px);
@@ -442,7 +453,7 @@ body.guide {
           background-repeat: no-repeat;
           background-position: top center;
           display: inline-block;
-          font-family: 'Calibre', sans-serif;
+          font-family: 'Calibre', "Noto Sans Arabic", "Heebo", sans-serif;
           font-size: 2.25rem;
           font-weight: 700;
           margin: 0 auto;
@@ -589,7 +600,8 @@ body.guide {
     padding-bottom: 0.125em;
 
     :where(body[dir="ltr"]) & { background-position: right top; padding-right: 1em; }
-    :where(body[dir="rtl"]) & { background-position: left top; padding-left: 1em; }
+    :where(body[dir="rtl"]) &,
+    html.translated-rtl & { background-position: left top; padding-left: 1em; }
   }
 
   
@@ -609,7 +621,8 @@ body.guide {
     z-index: 10;
 
     :where(body[dir="ltr"]) & { left: auto; right: 50px; }
-    :where(body[dir="rtl"]) & { left: 50px; right: auto; }
+    :where(body[dir="rtl"]) &,
+    html.translated-rtl & { left: 50px; right: auto; }
 
     &.visible {
       display: block !important;
@@ -801,3 +814,26 @@ body.guide {
   }
   
 } // body.guide
+
+html.translated-rtl:lang("ar", "fa") {
+  body.guide {
+    h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li {
+      font-family: "Noto Sans Arabic", sans-serif;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      font-style: normal;
+      font-variation-settings: "wdth" 100;
+    }
+  }
+}
+
+html.translated-rtl:lang("he", "iw") {
+  body.guide {
+    h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li {
+      font-family: "Heebo", sans-serif;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      font-style: normal;
+    }
+  }
+}

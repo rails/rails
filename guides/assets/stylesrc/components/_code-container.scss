@@ -22,7 +22,8 @@ intermediate whitespace looks uniform. */
 
   // Padding and spacing for LTR vs RTL langauge defaults
   :where(body[dir="ltr"]) & { background-position: 10px 10px; padding-right: 1em !important; padding-left: 56px !important; }
-  :where(body[dir="rtl"]) & { background-position: calc(100% - 10px) 10px; padding-right: 56px !important; padding-left: 1em !important; }
+  :where(body[dir="rtl"]) &,
+  html.translated-rtl & { background-position: calc(100% - 10px) 10px; padding-right: 56px !important; padding-left: 1em !important; }
 
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
   spurious blank area below with the box background. */
@@ -39,6 +40,8 @@ intermediate whitespace looks uniform. */
     background-color: $gray-900;
     min-height: auto; // remove if icon is restored
     padding-left: 1em !important; // remove if icon is restored
+    direction: ltr !important;
+    text-align: left !important;
 
     pre {margin: 0;}
 
@@ -52,9 +55,9 @@ intermediate whitespace looks uniform. */
       padding: 0.25em 0.5em !important;
       position: absolute;
         bottom: 10px;
-        :where(body[dir="ltr"]) & { right: 10px; }
-        :where(body[dir="rtl"]) & { left: 10px; }
+        right: 10px;
       text-transform: uppercase;
+      width: auto;
     } // button.clipboard-button
   } // &.code
 
