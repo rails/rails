@@ -8,6 +8,7 @@
 @import 'vendor/include-media';
 
 @media print {
+  // remove screen UI stuff
   *,
   *::before,
   *::after {
@@ -18,6 +19,18 @@
     text-shadow: none !important;
   }
 
+  // Set Page layout
+  @page {
+    margin: 0.75in 0.25in;
+  }
+
+  @page:left{
+    @bottom-left {
+      content: "Page " counter(page) " of " counter(pages);
+    }
+  }
+
+  // Include link address with linked text
   a,
   a:visited {
     text-decoration: underline;
