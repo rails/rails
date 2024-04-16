@@ -4,17 +4,17 @@ require "test_helper"
 require "stubs/test_server"
 require "active_support/core_ext/object/json"
 
-class ActionCable::Server::ConnectionTest < ActionCable::TestCase
+class ActionCable::Server::SocketTest < ActionCable::TestCase
   class Connection
-    attr_reader :last_message, :raw_conn, :connected
+    attr_reader :last_message, :socket, :connected
 
-    def initialize(_server, conn)
-      @raw_conn = conn
+    def initialize(_server, socket)
+      @socket = socket
     end
 
     def handle_open
       @connected = true
-      raw_conn.transmit type: "test"
+      socket.transmit type: "test"
     end
 
     def handle_close
@@ -34,18 +34,18 @@ class ActionCable::Server::ConnectionTest < ActionCable::TestCase
 
   test "making a connection with invalid headers" do
     run_in_eventmachine do
-      connection = ActionCable::Server::Connection.new(@server, Rack::MockRequest.env_for("/test"))
-      response = connection.process
+      socket = ActionCable::Server::Socket.new(@server, Rack::MockRequest.env_for("/test"))
+      response = socket.process
       assert_equal 404, response[0]
     end
   end
 
   test "websocket connection" do
     run_in_eventmachine do
-      connection = open_connection
-      connection.process
+      socket = open_socket
+      socket.process
 
-      ws = connection.send(:websocket)
+      ws = socket.send(:websocket)
 
       assert_predicate ws, :possible?
 
@@ -56,8 +56,8 @@ class ActionCable::Server::ConnectionTest < ActionCable::TestCase
 
   test "rack response" do
     run_in_eventmachine do
-      connection = open_connection
-      response = connection.process
+      socket = open_socket
+      response = socket.process
 
       assert_equal [ -1, {}, [] ], response
     end
@@ -65,46 +65,46 @@ class ActionCable::Server::ConnectionTest < ActionCable::TestCase
 
   test "on connection open" do
     run_in_eventmachine do
-      connection = open_connection
+      socket = open_socket
 
-      ws = connection.send(:websocket)
-      mb = connection.send(:message_buffer)
+      ws = socket.send(:websocket)
+      mb = socket.send(:message_buffer)
 
       assert_called_with(ws, :transmit, [{ type: "test" }.to_json]) do
         assert_called(mb, :process!) do
-          connection.process
+          socket.process
           wait_for_async
         end
       end
 
-      assert_equal [ connection.app_conn ], @server.connections
-      assert connection.app_conn.connected
+      assert_equal [ socket.connection ], @server.connections
+      assert socket.connection.connected
     end
   end
 
   test "on connection receive" do
     run_in_eventmachine do
-      connection = open_connection
-      connection.process
+      socket = open_socket
+      socket.process
       wait_for_async
 
-      connection.receive({ message: "hello" }.to_json)
+      socket.receive({ message: "hello" }.to_json)
       wait_for_async
 
-      assert_equal({ "message" => "hello" }, connection.app_conn.last_message)
+      assert_equal({ "message" => "hello" }, socket.connection.last_message)
     end
   end
 
   test "on connection close" do
     run_in_eventmachine do
-      connection = open_connection
-      connection.process
+      socket = open_socket
+      socket.process
 
-      connection.send :handle_open
-      assert connection.app_conn.connected
+      socket.send :handle_open
+      assert socket.connection.connected
 
-      connection.send :handle_close
-      assert_not connection.app_conn.connected
+      socket.send :handle_close
+      assert_not socket.connection.connected
 
       assert_equal [], @server.connections
     end
@@ -112,13 +112,13 @@ class ActionCable::Server::ConnectionTest < ActionCable::TestCase
 
   test "explicitly closing a connection" do
     run_in_eventmachine do
-      connection = open_connection
-      connection.process
+      socket = open_socket
+      socket.process
 
-      ws = connection.send(:websocket)
+      ws = socket.send(:websocket)
 
       assert_called(ws, :close) do
-        connection.close
+        socket.close
       end
     end
   end
@@ -137,17 +137,17 @@ class ActionCable::Server::ConnectionTest < ActionCable::TestCase
           "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.org", "rack.hijack" => CallMeMaybe.new
       )
 
-      connection = ActionCable::Server::Connection.new(@server, env)
-      response = connection.process
+      socket = ActionCable::Server::Socket.new(@server, env)
+      response = socket.process
       assert_equal 404, response[0]
     end
   end
 
   private
-    def open_connection
+    def open_socket
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
-      ActionCable::Server::Connection.new(@server, env)
+      ActionCable::Server::Socket.new(@server, env)
     end
 end

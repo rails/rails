@@ -3,7 +3,7 @@
 require "test_helper"
 require "stubs/test_server"
 
-class ActionCable::Server::Connection::CrossSiteForgeryTest < ActionCable::TestCase
+class ActionCable::Server::Socket::CrossSiteForgeryTest < ActionCable::TestCase
   HOST = "rubyonrails.com"
 
   class Connection < ActionCable::Connection::Base
@@ -110,7 +110,7 @@ class ActionCable::Server::Connection::CrossSiteForgeryTest < ActionCable::TestC
       response = nil
 
       run_in_eventmachine do
-        response = Connection.new(@server, env_for_origin(origin, **options)).process
+        response = ActionCable::Server::Socket.new(@server, env_for_origin(origin, **options)).process
       end
 
       response

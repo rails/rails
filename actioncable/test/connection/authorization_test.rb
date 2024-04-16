@@ -5,7 +5,7 @@ require "stubs/test_server"
 
 class ActionCable::Connection::AuthorizationTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
-    attr_reader :raw_conn
+    attr_reader :socket
 
     def connect
       reject_unauthorized_connection
@@ -15,8 +15,8 @@ class ActionCable::Connection::AuthorizationTest < ActionCable::TestCase
   test "unauthorized connection" do
     connection = open_connection
 
-    assert_called_with(connection.raw_conn, :transmit, [{ type: "disconnect", reason: "unauthorized", reconnect: false }]) do
-      assert_called(connection.raw_conn, :close) do
+    assert_called_with(connection.socket, :transmit, [{ type: "disconnect", reason: "unauthorized", reconnect: false }]) do
+      assert_called(connection.socket, :close) do
         connection.handle_open
       end
     end
@@ -28,7 +28,7 @@ class ActionCable::Connection::AuthorizationTest < ActionCable::TestCase
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
-      raw_conn = ActionCable::Server::Connection.new(server, env)
-      Connection.new(server, raw_conn)
+      socket = ActionCable::Server::Socket.new(server, env)
+      Connection.new(server, socket)
     end
 end

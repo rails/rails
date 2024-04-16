@@ -38,7 +38,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
   test "processing disconnect message" do
     open_connection
 
-    assert_called(@raw_conn, :close) do
+    assert_called(@socket, :close) do
       @connection.process_internal_message "type" => "disconnect"
     end
   end
@@ -46,7 +46,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
   test "processing invalid message" do
     open_connection
 
-    assert_not_called(@raw_conn, :close) do
+    assert_not_called(@socket, :close) do
       @connection.process_internal_message "type" => "unknown"
     end
   end
@@ -55,7 +55,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     def open_connection
       env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
 
-      @raw_conn = ActionCable::Server::Connection.new(@server, env)
-      @connection = Connection.new(@server, @raw_conn).tap(&:handle_open)
+      @socket = ActionCable::Server::Socket.new(@server, env)
+      @connection = Connection.new(@server, @socket).tap(&:handle_open)
     end
 end

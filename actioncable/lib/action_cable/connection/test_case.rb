@@ -60,7 +60,7 @@ module ActionCable
       def initialize(request)
         inner_logger = ActiveSupport::Logger.new(StringIO.new)
         tagged_logging = ActiveSupport::TaggedLogging.new(inner_logger)
-        @logger = ActionCable::Server::Connection::TaggedLoggerProxy.new(tagged_logging, tags: [])
+        @logger = ActionCable::Server::TaggedLoggerProxy.new(tagged_logging, tags: [])
         @request = request
         @env = request.env
       end

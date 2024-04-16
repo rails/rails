@@ -2,7 +2,7 @@
 
 module ActionCable
   module Server
-    class Connection
+    class Socket
       #--
       # This class is heavily based on faye-websocket-ruby
       #

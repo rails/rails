@@ -3,16 +3,16 @@
 require "test_helper"
 require "stubs/test_server"
 
-class ActionCable::Server::Connection::ClientSocketTest < ActionCable::TestCase
-  class Connection < ActionCable::Server::Connection
-    class Delegate
-      def initialize(conn)
-        @conn = conn
+class ActionCable::Server::Socket::ClientSocketTest < ActionCable::TestCase
+  class TestSocket < ActionCable::Server::Socket
+    class TestConnection
+      def initialize(socket)
+        @socket = socket
       end
 
-      def handle_open = @conn.connect
+      def handle_open = @socket.connect
 
-      def handle_close = @conn.disconnect
+      def handle_close = @socket.disconnect
     end
 
     attr_reader :connected, :websocket, :errors
@@ -20,7 +20,7 @@ class ActionCable::Server::Connection::ClientSocketTest < ActionCable::TestCase
     def initialize(*)
       super
       @errors = []
-      @app_conn = Delegate.new(self)
+      @connection = TestConnection.new(self)
     end
 
     def connect
@@ -83,8 +83,8 @@ class ActionCable::Server::Connection::ClientSocketTest < ActionCable::TestCase
         end
       env["rack.hijack"] = -> { env["rack.hijack_io"] = io }
 
-      Connection.new(@server, env).tap do |connection|
-        connection.process
+      TestSocket.new(@server, env).tap do |socket|
+        socket.process
         if client_io
           # Make sure server returns handshake response
           Timeout.timeout(1) do
@@ -93,8 +93,8 @@ class ActionCable::Server::Connection::ClientSocketTest < ActionCable::TestCase
             end
           end
         end
-        connection.send :handle_open
-        assert connection.connected
+        socket.send :handle_open
+        assert socket.connected
       end
     end
 end

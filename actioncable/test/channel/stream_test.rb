@@ -2,7 +2,7 @@
 
 require "test_helper"
 require "minitest/mock"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 require "concurrent/atomic/cyclic_barrier"
 
@@ -51,13 +51,13 @@ module ActionCable::StreamTests
     setup do
       @server = TestServer.new(subscription_adapter: SuccessAdapter)
       @pubsub = @server.pubsub
-      @raw_conn = TestConnection.new
+      @socket = TestSocket.new
     end
 
-    attr_reader :raw_conn, :server
+    attr_reader :socket, :server
 
     test "streaming start and stop" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
       pubsub = Minitest::Mock.new server.pubsub
 
       pubsub.expect(:subscribe, nil, ["test_room_1", Proc, Proc])
@@ -74,7 +74,7 @@ module ActionCable::StreamTests
     end
 
     test "stream from non-string channel" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
       pubsub = Minitest::Mock.new server.pubsub
 
       pubsub.expect(:subscribe, nil, ["channel", Proc, Proc])
@@ -91,7 +91,7 @@ module ActionCable::StreamTests
     end
 
     test "stream_for" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
       pubsub = Minitest::Mock.new server.pubsub
 
       pubsub.expect(:subscribe, nil, ["action_cable:stream_tests:chat:Room#1-Campfire", Proc, Proc])
@@ -107,7 +107,7 @@ module ActionCable::StreamTests
     end
 
     test "stream_or_reject_for" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
       pubsub = Minitest::Mock.new server.pubsub
 
       pubsub.expect(:subscribe, nil, ["action_cable:stream_tests:chat:Room#1-Campfire", Proc, Proc])
@@ -123,7 +123,7 @@ module ActionCable::StreamTests
     end
 
     test "reject subscription when nil is passed to stream_or_reject_for" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
 
       channel = ChatChannel.new connection, "{id: 1}", id: 1
       def channel.subscribed
@@ -133,34 +133,34 @@ module ActionCable::StreamTests
       channel.subscribe_to_channel
 
       rejection = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
-      assert_equal rejection, raw_conn.last_transmission
+      assert_equal rejection, socket.last_transmission
     end
 
     test "stream_from subscription confirmation" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
 
       channel = ChatChannel.new connection, "{id: 1}", id: 1
       channel.subscribe_to_channel
 
       confirmation = { "identifier" => "{id: 1}", "type" => "confirm_subscription" }
-      assert_equal confirmation, raw_conn.last_transmission, "Did not receive subscription confirmation within 0.1s"
+      assert_equal confirmation, socket.last_transmission, "Did not receive subscription confirmation within 0.1s"
     end
 
     test "subscription confirmation should only be sent out once" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
 
       channel = ChatChannel.new connection, "test_channel"
       channel.send_confirmation
       channel.send_confirmation
 
       expected = { "identifier" => "test_channel", "type" => "confirm_subscription" }
-      assert_equal expected, raw_conn.last_transmission, "Did not receive subscription confirmation"
+      assert_equal expected, socket.last_transmission, "Did not receive subscription confirmation"
 
-      assert_equal 1, raw_conn.transmissions.size
+      assert_equal 1, socket.transmissions.size
     end
 
     test "stop_all_streams" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
 
       channel = ChatChannel.new connection, "{id: 3}"
       channel.subscribe_to_channel
@@ -191,7 +191,7 @@ module ActionCable::StreamTests
     end
 
     test "stop_stream_from" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
 
       channel = ChatChannel.new connection, "{id: 3}"
       channel.subscribe_to_channel
@@ -220,7 +220,7 @@ module ActionCable::StreamTests
     end
 
     test "stop_stream_for" do
-      connection = Connection.new(server, raw_conn)
+      connection = Connection.new(server, socket)
 
       channel = ChatChannel.new connection, "{id: 3}"
       channel.subscribe_to_channel
@@ -336,7 +336,7 @@ module ActionCable::StreamTests
       @server.config.connection_class = -> { Connection }
     end
 
-    attr_reader :raw_conn, :server, :connection
+    attr_reader :socket, :server, :connection
 
     test "custom encoder" do
       run_in_eventmachine do
@@ -346,7 +346,7 @@ module ActionCable::StreamTests
         server.broadcast "test_room_1", { foo: "bar" }, coder: DummyEncoder
         wait_for_async
 
-        assert_equal({ "foo" => "encoded" }, raw_conn.last_transmission.fetch("message"))
+        assert_equal({ "foo" => "encoded" }, socket.last_transmission.fetch("message"))
       end
     end
 
@@ -370,7 +370,7 @@ module ActionCable::StreamTests
         receive(command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
         wait_for_async
 
-        assert_equal expected, raw_conn.last_transmission, "Did not receive subscription confirmation"
+        assert_equal expected, socket.last_transmission, "Did not receive subscription confirmation"
       end
     end
 
@@ -381,8 +381,8 @@ module ActionCable::StreamTests
       end
 
       def open_connection
-        @raw_conn = TestConnection.new
-        @connection = Connection.new(@server, @raw_conn)
+        @socket = TestSocket.new
+        @connection = Connection.new(@server, @socket)
       end
 
       def receive(command:, identifiers:, channel: "ActionCable::StreamTests::ChatChannel")

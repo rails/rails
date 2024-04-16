@@ -55,8 +55,8 @@ class ActionCable::Connection::CallbacksTest < ActionCable::TestCase
     @server = TestServer.new
     @env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
 
-    @raw_conn = ActionCable::Server::Connection.new(@server, @env)
-    @connection = Connection.new(@server, @raw_conn)
+    @socket = ActionCable::Server::Socket.new(@server, @env)
+    @connection = Connection.new(@server, @socket)
     @identifier = { channel: "ActionCable::Connection::CallbacksTest::ChatChannel" }.to_json
   end
 

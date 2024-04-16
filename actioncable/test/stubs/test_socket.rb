@@ -2,7 +2,7 @@
 
 require "stubs/user"
 
-class TestConnection
+class TestSocket
   attr_reader :identifiers, :logger, :current_user, :server, :subscriptions, :transmissions
 
   delegate :pubsub, :config, to: :server
