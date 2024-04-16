@@ -51,12 +51,20 @@ module ActionView
         end
       end
 
+      def callable_cache_key
+        if @options[:cached].is_a?(Hash) && @options[:cached][:key].respond_to?(:call)
+          @options[:cached][:key]
+        elsif @options[:cached].respond_to?(:call)
+          @options[:cached]
+        end
+      end
+
       def callable_cache_key?
-        @options[:cached].respond_to?(:call)
+        callable_cache_key.present?
       end
 
       def collection_by_cache_keys(view, template, collection)
-        seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
+        seed = callable_cache_key? ? callable_cache_key : ->(i) { i }
 
         digest_path = view.digest_path_from_template(template)
         collection.preload! if callable_cache_key?
@@ -111,7 +119,8 @@ module ActionView
         end
 
         unless entries_to_write.empty?
-          collection_cache.write_multi(entries_to_write)
+          expires_in = @options[:cached][:expires_in] if @options[:cached].is_a?(Hash)
+          collection_cache.write_multi(entries_to_write, expires_in: expires_in)
         end
 
         keyed_partials
