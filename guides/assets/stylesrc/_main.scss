@@ -345,6 +345,12 @@ body.guide {
       max-width: calc(55rem + 420px);
       margin: 0 auto;
       padding-right: 470px;
+
+      :where(body[dir="rtl"]) &,
+      html.translated-rtl & {
+        padding-right: 1.5em;
+        padding-left: 470px;
+      }
     }
   } // .wrapper
 
@@ -725,6 +731,11 @@ body.guide {
           right: 50px;
         max-height: calc(100vh - 200px);
         width: 400px;
+        
+        :where(body[dir="rtl"]) &,
+        html.translated-rtl & {
+          right: auto; left: 50px;
+        }
       }
 
       &.guide-index {
