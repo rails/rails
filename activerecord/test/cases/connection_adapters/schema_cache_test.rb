@@ -338,12 +338,12 @@ module ActiveRecord
         # Create an empty cache.
         cache = new_bound_reflection
 
-        tempfile_a = Tempfile.new(["schema_cache-", ".dump.gz"])
+        tempfile_a = Tempfile.new(["schema_cache-", ".yml.gz"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile_a.path)
         digest_a = Digest::MD5.file(tempfile_a).hexdigest
         sleep(1) # ensure timestamp changes
-        tempfile_b = Tempfile.new(["schema_cache-", ".dump.gz"])
+        tempfile_b = Tempfile.new(["schema_cache-", ".yml.gz"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile_b.path)
         digest_b = Digest::MD5.file(tempfile_b).hexdigest
