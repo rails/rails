@@ -40,6 +40,12 @@
     content: " (" attr(href) ")";
   }
 
+  a:link, a:visited {
+    background: transparent;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
   abbr[title]::after {
     content: " (" attr(title) ")";
   }
@@ -183,12 +189,5 @@
     }
 
   } // body.guide
-
-  a:link, a:visited {
-    background: transparent;
-    font-weight: bold;
-    text-decoration: underline;
-    }
-
 }
 
