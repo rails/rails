@@ -46,4 +46,6 @@ class TestServer
       wp.instance_variable_set(:@executor, Concurrent.global_io_executor)
     end
   end
+
+  def new_tagged_logger = ActionCable::Server::TaggedLoggerProxy.new(logger, tags: [])
 end

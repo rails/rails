@@ -18,7 +18,7 @@ module ActionCable
         @server, @env, @coder = server, env, coder
 
         @worker_pool = server.worker_pool
-        @logger = new_tagged_logger
+        @logger = server.new_tagged_logger { request }
 
         @websocket      = WebSocket.new(env, self, event_loop)
         @message_buffer = MessageBuffer.new(self)
@@ -186,12 +186,6 @@ module ActionCable
           "Successfully upgraded to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)" % [
             env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
           ]
-        end
-
-        # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
-        def new_tagged_logger
-          TaggedLoggerProxy.new server.logger,
-            tags: server.config.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
     end
   end
