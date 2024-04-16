@@ -174,8 +174,8 @@ module ActiveRecord
       end
 
       # Enable the query cache within the block.
-      def cache(&)
-        pool.enable_query_cache(&)
+      def cache(&block)
+        pool.enable_query_cache(&block)
       end
 
       def enable_query_cache!
@@ -186,8 +186,8 @@ module ActiveRecord
       #
       # Set <tt>dirties: false</tt> to prevent query caches on all connections from being cleared by write operations.
       # (By default, write operations dirty all connections' query caches in case they are replicas whose cache would now be outdated.)
-      def uncached(dirties: true, &)
-        pool.disable_query_cache(dirties: dirties, &)
+      def uncached(dirties: true, &block)
+        pool.disable_query_cache(dirties: dirties, &block)
       end
 
       def disable_query_cache!
