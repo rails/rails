@@ -134,6 +134,13 @@ module ActionCable
       def connection_identifiers
         config.connection_class.call.identifiers
       end
+
+      # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
+      # You can pass request object either directly or via block to lazily evaluate it.
+      def new_tagged_logger(request = nil, &block)
+        TaggedLoggerProxy.new logger,
+          tags: config.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request ||= block.call) : tag.to_s.camelize }
+      end
     end
 
     ActiveSupport.run_load_hooks(:action_cable, Base.config)
