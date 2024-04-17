@@ -1,3 +1,15 @@
+*   Fix a regression in 7.1.3 passing a `to:` option without a controller when the controller is already defined by a scope.
+
+    ```ruby
+    Rails.application.routes.draw do
+      controller :home do
+        get "recent", to: "recent_posts"
+      end
+    end
+    ```
+
+    *Étienne Barrié*
+
 *   Request Forgery takes relative paths into account.
 
     *Stefan Wienert*
