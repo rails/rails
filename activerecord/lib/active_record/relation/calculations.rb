@@ -519,7 +519,8 @@ module ActiveRecord
         group_columns = group_aliases.zip(group_fields)
 
         column = aggregate_column(column_name)
-        column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
+        column_name = column.try(:name) || connection.visitor.compile(column)
+        column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.downcase}")
         select_value = operation_over_aggregate_column(column, operation, distinct)
         select_value.as(adapter_class.quote_column_name(column_alias))
 
@@ -567,7 +568,7 @@ module ActiveRecord
 
           if operation != "count"
             type = column.try(:type_caster) ||
-              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+              lookup_cast_type_from_join_dependencies(column_name) || Type.default_value
             type = type.subtype if Enum::EnumType === type
           end
 

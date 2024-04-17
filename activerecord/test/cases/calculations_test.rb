@@ -1160,6 +1160,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  def test_group_by_with_count_on_arel_attribute
+    expected = { "SpecialPost" => 1, "StiPost" => 1, "Post" => 9 }
+    actual = Post.group(:type).count(Post.arel_table[:id])
+    assert_equal expected, actual
+  end
+
   def test_pluck_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     ids = Company.includes(:contracts).pluck(:developer_id)
