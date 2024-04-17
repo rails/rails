@@ -12,6 +12,10 @@ module ActiveSupport
       # Expected non-verbose warning emitted by Rails.
       /Ignoring .*\.yml because it has expired/,
       /Failed to validate the schema cache because/,
+
+      # Ref: https://bugs.ruby-lang.org/issues/15554
+      # This new Ruby 3.4 warning is still being fined tuned to reduce false positives
+      /the block passed to/,
     )
 
     SUPPRESSED_WARNINGS = Regexp.union(
