@@ -255,7 +255,7 @@ module ActionDispatch
       end
 
       def backtrace
-        @backtrace = build_backtrace
+        @backtrace ||= build_backtrace
       end
 
       def build_backtrace
