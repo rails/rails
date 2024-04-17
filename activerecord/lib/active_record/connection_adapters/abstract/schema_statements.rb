@@ -618,6 +618,7 @@ module ActiveRecord
       #  # Ignores the method call if the column exists
       #  add_column(:shapes, :triangle, 'polygon', if_not_exists: true)
       def add_column(table_name, column_name, type, **options)
+        options.assert_valid_keys(:comment, :collation, :default, :limit, :null, :precision, :scale, :if_not_exists)
         add_column_def = build_add_column_definition(table_name, column_name, type, **options)
         return unless add_column_def
 
