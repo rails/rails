@@ -4037,6 +4037,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     routes = ActionDispatch::Routing::RouteSet.new
     routes.draw(&block)
     @app = self.class.build_app routes
+    @routes = routes
   end
 
   def test_missing_controller
@@ -4054,7 +4055,16 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
         get "/foo/bar", to: "foo"
       end
     }
-    assert_match(/:to must respond to/, ex.message)
+    assert_match(/Missing :controller/, ex.message)
+  end
+
+  def test_implicit_controller_with_to
+    draw do
+      controller :foo do
+        get "/foo/bar", to: "bar"
+      end
+    end
+    assert_routing "/foo/bar", controller: "foo", action: "bar"
   end
 
   def test_to_is_a_symbol
@@ -4066,7 +4076,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     assert_match(/:to must respond to/, ex.message)
   end
 
-  def test_missing_action_on_hash
+  def test_missing_action_with_to
     ex = assert_raises(ArgumentError) {
       draw do
         get "/foo/bar", to: "foo#"

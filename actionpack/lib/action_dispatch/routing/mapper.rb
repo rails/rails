@@ -229,12 +229,17 @@ module ActionDispatch
               if to.nil?
                 controller = default_controller
                 action = default_action
-              elsif to.is_a?(String) && to.include?("#")
-                to_endpoint = to.split("#").map!(&:-@)
-                controller  = to_endpoint[0]
-                action      = to_endpoint[1]
+              elsif to.is_a?(String)
+                if to.include?("#")
+                  to_endpoint = to.split("#").map!(&:-@)
+                  controller  = to_endpoint[0]
+                  action      = to_endpoint[1]
+                else
+                  controller = default_controller
+                  action = to
+                end
               else
-                raise ArgumentError, ":to must respond to `action` or `call`, or it must be a String that includes '#'"
+                raise ArgumentError, ":to must respond to `action` or `call`, or it must be a String that includes '#', or the controller should be implicit"
               end
 
               controller = add_controller_module(controller, modyoule)
