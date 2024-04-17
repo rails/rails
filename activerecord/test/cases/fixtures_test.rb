@@ -374,7 +374,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_create_symbol_fixtures
-    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, collections: Course) { Course.connection }
+    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, collections: Course)
 
     assert Course.find_by_name("Collection"), "course is not in the database"
     assert fixtures.detect { |f| f.name == "collections" }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
