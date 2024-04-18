@@ -1248,6 +1248,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal "selenium", content["containerEnv"]["SELENIUM_HOST"]
       assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/activestorage"])
       assert_equal({}, content["features"]["ghcr.io/devcontainers/features/github-cli:1"])
+      assert_includes(content["forwardPorts"], 3000)
+      assert_includes(content["forwardPorts"], 6379)
     end
     assert_file(".devcontainer/Dockerfile") do |content|
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
@@ -1295,9 +1297,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_nil compose_config["services"]["redis"]
       assert_nil compose_config["volumes"]
     end
+
+    assert_devcontainer_json_file do |content|
+      assert_not_includes content["forwardPorts"], 6379
+    end
   end
 
-  def test_devonctainer_postgresql
+  def test_devcontainer_postgresql
     run_generator [ destination_root, "-d", "postgresql" ]
 
     assert_compose_file do |compose_config|
@@ -1320,13 +1326,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_devcontainer_json_file do |content|
       assert_equal "postgres", content["containerEnv"]["DB_HOST"]
       assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/postgres-client"])
+      assert_includes(content["forwardPorts"], 5432)
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV\["DB_HOST"\] %>/, content)
     end
   end
 
-  def test_devonctainer_mysql
+  def test_devcontainer_mysql
     run_generator [ destination_root, "-d", "mysql" ]
 
     assert_compose_file do |compose_config|
@@ -1349,13 +1356,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_devcontainer_json_file do |content|
       assert_equal "mysql", content["containerEnv"]["DB_HOST"]
       assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/mysql-client"])
+      assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
     end
   end
 
-  def test_devonctainer_mariadb
+  def test_devcontainer_mariadb
     run_generator [ destination_root, "-d", "trilogy" ]
 
     assert_compose_file do |compose_config|
@@ -1375,6 +1383,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_devcontainer_json_file do |content|
       assert_equal "mariadb", content["containerEnv"]["DB_HOST"]
+      assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)

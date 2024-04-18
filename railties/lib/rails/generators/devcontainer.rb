@@ -64,8 +64,25 @@ module Rails
           @devcontainer_mounts
         end
 
+        def devcontainer_forward_ports
+          return @devcontainer_forward_ports if @devcontainer_forward_ports
+
+          @devcontainer_forward_ports = [3000]
+          @devcontainer_forward_ports << db_port_for_devcontainer if db_port_for_devcontainer
+          @devcontainer_forward_ports << 6379 if devcontainer_needs_redis?
+
+          @devcontainer_forward_ports
+        end
+
         def devcontainer_needs_redis?
           !(options.skip_action_cable? && options.skip_active_job?)
+        end
+
+        def db_port_for_devcontainer(database = options[:database])
+          case database
+          when "mysql", "trilogy" then 3306
+          when "postgresql"       then 5432
+          end
         end
 
         def db_name_for_devcontainer(database = options[:database])
