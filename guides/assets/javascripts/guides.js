@@ -103,4 +103,15 @@
       e.clearSelection();
     });
   });
+
+  // Observe the HTML tag for Google Translate CSS class, to swap our lang direction LTR/RTL.
+  var observer = new MutationObserver(function(mutations, _observer) {
+    each(mutations, function(mutation) {
+      if (mutation.type === "attributes" && mutation.attributeName == "class") {
+        mutation.target.dir = mutation.target.classList.contains("translated-rtl") ? "rtl" : "ltr";
+      }
+    })
+  });
+  observer.observe(document.querySelector("html"), { attributeFilter: ["class"] });
+
 }).call(this);
