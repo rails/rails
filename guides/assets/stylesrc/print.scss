@@ -44,6 +44,10 @@
     background: transparent;
     font-weight: bold;
     text-decoration: underline;
+
+    pre, code {
+      font-weight: normal !important;
+    }
   }
 
   abbr[title]::after {
