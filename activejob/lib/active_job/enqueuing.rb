@@ -56,7 +56,7 @@ module ActiveJob
       #
       # If Active Job is used conjointly with Active Record, and #perform_later is called
       # inside an Active Record transaction, then the enqueue is implicitly deferred to after
-      # the transaction is committed, or droped if it's rolled back. In such case #perform_later
+      # the transaction is committed, or dropped if it's rolled back. In such case #perform_later
       # will return the job instance like if it was successfully enqueued, but will still return
       # +false+ if a callback prevented the job from being enqueued.
       #
