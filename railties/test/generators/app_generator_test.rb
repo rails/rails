@@ -1426,6 +1426,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_devcontainer_adds_bun_when_required
+    run_generator [destination_root, "--javascript=bun"]
+
+    assert_file ".devcontainer/Dockerfile" do |content|
+      assert_match(/ARG BUN_VERSION=#{Rails::Generators::AppBase::BUN_VERSION}$/, content)
+    end
+  end
+
   def test_devcontainer_does_not_add_node_tooling_when_not_required
     run_generator [destination_root]
 
