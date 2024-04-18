@@ -1,3 +1,7 @@
+*   Allow `Sqlite3Adapter` to use `sqlite3` gem version `2.x`
+
+    *Mike Dalessio*
+
 *   Allow `ActiveRecord::Base#pluck` to accept hash values
 
     ```ruby
