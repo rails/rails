@@ -175,7 +175,7 @@
       pre, span {
         background-color: transparent !important;
         border: none;
-        font-size: 9pt !important;
+        font-size: 9.5pt !important;
       }
       
       button {
@@ -186,6 +186,10 @@
     hr {
       height: 1.5em;
       background: url("../images/hr_rails.svg") center no-repeat !important;
+    }
+
+    code, pre {
+      font-size: 9.5pt !important;
     }
 
   } // body.guide
