@@ -52,7 +52,7 @@ module ActiveRecord
       end
 
       def test_irreversible_commands_raise_exception
-        x = assert_raises(ActiveRecord::IrreversibleMigration) do
+        assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.revert { @recorder.execute "some sql" }
         end
         assert_raises(ActiveRecord::IrreversibleMigration) do
