@@ -622,7 +622,8 @@ module ActiveRecord
       self
     end
 
-    # Allows to specify an order by a specific set of values.
+    # Applies an <tt>ORDER BY</tt> clause based on a given +column+,
+    # ordered and filtered by a specific set of +values+.
     #
     #   User.in_order_of(:id, [1, 5, 3])
     #   # SELECT "users".* FROM "users"
@@ -631,6 +632,32 @@ module ActiveRecord
     #   #     WHEN "users"."id" = 1 THEN 1
     #   #     WHEN "users"."id" = 5 THEN 2
     #   #     WHEN "users"."id" = 3 THEN 3
+    #   #   END ASC
+    #
+    # +column+ can point to an enum column; the actual query generated may be different depending
+    # on the database adapter and the column definition.
+    #
+    #   class Conversation < ActiveRecord::Base
+    #     enum :status, [ :active, :archived ]
+    #   end
+    #
+    #   Conversation.in_order_of(:status, [:archived, :active])
+    #   # SELECT "conversations".* FROM "conversations"
+    #   #   WHERE "conversations"."status" IN (1, 0)
+    #   #   ORDER BY CASE
+    #   #     WHEN "conversations"."status" = 1 THEN 1
+    #   #     WHEN "conversations"."status" = 0 THEN 2
+    #   #   END ASC
+    #
+    # +values+ can also include +nil+.
+    #
+    #   Conversation.in_order_of(:status, [nil, :archived, :active])
+    #   # SELECT "conversations".* FROM "conversations"
+    #   #   WHERE ("conversations"."status" IN (1, 0) OR "conversations"."status" IS NULL)
+    #   #   ORDER BY CASE
+    #   #     WHEN "conversations"."status" IS NULL THEN 1
+    #   #     WHEN "conversations"."status" = 1 THEN 2
+    #   #     WHEN "conversations"."status" = 0 THEN 3
     #   #   END ASC
     #
     def in_order_of(column, values)
