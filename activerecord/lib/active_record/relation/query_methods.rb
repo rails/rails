@@ -435,6 +435,17 @@ module ActiveRecord
     #   # )
     #   # SELECT * FROM posts
     #
+    # You can also pass an array of sub-queries to be joined in a +UNION ALL+.
+    #
+    #   Post.with(posts_with_tags_or_comments: [Post.where("tags_count > ?", 0), Post.where("comments_count > ?", 0)])
+    #   # => ActiveRecord::Relation
+    #   # WITH posts_with_tags_or_comments AS (
+    #   #  (SELECT * FROM posts WHERE (tags_count > 0))
+    #   #  UNION ALL
+    #   #  (SELECT * FROM posts WHERE (comments_count > 0))
+    #   # )
+    #   # SELECT * FROM posts
+    #
     # Once you define Common Table Expression you can use custom +FROM+ value or +JOIN+ to reference it.
     #
     #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0)).from("posts_with_tags AS posts")
@@ -475,12 +486,41 @@ module ActiveRecord
     def with(*args)
       raise ArgumentError, "ActiveRecord::Relation#with does not accept a block" if block_given?
       check_if_method_has_arguments!(__callee__, args)
-      spawn.with!(*args)
+
+      if args.empty?
+        WithChain.new(spawn)
+      else
+        spawn.with!(*args)
+      end
     end
 
     # Like #with, but modifies relation in place.
     def with!(*args) # :nodoc:
       self.with_values += args
+      self
+    end
+
+    # Add a recursive Common Table Expression (CTE) that you can then reference within another SELECT statement.
+    #
+    #   Post.with_recursive(post_and_replies: [Post.where(id: 42), Post.joins('JOIN post_and_replies ON posts.in_reply_to_id = post_and_replies.id')])
+    #   # => ActiveRecord::Relation
+    #   # WITH post_and_replies AS (
+    #   #   (SELECT * FROM posts WHERE id = 42)
+    #   #   UNION ALL
+    #   #   (SELECT * FROM posts JOIN posts_and_replies ON posts.in_reply_to_id = posts_and_replies.id)
+    #   # )
+    #   # SELECT * FROM posts
+    #
+    # See `#with` for more information.
+    def with_recursive(*args)
+      check_if_method_has_arguments!(__callee__, args)
+      spawn.with_recursive!(*args)
+    end
+
+    # Like #with_recursive but modifies the relation in place.
+    def with_recursive!(*args) # :nodoc:
+      self.with_values += args
+      @with_is_recursive = true
       self
     end
 
@@ -1846,20 +1886,23 @@ module ActiveRecord
           build_with_value_from_hash(with_value)
         end
 
-        arel.with(with_statements)
+        @with_is_recursive ? arel.with(:recursive, with_statements) : arel.with(with_statements)
       end
 
       def build_with_value_from_hash(hash)
         hash.map do |name, value|
-          expression =
-            case value
-            when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
-            when ActiveRecord::Relation then value.arel
-            when Arel::SelectManager then value
-            else
-              raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
-            end
-          Arel::Nodes::TableAlias.new(expression, name)
+          Arel::Nodes::TableAlias.new(build_with_expression_from_value(value), name)
+        end
+      end
+
+      def build_with_expression_from_value(value)
+        case value
+        when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
+        when ActiveRecord::Relation then value.arel
+        when Arel::SelectManager then value
+        when Array then value.map { |q| build_with_expression_from_value(q) }.reduce { |result, value| result.union(:all, value) }
+        else
+          raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
         end
       end
 
