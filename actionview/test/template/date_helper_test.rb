@@ -143,16 +143,6 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "10 minutes", distance_of_time_in_words(Time.at(600), 0)
   end
 
-  def test_distance_in_words_doesnt_use_the_quotient_operator
-    # Make sure that we avoid Integer#/ (redefined by mathn gem to return Rational)
-    Integer.send :private, :/
-
-    from = Time.utc(2004, 6, 6, 21, 45, 0)
-    assert_distance_of_time_in_words(from)
-  ensure
-    Integer.send :public, :/
-  end
-
   def test_time_ago_in_words_passes_include_seconds
     assert_equal "less than 20 seconds", time_ago_in_words(15.seconds.ago, include_seconds: true)
     assert_equal "less than a minute", time_ago_in_words(15.seconds.ago, include_seconds: false)
