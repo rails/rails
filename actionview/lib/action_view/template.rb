@@ -438,9 +438,13 @@ module ActionView
 
         method_arguments =
           if set_strict_locals
-            "output_buffer, #{set_strict_locals}"
+            if set_strict_locals.include?("&")
+              "output_buffer, #{set_strict_locals}"
+            else
+              "output_buffer, #{set_strict_locals}, &_"
+            end
           else
-            "local_assigns, output_buffer"
+            "local_assigns, output_buffer, &_"
           end
 
         # Make sure that the resulting String to be eval'd is in the
@@ -504,6 +508,8 @@ module ActionView
         non_kwarg_parameters = parameters.select do |parameter|
           ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0])
         end
+
+        non_kwarg_parameters.pop if non_kwarg_parameters.last == %i(block _)
 
         unless non_kwarg_parameters.empty?
           mod.undef_method(method_name)
