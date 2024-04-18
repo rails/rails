@@ -1,3 +1,9 @@
+*   Don't silently execute statements on migrations when they can't be reversed.
+
+    Fixes #51570.
+
+    *Rafael Mendonça França*
+
 *   Allow `Sqlite3Adapter` to use `sqlite3` gem version `2.x`
 
     *Mike Dalessio*

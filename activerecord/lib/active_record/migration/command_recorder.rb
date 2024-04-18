@@ -376,9 +376,10 @@ module ActiveRecord
           super || delegate.respond_to?(method)
         end
 
-        # Forwards any missing method call to the \target.
+        # Forwards any missing method call to the target.
         def method_missing(method, ...)
           if delegate.respond_to?(method)
+            record(method, ...)
             delegate.public_send(method, ...)
           else
             super
