@@ -514,7 +514,7 @@ class FilterTest < ActionController::TestCase
         @filters << "action_two"
       end
 
-      def non_yielding_action
+      def non_yielding_action(&_)
         @filters << "it didn't yield"
       end
 
