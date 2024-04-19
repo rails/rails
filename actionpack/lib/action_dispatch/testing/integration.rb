@@ -675,6 +675,18 @@ module ActionDispatch
           @@app = app
         end
 
+        # Registers an encoder to encode request parameters and to parse
+        # response body for a MIME type.
+        #
+        # #### Example
+        #
+        #     ActionDispatch::IntegrationTest.register_encoder :xml,
+        #       param_encoder: -> params { params.to_xml },
+        #       response_parser: -> body { Hash.from_xml(body) }
+        #
+        # `param_encoder` encodes request parameters when performing a request.
+        # `response_parser` parses response body through
+        # `ActionDispatch::TestResponse#parsed_body`.
         def register_encoder(*args, **options)
           RequestEncoder.register_encoder(*args, **options)
         end
