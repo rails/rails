@@ -40,7 +40,7 @@ module ActionView
               option_tags = tag_builder.content_tag_string("option", content, value: "", label: label) + "\n" + option_tags
             end
 
-            if value.blank? && options[:prompt]
+            if value != false && value.blank? && options[:prompt]
               tag_options = { value: "" }.tap do |prompt_opts|
                 prompt_opts[:disabled] = true if options[:disabled] == ""
                 prompt_opts[:selected] = true if options[:selected] == ""
