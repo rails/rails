@@ -1,3 +1,7 @@
+*   Add `file_exist?` method in `ActiveStorage::Blob`, `ActiveStorage::Variant`, `ActiveStorage::VariantWithRecord`.
+
+    *Clément Prod'homme*
+
 *   Add support for custom `key` in `ActiveStorage::Blob#compose`.
 
     *Elvin Efendiev*

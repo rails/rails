@@ -284,6 +284,12 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "file_exist? check if file exist on external service" do
+    blob = create_file_blob
+
+    assert_equal blob.file_exist?, ActiveStorage::Blob.service.exist?(blob.key)
+  end
+
   test "destroy deletes file from service" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_limit: [100, 100]).processed

@@ -28,6 +28,11 @@ class ActiveStorage::VariantWithRecord
     ActiveStorage::Filename.new "#{blob.filename.base}.#{variation.format.downcase}"
   end
 
+  # Returns +true+ if the file exist in the storage service.
+  def file_exist?
+    service.exist?(key)
+  end
+
   # Destroys record and deletes file from service.
   def destroy
     record&.destroy
