@@ -1377,10 +1377,10 @@ class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
     get "/"
     with_root do
       Launchy.stub(:open, ->(path) { raise LoadError.new }) do
-      self.stub(:warn, ->(warning) { warning.include?("Please install the launchy gem to open the file automatically.") }) do
-      save_and_open_page
-    end
-    end
+        self.stub(:warn, ->(warning) { warning.include?("Please install the launchy gem to open the file automatically.") }) do
+          save_and_open_page
+        end
+      end
       assert_equal File.read(dump_path), response.body
     end
   end
