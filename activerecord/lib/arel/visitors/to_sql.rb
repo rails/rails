@@ -979,7 +979,7 @@ module Arel # :nodoc: all
 
         # Used by some visitors to enclose select queries in parentheses
         def grouping_parentheses(o, collector, always_wrap_selects = true)
-          if o.is_a?(Nodes::SelectStatement) && (always_wrap_selects || o.orders.present? || o.limit.present? || o.offset.present?)
+          if o.is_a?(Nodes::SelectStatement) && (always_wrap_selects || require_parentheses?(o))
             collector << "("
             visit o, collector
             collector << ")"
@@ -987,6 +987,10 @@ module Arel # :nodoc: all
           else
             visit o, collector
           end
+        end
+
+        def require_parentheses?(o)
+          !o.orders.empty? || o.limit || o.offset
         end
 
         def aggregate(name, o, collector)
