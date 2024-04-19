@@ -701,6 +701,11 @@ module ActiveRecord
       @strict_loading_mode == :n_plus_one_only
     end
 
+    # Returns +true+ if the record uses strict_loading with +:all+ mode enabled.
+    def strict_loading_all?
+      @strict_loading_mode == :all
+    end
+
     # Marks this record as read only.
     #
     #   customer = Customer.first
