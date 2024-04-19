@@ -1,3 +1,33 @@
+*   Strict loading using `:n_plus_one_only` does not eagerly load child associations.
+
+    With this change, child associations are no longer eagerly loaded, to
+    match intended behavior and to prevent non-deterministic order issues caused
+    by calling methods like `first` or `last`. As `first` and `last` don't cause
+    an N+1 by themselves, calling child associations will no longer raise.
+    Fixes #49473.
+
+    Before:
+
+    ```ruby
+    person = Person.find(1)
+    person.strict_loading!(mode: :n_plus_one_only)
+    person.posts.first
+    # SELECT * FROM posts WHERE person_id = 1; -- non-deterministic order
+    person.posts.first.firm # raises ActiveRecord::StrictLoadingViolationError
+    ```
+
+    After:
+
+    ```ruby
+    person = Person.find(1)
+    person.strict_loading!(mode: :n_plus_one_only)
+    person.posts.first # this is 1+1, not N+1
+    # SELECT * FROM posts WHERE person_id = 1 ORDER BY id LIMIT 1;
+    person.posts.first.firm # no longer raises
+    ```
+
+    *Reid Lynch*
+
 *   Allow `Sqlite3Adapter` to use `sqlite3` gem version `2.x`
 
     *Mike Dalessio*
