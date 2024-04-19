@@ -46,17 +46,11 @@ module ActiveRecord
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :execute, ["some sql"]
         end
-        assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :update, ["some sql"]
-        end
       end
 
       def test_irreversible_commands_raise_exception
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.revert { @recorder.execute "some sql" }
-        end
-        assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.revert { @recorder.update "some sql" }
         end
       end
 
