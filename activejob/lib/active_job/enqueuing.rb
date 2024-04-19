@@ -75,7 +75,7 @@ module ActiveJob
       end
 
       private
-        def job_or_instantiate(*args) # :doc:
+        def job_or_instantiate(*args, &_) # :doc:
           args.first.is_a?(self) ? args.first : new(*args)
         end
         ruby2_keywords(:job_or_instantiate)
