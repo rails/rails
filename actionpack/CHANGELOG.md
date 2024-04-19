@@ -1,3 +1,8 @@
+*   Fix the error page that is displayed when a view template is missing to account for nested controller paths in the
+    suggested correct location for the missing template.
+
+    *Joshua Young*
+
 *   Fix a regression in 7.1.3 passing a `to:` option without a controller when the controller is already defined by a scope.
 
     ```ruby
