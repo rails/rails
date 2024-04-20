@@ -375,8 +375,8 @@ module ActiveSupport
     #
     #   t = Time.zone.now          # => Fri, 14 Apr 2017 11:45:15.116992711 EST -05:00
     #   t.change(year: 2020)       # => Tue, 14 Apr 2020 11:45:15.116992711 EST -05:00
-    #   t.change(hour: 12)         # => Fri, 14 Apr 2017 12:00:00.116992711 EST -05:00
-    #   t.change(min: 30)          # => Fri, 14 Apr 2017 11:30:00.116992711 EST -05:00
+    #   t.change(hour: 12)         # => Fri, 14 Apr 2017 12:00:00.000000000 EST -05:00
+    #   t.change(min: 30)          # => Fri, 14 Apr 2017 11:30:00.000000000 EST -05:00
     #   t.change(offset: "-10:00") # => Fri, 14 Apr 2017 11:45:15.116992711 HST -10:00
     #   t.change(zone: "Hawaii")   # => Fri, 14 Apr 2017 11:45:15.116992711 HST -10:00
     def change(options)
