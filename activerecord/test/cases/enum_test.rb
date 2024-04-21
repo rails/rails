@@ -956,13 +956,16 @@ class EnumTest < ActiveRecord::TestCase
     klass = assert_deprecated(ActiveRecord.deprecator) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "computers"
-        enum timezone: [:"Etc/GMT+1", :"Etc/GMT-1"]
+        enum timezone: {
+          "Etc_GMT_plus_1" => 1,
+          "Etc_GMT_minus_1" => 2
+        }
       end
     end
 
-    computer = klass.public_send(:"Etc/GMT+1").build
-    assert_predicate computer, :"Etc/GMT+1?"
-    assert_not_predicate computer, :"Etc/GMT-1?"
+    computer = klass.public_send(:"Etc_GMT_plus_1").build
+    assert_predicate computer, :"Etc_GMT_plus_1?"
+    assert_not_predicate computer, :"Etc_GMT_minus_1?"
   end
 
   test "deserialize enum value to original hash key" do
@@ -1137,5 +1140,23 @@ class EnumTest < ActiveRecord::TestCase
     instance = klass.new
     assert_raises(NoMethodError) { instance.proposed? }
     assert_raises(NoMethodError) { instance.proposed! }
+  end
+
+  test "enum methods should be defined with friendly name" do
+    klass = assert_deprecated(ActiveRecord.deprecator) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "computers"
+        enum extendedWarranty: {
+          "Basic (Silver)": "basic-silver",
+          "Premium (Gold)": "premium-gold"
+        }
+      end
+    end
+
+    computer = klass.build
+    assert_not_respond_to computer, :"Basic (Silver)?"
+    assert_not_respond_to computer, :"Basic (Silver)!"
+    assert_not_respond_to computer, :"Premium (Gold)?"
+    assert_not_respond_to computer, :"Premium (Gold)!"
   end
 end

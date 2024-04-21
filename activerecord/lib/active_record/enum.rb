@@ -280,17 +280,11 @@ module ActiveRecord
             enum_values[label] = value
             label = label.to_s
 
-            value_method_name = "#{prefix}#{label}#{suffix}"
+            method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
+
+            value_method_name = "#{prefix}#{method_friendly_label}#{suffix}"
             value_method_names << value_method_name
             define_enum_methods(name, value_method_name, value, scopes, instance_methods)
-
-            method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
-            value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
-
-            if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
-              value_method_names << value_method_alias
-              define_enum_methods(name, value_method_alias, value, scopes, instance_methods)
-            end
           end
         end
         detect_negative_enum_conditions!(value_method_names) if scopes
