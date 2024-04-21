@@ -354,7 +354,7 @@ module ActiveRecord
         elsif abstract_class?
           "#{super}(abstract)"
         elsif !connected?
-          "#{super} (call '#{super}.connection' to establish a connection)"
+          "#{super} (call '#{super}.lease_connection' to establish a connection)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
