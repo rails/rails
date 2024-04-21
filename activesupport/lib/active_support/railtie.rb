@@ -118,11 +118,11 @@ module ActiveSupport
 
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
-        if k == "disable_to_s_conversion"
+        if k == :disable_to_s_conversion
           ActiveSupport.deprecator.warn("config.active_support.disable_to_s_conversion is deprecated and will be removed in Rails 7.2.")
-        elsif k == "remove_deprecated_time_with_zone_name"
+        elsif k == :remove_deprecated_time_with_zone_name
           ActiveSupport.deprecator.warn("config.active_support.remove_deprecated_time_with_zone_name is deprecated and will be removed in Rails 7.2.")
-        elsif k == "use_rfc4122_namespaced_uuids"
+        elsif k == :use_rfc4122_namespaced_uuids
           ActiveSupport.deprecator.warn("config.active_support.use_rfc4122_namespaced_uuids is deprecated and will be removed in Rails 7.2.")
         else
           k = "#{k}="
