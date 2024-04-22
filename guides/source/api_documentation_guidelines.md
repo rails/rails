@@ -417,7 +417,7 @@ Dynamically Generated Methods
 
 Methods created with `(module|class)_eval(STRING)` have a comment by their side with an instance of the generated code. That comment is 2 spaces away from the template:
 
-[![(module|class)_eval(STRING) code comments](images/dynamic_method_class_eval.png)](images/dynamic_method_class_eval.png)
+[![`(module|class)_eval(STRING)` code comments](images/dynamic_method_class_eval.png)](images/dynamic_method_class_eval.png)
 
 If the resulting lines are too wide, say 200 columns or more, put the comment above the call:
 

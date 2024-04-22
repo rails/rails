@@ -504,7 +504,7 @@ controller modules by default:
 | `AbstractController::Callbacks` | Support for `before_action` and similar helpers. |
 | `ActionController::Rescue` | Support for `rescue_from`. |
 | `ActionController::Instrumentation` | Support for the instrumentation hooks defined by Action Controller (see [the instrumentation guide](active_support_instrumentation.html#action-controller) for more information regarding this). |
-| `ActionController::ParamsWrapper` | Wraps the parameters hash into a nested hash, so that you don't have to specify root elements sending POST requests for instance.
+| `ActionController::ParamsWrapper` | Wraps the parameters hash into a nested hash, so that you don't have to specify root elements sending POST requests for instance. |
 | `ActionController::Head` | Support for returning a response with no content, only headers. |
 
 Other plugins may add additional modules. You can get a list of all modules

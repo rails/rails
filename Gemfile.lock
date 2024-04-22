@@ -167,9 +167,9 @@ GEM
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
     cgi (0.3.6)
-    chef-utils (18.1.29)
+    chef-utils (18.4.12)
       concurrent-ruby
-    concurrent-ruby (1.2.2)
+    concurrent-ruby (1.2.3)
     connection_pool (2.4.1)
     crack (0.4.5)
       rexml
@@ -306,7 +306,7 @@ GEM
       net-smtp
     marcel (1.0.2)
     matrix (0.4.2)
-    mdl (0.12.0)
+    mdl (0.13.0)
       kramdown (~> 2.3)
       kramdown-parser-gfm (~> 1.1)
       mixlib-cli (~> 2.1, >= 2.1.1)
