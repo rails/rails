@@ -502,12 +502,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
       store :content, coder: ActiveRecord::Coders::JSON
-      attribute(:content, EncryptedType.new(subtype: Topic.attribute_types.fetch("content")))
+      decorate_attributes([:content]) do |name, type|
+        EncryptedType.new(subtype: type)
+      end
     end
 
     topic = klass.create!(content: { trial: true })
-
-    assert_equal({ trial: true }, topic.content)
+    assert_equal({ "trial" => true }, topic.content)
   end
 
   def test_mutation_detection_does_not_double_serialize
