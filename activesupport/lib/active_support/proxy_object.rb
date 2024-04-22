@@ -1,17 +1,20 @@
 # frozen_string_literal: true
 
 module ActiveSupport
-  # = Active Support Proxy \Object
-  #
-  # A class with no predefined methods that behaves similarly to Ruby's
-  # BasicObject. Used for proxy classes.
-  class ProxyObject < ::BasicObject
+  class ProxyObject < ::BasicObject # :nodoc:
     undef_method :==
     undef_method :equal?
 
     # Let ActiveSupport::ProxyObject at least raise exceptions.
     def raise(*args)
       ::Object.send(:raise, *args)
+    end
+
+    def self.inherited(_subclass)
+      ::ActiveSupport.deprecator.warn(<<~MSG)
+        ActiveSupport::ProxyObject is deprecated and will be removed in Rails 7.3.
+        Use Ruby's buildin BasicObject instead.
+      MSG
     end
   end
 end

@@ -1,3 +1,7 @@
+*   Deprecate `ActiveSupport::ProxyObject` in favor of Ruby's buildin `BasicObject`
+
+    *Earlopain*
+
 *   `stub_const` now accepts a `exists: false` parameter to allow stubbing missing constants.
 
     *Jean Boussier*
