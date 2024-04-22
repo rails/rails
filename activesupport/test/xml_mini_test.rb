@@ -337,6 +337,19 @@ YAML
       assert_equal({ "1 => 'test'" => nil }, parser.call("{1 => 'test'}"))
     end
 
+    def test_hexBinary
+      parser = @parsing["hexBinary"]
+
+      expected = "Hello, World!"
+      hex_binary = "48656C6C6F2C20576F726C6421"
+
+      assert_equal expected, parser.call(hex_binary)
+
+      parser = @parsing["binary"]
+      assert_equal expected, parser.call(hex_binary, "encoding" => "hexBinary")
+      assert_equal expected, parser.call(hex_binary, "encoding" => "hex")
+    end
+
     def test_base64Binary_and_binary
       base64 = <<BASE64
 TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
