@@ -1,3 +1,7 @@
+*   Fix `strict_loading` violations ignored when using `pluck`
+
+    *Johnson Chan*
+
 *   Move the defaulting of `prevent_writes` to `true` when using the `reading` role into the parameters
     of the role switching methods, and raise an `ArgumentError` if `prevent_writes: false` is provided
     with the `reading` role.
