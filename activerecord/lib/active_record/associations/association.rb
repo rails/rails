@@ -211,6 +211,8 @@ module ActiveRecord
       end
 
       def violates_strict_loading?
+        return unless find_target?
+
         return if @skip_strict_loading
 
         return unless owner.validation_context.nil?
@@ -218,10 +220,6 @@ module ActiveRecord
         return reflection.strict_loading? if reflection.options.key?(:strict_loading)
 
         owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
-      end
-
-      def find_target?
-        !loaded? && (!owner.new_record? || foreign_key_present?) && klass
       end
 
       private
@@ -289,6 +287,10 @@ module ActiveRecord
 
         def scope_for_create
           scope.scope_for_create
+        end
+
+        def find_target?
+          !loaded? && (!owner.new_record? || foreign_key_present?) && klass
         end
 
         # Returns true if there is a foreign key present on the owner which
