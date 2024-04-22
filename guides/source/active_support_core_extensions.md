@@ -123,8 +123,9 @@ The method [`present?`][Object#present?] is equivalent to `!blank?`. This exampl
 
 ```ruby
 def set_conditional_cache_control!
-  return if self["Cache-Control"].present?
-  # ...
+  unless self["Cache-Control"].present?
+    # ...
+  end
 end
 ```
 
