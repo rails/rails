@@ -3,8 +3,8 @@
 module ActiveSupport
   # = Active Support Proxy \Object
   #
-  # A class with no predefined methods that behaves similarly to Builder's
-  # BlankSlate. Used for proxy classes.
+  # A class with no predefined methods that behaves similarly to Ruby's
+  # BasicObject. Used for proxy classes.
   class ProxyObject < ::BasicObject
     undef_method :==
     undef_method :equal?
