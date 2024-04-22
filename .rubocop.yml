@@ -29,6 +29,8 @@ AllCops:
     - '**/4_*_release_notes.md'
     - '**/5_*_release_notes.md'
     - '**/6_*_release_notes.md'
+    - actionview/test/template/test_case_test/pattern_matching_test_cases.rb
+    - actionpack/test/dispatch/test_response_test/pattern_matching_test_cases.rb
 
 
 Performance:
