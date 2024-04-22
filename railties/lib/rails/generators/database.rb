@@ -16,7 +16,7 @@ module Rails
         when "mysql"          then ["mysql2", ["~> 0.5"]]
         when "trilogy"        then ["trilogy", ["~> 2.4"]]
         when "postgresql"     then ["pg", ["~> 1.1"]]
-        when "sqlite3"        then ["sqlite3", ["~> 1.4"]]
+        when "sqlite3"        then ["sqlite3", [">= 1.4"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
         when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]

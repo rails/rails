@@ -1,3 +1,7 @@
+*   Allow `Sqlite3Adapter` to use `sqlite3` gem version `2.x`
+
+    *Mike Dalessio*
+
 *   Strict loading using `:n_plus_one_only` does not eagerly load child associations.
 
     With this change, child associations are no longer eagerly loaded, to
