@@ -1,3 +1,7 @@
+*   Fix `strict_loading` violations ignored when using `pluck`
+
+    *Johnson Chan*
+
 *   Strict loading using `:n_plus_one_only` does not eagerly load child associations.
 
     With this change, child associations are no longer eagerly loaded, to

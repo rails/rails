@@ -285,6 +285,10 @@ module ActiveRecord
     #
     # See also #ids.
     def pluck(*column_names)
+      if respond_to?(:proxy_association) && proxy_association.violates_strict_loading? && proxy_association.find_target?
+        Base.strict_loading_violation!(owner: proxy_association.owner.class, reflection: proxy_association.reflection)
+      end
+
       if @none
         if @async
           return Promise::Complete.new([])
