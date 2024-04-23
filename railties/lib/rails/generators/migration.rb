@@ -7,7 +7,7 @@ module Rails
   module Generators
     # Holds common methods for migrations. It assumes that migrations have the
     # [0-9]*_name format and can be used by other frameworks (like Sequel)
-    # just by implementing the next migration version method.
+    # just by implementing the +next_migration_number+ method.
     module Migration
       extend ActiveSupport::Concern
       attr_reader :migration_number, :migration_file_name, :migration_class_name
@@ -46,10 +46,10 @@ module Rails
       end
 
       # Creates a migration template at the given destination. The difference
-      # to the default template method is that the migration version is appended
+      # to the default template method is that the migration number is prepended
       # to the destination file name.
       #
-      # The migration version, migration file name, migration class name are
+      # The migration number, migration file name, migration class name are
       # available as instance variables in the template to be rendered.
       #
       #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
