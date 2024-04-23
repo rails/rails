@@ -1,3 +1,7 @@
+*   Support `hexBinary` type in `ActiveSupport::XmlMini`.
+
+    *heka1024*
+
 *   Deprecate `ActiveSupport::ProxyObject` in favor of Ruby's buildin `BasicObject`
 
     *Earlopain*
