@@ -5,99 +5,6 @@ require "tempfile"
 require "isolation/abstract_unit"
 require "console_helpers"
 
-class ConsoleTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::Isolation
-
-  def setup
-    build_app
-  end
-
-  def teardown
-    teardown_app
-  end
-
-  def load_environment(sandbox = false)
-    require "#{rails_root}/config/environment"
-    Rails.application.sandbox = sandbox
-    Rails.application.load_console
-  end
-
-  def irb_context
-    Object.new.extend(Rails::ConsoleMethods)
-  end
-
-  def test_app_method_should_return_integration_session
-    TestHelpers::Rack.remove_method :app
-    load_environment
-    console_session = irb_context.app
-    assert_instance_of ActionDispatch::Integration::Session, console_session
-  end
-
-  def test_app_can_access_path_helper_method
-    app_file "config/routes.rb", <<-RUBY
-      Rails.application.routes.draw do
-        get 'foo', to: 'foo#index'
-      end
-    RUBY
-
-    load_environment
-    console_session = irb_context.app
-    assert_equal "/foo", console_session.foo_path
-  end
-
-  def test_new_session_should_return_integration_session
-    load_environment
-    session = irb_context.new_session
-    assert_instance_of ActionDispatch::Integration::Session, session
-  end
-
-  def test_reload_should_fire_preparation_and_cleanup_callbacks
-    load_environment
-    a = b = c = nil
-
-    # TODO: These should be defined on the initializer
-    ActiveSupport::Reloader.to_complete { a = b = c = 1 }
-    ActiveSupport::Reloader.to_complete { b = c = 2 }
-    ActiveSupport::Reloader.to_prepare { c = 3 }
-
-    irb_context.reload!(false)
-
-    assert_equal 1, a
-    assert_equal 2, b
-    assert_equal 3, c
-  end
-
-  def test_reload_should_reload_constants
-    app_file "app/models/user.rb", <<-MODEL
-      class User
-        attr_accessor :name
-      end
-    MODEL
-
-    load_environment
-    assert_respond_to User.new, :name
-
-    app_file "app/models/user.rb", <<-MODEL
-      class User
-        attr_accessor :name, :age
-      end
-    MODEL
-
-    assert_not_respond_to User.new, :age
-    irb_context.reload!(false)
-    assert_respond_to User.new, :age
-  end
-
-  def test_access_to_helpers
-    load_environment
-    helper = irb_context.helper
-    assert_not_nil helper
-    assert_instance_of ActionView::Base, helper
-    assert_equal "Once upon a time in a world...",
-      helper.truncate("Once upon a time in a world far far away")
-  end
-end
-
 class FullStackConsoleTest < ActiveSupport::TestCase
   include ConsoleHelpers
 
@@ -231,6 +138,75 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     spawn_console(options)
 
     write_prompt "123", "app-template(test)> 123"
+  end
+
+  def test_helper_helper_method
+    spawn_console("-e development")
+
+    write_prompt "helper.truncate('Once upon a time in a world far far away')", "Once upon a time in a world..."
+  end
+
+  def test_controller_helper_method
+    spawn_console("-e development")
+
+    write_prompt "controller.class.name", "ApplicationController"
+  end
+
+  def test_new_session_helper_method
+    spawn_console("-e development")
+
+    write_prompt "new_session.class.name", "ActionDispatch::Integration::Session"
+  end
+
+  def test_app_helper_method
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get 'foo', to: 'foo#index'
+      end
+    RUBY
+
+    spawn_console("-e development")
+
+    write_prompt "app.foo_path", "/foo"
+  end
+
+  def test_reload_command_fires_preparation_and_cleanup_callbacks
+    options = "-e development"
+    spawn_console(options)
+
+    write_prompt "a = b = c = nil"
+    write_prompt "ActiveSupport::Reloader.to_complete { a = b = c = 1 }"
+    write_prompt "ActiveSupport::Reloader.to_complete { b = c = 2 }"
+    write_prompt "ActiveSupport::Reloader.to_prepare { c = 3 }"
+    write_prompt "reload!", "Reloading...\r\n"
+    write_prompt "a", "=> 1"
+    write_prompt "b", "=> 2"
+    write_prompt "c", "=> 3"
+  end
+
+  def test_reload_command_reload_constants
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        attr_accessor :name
+      end
+    MODEL
+
+    options = "-e development"
+    # Now the User model has only one attribute called `name`
+    spawn_console(options)
+
+
+    write_prompt "User.new.respond_to?(:age)", "=> false"
+
+    # This will be loaded after the reload! command is executed
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        attr_accessor :name, :age
+      end
+    MODEL
+
+    write_prompt "reload!", "Reloading...\r\n"
+    write_prompt "User.new.respond_to?(:age)", "=> true"
   end
 
   def test_console_respects_user_defined_prompt_mode

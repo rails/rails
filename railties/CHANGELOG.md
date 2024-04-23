@@ -1,3 +1,14 @@
+*   Implement Rails console commands and helpers with IRB v1.13's extension APIs
+
+    Rails console users will now see `helper`, `controller`, `new_session`, and `app` under
+    IRB help message's `Helper methods` category. And `reload!` command will be displayed under
+    the new `Rails console` commands category.
+
+    Prior to this change, Rails console's commands and helper methods are added through IRB's
+    private components and don't show up in its help message, which led to poor discoverability.
+
+    *Stan Lo*
+
 *   Remove deprecated `Rails::Generators::Testing::Behaviour`.
 
     *Rafael Mendonça França*
