@@ -68,6 +68,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect.map(&:to_s), Mime::Type.parse(accept).map(&:to_s)
   end
 
+  test "parse with q and media type parameters" do
+    accept = "text/xml,application/xhtml+xml,text/yaml; q=0.3,application/xml,text/html; q=0.8,image/png,text/plain; q=0.5,application/pdf,*/*; encoding=UTF-8; q=0.2"
+    expect = [Mime[:html], Mime[:xml], Mime[:png], Mime[:pdf], Mime[:text], Mime[:yaml], "*/*"]
+    assert_equal expect.map(&:to_s), Mime::Type.parse(accept).map(&:to_s)
+  end
+
   test "parse single media range with q" do
     accept = "text/html;q=0.9"
     expect = [Mime[:html]]
@@ -89,6 +95,12 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "parse arbitrary media type parameters with comma and additional media type" do
     accept = 'multipart/form-data; boundary="simple, boundary", text/xml'
     expect = [Mime[:multipart_form], Mime[:xml]]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
+  test "parse wildcard with arbitrary media type parameters" do
+    accept = '*/*; boundary="simple"'
+    expect = ["*/*"]
     assert_equal expect, Mime::Type.parse(accept)
   end
 
