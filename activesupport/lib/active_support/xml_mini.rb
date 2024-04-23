@@ -79,7 +79,7 @@ module ActiveSupport
         "string"       => Proc.new { |string|  string.to_s },
         "yaml"         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
         "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },
-        "hexBinary"    => Proc.new { |bin|     parse_hex_binary(bin) },
+        "hexBinary"    => Proc.new { |bin|     _parse_hex_binary(bin) },
         "binary"       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
         "file"         => Proc.new { |file, entity| _parse_file(file, entity) }
       }
@@ -168,7 +168,7 @@ module ActiveSupport
         when "base64"
           ::Base64.decode64(bin)
         when "hex", "hexBinary"
-          parse_hex_binary(bin)
+          _parse_hex_binary(bin)
         else
           bin
         end
@@ -182,7 +182,7 @@ module ActiveSupport
         f
       end
 
-      def parse_hex_binary(bin)
+      def _parse_hex_binary(bin)
         [bin].pack("H*")
       end
 

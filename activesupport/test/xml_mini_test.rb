@@ -338,11 +338,10 @@ YAML
     end
 
     def test_hexBinary
-      parser = @parsing["hexBinary"]
-
       expected = "Hello, World!"
       hex_binary = "48656C6C6F2C20576F726C6421"
 
+      parser = @parsing["hexBinary"]
       assert_equal expected, parser.call(hex_binary)
 
       parser = @parsing["binary"]
