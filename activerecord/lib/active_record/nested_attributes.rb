@@ -514,6 +514,8 @@ module ActiveRecord
           attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
         end
 
+        existing_records = existing_records.index_by { |record| record.id.to_s }
+
         attributes_collection.each do |attributes|
           if attributes.respond_to?(:permitted?)
             attributes = attributes.to_h
@@ -524,7 +526,7 @@ module ActiveRecord
             unless reject_new_record?(association_name, attributes)
               association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
-          elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes["id"].to_s }
+          elsif existing_record = existing_records[attributes["id"].to_s]
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
