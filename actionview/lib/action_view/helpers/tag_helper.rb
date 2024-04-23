@@ -448,7 +448,7 @@ module ActionView
       #
       # The following format is for legacy (XHTML) syntax support. It will be deprecated in future versions of \Rails.
       #
-      #   tag(name, options = nil, open = true, escape = true)
+      #   tag(name, options = nil, open = nil, escape = true)
       #
       # It returns an empty HTML tag of type +name+ which by default is HTML
       # compliant. Set +open+ to false to create an open tag compatible
@@ -493,12 +493,12 @@ module ActionView
       #
       #   tag("div", class: { highlight: current_user.admin? })
       #   # => <div class="highlight">
-      def tag(name = nil, options = nil, open = true, escape = true)
+      def tag(name = nil, options = nil, open = nil, escape = true)
         if name.nil?
           tag_builder
         else
           ensure_valid_html5_tag_name(name)
-          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open || void_element_trailing_slash == false ? ">" : " />"}".html_safe
+          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{" /" if open == false || (open.nil? && void_element_trailing_slash == true)}>".html_safe
         end
       end
 
