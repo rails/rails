@@ -12,8 +12,23 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag
     assert_equal "<br>", tag("br")
+    assert_equal "<br />", tag("br", nil, false)
     assert_equal "<br clear=\"left\">", tag(:br, clear: "left")
+    assert_equal "<br clear=\"left\" />", tag(:br, { clear: "left" }, false)
     assert_equal "<br>", tag("br", nil, true)
+    assert_equal "<br />", tag("br", nil, false)
+  end
+
+  def test_tag_with_void_element_trailing_slash
+    original_trailing_slash_config = ActionView::Helpers::TagHelper.void_element_trailing_slash
+    ActionView::Helpers::TagHelper.void_element_trailing_slash = true
+
+    assert_equal "<br />", tag("br")
+    assert_equal "<br clear=\"left\" />", tag(:br, clear: "left")
+    assert_equal "<br>", tag("br", nil, true)
+    assert_equal "<br />", tag("br", nil, false)
+  ensure
+    ActionView::Helpers::TagHelper.void_element_trailing_slash = original_trailing_slash_config
   end
 
   def test_tag_builder
