@@ -112,11 +112,11 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_accepts_symbol_option_when_not_escaping
-    assert_equal "<p value=\"symbol\">", tag("p", { value: :symbol }, false, false)
+    assert_equal "<p value=\"symbol\">", tag("p", { value: :symbol }, true, false)
   end
 
   def test_tag_options_accepts_integer_option_when_not_escaping
-    assert_equal "<p value=\"42\">", tag("p", { value: 42 }, false, false)
+    assert_equal "<p value=\"42\">", tag("p", { value: 42 }, true, false)
   end
 
   def test_tag_options_converts_boolean_option
@@ -166,7 +166,7 @@ class TagHelperTest < ActionView::TestCase
                  tag("the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" })
 
     assert_equal "<the-name aria-#{COMMON_DANGEROUS_CHARS}=\"the value\">",
-                 tag("the-name", { aria: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
+                 tag("the-name", { aria: { COMMON_DANGEROUS_CHARS => "the value" } }, true, false)
   end
 
   def test_tag_builder_with_dangerous_aria_attribute_name
@@ -184,7 +184,7 @@ class TagHelperTest < ActionView::TestCase
                  tag("the-name", data: { COMMON_DANGEROUS_CHARS => "the value" })
 
     assert_equal "<the-name data-#{COMMON_DANGEROUS_CHARS}=\"the value\">",
-                 tag("the-name", { data: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
+                 tag("the-name", { data: { COMMON_DANGEROUS_CHARS => "the value" } }, true, false)
   end
 
   def test_tag_builder_with_dangerous_data_attribute_name
@@ -202,7 +202,7 @@ class TagHelperTest < ActionView::TestCase
                  tag("the-name", COMMON_DANGEROUS_CHARS => "the value")
 
     assert_equal "<the-name #{COMMON_DANGEROUS_CHARS}=\"the value\">",
-                 tag("the-name", { COMMON_DANGEROUS_CHARS => "the value" }, false, false)
+                 tag("the-name", { COMMON_DANGEROUS_CHARS => "the value" }, true, false)
   end
 
   def test_tag_builder_with_dangerous_unknown_attribute_name
@@ -607,7 +607,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_disable_escaping
-    assert_equal '<a href="&amp;">', tag("a", { href: "&amp;" }, false, false)
+    assert_equal '<a href="&amp;">', tag("a", { href: "&amp;" }, true, false)
   end
 
   def test_tag_builder_disable_escaping
