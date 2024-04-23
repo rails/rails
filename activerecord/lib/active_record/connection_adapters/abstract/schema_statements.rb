@@ -971,7 +971,11 @@ module ActiveRecord
       def index_name(table_name, options) # :nodoc:
         if Hash === options
           if options[:column]
-            generate_index_name(table_name, options[:column])
+            if options[:_uses_legacy_index_name]
+              "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+            else
+              generate_index_name(table_name, options[:column])
+            end
           elsif options[:name]
             options[:name]
           else
@@ -1645,11 +1649,11 @@ module ActiveRecord
           end
         end
 
-        def rename_table_indexes(table_name, new_name)
+        def rename_table_indexes(table_name, new_name, **options)
           indexes(new_name).each do |index|
-            generated_index_name = index_name(table_name, column: index.columns)
+            generated_index_name = index_name(table_name, column: index.columns, **options)
             if generated_index_name == index.name
-              rename_index new_name, generated_index_name, index_name(new_name, column: index.columns)
+              rename_index new_name, generated_index_name, index_name(new_name, column: index.columns, **options)
             end
           end
         end
