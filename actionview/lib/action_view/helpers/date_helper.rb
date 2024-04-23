@@ -1161,7 +1161,7 @@ module ActionView
         # Builds hidden input tag for date part and value.
         #
         #   build_hidden(:year, 2008)
-        #   => "<input type="hidden" id="date_year" name="date[year]" value="2008" autocomplete="off" />"
+        #   => "<input type="hidden" id="date_year" name="date[year]" value="2008" autocomplete="off">"
         def build_hidden(type, value)
           select_options = {
             type: "hidden",

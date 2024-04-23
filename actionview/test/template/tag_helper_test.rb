@@ -11,8 +11,8 @@ class TagHelperTest < ActionView::TestCase
   INVALID_TAG_CHARS = "> /"
 
   def test_tag
-    assert_equal "<br />", tag("br")
-    assert_equal "<br clear=\"left\" />", tag(:br, clear: "left")
+    assert_equal "<br>", tag("br")
+    assert_equal "<br clear=\"left\">", tag(:br, clear: "left")
     assert_equal "<br>", tag("br", nil, true)
   end
 
@@ -72,7 +72,7 @@ class TagHelperTest < ActionView::TestCase
   def test_tag_options_with_array_of_numeric
     str = tag(:input, value: [123, 456])
 
-    assert_equal("<input value=\"123 456\" />", str)
+    assert_equal("<input value=\"123 456\">", str)
   end
 
   def test_tag_options_with_array_of_random_objects
@@ -84,11 +84,11 @@ class TagHelperTest < ActionView::TestCase
 
     str = tag(:input, value: [klass.new])
 
-    assert_equal("<input value=\"hello\" />", str)
+    assert_equal("<input value=\"hello\">", str)
   end
 
   def test_tag_options_rejects_nil_option
-    assert_equal "<p />", tag("p", ignored: nil)
+    assert_equal "<p>", tag("p", ignored: nil)
   end
 
   def test_tag_builder_options_rejects_nil_option
@@ -96,7 +96,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_accepts_false_option
-    assert_equal "<p value=\"false\" />", tag("p", value: false)
+    assert_equal "<p value=\"false\">", tag("p", value: false)
   end
 
   def test_tag_builder_options_accepts_false_option
@@ -104,7 +104,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_accepts_blank_option
-    assert_equal "<p included=\"\" />", tag("p", included: "")
+    assert_equal "<p included=\"\">", tag("p", included: "")
   end
 
   def test_tag_builder_options_accepts_blank_option
@@ -112,20 +112,20 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_accepts_symbol_option_when_not_escaping
-    assert_equal "<p value=\"symbol\" />", tag("p", { value: :symbol }, false, false)
+    assert_equal "<p value=\"symbol\">", tag("p", { value: :symbol }, false, false)
   end
 
   def test_tag_options_accepts_integer_option_when_not_escaping
-    assert_equal "<p value=\"42\" />", tag("p", { value: 42 }, false, false)
+    assert_equal "<p value=\"42\">", tag("p", { value: 42 }, false, false)
   end
 
   def test_tag_options_converts_boolean_option
-    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline" />',
+    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline">',
       tag("p", disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
   def test_tag_builder_options_converts_boolean_option
-    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline" />',
+    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline">',
       tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
@@ -137,7 +137,7 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_builder_do_not_modify_html_safe_options
     html_safe_str = '"'.html_safe
-    assert_equal "<p value=\"&quot;\" />", tag("p", value: html_safe_str)
+    assert_equal "<p value=\"&quot;\">", tag("p", value: html_safe_str)
     assert_equal '"', html_safe_str
     assert_predicate html_safe_str, :html_safe?
   end
@@ -162,10 +162,10 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_with_dangerous_aria_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
-    assert_equal "<the-name aria-#{escaped_dangerous_chars}=\"the value\" />",
+    assert_equal "<the-name aria-#{escaped_dangerous_chars}=\"the value\">",
                  tag("the-name", aria: { COMMON_DANGEROUS_CHARS => "the value" })
 
-    assert_equal "<the-name aria-#{COMMON_DANGEROUS_CHARS}=\"the value\" />",
+    assert_equal "<the-name aria-#{COMMON_DANGEROUS_CHARS}=\"the value\">",
                  tag("the-name", { aria: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
   end
 
@@ -180,10 +180,10 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_with_dangerous_data_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
-    assert_equal "<the-name data-#{escaped_dangerous_chars}=\"the value\" />",
+    assert_equal "<the-name data-#{escaped_dangerous_chars}=\"the value\">",
                  tag("the-name", data: { COMMON_DANGEROUS_CHARS => "the value" })
 
-    assert_equal "<the-name data-#{COMMON_DANGEROUS_CHARS}=\"the value\" />",
+    assert_equal "<the-name data-#{COMMON_DANGEROUS_CHARS}=\"the value\">",
                  tag("the-name", { data: { COMMON_DANGEROUS_CHARS => "the value" } }, false, false)
   end
 
@@ -198,10 +198,10 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_with_dangerous_unknown_attribute_name
     escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
-    assert_equal "<the-name #{escaped_dangerous_chars}=\"the value\" />",
+    assert_equal "<the-name #{escaped_dangerous_chars}=\"the value\">",
                  tag("the-name", COMMON_DANGEROUS_CHARS => "the value")
 
-    assert_equal "<the-name #{COMMON_DANGEROUS_CHARS}=\"the value\" />",
+    assert_equal "<the-name #{COMMON_DANGEROUS_CHARS}=\"the value\">",
                  tag("the-name", { COMMON_DANGEROUS_CHARS => "the value" }, false, false)
   end
 
@@ -574,14 +574,14 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_honors_html_safe_for_param_values
     ["1&amp;2", "1 &lt; 2", "&#8220;test&#8220;"].each do |escaped|
-      assert_equal %(<a href="#{escaped}" />), tag("a", href: escaped.html_safe)
+      assert_equal %(<a href="#{escaped}">), tag("a", href: escaped.html_safe)
       assert_equal %(<a href="#{escaped}"></a>), tag.a(href: escaped.html_safe)
     end
   end
 
   def test_tag_honors_html_safe_with_escaped_array_class
-    assert_equal '<p class="song&gt; play>" />', tag("p", class: ["song>", raw("play>")])
-    assert_equal '<p class="song> play&gt;" />', tag("p", class: [raw("song>"), "play>"])
+    assert_equal '<p class="song&gt; play>">', tag("p", class: ["song>", raw("play>")])
+    assert_equal '<p class="song> play&gt;">', tag("p", class: [raw("song>"), "play>"])
   end
 
   def test_tag_builder_honors_html_safe_with_escaped_array_class
@@ -601,13 +601,13 @@ class TagHelperTest < ActionView::TestCase
 
   def test_skip_invalid_escaped_attributes
     ["&1;", "&#1dfa3;", "& #123;"].each do |escaped|
-      assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}" />), tag("a", href: escaped)
+      assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}">), tag("a", href: escaped)
       assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}"></a>), tag.a(href: escaped)
     end
   end
 
   def test_disable_escaping
-    assert_equal '<a href="&amp;" />', tag("a", { href: "&amp;" }, false, false)
+    assert_equal '<a href="&amp;">', tag("a", { href: "&amp;" }, false, false)
   end
 
   def test_tag_builder_disable_escaping
@@ -620,20 +620,20 @@ class TagHelperTest < ActionView::TestCase
 
   def test_data_attributes
     ["data", :data].each { |data|
-      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
+      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo">',
         tag("a", data => { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
-      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
+      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo">',
         tag.a(data: { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
     }
   end
 
   def test_aria_attributes
     ["aria", :aria].each { |aria|
-      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-truthy="true" aria-falsey="false" aria-array="1 2 3" aria-hash="a b" aria-tokens="a b" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
+      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-truthy="true" aria-falsey="false" aria-array="1 2 3" aria-hash="a b" aria-tokens="a b" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo">',
         tag("a", aria => { nil: nil, a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, truthy: true, falsey: false, string: "hello", symbol: :foo, array: [1, 2, 3], empty_array: [], hash: { a: true, b: "truthy", falsey: false, nil: nil }, empty_hash: {}, tokens: ["a", { b: true, c: false }], empty_tokens: [{ a: false }], string_with_quotes: 'double"quote"party"' })
     }
 
-    assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-truthy="true" aria-falsey="false" aria-array="1 2 3" aria-hash="a b" aria-tokens="a b" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
+    assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-truthy="true" aria-falsey="false" aria-array="1 2 3" aria-hash="a b" aria-tokens="a b" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo">',
     tag.a(aria: { nil: nil, a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, truthy: true, falsey: false, string: "hello", symbol: :foo, array: [1, 2, 3], empty_array: [], hash: { a: true, b: "truthy", falsey: false, nil: nil }, empty_hash: {}, tokens: ["a", { b: true, c: false }], empty_tokens: [{ a: false }], string_with_quotes: 'double"quote"party"' })
   end
 

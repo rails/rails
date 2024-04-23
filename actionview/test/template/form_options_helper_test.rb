@@ -718,7 +718,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_with_multiple_to_add_hidden_input
     output_buffer = select(:post, :category, "", {}, { multiple: true })
     assert_dom_equal(
-      "<input type=\"hidden\" name=\"post[category][]\" value=\"\" autocomplete=\"off\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
+      "<input type=\"hidden\" name=\"post[category][]\" value=\"\" autocomplete=\"off\"><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
   end
@@ -742,7 +742,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_with_multiple_and_disabled_to_add_disabled_hidden_input
     output_buffer = select(:post, :category, "", {}, { multiple: true, disabled: true })
     assert_dom_equal(
-      "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\" autocomplete=\"off\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
+      "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\" autocomplete=\"off\"><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
   end
@@ -874,7 +874,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @continent = Continent.new
     @continent.countries = ["Africa", "Europe"]
 
-    expected_with_hidden_field_and_multiple = %(<input name="continent[countries][]" type="hidden" value="" autocomplete="off"/><select name="continent[countries][]" id="continent_countries" multiple="multiple"><option selected="selected" value="Africa">Africa</option>\n<option selected="selected" value="Europe">Europe</option>\n<option value="America">America</option></select>)
+    expected_with_hidden_field_and_multiple = %(<input name="continent[countries][]" type="hidden" value="" autocomplete="off"><select name="continent[countries][]" id="continent_countries" multiple="multiple"><option selected="selected" value="Africa">Africa</option>\n<option selected="selected" value="Europe">Europe</option>\n<option value="America">America</option></select>)
     expected_without_hidden_field = %(<select name="continent[countries]" id="continent_countries"><option selected="selected" value="Africa">Africa</option>\n<option selected="selected" value="Europe">Europe</option>\n<option value="America">America</option></select>)
 
     assert_dom_equal(expected_with_hidden_field_and_multiple, select("continent", "countries", %W(Africa Europe America), { multiple: true }))
@@ -919,7 +919,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_required_select_with_multiple_option
-    expected = %(<input name="post[category][]" type="hidden" value="" autocomplete="off"/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>)
+    expected = %(<input name="post[category][]" type="hidden" value="" autocomplete="off"><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>)
 
     assert_dom_equal(expected, select("post", "category", %w(abe mus hest), {}, { required: true, multiple: true }))
     assert_dom_equal(expected, select("post", "category", %w(abe mus hest), required: true, multiple: true))
@@ -1108,7 +1108,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.author_name = "Babe"
 
-    expected = "<input type=\"hidden\" name=\"post[author_name][]\" value=\"\" autocomplete=\"off\"/><select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\" label=\" \"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
+    expected = "<input type=\"hidden\" name=\"post[author_name][]\" value=\"\" autocomplete=\"off\"><select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\" label=\" \"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
 
     # Should suffix default name with [].
     assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { include_blank: true }, { multiple: true })

@@ -157,7 +157,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="token" autocomplete="off" /></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="token" autocomplete="off"></form>},
       button_to("Hello", "http://www.example.com", authenticity_token: "token")
     )
   ensure
@@ -168,7 +168,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" autocomplete="off" /></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" autocomplete="off"></form>},
       button_to("Hello", "http://www.example.com", authenticity_token: true)
     )
   ensure
@@ -243,7 +243,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     workshop = Workshop.new("1")
 
     assert_dom_equal(
-      %{<form method="post" action="/workshops/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      %{<form method="post" action="/workshops/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off"><button type="submit">Update</button></form>},
       button_to(workshop) { "Update" }
     )
   end
@@ -252,7 +252,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     workshop = Workshop.new("1")
 
     assert_dom_equal(
-      %{<form method="post" action="/workshops/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      %{<form method="post" action="/workshops/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off"><button type="submit">Update</button></form>},
       button_to(workshop) { "Update" }
     )
   end
@@ -262,7 +262,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     session = Session.new("1")
 
     assert_dom_equal(
-      %{<form method="post" action="/workshops/1/sessions/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      %{<form method="post" action="/workshops/1/sessions/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off"><button type="submit">Update</button></form>},
       button_to([workshop, session]) { "Update" }
     )
   end
@@ -271,7 +271,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" autocomplete="off" /></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" autocomplete="off"></form>},
       button_to("Hello", "http://www.example.com")
     )
   ensure
@@ -357,7 +357,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_method_delete
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><input type="hidden" name="_method" value="delete" autocomplete="off" /><button type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="hidden" name="_method" value="delete" autocomplete="off"><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", method: :delete)
     )
   end
@@ -378,7 +378,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off"><input type="hidden" name="foo" value="bar" autocomplete="off"></form>},
       button_to("Hello", "http://www.example.com", params: { foo: :bar, baz: "quux" })
     )
   end
@@ -395,7 +395,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     ActionView::Helpers::UrlHelper.button_to_generates_button_tag = false
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Save"/></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Save"></form>},
       button_to("Save", "http://www.example.com")
     )
   ensure
@@ -431,7 +431,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_permitted_strong_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off"><input type="hidden" name="foo" value="bar" autocomplete="off"></form>},
       button_to("Hello", "http://www.example.com", params: FakeParams.new)
     )
   end
@@ -444,14 +444,14 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_nested_hash_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[bar]" value="baz" autocomplete="off" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[bar]" value="baz" autocomplete="off"></form>},
       button_to("Hello", "http://www.example.com", params: { foo: { bar: "baz" } })
     )
   end
 
   def test_button_to_with_nested_array_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[]" value="bar" autocomplete="off" /></form>},
+      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[]" value="bar" autocomplete="off"></form>},
       button_to("Hello", "http://www.example.com", params: { foo: ["bar"] })
     )
   end
@@ -494,8 +494,8 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_tag_with_img
-    link = link_to(raw("<img src='/favicon.jpg' />"), "/")
-    expected = %{<a href="/"><img src='/favicon.jpg' /></a>}
+    link = link_to(raw("<img src='/favicon.jpg'>"), "/")
+    expected = %{<a href="/"><img src='/favicon.jpg'></a>}
     assert_dom_equal expected, link
   end
 
@@ -860,8 +860,8 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_mail_to_with_img
-    assert_dom_equal %{<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>},
-      mail_to("feedback@example.com", raw('<img src="/feedback.png" />'))
+    assert_dom_equal %{<a href="mailto:feedback@example.com"><img src="/feedback.png"></a>},
+      mail_to("feedback@example.com", raw('<img src="/feedback.png">'))
   end
 
   def test_mail_to_with_html_safe_string
@@ -927,8 +927,8 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_sms_to_with_img
-    assert_dom_equal %{<a href="sms:15155555785;"><img src="/feedback.png" /></a>},
-      sms_to("15155555785", raw('<img src="/feedback.png" />'))
+    assert_dom_equal %{<a href="sms:15155555785;"><img src="/feedback.png"></a>},
+      sms_to("15155555785", raw('<img src="/feedback.png">'))
   end
 
   def test_sms_to_with_html_safe_string
@@ -996,8 +996,8 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_phone_to_with_img
-    assert_dom_equal %{<a href="tel:1234567890"><img src="/feedback.png" /></a>},
-      phone_to("1234567890", raw('<img src="/feedback.png" />'))
+    assert_dom_equal %{<a href="tel:1234567890"><img src="/feedback.png"></a>},
+      phone_to("1234567890", raw('<img src="/feedback.png">'))
   end
 
   def test_phone_to_with_html_safe_string

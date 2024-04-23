@@ -28,11 +28,11 @@ class FormTagHelperTest < ActionView::TestCase
 
     (+"").tap do |txt|
       if enforce_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
+        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off">}
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off">}
       end
     end
   end
@@ -72,49 +72,49 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_check_box_tag
     actual = check_box_tag "admin"
-    expected = %(<input id="admin" name="admin" type="checkbox" value="1" />)
+    expected = %(<input id="admin" name="admin" type="checkbox" value="1">)
     assert_dom_equal expected, actual
   end
 
   def test_check_box_tag_disabled
     actual = check_box_tag "admin", "1", false, disabled: true
-    expected = %(<input id="admin" disabled="disabled" name="admin" type="checkbox" value="1" />)
+    expected = %(<input id="admin" disabled="disabled" name="admin" type="checkbox" value="1">)
     assert_dom_equal expected, actual
   end
 
   def test_check_box_tag_default_checked
     actual = check_box_tag "admin", "1", true
-    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1" />)
+    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1">)
     assert_dom_equal expected, actual
   end
 
   def test_check_box_tag_checked_kwarg_true
     actual = check_box_tag "admin", "yes", checked: true
-    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="yes" />)
+    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="yes">)
     assert_dom_equal expected, actual
   end
 
   def test_check_box_tag_checked_kwarg_false
     actual = check_box_tag "admin", "1", checked: false
-    expected = %(<input id="admin" name="admin" type="checkbox" value="1" />)
+    expected = %(<input id="admin" name="admin" type="checkbox" value="1">)
     assert_dom_equal expected, actual
   end
 
   def test_check_box_tag_checked_kwarg_false_and_disabled
     actual = check_box_tag "admin", "1", checked: false, disabled: true
-    expected = %(<input id="admin" name="admin" type="checkbox" value="1" disabled="disabled" />)
+    expected = %(<input id="admin" name="admin" type="checkbox" value="1" disabled="disabled">)
     assert_dom_equal expected, actual
   end
 
   def test_check_box_tag_checked_kwarg_true_value_argument_skipped
     actual = check_box_tag "admin", checked: true
-    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1" />)
+    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1">)
     assert_dom_equal expected, actual
   end
 
   def test_check_box_tag_value_kwarg
     actual = check_box_tag "admin", value: "0", checked: true
-    expected = %(<input id="admin" name="admin" type="checkbox" value="0" checked="checked" />)
+    expected = %(<input id="admin" name="admin" type="checkbox" value="0" checked="checked">)
     assert_dom_equal expected, actual
   end
 
@@ -323,7 +323,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_hidden_field_tag
     actual = hidden_field_tag "id", 3
-    expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off" />)
+    expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off">)
     assert_dom_equal expected, actual
   end
 
@@ -333,16 +333,16 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_file_field_tag
-    assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" />", file_field_tag("picsplz")
+    assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\">", file_field_tag("picsplz")
   end
 
   def test_file_field_tag_with_options
-    assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix")
+    assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\">", file_field_tag("picsplz", class: "pix")
   end
 
   def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     assert_dom_equal(
-      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\">",
       file_field_tag("picsplz", class: "pix", direct_upload: true)
     )
   end
@@ -351,7 +351,7 @@ class FormTagHelperTest < ActionView::TestCase
     @controller = WithActiveStorageRoutesControllers.new
 
     assert_dom_equal(
-      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\"/>",
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\">",
       file_field_tag("picsplz", class: "pix", direct_upload: true)
     )
   end
@@ -360,7 +360,7 @@ class FormTagHelperTest < ActionView::TestCase
     original_options = { class: "pix", direct_upload: true }
 
     assert_dom_equal(
-      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\">",
       file_field_tag("picsplz", original_options)
     )
 
@@ -369,64 +369,64 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_password_field_tag
     actual = password_field_tag
-    expected = %(<input id="password" name="password" type="password" />)
+    expected = %(<input id="password" name="password" type="password">)
     assert_dom_equal expected, actual
   end
 
   def test_multiple_field_tags_with_same_options
     options = { class: "important" }
-    assert_dom_equal %(<input name="title" type="file" id="title" class="important"/>), file_field_tag("title", options)
-    assert_dom_equal %(<input type="password" name="title" id="title" value="Hello!" class="important" />), password_field_tag("title", "Hello!", options)
-    assert_dom_equal %(<input type="text" name="title" id="title" value="Hello!" class="important" />), text_field_tag("title", "Hello!", options)
+    assert_dom_equal %(<input name="title" type="file" id="title" class="important">), file_field_tag("title", options)
+    assert_dom_equal %(<input type="password" name="title" id="title" value="Hello!" class="important">), password_field_tag("title", "Hello!", options)
+    assert_dom_equal %(<input type="text" name="title" id="title" value="Hello!" class="important">), text_field_tag("title", "Hello!", options)
   end
 
   def test_radio_button_tag
     actual = radio_button_tag "people", "david"
-    expected = %(<input id="people_david" name="people" type="radio" value="david" />)
+    expected = %(<input id="people_david" name="people" type="radio" value="david">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag("num_people", 5)
-    expected = %(<input id="num_people_5" name="num_people" type="radio" value="5" />)
+    expected = %(<input id="num_people_5" name="num_people" type="radio" value="5">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag("gender", "m") + radio_button_tag("gender", "f")
-    expected = %(<input id="gender_m" name="gender" type="radio" value="m" /><input id="gender_f" name="gender" type="radio" value="f" />)
+    expected = %(<input id="gender_m" name="gender" type="radio" value="m"><input id="gender_f" name="gender" type="radio" value="f">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag("opinion", "-1") + radio_button_tag("opinion", "1")
-    expected = %(<input id="opinion_-1" name="opinion" type="radio" value="-1" /><input id="opinion_1" name="opinion" type="radio" value="1" />)
+    expected = %(<input id="opinion_-1" name="opinion" type="radio" value="-1"><input id="opinion_1" name="opinion" type="radio" value="1">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag("person[gender]", "m")
-    expected = %(<input id="person_gender_m" name="person[gender]" type="radio" value="m" />)
+    expected = %(<input id="person_gender_m" name="person[gender]" type="radio" value="m">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag("ctrlname", "apache2.2")
-    expected = %(<input id="ctrlname_apache2.2" name="ctrlname" type="radio" value="apache2.2" />)
+    expected = %(<input id="ctrlname_apache2.2" name="ctrlname" type="radio" value="apache2.2">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag "people", "david", true
-    expected = %(<input id="people_david" name="people" type="radio" value="david" checked="checked" />)
+    expected = %(<input id="people_david" name="people" type="radio" value="david" checked="checked">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag "people", "david", false
-    expected = %(<input id="people_david" name="people" type="radio" value="david" />)
+    expected = %(<input id="people_david" name="people" type="radio" value="david">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag "people", "david", false, disabled: true
-    expected = %(<input id="people_david" name="people" type="radio" value="david" disabled="disabled" />)
+    expected = %(<input id="people_david" name="people" type="radio" value="david" disabled="disabled">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag "people", "david", checked: true
-    expected = %(<input id="people_david" name="people" type="radio" value="david" checked="checked" />)
+    expected = %(<input id="people_david" name="people" type="radio" value="david" checked="checked">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag "people", "david", checked: false
-    expected = %(<input id="people_david" name="people" type="radio" value="david" />)
+    expected = %(<input id="people_david" name="people" type="radio" value="david">)
     assert_dom_equal expected, actual
 
     actual = radio_button_tag "people", "david", checked: false, disabled: true
-    expected = %(<input id="people_david" name="people" type="radio" value="david" disabled="disabled" />)
+    expected = %(<input id="people_david" name="people" type="radio" value="david" disabled="disabled">)
     assert_dom_equal expected, actual
   end
 
@@ -551,61 +551,61 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_field_tag
     actual = text_field_tag "title", "Hello!"
-    expected = %(<input id="title" name="title" type="text" value="Hello!" />)
+    expected = %(<input id="title" name="title" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_class_string
     actual = text_field_tag "title", "Hello!", "class" => "admin"
-    expected = %(<input class="admin" id="title" name="title" type="text" value="Hello!" />)
+    expected = %(<input class="admin" id="title" name="title" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_size_symbol
     actual = text_field_tag "title", "Hello!", size: 75
-    expected = %(<input id="title" name="title" size="75" type="text" value="Hello!" />)
+    expected = %(<input id="title" name="title" size="75" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_with_ac_parameters
     actual = text_field_tag "title", ActionController::Parameters.new(key: "value")
-    expected = %(<input id="title" name="title" type="text" value="{&quot;key&quot;=&gt;&quot;value&quot;}" />)
+    expected = %(<input id="title" name="title" type="text" value="{&quot;key&quot;=&gt;&quot;value&quot;}">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_size_string
     actual = text_field_tag "title", "Hello!", "size" => "75"
-    expected = %(<input id="title" name="title" size="75" type="text" value="Hello!" />)
+    expected = %(<input id="title" name="title" size="75" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_maxlength_symbol
     actual = text_field_tag "title", "Hello!", maxlength: 75
-    expected = %(<input id="title" name="title" maxlength="75" type="text" value="Hello!" />)
+    expected = %(<input id="title" name="title" maxlength="75" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_maxlength_string
     actual = text_field_tag "title", "Hello!", "maxlength" => "75"
-    expected = %(<input id="title" name="title" maxlength="75" type="text" value="Hello!" />)
+    expected = %(<input id="title" name="title" maxlength="75" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_disabled
     actual = text_field_tag "title", "Hello!", disabled: true
-    expected = %(<input id="title" name="title" disabled="disabled" type="text" value="Hello!" />)
+    expected = %(<input id="title" name="title" disabled="disabled" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_with_placeholder_option
     actual = text_field_tag "title", "Hello!", placeholder: "Enter search term..."
-    expected = %(<input id="title" name="title" placeholder="Enter search term..." type="text" value="Hello!" />)
+    expected = %(<input id="title" name="title" placeholder="Enter search term..." type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_text_field_tag_with_multiple_options
     actual = text_field_tag "title", "Hello!", size: 70, maxlength: 80
-    expected = %(<input id="title" name="title" size="70" maxlength="80" type="text" value="Hello!" />)
+    expected = %(<input id="title" name="title" size="70" maxlength="80" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
@@ -658,9 +658,9 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_boolean_options
-    assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, "disabled" => true, :readonly => "yes")
-    assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, disabled: false, readonly: nil)
-    assert_dom_equal %(<input type="checkbox" />), tag(:input, type: "checkbox", checked: false)
+    assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1">), check_box_tag("admin", 1, true, "disabled" => true, :readonly => "yes")
+    assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1">), check_box_tag("admin", 1, true, disabled: false, readonly: nil)
+    assert_dom_equal %(<input type="checkbox">), tag(:input, type: "checkbox", checked: false)
     assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), multiple: true)
     assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", raw("<option>david</option>"), multiple: true)
     assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), multiple: nil)
@@ -668,20 +668,20 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_stringify_symbol_keys
     actual = text_field_tag "title", "Hello!", id: "admin"
-    expected = %(<input id="admin" name="title" type="text" value="Hello!" />)
+    expected = %(<input id="admin" name="title" type="text" value="Hello!">)
     assert_dom_equal expected, actual
   end
 
   def test_submit_tag
     assert_dom_equal(
-      %(<input name='commit' data-disable-with="Saving..." onclick="alert(&#39;hello!&#39;)" type="submit" value="Save" />),
+      %(<input name='commit' data-disable-with="Saving..." onclick="alert(&#39;hello!&#39;)" type="submit" value="Save">),
       submit_tag("Save", onclick: "alert('hello!')", data: { disable_with: "Saving..." })
     )
   end
 
   def test_empty_submit_tag
     assert_dom_equal(
-      %(<input data-disable-with="Save" name='commit' type="submit" value="Save" />),
+      %(<input data-disable-with="Save" name='commit' type="submit" value="Save">),
       submit_tag("Save")
     )
   end
@@ -689,7 +689,7 @@ class FormTagHelperTest < ActionView::TestCase
   def test_empty_submit_tag_with_opt_out
     ActionView::Base.automatically_disable_submit_tag = false
     assert_dom_equal(
-      %(<input name='commit' type="submit" value="Save" />),
+      %(<input name='commit' type="submit" value="Save">),
       submit_tag("Save")
     )
   ensure
@@ -699,7 +699,7 @@ class FormTagHelperTest < ActionView::TestCase
   def test_empty_submit_tag_with_opt_out_and_explicit_disabling
     ActionView::Base.automatically_disable_submit_tag = false
     assert_dom_equal(
-      %(<input name='commit' type="submit" value="Save" />),
+      %(<input name='commit' type="submit" value="Save">),
       submit_tag("Save", data: { disable_with: false })
     )
   ensure
@@ -708,56 +708,56 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_submit_tag_having_data_disable_with_string
     assert_dom_equal(
-      %(<input data-disable-with="Processing..." data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
+      %(<input data-disable-with="Processing..." data-confirm="Are you sure?" name='commit' type="submit" value="Save">),
       submit_tag("Save", "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?")
     )
   end
 
   def test_submit_tag_having_data_disable_with_boolean
     assert_dom_equal(
-      %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
+      %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save">),
       submit_tag("Save", "data-disable-with" => false, "data-confirm" => "Are you sure?")
     )
   end
 
   def test_submit_tag_having_data_hash_disable_with_boolean
     assert_dom_equal(
-      %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save" />),
+      %(<input data-confirm="Are you sure?" name='commit' type="submit" value="Save">),
       submit_tag("Save", data: { confirm: "Are you sure?", disable_with: false })
     )
   end
 
   def test_submit_tag_with_no_onclick_options
     assert_dom_equal(
-      %(<input name='commit' data-disable-with="Saving..." type="submit" value="Save" />),
+      %(<input name='commit' data-disable-with="Saving..." type="submit" value="Save">),
       submit_tag("Save", data: { disable_with: "Saving..." })
     )
   end
 
   def test_submit_tag_with_confirmation
     assert_dom_equal(
-      %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" data-disable-with="Save" />),
+      %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" data-disable-with="Save">),
       submit_tag("Save", data: { confirm: "Are you sure?" })
     )
   end
 
   def test_submit_tag_doesnt_have_data_disable_with_twice
     assert_equal(
-      %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing..." />),
+      %(<input type="submit" name="commit" value="Save" data-confirm="Are you sure?" data-disable-with="Processing...">),
       submit_tag("Save", "data-disable-with" => "Processing...", "data-confirm" => "Are you sure?")
     )
   end
 
   def test_submit_tag_doesnt_have_data_disable_with_twice_with_hash
     assert_equal(
-      %(<input type="submit" name="commit" value="Save" data-disable-with="Processing..." />),
+      %(<input type="submit" name="commit" value="Save" data-disable-with="Processing...">),
       submit_tag("Save", data: { disable_with: "Processing..." })
     )
   end
 
   def test_submit_tag_with_symbol_value
     assert_dom_equal(
-      %(<input data-disable-with="Save" name='commit' type="submit" value="Save" />),
+      %(<input data-disable-with="Save" name='commit' type="submit" value="Save">),
       submit_tag(:Save)
     )
   end
@@ -834,73 +834,73 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
-      %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
+      %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?">),
       image_submit_tag("save.gif", data: { confirm: "Are you sure?" })
     )
   end
 
   def test_color_field_tag
-    expected = %{<input id="car" name="car" type="color" />}
+    expected = %{<input id="car" name="car" type="color">}
     assert_dom_equal(expected, color_field_tag("car"))
   end
 
   def test_search_field_tag
-    expected = %{<input id="query" name="query" type="search" />}
+    expected = %{<input id="query" name="query" type="search">}
     assert_dom_equal(expected, search_field_tag("query"))
   end
 
   def test_telephone_field_tag
-    expected = %{<input id="cell" name="cell" type="tel" />}
+    expected = %{<input id="cell" name="cell" type="tel">}
     assert_dom_equal(expected, telephone_field_tag("cell"))
   end
 
   def test_date_field_tag
-    expected = %{<input id="cell" name="cell" type="date" />}
+    expected = %{<input id="cell" name="cell" type="date">}
     assert_dom_equal(expected, date_field_tag("cell"))
   end
 
   def test_time_field_tag
-    expected = %{<input id="cell" name="cell" type="time" />}
+    expected = %{<input id="cell" name="cell" type="time">}
     assert_dom_equal(expected, time_field_tag("cell"))
   end
 
   def test_datetime_field_tag
-    expected = %{<input id="appointment" name="appointment" type="datetime-local" />}
+    expected = %{<input id="appointment" name="appointment" type="datetime-local">}
     assert_dom_equal(expected, datetime_field_tag("appointment"))
   end
 
   def test_datetime_local_field_tag
-    expected = %{<input id="appointment" name="appointment" type="datetime-local" />}
+    expected = %{<input id="appointment" name="appointment" type="datetime-local">}
     assert_dom_equal(expected, datetime_local_field_tag("appointment"))
   end
 
   def test_month_field_tag
-    expected = %{<input id="birthday" name="birthday" type="month" />}
+    expected = %{<input id="birthday" name="birthday" type="month">}
     assert_dom_equal(expected, month_field_tag("birthday"))
   end
 
   def test_week_field_tag
-    expected = %{<input id="birthday" name="birthday" type="week" />}
+    expected = %{<input id="birthday" name="birthday" type="week">}
     assert_dom_equal(expected, week_field_tag("birthday"))
   end
 
   def test_url_field_tag
-    expected = %{<input id="homepage" name="homepage" type="url" />}
+    expected = %{<input id="homepage" name="homepage" type="url">}
     assert_dom_equal(expected, url_field_tag("homepage"))
   end
 
   def test_email_field_tag
-    expected = %{<input id="address" name="address" type="email" />}
+    expected = %{<input id="address" name="address" type="email">}
     assert_dom_equal(expected, email_field_tag("address"))
   end
 
   def test_number_field_tag
-    expected = %{<input name="quantity" max="9" id="quantity" type="number" min="1" />}
+    expected = %{<input name="quantity" max="9" id="quantity" type="number" min="1">}
     assert_dom_equal(expected, number_field_tag("quantity", nil, in: 1...10))
   end
 
   def test_range_input_tag
-    expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0" />}
+    expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0">}
     assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..11, step: 0.1))
   end
 

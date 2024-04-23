@@ -17,8 +17,8 @@ class CsrfHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal <<~DOM.chomp, csrf_meta_tags
-      <meta name="csrf-param" content="form_token" />
-      <meta name="csrf-token" content="secret" />
+      <meta name="csrf-param" content="form_token">
+      <meta name="csrf-token" content="secret">
     DOM
   ensure
     self.request_forgery = false

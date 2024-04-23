@@ -42,7 +42,7 @@ class ActiveModelHelperTest < ActionView::TestCase
 
   def test_text_field_with_errors
     assert_dom_equal(
-      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /></div>),
+      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value=""></div>),
       text_field("post", "author_name")
     )
   end
@@ -81,21 +81,21 @@ class ActiveModelHelperTest < ActionView::TestCase
 
   def test_date_select_with_errors
     assert_dom_equal(
-      %(<div class="field_with_errors"><select id="post_updated_at_1i" name="post[updated_at(1i)]">\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n</select>\n<input id="post_updated_at_2i" name="post[updated_at(2i)]" type="hidden" value="6" autocomplete="off" />\n<input id="post_updated_at_3i" name="post[updated_at(3i)]" type="hidden" value="1" autocomplete="off" />\n</div>),
+      %(<div class="field_with_errors"><select id="post_updated_at_1i" name="post[updated_at(1i)]">\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n</select>\n<input id="post_updated_at_2i" name="post[updated_at(2i)]" type="hidden" value="6" autocomplete="off">\n<input id="post_updated_at_3i" name="post[updated_at(3i)]" type="hidden" value="1" autocomplete="off">\n</div>),
       date_select("post", "updated_at", discard_month: true, discard_day: true, start_year: 2004, end_year: 2005)
     )
   end
 
   def test_datetime_select_with_errors
     assert_dom_equal(
-      %(<div class="field_with_errors"><input id="post_updated_at_1i" name="post[updated_at(1i)]" type="hidden" value="2004" autocomplete="off" />\n<input id="post_updated_at_2i" name="post[updated_at(2i)]" type="hidden" value="6" autocomplete="off" />\n<input id="post_updated_at_3i" name="post[updated_at(3i)]" type="hidden" value="1" autocomplete="off" />\n<select id="post_updated_at_4i" name="post[updated_at(4i)]">\n<option selected="selected" value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n</select>\n : <select id="post_updated_at_5i" name="post[updated_at(5i)]">\n<option selected="selected" value="00">00</option>\n</select>\n</div>),
+      %(<div class="field_with_errors"><input id="post_updated_at_1i" name="post[updated_at(1i)]" type="hidden" value="2004" autocomplete="off">\n<input id="post_updated_at_2i" name="post[updated_at(2i)]" type="hidden" value="6" autocomplete="off">\n<input id="post_updated_at_3i" name="post[updated_at(3i)]" type="hidden" value="1" autocomplete="off">\n<select id="post_updated_at_4i" name="post[updated_at(4i)]">\n<option selected="selected" value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n</select>\n : <select id="post_updated_at_5i" name="post[updated_at(5i)]">\n<option selected="selected" value="00">00</option>\n</select>\n</div>),
       datetime_select("post", "updated_at", discard_year: true, discard_month: true, discard_day: true, minute_step: 60)
     )
   end
 
   def test_time_select_with_errors
     assert_dom_equal(
-      %(<div class="field_with_errors"><input id="post_updated_at_1i" name="post[updated_at(1i)]" type="hidden" value="2004" autocomplete="off" />\n<input id="post_updated_at_2i" name="post[updated_at(2i)]" type="hidden" value="6" autocomplete="off" />\n<input id="post_updated_at_3i" name="post[updated_at(3i)]" type="hidden" value="15" autocomplete="off" />\n<select id="post_updated_at_4i" name="post[updated_at(4i)]">\n<option selected="selected" value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n</select>\n : <select id="post_updated_at_5i" name="post[updated_at(5i)]">\n<option selected="selected" value="00">00</option>\n</select>\n</div>),
+      %(<div class="field_with_errors"><input id="post_updated_at_1i" name="post[updated_at(1i)]" type="hidden" value="2004" autocomplete="off">\n<input id="post_updated_at_2i" name="post[updated_at(2i)]" type="hidden" value="6" autocomplete="off">\n<input id="post_updated_at_3i" name="post[updated_at(3i)]" type="hidden" value="15" autocomplete="off">\n<select id="post_updated_at_4i" name="post[updated_at(4i)]">\n<option selected="selected" value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n</select>\n : <select id="post_updated_at_5i" name="post[updated_at(5i)]">\n<option selected="selected" value="00">00</option>\n</select>\n</div>),
       time_select("post", "updated_at", minute_step: 60)
     )
   end
@@ -109,49 +109,49 @@ class ActiveModelHelperTest < ActionView::TestCase
 
   def test_check_box_with_errors
     assert_dom_equal(
-      %(<input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div>),
+      %(<input name="post[published]" type="hidden" value="0" autocomplete="off"><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published"></div>),
       check_box("post", "published")
     )
   end
 
   def test_check_boxes_with_errors
     assert_dom_equal(
-      %(<input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div><input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div>),
+      %(<input name="post[published]" type="hidden" value="0" autocomplete="off"><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published"></div><input name="post[published]" type="hidden" value="0" autocomplete="off"><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published"></div>),
       check_box("post", "published") + check_box("post", "published")
     )
   end
 
   def test_radio_button_with_errors
     assert_dom_equal(
-      %(<div class="field_with_errors"><input type="radio" value="rails" checked="checked" name="post[category]" id="post_category_rails" /></div>),
+      %(<div class="field_with_errors"><input type="radio" value="rails" checked="checked" name="post[category]" id="post_category_rails"></div>),
       radio_button("post", "category", "rails")
     )
   end
 
   def test_radio_buttons_with_errors
     assert_dom_equal(
-      %(<div class="field_with_errors"><input type="radio" value="rails" checked="checked" name="post[category]" id="post_category_rails" /></div><div class="field_with_errors"><input type="radio" value="java" name="post[category]" id="post_category_java" /></div>),
+      %(<div class="field_with_errors"><input type="radio" value="rails" checked="checked" name="post[category]" id="post_category_rails"></div><div class="field_with_errors"><input type="radio" value="java" name="post[category]" id="post_category_java"></div>),
       radio_button("post", "category", "rails") + radio_button("post", "category", "java")
     )
   end
 
   def test_collection_check_boxes_with_errors
     assert_dom_equal(
-      %(<input type="hidden" name="post[category][]" value="" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="ruby" name="post[category][]" id="post_category_ruby" /></div><label for="post_category_ruby">ruby</label><div class="field_with_errors"><input type="checkbox" value="java" name="post[category][]" id="post_category_java" /></div><label for="post_category_java">java</label>),
+      %(<input type="hidden" name="post[category][]" value="" autocomplete="off"><div class="field_with_errors"><input type="checkbox" value="ruby" name="post[category][]" id="post_category_ruby"></div><label for="post_category_ruby">ruby</label><div class="field_with_errors"><input type="checkbox" value="java" name="post[category][]" id="post_category_java"></div><label for="post_category_java">java</label>),
       collection_check_boxes("post", "category", [:ruby, :java], :to_s, :to_s)
     )
   end
 
   def test_collection_radio_buttons_with_errors
     assert_dom_equal(
-      %(<input type="hidden" name="post[category]" value="" autocomplete="off" /><div class="field_with_errors"><input type="radio" value="ruby" name="post[category]" id="post_category_ruby" /></div><label for="post_category_ruby">ruby</label><div class="field_with_errors"><input type="radio" value="java" name="post[category]" id="post_category_java" /></div><label for="post_category_java">java</label>),
+      %(<input type="hidden" name="post[category]" value="" autocomplete="off"><div class="field_with_errors"><input type="radio" value="ruby" name="post[category]" id="post_category_ruby"></div><label for="post_category_ruby">ruby</label><div class="field_with_errors"><input type="radio" value="java" name="post[category]" id="post_category_java"></div><label for="post_category_java">java</label>),
       collection_radio_buttons("post", "category", [:ruby, :java], :to_s, :to_s)
     )
   end
 
   def test_hidden_field_does_not_render_errors
     assert_dom_equal(
-      %(<input id="post_author_name" name="post[author_name]" type="hidden" value="" autocomplete="off" />),
+      %(<input id="post_author_name" name="post[author_name]" type="hidden" value="" autocomplete="off">),
       hidden_field("post", "author_name")
     )
   end
@@ -163,7 +163,7 @@ class ActiveModelHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
-      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /> <span class="error">can't be empty</span></div>),
+      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value=""> <span class="error">can't be empty</span></div>),
       text_field("post", "author_name")
     )
   ensure

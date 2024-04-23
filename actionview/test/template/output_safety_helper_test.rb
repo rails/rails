@@ -23,8 +23,8 @@ class OutputSafetyHelperTest < ActionView::TestCase
     joined = safe_join([raw("<p>foo</p>"), "<p>bar</p>"], "<br />")
     assert_equal "<p>foo</p>&lt;br /&gt;&lt;p&gt;bar&lt;/p&gt;", joined
 
-    joined = safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />"))
-    assert_equal "<p>foo</p><br /><p>bar</p>", joined
+    joined = safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br>"))
+    assert_equal "<p>foo</p><br><p>bar</p>", joined
   end
 
   test "safe_join should work recursively similarly to Array.join" do
@@ -80,7 +80,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
       safe_join(["<marquee>shady stuff</marquee>", tag("br")])
     end
     url = "https://example.com"
-    expected = %(<a href="#{url}">#{url}</a> and <p>&lt;marquee&gt;shady stuff&lt;/marquee&gt;<br /></p>)
+    expected = %(<a href="#{url}">#{url}</a> and <p>&lt;marquee&gt;shady stuff&lt;/marquee&gt;<br></p>)
     actual = to_sentence([link_to(url, url), ptag])
     assert_predicate actual, :html_safe?
     assert_equal(expected, actual)

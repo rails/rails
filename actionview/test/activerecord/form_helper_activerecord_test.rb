@@ -50,8 +50,8 @@ class FormHelperActiveRecordTest < ActionView::TestCase
     end
 
     expected = whole_form("/developers/123", "edit_developer_123", "edit_developer", method: "patch") do
-      '<input id="developer_projects_attributes_abc_name" name="developer[projects_attributes][abc][name]" type="text" value="project #321" />' \
-          '<input id="developer_projects_attributes_abc_id" name="developer[projects_attributes][abc][id]" type="hidden" value="321" autocomplete="off" />'
+      '<input id="developer_projects_attributes_abc_name" name="developer[projects_attributes][abc][name]" type="text" value="project #321">' \
+          '<input id="developer_projects_attributes_abc_id" name="developer[projects_attributes][abc][id]" type="hidden" value="321" autocomplete="off">'
     end
 
     assert_dom_equal expected, @rendered
@@ -59,10 +59,10 @@ class FormHelperActiveRecordTest < ActionView::TestCase
 
   private
     def hidden_fields(method = nil)
-      txt = +%{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
+      txt = +%{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off">}
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off">}
       end
 
       txt

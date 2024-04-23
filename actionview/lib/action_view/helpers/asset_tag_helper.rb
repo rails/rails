@@ -15,9 +15,9 @@ module ActionView
     # the assets exist before linking to them:
     #
     #   image_tag("rails.png")
-    #   # => <img src="/assets/rails.png" />
+    #   # => <img src="/assets/rails.png">
     #   stylesheet_link_tag("application")
-    #   # => <link href="/assets/application.css?body=1" rel="stylesheet" />
+    #   # => <link href="/assets/application.css?body=1" rel="stylesheet">
     module AssetTagHelper
       include AssetUrlHelper
       include TagHelper
@@ -172,29 +172,29 @@ module ActionView
       # ==== Examples
       #
       #   stylesheet_link_tag "style"
-      #   # => <link href="/assets/style.css" rel="stylesheet" />
+      #   # => <link href="/assets/style.css" rel="stylesheet">
       #
       #   stylesheet_link_tag "style.css"
-      #   # => <link href="/assets/style.css" rel="stylesheet" />
+      #   # => <link href="/assets/style.css" rel="stylesheet">
       #
       #   stylesheet_link_tag "http://www.example.com/style.css"
-      #   # => <link href="http://www.example.com/style.css" rel="stylesheet" />
+      #   # => <link href="http://www.example.com/style.css" rel="stylesheet">
       #
       #   stylesheet_link_tag "style.less", extname: false, skip_pipeline: true, rel: "stylesheet/less"
       #   # => <link href="/stylesheets/style.less" rel="stylesheet/less">
       #
       #   stylesheet_link_tag "style", media: "all"
-      #   # => <link href="/assets/style.css" media="all" rel="stylesheet" />
+      #   # => <link href="/assets/style.css" media="all" rel="stylesheet">
       #
       #   stylesheet_link_tag "style", media: "print"
-      #   # => <link href="/assets/style.css" media="print" rel="stylesheet" />
+      #   # => <link href="/assets/style.css" media="print" rel="stylesheet">
       #
       #   stylesheet_link_tag "random.styles", "/css/stylish"
-      #   # => <link href="/assets/random.styles" rel="stylesheet" />
-      #   #    <link href="/css/stylish.css" rel="stylesheet" />
+      #   # => <link href="/assets/random.styles" rel="stylesheet">
+      #   #    <link href="/css/stylish.css" rel="stylesheet">
       #
       #   stylesheet_link_tag "style", nonce: true
-      #   # => <link href="/assets/style.css" rel="stylesheet" nonce="..." />
+      #   # => <link href="/assets/style.css" rel="stylesheet" nonce="...">
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
@@ -251,19 +251,19 @@ module ActionView
       # ==== Examples
       #
       #   auto_discovery_link_tag
-      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action" />
+      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action">
       #   auto_discovery_link_tag(:atom)
-      #   # => <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/controller/action" />
+      #   # => <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/controller/action">
       #   auto_discovery_link_tag(:json)
-      #   # => <link rel="alternate" type="application/json" title="JSON" href="http://www.currenthost.com/controller/action" />
+      #   # => <link rel="alternate" type="application/json" title="JSON" href="http://www.currenthost.com/controller/action">
       #   auto_discovery_link_tag(:rss, {action: "feed"})
-      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/feed" />
+      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/feed">
       #   auto_discovery_link_tag(:rss, {action: "feed"}, {title: "My RSS"})
-      #   # => <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.currenthost.com/controller/feed" />
+      #   # => <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.currenthost.com/controller/feed">
       #   auto_discovery_link_tag(:rss, {controller: "news", action: "feed"})
-      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed" />
+      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed">
       #   auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
-      #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed.rss" />
+      #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed.rss">
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         if !(type == :rss || type == :atom || type == :json) && tag_options[:type].blank?
           raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss, :atom, or :json.")
@@ -294,17 +294,17 @@ module ActionView
       # respectively:
       #
       #   favicon_link_tag
-      #   # => <link href="/assets/favicon.ico" rel="icon" type="image/x-icon" />
+      #   # => <link href="/assets/favicon.ico" rel="icon" type="image/x-icon">
       #
       #   favicon_link_tag 'myicon.ico'
-      #   # => <link href="/assets/myicon.ico" rel="icon" type="image/x-icon" />
+      #   # => <link href="/assets/myicon.ico" rel="icon" type="image/x-icon">
       #
       # Mobile Safari looks for a different link tag, pointing to an image that
       # will be used if you add the page to the home screen of an iOS device.
       # The following call would generate such a tag:
       #
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
-      #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
+      #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png">
       def favicon_link_tag(source = "favicon.ico", options = {})
         tag("link", {
           rel: "icon",
@@ -328,25 +328,25 @@ module ActionView
       # ==== Examples
       #
       #   preload_link_tag("custom_theme.css")
-      #   # => <link rel="preload" href="/assets/custom_theme.css" as="style" type="text/css" />
+      #   # => <link rel="preload" href="/assets/custom_theme.css" as="style" type="text/css">
       #
       #   preload_link_tag("/videos/video.webm")
-      #   # => <link rel="preload" href="/videos/video.mp4" as="video" type="video/webm" />
+      #   # => <link rel="preload" href="/videos/video.mp4" as="video" type="video/webm">
       #
       #   preload_link_tag(post_path(format: :json), as: "fetch")
-      #   # => <link rel="preload" href="/posts.json" as="fetch" type="application/json" />
+      #   # => <link rel="preload" href="/posts.json" as="fetch" type="application/json">
       #
       #   preload_link_tag("worker.js", as: "worker")
-      #   # => <link rel="preload" href="/assets/worker.js" as="worker" type="text/javascript" />
+      #   # => <link rel="preload" href="/assets/worker.js" as="worker" type="text/javascript">
       #
       #   preload_link_tag("//example.com/font.woff2")
-      #   # => <link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>
+      #   # => <link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="anonymous">
       #
       #   preload_link_tag("//example.com/font.woff2", crossorigin: "use-credentials")
-      #   # => <link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="use-credentials" />
+      #   # => <link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="use-credentials">
       #
       #   preload_link_tag("/media/audio.ogg", nopush: true)
-      #   # => <link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />
+      #   # => <link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg">
       #
       def preload_link_tag(source, options = {})
         href = path_to_asset(source, skip_pipeline: options.delete(:skip_pipeline))
@@ -397,19 +397,19 @@ module ActionView
       # Assets (images that are part of your app):
       #
       #   image_tag("icon")
-      #   # => <img src="/assets/icon" />
+      #   # => <img src="/assets/icon">
       #   image_tag("icon.png")
-      #   # => <img src="/assets/icon.png" />
+      #   # => <img src="/assets/icon.png">
       #   image_tag("icon.png", size: "16x10", alt: "Edit Entry")
-      #   # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
+      #   # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry">
       #   image_tag("/icons/icon.gif", size: "16")
-      #   # => <img src="/icons/icon.gif" width="16" height="16" />
+      #   # => <img src="/icons/icon.gif" width="16" height="16">
       #   image_tag("/icons/icon.gif", height: '32', width: '32')
-      #   # => <img height="32" src="/icons/icon.gif" width="32" />
+      #   # => <img height="32" src="/icons/icon.gif" width="32">
       #   image_tag("/icons/icon.gif", class: "menu_icon")
-      #   # => <img class="menu_icon" src="/icons/icon.gif" />
+      #   # => <img class="menu_icon" src="/icons/icon.gif">
       #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
-      #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
+      #   # => <img data-title="Rails Application" src="/icons/icon.gif">
       #   image_tag("icon.png", srcset: { "icon_2x.png" => "2x", "icon_4x.png" => "4x" })
       #   # => <img src="/assets/icon.png" srcset="/assets/icon_2x.png 2x, /assets/icon_4x.png 4x">
       #   image_tag("pic.jpg", srcset: [["pic_1024.jpg", "1024w"], ["pic_1980.jpg", "1980w"]], sizes: "100vw")
@@ -418,11 +418,11 @@ module ActionView
       # Active Storage blobs (images that are uploaded by the users of your app):
       #
       #   image_tag(user.avatar)
-      #   # => <img src="/rails/active_storage/blobs/.../tiger.jpg" />
+      #   # => <img src="/rails/active_storage/blobs/.../tiger.jpg">
       #   image_tag(user.avatar.variant(resize_to_limit: [100, 100]))
-      #   # => <img src="/rails/active_storage/representations/.../tiger.jpg" />
+      #   # => <img src="/rails/active_storage/representations/.../tiger.jpg">
       #   image_tag(user.avatar.variant(resize_to_limit: [100, 100]), size: '100')
-      #   # => <img width="100" height="100" src="/rails/active_storage/representations/.../tiger.jpg" />
+      #   # => <img width="100" height="100" src="/rails/active_storage/representations/.../tiger.jpg">
       def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
@@ -464,26 +464,26 @@ module ActionView
       # ==== Examples
       #
       #   picture_tag("picture.webp")
-      #   # => <picture><img src="/images/picture.webp" /></picture>
+      #   # => <picture><img src="/images/picture.webp"></picture>
       #   picture_tag("gold.png", :image => { :size => "20" })
-      #   # => <picture><img height="20" src="/images/gold.png" width="20" /></picture>
+      #   # => <picture><img height="20" src="/images/gold.png" width="20"></picture>
       #   picture_tag("gold.png", :image => { :size => "45x70" })
-      #   # => <picture><img height="70" src="/images/gold.png" width="45" /></picture>
+      #   # => <picture><img height="70" src="/images/gold.png" width="45"></picture>
       #   picture_tag("picture.webp", "picture.png")
-      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img src="/images/picture.png" /></picture>
+      #   # => <picture><source srcset="/images/picture.webp"><source srcset="/images/picture.png"><img src="/images/picture.png"></picture>
       #   picture_tag("picture.webp", "picture.png", :image => { alt: "Image" })
-      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   # => <picture><source srcset="/images/picture.webp"><source srcset="/images/picture.png"><img alt="Image" src="/images/picture.png"></picture>
       #   picture_tag(["picture.webp", "picture.png"], :image => { alt: "Image" })
-      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   # => <picture><source srcset="/images/picture.webp"><source srcset="/images/picture.png"><img alt="Image" src="/images/picture.png"></picture>
       #   picture_tag(:class => "my-class") { tag(:source, :srcset => image_path("picture.webp")) + image_tag("picture.png", :alt => "Image") }
-      #   # => <picture class="my-class"><source srcset="/images/picture.webp" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   # => <picture class="my-class"><source srcset="/images/picture.webp"><img alt="Image" src="/images/picture.png"></picture>
       #   picture_tag { tag(:source, :srcset => image_path("picture-small.webp"), :media => "(min-width: 600px)") + tag(:source, :srcset => image_path("picture-big.webp")) + image_tag("picture.png", :alt => "Image") }
-      #   # => <picture><source srcset="/images/picture-small.webp" media="(min-width: 600px)" /><source srcset="/images/picture-big.webp" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   # => <picture><source srcset="/images/picture-small.webp" media="(min-width: 600px)"><source srcset="/images/picture-big.webp"><img alt="Image" src="/images/picture.png"></picture>
       #
       # Active Storage blobs (images that are uploaded by the users of your app):
       #
       #   picture_tag(user.profile_picture)
-      #   # => <picture><img src="/rails/active_storage/blobs/.../profile_picture.webp" /></picture>
+      #   # => <picture><img src="/rails/active_storage/blobs/.../profile_picture.webp"></picture>
       def picture_tag(*sources, &block)
         sources.flatten!
         options = sources.extract_options!.symbolize_keys
@@ -544,11 +544,11 @@ module ActionView
       #   video_tag("/trailers/hd.avi", height: '32', width: '32')
       #   # => <video height="32" src="/trailers/hd.avi" width="32"></video>
       #   video_tag("trailer.ogg", "trailer.flv")
-      #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   # => <video><source src="/videos/trailer.ogg"><source src="/videos/trailer.flv"></video>
       #   video_tag(["trailer.ogg", "trailer.flv"])
-      #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   # => <video><source src="/videos/trailer.ogg"><source src="/videos/trailer.flv"></video>
       #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
-      #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   # => <video height="120" width="160"><source src="/videos/trailer.ogg"><source src="/videos/trailer.flv"></video>
       #
       # Active Storage blobs (videos that are uploaded by the users of your app):
       #
@@ -580,7 +580,7 @@ module ActionView
       #   audio_tag("sound.wav", autoplay: true, controls: true)
       #   # => <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav"></audio>
       #   audio_tag("sound.wav", "sound.mid")
-      #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
+      #   # => <audio><source src="/audios/sound.wav"><source src="/audios/sound.mid"></audio>
       #
       # Active Storage blobs (audios that are uploaded by the users of your app):
       #
