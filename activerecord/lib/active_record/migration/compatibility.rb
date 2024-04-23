@@ -117,6 +117,7 @@ module ActiveRecord
 
         def rename_table(table_name, new_name, **options)
           options[:_uses_legacy_table_name] = true
+          options[:_uses_legacy_index_name] = true
           super
         end
 
