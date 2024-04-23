@@ -1,3 +1,7 @@
+*   Fix `Mime::Type.parse` handling type parameters for HTTP Accept headers.
+
+    *Taylor Chaparro*
+
 *   Fix the error page that is displayed when a view template is missing to account for nested controller paths in the
     suggested correct location for the missing template.
 
