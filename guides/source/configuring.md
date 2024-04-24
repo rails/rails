@@ -60,11 +60,11 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
+- [`config.action_view.void_element_trailing_slash`](#config-action-view-void-element-trailing-slash): `false`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
 - [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
-- [`config.action_view.void_element_trailing_slash`](#config-action-view-void-element-trailing-slash): `false`
 
 #### Default Values for Target Version 7.1
 
@@ -92,7 +92,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.dom_testing_default_html_version`](#config-dom-testing-default-html-version): `defined?(Nokogiri::HTML5) ? :html5 : :html4`
 - [`config.log_file_size`](#config-log-file-size): `100 * 1024 * 1024`
 - [`config.precompile_filter_parameters`](#config-precompile-filter-parameters): `true`
-- [`config.action_view.void_element_trailing_slash`](#config-action-view-void-element-trailing-slash): `true`
 
 #### Default Values for Target Version 7.0
 
@@ -158,6 +157,7 @@ Below are the default values associated with each target version. In cases of co
 - [`ActiveSupport.to_time_preserves_timezone`](#activesupport-to-time-preserves-timezone): `true`
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
+- [`config.action_view.void_element_trailing_slash`](#config-action-view-void-element-trailing-slash): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 
