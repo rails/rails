@@ -114,6 +114,13 @@ class ChangeProductsPrice < ActiveRecord::Migration[7.2]
 end
 ```
 
+While this example of changing the data type back from string to integer is
+straightforward, it's an illustration of the type of migration that might
+require manual instructions for reversal in more complex scenarios. Other
+scenarios when `reversible` is useful is for executing a raw SQL query or
+performing a database operation that doesn't have a direct equivalent in
+ActiveRecord methods.
+
 You can read more about `reversible` [here](#using-reversible).
 
 Generating Migrations
@@ -122,18 +129,20 @@ Generating Migrations
 ### Creating a Standalone Migration
 
 Migrations are stored as files in the `db/migrate` directory, one for each
-migration class. The name of the file is of the form
+migration class.
+
+The name of the file is of the form
 `YYYYMMDDHHMMSS_create_products.rb`, that is to say a UTC timestamp
 identifying the migration followed by an underscore followed by the name
 of the migration. The name of the migration class (CamelCased version)
-should match the latter part of the file name. For example
+should match the latter part of the file name. For example,
 `20080906120000_create_products.rb` should define class `CreateProducts` and
 `20080906120001_add_details_to_products.rb` should define
-`AddDetailsToProducts`. Rails uses this timestamp to determine which migration
+class `AddDetailsToProducts`. Rails uses this timestamp to determine which migration
 should be run and in what order, so if you're copying a migration from another
 application or generate a file yourself, be aware of its position in the order.
 
-Of course, calculating timestamps is no fun, so Active Record provides a
+Of course, calculating timestamps is not fun, so Active Record provides a
 generator to handle making it for you:
 
 ```bash
