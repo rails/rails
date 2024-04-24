@@ -74,7 +74,8 @@ module ActionView
                   TEXT
                   tag_string("#{name}", content, options, escape: escape, &block)
                 else
-                  self_closing_tag_string("#{name}", options, escape, ">")
+                  tag_suffix = ActionView::Helpers::TagHelper.void_element_trailing_slash ? " />" : ">"
+                  self_closing_tag_string("#{name}", options, escape, tag_suffix)
                 end
               end
             RUBY
@@ -247,7 +248,7 @@ module ActionView
           content_tag_string(name, content, options, escape)
         end
 
-        def self_closing_tag_string(name, options, escape = true, tag_suffix = (void_element_trailing_slash == false ? ">" : " />"))
+        def self_closing_tag_string(name, options, escape = true, tag_suffix = ">")
           "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
         end
 
