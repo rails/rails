@@ -162,6 +162,35 @@ This generator can do much more than prepend a timestamp to the file name.
 Based on naming conventions and additional (optional) arguments it can
 also start fleshing out the migration.
 
+### Creating a New Table
+
+If the migration name is of the form "CreateXXX" and is followed by a list of
+column names and types then a migration creating the table XXX with the
+columns listed will be generated.
+
+```bash
+$ bin/rails generate migration CreateProducts name:string part_number:string
+```
+
+generates
+
+```ruby
+class CreateProducts < ActiveRecord::Migration[7.2]
+  def change
+    create_table :products do |t|
+      t.string :name
+      t.string :part_number
+
+      t.timestamps
+    end
+  end
+end
+```
+
+The generated file with its contents is just a starting point, and you can add
+or remove from it as you see fit by editing the
+`db/migrate/YYYYMMDDHHMMSS_create_products.rb` file.
+
 ### Adding New Columns
 
 If the migration name is of the form "AddColumnToTable" or
@@ -235,35 +264,6 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration[7.2]
   end
 end
 ```
-
-### Creating New Tables
-
-If the migration name is of the form "CreateXXX" and is followed by a list of
-column names and types then a migration creating the table XXX with the
-columns listed will be generated. For example:
-
-```bash
-$ bin/rails generate migration CreateProducts name:string part_number:string
-```
-
-generates
-
-```ruby
-class CreateProducts < ActiveRecord::Migration[7.2]
-  def change
-    create_table :products do |t|
-      t.string :name
-      t.string :part_number
-
-      t.timestamps
-    end
-  end
-end
-```
-
-As always, what has been generated for you is just a starting point.
-You can add or remove from it as you see fit by editing the
-`db/migrate/YYYYMMDDHHMMSS_create_products.rb` file.
 
 ### Creating associations using references
 
