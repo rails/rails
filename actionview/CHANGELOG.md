@@ -1,3 +1,25 @@
+*   Removed the trailing slash from void HTML elements, except for elements included inside SVG tags.
+
+    The default value of the third argument (`open`) for `ActionView::TagHelper#tag` has been changed from `false` to `nil`.
+
+    For example, the following code now creates HTML without the trailing slash on the void element:
+
+    ```ruby
+    # Prints out `<br>`
+    tag("br")
+    ```
+
+    To force the trailing slash on the element, the third argument (`open`) can be provided with the value `false` as in:
+
+    ```ruby
+    # Prints out `<br />`
+    tag("br", nil, false)
+    ```
+
+    In order to preserve the legacy XHTML format, set `Rails.application.config.action_view.void_element_trailing_slash` to `true`.
+
+    *Antti Hukkanen*
+
 *   Add queries count to template rendering instrumentation
 
     ```
@@ -93,27 +115,5 @@
     ```
 
     *Akhil G Krishnan*
-
-*   Removed the trailing slash from void HTML elements, except for elements included inside SVG tags.
-
-    The default value of the third argument (`open`) for `ActionView::TagHelper#tag` has been changed from `false` to `nil`.
-
-    For example, the following code now creates HTML without the trailing slash on the void element:
-
-    ```ruby
-    # Prints out `<br>`
-    tag("br")
-    ```
-
-    To force the trailing slash on the element, the third argument (`open`) can be provided with the value `false` as in:
-
-    ```ruby
-    # Prints out `<br />`
-    tag("br", nil, false)
-    ```
-
-    In order to preserve the legacy XHTML format, set `Rails.application.config.action_view.void_element_trailing_slash` to `true`.
-
-    *Antti Hukkanen*
 
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionview/CHANGELOG.md) for previous changes.
