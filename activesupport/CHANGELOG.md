@@ -1,3 +1,14 @@
+*   Allow assertionless tests to be reported.
+
+    `ActiveSupport::TestCase` can be configured to report tests that do not run any assertions.
+    This is helpful in detecting broken tests that do not perform intended assertions.
+
+    ```ruby
+    config.active_support.assertionless_tests_behavior = :raise
+    ```
+
+    *fatkodima*
+
 *   Support `hexBinary` type in `ActiveSupport::XmlMini`.
 
     *heka1024*
