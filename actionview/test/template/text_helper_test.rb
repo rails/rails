@@ -44,6 +44,23 @@ class TextHelperTest < ActionView::TestCase
     assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", class: "test")
   end
 
+  def test_simple_format_with_void_element_trailing_slash
+    original_trailing_slash_config = ActionView::Helpers::TagHelper.void_element_trailing_slash
+    ActionView::Helpers::TagHelper.void_element_trailing_slash = true
+
+    assert_equal "<p>ridiculous\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("ridiculous\r\n cross\r platform linebreaks")
+    assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
+    assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
+
+    text = "A\nB\nC\nD"
+    assert_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format(text)
+
+    text = "A\r\n  \nB\n\n\r\n\t\nC\nD"
+    assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
+  ensure
+    ActionView::Helpers::TagHelper.void_element_trailing_slash = original_trailing_slash_config
+  end
+
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
     assert_equal "<p><b> test with unsafe string </b>code!</p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
