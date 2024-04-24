@@ -59,10 +59,12 @@ task :preview_docs do
   require "guides/rails_guides"
   Rake::Task[:rdoc].invoke
 
-  FileUtils.cp_r("doc/rdoc", "preview/api")
-  FileUtils.cp_r("guides/output", "preview/guides")
+  FileUtils.mv("doc/rdoc", "preview/api")
+  FileUtils.mv("guides/output", "preview/guides")
 
-  system("tar -czf preview.tar.gz preview")
+  Dir.chdir("preview") do
+    system("tar -czf preview.tar.gz .")
+  end
 end
 
 desc "Bump all versions to match RAILS_VERSION"
