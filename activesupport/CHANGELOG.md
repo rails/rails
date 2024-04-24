@@ -1,3 +1,7 @@
+*   Support `duration` type in `ActiveSupport::XmlMini`.
+
+    *heka1024*
+
 *   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
 
     *Rafael Mendonça França*
