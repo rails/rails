@@ -265,10 +265,13 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration[7.2]
 end
 ```
 
-### Creating associations using references
+### Creating Associations using References
 
-Also, the generator accepts column type as `references` (also available as
-`belongs_to`). For example,
+The generator accepts column type as `references`. [References](#references) are a
+shorthand for creating columns, indexes, foreign keys, or even polymorphic
+association columns.
+
+For example,
 
 ```bash
 $ bin/rails generate migration AddUserRefToProducts user:references
@@ -284,9 +287,24 @@ class AddUserRefToProducts < ActiveRecord::Migration[7.2]
 end
 ```
 
-This migration will create a `user_id` column. [References](#references) are a
-shorthand for creating columns, indexes, foreign keys, or even polymorphic
-association columns.
+This migration will create a `user_id` column.
+
+Alternatively, `belongs_to` is an alias of `references`, so the above could be
+also be written as:
+
+```bash
+$ bin/rails generate migration AddUserRefToProducts user:belongs_to
+```
+
+generating a migration that looks like:
+
+```ruby
+class AddUserRefToProducts < ActiveRecord::Migration[7.2]
+  def change
+    add_belongs_to :products, :user, foreign_key: true
+  end
+end
+```
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
