@@ -979,16 +979,18 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecator.behavior = ->(message, *) { @message = message }
     method_that_emits_deprecation_with_internal_method(@deprecator)
 
-    assert_not_includes(@message, "internal")
+    assert_includes(@message, "/path/to/user/code.rb")
   end
+
+  class_eval(<<~RUBY, "/path/to/user/code.rb", 1)
+    def method_that_emits_deprecation_with_internal_method(deprecator)
+      [1].each { deprecator.warn }
+    end
+  RUBY
 
   private
     def method_that_emits_deprecation(deprecator)
       deprecator.warn
-    end
-
-    def method_that_emits_deprecation_with_internal_method(deprecator)
-      [1].each { deprecator.warn }
     end
 
     def with_rails_application_deprecators(&block)
