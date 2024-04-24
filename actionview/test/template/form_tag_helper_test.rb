@@ -28,7 +28,7 @@ class FormTagHelperTest < ActionView::TestCase
 
     (+"").tap do |txt|
       if enforce_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off">}
+        txt << %{<input type="hidden" name="utf8" value="&#x2713;" autocomplete="off">}
       end
 
       if method && !%w(get post).include?(method.to_s)
@@ -187,6 +187,16 @@ class FormTagHelperTest < ActionView::TestCase
     expected = whole_form("http://www.example.com", enforce_utf8: true)
     assert_dom_equal expected, actual
     assert_predicate actual, :html_safe?
+  end
+
+  def test_form_tag_enforce_utf8_true_with_void_element_trailing_slash
+    original_trailing_slash_config = ActionView::Helpers::TagHelper.void_element_trailing_slash
+    ActionView::Helpers::TagHelper.void_element_trailing_slash = true
+
+    actual = form_tag({}, { enforce_utf8: true })
+    assert_match %r{<input type="hidden" name="utf8" value="&#x2713;" autocomplete="off" />}, actual
+  ensure
+    ActionView::Helpers::TagHelper.void_element_trailing_slash = original_trailing_slash_config
   end
 
   def test_form_tag_enforce_utf8_false

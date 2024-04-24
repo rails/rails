@@ -4136,7 +4136,7 @@ class FormHelperTest < ActionView::TestCase
       method = options[:method]
 
       if options.fetch(:enforce_utf8, true)
-        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off">}
+        txt = +%{<input type="hidden" name="utf8" value="&#x2713;" autocomplete="off">}
       else
         txt = +""
       end

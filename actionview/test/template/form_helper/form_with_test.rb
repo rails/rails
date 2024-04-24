@@ -39,7 +39,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
     (+"").tap do |txt|
       unless skip_enforcing_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off">}
+        txt << %{<input type="hidden" name="utf8" value="&#x2713;" autocomplete="off">}
       end
 
       if method && !%w(get post).include?(method.to_s)
@@ -2505,7 +2505,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       if options.fetch(:skip_enforcing_utf8, false)
         txt = +""
       else
-        txt = +%{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off">}
+        txt = +%{<input type="hidden" name="utf8" value="&#x2713;" autocomplete="off">}
       end
 
       if method && !%w(get post).include?(method.to_s)

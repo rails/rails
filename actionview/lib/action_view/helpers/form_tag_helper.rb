@@ -904,10 +904,7 @@ module ActionView
       # Creates the hidden UTF-8 enforcer tag. Override this method in a helper
       # to customize the tag.
       def utf8_enforcer_tag
-        # Use raw HTML to ensure the value is written as an HTML entity; it
-        # needs to be the right character regardless of which encoding the
-        # browser infers.
-        '<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off">'.html_safe
+        hidden_field_tag("utf8", "&#x2713;".html_safe, id: nil)
       end
 
       private
