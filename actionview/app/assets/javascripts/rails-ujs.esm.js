@@ -451,11 +451,11 @@ const handleMethodWithRails = rails => function(e) {
   const csrfToken$1 = csrfToken();
   const csrfParam$1 = csrfParam();
   const form = document.createElement("form");
-  let formContent = `<input name='_method' value='${method}' type='hidden'>`;
+  let formContent = `<input name='_method' value='${method}' type='hidden' />`;
   if (csrfParam$1 && csrfToken$1 && !isCrossDomain(href)) {
-    formContent += `<input name='${csrfParam$1}' value='${csrfToken$1}' type='hidden'>`;
+    formContent += `<input name='${csrfParam$1}' value='${csrfToken$1}' type='hidden' />`;
   }
-  formContent += '<input type="submit">';
+  formContent += '<input type="submit" />';
   form.method = "post";
   form.action = href;
   form.target = link.target;
