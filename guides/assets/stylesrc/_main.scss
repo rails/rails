@@ -30,14 +30,14 @@ body.guide {
   // ----------------------------------------------------------------------------
   
   :root {
-    font-family: Inter, "Noto Sans Arabic", "Heebo", sans-serif;
+    font-family: Inter, sans-serif;
     font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
   }
   @supports (font-variation-settings: normal) {
     :root { font-family: InterVariable, sans-serif; }
   }
 
-  font-family: Inter, "Noto Sans Arabic", "Heebo", sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 1rem; /* 16px */
   font-style: normal;
   font-weight: 400;
@@ -827,7 +827,7 @@ html[dir="rtl"]:lang("fa") {
 }
 
 html[dir="rtl"]:lang("he"),
-html[dir="rtl"]:lang("iw") {
+html[dir="rtl"]:lang( "iw") {
   body.guide {
     h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li {
       font-family: "Heebo", sans-serif;
