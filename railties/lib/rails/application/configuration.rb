@@ -121,6 +121,10 @@ module Rails
             active_record.belongs_to_required_by_default = true
           end
 
+          if respond_to?(:action_view)
+            action_view.void_element_trailing_slash = true
+          end
+
           self.ssl_options = { hsts: { subdomains: true } }
         when "5.1"
           load_defaults "5.0"
@@ -333,6 +337,10 @@ module Rails
           if respond_to?(:active_record)
             active_record.validate_migration_timestamps = true
             active_record.automatically_invert_plural_associations = true
+          end
+
+          if respond_to?(:action_view)
+            action_view.void_element_trailing_slash = false
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
