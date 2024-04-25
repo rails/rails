@@ -157,7 +157,6 @@ Below are the default values associated with each target version. In cases of co
 - [`ActiveSupport.to_time_preserves_timezone`](#activesupport-to-time-preserves-timezone): `true`
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
-- [`config.action_view.void_element_trailing_slash`](#config-action-view-void-element-trailing-slash): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 

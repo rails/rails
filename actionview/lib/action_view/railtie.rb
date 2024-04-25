@@ -14,7 +14,7 @@ module ActionView
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
     config.action_view.prepend_content_exfiltration_prevention = false
-    config.action_view.void_element_trailing_slash = false
+    config.action_view.void_element_trailing_slash = true
 
     config.eager_load_namespaces << ActionView
 
