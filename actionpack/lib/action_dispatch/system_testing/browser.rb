@@ -72,7 +72,7 @@ module ActionDispatch
         end
 
         def resolve_driver_path(namespace)
-          namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.path(options, namespace::Service)
+          namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.new(options, namespace::Service)
         end
     end
   end
