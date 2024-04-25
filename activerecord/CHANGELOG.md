@@ -52,4 +52,15 @@
 
     *Eileen M. Uchitelle*
 
+*   Add `comment` and `table_comment` for `change_table` definition.
+
+    ```ruby
+    change_table :users do |t|
+      t.comment :login, "Username"
+      t.table_comment "Usual users"
+    end
+    ```
+
+    *Edem Topuzov*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activerecord/CHANGELOG.md) for previous changes.

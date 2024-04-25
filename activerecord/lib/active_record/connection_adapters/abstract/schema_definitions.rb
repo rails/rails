@@ -701,6 +701,8 @@ module ActiveRecord
     #     t.remove_index
     #     t.remove_check_constraint
     #     t.remove_timestamps
+    #     t.comment
+    #     t.table_comment
     #   end
     #
     class Table
@@ -939,6 +941,24 @@ module ActiveRecord
       # See {connection.check_constraint_exists?}[rdoc-ref:SchemaStatements#check_constraint_exists?]
       def check_constraint_exists?(*args, **options)
         @base.check_constraint_exists?(name, *args, **options)
+      end
+
+      # Changes the comment for a column.
+      #
+      #   t.comment(:state, "State column comment")
+      #
+      # See {connection.change_column_comment}[rdoc-ref:SchemaStatements#change_column_comment]
+      def comment(column_name, comment_or_changes)
+        @base.change_column_comment(name, column_name, comment_or_changes)
+      end
+
+      # Changes the comment for a table.
+      #
+      #   t.table_comment("Table comment")
+      #
+      # See {connection.change_table_comment}[rdoc-ref:SchemaStatements#change_table_comment]
+      def table_comment(comment_or_changes)
+        @base.change_table_comment(name, comment_or_changes)
       end
 
       private

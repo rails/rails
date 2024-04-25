@@ -359,6 +359,22 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.lease_connection.supports_comments?
+        def test_change_column_comment
+          with_change_table do |t|
+            expect :change_column_comment, nil, [:delete_me, :bar, "Edited column comment"]
+            t.comment :bar, "Edited column comment"
+          end
+        end
+
+        def test_change_table_comment
+          with_change_table do |t|
+            expect :change_table_comment, nil, [:delete_me, "Edited table comment"]
+            t.table_comment "Edited table comment"
+          end
+        end
+      end
+
       def test_remove_column_with_if_exists_raises_error
         assert_raises(ArgumentError) do
           with_change_table do |t|
