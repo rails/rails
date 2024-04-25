@@ -4,3 +4,6 @@ require "bundler/setup" # Set up gems listed in the Gemfile.
 <% if depend_on_bootsnap? -%>
 require "bootsnap/setup" # Speed up boot time by caching expensive operations.
 <%- end -%>
+
+# Quiet noisy debug gem
+ENV["RUBY_DEBUG_LOG_LEVEL"] = "FATAL"
