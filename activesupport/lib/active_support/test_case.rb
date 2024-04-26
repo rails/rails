@@ -3,6 +3,7 @@
 require "minitest"
 require "active_support/testing/tagged_logging"
 require "active_support/testing/setup_and_teardown"
+require "active_support/testing/assertionless_tests"
 require "active_support/testing/assertions"
 require "active_support/testing/error_reporter_assertions"
 require "active_support/testing/deprecation"
@@ -142,6 +143,7 @@ module ActiveSupport
 
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
+    prepend ActiveSupport::Testing::AssertionlessTests
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
     include ActiveSupport::Testing::Deprecation

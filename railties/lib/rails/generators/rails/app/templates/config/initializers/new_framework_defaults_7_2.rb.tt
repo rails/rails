@@ -66,3 +66,11 @@
 # on `Post`. With this option enabled, it will also look for a `:comments` association.
 #++
 # Rails.application.config.active_record.automatically_invert_plural_associations = true
+
+###
+# Controls whether Active Support should log tests without assertions.
+# This is helpful in detecting broken tests that do not perform intended assertions.
+# To disable this behavior, set the value to `:ignore` inside the `config/application.rb` (NOT this file).
+#
+#++
+# Rails.application.config.active_support.assertionless_tests_behavior = :log

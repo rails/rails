@@ -64,6 +64,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
+- [`config.active_support.assertionless_tests_behavior`](#config-active-support-assertionless-tests-behavior): `:log`
 
 #### Default Values for Target Version 7.1
 
@@ -2655,6 +2656,18 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.0                   | `true`               |
+
+#### `config.active_support.assertionless_tests_behavior`
+
+Controls the behavior when a test do not run any assertions. The following options are available:
+
+  * `:ignore` - Assertionless tests will be ignored. This is the default.
+
+  * `:log` - Assertionless tests will be logged via `Rails.logger` at the `:warn` level.
+
+  * `:raise` - Assertionless tests will be considered as failed and raise an error.
+
+  * Custom proc - A custom proc can be provided. It should accept an error message.
 
 #### `ActiveSupport::Logger.silencer`
 
