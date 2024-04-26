@@ -3873,17 +3873,20 @@ module ApplicationTests
 
       output = rails("routes", "-g", "active_storage")
       assert_equal <<~MESSAGE, output
-                               Prefix Verb URI Pattern                                                                        Controller#Action
-                                           /:controller(/:action(/:id))(.:format)                                             :controller#:action
-                   rails_service_blob GET  /files/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
-             rails_service_blob_proxy GET  /files/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
-                                      GET  /files/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
-            rails_blob_representation GET  /files/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirect#show
-      rails_blob_representation_proxy GET  /files/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
-                                      GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations/redirect#show
-                   rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
-            update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                               active_storage/disk#update
-                 rails_direct_uploads POST /files/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
+                              Prefix Verb URI Pattern                            Controller#Action
+                      active_storage      /files                                 ActiveStorage::Engine
+                                          /:controller(/:action(/:id))(.:format) :controller#:action
+
+                      Routes for ActiveStorage::Engine:
+                                   service_blob GET  /blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
+                             service_blob_proxy GET  /blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
+                                                GET  /blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
+                            blob_representation GET  /representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirect#show
+                      blob_representation_proxy GET  /representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
+                                                GET  /representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations/redirect#show
+                                   disk_service GET  /disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
+                            update_disk_service PUT  /disk/:encoded_token(.:format)                                               active_storage/disk#update
+                                 direct_uploads POST /direct_uploads(.:format)                                                    active_storage/direct_uploads#create
       MESSAGE
     end
 

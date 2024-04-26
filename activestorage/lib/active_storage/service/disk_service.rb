@@ -88,7 +88,7 @@ module ActiveStorage
           purpose: :blob_token
         )
 
-        url_helpers.update_rails_disk_service_url(verified_token_with_expiration, url_options).tap do |generated_url|
+        url_helpers.update_disk_service_url(verified_token_with_expiration, url_options).tap do |generated_url|
           payload[:url] = generated_url
         end
       end
@@ -138,7 +138,7 @@ module ActiveStorage
           raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.url_options."
         end
 
-        url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
+        url_helpers.disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
       end
 
 
@@ -168,7 +168,7 @@ module ActiveStorage
       end
 
       def url_helpers
-        @url_helpers ||= Rails.application.routes.url_helpers
+        @url_helpers ||= ActiveStorage::Engine.routes.url_helpers
       end
 
       def url_options

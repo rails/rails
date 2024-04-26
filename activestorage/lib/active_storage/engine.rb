@@ -197,6 +197,16 @@ module ActiveStorage
       end
     end
 
+    initializer "active_storage.routes" do
+      config.after_initialize do |app|
+        if ActiveStorage.draw_routes
+          app.routes.prepend do
+            mount ActiveStorage::Engine => ActiveStorage.routes_prefix
+          end
+        end
+      end
+    end
+
     initializer "active_storage.fixture_set" do
       ActiveSupport.on_load(:active_record_fixture_set) do
         ActiveStorage::FixtureSet.file_fixture_path ||= Rails.root.join(*[

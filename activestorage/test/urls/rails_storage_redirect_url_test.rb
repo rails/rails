@@ -5,6 +5,7 @@ require "database/setup"
 
 class RailsStorageRedirectUrlTest < ActiveSupport::TestCase
   include Rails.application.routes.url_helpers
+  include Rails.application.routes.mounted_helpers
 
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
