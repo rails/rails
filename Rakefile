@@ -62,9 +62,7 @@ task :preview_docs do
   FileUtils.mv("doc/rdoc", "preview/api")
   FileUtils.mv("guides/output", "preview/guides")
 
-  Dir.chdir("preview") do
-    system("tar -czf preview.tar.gz .")
-  end
+  system("tar -czf preview.tar.gz -C preview .")
 end
 
 desc "Bump all versions to match RAILS_VERSION"
