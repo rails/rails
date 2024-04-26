@@ -152,9 +152,10 @@ class DriverTest < ActiveSupport::TestCase
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
     ::Selenium::WebDriver::Chrome::Service.driver_path = nil
 
-    # Our stub must return a path to a real executable, otherwise an internal Selenium assertion will fail.
+    # Our stub must return paths to a real executables, otherwise an internal Selenium assertion will fail.
+    # Note: SeleniumManager is private api
     found_executable = RbConfig.ruby
-    ::Selenium::WebDriver::SeleniumManager.stub(:driver_path, found_executable) do
+    ::Selenium::WebDriver::SeleniumManager.stub(:binary_paths, { "driver_path" => found_executable, "browser_path" => found_executable }) do
       ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
     end
 

@@ -491,7 +491,7 @@ GEM
       google-protobuf (~> 3.25)
     sass-embedded (1.69.6-x86_64-linux-gnu)
       google-protobuf (~> 3.25)
-    selenium-webdriver (4.19.0)
+    selenium-webdriver (4.20.1)
       base64 (~> 0.2)
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
@@ -654,7 +654,7 @@ DEPENDENCIES
   rubocop-rails-omakase
   rubyzip (~> 2.0)
   sdoc!
-  selenium-webdriver (>= 4.11.0, != 4.20.0)
+  selenium-webdriver (>= 4.20.0)
   sidekiq
   sneakers
   sprockets-rails (>= 2.0.0)
