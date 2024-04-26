@@ -21,8 +21,8 @@
 
 *   Fix `ActionDispatch::Executor` middleware to report errors handled by `ActionDispatch::ShowExceptions`
 
-    In the default production environment, `ShowExceptions` rescue uncaught errors
-    and returns a response. Because if this the executor wouldn't report production
+    In the default production environment, `ShowExceptions` rescues uncaught errors
+    and returns a response. Because of this the executor wouldn't report production
     errors with the default Rails configuration.
 
     *Jean Boussier*

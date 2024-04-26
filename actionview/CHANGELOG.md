@@ -1,4 +1,4 @@
-*   Restore the ability for template to return any kind of object and not just strings
+*   Restore the ability for templates to return any kind of object and not just strings
 
     *Jean Boussier*
 

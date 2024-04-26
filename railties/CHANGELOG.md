@@ -1,7 +1,7 @@
 *   Fix sanitizer vendor configuration in 7.1 defaults.
 
-    In apps where rails-html-sanitizer was not eagerly loaded, the sanitizer default could end up
-    being Rails::HTML4::Sanitizer when it should be set to Rails::HTML5::Sanitizer.
+    In apps where `rails-html-sanitizer` was not eagerly loaded, the sanitizer default could end up
+    being Rails::HTML4::Sanitizer when it should be set to `Rails::HTML5::Sanitizer`.
 
     *Mike Dalessio*, *Rafael Mendonça França*
 
@@ -11,7 +11,7 @@
     a shared hosting solution, this cause the default configuration to spawn
     way more workers than reasonable.
 
-    There is unfortunately no reliable way to detect how many core an application
+    There is unfortunately no reliable way to detect how many cores an application
     can realistically use, and even then, assuming the application should use
     all the machine resources is often wrong.
 

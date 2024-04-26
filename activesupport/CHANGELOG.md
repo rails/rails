@@ -1,4 +1,4 @@
-*   Workaround a Ruby bug that can cause a VM crash.
+*   Work around a Ruby bug that can cause a VM crash.
 
     This would happen if using `TaggerLogger` with a Proc
     formatter on which you called `object_id`.
