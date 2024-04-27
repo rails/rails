@@ -275,9 +275,13 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
-    #   Comment.joins(:person).pluck(:id, person: [:id])
+    #   Comment.joins(:person).pluck(:id, person: :id)
     #   # SELECT comments.id, people.id FROM comments INNER JOIN people on comments.person_id = people.id
     #   # => [[1, 2], [2, 2]]
+    #
+    #   Comment.joins(:person).pluck(:id, person: [:id, :name])
+    #   # SELECT comments.id, people.id, people.name FROM comments INNER JOIN people on comments.person_id = people.id
+    #   # => [[1, 2, 'David'], [2, 2, 'David']]
     #
     #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people

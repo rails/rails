@@ -1,3 +1,12 @@
+*   Allow `ActiveRecord::Base#pluck` to accept hash arguments with symbol and string values.
+
+    ```ruby
+    Post.joins(:comments).pluck(:id, comments: :id)
+    Post.joins(:comments).pluck("id", "comments" => "id")
+    ```
+
+    *Joshua Young*
+
 *   Make Float distinguish between `float4` and `float8` in PostgreSQL.
 
     Fixes #52742

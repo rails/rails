@@ -1956,6 +1956,25 @@ module ActiveRecord
         end
       end
 
+      def arel_columns_from_array(columns, table_name = model.table_name)
+        columns.map do |column|
+          arel_column("#{table_name}.#{column}")
+        end
+      end
+
+      def arel_columns_from_hash(fields)
+        fields.flat_map do |table_name, columns|
+          case columns
+          when Array
+            arel_columns_from_array(columns, table_name)
+          when Symbol, String
+            arel_column(columns)
+          else
+            raise TypeError, "Expected Symbol, String or Array, got: #{columns.class}"
+          end
+        end
+      end
+
       def arel_column(field)
         field = field.name if is_symbol = field.is_a?(Symbol)
 
@@ -2194,14 +2213,14 @@ module ActiveRecord
       def process_select_args(fields)
         fields.flat_map do |field|
           if field.is_a?(Hash)
-            arel_columns_from_hash(field)
+            arel_column_aliases_from_hash(field)
           else
             field
           end
         end
       end
 
-      def arel_columns_from_hash(fields)
+      def arel_column_aliases_from_hash(fields)
         fields.flat_map do |key, columns_aliases|
           case columns_aliases
           when Hash
