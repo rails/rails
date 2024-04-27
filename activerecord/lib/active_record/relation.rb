@@ -57,7 +57,7 @@ module ActiveRecord
                             :with]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+                            :automatic_preloading, :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :with]
@@ -926,7 +926,7 @@ module ActiveRecord
     end
 
     def values_for_queries # :nodoc:
-      @values.except(:extending, :skip_query_cache, :strict_loading)
+      @values.except(:extending, :skip_query_cache, :strict_loading, :automatic_preloading)
     end
 
     def inspect
@@ -1057,6 +1057,7 @@ module ActiveRecord
 
           records.each(&:readonly!) if readonly_value
           records.each { |record| record.strict_loading!(strict_loading_value) } unless strict_loading_value.nil?
+          Associations::AutomaticPreloader.attach(records) if automatic_preloading_value || klass.automatic_preloading_by_default
 
           records
         end

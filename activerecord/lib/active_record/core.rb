@@ -90,6 +90,8 @@ module ActiveRecord
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
 
+      class_attribute :automatic_preloading_by_default, instance_accessor: false, default: false
+
       class_attribute :has_many_inversing, instance_accessor: false, default: false
 
       class_attribute :run_commit_callbacks_on_first_saved_instances_in_transaction, instance_accessor: false, default: true
@@ -658,6 +660,13 @@ module ActiveRecord
     def strict_loading?
       @strict_loading
     end
+
+    # Returns +true+ if the record is in automatic_preloading mode.
+    def automatic_preloading?
+      !automatic_preloader.nil?
+    end
+
+    attr_accessor :automatic_preloader
 
     # Sets the record to strict_loading mode. This will raise an error
     # if the record tries to lazily load an association.

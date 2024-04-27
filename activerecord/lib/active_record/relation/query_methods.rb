@@ -1272,6 +1272,22 @@ module ActiveRecord
       self
     end
 
+    # Sets the returned relation to automatic_preloading mode. This will automatically
+    # preload associations on records.
+    #
+    #    users = User.automatic_preloading.where(id: 1, 3)
+    #    users.each { |user| user.comments.to_a }
+    # SELECT `comments`.* FROM `comments` WHERE user_id IN (1, 3)
+    def automatic_preloading(value = true)
+      spawn.automatic_preloading!(value)
+    end
+
+    def automatic_preloading!(value = true) # :nodoc:
+      self.automatic_preloading_value = value
+      self
+    end
+
+
     # Sets attributes to be used when creating new records from a
     # relation object.
     #

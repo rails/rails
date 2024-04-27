@@ -266,6 +266,8 @@ module ActiveRecord
       end
 
       def load_target
+        automatically_preload! if automatic_preload?
+
         if find_target?
           @target = merge_target_lists(find_target, target)
         end
