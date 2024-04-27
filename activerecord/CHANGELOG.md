@@ -1,3 +1,12 @@
+*   Allow `ActiveRecord::Base#pluck` to accept hash arguments with symbol and string values.
+
+    ```ruby
+    Post.joins(:comments).pluck(:id, comments: :id)
+    Post.joins(:comments).pluck("id", "comments" => "id")
+    ```
+
+    *Joshua Young*
+
 *   `ActiveRecord::Encryption::Encryptor` now supports a `:compressor` option to customize the compression algorithm used.
 
     ```ruby

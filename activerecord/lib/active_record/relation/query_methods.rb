@@ -2180,14 +2180,14 @@ module ActiveRecord
       def process_select_args(fields)
         fields.flat_map do |field|
           if field.is_a?(Hash)
-            arel_columns_from_hash(field)
+            arel_columns_from_hash(field, for_select: true)
           else
             field
           end
         end
       end
 
-      def arel_columns_from_hash(fields)
+      def arel_columns_from_hash(fields, for_select: false)
         fields.flat_map do |key, columns_aliases|
           case columns_aliases
           when Hash
@@ -2196,19 +2196,27 @@ module ActiveRecord
                 references = PredicateBuilder.references({ key.to_s => fields[key] })
                 self.references_values |= references unless references.empty?
               end
-              arel_column("#{key}.#{column}") do
-                predicate_builder.resolve_arel_attribute(key.to_s, column)
-              end.as(column_alias.to_s)
+              build_arel_attribute(key.to_s, column.to_s).as(column_alias.to_s)
             end
           when Array
             columns_aliases.map do |column|
               arel_column("#{key}.#{column}", &:itself)
             end
           when String, Symbol
-            arel_column(key.to_s) do
-              predicate_builder.resolve_arel_attribute(model.table_name, key.to_s)
-            end.as(columns_aliases.to_s)
+            if for_select
+              arel_column(key.to_s) do
+                predicate_builder.resolve_arel_attribute(model.table_name, key.to_s)
+              end.as(columns_aliases.to_s)
+            else
+              build_arel_attribute(key.to_s, columns_aliases.to_s)
+            end
           end
+        end
+      end
+
+      def build_arel_attribute(table_name, column_name)
+        arel_column("#{table_name}.#{column_name}") do
+          predicate_builder.resolve_arel_attribute(table_name.to_s, column_name)
         end
       end
 
