@@ -55,70 +55,20 @@ Record models. The `timestamps` macro adds two columns, `created_at` and
 `updated_at`. These special columns are automatically managed by Active Record
 if they exist.
 
-
-### Rolling Back Migrations
-
 We define the change that we want to happen moving forward in time.
 Before this migration is run, there will be no table. After it is run, the table will
 exist. Active Record knows how to reverse this migration as well; if we roll
-this migration back, it will remove the table.
+this migration back, it will remove the table. You can read more about rolling back migrations [here](#rolling-back).
 
-On databases that support transactions with statements that change the schema,
-each migration is wrapped in a transaction. If the database does not support this,
-then when a migration fails, the parts of it that have succeeded will not be rolled
-back. You will have to rollback the changes manually.
+After defining the change that we want to occur moving forward in time, it's
+essential to consider the reversibility of the migration. While Active Record
+can manage the forward progression of the migration, ensuring the creation of
+the table, the concept of reversibility becomes crucial. With reversible
+migrations, not only does the migration create the table when applied, but it
+also enables smooth rollback functionality. In case of reverting the migration,
+Active Record intelligently handles the removal of the table, maintaining
+database consistency throughout the process. You can read more about reversing migrations [here](#using-reversible).
 
-NOTE: There are certain queries that can't run inside a transaction. If your
-adapter supports DDL transactions you can use `disable_ddl_transaction!` to
-disable them for a single migration.
-
-You can read more about rolling back migrations [here](#rolling-back).
-
-### Reversing Migrations
-
-If you'd like for a migration to do something that Active Record doesn't know how
-to reverse, then you can use `reversible`:
-
-```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[7.2]
-  def change
-    reversible do |direction|
-      change_table :products do |t|
-        direction.up   { t.change :price, :string }
-        direction.down { t.change :price, :integer }
-      end
-    end
-  end
-end
-```
-
-This migration will change the type of the `price` column to a string,
-or back to an integer when the migration is reverted. Notice the block being
-passed to `direction.up` and `direction.down` respectively.
-
-Alternatively, you can use `up` and `down` instead of `change`:
-
-```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[7.2]
-  def up
-    change_table :products do |t|
-      t.change :price, :string
-    end
-  end
-
-  def down
-    change_table :products do |t|
-      t.change :price, :integer
-    end
-  end
-end
-```
-
-Additionally, `reversible` can be useful is for executing raw SQL queries or
-performing a database operations that do not have a direct equivalent in
-ActiveRecord methods.
-
-You can read more about `reversible` [here](#using-reversible).
 
 Generating Migrations
 ----------------------
@@ -375,8 +325,7 @@ class AddDetailsToProducts < ActiveRecord::Migration[7.2]
 end
 ```
 
-TIP: Have a look at the generators help output (`bin/rails generate --help`)
-for further details.
+TIP: When seeking further details about generators, you run `bin/rails generate --help`. Additionally, remember that specific generators like `bin/rails generate model --help` or `bin/rails generate migration --help` can provide more focused assistance.
 
 Writing Migrations
 ------------------
@@ -599,8 +548,7 @@ change_column :products, :part_number, :text
 This changes the column `part_number` on products table to be a `:text` field.
 
 NOTE: The `change_column` command is **irreversible**.
-You should provide your own `reversible` migration, like we discussed
-[before](#making-the-irreversible-possible).
+You should provide your own `reversible` migration, you can read more about reversible migrations [here](#using-reversible).
 
 Besides `change_column`, the [`change_column_null`][] and [`change_column_default`][]
 methods are used to change a null constraint and default values of
@@ -763,17 +711,26 @@ end
 ```
 
 INFO: Tables with composite primary keys require passing array values rather
-than integer IDs to many methods. See also the [Active Record Querying](
-active_record_querying.html) guide to learn more.
+than integer IDs to many methods. See also the [Active Record Composite Primary Keys](active_record_composite_primary_keys.html) guide to learn more.
 
 ### Execute Arbitrary SQL
 
 If the helpers provided by Active Record aren't enough you can use the [`execute`][]
-method to execute arbitrary SQL:
+method to execute arbitrary SQL. For example,
 
 ```ruby
-Product.connection.execute("UPDATE products SET price = 'free' WHERE 1=1")
+class UpdateProductPrices < ActiveRecord::Migration[7.2]
+  def up
+    execute "UPDATE products SET price = 'free' WHERE 1=1;"
+  end
+
+  def down
+    execute "UPDATE products SET price = 'original_price' WHERE price = 'free';"
+  end
+end
 ```
+
+In this example, we're updating the `price` column of the products table to 'free' for all records.
 
 For more details and examples of individual methods, check the API documentation.
 
@@ -847,8 +804,47 @@ or write the `up` and `down` methods instead of using the `change` method.
 
 ### Using `reversible`
 
-Complex migrations may require processing that Active Record doesn't know how to
-reverse. You can use [`reversible`][] to specify what to do when running a
+If you'd like for a migration to do something that Active Record doesn't know how
+to reverse, then you can use `reversible`:
+
+```ruby
+class ChangeProductsPrice < ActiveRecord::Migration[7.2]
+  def change
+    reversible do |direction|
+      change_table :products do |t|
+        direction.up   { t.change :price, :string }
+        direction.down { t.change :price, :integer }
+      end
+    end
+  end
+end
+```
+
+This migration will change the type of the `price` column to a string,
+or back to an integer when the migration is reverted. Notice the block being
+passed to `direction.up` and `direction.down` respectively.
+
+Alternatively, you can use `up` and `down` instead of `change`:
+
+```ruby
+class ChangeProductsPrice < ActiveRecord::Migration[7.2]
+  def up
+    change_table :products do |t|
+      t.change :price, :string
+    end
+  end
+
+  def down
+    change_table :products do |t|
+      t.change :price, :integer
+    end
+  end
+end
+```
+
+Additionally, `reversible` can be useful is for executing raw SQL queries or
+performing a database operations that do not have a direct equivalent in
+ActiveRecord methods. You can use [`reversible`][] to specify what to do when running a
 migration and what else to do when reverting it. For example:
 
 ```ruby
@@ -1065,6 +1061,20 @@ Neither of these rails commands do anything you could not do with `db:migrate`. 
 are there for convenience, since you do not need to explicitly specify the
 version to migrate to.
 
+#### Transactions
+
+In databases that support transactions with statements that change the schema,
+each migration is wrapped in a transaction.
+
+INFO: A transaction ensures that if a migration fails partway through, any changes that were successfully applied are rolled back, maintaining database consistency. This means that either all operations within the transaction are executed successfully, or none of them are, preventing the database from being left in an inconsistent state if an error occurs during the transaction.
+
+If the database does not support transactions with statements that change the schema,
+then when a migration fails, the parts of it that have succeeded will not be rolled
+back. You will have to rollback the changes manually.
+
+NOTE: There are certain queries that can't run inside a transaction. If your
+adapter supports DDL transactions you can use `disable_ddl_transaction!` method to disable transactions for a single migration, allowing these queries to be executed outside the transactional boundary.
+
 ### Setup the Database
 
 The `bin/rails db:setup` command will create the database, load the schema, and initialize
@@ -1079,7 +1089,7 @@ operates idempotently.
   `bin/rails db:setup` does.
 * If the database exists but the tables have not been created, the command will
   load the schema, run any pending migrations, dump the updated schema, and
-  finally load the seed data.
+  finally load the seed data. You can read more about seeding data [here](#migrations-and-seed-data)
 * If both the database and tables exist but the seed data has not been loaded,
   the command will only load the seed data.
 * If the database, tables, and seed data are all in place, the command will do
@@ -1122,7 +1132,7 @@ already been performed and will do nothing if so.
 If the version specified does not exist, Rails will throw an exception.
 
 ```bash
-$ bin/rails db:migrate VERSION=zomg
+$ bin/rails db:migrate VERSION=4010120906120000
 rails aborted!
 ActiveRecord::UnknownMigrationVersionError:
 
@@ -1349,9 +1359,7 @@ migrations you add and commit them.
 Active Record and Referential Integrity
 ---------------------------------------
 
-The Active Record way claims that intelligence belongs in your models, not in
-the database. As such, features such as triggers or constraints, which push some
-of that intelligence back into the database, are not recommended.
+The Active Record way suggests that intelligence should primarily reside in your models rather than in the database. Consequently, features like triggers or constraints, which delegate some of that intelligence back into the database, are not always favored.
 
 Validations such as `validates :foreign_key, uniqueness: true` are one way in
 which models can enforce data integrity. The `:dependent` option on associations
@@ -1360,8 +1368,9 @@ destroyed. Like anything which operates at the application level, these cannot
 guarantee referential integrity and so some people augment them with [foreign
 key constraints][] in the database.
 
-Although Active Record does not provide all the tools for working directly with
-such features, the `execute` method can be used to execute arbitrary SQL.
+In practice, foreign key constraints and unique indexes are generally considered safer when enforced at the database level. Although Active Record does not provide direct support for working with these database-level features, you can still use the execute method to run arbitrary SQL commands.
+
+It's worth emphasizing that while the Active Record pattern emphasizes keeping intelligence within models, neglecting to implement foreign keys and unique constraints at the database level can potentially lead to integrity issues. Therefore, it's advisable to complement the AR pattern with database-level constraints where appropriate. These constraints should have their counterparts explicitly defined in your code using associations and validations to ensure data integrity across both application and database layers
 
 [foreign key constraints]: #foreign-keys
 
@@ -1461,7 +1470,7 @@ Before using UUIDs in your Rails application, you'll need to ensure that your da
     Enabling `uuid-ossp` Extension: If you're using PostgreSQL, enable the `uuid-ossp` extension to make UUID generation functions available. You can do this by adding a migration to enable the extension:
 
     ```ruby
-    class EnableUuidOsspExtension < ActiveRecord::Migration[6.1]
+    class EnableUuidOsspExtension < ActiveRecord::Migration[7.2]
       def change
         enable_extension "uuid-ossp"
       end
@@ -1504,7 +1513,7 @@ Before using UUIDs in your Rails application, you'll need to ensure that your da
     ```
 
     ```ruby
-    class CreateAuthors < ActiveRecord::Migration[6.1]
+    class CreateAuthors < ActiveRecord::Migration[7.2]
       def change
         create_table :authors, id: :uuid do |t|
 
