@@ -522,8 +522,8 @@ comments.
 
 ### Creating a Join Table
 
-The migration method [`create_join_table`][] creates an HABTM (has and belongs to
-many) join table. A typical use would be:
+The migration method [`create_join_table`][] creates an [HABTM (has and belongs to
+many)](association_basics.html#the-has-and-belongs-to-many-association) join table. A typical use would be:
 
 ```ruby
 create_join_table :products, :categories
@@ -541,7 +541,8 @@ create_join_table :products, :categories, column_options: { null: true }
 ```
 
 By default, the name of the join table comes from the union of the first two
-arguments provided to create_join_table, in alphabetical order.
+arguments provided to create_join_table, in alphabetical order. In this case,
+the table would be named `categories_products`.
 
 To customize the name of the table, provide a `:table_name` option:
 
@@ -549,7 +550,7 @@ To customize the name of the table, provide a `:table_name` option:
 create_join_table :products, :categories, table_name: :categorization
 ```
 
-This ensure the name of the join table is `categorization` as requested.
+This creates a join table with the name `categorization`.
 
 Also, `create_join_table` accepts a block, which you can use to add indices
 (which are not created by default) or any additional columns you so choose.
@@ -580,7 +581,7 @@ end
 ```
 
 This migration will remove the `description` and `name` columns, create a new
-string column called `part_number` and adds an index on it. Finally it renames
+string column called `part_number` and add an index on it. Finally, it renames
 the `upccode` column to `upc_code`.
 
 [`change_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_table
@@ -602,7 +603,7 @@ You should provide your own `reversible` migration, like we discussed
 [before](#making-the-irreversible-possible).
 
 Besides `change_column`, the [`change_column_null`][] and [`change_column_default`][]
-methods are used specifically to change a null constraint and default values of
+methods are used to change a null constraint and default values of
 a column.
 
 ```ruby
@@ -765,7 +766,7 @@ INFO: Tables with composite primary keys require passing array values rather
 than integer IDs to many methods. See also the [Active Record Querying](
 active_record_querying.html) guide to learn more.
 
-### When Helpers aren't Enough
+### Execute Arbitrary SQL
 
 If the helpers provided by Active Record aren't enough you can use the [`execute`][]
 method to execute arbitrary SQL:
@@ -1205,6 +1206,26 @@ VERBOSE=false` will suppress all output.
 [`say_with_time`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-say_with_time
 [`suppress_messages`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-suppress_messages
 
+### Rails Migration Version Control
+
+Rails keeps track of which migrations have been run through the `schema_migrations` table in the database. When you run a migration, Rails inserts a row into the `schema_migrations` table with the version number of the migration, stored in the `version` column. This allows Rails to determine which migrations have already been applied to the database.
+
+For example, if you have a migration file named 20240428000000_create_users.rb, Rails will extract the version number (20240428000000) from the filename and insert it into the schema_migrations table after the migration has been successfully executed.
+
+You can view the contents of the schema_migrations table directly in your database management tool or by using Rails console:
+
+```irb
+rails dbconsole
+```
+
+Then, within the database console, you can query the schema_migrations table:
+
+```sql
+SELECT * FROM schema_migrations;
+```
+
+This will show you a list of all migration version numbers that have been applied to the database. Rails uses this information to determine which migrations need to be run when you run rails db:migrate or rails db:migrate:up commands.
+
 Changing Existing Migrations
 ----------------------------
 
@@ -1229,16 +1250,6 @@ The `revert` method can be helpful when writing a new migration to undo previous
 migrations in whole or in part (see [Reverting Previous Migrations][] above).
 
 [Reverting Previous Migrations]: #reverting-previous-migrations
-
-
-### How does Rails Know Which Migrations Have Been Run?
-
-Rails creates a table called `schema_migrations` which stores the timestamp of
-each migration that has already successfully run in a single column. This table
-will not show up in the `schema.rb`, but you can access it form your Rails
-console. Rails compares the timestamps from the files in `db/migrate` to the
-values of the `schema_migrations` table to determine which migrations have run.
-
 
 Schema Dumping and You
 ----------------------
@@ -1406,8 +1417,8 @@ makes it possible to delete or prune old migration files.
 When you delete migration files in the `db/migrate/` directory, any environment
 where `bin/rails db:migrate` was run when those files still existed will hold a
 reference to the migration timestamp specific to them inside an internal Rails
-database table named `schema_migrations`. This table is used to keep track of
-whether migrations have been executed in a specific environment.
+database table named `schema_migrations`. You can read more about this in the
+[Rails Migration Version Control](#rails-migration-version-control) section.
 
 If you run the `bin/rails db:migrate:status` command, which displays the status
 (up or down) of each migration, you should see `********** NO FILE **********`
@@ -1416,13 +1427,13 @@ specific environment but can no longer be found in the `db/migrate/` directory.
 
 ### Migrations from Engines
 
-There's a caveat, though with [Engines][]. Rake tasks to install migrations from
-engines are idempotent, meaning they will have the same result no matter how
-many times they are called. Migrations present in the parent application due to
-a previous installation are skipped, and missing ones are copied with a new
-leading timestamp. If you deleted old engine migrations and ran the install task
-again, you'd get new files with new timestamps, and `db:migrate` would attempt
-to run them again.
+When dealing with migrations from [Engines][], there's a caveat to consider.
+Rake tasks to install migrations from engines are idempotent, meaning they will
+have the same result no matter how many times they are called. Migrations
+present in the parent application due to a previous installation are skipped,
+and missing ones are copied with a new leading timestamp. If you deleted old
+engine migrations and ran the install task again, you'd get new files with new
+timestamps, and `db:migrate` would attempt to run them again.
 
 Thus, you generally want to preserve migrations coming from engines. They have a
 special comment like this:
