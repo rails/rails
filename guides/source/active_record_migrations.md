@@ -23,7 +23,7 @@ Migrations are a convenient way to [alter your database schema over
 time](https://en.wikipedia.org/wiki/Schema_migration) in a consistent way. They
 use a Ruby [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) so that
 you don't have to write SQL by hand, allowing your schema and changes to be
-database independent.
+database independent. We recommend that you read the guides for [Active Record Basics](active_record_basics.html) and the [Active Record Associations](association_basics.html) to learn about the some of the concepts mentioned here.
 
 You can think of each migration as being a new 'version' of the database. A
 schema starts off with nothing in it, and each migration modifies it to add or
@@ -308,7 +308,7 @@ $ bin/rails generate migration CreateJoinTableUserProduct user product
 will produce the following migration:
 
 ```ruby
-class CreateJoinTableUserProduct < ActiveRecord::Migration[6.1]
+class CreateJoinTableUserProduct < ActiveRecord::Migration[7.2]
   def change
     create_join_table :users, :products do |t|
       # t.index [:user_id, :product_id]
@@ -398,10 +398,94 @@ end
 
 This method creates a `products` table with a column called `name`.
 
+
+#### Associations
+
+If you're creating a table for a model that has an association, you can use the
+`:references` type to create the appropriate column type. For example:
+
+```ruby
+create_table :products do |t|
+  t.references :category
+end
+```
+
+This will create a `category_id` column. Alternatively, you can use `belongs_to`
+as an alias for `references`:
+
+```ruby
+create_table :products do |t|
+  t.belongs_to :category
+end
+```
+
+You can also specify the column type and index creation using the `:polymorphic` option:
+
+```ruby
+create_table :taggings do |t|
+  t.references :taggable, polymorphic: true
+end
+```
+
+This will create `taggable_id`, `taggable_type` columns and the appropriate indexes.
+
+#### Primary Keys
+
 By default, `create_table` will implicitly create a primary key called `id` for
-you. You can change the name of the column with the `:primary_key` option, or
-pass an array to `:primary_key` for a composite primary key. If you don't want
-a primary key at all, you can pass the option `id: false`.
+you. You can change the name of the column with the `:primary_key` option, like below:
+
+```ruby
+class CreateUsers < ActiveRecord::Migration[7.2]
+  def change
+    create_table :users, primary_key: "user_id" do |t|
+      t.string :username
+      t.string :email
+      t.timestamps
+    end
+  end
+end
+```
+
+This will yield the following schema:
+
+```ruby
+create_table "users", primary_key: "user_id", force: :cascade do |t|
+  t.string "username"
+  t.string "email"
+  t.datetime "created_at", precision: 6, null: false
+  t.datetime "updated_at", precision: 6, null: false
+end
+```
+
+You can also pass an array to `:primary_key` for a composite primary key.
+
+```ruby
+class CreateUsers < ActiveRecord::Migration[7.2]
+  def change
+    create_table :users, primary_key: [:id, :name] do |t|
+      t.string :name
+      t.string :email
+      t.timestamps
+    end
+  end
+end
+```
+
+If you don't want a primary key at all, you can pass the option `id: false`.
+
+```ruby
+class CreateUsers < ActiveRecord::Migration[7.2]
+  def change
+    create_table :users, id: false do |t|
+      t.string :username
+      t.string :email
+      t.timestamps
+    end
+  end
+end
+```
+
+#### Database Options
 
 If you need to pass database-specific options you can place an SQL fragment in
 the `:options` option. For example:
@@ -424,7 +508,9 @@ create_table :users do |t|
 end
 ```
 
-Also, you can pass the `:comment` option with any description for the table that
+#### Comments
+
+You can pass the `:comment` option with any description for the table that
 will be stored in the database itself and can be viewed with database
 administration tools, such as MySQL Workbench or PgAdmin III. It's highly
 recommended to specify comments in migrations for applications with large
