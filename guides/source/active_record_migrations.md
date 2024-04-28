@@ -232,7 +232,7 @@ You are **not** limited to one magically generated column. For example:
 $ bin/rails generate migration AddDetailsToProducts part_number:string price:decimal
 ```
 
-Will generate a schema migration which adds two additional
+This will generate a schema migration which adds two additional
 columns to the `products` table.
 
 ```ruby
@@ -262,13 +262,13 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration[7.2]
 end
 ```
 
-### Creating Associations using References
+### Creating Associations
 
 The generator accepts column type as `references`. [References](#references) are a
 shorthand for creating columns, indexes, foreign keys, or even polymorphic
 association columns.
 
-For example,
+For example, generating the following migration will create a `user_id` column and additionally create an index on that column.
 
 ```bash
 $ bin/rails generate migration AddUserRefToProducts user:references
@@ -279,48 +279,46 @@ generates the following [`add_reference`][] call:
 ```ruby
 class AddUserRefToProducts < ActiveRecord::Migration[7.2]
   def change
-    add_reference :products, :user, foreign_key: true
+    add_reference :products, :user, null: false, foreign_key: true
   end
 end
 ```
 
-This migration will create a `user_id` column.
+with the following changes to your schema:
 
-Alternatively, `belongs_to` is an alias of `references`, so the above could be
-also be written as:
+```ruby
+  t.uuid "user_id", null: false
+  t.index ["user_id"], name: "index_products_on_user_id"
+```
+
+`belongs_to` is an alias of `references`, so the above could be alternatively written as:
 
 ```bash
 $ bin/rails generate migration AddUserRefToProducts user:belongs_to
 ```
 
-generating a migration that looks like:
-
-```ruby
-class AddUserRefToProducts < ActiveRecord::Migration[7.2]
-  def change
-    add_belongs_to :products, :user, foreign_key: true
-  end
-end
-```
+generating a migration that looks like the same as the previous one.
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
 ```bash
-$ bin/rails generate migration CreateJoinTableCustomerProduct customer product
+$ bin/rails generate migration CreateJoinTableUserProduct user product
 ```
 
 will produce the following migration:
 
 ```ruby
-class CreateJoinTableCustomerProduct < ActiveRecord::Migration[7.2]
+class CreateJoinTableUserProduct < ActiveRecord::Migration[6.1]
   def change
-    create_join_table :customers, :products do |t|
-      # t.index [:customer_id, :product_id]
-      # t.index [:product_id, :customer_id]
+    create_join_table :users, :products do |t|
+      # t.index [:user_id, :product_id]
+      # t.index [:product_id, :user_id]
     end
   end
 end
 ```
+
+You can learn more about associations [here](association_basics.html).
 
 [`add_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column
 [`add_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
