@@ -114,11 +114,8 @@ class ChangeProductsPrice < ActiveRecord::Migration[7.2]
 end
 ```
 
-While this example of changing the data type back from string to integer is
-straightforward, it's an illustration of the type of migration that might
-require manual instructions for reversal in more complex scenarios. Other
-scenarios when `reversible` is useful is for executing a raw SQL query or
-performing a database operation that doesn't have a direct equivalent in
+Additionally, `reversible` can be useful is for executing raw SQL queries or
+performing a database operations that do not have a direct equivalent in
 ActiveRecord methods.
 
 You can read more about `reversible` [here](#using-reversible).
@@ -1148,6 +1145,16 @@ The `revert` method can be helpful when writing a new migration to undo previous
 migrations in whole or in part (see [Reverting Previous Migrations][] above).
 
 [Reverting Previous Migrations]: #reverting-previous-migrations
+
+
+### How does Rails Know Which Migrations Have Been Run?
+
+Rails creates a table called `schema_migrations` which stores the timestamp of
+each migration that has already successfully run in a single column. This table
+will not show up in the `schema.rb`, but you can access it form your Rails
+console. Rails compares the timestamps from the files in `db/migrate` to the
+values of the `schema_migrations` table to determine which migrations have run.
+
 
 Schema Dumping and You
 ----------------------
