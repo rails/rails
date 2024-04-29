@@ -270,7 +270,9 @@ class LoggingTest < ActiveSupport::TestCase
 
   def test_for_tagged_logger_support_is_consistent
     set_logger ::Logger.new(nil)
-    OverriddenLoggingJob.perform_later "Dummy"
+    assert_nothing_raised do
+      OverriddenLoggingJob.perform_later "Dummy"
+    end
   end
 
   def test_job_error_logging

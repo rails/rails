@@ -508,9 +508,11 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   end
 
   def test_named_route_without_hash
-    rs.draw do
-      ActionDispatch.deprecator.silence do
-        get ":controller/:action/:id", as: "normal"
+    assert_nothing_raised do
+      rs.draw do
+        ActionDispatch.deprecator.silence do
+          get ":controller/:action/:id", as: "normal"
+        end
       end
     end
   end

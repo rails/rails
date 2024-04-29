@@ -167,14 +167,18 @@ module ActiveRecord
     def test_set_session_variable_nil
       run_without_connection do |orig_connection|
         # This should be a no-op that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
+        end
       end
     end
 
     def test_set_session_variable_default
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+        end
       end
     end
 

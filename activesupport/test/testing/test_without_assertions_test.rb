@@ -14,6 +14,7 @@ module TestsWithoutAssertionsTest
       def after_teardown
         _out, err = capture_io do
           super
+        rescue ActiveSupport::RaiseWarnings::WarningError
         end
 
         assert_match(/Test is missing assertions: `test_without_assertions` .+test_without_assertions_test\.rb:\d+/, err)
