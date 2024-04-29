@@ -64,6 +64,9 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
+TIP: New Rails apps come with a preconfigured Dev Container development environment. This
+is the fastest way to get started with Rails. For instructions see [Getting Start with Dev Containers](getting_started_with_devcontainer.html)
+
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
 needed.
@@ -194,6 +197,7 @@ of the files and folders that Rails creates by default:
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more information about ignoring files.|
 |.rubocop.yml|This file contains the configuration for RuboCop.|
 |.ruby-version|This file contains the default Ruby version.|
+|.devcontainer/|This folder contains the Dev Container configuration|
 
 Hello, Rails!
 -------------
