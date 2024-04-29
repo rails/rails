@@ -82,6 +82,12 @@ module ActiveRecord
         assert_equal Post.count, records.size
         assert_equal POSTS_WITH_COMMENTS, records.filter_map { _1.id if _1.has_comments }
       end
+
+      def test_raises_when_using_block
+        assert_raises(ArgumentError, match: "does not accept a block") do
+          Post.with(attributes_for_inspect: :id) { }
+        end
+      end
     else
       def test_common_table_expressions_are_unsupported
         assert_raises ActiveRecord::StatementInvalid do
