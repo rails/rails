@@ -3,12 +3,12 @@
 Action View Form Helpers
 ========================
 
-Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of the need to handle form control naming and its numerous attributes. Rails does away with this complexity by providing view helpers for generating form markup. However, since these helpers have different use cases, developers need to know the differences between the helper methods before putting them to use.
+Forms are a common interface for user input in web applications. However, form markup can quickly become tedious to write and maintain because of the need to handle form control naming and its numerous attributes. Rails simplies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
 
 After reading this guide, you will know:
 
-* How to create search forms and similar kind of generic forms not representing any specific model in your application.
-* How to make model-centric forms for creating and editing specific database records.
+* How to create generic forms not representing any model in your application, such as a search form.
+* How to work with model-based forms for creating and editing specific database records.
 * How to generate select boxes from multiple types of data.
 * What date and time helpers Rails provides.
 * What makes a file upload form different.
