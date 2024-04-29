@@ -60,7 +60,7 @@ RUN bun install --frozen-lockfile
 
 <% end -%>
 # Copy application code
-COPY . .
+COPY --link . .
 
 <% if depend_on_bootsnap? -%>
 # Precompile bootsnap code for faster boot times
@@ -89,8 +89,8 @@ FROM base
 RUN rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts: gems, application
-COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
-COPY --from=build /rails /rails
+COPY --from=build --link "${BUNDLE_PATH}" "${BUNDLE_PATH}"
+COPY --from=build --link /rails /rails
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \
