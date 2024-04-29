@@ -23,7 +23,7 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_inspect_includes_attributes_from_attributes_for_inspect
-    Topic.with(attributes_for_inspect: [:id, :title, :author_name]) do
+    Topic.stub(:attributes_for_inspect, [:id, :title, :author_name]) do
       topic = topics(:first)
 
       assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David">), topic.inspect
@@ -33,7 +33,7 @@ class CoreTest < ActiveRecord::TestCase
   def test_inspect_instance_with_lambda_date_formatter
     before = Time::DATE_FORMATS[:inspect]
 
-    Topic.with(attributes_for_inspect: [:id, :last_read]) do
+    Topic.stub(:attributes_for_inspect, [:id, :last_read]) do
       Time::DATE_FORMATS[:inspect] = ->(date) { "my_format" }
       topic = topics(:first)
 
@@ -48,7 +48,7 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_inspect_limited_select_instance
-    Topic.with(attributes_for_inspect: [:id, :title]) do
+    Topic.stub(:attributes_for_inspect, [:id, :title]) do
       assert_equal %(#<Topic id: 1>), Topic.all.merge!(select: "id", where: "id = 1").first.inspect
       assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(select: "id, title", where: "id = 1").first.inspect
     end
@@ -64,7 +64,7 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_inspect_with_attributes_for_inspect_all_lists_all_attributes
-    Topic.with(attributes_for_inspect: :all) do
+    Topic.stub(:attributes_for_inspect, :all) do
       topic = topics(:first)
 
       assert_equal <<~STRING.squish, topic.inspect
@@ -108,7 +108,7 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_pretty_print_full
-    Topic.with(attributes_for_inspect: :all) do
+    Topic.stub(:attributes_for_inspect, :all) do
       topic = topics(:first)
       actual = +""
       PP.pp(topic, StringIO.new(actual))

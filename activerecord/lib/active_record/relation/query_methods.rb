@@ -473,6 +473,7 @@ module ActiveRecord
     #     .with(posts_with_comments: Post.where("comments_count > ?", 0))
     #     .with(posts_with_tags: Post.where("tags_count > ?", 0))
     def with(*args)
+      raise ArgumentError, "ActiveRecord::Relation#with does not accept a block" if block_given?
       check_if_method_has_arguments!(__callee__, args)
       spawn.with!(*args)
     end
