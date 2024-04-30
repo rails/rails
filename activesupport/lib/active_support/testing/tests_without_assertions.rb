@@ -9,12 +9,9 @@ module ActiveSupport
       def after_teardown
         super
 
-        return if skipped? || error?
-
-        if assertions == 0
+        if assertions.zero? && !skipped? && !error?
           file, line = method(name).source_location
-          message = "Test is missing assertions: `#{name}` #{file}:#{line}"
-          warn message
+          warn "Test is missing assertions: `#{name}` #{file}:#{line}"
         end
       end
     end

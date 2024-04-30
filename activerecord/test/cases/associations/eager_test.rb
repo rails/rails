@@ -572,7 +572,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     Subscription.create!(subscriber_id: "PL", book_id: b.id)
     s.reload
-    s.book_ids = s.book_ids
+    assert_equal [b.id], s.book_ids
   end
 
   def test_eager_load_has_many_through_with_string_keys
@@ -816,7 +816,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_inheritance
-    SpecialPost.all.merge!(includes: [ :comments ]).to_a
+    posts = SpecialPost.all.merge!(includes: [ :comments ]).to_a
+    assert_equal 1, posts.size
   end
 
   def test_eager_has_one_with_association_inheritance

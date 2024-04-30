@@ -325,7 +325,13 @@ module ActiveRecord
       end
 
       def test_clear_data_source_cache
+        # Cache data sources list.
+        assert @cache.data_source_exists?("courses")
+
         @cache.clear_data_source_cache!("courses")
+        assert_queries_count(1, include_schema: true) do
+          @cache.data_source_exists?("courses")
+        end
       end
 
       test "#columns_hash? is populated by #columns_hash" do

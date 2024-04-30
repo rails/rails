@@ -121,6 +121,8 @@ module ActiveRecord
     def test_current_database
       if @connection.respond_to?(:current_database)
         assert_equal ARTest.test_configuration_hashes["arunit"]["database"], @connection.current_database
+      else
+        skip
       end
     end
 
@@ -887,6 +889,7 @@ module ActiveRecord
         threads(2, 25) { @connection.disconnect! }
 
         join
+        pass
       end
 
       test "#verify! is synchronized" do
@@ -894,6 +897,7 @@ module ActiveRecord
         threads(2, 25) { @connection.disconnect! }
 
         join
+        pass
       end
     end
 

@@ -123,7 +123,9 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     test "instantiating the store doesn't connect to Redis" do
-      build(url: "redis://localhost:1")
+      assert_nothing_raised do
+        build(url: "redis://localhost:1")
+      end
     end
 
     private
