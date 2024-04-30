@@ -1,3 +1,7 @@
+*   Remove deprecated `Rails.application.secrets`.
+
+    *Rafael Mendonça França*
+
 *   Generated Gemfile will include `require: "debug/prelude"` for the `debug` gem
 
     Requiring `debug` gem directly automatically activates it, which could introduce

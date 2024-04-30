@@ -28,6 +28,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `Rails.application.secrets`.
+
 ### Deprecations
 
 ### Notable changes

@@ -10,7 +10,6 @@ require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
 require "rails/engine"
-require "rails/secrets"
 require "rails/autoloaders"
 
 module Rails
@@ -104,7 +103,7 @@ module Rails
     delegate :default_url_options, :default_url_options=, to: :routes
 
     INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
-                         :routes, :helpers, :app_env_config, :secrets] # :nodoc:
+                         :routes, :helpers, :app_env_config] # :nodoc:
 
     def initialize(initial_variable_values = {}, &block)
       super()
@@ -439,25 +438,7 @@ module Rails
     end
 
     attr_writer :config
-
-    def secrets
-      Rails.deprecator.warn(<<~MSG.squish)
-        `Rails.application.secrets` is deprecated in favor of `Rails.application.credentials` and will be removed in Rails 7.2.
-      MSG
-      @secrets ||= begin
-        secrets = ActiveSupport::OrderedOptions.new
-        files = config.paths["config/secrets"].existent
-        files = files.reject { |path| path.end_with?(".enc") } unless config.read_encrypted_secrets
-        secrets.merge! Rails::Secrets.parse(files, env: Rails.env)
-
-        # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
-        secrets.secret_key_base ||= config.secret_key_base
-
-        secrets
-      end
-    end
-
-    attr_writer :secrets, :credentials
+    attr_writer :credentials
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
     # is used to create all ActiveSupport::MessageVerifier and ActiveSupport::MessageEncryptor instances,
@@ -473,33 +454,16 @@ module Rails
     # Dockerfile example: <tt>RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile</tt>.
     #
     # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
-    # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
-    # the correct place to store it is in the encrypted credentials file.
+    # then +credentials.secret_key_base+. For most applications, the correct place to store it is in the
+    # encrypted credentials file.
     def secret_key_base
-      config.secret_key_base ||=
-        if ENV["SECRET_KEY_BASE_DUMMY"]
-          generate_local_secret
-        else
-          validate_secret_key_base(
-            ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || begin
-              secret_skb = secrets_secret_key_base
-
-              if secret_skb && secret_skb.equal?(config.secret_key_base)
-                config.secret_key_base
-              elsif secret_skb
-                Rails.deprecator.warn(<<~MSG.squish)
-                  Your `secret_key_base` is configured in `Rails.application.secrets`,
-                  which is deprecated in favor of `Rails.application.credentials` and
-                  will be removed in Rails 7.2.
-                MSG
-
-                secret_skb
-              elsif Rails.env.local?
-                generate_local_secret
-              end
-            end
-          )
-        end
+      if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
+        config.secret_key_base ||= generate_local_secret
+      else
+        validate_secret_key_base(
+          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base
+        )
+      end
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
@@ -674,8 +638,6 @@ module Rails
 
           if File.exist?(key_file)
             config.secret_key_base = File.binread(key_file)
-          elsif secrets_secret_key_base
-            config.secret_key_base = secrets_secret_key_base
           else
             random_key = SecureRandom.hex(64)
             FileUtils.mkdir_p(key_file.dirname)
@@ -685,12 +647,6 @@ module Rails
         end
 
         config.secret_key_base
-      end
-
-      def secrets_secret_key_base
-        Rails.deprecator.silence do
-          secrets.secret_key_base
-        end
       end
 
       def build_request(env)
