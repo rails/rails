@@ -48,21 +48,23 @@ module Rails
           end
 
           def generator_options
-            options = { api: !!Rails.application.config.api_only, update: true }
-            options[:name]                = Rails.application.class.name.chomp("::Application").underscore
-            options[:skip_active_job]     = !defined?(ActiveJob::Railtie)
-            options[:skip_active_record]  = !defined?(ActiveRecord::Railtie)
-            options[:skip_active_storage] = !defined?(ActiveStorage::Engine)
-            options[:skip_action_mailer]  = !defined?(ActionMailer::Railtie)
-            options[:skip_action_mailbox] = !defined?(ActionMailbox::Engine)
-            options[:skip_action_text]    = !defined?(ActionText::Engine)
-            options[:skip_action_cable]   = !defined?(ActionCable::Engine)
-            options[:skip_test]           = !defined?(Rails::TestUnitRailtie)
-            options[:skip_system_test]    = Rails.application.config.generators.system_tests.nil?
-            options[:asset_pipeline]      = asset_pipeline
-            options[:skip_asset_pipeline] = asset_pipeline.nil?
-            options[:skip_bootsnap]       = !defined?(Bootsnap)
-            options
+            {
+              api:                 !!Rails.application.config.api_only,
+              update:              true,
+              name:                Rails.application.class.name.chomp("::Application").underscore,
+              skip_active_job:     !defined?(ActiveJob::Railtie),
+              skip_active_record:  !defined?(ActiveRecord::Railtie),
+              skip_active_storage: !defined?(ActiveStorage::Engine),
+              skip_action_mailer:  !defined?(ActionMailer::Railtie),
+              skip_action_mailbox: !defined?(ActionMailbox::Engine),
+              skip_action_text:    !defined?(ActionText::Engine),
+              skip_action_cable:   !defined?(ActionCable::Engine),
+              skip_test:           !defined?(Rails::TestUnitRailtie),
+              skip_system_test:    Rails.application.config.generators.system_tests.nil?,
+              asset_pipeline:      asset_pipeline,
+              skip_asset_pipeline: asset_pipeline.nil?,
+              skip_bootsnap:       !defined?(Bootsnap),
+            }.merge(options)
           end
 
           def asset_pipeline
