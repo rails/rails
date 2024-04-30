@@ -13,7 +13,7 @@
 
     *heka1024*
 
-*   Deprecate `ActiveSupport::ProxyObject` in favor of Ruby's buildin `BasicObject`
+*   Deprecate `ActiveSupport::ProxyObject` in favor of Ruby's built-in `BasicObject`
 
     *Earlopain*
 
