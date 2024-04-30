@@ -334,12 +334,6 @@ module Rails
             active_record.validate_migration_timestamps = true
             active_record.automatically_invert_plural_associations = true
           end
-
-          if respond_to?(:active_support)
-            if Rails.env.local?
-              active_support.assertionless_tests_behavior = :log
-            end
-          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

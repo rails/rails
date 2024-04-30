@@ -124,10 +124,6 @@ module ActiveSupport
           ActiveSupport.deprecator.warn("config.active_support.remove_deprecated_time_with_zone_name is deprecated and will be removed in Rails 7.2.")
         elsif k == :use_rfc4122_namespaced_uuids
           ActiveSupport.deprecator.warn("config.active_support.use_rfc4122_namespaced_uuids is deprecated and will be removed in Rails 7.2.")
-        elsif k == :assertionless_tests_behavior
-          ActiveSupport.on_load(:active_support_test_case) do
-            ActiveSupport::TestCase.assertionless_tests_behavior = v
-          end
         else
           k = "#{k}="
           ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
