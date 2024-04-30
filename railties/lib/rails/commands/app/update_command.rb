@@ -7,6 +7,9 @@ module Rails
   module Command
     module App
       class UpdateCommand < Base # :nodoc:
+        include Thor::Actions
+        add_runtime_options!
+
         desc "update", "Update configs and some other initially generated files (or use just update:configs or update:bin)"
         def perform
           configs
