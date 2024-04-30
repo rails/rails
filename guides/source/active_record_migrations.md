@@ -5,7 +5,8 @@ Active Record Migrations
 
 Migrations are a feature of Active Record that allows you to evolve your
 database schema over time. Rather than write schema modifications in pure SQL,
-migrations allow you to use a Ruby Domain Specific Language (DSL) to describe changes to your tables.
+migrations allow you to use a Ruby Domain Specific Language (DSL) to describe
+changes to your tables.
 
 After reading this guide, you will know:
 
@@ -25,17 +26,20 @@ Migrations are a convenient way to [alter your database schema over
 time](https://en.wikipedia.org/wiki/Schema_migration) in a consistent way. They
 use a Ruby [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) so that
 you don't have to write SQL by hand, allowing your schema and changes to be
-database independent. We recommend that you read the guides for [Active Record Basics](active_record_basics.html) and the [Active Record Associations](association_basics.html) to learn about the some of the concepts mentioned here.
+database independent. We recommend that you read the guides for [Active Record
+Basics](active_record_basics.html) and the [Active Record
+Associations](association_basics.html) to learn about the some of the concepts
+mentioned here.
 
 You can think of each migration as being a new 'version' of the database. A
 schema starts off with nothing in it, and each migration modifies it to add or
 remove tables, columns, or entries. Active Record knows how to update your
 schema along this timeline, bringing it from whatever point it is in the history
-to the latest version. Read more about how Rails knows which migration
-in the timeline to run [here](Insert_link).
+to the latest version. Read more about how Rails knows which migration in the
+timeline to run [here](Insert_link).
 
-Active Record updates your `db/schema.rb` file to match the up-to-date
-structure of your database. Here's an example of a migration:
+Active Record updates your `db/schema.rb` file to match the up-to-date structure
+of your database. Here's an example of a migration:
 
 ```ruby
 class CreateProducts < ActiveRecord::Migration[7.2]
@@ -50,17 +54,17 @@ class CreateProducts < ActiveRecord::Migration[7.2]
 end
 ```
 
-This migration adds a table called `products` with a string column called
-`name` and a text column called `description`. A primary key column called `id`
-will also be added implicitly, as it's the default primary key for all Active
-Record models. The `timestamps` macro adds two columns, `created_at` and
-`updated_at`. These special columns are automatically managed by Active Record
-if they exist.
+This migration adds a table called `products` with a string column called `name`
+and a text column called `description`. A primary key column called `id` will
+also be added implicitly, as it's the default primary key for all Active Record
+models. The `timestamps` macro adds two columns, `created_at` and `updated_at`.
+These special columns are automatically managed by Active Record if they exist.
 
-We define the change that we want to happen moving forward in time.
-Before this migration is run, there will be no table. After it is run, the table will
-exist. Active Record knows how to reverse this migration as well; if we roll
-this migration back, it will remove the table. You can read more about rolling back migrations [here](#rolling-back).
+We define the change that we want to happen moving forward in time. Before this
+migration is run, there will be no table. After it is run, the table will exist.
+Active Record knows how to reverse this migration as well; if we roll this
+migration back, it will remove the table. You can read more about rolling back
+migrations [here](#rolling-back).
 
 After defining the change that we want to occur moving forward in time, it's
 essential to consider the reversibility of the migration. While Active Record
@@ -69,7 +73,8 @@ the table, the concept of reversibility becomes crucial. With reversible
 migrations, not only does the migration create the table when applied, but it
 also enables smooth rollback functionality. In case of reverting the migration,
 Active Record intelligently handles the removal of the table, maintaining
-database consistency throughout the process. You can read more about reversing migrations [here](#using-reversible).
+database consistency throughout the process. You can read more about reversing
+migrations [here](#using-reversible).
 
 
 Generating Migrations
@@ -80,14 +85,13 @@ Generating Migrations
 Migrations are stored as files in the `db/migrate` directory, one for each
 migration class.
 
-The name of the file is of the form
-`YYYYMMDDHHMMSS_create_products.rb`, that is to say a UTC timestamp
-identifying the migration followed by an underscore followed by the name
-of the migration. The name of the migration class (CamelCased version)
-should match the latter part of the file name. For example,
+The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, that is
+to say a UTC timestamp identifying the migration followed by an underscore
+followed by the name of the migration. The name of the migration class
+(CamelCased version) should match the latter part of the file name. For example,
 `20080906120000_create_products.rb` should define class `CreateProducts` and
-`20080906120001_add_details_to_products.rb` should define
-class `AddDetailsToProducts`. Rails uses this timestamp to determine which migration
+`20080906120001_add_details_to_products.rb` should define class
+`AddDetailsToProducts`. Rails uses this timestamp to determine which migration
 should be run and in what order, so if you're copying a migration from another
 application or generate a file yourself, be aware of its position in the order.
 
@@ -107,15 +111,15 @@ class AddPartNumberToProducts < ActiveRecord::Migration[7.2]
 end
 ```
 
-This generator can do much more than prepend a timestamp to the file name.
-Based on naming conventions and additional (optional) arguments it can
-also start fleshing out the migration.
+This generator can do much more than prepend a timestamp to the file name. Based
+on naming conventions and additional (optional) arguments it can also start
+fleshing out the migration.
 
 ### Creating a New Table
 
 If the migration name is of the form "CreateXXX" and is followed by a list of
-column names and types then a migration creating the table XXX with the
-columns listed will be generated.
+column names and types then a migration creating the table XXX with the columns
+listed will be generated.
 
 ```bash
 $ bin/rails generate migration CreateProducts name:string part_number:string
@@ -143,9 +147,9 @@ or remove from it as you see fit by editing the
 ### Adding New Columns
 
 If the migration name is of the form "AddColumnToTable" or
-"RemoveColumnFromTable" and is followed by a list of column names and
-types then a migration containing the appropriate [`add_column`][] and
-[`remove_column`][] statements will be created.
+"RemoveColumnFromTable" and is followed by a list of column names and types then
+a migration containing the appropriate [`add_column`][] and [`remove_column`][]
+statements will be created.
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts part_number:string
@@ -167,7 +171,8 @@ If you'd like to add an index on the new column, you can do that as well.
 $ bin/rails generate migration AddPartNumberToProducts part_number:string:index
 ```
 
-This will generate the appropriate [`add_column`][] and [`add_index`][] statements:
+This will generate the appropriate [`add_column`][] and [`add_index`][]
+statements:
 
 ```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration[7.2]
@@ -184,8 +189,8 @@ You are **not** limited to one magically generated column. For example:
 $ bin/rails generate migration AddDetailsToProducts part_number:string price:decimal
 ```
 
-This will generate a schema migration which adds two additional
-columns to the `products` table.
+This will generate a schema migration which adds two additional columns to the
+`products` table.
 
 ```ruby
 class AddDetailsToProducts < ActiveRecord::Migration[7.2]
@@ -198,7 +203,8 @@ end
 
 ### Removing Columns
 
-Similarly, you can generate a migration to remove a column from the command line:
+Similarly, you can generate a migration to remove a column from the command
+line:
 
 ```bash
 $ bin/rails generate migration RemovePartNumberFromProducts part_number:string
@@ -216,11 +222,12 @@ end
 
 ### Creating Associations
 
-The generator accepts column type as `references`. [References](#references) are a
-shorthand for creating columns, indexes, foreign keys, or even polymorphic
+The generator accepts column type as `references`. [References](#references) are
+a shorthand for creating columns, indexes, foreign keys, or even polymorphic
 association columns.
 
-For example, generating the following migration will create a `user_id` column and additionally create an index on that column.
+For example, generating the following migration will create a `user_id` column
+and additionally create an index on that column.
 
 ```bash
 $ bin/rails generate migration AddUserRefToProducts user:references
@@ -243,7 +250,8 @@ with the following changes to your schema:
   t.index ["user_id"], name: "index_products_on_user_id"
 ```
 
-`belongs_to` is an alias of `references`, so the above could be alternatively written as:
+`belongs_to` is an alias of `references`, so the above could be alternatively
+written as:
 
 ```bash
 $ bin/rails generate migration AddUserRefToProducts user:belongs_to
@@ -251,7 +259,8 @@ $ bin/rails generate migration AddUserRefToProducts user:belongs_to
 
 generating a migration that looks like the same as the previous one.
 
-There is also a generator which will produce join tables if `JoinTable` is part of the name:
+There is also a generator which will produce join tables if `JoinTable` is part
+of the name:
 
 ```bash
 $ bin/rails generate migration CreateJoinTableUserProduct user product
@@ -272,17 +281,21 @@ end
 
 You can learn more about associations [here](association_basics.html).
 
-[`add_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column
-[`add_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
-[`add_reference`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference
-[`remove_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_column
+[`add_column`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column
+[`add_index`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
+[`add_reference`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference
+[`remove_column`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_column
 
 ### Model Generators
 
-The model, resource, and scaffold generators will create migrations appropriate for adding
-a new model. This migration will already contain instructions for creating the
-relevant table. If you tell Rails what columns you want, then statements for
-adding these columns will also be created. For example, running:
+The model, resource, and scaffold generators will create migrations appropriate
+for adding a new model. This migration will already contain instructions for
+creating the relevant table. If you tell Rails what columns you want, then
+statements for adding these columns will also be created. For example, running:
 
 ```bash
 $ bin/rails generate model Product name:string description:text
@@ -327,7 +340,10 @@ class AddDetailsToProducts < ActiveRecord::Migration[7.2]
 end
 ```
 
-TIP: When seeking further details about generators, you run `bin/rails generate --help`. Additionally, remember that specific generators like `bin/rails generate model --help` or `bin/rails generate migration --help` can provide more focused assistance.
+TIP: When seeking further details about generators, you run `bin/rails generate
+--help`. Additionally, remember that specific generators like `bin/rails
+generate model --help` or `bin/rails generate migration --help` can provide more
+focused assistance.
 
 Writing Migrations
 ------------------
@@ -337,9 +353,9 @@ get to work!
 
 ### Creating a Table
 
-The [`create_table`][] method is one of the most fundamental, but most of the time,
-will be generated for you from using a model, resource, or scaffold generator. A typical
-use would be
+The [`create_table`][] method is one of the most fundamental, but most of the
+time, will be generated for you from using a model, resource, or scaffold
+generator. A typical use would be
 
 ```ruby
 create_table :products do |t|
@@ -370,7 +386,8 @@ create_table :products do |t|
 end
 ```
 
-You can also specify the column type and index creation using the `:polymorphic` option:
+You can also specify the column type and index creation using the `:polymorphic`
+option:
 
 ```ruby
 create_table :taggings do |t|
@@ -378,12 +395,14 @@ create_table :taggings do |t|
 end
 ```
 
-This will create `taggable_id`, `taggable_type` columns and the appropriate indexes.
+This will create `taggable_id`, `taggable_type` columns and the appropriate
+indexes.
 
 #### Primary Keys
 
 By default, `create_table` will implicitly create a primary key called `id` for
-you. You can change the name of the column with the `:primary_key` option, like below:
+you. You can change the name of the column with the `:primary_key` option, like
+below:
 
 ```ruby
 class CreateUsers < ActiveRecord::Migration[7.2]
@@ -447,7 +466,8 @@ create_table :products, options: "ENGINE=BLACKHOLE" do |t|
 end
 ```
 
-This will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table.
+This will append `ENGINE=BLACKHOLE` to the SQL statement used to create the
+table.
 
 An index can be created on the columns created within the `create_table` block
 by passing `index: true` or an options hash to the `:index` option:
@@ -461,20 +481,21 @@ end
 
 #### Comments
 
-You can pass the `:comment` option with any description for the table that
-will be stored in the database itself and can be viewed with database
-administration tools, such as MySQL Workbench or PgAdmin III. It's highly
-recommended to specify comments in migrations for applications with large
-databases as it helps people to understand the data model and generate
-documentation. Currently only the MySQL and PostgreSQL adapters support
-comments.
+You can pass the `:comment` option with any description for the table that will
+be stored in the database itself and can be viewed with database administration
+tools, such as MySQL Workbench or PgAdmin III. It's highly recommended to
+specify comments in migrations for applications with large databases as it helps
+people to understand the data model and generate documentation. Currently only
+the MySQL and PostgreSQL adapters support comments.
 
-[`create_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_table
+[`create_table`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_table
 
 ### Creating a Join Table
 
-The migration method [`create_join_table`][] creates an [HABTM (has and belongs to
-many)](association_basics.html#the-has-and-belongs-to-many-association) join table. A typical use would be:
+The migration method [`create_join_table`][] creates an [HABTM (has and belongs
+to many)](association_basics.html#the-has-and-belongs-to-many-association) join
+table. A typical use would be:
 
 ```ruby
 create_join_table :products, :categories
@@ -513,7 +534,8 @@ create_join_table :products, :categories do |t|
 end
 ```
 
-[`create_join_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_join_table
+[`create_join_table`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_join_table
 
 ### Changing Tables
 
@@ -535,7 +557,8 @@ This migration will remove the `description` and `name` columns, create a new
 string column called `part_number` and add an index on it. Finally, it renames
 the `upccode` column to `upc_code`.
 
-[`change_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_table
+[`change_table`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_table
 
 ### Changing Columns
 
@@ -549,21 +572,22 @@ change_column :products, :part_number, :text
 
 This changes the column `part_number` on products table to be a `:text` field.
 
-NOTE: The `change_column` command is **irreversible**.
-You should provide your own `reversible` migration, you can read more about reversible migrations [here](#using-reversible).
+NOTE: The `change_column` command is **irreversible**. You should provide your
+own `reversible` migration, you can read more about reversible migrations
+[here](#using-reversible).
 
-Besides `change_column`, the [`change_column_null`][] and [`change_column_default`][]
-methods are used to change a null constraint and default values of
-a column.
+Besides `change_column`, the [`change_column_null`][] and
+[`change_column_default`][] methods are used to change a null constraint and
+default values of a column.
 
 ```ruby
 change_column_null :products, :name, false
 change_column_default :products, :approved, from: true, to: false
 ```
 
-This sets `:name` field on products to a `NOT NULL` column and the default
-value of the `:approved` field from true to false. Both of these changes will
-only be applied to future transactions, any existing records do not apply.
+This sets `:name` field on products to a `NOT NULL` column and the default value
+of the `:approved` field from true to false. Both of these changes will only be
+applied to future transactions, any existing records do not apply.
 
 When setting the null constraint to true, this means that column will accept a
 null value, otherwise the `NOT NULL` constraint is applied and a value must be
@@ -573,9 +597,12 @@ NOTE: You could also write the above `change_column_default` migration as
 `change_column_default :products, :approved, false`, but unlike the previous
 example, this would make your migration irreversible.
 
-[`change_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column
-[`change_column_default`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_default
-[`change_column_null`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_null
+[`change_column`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column
+[`change_column_default`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_default
+[`change_column_null`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_null
 
 ### Column Modifiers
 
@@ -584,12 +611,14 @@ Column modifiers can be applied when creating or changing a column:
 * `comment`      Adds a comment for the column.
 * `collation`    Specifies the collation for a `string` or `text` column.
 * `default`      Allows to set a default value on the column. Note that if you
-  are using a dynamic value (such as a date), the default will only be calculated
-  the first time (i.e. on the date the migration is applied). Use `nil` for `NULL`.
-* `limit`        Sets the maximum number of characters for a `string` column
-  and the maximum number of bytes for `text/binary/integer` columns.
+  are using a dynamic value (such as a date), the default will only be
+  calculated the first time (i.e. on the date the migration is applied). Use
+  `nil` for `NULL`.
+* `limit`        Sets the maximum number of characters for a `string` column and
+  the maximum number of bytes for `text/binary/integer` columns.
 * `null`         Allows or disallows `NULL` values in the column.
-* `precision`    Specifies the precision for `decimal/numeric/datetime/time` columns.
+* `precision`    Specifies the precision for `decimal/numeric/datetime/time`
+  columns.
 * `scale`        Specifies the scale for the `decimal` and `numeric` columns,
   representing the number of digits after the decimal point.
 
@@ -612,8 +641,8 @@ add_reference :users, :role
 ```
 
 This migration will create a `role_id` column in the users table. It creates an
-index for this column as well, unless explicitly told not to with the
-`index: false` option.
+index for this column as well, unless explicitly told not to with the `index:
+false` option.
 
 INFO: See also the [Active Record Associations][] guide to learn more.
 
@@ -634,7 +663,8 @@ A foreign key can be created with the `foreign_key` option.
 add_reference :users, :role, foreign_key: true
 ```
 
-For more `add_reference` options, visit the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
+For more `add_reference` options, visit the [API
+documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
 
 References can also be removed:
 
@@ -655,14 +685,15 @@ add_foreign_key :articles, :authors
 ```
 
 This [`add_foreign_key`][] call adds a new constraint to the `articles` table.
-The constraint guarantees that a row in the `authors` table exists where
-the `id` column matches the `articles.author_id`.
+The constraint guarantees that a row in the `authors` table exists where the
+`id` column matches the `articles.author_id`.
 
-If the `from_table` column name cannot be derived from the `to_table` name,
-you can use the `:column` option. Use the `:primary_key` option if the
-referenced primary key is not `:id`.
+If the `from_table` column name cannot be derived from the `to_table` name, you
+can use the `:column` option. Use the `:primary_key` option if the referenced
+primary key is not `:id`.
 
-For example, to add a foreign key on `articles.reviewer` referencing `authors.email`:
+For example, to add a foreign key on `articles.reviewer` referencing
+`authors.email`:
 
 ```ruby
 add_foreign_key :articles, :authors, column: :reviewer, primary_key: :email
@@ -686,16 +717,15 @@ remove_foreign_key :accounts, column: :owner_id
 ```
 
 NOTE: Active Record only supports single column foreign keys. `execute` and
-`structure.sql` are required to use composite foreign keys. See
-[Schema Dumping and You](#schema-dumping-and-you).
+`structure.sql` are required to use composite foreign keys. See [Schema Dumping
+and You](#schema-dumping-and-you).
 
 ### Composite Primary Keys
 
-Sometimes a single column's value isn't enough to uniquely identify every row
-of a table, but a combination of two or more columns *does* uniquely identify
-it. This can be the case when using a legacy database schema without a single
-`id` column as a primary key, or when altering schemas for sharding or
-multitenancy.
+Sometimes a single column's value isn't enough to uniquely identify every row of
+a table, but a combination of two or more columns *does* uniquely identify it.
+This can be the case when using a legacy database schema without a single `id`
+column as a primary key, or when altering schemas for sharding or multitenancy.
 
 You can create a table with a composite primary key by passing the
 `:primary_key` option to `create_table` with an array value:
@@ -713,12 +743,13 @@ end
 ```
 
 INFO: Tables with composite primary keys require passing array values rather
-than integer IDs to many methods. See also the [Active Record Composite Primary Keys](active_record_composite_primary_keys.html) guide to learn more.
+than integer IDs to many methods. See also the [Active Record Composite Primary
+Keys](active_record_composite_primary_keys.html) guide to learn more.
 
 ### Execute Arbitrary SQL
 
-If the helpers provided by Active Record aren't enough you can use the [`execute`][]
-method to execute arbitrary SQL. For example,
+If the helpers provided by Active Record aren't enough you can use the
+[`execute`][] method to execute arbitrary SQL. For example,
 
 ```ruby
 class UpdateProductPrices < ActiveRecord::Migration[7.2]
@@ -732,21 +763,30 @@ class UpdateProductPrices < ActiveRecord::Migration[7.2]
 end
 ```
 
-In this example, we're updating the `price` column of the products table to 'free' for all records.
+In this example, we're updating the `price` column of the products table to
+'free' for all records.
 
-For more details and examples of individual methods, check the API documentation.
+For more details and examples of individual methods, check the API
+documentation.
 
 In particular the documentation for
-[`ActiveRecord::ConnectionAdapters::SchemaStatements`][], which provides the methods available in the `change`, `up` and `down` methods.
+[`ActiveRecord::ConnectionAdapters::SchemaStatements`][], which provides the
+methods available in the `change`, `up` and `down` methods.
 
-For methods available regarding the object yielded by `create_table`, see [`ActiveRecord::ConnectionAdapters::TableDefinition`][].
+For methods available regarding the object yielded by `create_table`, see
+[`ActiveRecord::ConnectionAdapters::TableDefinition`][].
 
-And for the object yielded by `change_table`, see [`ActiveRecord::ConnectionAdapters::Table`][].
+And for the object yielded by `change_table`, see
+[`ActiveRecord::ConnectionAdapters::Table`][].
 
-[`execute`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-execute
-[`ActiveRecord::ConnectionAdapters::SchemaStatements`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html
-[`ActiveRecord::ConnectionAdapters::TableDefinition`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html
-[`ActiveRecord::ConnectionAdapters::Table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html
+[`execute`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-execute
+[`ActiveRecord::ConnectionAdapters::SchemaStatements`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html
+[`ActiveRecord::ConnectionAdapters::TableDefinition`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html
+[`ActiveRecord::ConnectionAdapters::Table`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html
 
 ### Using the `change` Method
 
@@ -784,30 +824,46 @@ actions automatically. Below are some of the actions that `change` supports:
 [`change_table`][] is also reversible, as long as the block only calls
 reversible operations like the ones listed above.
 
-If you're going to need to use any other methods, you should use `reversible`
-or write the `up` and `down` methods instead of using the `change` method.
+If you're going to need to use any other methods, you should use `reversible` or
+write the `up` and `down` methods instead of using the `change` method.
 
-[`add_check_constraint`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_check_constraint
-[`add_foreign_key`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key
-[`add_timestamps`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_timestamps
-[`change_column_comment`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_comment
-[`change_table_comment`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_table_comment
-[`drop_join_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-drop_join_table
-[`drop_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-drop_table
-[`remove_check_constraint`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_check_constraint
-[`remove_foreign_key`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key
-[`remove_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_index
-[`remove_reference`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_reference
-[`remove_timestamps`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_timestamps
-[`rename_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_column
-[`remove_columns`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_columns
-[`rename_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_index
-[`rename_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_table
+[`add_check_constraint`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_check_constraint
+[`add_foreign_key`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key
+[`add_timestamps`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_timestamps
+[`change_column_comment`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_comment
+[`change_table_comment`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_table_comment
+[`drop_join_table`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-drop_join_table
+[`drop_table`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-drop_table
+[`remove_check_constraint`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_check_constraint
+[`remove_foreign_key`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key
+[`remove_index`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_index
+[`remove_reference`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_reference
+[`remove_timestamps`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_timestamps
+[`rename_column`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_column
+[`remove_columns`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_columns
+[`rename_index`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_index
+[`rename_table`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_table
 
 ### Using `reversible`
 
-If you'd like for a migration to do something that Active Record doesn't know how
-to reverse, then you can use `reversible`:
+If you'd like for a migration to do something that Active Record doesn't know
+how to reverse, then you can use `reversible`:
 
 ```ruby
 class ChangeProductsPrice < ActiveRecord::Migration[7.2]
@@ -822,9 +878,9 @@ class ChangeProductsPrice < ActiveRecord::Migration[7.2]
 end
 ```
 
-This migration will change the type of the `price` column to a string,
-or back to an integer when the migration is reverted. Notice the block being
-passed to `direction.up` and `direction.down` respectively.
+This migration will change the type of the `price` column to a string, or back
+to an integer when the migration is reverted. Notice the block being passed to
+`direction.up` and `direction.down` respectively.
 
 Alternatively, you can use `up` and `down` instead of `change`:
 
@@ -846,8 +902,8 @@ end
 
 Additionally, `reversible` can be useful is for executing raw SQL queries or
 performing a database operations that do not have a direct equivalent in
-ActiveRecord methods. You can use [`reversible`][] to specify what to do when running a
-migration and what else to do when reverting it. For example:
+ActiveRecord methods. You can use [`reversible`][] to specify what to do when
+running a migration and what else to do when reverting it. For example:
 
 ```ruby
 class ExampleMigration < ActiveRecord::Migration[7.2]
@@ -882,7 +938,8 @@ order too. If the previous example migration is reverted, the `down` block will
 be run after the `users.address` column is removed and before the `distributors`
 table is dropped.
 
-[`reversible`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-reversible
+[`reversible`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-reversible
 
 ### Using the `up`/`down` Methods
 
@@ -941,7 +998,8 @@ saying that it can't be done.
 
 ### Reverting Previous Migrations
 
-You can use Active Record's ability to rollback migrations using the [`revert`][] method:
+You can use Active Record's ability to rollback migrations using the
+[`revert`][] method:
 
 ```ruby
 require_relative "20121212123456_example_migration"
@@ -999,7 +1057,8 @@ would have involved a few more steps:
 
 This is all taken care of by `revert`.
 
-[`revert`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-revert
+[`revert`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-revert
 
 Running Migrations
 ------------------
@@ -1008,28 +1067,28 @@ Rails provides a set of commands to run certain sets of migrations.
 
 The very first migration related rails command you will use will probably be
 `bin/rails db:migrate`. In its most basic form it just runs the `change` or `up`
-method for all the migrations that have not yet been run. If there are
-no such migrations, it exits. It will run these migrations in order based
-on the date of the migration.
+method for all the migrations that have not yet been run. If there are no such
+migrations, it exits. It will run these migrations in order based on the date of
+the migration.
 
-Note that running the `db:migrate` command also invokes the `db:schema:dump` command, which
-will update your `db/schema.rb` file to match the structure of your database.
+Note that running the `db:migrate` command also invokes the `db:schema:dump`
+command, which will update your `db/schema.rb` file to match the structure of
+your database.
 
 If you specify a target version, Active Record will run the required migrations
-(change, up, down) until it has reached the specified version. The version
-is the numerical prefix on the migration's filename. For example, to migrate
-to version 20080906120000 run:
+(change, up, down) until it has reached the specified version. The version is
+the numerical prefix on the migration's filename. For example, to migrate to
+version 20080906120000 run:
 
 ```bash
 $ bin/rails db:migrate VERSION=20080906120000
 ```
 
 If version 20080906120000 is greater than the current version (i.e., it is
-migrating upwards), this will run the `change` (or `up`) method
-on all migrations up to and
-including 20080906120000, and will not execute any later migrations. If
-migrating downwards, this will run the `down` method on all the migrations
-down to, but not including, 20080906120000.
+migrating upwards), this will run the `change` (or `up`) method on all
+migrations up to and including 20080906120000, and will not execute any later
+migrations. If migrating downwards, this will run the `down` method on all the
+migrations down to, but not including, 20080906120000.
 
 ### Rolling Back
 
@@ -1041,9 +1100,9 @@ number associated with the previous migration you can run:
 $ bin/rails db:rollback
 ```
 
-This will rollback the latest migration, either by reverting the `change`
-method or by running the `down` method. If you need to undo
-several migrations you can provide a `STEP` parameter:
+This will rollback the latest migration, either by reverting the `change` method
+or by running the `down` method. If you need to undo several migrations you can
+provide a `STEP` parameter:
 
 ```bash
 $ bin/rails db:rollback STEP=3
@@ -1051,16 +1110,16 @@ $ bin/rails db:rollback STEP=3
 
 The last 3 migrations will be reverted.
 
-The `db:migrate:redo` command is a shortcut for doing a rollback and then migrating
-back up again. As with the `db:rollback` command, you can use the `STEP` parameter
-if you need to go more than one version back, for example:
+The `db:migrate:redo` command is a shortcut for doing a rollback and then
+migrating back up again. As with the `db:rollback` command, you can use the
+`STEP` parameter if you need to go more than one version back, for example:
 
 ```bash
 $ bin/rails db:migrate:redo STEP=3
 ```
 
-Neither of these rails commands do anything you could not do with `db:migrate`. They
-are there for convenience, since you do not need to explicitly specify the
+Neither of these rails commands do anything you could not do with `db:migrate`.
+They are there for convenience, since you do not need to explicitly specify the
 version to migrate to.
 
 #### Transactions
@@ -1068,19 +1127,25 @@ version to migrate to.
 In databases that support transactions with statements that change the schema,
 each migration is wrapped in a transaction.
 
-INFO: A transaction ensures that if a migration fails partway through, any changes that were successfully applied are rolled back, maintaining database consistency. This means that either all operations within the transaction are executed successfully, or none of them are, preventing the database from being left in an inconsistent state if an error occurs during the transaction.
+INFO: A transaction ensures that if a migration fails partway through, any
+changes that were successfully applied are rolled back, maintaining database
+consistency. This means that either all operations within the transaction are
+executed successfully, or none of them are, preventing the database from being
+left in an inconsistent state if an error occurs during the transaction.
 
-If the database does not support transactions with statements that change the schema,
-then when a migration fails, the parts of it that have succeeded will not be rolled
-back. You will have to rollback the changes manually.
+If the database does not support transactions with statements that change the
+schema, then when a migration fails, the parts of it that have succeeded will
+not be rolled back. You will have to rollback the changes manually.
 
 NOTE: There are certain queries that can't run inside a transaction. If your
-adapter supports DDL transactions you can use `disable_ddl_transaction!` method to disable transactions for a single migration, allowing these queries to be executed outside the transactional boundary.
+adapter supports DDL transactions you can use `disable_ddl_transaction!` method
+to disable transactions for a single migration, allowing these queries to be
+executed outside the transactional boundary.
 
 ### Setup the Database
 
-The `bin/rails db:setup` command will create the database, load the schema, and initialize
-it with the seed data.
+The `bin/rails db:setup` command will create the database, load the schema, and
+initialize it with the seed data.
 
 ### Preparing the Database
 
@@ -1091,7 +1156,8 @@ operates idempotently.
   `bin/rails db:setup` does.
 * If the database exists but the tables have not been created, the command will
   load the schema, run any pending migrations, dump the updated schema, and
-  finally load the seed data. You can read more about seeding data [here](#migrations-and-seed-data)
+  finally load the seed data. You can read more about seeding data
+  [here](#migrations-and-seed-data)
 * If both the database and tables exist but the seed data has not been loaded,
   the command will only load the seed data.
 * If the database, tables, and seed data are all in place, the command will do
@@ -1104,21 +1170,21 @@ you can manually run `bin/rails db:seed`.
 
 ### Resetting the Database
 
-The `bin/rails db:reset` command will drop the database and set it up again. This is
-functionally equivalent to `bin/rails db:drop db:setup`.
+The `bin/rails db:reset` command will drop the database and set it up again.
+This is functionally equivalent to `bin/rails db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
-contents of the current `db/schema.rb` or `db/structure.sql` file.
-If a migration can't be rolled back, `bin/rails db:reset` may not help you. To
-find out more about dumping the schema see [Schema Dumping and You][] section.
+contents of the current `db/schema.rb` or `db/structure.sql` file. If a
+migration can't be rolled back, `bin/rails db:reset` may not help you. To find
+out more about dumping the schema see [Schema Dumping and You][] section.
 
 [Schema Dumping and You]: #schema-dumping-and-you
 
 ### Running Specific Migrations
 
 If you need to run a specific migration up or down, the `db:migrate:up` and
-`db:migrate:down` commands will do that. Just specify the appropriate version and
-the corresponding migration will have its `change`, `up` or `down` method
+`db:migrate:down` commands will do that. Just specify the appropriate version
+and the corresponding migration will have its `change`, `up` or `down` method
 invoked, for example:
 
 ```bash
@@ -1143,7 +1209,8 @@ No migration with version number zomg.
 
 ### Running Migrations in Different Environments
 
-By default running `bin/rails db:migrate` will run in the `development` environment.
+By default running `bin/rails db:migrate` will run in the `development`
+environment.
 
 To run migrations against another environment you can specify it using the
 `RAILS_ENV` environment variable while running the command. For example to run
@@ -1211,20 +1278,31 @@ This will generate the following output:
 ==  CreateProducts: migrated (10.0054s) =======================================
 ```
 
-If you want Active Record to not output anything, then running `bin/rails db:migrate
-VERBOSE=false` will suppress all output.
+If you want Active Record to not output anything, then running `bin/rails
+db:migrate VERBOSE=false` will suppress all output.
 
-[`say`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-say
-[`say_with_time`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-say_with_time
-[`suppress_messages`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-suppress_messages
+[`say`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-say
+[`say_with_time`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-say_with_time
+[`suppress_messages`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-suppress_messages
 
 ### Rails Migration Version Control
 
-Rails keeps track of which migrations have been run through the `schema_migrations` table in the database. When you run a migration, Rails inserts a row into the `schema_migrations` table with the version number of the migration, stored in the `version` column. This allows Rails to determine which migrations have already been applied to the database.
+Rails keeps track of which migrations have been run through the
+`schema_migrations` table in the database. When you run a migration, Rails
+inserts a row into the `schema_migrations` table with the version number of the
+migration, stored in the `version` column. This allows Rails to determine which
+migrations have already been applied to the database.
 
-For example, if you have a migration file named 20240428000000_create_users.rb, Rails will extract the version number (20240428000000) from the filename and insert it into the schema_migrations table after the migration has been successfully executed.
+For example, if you have a migration file named 20240428000000_create_users.rb,
+Rails will extract the version number (20240428000000) from the filename and
+insert it into the schema_migrations table after the migration has been
+successfully executed.
 
-You can view the contents of the schema_migrations table directly in your database management tool or by using Rails console:
+You can view the contents of the schema_migrations table directly in your
+database management tool or by using Rails console:
 
 ```irb
 rails dbconsole
@@ -1236,7 +1314,10 @@ Then, within the database console, you can query the schema_migrations table:
 SELECT * FROM schema_migrations;
 ```
 
-This will show you a list of all migration version numbers that have been applied to the database. Rails uses this information to determine which migrations need to be run when you run rails db:migrate or rails db:migrate:up commands.
+This will show you a list of all migration version numbers that have been
+applied to the database. Rails uses this information to determine which
+migrations need to be run when you run rails db:migrate or rails db:migrate:up
+commands.
 
 Changing Existing Migrations
 ----------------------------
@@ -1244,19 +1325,18 @@ Changing Existing Migrations
 Occasionally you will make a mistake when writing a migration. If you have
 already run the migration, then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
-nothing when you run `bin/rails db:migrate`. You must rollback the migration (for
-example with `bin/rails db:rollback`), edit your migration, and then run
+nothing when you run `bin/rails db:migrate`. You must rollback the migration
+(for example with `bin/rails db:rollback`), edit your migration, and then run
 `bin/rails db:migrate` to run the corrected version.
 
-In general, editing existing migrations is not a good idea. You will be
-creating extra work for yourself and your co-workers and cause major headaches
-if the existing version of the migration has already been run on production
-machines.
+In general, editing existing migrations is not a good idea. You will be creating
+extra work for yourself and your co-workers and cause major headaches if the
+existing version of the migration has already been run on production machines.
 
-Instead, you should write a new migration that performs the changes
-you require. Editing a freshly generated migration that has not yet been
-committed to source control (or, more generally, which has not been propagated
-beyond your development machine) is relatively harmless.
+Instead, you should write a new migration that performs the changes you require.
+Editing a freshly generated migration that has not yet been committed to source
+control (or, more generally, which has not been propagated beyond your
+development machine) is relatively harmless.
 
 The `revert` method can be helpful when writing a new migration to undo previous
 migrations in whole or in part (see [Reverting Previous Migrations][] above).
@@ -1276,10 +1356,9 @@ state of your database schema.
 
 It tends to be faster and less error prone to create a new instance of your
 application's database by loading the schema file via `bin/rails db:schema:load`
-than it is to replay the entire migration history.
-[Old migrations][] may fail to apply correctly if those migrations use changing
-external dependencies or rely on application code which evolves separately from
-your migrations.
+than it is to replay the entire migration history. [Old migrations][] may fail
+to apply correctly if those migrations use changing external dependencies or
+rely on application code which evolves separately from your migrations.
 
 Schema files are also useful if you want a quick look at what attributes an
 Active Record object has. This information is not in the model's code and is
@@ -1297,8 +1376,9 @@ be set to `:sql`.
 
 #### Using the default `:ruby` schema
 
-When `:ruby` is selected, then the schema is stored in `db/schema.rb`. If you look
-at this file you'll find that it looks an awful lot like one very big migration:
+When `:ruby` is selected, then the schema is stored in `db/schema.rb`. If you
+look at this file you'll find that it looks an awful lot like one very big
+migration:
 
 ```ruby
 ActiveRecord::Schema[7.2].define(version: 2008_09_06_171750) do
@@ -1344,7 +1424,8 @@ To load the schema from `db/structure.sql`, run `bin/rails db:schema:load`.
 Loading this file is done by executing the SQL statements it contains. By
 definition, this will create a perfect copy of the database's structure.
 
-[`config.active_record.schema_format`]: configuring.html#config-active-record-schema-format
+[`config.active_record.schema_format`]:
+    configuring.html#config-active-record-schema-format
 
 ### Schema Dumps and Source Control
 
@@ -1352,7 +1433,8 @@ Because schema files are commonly used to create new databases, it is strongly
 recommended that you check your schema file into source control.
 
 Merge conflicts can occur in your schema file when two branches modify schema.
-To resolve these conflicts run `bin/rails db:migrate` to regenerate the schema file.
+To resolve these conflicts run `bin/rails db:migrate` to regenerate the schema
+file.
 
 INFO: Newly generated Rails apps will already have the migrations folder
 included in the git tree, so all you have to do is be sure to add any new
@@ -1361,7 +1443,10 @@ migrations you add and commit them.
 Active Record and Referential Integrity
 ---------------------------------------
 
-The Active Record way suggests that intelligence should primarily reside in your models rather than in the database. Consequently, features like triggers or constraints, which delegate some of that intelligence back into the database, are not always favored.
+The Active Record way suggests that intelligence should primarily reside in your
+models rather than in the database. Consequently, features like triggers or
+constraints, which delegate some of that intelligence back into the database,
+are not always favored.
 
 Validations such as `validates :foreign_key, uniqueness: true` are one way in
 which models can enforce data integrity. The `:dependent` option on associations
@@ -1370,18 +1455,27 @@ destroyed. Like anything which operates at the application level, these cannot
 guarantee referential integrity and so some people augment them with [foreign
 key constraints][] in the database.
 
-In practice, foreign key constraints and unique indexes are generally considered safer when enforced at the database level. Although Active Record does not provide direct support for working with these database-level features, you can still use the execute method to run arbitrary SQL commands.
+In practice, foreign key constraints and unique indexes are generally considered
+safer when enforced at the database level. Although Active Record does not
+provide direct support for working with these database-level features, you can
+still use the execute method to run arbitrary SQL commands.
 
-It's worth emphasizing that while the Active Record pattern emphasizes keeping intelligence within models, neglecting to implement foreign keys and unique constraints at the database level can potentially lead to integrity issues. Therefore, it's advisable to complement the AR pattern with database-level constraints where appropriate. These constraints should have their counterparts explicitly defined in your code using associations and validations to ensure data integrity across both application and database layers
+It's worth emphasizing that while the Active Record pattern emphasizes keeping
+intelligence within models, neglecting to implement foreign keys and unique
+constraints at the database level can potentially lead to integrity issues.
+Therefore, it's advisable to complement the AR pattern with database-level
+constraints where appropriate. These constraints should have their counterparts
+explicitly defined in your code using associations and validations to ensure
+data integrity across both application and database layers
 
 [foreign key constraints]: #foreign-keys
 
 Migrations and Seed Data
 ------------------------
 
-The main purpose of Rails migration feature is to issue commands that modify
-the schema using a consistent process. Migrations can also be used to add or
-modify data. This is useful in an existing database that can't be destroyed and
+The main purpose of Rails migration feature is to issue commands that modify the
+schema using a consistent process. Migrations can also be used to add or modify
+data. This is useful in an existing database that can't be destroyed and
 recreated, such as a production database.
 
 ```ruby
@@ -1459,17 +1553,28 @@ special comment like this:
 
 ### Using UUIDs instead of IDs for Primary Keys
 
-By default, Rails uses auto-incrementing integers (often referred to as "IDs") as primary keys for database records. However, there are scenarios where using Universally Unique Identifiers (UUIDs) as primary keys can be advantageous, especially in distributed systems or when integration with external services is necessary. UUIDs provide a globally unique identifier without relying on a centralized authority for generating IDs.
+By default, Rails uses auto-incrementing integers (often referred to as "IDs")
+as primary keys for database records. However, there are scenarios where using
+Universally Unique Identifiers (UUIDs) as primary keys can be advantageous,
+especially in distributed systems or when integration with external services is
+necessary. UUIDs provide a globally unique identifier without relying on a
+centralized authority for generating IDs.
 
 #### Enabling UUIDs in Rails
 
-Before using UUIDs in your Rails application, you'll need to ensure that your database supports storing them. Additionally, you may need to configure your database adapter to work with UUIDs.
+Before using UUIDs in your Rails application, you'll need to ensure that your
+database supports storing them. Additionally, you may need to configure your
+database adapter to work with UUIDs.
 
 1. Database Configuration
 
-    Ensure that your database supports storing UUIDs. PostgreSQL natively supports UUIDs with its `uuid` data type, while other databases might require additional configuration.
+    Ensure that your database supports storing UUIDs. PostgreSQL natively
+    supports UUIDs with its `uuid` data type, while other databases might
+    require additional configuration.
 
-    Enabling `uuid-ossp` Extension: If you're using PostgreSQL, enable the `uuid-ossp` extension to make UUID generation functions available. You can do this by adding a migration to enable the extension:
+    Enabling `uuid-ossp` Extension: If you're using PostgreSQL, enable the
+    `uuid-ossp` extension to make UUID generation functions available. You can
+    do this by adding a migration to enable the extension:
 
     ```ruby
     class EnableUuidOsspExtension < ActiveRecord::Migration[7.2]
@@ -1481,7 +1586,9 @@ Before using UUIDs in your Rails application, you'll need to ensure that your da
 
 2. Rails Configuration
 
-    In your Rails application configuration file (`config/application.rb`), add the following line to configure Rails to generate UUIDs as primary keys by default:
+    In your Rails application configuration file (`config/application.rb`), add
+    the following line to configure Rails to generate UUIDs as primary keys by
+    default:
 
     ```ruby
     config.generators do |g|
@@ -1489,12 +1596,15 @@ Before using UUIDs in your Rails application, you'll need to ensure that your da
     end
     ```
 
-    This setting instructs Rails to use UUIDs as the default primary key type for ActiveRecord models.
+    This setting instructs Rails to use UUIDs as the default primary key type
+    for ActiveRecord models.
 
 
 4. Adding References with UUIDs:
 
-    When creating associations between models using references, ensure that you specify the data type as :uuid to maintain consistency with the primary key type. For example:
+    When creating associations between models using references, ensure that you
+    specify the data type as :uuid to maintain consistency with the primary key
+    type. For example:
 
     ``` ruby
     create_table :posts, id: :uuid do |t|
@@ -1504,11 +1614,16 @@ Before using UUIDs in your Rails application, you'll need to ensure that your da
     end
     ```
 
-    In this example, the `author_id` column in the posts table references the `id` column of the authors table. By explicitly setting the type to `:uuid`, you ensure that the foreign key column matches the data type of the primary key it references. Adjust the syntax accordingly for other associations and databases.
+    In this example, the `author_id` column in the posts table references the
+    `id` column of the authors table. By explicitly setting the type to `:uuid`,
+    you ensure that the foreign key column matches the data type of the primary
+    key it references. Adjust the syntax accordingly for other associations and
+    databases.
 
 3. Migration Changes
 
-    When generating migrations for your models, you'll notice that it secifies the id to be of type uuid:
+    When generating migrations for your models, you'll notice that it secifies
+    the id to be of type uuid:
 
     ```bash
       $ bin/rails g migration CreateAuthors
@@ -1534,8 +1649,19 @@ Before using UUIDs in your Rails application, you'll need to ensure that your da
     end
     ```
 
-    In this migration, the `id` column is defined as a UUID primary key with a default value generated by the `gen_random_uuid()` function provided by the `uuid-ossp` extension.
+    In this migration, the `id` column is defined as a UUID primary key with a
+    default value generated by the `gen_random_uuid()` function provided by the
+    `uuid-ossp` extension.
 
-UUIDs are guaranteed to be globally unique across different systems, making them suitable for distributed architectures. They also simplify integration with external systems or APIs by providing a unique identifier that doesn't rely on centralized ID generation, and unlike auto-incrementing integers, UUIDs don't expose information about the total number of records in a table, which can be beneficial for security purposes.
+UUIDs are guaranteed to be globally unique across different systems, making them
+suitable for distributed architectures. They also simplify integration with
+external systems or APIs by providing a unique identifier that doesn't rely on
+centralized ID generation, and unlike auto-incrementing integers, UUIDs don't
+expose information about the total number of records in a table, which can be
+beneficial for security purposes.
 
-However, UUIDs are also larger than integers which can lead to increased storage requirements, especially in large databases. They can also impact performance due to their size. Therefore, it's essential to evaluate the trade-offs and consider the specific requirements of your application before deciding to use UUIDs as primary keys.
+However, UUIDs are also larger than integers which can lead to increased storage
+requirements, especially in large databases. They can also impact performance
+due to their size. Therefore, it's essential to evaluate the trade-offs and
+consider the specific requirements of your application before deciding to use
+UUIDs as primary keys.
