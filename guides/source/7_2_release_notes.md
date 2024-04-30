@@ -207,6 +207,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
+
 *   Remove deprecated support to call the following methods without passing a deprecator:
 
     - `deprecate`

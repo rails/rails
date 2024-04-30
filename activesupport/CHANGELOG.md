@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to call the following methods without passing a deprecator:
 
     - `deprecate`
