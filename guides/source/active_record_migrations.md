@@ -14,7 +14,7 @@ After reading this guide, you will know:
 * The details of manipulating migrations and your schema.
 * Changing existing migrations.
 * How migrations relate to `schema.rb`.
-* Refrential integrity.
+* Referential integrity.
 
 --------------------------------------------------------------------------------
 
