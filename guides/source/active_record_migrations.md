@@ -36,7 +36,7 @@ schema starts off with nothing in it, and each migration modifies it to add or
 remove tables, columns, or entries. Active Record knows how to update your
 schema along this timeline, bringing it from whatever point it is in the history
 to the latest version. Read more about how Rails knows which migration in the
-timeline to run [here](Insert_link).
+timeline to run [here](#rails-migration-version-control).
 
 Active Record updates your `db/schema.rb` file to match the up-to-date structure
 of your database. Here's an example of a migration:
