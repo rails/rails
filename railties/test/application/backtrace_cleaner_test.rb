@@ -39,7 +39,7 @@ module ApplicationTests
 
       cleaned = @cleaner.clean_frame(frame)
 
-      assert_equal nil, cleaned
+      assert_nil cleaned
     end
 
     test "#clean_frame does not silence when BACKTRACE is set" do
