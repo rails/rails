@@ -47,8 +47,8 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  test "assert_deprecated is deprecated without a deprecator" do
-    assert_deprecated(ActiveSupport.deprecator) do
+  test "assert_deprecated requires a deprecator" do
+    assert_raises(ArgumentError) do
       assert_deprecated do
         ActiveSupport::Deprecation._instance.warn
       end
@@ -61,8 +61,8 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  test "assert_not_deprecated is deprecated without a deprecator" do
-    assert_deprecated(ActiveSupport.deprecator) do
+  test "assert_not_deprecated requires a deprecator" do
+    assert_raises(ArgumentError) do
       assert_not_deprecated { }
     end
   end
@@ -77,8 +77,8 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match "DEPRECATION WARNING:", result.last.sole
   end
 
-  test "collect_deprecations is deprecated without a deprecator" do
-    assert_deprecated(ActiveSupport.deprecator) do
+  test "collect_deprecations requires a deprecator" do
+    assert_raises(ArgumentError) do
       collect_deprecations { }
     end
   end
@@ -116,14 +116,10 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  test "Module::deprecate without a deprecator is deprecated" do
+  test "Module::deprecate requires a deprecator" do
     klass = Class.new(Deprecatee)
-    _, deprecations = collect_deprecations(ActiveSupport.deprecator) do
+    assert_raises(ArgumentError) do
       klass.deprecate :zero
-    end
-    assert_match "Module.deprecate without a deprecator is deprecated", deprecations.sole
-    assert_deprecated(/zero is deprecated/, ActiveSupport::Deprecation._instance) do
-      klass.new.zero
     end
   end
 
@@ -132,8 +128,8 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
   end
 
-  test "DeprecatedObjectProxy without a deprecator is deprecated" do
-    assert_deprecated(ActiveSupport.deprecator) do
+  test "DeprecatedObjectProxy requires a deprecator" do
+    assert_raises(ArgumentError) do
       ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
     end
   end
@@ -302,7 +298,7 @@ class DeprecationTest < ActiveSupport::TestCase
 
   test "DeprecatedInstanceVariableProxy" do
     instance = Deprecatee.new
-    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", @deprecator)
+    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", deprecator: @deprecator)
     instance.foo_bar = "foo bar!"
 
     fubar_size = assert_deprecated("@fubar.size", @deprecator) { instance.fubar.size }
@@ -314,15 +310,15 @@ class DeprecationTest < ActiveSupport::TestCase
 
   test "DeprecatedInstanceVariableProxy does not warn on inspect" do
     instance = Deprecatee.new
-    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", @deprecator)
+    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", deprecator: @deprecator)
     instance.foo_bar = "foo bar!"
 
     fubar_inspected = assert_not_deprecated(@deprecator) { instance.fubar.inspect }
     assert_equal instance.foo_bar.inspect, fubar_inspected
   end
 
-  test "DeprecatedInstanceVariableProxy without a deprecator is deprecated" do
-    assert_deprecated(ActiveSupport.deprecator) do
+  test "DeprecatedInstanceVariableProxy requires a deprecator" do
+    assert_raises(ArgumentError) do
       ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(Deprecatee.new, :foobar, "@fubar")
     end
   end
@@ -354,8 +350,8 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  test "DeprecatedConstantProxy without a deprecator is deprecated" do
-    assert_deprecated(ActiveSupport.deprecator) do
+  test "DeprecatedConstantProxy requires a deprecator" do
+    assert_raise(ArgumentError) do
       ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Fuu", "Undeprecated::Foo")
     end
   end
@@ -383,9 +379,9 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  test "deprecate_constant is deprecated without a deprecator" do
+  test "deprecate_constant requires a deprecator" do
     legacy = Module.new.include(ActiveSupport::Deprecation::DeprecatedConstantAccessor)
-    assert_deprecated("DeprecatedConstantAccessor.deprecate_constant without a deprecator is deprecated", ActiveSupport.deprecator) do
+    assert_raises(ArgumentError) do
       legacy.deprecate_constant "OLD", "NEW"
     end
   end

@@ -1,3 +1,16 @@
+*   Remove deprecated support to call the following methods without passing a deprecator:
+
+    - `deprecate`
+    - `deprecate_constant`
+    - `ActiveSupport::Deprecation::DeprecatedObjectProxy.new`
+    - `ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new`
+    - `ActiveSupport::Deprecation::DeprecatedConstantProxy.new`
+    - `assert_deprecated`
+    - `assert_not_deprecated`
+    - `collect_deprecations`
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::Deprecation` delegation to instance.
 
     *Rafael Mendonça França*
