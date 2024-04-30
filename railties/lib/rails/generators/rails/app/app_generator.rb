@@ -412,11 +412,6 @@ module Rails
         build(:credentials_diff_enroll)
       end
 
-      def display_upgrade_guide_info
-        say "\nAfter this, check Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
-      end
-      remove_task :display_upgrade_guide_info
-
       def create_boot_file
         template "config/boot.rb"
       end
