@@ -1,3 +1,14 @@
+*   Generated Gemfile will include `require: "debug/prelude"` for the `debug` gem
+
+    Requiring `debug` gem directly automatically activates it, which could introduce
+    additional overhead and memory usage even without entering a debugging session.
+
+    By making Bundler require `debug/prelude` instead, developers can keep their access
+    to breakpoint methods like `debugger` or `binding.break`, but the debugger won't be
+    activated until a breakpoint is hit.
+
+    *Stan Lo*
+
 *   Allow Actionable Errors encountered when running tests to be retried.
 
     ```txt
