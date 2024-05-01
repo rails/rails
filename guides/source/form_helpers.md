@@ -213,46 +213,55 @@ Creating Forms with Model Objects
 
 ### Binding a Form to an Object
 
-The `:model` argument of `form_with` allows us to bind the form builder object to a model object. This means that the form will be scoped to that model object, and the form's fields will be populated with values from that model object.
+The `form_with` helper has a `:model` option that allows you to bind the form builder object to a model object. This means that the form will be scoped to that model object, and the form's fields will be populated with values from that model object.
 
-For example, if we have an `@article` model object like:
+For example, if we have an `@book` model object like:
 
 ```ruby
-@article = Article.find(42)
-# => #<Article id: 42, title: "My Title", body: "My Body">
+@book = Book.find(42)
+# => #<Book id: 42, title: "Walden", author: "Henry David Thoreau">
 ```
 
-The following form:
+And the following form to create a new book:
 
 ```erb
-<%= form_with model: @article do |form| %>
-  <%= form.text_field :title %>
-  <%= form.text_area :body, size: "60x10" %>
+<%= form_with model: @book do |form| %>
+  <div>
+    <%= form.label :title %>
+    <%= form.text_field :title %>
+  </div>
+  <div>
+    <%= form.label :author %>
+    <%= form.text_field :author %>
+  </div>
   <%= form.submit %>
 <% end %>
 ```
 
-Outputs:
+It will generate this HTML:
 
 ```html
-<form action="/articles/42" method="post" accept-charset="UTF-8" >
-  <input name="authenticity_token" type="hidden" value="..." />
-  <input type="text" name="article[title]" id="article_title" value="My Title" />
-  <textarea name="article[body]" id="article_body" cols="60" rows="10">
-    My Body
-  </textarea>
-  <input type="submit" name="commit" value="Update Article" data-disable-with="Update Article">
+<form action="/books" accept-charset="UTF-8" method="post">
+  <input type="hidden" name="authenticity_token" value="ChwHeyegcpAFDdBvXvDuvbfW7yCA3e8gvhyieai7DhG28C3akh-dyuv-IBittsjPrIjETlQQvQJ91T77QQ8xWA" autocomplete="off">
+  <div>
+    <label for="book_title">Title</label>
+    <input type="text" name="book[title]" id="book_title">
+  </div>
+  <div>
+    <label for="book_author">Author</label>
+    <input type="text" name="book[author]" id="book_author">
+  </div>
+  <input type="submit" name="commit" value="Create Book" data-disable-with="Create Book">
 </form>
 ```
 
-There are several things to notice here:
+Some important things to note when using `form_with` with a model object:
 
-* The form `action` is automatically filled with an appropriate value for `@article`.
-* The form fields are automatically filled with the corresponding values from `@article`.
-* The form field names are scoped with `article[...]`. This means that `params[:article]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Understanding Parameter Naming Conventions](#understanding-parameter-naming-conventions) of this guide.
-* The submit button is automatically given an appropriate text value.
+* The form `action` is automatically filled with an appropriate value, `action="/books"`. If you were updating a book, it would be `action="/books/42"`.
+* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Understanding Parameter Naming Conventions](#understanding-parameter-naming-conventions) of this guide.
+* The submit button is automatically given an appropriate text value, "Create Book" in this case.
 
-TIP: Conventionally your inputs will mirror model attributes. However, they don't have to! If there is other information you need you can include it in your form just as with attributes and access it via `params[:article][:my_nifty_non_attribute_input]`.
+TIP: Typically your form inputs will mirror model attributes. However, they don't have to. If there is other information you need you can include a field in your form and access it via `params[:book][:my_non_attribute_input]`.
 
 #### Composite primary key forms
 
