@@ -1,3 +1,15 @@
+*   `validate_constraint` can be called in a `change_table` block.
+
+    ex:
+    ```ruby
+    change_table :products do |t|
+      t.check_constraint "price > discounted_price", name: "price_check", validate: false
+      t.validate_check_constraint "price_check"
+    end
+    ```
+
+    *Cody Cutrer*
+
 *   `PostgreSQLAdapter` now decodes columns of type date to `Date` instead of string.
 
     Ex:
