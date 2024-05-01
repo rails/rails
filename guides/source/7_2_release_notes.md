@@ -28,6 +28,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `Rails::Generators::Testing::Behaviour`.
+
 *   Remove deprecated `Rails.application.secrets`.
 
 *   Remove deprecated `Rails.config.enable_dependency_loading`.

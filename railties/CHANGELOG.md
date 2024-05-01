@@ -1,3 +1,7 @@
+*   Remove deprecated `Rails::Generators::Testing::Behaviour`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `find_cmd_and_exec` console helper.
 
     *Rafael Mendonça França*
