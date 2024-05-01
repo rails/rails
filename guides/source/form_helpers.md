@@ -3,7 +3,7 @@
 Action View Form Helpers
 ========================
 
-Forms are a common interface for user input in web applications. However, form markup can quickly become tedious to write and maintain because of the need to handle form control naming and its numerous attributes. Rails simplies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
+Forms are a common interface for user input in web applications. However, form markup can be tedious to write and maintain because of the need to handle form control naming and its numerous attributes. Rails simplifies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
 
 After reading this guide, you will know:
 
@@ -17,9 +17,9 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit [the Rails API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for a complete reference of all available helpers.
+NOTE: This guide is not intended to be a complete list of all available form helpers. Please reference [the Rails API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for an exhaustive list of form helpers and their arguments.
 
-Dealing with Basic Forms
+Working with Basic Forms
 ------------------------
 
 The main form helper is [`form_with`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
@@ -30,17 +30,17 @@ The main form helper is [`form_with`](https://api.rubyonrails.org/classes/Action
 <% end %>
 ```
 
-When called without arguments like this, it creates a form tag which, when submitted, will POST to the current page. For instance, assuming the current page is a home page, the generated HTML will look like this:
+When called without arguments like this, it creates an HTML `<form>` tag which, when submitted, will POST to the current page. For example, assuming the current page is a home page at `/home`, the generated HTML will look like this:
 
 ```html
-<form accept-charset="UTF-8" action="/" method="post">
-  <input name="authenticity_token" type="hidden" value="J7CBxfHalt49OSHp27hblqK20c9PgwJ108nDHX/8Cts=" />
+<form action="/home" accept-charset="UTF-8" method="post">
+  <input type="hidden" name="authenticity_token" value="Lz6ILqUEs2CGdDa-oz38TqcqQORavGnbGkG0CQA8zc8peOps-K7sHgFSTPSkBx89pQxh3p5zPIkjoOTiA_UWbQ" autocomplete="off">
   Form contents
 </form>
 ```
 
-You'll notice that the HTML contains an `input` element with type `hidden`. This `input` is important, because non-GET forms cannot be successfully submitted without it.
-The hidden input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Securing Rails Applications](security.html#cross-site-request-forgery-csrf) guide.
+Notice that the HTML contains an `input` element with type `hidden`. The `authenticity_token` hidden input is required for non-GET form submissions.
+This token is a security feature in Rails used to prevent cross-site request forgery (CSRF) attacks, and form helpers automatically generate it for every non-GET form (assuming the security feature is enabled). You can read more about it in the [Securing Rails Applications](security.html#cross-site-request-forgery-csrf) guide.
 
 ### A Generic Search Form
 
