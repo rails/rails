@@ -30,6 +30,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `Rails.application.secrets`.
 
+*   Remove deprecated `Rails.config.enable_dependency_loading`.
+
 ### Deprecations
 
 ### Notable changes

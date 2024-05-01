@@ -67,7 +67,6 @@ module Rails
         @api_only                                = false
         @debug_exception_response_format         = nil
         @x                                       = Custom.new
-        @enable_dependency_loading               = false
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
@@ -348,22 +347,6 @@ module Rails
 
       def enable_reloading=(value)
         self.cache_classes = !value
-      end
-
-      ENABLE_DEPENDENCY_LOADING_WARNING = <<~MSG
-        This flag addressed a limitation of the `classic` autoloader and has no effect nowadays.
-        To fix this deprecation, please just delete the reference.
-      MSG
-      private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
-
-      def enable_dependency_loading
-        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
-        @enable_dependency_loading
-      end
-
-      def enable_dependency_loading=(value)
-        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
-        @enable_dependency_loading = value
       end
 
       def read_encrypted_secrets

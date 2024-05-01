@@ -1,3 +1,7 @@
+*   Remove deprecated `Rails.config.enable_dependency_loading`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `Rails.application.secrets`.
 
     *Rafael Mendonça França*

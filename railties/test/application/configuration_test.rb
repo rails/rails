@@ -1452,13 +1452,6 @@ module ApplicationTests
       assert_equal false, ActionView::Resolver.caching?
     end
 
-    test "config.enable_dependency_loading is deprecated" do
-      app "development"
-
-      assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading }
-      assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading = true }
-    end
-
     test "ActionController::Base::renderer uses Rails.application.default_url_options and config.force_ssl" do
       add_to_config <<~RUBY
         config.force_ssl = true
