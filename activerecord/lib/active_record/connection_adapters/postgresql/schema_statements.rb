@@ -1010,6 +1010,76 @@ module ActiveRecord
             end
           end
 
+          def add_foreign_key_for_alter(from_table, to_table, **options)
+            assert_valid_deferrable(options[:deferrable])
+            return unless use_foreign_keys?
+
+            return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column))
+
+            options = foreign_key_options(from_table, to_table, options)
+            td = create_table_definition from_table
+            fk = td.new_foreign_key_definition to_table, options
+
+            "ADD #{schema_creation.accept(fk)}"
+          end
+
+          def remove_foreign_key_for_alter(from_table, to_table = nil, **options)
+            return unless use_foreign_keys?
+            return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
+
+            fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
+            remove_constraint_for_alter(from_table, fk_name_to_delete, **options)
+          end
+
+          def add_check_constraint_for_alter(table_name, expression, if_not_exists: false, **options)
+            options = check_constraint_options(table_name, expression, options)
+            return if if_not_exists && check_constraint_exists?(table_name, **options)
+
+            td = create_table_definition(table_name)
+            constraint = td.new_check_constraint_definition(expression, options)
+
+            "ADD #{schema_creation.accept(constraint)}"
+          end
+
+          def remove_constraint_for_alter(table_name, constraint, if_exists: false, **options)
+            "DROP CONSTRAINT#{' IF EXISTS' if if_exists} #{quote_column_name(constraint)}"
+          end
+
+          def remove_check_constraint_for_alter(table_name, expression = nil, **options)
+            chk_name_to_delete = check_constraint_name(table_name, expression: expression, **options)
+
+            remove_constraint_for_alter(table_name, chk_name_to_delete, **options)
+          end
+
+          def add_exclusion_constraint_for_alter(table_name, expression, options)
+            options = exclusion_constraint_options(table_name, expression, options)
+            td = create_table_definition(table_name)
+            constraint = td.new_exclusion_constraint_definition(expression, **options)
+
+            "ADD #{schema_creation.accept(constraint)}"
+          end
+
+          def remove_exclusion_constraint_for_alter(table_name, expression = nil, **options)
+            excl_name_to_delete = exclusion_constraint_name(table_name, expression: expression, **options)
+
+            remove_constraint_for_alter(table_name, excl_name_to_delete, **options)
+          end
+
+          def add_unique_constraint_for_alter(table_name, column_name, options = {})
+            options = unique_constraint_options(table_name, column_name, options)
+
+            td = create_table_definition(table_name)
+            constraint = td.new_unique_constraint_definition(column_name, options)
+
+            "ADD #{schema_creation.accept(constraint)}"
+          end
+
+          def remove_unique_constraint_for_alter(table_name, column_name = nil, **options)
+            unique_name_to_delete = unique_constraint_name(table_name, column: column_name, **options)
+
+            remove_constraint_for_alter(table_name, unique_name_to_delete, **options)
+          end
+
           def add_index_opclass(quoted_columns, **options)
             opclasses = options_for_index_columns(options[:opclass])
             quoted_columns.each do |name, column|

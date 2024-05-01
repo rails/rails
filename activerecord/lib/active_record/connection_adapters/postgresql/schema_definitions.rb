@@ -311,8 +311,8 @@ module ActiveRecord
         #  t.remove_exclusion_constraint(name: "price_check")
         #
         # See {connection.remove_exclusion_constraint}[rdoc-ref:SchemaStatements#remove_exclusion_constraint]
-        def remove_exclusion_constraint(*args)
-          @base.remove_exclusion_constraint(name, *args)
+        def remove_exclusion_constraint(*args, **options)
+          @base.remove_exclusion_constraint(name, *args, **options)
         end
 
         # Adds a unique constraint.
@@ -329,8 +329,8 @@ module ActiveRecord
         #  t.remove_unique_constraint(name: "unique_position")
         #
         # See {connection.remove_unique_constraint}[rdoc-ref:SchemaStatements#remove_unique_constraint]
-        def remove_unique_constraint(*args)
-          @base.remove_unique_constraint(name, *args)
+        def remove_unique_constraint(*args, **options)
+          @base.remove_unique_constraint(name, *args, **options)
         end
       end
 
