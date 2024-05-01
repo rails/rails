@@ -3,11 +3,11 @@
 Action View Form Helpers
 ========================
 
-Forms are a common interface for user input in web applications. However, form markup can be tedious to write and maintain because of the need to handle form control naming and its numerous attributes. Rails simplifies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
+Forms are a common interface for user input in web applications. However, form markup can be tedious to write and maintain because of the need to handle form controls naming and attributes. Rails simplifies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
 
 After reading this guide, you will know:
 
-* How to create generic forms not representing any model in your application, such as a search form.
+* How to create generic forms that do not represent models in your application, such as a search form.
 * How to work with model-based forms for creating and editing specific database records.
 * How to generate select boxes from multiple types of data.
 * What date and time helpers Rails provides.
@@ -39,19 +39,19 @@ When called without arguments like this, it creates an HTML `<form>` tag which, 
 </form>
 ```
 
-Notice that the HTML contains an `input` element with type `hidden`. The `authenticity_token` hidden input is required for non-GET form submissions.
+Notice that the form contains an `input` element with type `hidden`. This `authenticity_token` hidden input is required for non-GET form submissions.
 This token is a security feature in Rails used to prevent cross-site request forgery (CSRF) attacks, and form helpers automatically generate it for every non-GET form (assuming the security feature is enabled). You can read more about it in the [Securing Rails Applications](security.html#cross-site-request-forgery-csrf) guide.
 
 ### A Generic Search Form
 
-One of the most basic forms you see on the web is a search form. This form contains:
+One of the most basic forms on the web is a search form. This form contains:
 
 * a form element with "GET" method,
 * a label for the input,
 * a text input element, and
 * a submit element.
 
-To create this form you will use `form_with` and the form builder object it yields. Like so:
+Here is how to create a search form with `form_with` and the form builder object:
 
 ```erb
 <%= form_with url: "/search", method: :get do |form| %>
@@ -64,18 +64,20 @@ To create this form you will use `form_with` and the form builder object it yiel
 This will generate the following HTML:
 
 ```html
-<form action="/search" method="get" accept-charset="UTF-8" >
+<form action="/search" accept-charset="UTF-8" method="get">
   <label for="query">Search for:</label>
-  <input id="query" name="query" type="text" />
-  <input name="commit" type="submit" value="Search" data-disable-with="Search" />
+  <input type="text" name="query" id="query">
+  <input type="submit" name="commit" value="Search" data-disable-with="Search">
 </form>
 ```
 
-TIP: Passing `url: my_specified_path` to `form_with` tells the form where to make the request. However, as explained below, you can also pass Active Record objects to the form.
+Notice that for the search form we are using the `url` option of `form_with`. Setting `url: "/search"` changes the form action value from the default current page path to `action="/search"`.
 
-TIP: For every form input, an ID attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
+In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Record objects to the form, as you will learn [below](#dealing-with-model-objects).
 
-IMPORTANT: Use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it. More generally Rails encourages you to use the right HTTP verb for an action.
+TIP: For every form `input` element, an `id` attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
+
+IMPORTANT: It is recommended to use "GET" as the method for search forms. This allows users to bookmark a specific search. More generally Rails encourages you to use the right HTTP verb for an action.
 
 ### Helpers for Generating Form Elements
 
