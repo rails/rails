@@ -32,6 +32,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `Rails.config.enable_dependency_loading`.
 
+*   Remove deprecated `find_cmd_and_exec` console helper.
+
 ### Deprecations
 
 ### Notable changes

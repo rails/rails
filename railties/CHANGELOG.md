@@ -1,3 +1,7 @@
+*   Remove deprecated `find_cmd_and_exec` console helper.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `Rails.config.enable_dependency_loading`.
 
     *Rafael Mendonça França*
