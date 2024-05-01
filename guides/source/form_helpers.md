@@ -81,36 +81,46 @@ IMPORTANT: It is recommended to use "GET" as the method for search forms. This a
 
 ### Helpers for Generating Form Elements
 
-The form builder object yielded by `form_with` provides numerous helper methods for generating form elements such as text fields, checkboxes, and radio buttons. The first parameter to these methods is always the name of the
-input. When the form is submitted, the name will be passed along with the form
-data, and will make its way to the `params` in the controller with the
-value entered by the user for that field. For example, if the form contains
-`<%= form.text_field :query %>`, then you would be able to get the value of this
-field in the controller with `params[:query]`.
+The form builder object yielded by `form_with` provides many helper methods for generating common form elements such as text fields, checkboxes, and radio buttons.
+
+The first parameter to these methods is always the name of the input. This is
+useful to remember because when the form is submitted, that name will be passed
+to the controller along with the form data in the `params` hash. The name will be the key in the `params` for the value entered by the user for that field.
+
+For example, if the form contains `<%= form.text_field :query %>`, then you
+would be able to get the value of this field in the controller with
+`params[:query]`.
 
 When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in the [Understanding Parameter Naming Conventions](#understanding-parameter-naming-conventions) section of this guide. For details on the precise usage of these helpers, please refer to the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
 
 #### Checkboxes
 
-Checkboxes are form controls that give the user a set of options they can enable or disable:
+Checkboxes are form controls that give the user a set of options they can enable or disable.
+
+For example, these two checkboxes in form:
 
 ```erb
-<%= form.check_box :pet_dog %>
-<%= form.label :pet_dog, "I own a dog" %>
-<%= form.check_box :pet_cat %>
-<%= form.label :pet_cat, "I own a cat" %>
+<%= form.check_box :fiction %>
+<%= form.label :fiction, "Fiction" %>
+<%= form.check_box :non_fiction %>
+<%= form.label :non_fiction, "Non-fiction" %>
 ```
 
-This generates the following:
+Will generates the following:
 
 ```html
-<input type="checkbox" id="pet_dog" name="pet_dog" value="1" />
-<label for="pet_dog">I own a dog</label>
-<input type="checkbox" id="pet_cat" name="pet_cat" value="1" />
-<label for="pet_cat">I own a cat</label>
+  <input name="fiction" type="hidden" value="0" autocomplete="off">
+  <input type="checkbox" value="1" name="fiction" id="fiction">
+  <label for="fiction">Fiction</label>
+  <input name="non_fiction" type="hidden" value="0" autocomplete="off">
+  <input type="checkbox" value="1" name="non_fiction" id="non_fiction">
+  <label for="non_fiction">Non-fiction</label>
+</form>
 ```
 
-The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input. The checkbox's values (the values that will appear in `params`) can optionally be specified using the third and fourth parameters. See the API documentation for details.
+The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input. This can be found in the `params` hash. If the user has checked "fiction" checkbox only, the `params` hash would contain `params: {"fiction"=>"1", "non_fiction"=>"0"}` and you can use `params[:fiction]` to check if that checkbox is checked by the user.
+
+The checkbox's values (the values that will appear in `params`) can optionally be specified using the third and fourth parameters. See the API documentation for more details.
 
 #### Radio Buttons
 
@@ -183,11 +193,13 @@ Output:
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
 IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local,
-month, week, URL, email, number, and range inputs are HTML5 controls.
-If you require your app to have a consistent experience in older browsers,
-you will need an HTML5 polyfill (provided by CSS and/or JavaScript).
-There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a popular tool at the moment is
-[Modernizr](https://modernizr.com/), which provides a simple way to add functionality based on the presence of
+month, week, URL, email, number, and range inputs are HTML5 controls. If you
+require your app to have a consistent experience in older browsers, you will
+need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely
+[no shortage of solutions for
+this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills),
+although a popular tool at the moment is [Modernizr](https://modernizr.com/),
+which provides a simple way to add functionality based on the presence of
 detected HTML5 features.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the [Securing Rails Applications](security.html#logging) guide.
