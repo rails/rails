@@ -104,8 +104,6 @@ class Array
     end
   end
   alias_method :to_formatted_s, :to_fs
-  alias_method :to_default_s, :to_s
-  deprecate to_default_s: :to_s, deprecator: ActiveSupport.deprecator
 
   # Returns a string that represents the array in XML by invoking +to_xml+
   # on each element. Active Record collections delegate their representation

@@ -1,3 +1,19 @@
+*   Remove deprecated `Rails::Generators::Testing::Behaviour`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `find_cmd_and_exec` console helper.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.config.enable_dependency_loading`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.application.secrets`.
+
+    *Rafael Mendonça França*
+
 *   Generated Gemfile will include `require: "debug/prelude"` for the `debug` gem
 
     Requiring `debug` gem directly automatically activates it, which could introduce

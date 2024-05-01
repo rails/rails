@@ -153,7 +153,6 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 5.0
 
-- [`ActiveSupport.to_time_preserves_timezone`](#activesupport-to-time-preserves-timezone): `true`
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
@@ -2586,7 +2585,7 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.active_support.cache_format_version`
 
 Specifies which serialization format to use for the cache. Possible values are
-`6.1`, `7.0`, and `7.1`.
+`7.0`, and `7.1`.
 
 `7.0` serializes cache entries more efficiently.
 
@@ -2602,7 +2601,6 @@ The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| (original)            | `6.1`                |
 | 7.0                   | `7.0`                |
 | 7.1                   | `7.1`                |
 
@@ -2663,17 +2661,6 @@ Is set to `false` to disable the ability to silence logging in a block. The defa
 #### `ActiveSupport::Cache::Store.logger`
 
 Specifies the logger to use within cache store operations.
-
-#### `ActiveSupport.to_time_preserves_timezone`
-
-Specifies whether `to_time` methods preserve the UTC offset of their receivers. If `false`, `to_time` methods will convert to the local system UTC offset instead.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 5.0                   | `true`               |
 
 #### `ActiveSupport.utc_to_local_returns_utc_offset_times`
 

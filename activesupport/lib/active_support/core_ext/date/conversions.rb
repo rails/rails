@@ -56,8 +56,6 @@ class Date
     end
   end
   alias_method :to_formatted_s, :to_fs
-  alias_method :to_default_s, :to_s
-  deprecate to_default_s: :to_s, deprecator: ActiveSupport.deprecator
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect
