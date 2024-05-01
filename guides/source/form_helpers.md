@@ -73,7 +73,7 @@ This will generate the following HTML:
 
 Notice that for the search form we are using the `url` option of `form_with`. Setting `url: "/search"` changes the form action value from the default current page path to `action="/search"`.
 
-In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Record objects to the form, as you will learn [below](#dealing-with-model-objects).
+In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Record objects to the form, as you will learn [below](#creating-forms-with-model-objects).
 
 TIP: For every form `input` element, an `id` attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
@@ -124,7 +124,9 @@ The checkbox's values (the values that will appear in `params`) can optionally b
 
 #### Radio Buttons
 
-Radio buttons, while similar to checkboxes, are controls that specify a set of options in which they are mutually exclusive (i.e., the user can only pick one):
+Radio buttons are form controls that allow the user to select one option from a set of options. The user can only select one option at a time as the choices are mutually exclusive.
+
+For example, radio buttons for selecting an age range:
 
 ```erb
 <%= form.radio_button :age, "child" %>
@@ -133,24 +135,26 @@ Radio buttons, while similar to checkboxes, are controls that specify a set of o
 <%= form.label :age_adult, "I am over 21" %>
 ```
 
-Output:
+Will generate the following HTML:
 
 ```html
-<input type="radio" id="age_child" name="age" value="child" />
+<input type="radio" value="child" name="age" id="age_child">
 <label for="age_child">I am younger than 21</label>
-<input type="radio" id="age_adult" name="age" value="adult" />
+<input type="radio" value="adult" name="age" id="age_adult">
 <label for="age_adult">I am over 21</label>
 ```
 
 The second parameter to [`radio_button`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-radio_button) is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either `"child"` or `"adult"`.
 
-NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and,
-by expanding the clickable region,
-make it easier for users to click the inputs.
+NOTE: Always use labels for checkbox and radio buttons. They associate text with
+a specific option and, by expanding the clickable region, make it easier for
+users to click the inputs.
 
 ### Other Helpers of Interest
 
-Other form controls worth mentioning are text areas, hidden fields, password fields, number fields, date and time fields, and many more:
+There are many other form controls such as text areas, hidden fields, password fields, number fields, date and time fields.
+
+Here is an example of using many of them:
 
 ```erb
 <%= form.text_area :message, size: "70x5" %>
@@ -170,24 +174,24 @@ Other form controls worth mentioning are text areas, hidden fields, password fie
 <%= form.color_field :favorite_color %>
 ```
 
-Output:
+And the generated HTML output:
 
 ```html
 <textarea name="message" id="message" cols="70" rows="5"></textarea>
-<input type="hidden" name="parent_id" id="parent_id" value="foo" />
-<input type="password" name="password" id="password" />
-<input type="number" name="price" id="price" step="0.5" min="1.0" max="20.0" />
-<input type="range" name="discount" id="discount" min="1" max="100" />
-<input type="date" name="born_on" id="born_on" />
-<input type="time" name="started_at" id="started_at" />
-<input type="datetime-local" name="graduation_day" id="graduation_day" />
-<input type="month" name="birthday_month" id="birthday_month" />
-<input type="week" name="birthday_week" id="birthday_week" />
-<input type="search" name="name" id="name" />
-<input type="email" name="address" id="address" />
-<input type="tel" name="phone" id="phone" />
-<input type="url" name="homepage" id="homepage" />
-<input type="color" name="favorite_color" id="favorite_color" value="#000000" />
+<input value="foo" autocomplete="off" type="hidden" name="parent_id" id="parent_id">
+<input type="password" name="password" id="password">
+<input step="0.5" min="1.0" max="20.0" type="number" name="price" id="price">
+<input min="1" max="100" type="range" name="discount" id="discount">
+<input type="date" name="born_on" id="born_on">
+<input type="time" name="started_at" id="started_at">
+<input type="datetime-local" name="graduation_day" id="graduation_day">
+<input type="month" name="birthday_month" id="birthday_month">
+<input type="week" name="birthday_week" id="birthday_week">
+<input type="search" name="name" id="name">
+<input type="email" name="address" id="address">
+<input type="tel" name="phone" id="phone">
+<input type="url" name="homepage" id="homepage">
+<input value="#000000" type="color" name="favorite_color" id="favorite_color">
 ```
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
@@ -202,10 +206,10 @@ although a popular tool at the moment is [Modernizr](https://modernizr.com/),
 which provides a simple way to add functionality based on the presence of
 detected HTML5 features.
 
-TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the [Securing Rails Applications](security.html#logging) guide.
+TIP: If you're using password input fields, you might want to configure your application to prevent those parameters from being logged. You can learn about how in the [Securing Rails Applications](security.html#logging) guide.
 
-Dealing with Model Objects
---------------------------
+Creating Forms with Model Objects
+---------------------------------
 
 ### Binding a Form to an Object
 
