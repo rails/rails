@@ -12,7 +12,7 @@ After reading this guide, you will know:
 * How to register, run, and skip callbacks that respond to these events.
 * How to create relational, association, conditional, and transactional
   callbacks.
-* How to create special classes that encapsulate common behavior for your
+* How to create objects that encapsulate common behavior for your
   callbacks to be reused.
 
 --------------------------------------------------------------------------------
@@ -34,13 +34,13 @@ or loaded from the database.
 
 ```ruby
 class Baby < ApplicationRecord
-  after_create -> { Rails.logger.info("Congratulations!") }
+  after_create -> { Rails.logger.info("Congratulations, the callback has run!") }
 end
 ```
 
 ```irb
 irb> baby = Baby.create
-Congratulations!
+Congratulations, the callback has run!
 ```
 
 As you will see, there are many life cycle events and you can choose to hook
@@ -51,8 +51,8 @@ Callback Registration
 
 To use the available callbacks, you need to implement and register them.
 Implementation can be done in a multitude of ways like using ordinary methods,
-blocks and procs, or defining custom callback objects using classes. Let's go
-through each of these implementation techniques.
+blocks and procs, or defining custom callback objects using classes or modules.
+Let's go through each of these implementation techniques.
 
 You can implement the callbacks as a **macro-style method that calls an ordinary
 method** for registration.
@@ -142,9 +142,9 @@ class User < ApplicationRecord
 end
 ```
 
-It is considered good practice to declare callback methods as private. If left
-public, they can be called from outside of the model and violate the principle
-of object encapsulation.
+NOTE: It is considered good practice to declare callback methods as private. If
+left public, they can be called from outside of the model and violate the
+principle of object encapsulation.
 
 WARNING. Refrain from using methods like `update`, `save`, or any other methods
 that cause side effects on the object within your callback functions. <br><br>
@@ -204,18 +204,16 @@ be used in combination. `after_commit` / `after_rollback` examples can be found
 Validation callbacks are triggered whenever the record is validated directly via
 the
 [`valid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F)
-or
-[`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-validate)
-methods, or indirectly via `create`, `update`, or `save`. They are called before
+( or its alias
+[`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-validate))
+or [`invalid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-invalid-3F) method, or indirectly via `create`, `update`, or `save`. They are called before
 and after the validation phase.
-
-NOTE: `validate` is an alias for [`valid?`](https://api.rubyonrails.org/classes/ActiveRecord/Validations.html#method-i-valid-3F).
 
 ```ruby
 class User < ApplicationRecord
   validates :name, presence: true
   before_validation :titleize_name
-  after_validation :check_errors
+  after_validation :log_errors
 
   private
     def titleize_name
@@ -223,7 +221,7 @@ class User < ApplicationRecord
       Rails.logger.info("Name titleized to #{name}")
     end
 
-    def check_errors
+    def log_errors
       if errors.any?
         Rails.logger.error("Validation failed: #{errors.full_messages.join(', ')}")
       end
@@ -266,14 +264,14 @@ class User < ApplicationRecord
     end
 
     def update_cache
-      Rails.cache.write("user_data", attributes)
+      Rails.cache.write(["user_data", self], attributes)
       Rails.logger.info("Update Cache")
     end
 end
 ```
 
 ```irb
-irb> user = User.create(name: "Jane Doe", email: "jane.doe@example.com")
+irb> user = User.create(name: "Jane Doe", password: "password", email: "jane.doe@example.com")
 
 Password encrypted for user with email: jane.doe@example.com
 Saving user with email: jane.doe@example.com
@@ -323,50 +321,6 @@ User created with email: john.doe@example.com
 User welcome email sent to: john.doe@example.com
 => #<User id: 10, email: "john.doe@example.com", created_at: "2024-03-20 16:19:52.405195000 +0000", updated_at: "2024-03-20 16:19:52.405195000 +0000", name: "John Doe">
 ```
-
-#### Using a Combination of Callbacks
-
-Often, you will need to use a combination of callbacks to achieve the desired
-behavior. For example, you may want to send a confirmation email after a user is
-created, but only if the user is new and not being updated. When a user is
-updated, you may want to notify an admin if critical information is changed. In
-this case, you can use `after_create` and `after_update` callbacks together.
-
-```ruby
-class User < ApplicationRecord
-  after_create :send_confirmation_email
-  after_update :notify_admin_if_critical_info_updated
-
-  private
-    def generate_confirmation_token
-      self.confirmation_token = SecureRandom.hex(10)
-      Rails.logger.info("Confirmation token generated for: #{email}")
-    end
-
-    def send_confirmation_email
-      UserMailer.confirmation_email(self).deliver_later
-      Rails.logger.info("Confirmation email sent to: #{email}")
-    end
-
-    def notify_admin_if_critical_info_updated
-      if saved_change_to_email? || saved_change_to_phone_number?
-        AdminMailer.user_critical_info_updated(self).deliver_later
-        Rails.logger.info("Notification sent to admin about critical info update for: #{email}")
-      end
-    end
-end
-```
-
-```irb
-irb> user = User.create(name: "John Doe", email: "john.doe@example.com")
-Confirmation email sent to: john.doe@example.com
-=> #<User id: 1, email: "john.doe@example.com", ...>
-
-irb> user.update(email: "john.doe.new@example.com")
-Notification sent to admin about critical info update for: john.doe.new@example.com
-=> true
-```
-
 ### Updating an Object
 
 * [`before_validation`][]
@@ -435,6 +389,44 @@ User updated with email: john.doe@example.com
 Update email sent to: john.doe@example.com
 ```
 
+#### Using a Combination of Callbacks
+
+Often, you will need to use a combination of callbacks to achieve the desired
+behavior. For example, you may want to send a confirmation email after a user is
+created, but only if the user is new and not being updated. When a user is
+updated, you may want to notify an admin if critical information is changed. In
+this case, you can use `after_create` and `after_update` callbacks together.
+
+```ruby
+class User < ApplicationRecord
+  after_create :send_confirmation_email
+  after_update :notify_admin_if_critical_info_updated
+
+  private
+    def send_confirmation_email
+      UserMailer.confirmation_email(self).deliver_later
+      Rails.logger.info("Confirmation email sent to: #{email}")
+    end
+
+    def notify_admin_if_critical_info_updated
+      if saved_change_to_email? || saved_change_to_phone_number?
+        AdminMailer.user_critical_info_updated(self).deliver_later
+        Rails.logger.info("Notification sent to admin about critical info update for: #{email}")
+      end
+    end
+end
+```
+
+```irb
+irb> user = User.create(name: "John Doe", email: "john.doe@example.com")
+Confirmation email sent to: john.doe@example.com
+=> #<User id: 1, email: "john.doe@example.com", ...>
+
+irb> user.update(email: "john.doe.new@example.com")
+Notification sent to admin about critical info update for: john.doe.new@example.com
+=> true
+```
+
 ### Destroying an Object
 
 * [`before_destroy`][]
@@ -492,12 +484,12 @@ Notification sent to other users about user deletion
 ```
 
 `after_commit` / `after_rollback` examples can be found
-[here](active_record_callbacks.html#after-commit-and-after-rollback).
+[here](#after-commit-and-after-rollback).
 
 ### `after_initialize` and `after_find`
 
 Whenever an Active Record object is instantiated, either by directly using `new`
-or when a record is loaded from the database, then the [`after_initialize`][]
+or when a record is loaded from the database, the [`after_initialize`][]
 callback will be called. It can be useful to avoid the need to directly override
 your Active Record `initialize` method.
 
@@ -843,7 +835,7 @@ option is best suited when writing short validation methods, usually one-liners:
 ```ruby
 class Order < ApplicationRecord
   before_save :normalize_card_number,
-    if: -> { |order| order.paid_with_card? }
+    if: ->(order) { order.paid_with_card? }
 end
 ```
 
@@ -934,7 +926,7 @@ end
 ```
 
 NOTE: The `:on` option specifies when a callback will be fired. If you don't
-supply the `:on` option the callback will fire for every action.
+supply the `:on` option the callback will fire for every live cycle event.
 
 WARNING. When a transaction completes, the `after_commit` or `after_rollback`
 callbacks are called for all models created, updated, or destroyed within that
