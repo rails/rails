@@ -566,7 +566,9 @@ Rails _used_ to have a `country_select` helper for choosing countries, but this 
 Using Date and Time Form Helpers
 --------------------------------
 
-If you do not wish to use HTML5 date and time inputs, Rails provides alternative date and time form helpers that render plain select boxes. These helpers render a select box for each temporal component (e.g. year, month, day, etc). For example, if we have a `@person` model object like:
+Rails provides alternative date and time form helpers that render plain select boxes. The `date_select` helper renders a separate select box for year, month, and day. 
+
+For example, if we have a `@person` model object like:
 
 ```ruby
 @person = Person.new(birth_date: Date.new(1995, 12, 21))
@@ -619,37 +621,37 @@ Outputs select boxes like:
 </select>
 ```
 
-Notice that, when the form is submitted, there will be no single value in the `params` hash that contains the full date. Instead, there will be several values with special names like `"birth_date(1i)"`. Active Record knows how to assemble these specially-named values into a full date or time, based on the declared type of the model attribute. So we can pass `params[:person]` to e.g. `Person.new` or `Person#update` just like we would if the form used a single field to represent the full date.
+Notice that, when the form is submitted, there will be no single value in the `params` hash that contains the full date. Instead, there will be several values with special names like `"birth_date(1i)"`. However, Active Record knows how to assemble these values into a full date, based on the declared type of the model attribute. So we can pass `params[:person]` to `Person.new` or `Person#update` just like we would if the form used a single field to represent the full date.
 
-In addition to the [`date_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-date_select) helper, Rails provides [`time_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_select) and [`datetime_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-datetime_select).
+In addition to the [`date_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-date_select) helper, Rails provides [`time_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_select) which outputs select boxes for hour and minute. There is [`datetime_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-datetime_select) as well which combines both date and time select boxes.
 
 ### Select Boxes for Individual Temporal Components
 
 Rails also provides helpers to render select boxes for individual temporal components: [`select_year`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_year), [`select_month`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_month), [`select_day`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_day), [`select_hour`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_hour), [`select_minute`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_minute), and [`select_second`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_second).  These helpers are "bare" methods, meaning they are not called on a form builder instance.  For example:
 
 ```erb
-<%= select_year 1999, prefix: "party" %>
+<%= select_year 2024, prefix: "party" %>
 ```
 
 Outputs a select box like:
 
 ```html
-<select name="party[year]" id="party_year">
-  <option value="1994">1994</option>
-  <option value="1995">1995</option>
-  <option value="1996">1996</option>
-  <option value="1997">1997</option>
-  <option value="1998">1998</option>
-  <option value="1999" selected="selected">1999</option>
-  <option value="2000">2000</option>
-  <option value="2001">2001</option>
-  <option value="2002">2002</option>
-  <option value="2003">2003</option>
-  <option value="2004">2004</option>
+<select id="party_year" name="party[year]">
+  <option value="2019">2019</option>
+  <option value="2020">2020</option>
+  <option value="2021">2021</option>
+  <option value="2022">2022</option>
+  <option value="2023">2023</option>
+  <option value="2024" selected="selected">2024</option>
+  <option value="2025">2025</option>
+  <option value="2026">2026</option>
+  <option value="2027">2027</option>
+  <option value="2028">2028</option>
+  <option value="2029">2029</option>
 </select>
 ```
 
-For each of these helpers, you may specify a date or time object instead of a number as the default value, and the appropriate temporal component will be extracted and used.
+For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value, and the appropriate temporal component will be extracted and used.
 
 Choices from a Collection of Arbitrary Objects
 ----------------------------------------------
