@@ -64,7 +64,7 @@ These special columns are automatically managed by Active Record if they exist.
 ```ruby
 
 # db/schema.rb
-ActiveRecord::Schema[7.1].define(version: 2024_05_02_100843) do
+ActiveRecord::Schema[7.2].define(version: 2024_05_02_100843) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -107,8 +107,8 @@ The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, that is
 to say a UTC timestamp identifying the migration followed by an underscore
 followed by the name of the migration. The name of the migration class
 (CamelCased version) should match the latter part of the file name. For example,
-`20080906120000_create_products.rb` should define class `CreateProducts` and
-`20080906120001_add_details_to_products.rb` should define class
+`20240502100843_create_products.rb` should define class `CreateProducts` and
+`20240502101659_add_details_to_products.rb` should define class
 `AddDetailsToProducts`. Rails uses this timestamp to determine which migration
 should be run and in what order, so if you're copying a migration from another
 application or generate a file yourself, be aware of its position in the order.
@@ -123,6 +123,7 @@ $ bin/rails generate migration AddPartNumberToProducts
 This will create an appropriately named empty migration:
 
 ```ruby
+# db/migrate/20240502101659_add_part_number_to_products.rb
 class AddPartNumberToProducts < ActiveRecord::Migration[7.2]
   def change
   end
@@ -506,8 +507,18 @@ specify comments in migrations for applications with large databases as it helps
 people to understand the data model and generate documentation. Currently only
 the MySQL and PostgreSQL adapters support comments.
 
+```ruby
+class AddDetailsToProducts < ActiveRecord::Migration[6.0]
+  def change
+    add_column :products, :price, :decimal, precision: 8, scale: 2, comment: "The price of the product in USD"
+    add_column :products, :stock_quantity, :integer, comment: "The current stock quantity of the product"
+  end
+end
+```
+
 [`create_table`]:
     https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_table
+
 
 ### Creating a Join Table
 
