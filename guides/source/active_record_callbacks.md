@@ -1035,7 +1035,7 @@ User was saved to database
 
 ### Transactional Callback Ordering
 
-By default (from Rails 7.1), callbacks will run in the order they are defined.
+By default (from Rails 7.1), transaction callbacks will run in the order they are defined.
 
 However, in prior versions of Rails, when defining multiple transactional
 `after_` callbacks (`after_commit`, `after_rollback`, etc), the order in which
