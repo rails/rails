@@ -265,10 +265,9 @@ TIP: Typically your form inputs will mirror model attributes. However, they don'
 
 #### Composite primary key forms
 
-Forms may also be built with composite primary key models. In this case, the form
-building syntax is the same with slightly different output.
+If you have a model with [composite primary key](active_record_composite_primary_keys.html), forms building syntax is the same with slightly different output.
 
-Given a `@book` model object with a composite key `[:author_id, :id]`:
+For example, to update a `@book` model object with a composite key `[:author_id, :id]` like this:
 
 ```ruby
 @book = Book.find([2, 25])
@@ -284,7 +283,7 @@ The following form:
 <% end %>
 ```
 
-Outputs:
+Will generate this HTML output:
 
 ```html
 <form action="/books/2_25" method="post" accept-charset="UTF-8" >
@@ -294,19 +293,18 @@ Outputs:
 </form>
 ```
 
-Note the generated URL contains the `author_id` and `id` delimited by an underscore.
-Once submitted, the controller can [extract each primary key value][] from parameters
-and update the record as it would with a singular primary key.
-
-[extract each primary key value]: action_controller_overview.html#composite-key-parameters
+Note the generated URL contains the `author_id` and `id` delimited by an
+underscore. Once submitted, the controller can [extract each primary key
+value](action_controller_overview.html#composite-key-parameters) from the parameters and update the record as it would with a singular
+primary key.
 
 #### The `fields_for` Helper
 
-The [`fields_for`][] helper creates a similar binding but without rendering a
-`<form>` tag. This can be used to render fields for additional model objects
-within the same form. For example, if you had a `Person` model with an
-associated `ContactDetail` model, you could create a single form for both like
-so:
+The `fields_for` helper is used to render fields for related model objects
+within the same form. The "inner" model is usually related to the "main" model
+via an Active Record association. For example, if you had a `Person` model with
+an associated `ContactDetail` model, you could create a single form with inputs
+for both models like so:
 
 ```erb
 <%= form_with model: @person do |person_form| %>
@@ -321,16 +319,16 @@ Which produces the following output:
 
 ```html
 <form action="/people" accept-charset="UTF-8" method="post">
-  <input type="hidden" name="authenticity_token" value="bL13x72pldyDD8bgtkjKQakJCpd4A8JdXGbfksxBDHdf1uC0kCMqe2tvVdUYfidJt0fj3ihC4NxiVHv8GVYxJA==" />
+  <input type="hidden" name="authenticity_token" value="..." autocomplete="off" />
   <input type="text" name="person[name]" id="person_name" />
   <input type="text" name="contact_detail[phone_number]" id="contact_detail_phone_number" />
 </form>
 ```
 
 The object yielded by `fields_for` is a form builder like the one yielded by
-`form_with`.
-
-[`fields_for`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for
+`form_with`. The `fields_for` helper creates a similar binding but without
+rendering a `<form>` tag. You can learn more about `field_for` in the [API
+docs](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for).
 
 ### Relying on Record Identification
 
@@ -358,7 +356,7 @@ form_with(model: @article, url: article_path(@article), method: "patch")
 form_with(model: @article)
 ```
 
-Notice how the short-style `form_with` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.persisted?`. It also selects the correct path to submit to, and the name based on the class of the object.
+Notice how the short-style `form_with` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking [`record.persisted?`](https://api.rubyonrails.org/v7.1.3.2/classes/ActiveRecord/Persistence.html#method-i-persisted-3F). It also selects the correct path to submit to, and the name based on the class of the object.
 
 If you have a [singular resource](routing.html#singular-resources), you will need to call `resource` and `resolve` for it to work with `form_with`:
 
@@ -367,7 +365,7 @@ resource :geocoder
 resolve('Geocoder') { [:geocoder] }
 ```
 
-WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify `:url`, and `:scope` (the model name) explicitly.
+WARNING: When you're using [single-table inheritance](association_basics.html#single-table-inheritance-sti) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify `:url`, and `:scope` (the model name) explicitly.
 
 #### Dealing with Namespaces
 
