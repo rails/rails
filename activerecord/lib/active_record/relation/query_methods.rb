@@ -486,12 +486,7 @@ module ActiveRecord
     def with(*args)
       raise ArgumentError, "ActiveRecord::Relation#with does not accept a block" if block_given?
       check_if_method_has_arguments!(__callee__, args)
-
-      if args.empty?
-        WithChain.new(spawn)
-      else
-        spawn.with!(*args)
-      end
+      spawn.with!(*args)
     end
 
     # Like #with, but modifies relation in place.
