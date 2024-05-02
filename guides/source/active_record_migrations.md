@@ -42,6 +42,7 @@ Active Record updates your `db/schema.rb` file to match the up-to-date structure
 of your database. Here's an example of a migration:
 
 ```ruby
+# db/migrate/20240502100843_create_products.rb
 class CreateProducts < ActiveRecord::Migration[7.2]
   def change
     create_table :products do |t|
