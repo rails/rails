@@ -188,6 +188,7 @@ of the files and folders that Rails creates by default:
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
+|.devcontainer/|This folder contains the configuration for the [development container](https://containers.dev).|
 |.dockerignore|This file tells Docker which files it should not copy into the container.|
 |.gitattributes|This file defines metadata for specific paths in a git repository. This metadata can be used by git and other tools to enhance their behavior. See the [gitattributes documentation](https://git-scm.com/docs/gitattributes) for more information.|
 |.github/|Contains GitHub specific files.|
