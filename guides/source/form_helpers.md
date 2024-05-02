@@ -549,15 +549,19 @@ The only difference is that the selected option will be found in `params[:person
 
 Notice that the appropriate option was automatically marked `selected="selected"`. Since this select box was bound to an existing `@person` record, we didn't need to specify a `:selected` argument.
 
-### Time Zone and Country Select
+### Selecting Time Zone
 
-To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects, but you can simply use the [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper that already wraps this:
+When you need to ask users what time zone they are in, there is a very convenient [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper to use. 
+
+Typically you would have to provide a list of time zone options for users to select from. This can get tedious if not for the list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects. The `time_with_zone` helper wraps this and can be used like this:
 
 ```erb
 <%= form.time_zone_select :time_zone %>
 ```
 
-Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/stefanpenner/country_select).
+### Country Select
+
+Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select gem](https://github.com/stefanpenner/country_select).
 
 Using Date and Time Form Helpers
 --------------------------------
