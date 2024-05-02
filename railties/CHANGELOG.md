@@ -1,3 +1,14 @@
+*   Add options to bin/rails app:update.
+
+    `bin/rails app:update` now supports the same generic options that generators do:
+
+    * `--force`: Accept all changes to existing files
+    * `--skip`: Refuse all changes to existing files
+    * `--pretend`: Don't make any changes
+    * `--quiet`: Don't output all changes made
+
+    *Étienne Barrié*
+
 *   Implement Rails console commands and helpers with IRB v1.13's extension APIs
 
     Rails console users will now see `helper`, `controller`, `new_session`, and `app` under
