@@ -1,4 +1,4 @@
-*   Added support for recursive commont table expressions.
+*   Added support for recursive common table expressions.
 
     ```ruby
     Post.with_recursive(
