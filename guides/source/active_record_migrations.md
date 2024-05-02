@@ -60,6 +60,23 @@ also be added implicitly, as it's the default primary key for all Active Record
 models. The `timestamps` macro adds two columns, `created_at` and `updated_at`.
 These special columns are automatically managed by Active Record if they exist.
 
+```ruby
+
+# db/schema.rb
+ActiveRecord::Schema[7.1].define(version: 2024_05_02_100843) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
+  create_table "products", force: :cascade do |t|
+    t.string "name"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+end
+```
+
 We define the change that we want to happen moving forward in time. Before this
 migration is run, there will be no table. After it is run, the table will exist.
 Active Record knows how to reverse this migration as well; if we roll this
