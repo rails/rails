@@ -205,7 +205,7 @@ Validation callbacks are triggered whenever the record is validated directly via
 the
 [`valid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F)
 or
-[`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F)
+[`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-validate)
 methods, or indirectly via `create`, `update`, or `save`. They are called before
 and after the validation phase.
 
