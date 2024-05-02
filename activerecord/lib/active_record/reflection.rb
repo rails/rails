@@ -263,7 +263,7 @@ module ActiveRecord
 
       def check_validity_of_inverse!
         if !polymorphic? && has_inverse?
-          if inverse_of.nil?
+          if inverse_of.nil? || (!inverse_of.polymorphic? && active_record.table_name != inverse_of.klass.table_name)
             raise InverseOfAssociationNotFoundError.new(self)
           end
           if inverse_of == self
