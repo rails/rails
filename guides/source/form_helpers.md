@@ -365,15 +365,17 @@ TIP: Declaring a resource has a number of side effects. See [Rails Routing from 
 
 WARNING: When you're using [single-table inheritance](association_basics.html#single-table-inheritance-sti) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify `:url`, and `:scope` (the model name) explicitly.
 
-#### Dealing with Namespaces
+### Working with Namespaces
 
-If you have created namespaced routes, `form_with` has a nifty shorthand for that too. If your application has an admin namespace then
+If you have namespaced routes, `form_with` has a shorthand for that as well. For example, if your application has an `admin` namespace then
 
 ```ruby
 form_with model: [:admin, @article]
 ```
 
-will create a form that submits to the `ArticlesController` inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
+will create a form that submits to the `Admin::ArticlesController` inside the admin namespace, submitting to `admin_article_path(@article)` in the case of an update. 
+
+If you have several levels of namespacing then the syntax is similar:
 
 ```ruby
 form_with model: [:admin, :management, @article]
@@ -381,27 +383,27 @@ form_with model: [:admin, :management, @article]
 
 For more information on Rails' routing system and the associated conventions, please see [Rails Routing from the Outside In](routing.html) guide.
 
-### How do Forms with PATCH, PUT, or DELETE Methods Work?
+### Forms with PATCH, PUT, or DELETE Methods
 
-The Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PATCH", "PUT", and "DELETE" requests (besides "GET" and "POST"). However, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
+The Rails framework encourages RESTful design, which means forms in your application will make requests where the `method` is `PATCH`, `PUT`, or `DELETE` in addition to `GET` and `POST`. However, most browsers _don't support_ methods other than `GET` and `POST` when it comes to submitting forms.
 
-Rails works around this issue by emulating other methods over POST with a hidden input named `"_method"`, which is set to reflect the desired method:
+Rails works around this limitation by emulating other methods over POST with a hidden input named `"_method"`. For example, this form:
 
 ```ruby
 form_with(url: search_path, method: "patch")
 ```
 
-Output:
+Will generate this HTML output:
 
 ```html
-<form accept-charset="UTF-8" action="/search" method="post">
-  <input name="_method" type="hidden" value="patch" />
-  <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
-  <!-- ... -->
+<form action="/search" accept-charset="UTF-8" method="post">
+  <input type="hidden" name="_method" value="patch" autocomplete="off">
+  <input type="hidden" name="authenticity_token" value="R4quRuXQAq75TyWpSf8AwRyLt-R1uMtPP1dHTTWJE5zbukiaY8poSTXxq3Z7uAjXfPHiKQDsWE1i2_-h0HSktQ" autocomplete="off">
+<!-- ... -->
 </form>
 ```
 
-When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
+When parsing POSTed data, Rails will take into account the special hidden `_method` input and proceed as if the request's HTTP method was the one set as the value of `_method` (`PATCH` in this example).
 
 When rendering a form, submission buttons can override the declared `method` attribute through the `formmethod:` keyword:
 
@@ -412,7 +414,7 @@ When rendering a form, submission buttons can override the declared `method` att
 <% end %>
 ```
 
-Similar to `<form>` elements, most browsers _don't support_ overriding form methods declared through [formmethod][] other than "GET" and "POST".
+Similar to `<form>` elements, most browsers _don't support_ overriding form methods declared through [formmethod][] other than `GET` and `POST`.
 
 Rails works around this issue by emulating other methods over POST through a combination of [formmethod][], [value][button-value], and [name][button-name] attributes:
 
@@ -426,6 +428,7 @@ Rails works around this issue by emulating other methods over POST through a com
   <button type="submit" name="button">Update</button>
 </form>
 ```
+In this case, the "Update" button will be treated as `PATCH` and the "Delete" button will be treated as `DELETE`.
 
 [formmethod]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod
 [button-name]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-name
