@@ -255,7 +255,7 @@ class User < ApplicationRecord
 
   private
     def encrypt_password
-      self.password = BCrypt::Password.create(password)
+      self.password_digest = BCrypt::Password.create(password)
       Rails.logger.info("Password encrypted for user with email: #{email}")
     end
 
