@@ -332,38 +332,36 @@ docs](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#me
 
 ### Relying on Record Identification
 
-The Article model is directly available to users of the application, so - following the best practices for developing with Rails - you should declare it **a resource**:
+When dealing with RESTful resources, calls to `form_with` can be simplified by relying on **record identification**. This means you pass the model instance and have Rails figure out model name, method, and other things. In the example below for creating a new record, both `form_with` have the same generated HTML:
 
 ```ruby
-resources :articles
-```
-
-TIP: Declaring a resource has a number of side effects. See [Rails Routing from the Outside In](routing.html#resource-routing-the-rails-default) guide for more information on setting up and using resources.
-
-When dealing with RESTful resources, calls to `form_with` can get significantly easier if you rely on **record identification**. In short, you can just pass the model instance and have Rails figure out model name and the rest. In both of these examples, the long and short style have the same outcome:
-
-```ruby
-## Creating a new article
-# long-style:
+# longer way:
 form_with(model: @article, url: articles_path)
-# short-style:
-form_with(model: @article)
-
-## Editing an existing article
-# long-style:
-form_with(model: @article, url: article_path(@article), method: "patch")
-# short-style:
+# short-hand:
 form_with(model: @article)
 ```
 
-Notice how the short-style `form_with` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking [`record.persisted?`](https://api.rubyonrails.org/v7.1.3.2/classes/ActiveRecord/Persistence.html#method-i-persisted-3F). It also selects the correct path to submit to, and the name based on the class of the object.
+As do both `form_with` below for editing and existing article:
+
+```ruby
+# longer way:
+form_with(model: @article, url: article_path(@article), method: "patch")
+# short-hand:
+form_with(model: @article)
+```
+
+Notice how the short-hand `form_with` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking [`record.persisted?`](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-persisted-3F). It also selects the correct path to submit to, and the name based on the class of the object.
+
+This is assuming that the `Article` model is declared with `resources :articles` in the routes file.
 
 If you have a [singular resource](routing.html#singular-resources), you will need to call `resource` and `resolve` for it to work with `form_with`:
 
 ```ruby
-resource :geocoder
-resolve('Geocoder') { [:geocoder] }
+resource :article
+resolve('Article') { [:article] }
 ```
+
+TIP: Declaring a resource has a number of side effects. See [Rails Routing from the Outside In](routing.html#resource-routing-the-rails-default) guide for more information on setting up and using resources.
 
 WARNING: When you're using [single-table inheritance](association_basics.html#single-table-inheritance-sti) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify `:url`, and `:scope` (the model name) explicitly.
 
