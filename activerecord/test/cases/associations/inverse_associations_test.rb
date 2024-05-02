@@ -920,6 +920,30 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     assert_equal "confused_face", error.corrections.first
   end
 
+  def test_trying_to_use_non_inverse_relations_should_have_suggestions_for_fix
+    face_klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Face.table_name
+
+      def self.name
+        "Face"
+      end
+    end
+
+    # Correct inverse_of should be `:face`, but the incorrect configuration `:interests` was used.
+    face_klass.belongs_to(:human, inverse_of: :interests)
+
+    error = assert_raises(ActiveRecord::InverseOfAssociationNotFoundError, match: /Could not find the inverse association for human \(:interests in Human\)/) do
+      face_klass.preload(:human).load
+    end
+
+    if error.respond_to?(:detailed_message)
+      assert_match "Did you mean?", error.detailed_message
+    else
+      assert_match "Did you mean?", error.message
+    end
+    assert_equal "face", error.corrections.first
+  end
+
   def test_building_has_many_parent_association_inverses_one_record
     with_has_many_inversing(Interest) do
       interest = Interest.new
