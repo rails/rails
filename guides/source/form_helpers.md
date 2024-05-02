@@ -373,7 +373,7 @@ If you have namespaced routes, `form_with` has a shorthand for that as well. For
 form_with model: [:admin, @article]
 ```
 
-will create a form that submits to the `Admin::ArticlesController` inside the admin namespace, submitting to `admin_article_path(@article)` in the case of an update. 
+will create a form that submits to the `Admin::ArticlesController` inside the admin namespace, submitting to `admin_article_path(@article)` in the case of an update.
 
 If you have several levels of namespacing then the syntax is similar:
 
@@ -428,6 +428,7 @@ Rails works around this issue by emulating other methods over POST through a com
   <button type="submit" name="button">Update</button>
 </form>
 ```
+
 In this case, the "Update" button will be treated as `PATCH` and the "Delete" button will be treated as `DELETE`.
 
 [formmethod]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod
@@ -437,7 +438,7 @@ In this case, the "Update" button will be treated as `PATCH` and the "Delete" bu
 Making Select Boxes with Ease
 -----------------------------
 
-Select boxes in HTML require a significant amount of markup - one `<option>` element for each option to choose from. So Rails provides helper methods to reduce this burden.
+Select boxes, also know as drop-down list, allow users to select from a list of options. The HTML for select boxes requires a decent amount of markup - one `<option>` element for each option to choose from. Rails provides helper methods to help generate that markup.
 
 For example, let's say we have a list of cities for the user to choose from. We can use the [`select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select) helper like so:
 
@@ -445,7 +446,7 @@ For example, let's say we have a list of cities for the user to choose from. We 
 <%= form.select :city, ["Berlin", "Chicago", "Madrid"] %>
 ```
 
-Output:
+Which will generate this HTML output:
 
 ```html
 <select name="city" id="city">
@@ -455,7 +456,9 @@ Output:
 </select>
 ```
 
-We can also designate `<option>` values that differ from their labels:
+And the selection will be available in `params[:city]` as usual.
+
+We can also specify `<option>` values that differ from their labels:
 
 ```erb
 <%= form.select :city, [["Berlin", "BE"], ["Chicago", "CHI"], ["Madrid", "MD"]] %>
@@ -489,7 +492,7 @@ Output:
 </select>
 ```
 
-### Option Groups
+### Option Groups For Select
 
 In some cases we may want to improve the user experience by grouping related options together. We can do so by passing a `Hash` (or comparable `Array`) to `select`:
 
@@ -532,7 +535,7 @@ The following form:
 <% end %>
 ```
 
-Outputs a select box like:
+Outputs this select box:
 
 ```html
 <select name="person[city]" id="person_city">
@@ -542,7 +545,9 @@ Outputs a select box like:
 </select>
 ```
 
-Notice that the appropriate option was automatically marked `selected="selected"`. Since this select box was bound to a model, we didn't need to specify a `:selected` argument!
+The only difference is that the selected option will be found in `params[:person][:city]` instead of `params[:city]`.
+
+Notice that the appropriate option was automatically marked `selected="selected"`. Since this select box was bound to an existing `@person` record, we didn't need to specify a `:selected` argument.
 
 ### Time Zone and Country Select
 
