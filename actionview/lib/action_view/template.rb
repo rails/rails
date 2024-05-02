@@ -198,6 +198,7 @@ module ActionView
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
+      @source_string     = nil
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
@@ -292,7 +293,7 @@ module ActionView
     end
 
     def source
-      @source.to_s
+      @source_string ||= @source.to_s
     end
 
     LEADING_ENCODING_REGEXP = /\A#{ENCODING_FLAG}/
