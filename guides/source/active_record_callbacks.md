@@ -117,8 +117,8 @@ end
 ### Registering Callbacks to Fire on Lifecycle Events
 
 Callbacks can also be registered to only fire on certain life cycle events, this
-allows complete control over when and in what context your callbacks are
-triggered.
+can be done using the `:on` option and allows complete control over when and in
+what context your callbacks are triggered.
 
 ```ruby
 class User < ApplicationRecord
@@ -945,7 +945,8 @@ end
 ```
 
 NOTE: The `:on` option specifies when a callback will be fired. If you don't
-supply the `:on` option the callback will fire for every live cycle event.
+supply the `:on` option the callback will fire for every live cycle event. Read
+more about `:on` [here](#registering-callbacks-to-fire-on-lifecycle-events.
 
 WARNING. When a transaction completes, the `after_commit` or `after_rollback`
 callbacks are called for all models created, updated, or destroyed within that
