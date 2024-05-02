@@ -461,7 +461,7 @@ class User < ApplicationRecord
 
   private
     def check_admin_count
-      if User.where(admin: true).count == 1 && admin?
+      if admin? && User.where(role: "admin").count == 1
         throw :abort
       end
       Rails.logger.info("Checked the admin count")
