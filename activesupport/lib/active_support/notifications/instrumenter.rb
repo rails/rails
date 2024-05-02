@@ -173,23 +173,6 @@ module ActiveSupport
         @allocation_count_finish - @allocation_count_start
       end
 
-      def children # :nodoc:
-        ActiveSupport.deprecator.warn <<~EOM
-          ActiveSupport::Notifications::Event#children is deprecated and will
-          be removed in Rails 7.2.
-        EOM
-        []
-      end
-
-      def parent_of?(event) # :nodoc:
-        ActiveSupport.deprecator.warn <<~EOM
-          ActiveSupport::Notifications::Event#parent_of? is deprecated and will
-          be removed in Rails 7.2.
-        EOM
-        start = (time - event.time) * 1000
-        start <= 0 && (start + duration >= event.duration)
-      end
-
       # Returns the difference in milliseconds between when the execution of the
       # event started and when it ended.
       #

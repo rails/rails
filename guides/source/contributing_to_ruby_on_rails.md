@@ -138,7 +138,16 @@ learn about Ruby on Rails, and the API, which serves as a reference.
 You can help improve the Rails guides or the API reference by making them more coherent, consistent, or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
 To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/main/guides/source) on GitHub) or RDoc comments in source code. Then open a pull request to apply your changes to the main branch.
+
 Use `[ci skip]` in your pull request title to avoid running the CI build for documentation changes.
+
+Once you open a PR, a preview of the documentation will be deployed for easy review and collaboration. At the bottom of the Pull Request page, you should see a list of status checks, look for the `buildkite/docs-preview` and click "details".
+
+![GitHub rails/rails Pull Request status checks](images/docs_preview/status_checks.png)
+
+This will bring you to the Buildkite build page, if the job was successful there will be an annotation with links to the generated API and Guides above the job list.
+
+![Buildkite rails/docs-preview annotation API & Guides links](images/docs_preview/annotation.png)
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 

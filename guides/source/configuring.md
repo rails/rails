@@ -64,7 +64,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
-- [`config.active_support.assertionless_tests_behavior`](#config-active-support-assertionless-tests-behavior): `:log`
 
 #### Default Values for Target Version 7.1
 
@@ -154,7 +153,6 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 5.0
 
-- [`ActiveSupport.to_time_preserves_timezone`](#activesupport-to-time-preserves-timezone): `true`
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
@@ -2587,7 +2585,7 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.active_support.cache_format_version`
 
 Specifies which serialization format to use for the cache. Possible values are
-`6.1`, `7.0`, and `7.1`.
+`7.0`, and `7.1`.
 
 `7.0` serializes cache entries more efficiently.
 
@@ -2603,7 +2601,6 @@ The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| (original)            | `6.1`                |
 | 7.0                   | `7.0`                |
 | 7.1                   | `7.1`                |
 
@@ -2657,18 +2654,6 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.0                   | `true`               |
 
-#### `config.active_support.assertionless_tests_behavior`
-
-Controls the behavior when a test do not run any assertions. The following options are available:
-
-  * `:ignore` - Assertionless tests will be ignored. This is the default.
-
-  * `:log` - Assertionless tests will be logged via `Rails.logger` at the `:warn` level.
-
-  * `:raise` - Assertionless tests will be considered as failed and raise an error.
-
-  * Custom proc - A custom proc can be provided. It should accept an error message.
-
 #### `ActiveSupport::Logger.silencer`
 
 Is set to `false` to disable the ability to silence logging in a block. The default is `true`.
@@ -2676,17 +2661,6 @@ Is set to `false` to disable the ability to silence logging in a block. The defa
 #### `ActiveSupport::Cache::Store.logger`
 
 Specifies the logger to use within cache store operations.
-
-#### `ActiveSupport.to_time_preserves_timezone`
-
-Specifies whether `to_time` methods preserve the UTC offset of their receivers. If `false`, `to_time` methods will convert to the local system UTC offset instead.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 5.0                   | `true`               |
 
 #### `ActiveSupport.utc_to_local_returns_utc_offset_times`
 

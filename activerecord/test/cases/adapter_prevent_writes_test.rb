@@ -65,7 +65,9 @@ module ActiveRecord
     else
       def test_doesnt_error_when_a_select_query_has_encoding_errors
         ActiveRecord::Base.while_preventing_writes do
-          @connection.select_all("SELECT '\xC8'")
+          assert_nothing_raised do
+            @connection.select_all("SELECT '\xC8'")
+          end
         end
       end
     end

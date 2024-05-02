@@ -3201,10 +3201,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async
-    Class.new(ActiveRecord::Base) do
-      self.destroy_association_async_job = Class.new
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base) do
+        self.destroy_association_async_job = Class.new
 
-      has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+        has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+      end
     end
   end
 

@@ -33,7 +33,6 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     assert_equal "Have a nice day", topic.content
     assert_predicate topic.association(:replies), :loaded?
     assert_predicate topic.replies.first.association(:topic), :loaded?
-    assert_same topic, topic.replies.first.topic
   end
 
   def test_deserializing_rails_7_1_marshal_basic

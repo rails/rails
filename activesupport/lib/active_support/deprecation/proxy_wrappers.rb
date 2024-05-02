@@ -3,7 +3,7 @@
 module ActiveSupport
   class Deprecation
     class DeprecationProxy # :nodoc:
-      def self.new(*args, &block)
+      def self.new(*args, **kwargs, &block)
         object = args.first
 
         return object unless object
@@ -36,11 +36,10 @@ module ActiveSupport
     #   (Backtrace)
     #   # => "#<Object:0x007fb9b34c34b0>"
     class DeprecatedObjectProxy < DeprecationProxy
-      def initialize(object, message, deprecator = nil)
+      def initialize(object, message, deprecator)
         @object = object
         @message = message
-        ActiveSupport.deprecator.warn("DeprecatedObjectProxy without a deprecator is deprecated") unless deprecator
-        @deprecator = deprecator || ActiveSupport::Deprecation._instance
+        @deprecator = deprecator
       end
 
       private
@@ -86,12 +85,11 @@ module ActiveSupport
     #   example.request.to_s
     #   # => "special_request"
     class DeprecatedInstanceVariableProxy < DeprecationProxy
-      def initialize(instance, method, var = "@#{method}", deprecator = nil)
+      def initialize(instance, method, var = "@#{method}", deprecator:)
         @instance = instance
         @method = method
         @var = var
-        ActiveSupport.deprecator.warn("DeprecatedInstanceVariableProxy without a deprecator is deprecated") unless deprecator
-        @deprecator = deprecator || ActiveSupport::Deprecation._instance
+        @deprecator = deprecator
       end
 
       private
@@ -127,13 +125,12 @@ module ActiveSupport
         super
       end
 
-      def initialize(old_const, new_const, deprecator = nil, message: "#{old_const} is deprecated! Use #{new_const} instead.")
+      def initialize(old_const, new_const, deprecator, message: "#{old_const} is deprecated! Use #{new_const} instead.")
         Kernel.require "active_support/inflector/methods"
 
         @old_const = old_const
         @new_const = new_const
-        ActiveSupport.deprecator.warn("DeprecatedConstantProxy without a deprecator is deprecated") unless deprecator
-        @deprecator = deprecator || ActiveSupport::Deprecation._instance
+        @deprecator = deprecator
         @message = message
       end
 

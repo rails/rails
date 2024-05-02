@@ -229,7 +229,9 @@ class TestERBTemplate < ActiveSupport::TestCase
 
   def test_rails_injected_locals_does_not_raise_error_if_not_passed
     @template = new_template("<%# locals: (message:) -%>")
-    render(message: "Hi", message_counter: 1, message_iteration: 1, implicit_locals: %i[message_counter message_iteration])
+    assert_nothing_raised do
+      render(message: "Hi", message_counter: 1, message_iteration: 1, implicit_locals: %i[message_counter message_iteration])
+    end
   end
 
   def test_rails_injected_locals_can_be_specified

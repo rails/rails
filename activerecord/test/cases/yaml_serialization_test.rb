@@ -45,7 +45,9 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_active_record_relation_serialization
-    [Topic.all].to_yaml
+    assert_nothing_raised do
+      [Topic.all].to_yaml
+    end
   end
 
   def test_raw_types_are_not_changed_on_round_trip

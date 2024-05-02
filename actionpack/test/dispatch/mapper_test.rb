@@ -36,7 +36,9 @@ module ActionDispatch
       end
 
       def test_initialize
-        Mapper.new FakeSet.new
+        assert_nothing_raised do
+          Mapper.new FakeSet.new
+        end
       end
 
       def test_scope_raises_on_anchor

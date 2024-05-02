@@ -198,7 +198,7 @@ module ActiveRecord
 
 
       def readonly_columns
-        primary_keys + model.readonly_attributes.to_a
+        primary_keys + model.readonly_attributes
       end
 
       def unique_by_columns

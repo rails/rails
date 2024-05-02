@@ -469,7 +469,9 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_add_to_null_transaction
     topic = Topic.new
-    topic.send(:add_to_transaction)
+    assert_nothing_raised do
+      topic.send(:add_to_transaction)
+    end
   end
 
   def test_successful_with_return_outside_inner_transaction
@@ -1084,7 +1086,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_rollback_when_thread_killed
-    return if in_memory_db?
+    skip if in_memory_db?
 
     queue = Queue.new
     thread = Thread.new do
@@ -1342,41 +1344,41 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate topic, :persisted?, "persisted"
   end
 
-  def test_sqlite_add_column_in_transaction
-    return true unless current_adapter?(:SQLite3Adapter)
+  if current_adapter?(:SQLite3Adapter)
+    def test_sqlite_add_column_in_transaction
+      # Test first if column creation/deletion works correctly when no
+      # transaction is in place.
+      #
+      # We go back to the connection for the column queries because
+      # Topic.columns is cached and won't report changes to the DB
 
-    # Test first if column creation/deletion works correctly when no
-    # transaction is in place.
-    #
-    # We go back to the connection for the column queries because
-    # Topic.columns is cached and won't report changes to the DB
-
-    assert_nothing_raised do
-      Topic.reset_column_information
-      Topic.lease_connection.add_column("topics", "stuff", :string)
-      assert_includes Topic.column_names, "stuff"
-
-      Topic.reset_column_information
-      Topic.lease_connection.remove_column("topics", "stuff")
-      assert_not_includes Topic.column_names, "stuff"
-    end
-
-    if Topic.lease_connection.supports_ddl_transactions?
       assert_nothing_raised do
-        Topic.transaction { Topic.lease_connection.add_column("topics", "stuff", :string) }
+        Topic.reset_column_information
+        Topic.lease_connection.add_column("topics", "stuff", :string)
+        assert_includes Topic.column_names, "stuff"
+
+        Topic.reset_column_information
+        Topic.lease_connection.remove_column("topics", "stuff")
+        assert_not_includes Topic.column_names, "stuff"
       end
-    else
-      Topic.transaction do
-        assert_raise(ActiveRecord::StatementInvalid) { Topic.lease_connection.add_column("topics", "stuff", :string) }
-        raise ActiveRecord::Rollback
+
+      if Topic.lease_connection.supports_ddl_transactions?
+        assert_nothing_raised do
+          Topic.transaction { Topic.lease_connection.add_column("topics", "stuff", :string) }
+        end
+      else
+        Topic.transaction do
+          assert_raise(ActiveRecord::StatementInvalid) { Topic.lease_connection.add_column("topics", "stuff", :string) }
+          raise ActiveRecord::Rollback
+        end
       end
-    end
-  ensure
-    begin
-      Topic.lease_connection.remove_column("topics", "stuff")
-    rescue
     ensure
-      Topic.reset_column_information
+      begin
+        Topic.lease_connection.remove_column("topics", "stuff")
+      rescue
+      ensure
+        Topic.reset_column_information
+      end
     end
   end
 

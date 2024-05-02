@@ -34,7 +34,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/testing/isolation"
 require "active_support/core_ext/kernel/reporting"
 require "tmpdir"
-require "rails/secrets"
 
 module TestHelpers
   module Paths
