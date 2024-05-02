@@ -173,6 +173,9 @@ order in which they will get called** during the respective operations:
 * [`after_save`][]
 * [`after_commit`][] / [`after_rollback`][]
 
+`after_commit` / `after_rollback` examples can be found
+[here](active_record_callbacks.html#after-commit-and-after-rollback).
+
 [`after_create`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_create
 [`after_commit`]:
@@ -196,8 +199,7 @@ order in which they will get called** during the respective operations:
 
 There are examples below that show how to use these callbacks. We've grouped
 them by the operation they are associated with, and lastly show how they can
-be used in combination. `after_commit` / `after_rollback` examples can be found
-[here](active_record_callbacks.html#after-commit-and-after-rollback).
+be used in combination.
 
 #### Validation Callbacks
 
@@ -340,11 +342,13 @@ User welcome email sent to: john.doe@example.com
 [`before_update`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_update
 
-
-WARNING. The `after_save` callback is triggered on both a create and update.
-However, it consistently executes after the more specific callbacks
+WARNING: The `after_save` callback is triggered on both create and update
+operations. However, it consistently executes after the more specific callbacks
 `after_create` and `after_update`, regardless of the sequence in which the macro
-calls were made.
+calls were made. Similarly, before and around save callbacks follow the same
+rule: `before_save` runs before create/update, and `around_save` runs around
+create/update operations. It's important to note that save callbacks will always
+run before/around/after the more specific create/update callbacks.
 
 We've already covered [validation](#validation-callbacks) and
 [save](#save-callbacks) callbacks. `after_commit` / `after_rollback` examples
@@ -441,9 +445,10 @@ Notification sent to admin about critical info update for: john.doe.new@example.
 [`before_destroy`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_destroy
 
-WARNING: `before_destroy` callbacks should be placed before `dependent: :destroy`
-associations (or use the `prepend: true` option), to ensure they execute before
-the records are deleted by `dependent: :destroy`.
+`after_commit` / `after_rollback` examples can be found
+[here](#after-commit-and-after-rollback).
+
+#### Destroy Callbacks
 
 ```ruby
 class User < ApplicationRecord
@@ -482,9 +487,6 @@ About to destroy user with ID 1
 User with ID 1 destroyed successfully
 Notification sent to other users about user deletion
 ```
-
-`after_commit` / `after_rollback` examples can be found
-[here](#after-commit-and-after-rollback).
 
 ### `after_initialize` and `after_find`
 
@@ -719,6 +721,10 @@ Article destroyed
 => #<User id: 1>
 ```
 
+WARNING: When using a `before_destroy` callback, it should be placed before
+`dependent: :destroy` associations (or use the `prepend: true` option), to
+ensure they execute before the records are deleted by `dependent: :destroy`.
+
 Association Callbacks
 ---------------------
 
@@ -884,7 +890,6 @@ end
 The callback only runs when all the `:if` conditions and none of the `:unless`
 conditions are evaluated to `true`.
 
-
 Transaction Callbacks
 ---------------------
 
@@ -897,12 +902,26 @@ after database changes have either been committed or rolled back. They are most
 useful when your Active Record models need to interact with external systems
 that are not part of the database transaction.
 
-Consider if the `PictureFile` model, from the previous example, needs to delete
-a file after the corresponding record is destroyed. If anything raises an
-exception after the `after_destroy` callback is called and the transaction rolls
-back, then the file will have been deleted and the model will be left in an
-inconsistent state. For example, suppose that `picture_file_2` in the code below
-is not valid and the `save!` method raises an error.
+Consider a `PictureFile` model that needs to delete a file after the
+corresponding record is destroyed.
+
+```ruby
+class PictureFile < ApplicationRecord
+  after_destroy :delete_picture_file_from_disk
+
+  def delete_picture_file_from_disk
+      if File.exist?(filepath)
+      File.delete(filepath)
+    end
+  end
+end
+```
+
+If anything raises an exception after the
+`after_destroy` callback is called and the transaction rolls back, then the file
+will have been deleted and the model will be left in an inconsistent state. For
+example, suppose that `picture_file_2` in the code below is not valid and the
+`save!` method raises an error.
 
 ```ruby
 PictureFile.transaction do
@@ -938,23 +957,21 @@ callback in order to allow other callbacks to run. <br><br> `after_commit` makes
 very different guarantees than `after_save`, `after_update`, and
 `after_destroy`. For example, if an exception occurs in an `after_save` the
 transaction will be rolled back and the data will not be persisted. However,
-anything that happens `after_commit` can guarantee the transaction has already
-been completed and the data was persisted to the database. More on
-[transactional callbacks](#transaction-callbacks) below. <br><br> In the context
-of a single transaction, if you interact with multiple loaded objects that
-represent the same record in the database, there's a crucial behavior in the
-`after_commit` and `after_rollback` callbacks to note. These callbacks are
-triggered only for the first object of the specific record that changes within
-the transaction. Other loaded objects, despite representing the same database
-record, will not have their respective `after_commit` or `after_rollback`
-callbacks triggered. This nuanced behavior is particularly impactful in
-scenarios where you expect independent callback execution for each object
-associated with the same database record. It can influence the flow and
-predictability of callback sequences, leading to potential inconsistencies in
-application logic following the transaction.<br><br>Also note that the code
-executed within `after_commit` or `after_rollback` callbacks is itself not
-enclosed within a transaction.
-
+during `after_commit` the data was already persisted to the database, and thus any
+exception won't roll anything back anymore. Also note that the code executed
+within `after_commit` or `after_rollback` callbacks is itself not enclosed within a
+transaction. <br><br> In the context of a single transaction, if you interact
+with multiple loaded objects that represent the same record in the database,
+there's a crucial behavior in the `after_commit` and `after_rollback` callbacks
+to note. These callbacks are triggered only for the first object of the specific
+record that changes within the transaction. Other loaded objects, despite
+representing the same database record, will not have their respective
+`after_commit` or `after_rollback` callbacks triggered. This nuanced behavior is
+particularly impactful in scenarios where you expect independent callback
+execution for each object associated with the same database record. It can
+influence the flow and predictability of callback sequences, leading to
+potential inconsistencies in application logic following the
+transaction.<br><br>
 
 ### Aliases for `after_commit`
 
@@ -980,7 +997,8 @@ end
 WARNING. Using both `after_create_commit` and `after_update_commit` with the
 same method name will only allow the last callback defined to take effect, as
 they both internally alias to `after_commit` which overrides previously defined
-callbacks with the same method name.
+callbacks with the same method name. In this case, it's better to use
+`after_save_commit` instead.
 
 ```ruby
 class User < ApplicationRecord
@@ -1067,7 +1085,7 @@ Sometimes the callback methods that you'll write will be useful enough to be
 reused by other models. Active Record makes it possible to create classes that
 encapsulate the callback methods, so they can be reused.
 
-Here's an example where we create a class with an `after_destroy` callback to
+Here's an example where we create a class with an `after_commit` callback to
 deal with the cleanup of discarded files on the filesystem. This behavior may
 not be unique to our `PictureFile` model and we may want to share it, so it's a
 good idea to encapsulate this into a separate class. This will make testing that
@@ -1075,7 +1093,7 @@ behavior and changing it much easier.
 
 ```ruby
 class FileDestroyerCallback
-  def after_destroy(file)
+  def after_commit(file)
     if File.exist?(file.filepath)
       File.delete(file.filepath)
     end
@@ -1089,7 +1107,7 @@ like so:
 
 ```ruby
 class PictureFile < ApplicationRecord
-  after_destroy FileDestroyerCallback.new
+  after_commit FileDestroyerCallback.new
 end
 ```
 
@@ -1100,7 +1118,7 @@ it will make more sense to declare the callbacks as class methods:
 
 ```ruby
 class FileDestroyerCallback
-  def self.after_destroy(file)
+  def self.after_commit(file)
     if File.exist?(file.filepath)
       File.delete(file.filepath)
     end
@@ -1113,7 +1131,7 @@ instantiate a new `FileDestroyerCallback` object in our model.
 
 ```ruby
 class PictureFile < ApplicationRecord
-  after_destroy FileDestroyerCallback
+  after_commit FileDestroyerCallback
 end
 ```
 
