@@ -475,7 +475,9 @@ module ActiveRecord
       migration = RevertCustomForeignKeyTable.new
       InvertibleMigration.migrate(:up)
       migration.migrate(:up)
+      assert ActiveRecord::Base.lease_connection.column_exists?(:horses, :owner_id)
       migration.migrate(:down)
+      assert_not ActiveRecord::Base.lease_connection.column_exists?(:horses, :owner_id)
     end
 
     # MySQL 5.7 and Oracle do not allow to create duplicate indexes on the same columns

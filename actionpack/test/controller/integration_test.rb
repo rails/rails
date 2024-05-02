@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "controller/fake_controllers"
 require "rails/engine"
+require "launchy"
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
@@ -1305,5 +1306,89 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
         file: fixture_file_upload("/ruby_on_rails.jpg", "image/jpeg")
       }
     assert_equal "45142", @response.body
+  end
+end
+
+class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def index
+      render plain: "Hello world"
+    end
+
+    def redirect
+      redirect_to action: :index
+    end
+  end
+
+  def with_root(&block)
+    Rails.stub(:root, Pathname.getwd.join("test"), &block)
+  end
+
+  def setup
+    with_root do
+      remove_dumps
+    end
+  end
+
+  def teardown
+    with_root do
+      remove_dumps
+    end
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def app
+    self.class
+  end
+
+  def dump_path
+    Pathname.new(Dir["#{Rails.root}/tmp/html_dump/#{method_name}*"].sole)
+  end
+
+  def remove_dumps
+    Dir["#{Rails.root}/tmp/html_dump/#{method_name}*"].each(&File.method(:delete))
+  end
+
+  routes.draw do
+    get "/" => "page_dump_integration_test/foo#index"
+    get "/redirect" => "page_dump_integration_test/foo#redirect"
+  end
+
+  test "save_and_open_page saves a copy of the page and call to Launchy" do
+    launchy_called = false
+    get "/"
+    with_root do
+      Launchy.stub(:open, ->(path) { launchy_called = (path == dump_path) }) do
+        save_and_open_page
+      end
+      assert launchy_called
+      assert_equal File.read(dump_path), response.body
+    end
+  end
+
+  test "prints a warning to install launchy if it can't be loaded" do
+    get "/"
+    with_root do
+      Launchy.stub(:open, ->(path) { raise LoadError.new }) do
+        self.stub(:warn, ->(warning) { warning.include?("Please install the launchy gem to open the file automatically.") }) do
+          save_and_open_page
+        end
+      end
+      assert_equal File.read(dump_path), response.body
+    end
+  end
+
+  test "raises when called after a redirect" do
+    with_root do
+      get "/redirect"
+      assert_raise(InvalidResponse) { save_and_open_page }
+    end
   end
 end

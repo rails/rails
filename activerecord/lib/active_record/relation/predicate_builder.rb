@@ -142,7 +142,7 @@ module ActiveRecord
           queries.first
         else
           queries.map! { |query| query.reduce(&:and) }
-          queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
+          queries = queries.reduce { |result, query| Arel::Nodes::Or.new([result, query]) }
           Arel::Nodes::Grouping.new(queries)
         end
       end

@@ -31,6 +31,7 @@ Zeitwerk::Loader.for_gem.tap do |loader|
   loader.ignore(
     "#{__dir__}/rails", # Contains generators, templates, docs, etc.
     "#{__dir__}/action_cable/gem_version.rb",
+    "#{__dir__}/action_cable/version.rb",
     "#{__dir__}/action_cable/deprecator.rb",
   )
 

@@ -5,6 +5,8 @@ Warning[:deprecated] = true
 
 module ActiveSupport
   module RaiseWarnings # :nodoc:
+    class WarningError < StandardError; end
+
     PROJECT_ROOT = File.expand_path("../../../../", __dir__)
     ALLOWED_WARNINGS = Regexp.union(
       /circular require considered harmful.*delayed_job/, # Bug in delayed job.
@@ -12,6 +14,10 @@ module ActiveSupport
       # Expected non-verbose warning emitted by Rails.
       /Ignoring .*\.yml because it has expired/,
       /Failed to validate the schema cache because/,
+
+      # Ref: https://bugs.ruby-lang.org/issues/15554
+      # This new Ruby 3.4 warning is still being fined tuned to reduce false positives
+      /the block passed to/,
     )
 
     SUPPRESSED_WARNINGS = Regexp.union(
@@ -30,7 +36,7 @@ module ActiveSupport
       return if ALLOWED_WARNINGS.match?(message)
       return unless ENV["RAILS_STRICT_WARNINGS"] || ENV["BUILDKITE"]
 
-      raise message
+      raise WarningError.new(message)
     end
   end
 end

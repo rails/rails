@@ -1,4 +1,172 @@
-*   Retry known idempotent SELECT queries on connection-related exceptions
+*   Added support for recursive common table expressions.
+
+    ```ruby
+    Post.with_recursive(
+      post_and_replies: [
+        Post.where(id: 42),
+        Post.joins('JOIN post_and_replies ON posts.in_reply_to_id = post_and_replies.id'),
+      ]
+    )
+    ```
+
+    Generates the following SQL:
+
+    ```sql
+    WITH RECURSIVE "post_and_replies" AS (
+      (SELECT "posts".* FROM "posts" WHERE "posts"."id" = 42)
+      UNION ALL
+      (SELECT "posts".* FROM "posts" JOIN post_and_replies ON posts.in_reply_to_id = post_and_replies.id)
+    )
+    SELECT "posts".* FROM "posts"
+    ```
+
+    *ClearlyClaire*
+
+*   `validate_constraint` can be called in a `change_table` block.
+
+    ex:
+    ```ruby
+    change_table :products do |t|
+      t.check_constraint "price > discounted_price", name: "price_check", validate: false
+      t.validate_check_constraint "price_check"
+    end
+    ```
+
+    *Cody Cutrer*
+
+*   `PostgreSQLAdapter` now decodes columns of type date to `Date` instead of string.
+
+    Ex:
+    ```ruby
+    ActiveRecord::Base.connection
+         .select_value("select '2024-01-01'::date").class #=> Date
+    ```
+
+    *Joé Dupuis*
+
+*   Strict loading using `:n_plus_one_only` does not eagerly load child associations.
+
+    With this change, child associations are no longer eagerly loaded, to
+    match intended behavior and to prevent non-deterministic order issues caused
+    by calling methods like `first` or `last`. As `first` and `last` don't cause
+    an N+1 by themselves, calling child associations will no longer raise.
+    Fixes #49473.
+
+    Before:
+
+    ```ruby
+    person = Person.find(1)
+    person.strict_loading!(mode: :n_plus_one_only)
+    person.posts.first
+    # SELECT * FROM posts WHERE person_id = 1; -- non-deterministic order
+    person.posts.first.firm # raises ActiveRecord::StrictLoadingViolationError
+    ```
+
+    After:
+
+    ```ruby
+    person = Person.find(1)
+    person.strict_loading!(mode: :n_plus_one_only)
+    person.posts.first # this is 1+1, not N+1
+    # SELECT * FROM posts WHERE person_id = 1 ORDER BY id LIMIT 1;
+    person.posts.first.firm # no longer raises
+    ```
+
+    *Reid Lynch*
+
+*   Allow `Sqlite3Adapter` to use `sqlite3` gem version `2.x`
+
+    *Mike Dalessio*
+
+*   Allow `ActiveRecord::Base#pluck` to accept hash values
+
+    ```ruby
+    # Before
+    Post.joins(:comments).pluck("posts.id", "comments.id", "comments.body")
+
+    # After
+    Post.joins(:comments).pluck(posts: [:id], comments: [:id, :body])
+    ```
+
+    *fatkodima*
+
+*   Raise an `ActiveRecord::ActiveRecordError` error when the MySQL database returns an invalid version string.
+
+    *Kevin McPhillips*
+
+*   `ActiveRecord::Base.transaction` now yields an `ActiveRecord::Transaction` object.
+
+    This allows to register callbacks on it.
+
+    ```ruby
+    Article.transaction do |transaction|
+      article.update(published: true)
+      transaction.after_commit do
+        PublishNotificationMailer.with(article: article).deliver_later
+      end
+    end
+    ```
+
+    *Jean Boussier*
+
+*   Add `ActiveRecord::Base.current_transaction`.
+
+    Returns the current transaction, to allow registering callbacks on it.
+
+    ```ruby
+    Article.current_transaction.after_commit do
+      PublishNotificationMailer.with(article: article).deliver_later
+    end
+    ```
+
+    *Jean Boussier*
+
+*   Add `ActiveRecord.after_all_transactions_commit` callback.
+
+    Useful for code that may run either inside or outside a transaction and needs
+    to perform work after the state changes have been properly persisted.
+
+    ```ruby
+    def publish_article(article)
+      article.update(published: true)
+      ActiveRecord.after_all_transactions_commit do
+        PublishNotificationMailer.with(article: article).deliver_later
+      end
+    end
+    ```
+
+    In the above example, the block is either executed immediately if called outside
+    of a transaction, or called after the open transaction is committed.
+
+    If the transaction is rolled back, the block isn't called.
+
+    *Jean Boussier*
+
+*   Add the ability to ignore counter cache columns until they are backfilled.
+
+    Starting to use counter caches on existing large tables can be troublesome, because the column
+    values must be backfilled separately of the column addition (to not lock the table for too long)
+    and before the use of `:counter_cache` (otherwise methods like `size`/`any?`/etc, which use
+    counter caches internally, can produce incorrect results). People usually use database triggers
+    or callbacks on child associations while backfilling before introducing a counter cache
+    configuration to the association.
+
+    Now, to safely backfill the column, while keeping the column updated with child records added/removed, use:
+
+    ```ruby
+    class Comment < ApplicationRecord
+      belongs_to :post, counter_cache: { active: false }
+    end
+    ```
+
+    While the counter cache is not "active", the methods like `size`/`any?`/etc will not use it,
+    but get the results directly from the database. After the counter cache column is backfilled, simply
+    remove the `{ active: false }` part from the counter cache definition, and it will now be used by the
+    mentioned methods.
+
+    *fatkodima*
+
+*   Retry known idempotent SELECT queries on connection-related exceptions.
 
     SELECT queries we construct by walking the Arel tree and / or with known model attributes
     are idempotent and can safely be retried in the case of a connection error. Previously,

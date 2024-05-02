@@ -138,7 +138,7 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.other = OpenStruct.new(value: 123)
+            config.other = Struct.new(:value).new(123)
           end
         RUBY
 

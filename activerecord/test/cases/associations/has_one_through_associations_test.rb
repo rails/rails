@@ -245,7 +245,9 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_proxy_should_respond_to_private_methods_via_send
     clubs(:moustache_club).send(:private_method)
-    @member.club.send(:private_method)
+    assert_nothing_raised do
+      @member.club.send(:private_method)
+    end
   end
 
   def test_assigning_to_has_one_through_preserves_decorated_join_record

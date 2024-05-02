@@ -340,7 +340,7 @@ module ActiveRecord
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
-        rename_table_indexes(table_name, new_name)
+        rename_table_indexes(table_name, new_name, **options)
       end
 
       # Drops a table from the database.
@@ -680,7 +680,7 @@ module ActiveRecord
 
       def check_version # :nodoc:
         if database_version < "5.5.8"
-          raise "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
+          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
         end
       end
 
@@ -1023,7 +1023,11 @@ module ActiveRecord
         end
 
         def version_string(full_version_string)
-          full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
+          if full_version_string && matches = full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)
+            matches[1]
+          else
+            raise DatabaseVersionError, "Unable to parse MySQL version from #{full_version_string.inspect}"
+          end
         end
     end
   end

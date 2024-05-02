@@ -179,6 +179,26 @@ module Rails
         ensure
           @current_subcommand = original_subcommand
         end
+
+        protected
+          def with_actionable_errors_retried(&block)
+            block.call
+          rescue ActiveSupport::ActionableError => e
+            puts e.to_s.strip
+            exit 1 unless tty?
+
+            ActiveSupport::ActionableError.actions(e).each_key do |action_name|
+              if yes? "#{action_name}? [Yn]"
+                ActiveSupport::ActionableError.dispatch(e, action_name)
+                return with_actionable_errors_retried(&block)
+              end
+            end
+            exit 1
+          end
+
+          def tty?
+            STDOUT.tty?
+          end
       end
     end
   end

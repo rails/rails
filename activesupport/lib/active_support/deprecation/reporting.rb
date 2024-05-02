@@ -172,7 +172,7 @@ module ActiveSupport
         LIB_DIR = RbConfig::CONFIG["libdir"]
 
         def ignored_callstack?(path)
-          path.start_with?(RAILS_GEM_ROOT, LIB_DIR)
+          path.start_with?(RAILS_GEM_ROOT, LIB_DIR) || path.include?("<internal:")
         end
     end
   end

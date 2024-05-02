@@ -403,6 +403,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal(expected, Cpk::Book.where(author_id: book.author_id).group(:author_id).count)
   end
 
+  def test_count_for_a_composite_primary_key_model_with_includes_and_references
+    assert_equal Cpk::Book.count, Cpk::Book.includes(:chapters).references(:chapters).count
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]
@@ -950,6 +954,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
     assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
+  end
+
+  def test_pluck_with_hash_argument
+    expected = [
+      [1, "The First Topic"],
+      [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"]
+    ]
+    assert_equal expected, Topic.order(:id).limit(3).pluck(:id, topics: [:title])
+  end
+
+  def test_pluck_with_hash_argument_with_multiple_tables
+    expected = [
+      [1, 1, "Thank you for the welcome"],
+      [1, 2, "Thank you again for the welcome"],
+      [2, 3, "Don't think too hard"]
+    ]
+    assert_equal expected, Post.joins(:comments).order(posts: { id: :asc }, comments: { id: :asc }).limit(3).pluck(posts: [:id], comments: [:id, :body])
+  end
+
+  def test_pluck_with_hash_argument_containing_non_existent_field
+    assert_raises(ActiveRecord::StatementInvalid) do
+      Topic.pluck(topics: [:non_existent])
+    end
   end
 
   def test_ids

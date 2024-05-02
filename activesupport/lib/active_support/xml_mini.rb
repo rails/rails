@@ -79,6 +79,7 @@ module ActiveSupport
         "string"       => Proc.new { |string|  string.to_s },
         "yaml"         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
         "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },
+        "hexBinary"    => Proc.new { |bin|     _parse_hex_binary(bin) },
         "binary"       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
         "file"         => Proc.new { |file, entity| _parse_file(file, entity) }
       }
@@ -162,11 +163,12 @@ module ActiveSupport
         "#{left}#{middle.tr('_ ', '--')}#{right}"
       end
 
-      # TODO: Add support for other encodings
       def _parse_binary(bin, entity)
         case entity["encoding"]
         when "base64"
           ::Base64.decode64(bin)
+        when "hex", "hexBinary"
+          _parse_hex_binary(bin)
         else
           bin
         end
@@ -178,6 +180,10 @@ module ActiveSupport
         f.original_filename = entity["name"]
         f.content_type = entity["content_type"]
         f
+      end
+
+      def _parse_hex_binary(bin)
+        [bin].pack("H*")
       end
 
       def current_thread_backend

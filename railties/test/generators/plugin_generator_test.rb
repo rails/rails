@@ -61,8 +61,8 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/lib/assets/.keep
   test/dummy/log/.keep
   test/dummy/public/404.html
+  test/dummy/public/406-unsupported-browser.html
   test/dummy/public/422.html
-  test/dummy/public/426.html
   test/dummy/public/500.html
   test/dummy/public/icon.png
   test/dummy/public/icon.svg
@@ -181,11 +181,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_directory "test/integration/"
 
     assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
-  end
-
-  def test_inclusion_of_git_source
-    run_generator [destination_root]
-    assert_file "Gemfile", /git_source/
   end
 
   def test_inclusion_of_a_debugger

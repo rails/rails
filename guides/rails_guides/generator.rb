@@ -13,12 +13,13 @@ require "action_view"
 require "rails_guides/markdown"
 require "rails_guides/helpers"
 require "rails_guides/epub"
+require "debug"
 
 module RailsGuides
   class Generator
     GUIDES_RE = /\.(?:erb|md)\z/
 
-    def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil)
+    def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil, lint:)
       @edge      = edge
       @version   = version
       @all       = all
@@ -26,24 +27,38 @@ module RailsGuides
       @epub      = epub
       @language  = language
       @direction = direction || "ltr"
+      @lint = lint
+      @warnings = []
 
       if @epub
         register_special_mime_types
       end
 
       initialize_dirs
-      create_output_dir_if_needed
+      create_output_dir_if_needed if !dry_run?
       initialize_markdown_renderer
     end
 
     def generate
       generate_guides
-      process_scss
-      copy_assets
-      generate_epub if @epub
+
+      if @lint && @warnings.any?
+        puts "#{@warnings.join("\n")}"
+        exit 1
+      end
+
+      if !dry_run?
+        process_scss
+        copy_assets
+        generate_epub if @epub
+      end
     end
 
     private
+      def dry_run?
+        [@lint].any?
+      end
+
       def register_special_mime_types
         Mime::Type.register_alias("application/xml", :opf, %w(opf))
         Mime::Type.register_alias("application/xml", :ncx, %w(ncx))
@@ -107,7 +122,10 @@ module RailsGuides
       end
 
       def process_scss
-        system "bundle exec dartsass ./assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style.css ./assets/stylesrc/highlight.scss:#{@output_dir}/stylesheets/highlight.css"
+        system "bundle exec dartsass \
+          #{@guides_dir}/assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style.css \
+          #{@guides_dir}/assets/stylesrc/highlight.scss:#{@output_dir}/stylesheets/highlight.css \
+          #{@guides_dir}/assets/stylesrc/print.scss:#{@output_dir}/stylesheets/print.css"
       end
 
       def copy_assets
@@ -165,12 +183,15 @@ module RailsGuides
             epub:    @epub
           ).render(body)
 
-          warn_about_broken_links(result)
+          broken = warn_about_broken_links(result)
+          if broken.any?
+            @warnings << "[WARN] BROKEN LINK(s): #{guide}: #{broken.join(", ")}"
+          end
         end
 
         File.open(output_path, "w") do |f|
           f.write(result)
-        end
+        end if !dry_run?
       end
 
       def warn_about_broken_links(html)
@@ -196,13 +217,18 @@ module RailsGuides
       end
 
       def check_fragment_identifiers(html, anchors)
+        broken_links = []
+
         html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
           next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
           unless anchors.member?(CGI.unescape(fragment_identifier))
             guess = DidYouMean::SpellChecker.new(dictionary: anchors).correct(fragment_identifier).first
             puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
+            broken_links << "##{fragment_identifier}"
           end
         end
+
+        broken_links
       end
   end
 end

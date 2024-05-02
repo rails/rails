@@ -68,6 +68,8 @@ module ActionView
       #   attribute, which indicates to the browser that the script is meant to
       #   be executed after the document has been parsed. Additionally, prevents
       #   sending the Preload Links header.
+      # * <tt>:nopush</tt>  - Specify if the use of server push is not desired
+      #   for the script. Defaults to +true+.
       #
       # Any other specified options will be treated as HTML attributes for the
       # +script+ tag.
@@ -168,6 +170,8 @@ module ActionView
       #   when it is set to true.
       # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
       #   you have Content Security Policy enabled.
+      # * <tt>:nopush</tt>  - Specify if the use of server push is not desired
+      #   for the stylesheet. Defaults to +true+.
       #
       # ==== Examples
       #

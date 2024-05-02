@@ -103,14 +103,14 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_param_delimiter_changes_delimiter_used_in_to_param
-    Cpk::Order.with(param_delimiter: ",") do
+    Cpk::Order.stub(:param_delimiter, ",") do
       assert_equal("1,123", Cpk::Order.new(id: [1, 123]).to_param)
     end
   end
 
   def test_param_delimiter_is_defined_per_class
-    Cpk::Order.with(param_delimiter: ",") do
-      Cpk::Book.with(param_delimiter: ";") do
+    Cpk::Order.stub(:param_delimiter, ",") do
+      Cpk::Book.stub(:param_delimiter, ";") do
         assert_equal("1,123", Cpk::Order.new(id: [1, 123]).to_param)
         assert_equal("1;123", Cpk::Book.new(id: [1, 123]).to_param)
       end

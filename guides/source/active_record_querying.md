@@ -2610,13 +2610,13 @@ Running EXPLAIN
 
 You can run [`explain`][] on a relation. EXPLAIN output varies for each database.
 
-For example, running
+For example, running:
 
 ```ruby
 Customer.where(id: 1).joins(:orders).explain
 ```
 
-may yield
+may yield this for MySQL and MariaDB:
 
 ```sql
 EXPLAIN SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
@@ -2636,11 +2636,9 @@ EXPLAIN SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`c
 2 rows in set (0.00 sec)
 ```
 
-under MySQL and MariaDB.
-
 Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
-PostgreSQL adapter would yield instead
+PostgreSQL adapter would yield instead:
 
 ```sql
 EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
@@ -2658,7 +2656,7 @@ EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."c
 
 Eager loading may trigger more than one query under the hood, and some queries
 may need the results of previous ones. Because of that, `explain` actually
-executes the query, and then asks for the query plans. For example,
+executes the query, and then asks for the query plans. For example, running:
 
 ```ruby
 Customer.where(id: 1).includes(:orders).explain

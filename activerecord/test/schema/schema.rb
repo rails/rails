@@ -198,6 +198,8 @@ ActiveRecord::Schema.define do
     t.integer :engines_count
     t.integer :wheels_count, default: 0, null: false
     t.datetime :wheels_owned_at
+    t.integer :bulbs_count
+    t.integer :custom_tyres_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end

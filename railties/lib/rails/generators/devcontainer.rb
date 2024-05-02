@@ -39,8 +39,50 @@ module Rails
           @devcontainer_volumes
         end
 
+        def devcontainer_features
+          return @devcontainer_features if @devcontainer_features
+
+          @devcontainer_features = {
+            "ghcr.io/devcontainers/features/github-cli:1" => {}
+          }
+
+          @devcontainer_features["ghcr.io/rails/devcontainer/features/activestorage"] = {} unless options[:skip_active_storage]
+          @devcontainer_features["ghcr.io/devcontainers/features/node:1"] = {} if using_node?
+
+          @devcontainer_features.merge!(db_feature_for_devcontainer) if db_feature_for_devcontainer
+
+          @devcontainer_features
+        end
+
+        def devcontainer_mounts
+          return @devcontainer_mounts if @devcontainer_mounts
+
+          @devcontainer_mounts = []
+
+          @devcontainer_mounts << local_rails_mount if options.dev?
+
+          @devcontainer_mounts
+        end
+
+        def devcontainer_forward_ports
+          return @devcontainer_forward_ports if @devcontainer_forward_ports
+
+          @devcontainer_forward_ports = [3000]
+          @devcontainer_forward_ports << db_port_for_devcontainer if db_port_for_devcontainer
+          @devcontainer_forward_ports << 6379 if devcontainer_needs_redis?
+
+          @devcontainer_forward_ports
+        end
+
         def devcontainer_needs_redis?
           !(options.skip_action_cable? && options.skip_active_job?)
+        end
+
+        def db_port_for_devcontainer(database = options[:database])
+          case database
+          when "mysql", "trilogy" then 3306
+          when "postgresql"       then 5432
+          end
         end
 
         def db_name_for_devcontainer(database = options[:database])
@@ -80,6 +122,13 @@ module Rails
           end
         end
 
+        def db_feature_for_devcontainer(database = options[:database])
+          case database
+          when "mysql"          then mysql_feature
+          when "postgresql"     then postgres_feature
+          end
+        end
+
         def postgres_service
           {
             "postgres" => {
@@ -101,7 +150,7 @@ module Rails
               "image" => "mysql/mysql-server:8.0",
               "restart" => "unless-stopped",
               "environment" => {
-                "MYSQL_ALLOW_EMPTY_PASSWORD" => true,
+                "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
                 "MYSQL_ROOT_HOST" => "%"
               },
               "volumes" => ["mysql-data:/var/lib/mysql"],
@@ -118,7 +167,7 @@ module Rails
               "networks" => ["default"],
               "volumes" => ["mariadb-data:/var/lib/mysql"],
               "environment" => {
-                "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => true,
+                "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
               },
             }
           }
@@ -126,6 +175,29 @@ module Rails
 
         def db_service_names
           ["mysql", "mariadb", "postgres"]
+        end
+
+        def mysql_feature
+          { "ghcr.io/rails/devcontainer/features/mysql-client" => {} }
+        end
+
+        def postgres_feature
+          { "ghcr.io/rails/devcontainer/features/postgres-client" => {} }
+        end
+
+        def db_features
+          [
+            "ghcr.io/rails/devcontainer/features/mysql-client",
+            "ghcr.io/rails/devcontainer/features/postgres-client"
+          ]
+        end
+
+        def local_rails_mount
+          {
+            type: "bind",
+            source: Rails::Generators::RAILS_DEV_PATH,
+            target: Rails::Generators::RAILS_DEV_PATH
+          }
         end
     end
   end

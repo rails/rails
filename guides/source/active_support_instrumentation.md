@@ -213,7 +213,7 @@ Additional keys may be added by the caller.
 }
 ```
 
-### Action Controller — Caching
+### Action Controller: Caching
 
 #### `write_fragment.action_controller`
 
@@ -452,7 +452,7 @@ This event is only emitted when [`config.active_record.action_on_strict_loading_
 }
 ```
 
-### Active Support — Caching
+### Active Support: Caching
 
 #### `cache_read.active_support`
 
@@ -662,7 +662,7 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#fetch_multi]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
 
-### Active Support — Messages
+### Active Support: Messages
 
 #### `message_serializer_fallback.active_support`
 
@@ -799,7 +799,7 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 | ------------ | ------------------------------ |
 | `:analyzer`  | Name of analyzer e.g., ffprobe |
 
-### Active Storage — Storage Service
+### Active Storage: Storage Service
 
 #### `service_upload.active_storage`
 

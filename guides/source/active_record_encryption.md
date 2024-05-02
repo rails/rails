@@ -490,7 +490,7 @@ The default encoding for attributes encrypted deterministically. You can disable
 
 #### `config.active_record.encryption.hash_digest_class`
 
-The digest algorithm used to derive keys. `OpenSSL::Digest::SHA1` by default.
+The digest algorithm used to derive keys. `OpenSSL::Digest::SHA256` by default.
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 

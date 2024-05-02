@@ -86,6 +86,7 @@ module ActiveRecord
   autoload :Timestamp
   autoload :TokenFor
   autoload :TouchLater
+  autoload :Transaction
   autoload :Transactions
   autoload :Translation
   autoload :Validations
@@ -183,8 +184,7 @@ module ActiveRecord
   ##
   # :singleton-method: lazily_load_schema_cache
   # Lazily load the schema cache. This option will load the schema cache
-  # when a connection is established rather than on boot. If set,
-  # +config.active_record.use_schema_cache_dump+ will be set to false.
+  # when a connection is established rather than on boot.
   singleton_class.attr_accessor :lazily_load_schema_cache
   self.lazily_load_schema_cache = false
 
@@ -539,6 +539,51 @@ module ActiveRecord
   # Explicitly closes all database connections in all pools.
   def self.disconnect_all!
     ConnectionAdapters::PoolConfig.disconnect_all!
+  end
+
+  # Registers a block to be called after all the current transactions have been
+  # committed.
+  #
+  # If there is no currently open transaction, the block is called immediately.
+  #
+  # If there are multiple nested transactions, the block is called after the outermost one
+  # has been committed,
+  #
+  # If any of the currently open transactions is rolled back, the block is never called.
+  #
+  # If multiple transactions are open across multiple databases, the block will be invoked
+  # if and once all of them have been committed. But note that nesting transactions across
+  # two distinct databases is a sharding anti-pattern that comes with a world of hurts.
+  def self.after_all_transactions_commit(&block)
+    open_transactions = all_open_transactions
+
+    if open_transactions.empty?
+      yield
+    elsif open_transactions.size == 1
+      open_transactions.first.after_commit(&block)
+    else
+      count = open_transactions.size
+      callback = -> do
+        count -= 1
+        block.call if count.zero?
+      end
+      open_transactions.each do |t|
+        t.after_commit(&callback)
+      end
+      open_transactions = nil # rubocop:disable Lint/UselessAssignment avoid holding it in the closure
+    end
+  end
+
+  def self.all_open_transactions # :nodoc:
+    open_transactions = []
+    Base.connection_handler.each_connection_pool do |pool|
+      if active_connection = pool.active_connection
+        if active_connection.current_transaction.open? && active_connection.current_transaction.joinable?
+          open_transactions << active_connection.current_transaction
+        end
+      end
+    end
+    open_transactions
   end
 end
 

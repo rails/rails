@@ -1,3 +1,30 @@
+*   Fix `Mime::Type.parse` handling type parameters for HTTP Accept headers.
+
+    *Taylor Chaparro*
+
+*   Fix the error page that is displayed when a view template is missing to account for nested controller paths in the
+    suggested correct location for the missing template.
+
+    *Joshua Young*
+
+*   Add `save_and_open_page` helper to IntegrationTest
+    `save_and_open_page` is a helpful helper to keep a short feedback loop when working on system tests.
+    A similar helper with matching signature has been added to integration tests.
+
+    *Joé Dupuis*
+
+*   Fix a regression in 7.1.3 passing a `to:` option without a controller when the controller is already defined by a scope.
+
+    ```ruby
+    Rails.application.routes.draw do
+      controller :home do
+        get "recent", to: "recent_posts"
+      end
+    end
+    ```
+
+    *Étienne Barrié*
+
 *   Request Forgery takes relative paths into account.
 
     *Stefan Wienert*
@@ -8,7 +35,7 @@
 
 *   Add `allow_browser` to set minimum browser versions for the application.
 
-    A browser that's blocked will by default be served the file in `public/426.html` with a HTTP status code of "426 Upgrade Required".
+    A browser that's blocked will by default be served the file in `public/406-unsupported-browser.html` with a HTTP status code of "406 Not Acceptable".
 
     ```ruby
     class ApplicationController < ActionController::Base

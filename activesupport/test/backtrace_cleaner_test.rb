@@ -22,6 +22,14 @@ class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   test "backtrace should contain unaltered lines if they don't match a filter" do
     assert_equal "/my/other_prefix/my/class.rb", @bc.clean([ "/my/other_prefix/my/class.rb" ]).first
   end
+
+  test "#dup also copy filters" do
+    copy = @bc.dup
+    @bc.add_filter { |line| line.gsub("/other/prefix/", "") }
+
+    assert_equal "my/class.rb", @bc.clean(["/other/prefix/my/class.rb"]).first
+    assert_equal "/other/prefix/my/class.rb", copy.clean(["/other/prefix/my/class.rb"]).first
+  end
 end
 
 class BacktraceCleanerSilencerTest < ActiveSupport::TestCase
@@ -39,6 +47,14 @@ class BacktraceCleanerSilencerTest < ActiveSupport::TestCase
   test "backtrace cleaner should allow removing silencer" do
     @bc.remove_silencers!
     assert_equal ["/mongrel/stuff.rb"], @bc.clean(["/mongrel/stuff.rb"])
+  end
+
+  test "#dup also copy silencers" do
+    copy = @bc.dup
+
+    @bc.add_silencer { |line| line.include?("puma") }
+    assert_equal [], @bc.clean(["/puma/stuff.rb"])
+    assert_equal ["/puma/stuff.rb"], copy.clean(["/puma/stuff.rb"])
   end
 end
 

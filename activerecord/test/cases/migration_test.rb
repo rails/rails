@@ -199,6 +199,13 @@ class MigrationTest < ActiveRecord::TestCase
     connection.drop_table short_name, if_exists: true
   end
 
+  def test_create_table_with_force_and_if_not_exists
+    connection = Person.lease_connection
+    assert_raises(ArgumentError, match: /Options `:force` and `:if_not_exists` cannot be used simultaneously/) do
+      connection.create_table(:testings, force: true, if_not_exists: true)
+    end
+  end
+
   def test_create_table_with_indexes_and_if_not_exists_true
     connection = Person.lease_connection
     connection.create_table :testings, force: true do |t|

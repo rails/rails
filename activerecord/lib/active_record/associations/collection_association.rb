@@ -228,7 +228,7 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || @association_ids || reflection.has_cached_counter?
+        if loaded? || @association_ids || reflection.has_active_cached_counter?
           size.zero?
         else
           target.empty? && !scope.exists?
@@ -303,7 +303,7 @@ module ActiveRecord
 
       def find_from_target?
         loaded? ||
-          owner.strict_loading? ||
+          (owner.strict_loading? && owner.strict_loading_all?) ||
           reflection.strict_loading? ||
           owner.new_record? ||
           target.any? { |record| record.new_record? || record.changed? }

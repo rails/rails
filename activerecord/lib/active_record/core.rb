@@ -354,7 +354,7 @@ module ActiveRecord
         elsif abstract_class?
           "#{super}(abstract)"
         elsif !connected?
-          "#{super} (call '#{super}.connection' to establish a connection)"
+          "#{super} (call '#{super}.lease_connection' to establish a connection)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
@@ -702,6 +702,11 @@ module ActiveRecord
     # Returns +true+ if the record uses strict_loading with +:n_plus_one_only+ mode enabled.
     def strict_loading_n_plus_one_only?
       @strict_loading_mode == :n_plus_one_only
+    end
+
+    # Returns +true+ if the record uses strict_loading with +:all+ mode enabled.
+    def strict_loading_all?
+      @strict_loading_mode == :all
     end
 
     # Marks this record as read only.

@@ -380,6 +380,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_accept_update_only_option
     @pirate.update(update_only_ship_attributes: { id: @pirate.ship.id, name: "Mayflower" })
+    assert_equal "Mayflower", @pirate.reload.ship.name
   end
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true

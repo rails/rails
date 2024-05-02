@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "ostruct"
 require "models/computer"
 
 class Developer < ActiveRecord::Base
@@ -226,7 +225,7 @@ end
 
 class CallableDeveloperCalledDavid < ActiveRecord::Base
   self.table_name = "developers"
-  default_scope OpenStruct.new(call: where(name: "David"))
+  default_scope Struct.new(:call).new(where(name: "David"))
 end
 
 class ClassMethodDeveloperCalledDavid < ActiveRecord::Base
@@ -329,7 +328,7 @@ class EagerDeveloperWithCallableDefaultScope < ActiveRecord::Base
   self.table_name = "developers"
   has_and_belongs_to_many :projects, -> { order("projects.id") }, foreign_key: "developer_id", join_table: "developers_projects"
 
-  default_scope OpenStruct.new(call: includes(:projects))
+  default_scope Struct.new(:call).new(includes(:projects))
 end
 
 class ThreadsafeDeveloper < ActiveRecord::Base

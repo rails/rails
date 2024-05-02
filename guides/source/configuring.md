@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
+- [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
 - [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
@@ -152,7 +153,6 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 5.0
 
-- [`ActiveSupport.to_time_preserves_timezone`](#activesupport-to-time-preserves-timezone): `true`
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
@@ -1090,7 +1090,7 @@ And on a per-association basis:
 class Comment < ApplicationRecord
   self.automatically_invert_plural_associations = true
 
-  belongs_to :post, inverse_of: false
+  belongs_to :post, inverse_of: nil
 end
 ```
 
@@ -2585,7 +2585,7 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.active_support.cache_format_version`
 
 Specifies which serialization format to use for the cache. Possible values are
-`6.1`, `7.0`, and `7.1`.
+`7.0`, and `7.1`.
 
 `7.0` serializes cache entries more efficiently.
 
@@ -2601,7 +2601,6 @@ The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| (original)            | `6.1`                |
 | 7.0                   | `7.0`                |
 | 7.1                   | `7.1`                |
 
@@ -2662,17 +2661,6 @@ Is set to `false` to disable the ability to silence logging in a block. The defa
 #### `ActiveSupport::Cache::Store.logger`
 
 Specifies the logger to use within cache store operations.
-
-#### `ActiveSupport.to_time_preserves_timezone`
-
-Specifies whether `to_time` methods preserve the UTC offset of their receivers. If `false`, `to_time` methods will convert to the local system UTC offset instead.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 5.0                   | `true`               |
 
 #### `ActiveSupport.utc_to_local_returns_utc_offset_times`
 
@@ -2761,6 +2749,52 @@ class EncoderJob < ActiveJob::Base
   #....
 end
 ```
+
+#### `config.active_job.enqueue_after_transaction_commit`
+
+Controls whether Active Job's `#perform_later` and similar methods automatically defer
+the job queuing to after the current Active Record transaction is committed.
+
+It can be set to:
+
+* `:never` - Never defer the enqueue.
+* `:always` - Always defer the enqueue.
+* `:default` - Let the queue adapter define the behaviour.
+
+Active Job backends that use the same database as Active Record as a queue,
+should generally prevent the deferring, and others should allow it.
+
+Example:
+
+```ruby
+Topic.transaction do
+  topic = Topic.create(title: "New Topic")
+  NewTopicNotificationJob.perform_later(topic)
+end
+```
+
+In this example, if the configuration is set to `:never`, the job will
+be enqueued immediately, even though the `Topic` hasn't been committed yet.
+Because of this, if the job is picked up almost immediately, or if the
+transaction doesn't succeed for some reason, the job will fail to find this
+topic in the database.
+
+If it's set to `:always`, the job will be actually enqueued after the
+transaction has been committed. If the transaction is rolled back, the job
+won't be enqueued at all.
+
+This configuration can additionally be set on a per job class basis:
+
+```ruby
+class SomeJob < ApplicationJob
+  self.enqueue_after_transaction_commit = :never
+end
+```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:never`             |
+| 7.2                   | `:default`           |
 
 #### `config.active_job.logger`
 
@@ -2903,7 +2937,7 @@ Accepts an array of strings indicating the content types that Active Storage all
 By default, this is defined as:
 
 ```ruby
-config.active_storage.content_types_allowed_inline = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
+config.active_storage.content_types_allowed_inline = %w(image/webp image/avif image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
 ```
 
 #### `config.active_storage.queues.analysis`

@@ -1,3 +1,70 @@
+*   Implement Rails console commands and helpers with IRB v1.13's extension APIs
+
+    Rails console users will now see `helper`, `controller`, `new_session`, and `app` under
+    IRB help message's `Helper methods` category. And `reload!` command will be displayed under
+    the new `Rails console` commands category.
+
+    Prior to this change, Rails console's commands and helper methods are added through IRB's
+    private components and don't show up in its help message, which led to poor discoverability.
+
+    *Stan Lo*
+
+*   Remove deprecated `Rails::Generators::Testing::Behaviour`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `find_cmd_and_exec` console helper.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.config.enable_dependency_loading`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.application.secrets`.
+
+    *Rafael Mendonça França*
+
+*   Generated Gemfile will include `require: "debug/prelude"` for the `debug` gem
+
+    Requiring `debug` gem directly automatically activates it, which could introduce
+    additional overhead and memory usage even without entering a debugging session.
+
+    By making Bundler require `debug/prelude` instead, developers can keep their access
+    to breakpoint methods like `debugger` or `binding.break`, but the debugger won't be
+    activated until a breakpoint is hit.
+
+    *Stan Lo*
+
+*   Allow Actionable Errors encountered when running tests to be retried.
+
+    ```txt
+    Migrations are pending. To resolve this issue, run:
+
+            bin/rails db:migrate
+
+    You have 1 pending migration:
+
+    db/migrate/20240201213806_add_a_to_b.rb
+    Run pending migrations? [Yn] Y
+    == 20240201213806 AddAToB: migrating =========================================
+    == 20240201213806 AddAToB: migrated (0.0000s) ================================
+
+    Running 7 tests in a single process (parallelization threshold is 50)
+    Run options: --seed 22200
+
+    # Running:
+
+    .......
+
+    Finished in 0.243394s, 28.7600 runs/s, 45.1942 assertions/s.
+    7 runs, 11 assertions, 0 failures, 0 errors, 0 skips
+    ```
+
+    This feature will only be present on interactive terminals.
+
+    *Andrew Novoselac & Gannon McGibbon*
+
 *   Skip generating a `test` job in ci.yml when a new application is generated with the
     `--skip-test` option.
 

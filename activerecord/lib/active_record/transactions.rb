@@ -224,6 +224,11 @@ module ActiveRecord
         end
       end
 
+      # Returns the current transaction. See ActiveRecord::Transactions API docs.
+      def current_transaction
+        connection_pool.active_connection&.current_transaction || ConnectionAdapters::NULL_TRANSACTION
+      end
+
       def before_commit(*args, &block) # :nodoc:
         set_options_for_callbacks!(args)
         set_callback(:before_commit, :before, *args, &block)

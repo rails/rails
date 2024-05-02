@@ -39,9 +39,7 @@ module ActiveSupport
             super
           end
 
-          def deprecate_constant(const_name, new_constant, message: nil, deprecator: nil)
-            ActiveSupport.deprecator.warn("DeprecatedConstantAccessor.deprecate_constant without a deprecator is deprecated") unless deprecator
-            deprecator ||= ActiveSupport::Deprecation._instance
+          def deprecate_constant(const_name, new_constant, deprecator:, message: nil)
             class_variable_set(:@@_deprecated_constants, {}) unless class_variable_defined?(:@@_deprecated_constants)
             class_variable_get(:@@_deprecated_constants)[const_name.to_s] = { new: new_constant, message: message, deprecator: deprecator }
           end

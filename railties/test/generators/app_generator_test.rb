@@ -69,8 +69,8 @@ DEFAULT_APP_FILES = %w(
   lib/tasks/.keep
   log/.keep
   public/404.html
+  public/406-unsupported-browser.html
   public/422.html
-  public/426.html
   public/500.html
   public/icon.png
   public/icon.svg
@@ -295,6 +295,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_propshaft
+    run_generator [destination_root, "-a", "propshaft"]
+
+    FileUtils.cd(destination_root) do
+      config = "config/environments/production.rb"
+      assert_no_changes -> { File.readlines(config).grep(/config\.assets/) } do
+        run_app_update
+      end
+    end
+  end
+
   def test_gem_for_active_storage
     run_generator
     assert_file "Gemfile", /^# gem "image_processing"/
@@ -441,7 +452,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcsqlite3-adapter"
     else
-      assert_gem "sqlite3", '"~> 1.4"'
+      assert_gem "sqlite3", '">= 1.4"'
     end
   end
 
@@ -1241,16 +1252,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_devcontainer
     run_generator [destination_root, "--name=my-app"]
 
-    assert_file(".devcontainer/devcontainer.json") do |content|
-      assert_match(/"name": "my_app"/, content)
-      assert_match(/"REDIS_URL": "redis:\/\/redis:6379\/1"/, content)
-      assert_match(/"CAPYBARA_SERVER_PORT": "45678"/, content)
-      assert_match(/"SELENIUM_HOST": "selenium"/, content)
+    assert_devcontainer_json_file do |content|
+      assert_equal "my_app", content["name"]
+      assert_equal "redis://redis:6379/1", content["containerEnv"]["REDIS_URL"]
+      assert_equal "45678", content["containerEnv"]["CAPYBARA_SERVER_PORT"]
+      assert_equal "selenium", content["containerEnv"]["SELENIUM_HOST"]
+      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/activestorage"])
+      assert_equal({}, content["features"]["ghcr.io/devcontainers/features/github-cli:1"])
+      assert_includes(content["forwardPorts"], 3000)
+      assert_includes(content["forwardPorts"], 6379)
     end
     assert_file(".devcontainer/Dockerfile") do |content|
-      assert_match(/libvips/, content)
-      assert_match(/ffmpeg/, content)
-      assert_match(/poppler-utils/, content)
+      assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
     end
     assert_compose_file do |compose_config|
       expected_rails_app_config = {
@@ -1295,9 +1308,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_nil compose_config["services"]["redis"]
       assert_nil compose_config["volumes"]
     end
+
+    assert_devcontainer_json_file do |content|
+      assert_not_includes content["forwardPorts"], 6379
+    end
   end
 
-  def test_devonctainer_postgresql
+  def test_devcontainer_postgresql
     run_generator [ destination_root, "-d", "postgresql" ]
 
     assert_compose_file do |compose_config|
@@ -1317,18 +1334,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal expected_postgres_config, compose_config["services"]["postgres"]
       assert_includes compose_config["volumes"].keys, "postgres-data"
     end
-    assert_file(".devcontainer/devcontainer.json") do |content|
-      assert_match(/"DB_HOST": "postgres"/, content)
+    assert_devcontainer_json_file do |content|
+      assert_equal "postgres", content["containerEnv"]["DB_HOST"]
+      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/postgres-client"])
+      assert_includes(content["forwardPorts"], 5432)
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV\["DB_HOST"\] %>/, content)
     end
-    assert_file(".devcontainer/Dockerfile") do |content|
-      assert_match(/libpq-dev/, content)
-    end
   end
 
-  def test_devonctainer_mysql
+  def test_devcontainer_mysql
     run_generator [ destination_root, "-d", "mysql" ]
 
     assert_compose_file do |compose_config|
@@ -1338,7 +1354,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
         "image" => "mysql/mysql-server:8.0",
         "restart" => "unless-stopped",
         "environment" => {
-          "MYSQL_ALLOW_EMPTY_PASSWORD" => true,
+          "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
           "MYSQL_ROOT_HOST" => "%"
         },
         "volumes" => ["mysql-data:/var/lib/mysql"],
@@ -1348,18 +1364,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal expected_mysql_config, compose_config["services"]["mysql"]
       assert_includes compose_config["volumes"].keys, "mysql-data"
     end
-    assert_file(".devcontainer/devcontainer.json") do |content|
-      assert_match(/"DB_HOST": "mysql"/, content)
+    assert_devcontainer_json_file do |content|
+      assert_equal "mysql", content["containerEnv"]["DB_HOST"]
+      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/mysql-client"])
+      assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
     end
-    assert_file(".devcontainer/Dockerfile") do |content|
-      assert_match(/default-libmysqlclient-dev/, content)
-    end
   end
 
-  def test_devonctainer_mariadb
+  def test_devcontainer_mariadb
     run_generator [ destination_root, "-d", "trilogy" ]
 
     assert_compose_file do |compose_config|
@@ -1370,15 +1385,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
         "networks" => ["default"],
         "volumes" => ["mariadb-data:/var/lib/mysql"],
         "environment" => {
-          "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => true,
+          "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
         },
       }
 
       assert_equal expected_mariadb_config, compose_config["services"]["mariadb"]
       assert_includes compose_config["volumes"].keys, "mariadb-data"
     end
-    assert_file(".devcontainer/devcontainer.json") do |content|
-      assert_match(/"DB_HOST": "mariadb"/, content)
+    assert_devcontainer_json_file do |content|
+      assert_equal "mariadb", content["containerEnv"]["DB_HOST"]
+      assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
@@ -1392,18 +1408,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "selenium"
       assert_not_includes compose_config["services"].keys, "selenium"
     end
-    assert_file(".devcontainer/devcontainer.json") do |content|
-      assert_no_match(/CAPYBARA_SERVER_PORT/, content)
+    assert_devcontainer_json_file do |content|
+      assert_nil content["containerEnv"]["CAPYBARA_SERVER_PORT"]
     end
   end
 
-  def test_devcontainer_no_Dockerfile_packages_when_skipping_active_storage
+  def test_devcontainer_no_feature_when_skipping_active_storage
     run_generator [ destination_root, "--skip-active-storage" ]
 
-    assert_file(".devcontainer/Dockerfile") do |content|
-      assert_no_match(/libvips/, content)
-      assert_no_match(/ffmpeg/, content)
-      assert_no_match(/poppler-utils/, content)
+    assert_devcontainer_json_file do |content|
+      assert_nil content["features"]["ghcr.io/rails/devcontainer/features/activestorage"]
     end
   end
 
@@ -1412,6 +1426,34 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"].keys, "depends_on"
+    end
+  end
+
+  def test_devcontainer_adds_node_tooling_when_required
+    run_generator [destination_root, "--javascript=esbuild"]
+
+    assert_devcontainer_json_file do |devcontainer_config|
+      assert_includes devcontainer_config["features"].keys, "ghcr.io/devcontainers/features/node:1"
+    end
+  end
+
+  def test_devcontainer_does_not_add_node_tooling_when_not_required
+    run_generator [destination_root]
+
+    assert_devcontainer_json_file do |devcontainer_config|
+      assert_not_includes devcontainer_config["features"].keys, "ghcr.io/devcontainers/features/node:1"
+    end
+  end
+
+  def test_devcontainer_dev_flag_mounts_local_rails_repo
+    run_generator_using_prerelease [ destination_root, "--dev" ]
+
+    assert_devcontainer_json_file do |devcontainer_config|
+      rails_mount = devcontainer_config["mounts"].sole
+
+      assert_equal "bind", rails_mount["type"]
+      assert_equal Rails::Generators::RAILS_DEV_PATH, rails_mount["source"]
+      assert_equal Rails::Generators::RAILS_DEV_PATH, rails_mount["target"]
     end
   end
 

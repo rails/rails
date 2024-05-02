@@ -133,7 +133,7 @@ module Rails
 
       def apply_rubocop_autocorrect_after_generate!
         after_generate do |files|
-          parsable_files = files.filter { |file| file.end_with?(".rb") }
+          parsable_files = files.filter { |file| File.exist?(file) && file.end_with?(".rb") }
           unless parsable_files.empty?
             system("bin/rubocop -A --fail-level=E #{parsable_files.shelljoin}", exception: true)
           end

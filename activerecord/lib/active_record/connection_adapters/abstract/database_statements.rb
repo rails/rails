@@ -235,6 +235,17 @@ module ActiveRecord
       # Runs the given block in a database transaction, and returns the result
       # of the block.
       #
+      # == Transaction callbacks
+      #
+      # #transaction yields an ActiveRecord::Transaction object on which it is
+      # possible to register callback:
+      #
+      #   ActiveRecord::Base.transaction do |transaction|
+      #     transaction.before_commit { puts "before commit!" }
+      #     transaction.after_commit { puts "after commit!" }
+      #     transaction.after_rollback { puts "after rollback!" }
+      #   end
+      #
       # == Nested transactions support
       #
       # #transaction calls can be nested. By default, this makes all database
@@ -345,7 +356,7 @@ module ActiveRecord
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
-          yield
+          yield current_transaction
         else
           transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end

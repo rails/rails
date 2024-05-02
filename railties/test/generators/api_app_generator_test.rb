@@ -124,6 +124,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     generator = Rails::Generators::AppGenerator.new ["rails"],
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.update_bin_files }
+    pass
   end
 
   private
@@ -191,7 +192,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          test/helpers
          public/404.html
          public/422.html
-         public/426.html
+         public/406-unsupported-browser.html
          public/500.html
          public/icon.png
          public/icon.svg

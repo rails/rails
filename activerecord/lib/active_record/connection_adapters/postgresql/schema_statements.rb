@@ -112,7 +112,7 @@ module ActiveRecord
 
             orders = {}
             opclasses = {}
-            include_columns = include ? include.split(",").map(&:strip) : []
+            include_columns = include ? include.split(",").map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) } : []
 
             if indkey.include?(0)
               columns = expressions
@@ -400,7 +400,7 @@ module ActiveRecord
               execute "ALTER TABLE #{seq.quoted} RENAME TO #{quote_table_name(new_seq)}"
             end
           end
-          rename_table_indexes(table_name, new_name)
+          rename_table_indexes(table_name, new_name, **options)
         end
 
         def add_column(table_name, column_name, type, **options) # :nodoc:

@@ -78,6 +78,10 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 <% end -%>
 
+<% if using_node? -%>
+RUN rm -rf node_modules
+<% end %>
+
 # Final stage for app image
 FROM base
 

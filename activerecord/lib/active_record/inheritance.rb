@@ -202,7 +202,9 @@ module ActiveRecord
           "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " \
           "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " \
           "Please rename this column if you didn't intend it to be used for storing the inheritance class " \
-          "or overwrite #{name}.inheritance_column to use another column for that information."
+          "or overwrite #{name}.inheritance_column to use another column for that information. " \
+          "If you wish to disable single-table inheritance for #{name} set " \
+          "#{name}.inheritance_column to nil"
       end
 
       # Returns the value to be stored in the polymorphic type column for Polymorphic Associations.

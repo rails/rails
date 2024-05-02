@@ -235,6 +235,7 @@ module ActiveRecord
 
       def test_create_table_without_a_block
         connection.create_table table_name
+        assert connection.table_exists?(table_name)
       end
 
       # SQLite3 will not allow you to add a NOT NULL
@@ -359,6 +360,8 @@ module ActiveRecord
         else
           connection.execute "insert into testings (#{connection.quote_column_name('select')}) values ('7 chars')"
         end
+
+        assert_equal 1, connection.select_value("SELECT COUNT(*) FROM testings")
       end
 
       def test_keeping_default_and_notnull_constraints_on_change

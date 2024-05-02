@@ -1,3 +1,30 @@
+*   Make Active Job transaction aware when used conjointly with Active Record.
+
+    A common mistake with Active Job is to enqueue jobs from inside a transaction,
+    causing them to potentially be picked and ran by another process, before the
+    transaction is committed, which may result in various errors.
+
+    ```ruby
+    Topic.transaction do
+      topic = Topic.create(...)
+      NewTopicNotificationJob.perform_later(topic)
+    end
+    ```
+
+    Now Active Job will automatically defer the enqueuing to after the transaction is committed,
+    and drop the job if the transaction is rolled back.
+
+    Various queue implementations can choose to disable this behavior, and users can disable it,
+    or force it on a per job basis:
+
+    ```ruby
+    class NewTopicNotificationJob < ApplicationJob
+      self.enqueue_after_transaction_commit = :never # or `:always` or `:default`
+    end
+    ```
+
+    *Jean Boussier*, *Cristian Bica*
+
 *   Do not trigger immediate loading of `ActiveJob::Base` when loading `ActiveJob::TestHelper`.
 
     *Maxime Réty*

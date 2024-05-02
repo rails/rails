@@ -1661,9 +1661,14 @@ module ActiveRecord
         #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
         # [+:autosave+]
-        #   If true, always save the associated object or destroy it if marked for destruction,
-        #   when saving the parent object. If false, never save or destroy the associated object.
-        #   By default, only save the associated object if it's a new record.
+        #   If +true+, always saves the associated object or destroys it if marked for destruction,
+        #   when saving the parent object.
+        #   If +false+, never save or destroy the associated object.
+        #
+        #   By default, only saves the associated object if it's a new record. Setting this option
+        #   to +true+ also enables validations on the associated object unless explicitly disabled
+        #   with <tt>validate: false</tt>. This is because saving an object with invalid associated
+        #   objects would fail, so any associated objects will go through validation checks.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
@@ -1816,15 +1821,23 @@ module ActiveRecord
         #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
         #   is used on the associate class (such as a Post class) - that is the migration for
         #   <tt>#{table_name}_count</tt> is created on the associate class (such that <tt>Post.comments_count</tt> will
-        #   return the count cached, see note below). You can also specify a custom counter
+        #   return the count cached). You can also specify a custom counter
         #   cache column by providing a column name instead of a +true+/+false+ value to this
         #   option (e.g., <tt>counter_cache: :my_custom_counter</tt>.)
-        #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
-        #   using +attr_readonly+.
-        # [+:polymorphic+]
-        #   Specify this association is a polymorphic association by passing +true+.
+        #
+        #   Starting to use counter caches on existing large tables can be troublesome, because the column
+        #   values must be backfilled separately of the column addition (to not lock the table for too long)
+        #   and before the use of +:counter_cache+ (otherwise methods like +size+/+any?+/etc, which use
+        #   counter caches internally, can produce incorrect results). To safely backfill the values while keeping
+        #   counter cache columns updated with the child records creation/removal and to avoid the mentioned methods
+        #   use the possibly incorrect counter cache column values and always get the results from the database,
+        #   use <tt>counter_cache: { active: false }</tt>.
+        #   If you also need to specify a custom column name, use <tt>counter_cache: { active: false, column: :my_custom_counter }</tt>.
+        #
         #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
         #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
+        # [+:polymorphic+]
+        #   Specify this association is a polymorphic association by passing +true+.
         #   Note: Since polymorphic associations rely on storing class names in the database, make sure to update the class names in the
         #   <tt>*_type</tt> polymorphic type column of the corresponding rows.
         # [+:validate+]

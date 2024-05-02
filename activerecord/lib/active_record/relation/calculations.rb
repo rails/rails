@@ -234,7 +234,7 @@ module ActiveRecord
         if operation == "count"
           unless distinct_value || distinct_select?(column_name || select_for_count)
             relation.distinct!
-            relation.select_values = [ klass.primary_key || table[Arel.star] ]
+            relation.select_values = Array(klass.primary_key || table[Arel.star])
           end
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
           relation.order_values = [] if group_values.empty?
@@ -275,6 +275,10 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
+    #   Comment.joins(:person).pluck(:id, person: [:id])
+    #   # SELECT comments.id, people.id FROM comments INNER JOIN people on comments.person_id = people.id
+    #   # => [[1, 2], [2, 2]]
+    #
     #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
@@ -302,7 +306,7 @@ module ActiveRecord
         relation = apply_join_dependency
         relation.pluck(*column_names)
       else
-        klass.disallow_raw_sql!(column_names.flatten)
+        klass.disallow_raw_sql!(flattened_args(column_names))
         columns = arel_columns(column_names)
         relation = spawn
         relation.select_values = columns
@@ -359,7 +363,7 @@ module ActiveRecord
     # Returns the base model's ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people
-    #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
+    #   Person.joins(:company).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
     def ids
       primary_key_array = Array(primary_key)
 
@@ -455,7 +459,7 @@ module ActiveRecord
       end
 
       def execute_simple_calculation(operation, column_name, distinct) # :nodoc:
-        if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
+        if build_count_subquery?(operation, column_name, distinct)
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 
@@ -628,10 +632,28 @@ module ActiveRecord
       def select_for_count
         if select_values.present?
           return select_values.first if select_values.one?
-          select_values.join(", ")
+
+          select_values.map do |field|
+            column = arel_column(field.to_s) do |attr_name|
+              Arel.sql(attr_name)
+            end
+
+            if column.is_a?(Arel::Nodes::SqlLiteral)
+              column
+            else
+              "#{adapter_class.quote_table_name(column.relation.name)}.#{adapter_class.quote_column_name(column.name)}"
+            end
+          end.join(", ")
         else
           :all
         end
+      end
+
+      def build_count_subquery?(operation, column_name, distinct)
+        # SQLite and older MySQL does not support `COUNT DISTINCT` with `*` or
+        # multiple columns, so we need to use subquery for this.
+        operation == "count" &&
+          (((column_name == :all || select_values.many?) && distinct) || has_limit_or_offset?)
       end
 
       def build_count_subquery(relation, column_name, distinct)
