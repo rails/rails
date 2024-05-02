@@ -363,7 +363,7 @@ Confirmation email sent to: john.doe@example.com
 => #<User id: 1, email: "john.doe@example.com", ...>
 
 irb> user.update(email: "john.doe.new@example.com")
-Notification sent to admin about critical info update for: john.doe@example.com
+Notification sent to admin about critical info update for: john.doe.new@example.com
 => true
 ```
 
