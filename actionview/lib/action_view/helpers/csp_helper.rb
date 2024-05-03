@@ -4,6 +4,8 @@ module ActionView
   module Helpers # :nodoc:
     # = Action View CSP \Helpers
     module CspHelper
+      mattr_accessor :csp_meta_tag_nonce_attribute, default: :content
+
       # Returns a meta tag "csp-nonce" with the per-session nonce value
       # for allowing inline <script> tags.
       #
@@ -17,7 +19,7 @@ module ActionView
       def csp_meta_tag(**options)
         if content_security_policy?
           options[:name] = "csp-nonce"
-          options[:content] = content_security_policy_nonce
+          options[csp_meta_tag_nonce_attribute] = content_security_policy_nonce
           tag("meta", options)
         end
       end
