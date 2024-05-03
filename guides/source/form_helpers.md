@@ -766,11 +766,11 @@ Output:
 Uploading Files
 ---------------
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. File upload fields can be rendered with the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field) helper.
+A common task with forms is allowing users to upload a file. It could be an avatar image or a CSV file with data to process. File upload fields can be rendered with the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field) helper.
 
 ```erb
 <%= form_with model: @person do |form| %>
-  <%= form.file_field :picture %>
+  <%= form.file_field :csv_file %>
 <% end %>
 ```
 
@@ -778,26 +778,35 @@ The most important thing to remember with file uploads is that the rendered form
 
 ```erb
 <%= form_with url: "/uploads", multipart: true do |form| %>
-  <%= file_field_tag :picture %>
+  <%= file_field_tag :csv_file %>
 <% end %>
 ```
 
-Note that, in accordance with `form_with` conventions, the field names in the two forms above will also differ.  That is, the field name in the first form will be `person[picture]` (accessible via `params[:person][:picture]`), and the field name in the second form will be just `picture` (accessible via `params[:picture]`).
+Note that, per `form_with` conventions, the field names in the two forms above will be different. In the first form, it will be `person[csv_file]` (accessible via `params[:person][:csv_file]`), and in the second form it will be just `csv_file` (accessible via `params[:csv_file]`).
 
-### What Gets Uploaded
+### CSV File Upload Example
 
-The object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](https://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). The following snippet saves the uploaded file in `#{Rails.root}/public/uploads` under the same name as the original file.
+The object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](https://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). Here is an example of how to save data in an uploaded CSV file to records in your domain model:
 
 ```ruby
-def upload
-  uploaded_file = params[:picture]
-  File.open(Rails.root.join('public', 'uploads', uploaded_file.original_filename), 'wb') do |file|
-    file.write(uploaded_file.read)
+  require 'csv'
+
+  def upload
+    uploaded_file = params[:csv_file]
+    if uploaded_file.present?
+      csv_data = CSV.parse(uploaded_file.read, headers: true)
+      csv_data.each do |row|
+        # Process each row of the CSV file
+        # SomeInvoiceModel.create(amount: row['Amount'], status: row['Status'])
+        puts row.inspect
+        #<CSV::Row "id":"po_1KE3FRDSYPMwkcNz9SFKuaYd" "Amount":"96.22" "Created (UTC)":"2022-01-04 02:59" "Arrival Date (UTC)":"2022-01-05 00:00" "Status":"paid">
+      end
+    end
+    # ...
   end
-end
 ```
 
-Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on Disk, Amazon S3, etc), associating them with models, resizing image files, and generating thumbnails, etc. [Active Storage](active_storage_overview.html) is designed to assist with these tasks.
+If the file an an image that needs to be stored with a model (e.g. user's profile picture), there are a number of tasks to consider, like where to store the file (on Disk, Amazon S3, etc), resizing image files, and generating thumbnails, etc. [Active Storage](active_storage_overview.html) is designed to assist with these tasks.
 
 Customizing Form Builders
 -------------------------
