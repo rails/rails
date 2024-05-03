@@ -73,7 +73,7 @@ module ActiveRecord
 
       # Returns a Hash of name of the reflection as the key and an AssociationReflection as the value.
       #
-      #   Account.reflections # => {balance: => AggregateReflection}
+      #   Account.reflections # => {"balance" => AggregateReflection}
       #
       def reflections
         normalized_reflections.stringify_keys
