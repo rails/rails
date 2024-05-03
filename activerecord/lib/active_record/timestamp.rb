@@ -75,7 +75,7 @@ module ActiveRecord
       end
 
       def current_time_from_proper_timezone
-        lease_connection.default_timezone == :utc ? Time.now.utc : Time.now
+        with_connection { |c| c.default_timezone == :utc ? Time.now.utc : Time.now }
       end
 
       protected

@@ -258,7 +258,7 @@ if ActiveRecord::Base.lease_connection.prepared_statements
         end
 
         def cached_statement(klass, key)
-          cache = klass.send(:cached_find_by_statement, key) do
+          cache = klass.send(:cached_find_by_statement, @connection, key) do
             raise "#{klass} has no cached statement by #{key.inspect}"
           end
           cache.send(:query_builder).instance_variable_get(:@sql)
