@@ -568,7 +568,7 @@ module ActiveRecord
         delete_by(primary_key => id_or_array)
       end
 
-      def _insert_record(values, returning) # :nodoc:
+      def _insert_record(connection, values, returning) # :nodoc:
         primary_key = self.primary_key
         primary_key_value = nil
 
@@ -583,12 +583,12 @@ module ActiveRecord
 
         with_connection do |c|
           if values.empty?
-            im.insert(c.empty_insert_statement_value(primary_key))
+            im.insert(connection.empty_insert_statement_value(primary_key))
           else
             im.insert(values.transform_keys { |name| arel_table[name] })
           end
 
-          c.insert(
+          connection.insert(
             im, "#{self} Create", primary_key || false, primary_key_value,
             returning: returning
           )
@@ -1255,16 +1255,19 @@ module ActiveRecord
     def _create_record(attribute_names = self.attribute_names)
       attribute_names = attributes_for_create(attribute_names)
 
-      returning_columns = self.class._returning_columns_for_insert
+      self.class.with_connection do |connection|
+        returning_columns = self.class._returning_columns_for_insert(connection)
 
-      returning_values = self.class._insert_record(
-        attributes_with_values(attribute_names),
-        returning_columns
-      )
+        returning_values = self.class._insert_record(
+          connection,
+          attributes_with_values(attribute_names),
+          returning_columns
+        )
 
-      returning_columns.zip(returning_values).each do |column, value|
-        _write_attribute(column, value) if !_read_attribute(column)
-      end if returning_values
+        returning_columns.zip(returning_values).each do |column, value|
+          _write_attribute(column, value) if !_read_attribute(column)
+        end if returning_values
+      end
 
       @new_record = false
       @previously_new_record = true

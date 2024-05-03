@@ -529,7 +529,9 @@ module ActiveRecord
         if polymorphic?
           key = [key, owner._read_attribute(@foreign_type)]
         end
-        klass.cached_find_by_statement(key, &block)
+        klass.with_connection do |connection|
+          klass.cached_find_by_statement(connection, key, &block)
+        end
       end
 
       def join_table

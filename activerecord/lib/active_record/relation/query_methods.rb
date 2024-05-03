@@ -1570,7 +1570,7 @@ module ActiveRecord
 
     # Returns the Arel object associated with the relation.
     def arel(aliases = nil) # :nodoc:
-      @arel ||= build_arel(aliases)
+      @arel ||= with_connection { |c| build_arel(c, aliases) }
     end
 
     def construct_join_dependency(associations, join_type) # :nodoc:
@@ -1709,14 +1709,14 @@ module ActiveRecord
         raise ImmutableRelation if @loaded || @arel
       end
 
-      def build_arel(aliases = nil)
+      def build_arel(connection, aliases = nil)
         arel = Arel::SelectManager.new(table)
 
         build_joins(arel.join_sources, aliases)
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        arel.take(build_cast_value("LIMIT", lease_connection.sanitize_limit(limit_value))) if limit_value
+        arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
         arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
         arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
 
