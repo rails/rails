@@ -551,7 +551,7 @@ Notice that the appropriate option was automatically marked `selected="selected"
 
 ### Selecting Time Zone
 
-When you need to ask users what time zone they are in, there is a very convenient [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper to use. 
+When you need to ask users what time zone they are in, there is a very convenient [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper to use.
 
 Typically you would have to provide a list of time zone options for users to select from. This can get tedious if not for the list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects. The `time_with_zone` helper wraps this and can be used like this:
 
@@ -566,7 +566,7 @@ Rails _used_ to have a `country_select` helper for choosing countries, but this 
 Using Date and Time Form Helpers
 --------------------------------
 
-Rails provides alternative date and time form helpers that render plain select boxes. The `date_select` helper renders a separate select box for year, month, and day. 
+Rails provides alternative date and time form helpers that render plain select boxes. The `date_select` helper renders a separate select box for year, month, and day.
 
 For example, if we have a `@person` model object like:
 
@@ -653,10 +653,12 @@ Outputs a select box like:
 
 For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value, and the appropriate temporal component will be extracted and used.
 
-Choices from a Collection of Arbitrary Objects
-----------------------------------------------
+Collection Related Helpers
+--------------------------
 
-Sometimes, we want to generate a set of choices from a collection of arbitrary objects. For example, if we have a `City` model and corresponding `belongs_to :city` association:
+If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_button`, and `collection_check_boxes` helpers.
+
+To see when these helpers are useful, suppose you have a `City` model and corresponding `belongs_to :city` association with `Person`:
 
 ```ruby
 class City < ApplicationRecord
@@ -667,12 +669,14 @@ class Person < ApplicationRecord
 end
 ```
 
+Assuming we have this content for `City` in the database:
+
 ```ruby
 City.order(:name).map { |city| [city.name, city.id] }
 # => [["Berlin", 3], ["Chicago", 1], ["Madrid", 2]]
 ```
 
-Then we can allow the user to choose a city from the database with the following form:
+We can allow the user to choose from those cities with the following form:
 
 ```erb
 <%= form_with model: @person do |form| %>
@@ -680,9 +684,19 @@ Then we can allow the user to choose a city from the database with the following
 <% end %>
 ```
 
-NOTE: When rendering a field for a `belongs_to` association, you must specify the name of the foreign key (`city_id` in the above example), rather than the name of the association itself.
+Which will generate this HTML:
 
-However, Rails provides helpers that generate choices from a collection without having to explicitly iterate over it. These helpers determine the value and text label of each choice by calling specified methods on each object in the collection.
+```html
+<select name="person[city_id]" id="person_city_id">
+  <option value="1">Berlin</option>
+  <option value="3">Chicago</option>
+  <option value="2">Madrid</option>
+</select>
+```
+
+That is how you'd generate the choices manually. However, Rails has helpers that generate choices from a collection without having to explicitly iterate over it. These helpers determine the value and text label of each choice by calling specified methods on each object in the collection.
+
+NOTE: When rendering a field for a `belongs_to` association, you must specify the name of the foreign key (`city_id` in the above example), rather than the name of the association itself.
 
 ### The `collection_select` Helper
 
@@ -692,17 +706,17 @@ To generate a select box, we can use [`collection_select`](https://api.rubyonrai
 <%= form.collection_select :city_id, City.order(:name), :id, :name %>
 ```
 
-Output:
+Which outputs the same HTML as the manual iteration above:
 
 ```html
 <select name="person[city_id]" id="person_city_id">
-  <option value="3">Berlin</option>
-  <option value="1">Chicago</option>
+  <option value="1">Berlin</option>
+  <option value="3">Chicago</option>
   <option value="2">Madrid</option>
 </select>
 ```
 
-NOTE: With `collection_select` we specify the value method first (`:id` in the example above), and the text label method second (`:name` in the example above).  This is opposite of the order used when specifying choices for the `select` helper, where the text label comes first and the value second.
+NOTE: The order of arguments for `collection_select` is different from the order for `select`. With `collection_select` we specify the value method first (`:id` in the example above), and the text label method second (`:name` in the example above).  This is opposite of the order used when specifying choices for the `select` helper, where the text label comes first and the value second (`["Berlin", 3]` in the previous example).
 
 ### The `collection_radio_buttons` Helper
 
@@ -715,13 +729,13 @@ To generate a set of radio buttons, we can use [`collection_radio_buttons`](http
 Output:
 
 ```html
-<input type="radio" name="person[city_id]" value="3" id="person_city_id_3">
-<label for="person_city_id_3">Berlin</label>
+<input type="radio" value="1" name="person[city_id]" id="person_city_id_1">
+<label for="person_city_id_1">Berlin</label>
 
-<input type="radio" name="person[city_id]" value="1" id="person_city_id_1">
-<label for="person_city_id_1">Chicago</label>
+<input type="radio" value="3" name="person[city_id]" id="person_city_id_3">
+<label for="person_city_id_3">Chicago</label>
 
-<input type="radio" name="person[city_id]" value="2" id="person_city_id_2">
+<input type="radio" value="2" name="person[city_id]" id="person_city_id_2">
 <label for="person_city_id_2">Madrid</label>
 ```
 
