@@ -177,11 +177,11 @@ class User < ApplicationRecord
 
   private
 
- def ensure_new_email_has_value
-    if new_email.blank?
-      errors.add(:email, "can't be blank")
+    def ensure_new_email_has_value
+      if new_email.blank?
+        errors.add(:email, "can't be blank")
+      end
     end
-  end
 end
 ```
 
