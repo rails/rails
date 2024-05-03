@@ -1048,23 +1048,24 @@ User was saved to database
 
 By default (from Rails 7.1), transaction callbacks will run in the order they are defined.
 
+```ruby
+class User < ActiveRecord::Base
+  after_commit { Rails.logger.info("this gets called first") }
+  after_commit { Rails.logger.info("this gets called second") }
+end
+```
+
 However, in prior versions of Rails, when defining multiple transactional
 `after_` callbacks (`after_commit`, `after_rollback`, etc), the order in which
 the callbacks were run was reversed.
 
-```ruby
-class User < ActiveRecord::Base
-  after_commit { Rails.logger.info("this actually gets called second") }
-  after_commit { Rails.logger.info("this actually gets called first") }
-end
-```
-
-We can change that reverse behaviour by setting the [following
+If for some reason, you'd still like them to run in reverse you can set the
+[following
 configuration](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
-to `true`. The callbacks will then run in the order they are defined.
+to `false`. The callbacks will then run in the reverse order.
 
 ```ruby
-config.active_record.run_after_transaction_callbacks_in_order_defined = true
+config.active_record.run_after_transaction_callbacks_in_order_defined = false
 ```
 
 NOTE: This applies to all `after_*_commit` variations too, such as
