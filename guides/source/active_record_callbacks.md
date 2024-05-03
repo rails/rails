@@ -120,6 +120,14 @@ Callbacks can also be registered to only fire on certain life cycle events, this
 can be done using the `:on` option and allows complete control over when and in
 what context your callbacks are triggered.
 
+NOTE: A context is like a category or a scenario in which you want certain
+validations to apply. When you validate an ActiveRecord model, you can specify a
+context to group validations. This allows you to have different sets of
+validations that apply in different situations. In Rails, there are certain
+default contexts for validations like :create, :update, and :save. However, you
+can define your own custom contexts as well.
+
+
 ```ruby
 class User < ApplicationRecord
   validates :username, :email, presence: true
@@ -154,6 +162,39 @@ effects during commit. <br><br> Instead, you can assign values directly (e.g.,
 `self.attribute = "value"`) in `before_create`, `before_update`, or earlier
 callbacks for a safer approach.
 
+#### Custom Contexts
+
+You can also define your own custom contexts for callbacks. This can be useful
+when you want to perform validations based on specific scenarios, or you want to
+group certain callbacks together and run them in a specific context.
+
+The example below shows how to define a custom context called `:email_change`
+and use it in a custom validation:
+
+```ruby
+class User < ApplicationRecord
+  validate :ensure_new_email_has_value, on: :email_change
+
+  private
+
+ def ensure_new_email_has_value
+    if new_email.blank?
+      errors.add(:email, "can't be blank")
+    end
+  end
+end
+```
+
+Then, you can use this custom context to trigger the validation:
+
+```irb
+irb> user = User.last
+=> #<User id: "2", email: "example@example.com", username: "example", created_at: "2024-04-28 21:09:16.170049000 +0000", updated_at: "2024-04-28 21:09:16.170049000 +0000">
+irb> user.update_attribute(:email, "")
+=> nil
+irb> user.valid?(:email_change)
+=> false
+```
 
 Available Callbacks
 -------------------
