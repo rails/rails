@@ -107,7 +107,7 @@ end
 User.find(:all)  # => Returns only Admin
 ```
 
-Nested transactions let you roll back an inner transaction without affecting the state of the outer transaction. If you want a transaction to be nested, you must explicitly add the `:requires_new` option; otherwise, a nested transaction simply becomes part of the parent transaction (as it does currently on Rails 2.2). Under the covers, nested transactions are [using savepoints](http://rails.lighthouseapp.com/projects/8994/tickets/383,) so they're supported even on databases that don't have true nested transactions. There is also a bit of magic going on to make these transactions play well with transactional fixtures during testing.
+Nested transactions let you roll back an inner transaction without affecting the state of the outer transaction. If you want a transaction to be nested, you must explicitly add the `:requires_new` option; otherwise, a nested transaction simply becomes part of the parent transaction (as it does currently on Rails 2.2). Under the covers, nested transactions are [using savepoints](http://rails.lighthouseapp.com/projects/8994/tickets/383) so they're supported even on databases that don't have true nested transactions. There is also a bit of magic going on to make these transactions play well with transactional fixtures during testing.
 
 * Lead Contributors: [Jonathan Viney](http://www.workingwithrails.com/person/4985-jonathan-viney) and [Hongli Lai](http://izumi.plan99.net/blog/)
 
@@ -157,7 +157,7 @@ end
 Note that you should only use this method for batch processing: for small numbers of records (less than 1000), you should just use the regular find methods with your own loop.
 
 * More Information (at that point the convenience method was called just `each`):
-    * [Rails 2.3: Batch Finding](http://afreshcup.com/2009/02/23/rails-23-batch-finding/)
+    * [Rails 2.3: Batch Finding](https://afreshcup.com/home/2009/02/23/rails-23-batch-finding.html)
     * [What's New in Edge Rails: Batched Find](http://archives.ryandaigle.com/articles/2009/2/23/what-s-new-in-edge-rails-batched-find)
 
 ### Multiple Conditions for Callbacks
@@ -235,7 +235,7 @@ Rails chooses between file, template, and action depending on whether there is a
 If you're one of the people who has always been bothered by the special-case naming of `application.rb`, rejoice! It's been reworked to be `application_controller.rb` in Rails 2.3. In addition, there's a new rake task, `rake rails:update:application_controller` to do this automatically for you - and it will be run as part of the normal `rake rails:update` process.
 
 * More Information:
-    * [The Death of Application.rb](https://afreshcup.com/home/2008/11/17/rails-2x-the-death-of-applicationrb)
+    * [The Death of Application.rb](https://afreshcup.com/home/2008/11/17/rails-2x-the-death-of-applicationrb.html)
     * [What's New in Edge Rails: Application.rb Duality is no More](http://archives.ryandaigle.com/articles/2008/11/19/what-s-new-in-edge-rails-application-rb-duality-is-no-more)
 
 ### HTTP Digest Authentication Support
@@ -503,7 +503,7 @@ A lot of folks have adopted the notion of using try() to attempt operations on o
 
 ### Object#tap Backport
 
-`Object#tap` is an addition to [Ruby 1.9](http://www.ruby-doc.org/core-1.9/classes/Object.html#M000309) and 1.8.7 that is similar to the `returning` method that Rails has had for a while: it yields to a block, and then returns the object that was yielded. Rails now includes code to make this available under older versions of Ruby as well.
+`Object#tap` is an addition to [Ruby 1.9](https://ruby-doc.org/core-1.9.1/Object.html#method-i-tap) and 1.8.7 that is similar to the `returning` method that Rails has had for a while: it yields to a block, and then returns the object that was yielded. Rails now includes code to make this available under older versions of Ruby as well.
 
 ### Swappable Parsers for XMLmini
 
@@ -533,7 +533,7 @@ If you look up the spec on the "json.org" site, you'll discover that all keys in
 ### Other Active Support Changes
 
 * You can use `Enumerable#none?` to check that none of the elements match the supplied block.
-* If you're using Active Support [delegates](https://afreshcup.com/home/2008/10/19/coming-in-rails-22-delegate-prefixes) the new `:allow_nil` option lets you return `nil` instead of raising an exception when the target object is nil.
+* If you're using Active Support [delegates](https://afreshcup.com/home/2008/10/19/coming-in-rails-22-delegate-prefixes.html) the new `:allow_nil` option lets you return `nil` instead of raising an exception when the target object is nil.
 * `ActiveSupport::OrderedHash`: now implements `each_key` and `each_value`.
 * `ActiveSupport::MessageEncryptor` provides a simple way to encrypt information for storage in an untrusted location (like cookies).
 * Active Support's `from_xml` no longer depends on XmlSimple. Instead, Rails now includes its own XmlMini implementation, with just the functionality that it requires. This lets Rails dispense with the bundled copy of XmlSimple that it's been carting around.
@@ -552,7 +552,7 @@ In addition to the Rack changes covered above, Railties (the core code of Rails 
 Rails Metal is a new mechanism that provides superfast endpoints inside of your Rails applications. Metal classes bypass routing and Action Controller to give you raw speed (at the cost of all the things in Action Controller, of course). This builds on all of the recent foundation work to make Rails a Rack application with an exposed middleware stack. Metal endpoints can be loaded from your application or from plugins.
 
 * More Information:
-    * [Introducing Rails Metal](https://weblog.rubyonrails.org/2008/12/17/introducing-rails-metal)
+    * [Introducing Rails Metal](https://rubyonrails.org/2008/12/17/introducing-rails-metal)
     * [Rails Metal: a micro-framework with the power of Rails](http://soylentfoo.jnewland.com/articles/2008/12/16/rails-metal-a-micro-framework-with-the-power-of-rails-m)
     * [Metal: Super-fast Endpoints within your Rails Apps](http://www.railsinside.com/deployment/180-metal-super-fast-endpoints-within-your-rails-apps.html)
     * [What's New in Edge Rails: Rails Metal](http://archives.ryandaigle.com/articles/2008/12/18/what-s-new-in-edge-rails-rails-metal)
@@ -592,7 +592,7 @@ The internals of the various <code>rake gem</code> tasks have been substantially
 * Internal Rails testing has been switched from `Test::Unit::TestCase` to `ActiveSupport::TestCase`, and the Rails core requires Mocha to test.
 * The default `environment.rb` file has been decluttered.
 * The dbconsole script now lets you use an all-numeric password without crashing.
-* `Rails.root` now returns a `Pathname` object, which means you can use it directly with the `join` method to [clean up existing code](https://afreshcup.wordpress.com/2008/12/05/a-little-rails_root-tidiness/) that uses `File.join`.
+* `Rails.root` now returns a `Pathname` object, which means you can use it directly with the `join` method to [clean up existing code](https://afreshcup.com/home/2008/12/05/a-little-rails-root-tidiness.html) that uses `File.join`.
 * Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding `--with-dispatchers` when you run the `rails` command, or add them later with `rake rails:update:generate_dispatchers`).
 * Rails Guides have been converted from AsciiDoc to Textile markup.
 * Scaffolded views and controllers have been cleaned up a bit.
