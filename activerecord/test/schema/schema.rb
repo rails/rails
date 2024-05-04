@@ -161,7 +161,7 @@ ActiveRecord::Schema.define do
   create_table :encrypted_books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
-    t.column :name, :string, default: "<untitled>"
+    t.column :name, :string, default: "<untitled>", limit: 1024
     t.column :original_name, :string
     t.column :logo, :binary
 
