@@ -30,6 +30,13 @@ module ActiveStorage
 
     def initialize(primary:, mirrors:)
       @primary, @mirrors = primary, mirrors
+      @executor = Concurrent::ThreadPoolExecutor.new(
+        min_threads: 1,
+        max_threads: mirrors.size,
+        max_queue: 0,
+        fallback_policy: :caller_runs,
+        idle_time: 60
+      )
     end
 
     # Upload the +io+ to the +key+ specified to all services. The upload to the primary service is done synchronously
@@ -75,10 +82,12 @@ module ActiveStorage
       end
 
       def perform_across_services(method, *args)
-        # FIXME: Convert to be threaded
-        each_service.collect do |service|
-          service.public_send method, *args
+        tasks = each_service.collect do |service|
+          Concurrent::Promise.execute(executor: @executor) do
+            service.public_send method, *args
+          end
         end
+        tasks.each(&:value!)
       end
   end
 end
