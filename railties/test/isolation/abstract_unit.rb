@@ -403,7 +403,7 @@ module TestHelpers
       else
         ENV["BOOTSNAP_CACHE_DIR"] = bootsnap_cache_path
         begin
-          output = `cd #{app_path}; #{command}`
+          output = %x(cd #{app_path}; #{command})
         ensure
           ENV.delete("BOOTSNAP_CACHE_DIR")
         end
@@ -594,7 +594,7 @@ Module.new do
   extend TestHelpers::Paths
 
   def self.sh(cmd)
-    output = `#{cmd}`
+    output = %x(#{cmd})
     raise "Command #{cmd.inspect} failed. Output:\n#{output}" unless $?.success?
   end
 

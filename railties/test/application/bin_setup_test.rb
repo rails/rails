@@ -20,7 +20,7 @@ module ApplicationTests
         assert_equal 5, File.size("log/test.log")
         assert_not File.exist?("tmp/restart.txt")
 
-        `bin/setup 2>&1`
+        %x(bin/setup 2>&1)
         assert_equal 0, File.size("log/test.log")
         assert_equal '["schema_migrations", "ar_internal_metadata", "articles"]', list_tables.call
         assert File.exist?("tmp/restart.txt")
@@ -35,7 +35,7 @@ module ApplicationTests
 
         app_file "db/schema.rb", ""
 
-        output = `bin/setup 2>&1`
+        output = %x(bin/setup 2>&1)
 
         # Ignore line that's only output by Bundler < 1.14
         output.sub!(/^Resolving dependencies\.\.\.\n/, "")

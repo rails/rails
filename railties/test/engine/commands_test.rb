@@ -20,7 +20,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
 
   def test_help_command_work_inside_engine
     output = capture(:stderr) do
-      in_plugin_context(plugin_path) { `bin/rails --help` }
+      in_plugin_context(plugin_path) { %x(bin/rails --help) }
     end
     assert_no_match "NameError", output
   end

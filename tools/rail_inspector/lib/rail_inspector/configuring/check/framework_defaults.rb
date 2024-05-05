@@ -98,7 +98,7 @@ module RailInspector
                   code << configs.join("\n")
                   code.flush
 
-                  `git diff --color --no-index #{doc.path} #{code.path}`
+                  %x(git diff --color --no-index #{doc.path} #{code.path})
                 end
               end
 

@@ -68,7 +68,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
       config.disable_sandbox = true
     RUBY
 
-    output = `#{app_path}/bin/rails console --sandbox`
+    output = %x(#{app_path}/bin/rails console --sandbox)
 
     assert_includes output, "sandbox mode is disabled"
     assert_equal 1, $?.exitstatus

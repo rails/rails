@@ -101,7 +101,7 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
     task push: :build do
       otp = ""
       begin
-        otp = " --otp " + `ykman oath accounts code -s rubygems.org`.chomp
+        otp = " --otp " + %x(ykman oath accounts code -s rubygems.org).chomp
       rescue
         # User doesn't have ykman
       end
@@ -112,7 +112,7 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
         Dir.chdir("#{framework}") do
           npm_otp = ""
           begin
-            npm_otp = " --otp " + `ykman oath accounts code -s npmjs.com`.chomp
+            npm_otp = " --otp " + %x(ykman oath accounts code -s npmjs.com).chomp
           rescue
             # User doesn't have ykman
           end
@@ -187,11 +187,11 @@ namespace :all do
   task push: FRAMEWORKS.map { |f| "#{f}:push"            } + ["rails:push"]
 
   task :ensure_clean_state do
-    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|version.rb\\|tasks/release.rb'`.strip.empty?
+    unless %x(git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|version.rb\\|tasks/release.rb').strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
-    unless ENV["SKIP_TAG"] || `git tag | grep '^#{tag}$'`.strip.empty?
+    unless ENV["SKIP_TAG"] || %x(git tag | grep '^#{tag}$').strip.empty?
       abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
     end
@@ -249,7 +249,7 @@ namespace :all do
 
     editor = ENV["VISUAL"] || ENV["EDITOR"]
     if editor
-      `#{editor} #{File.expand_path(app_name)}`
+      %x(#{editor} #{File.expand_path(app_name)})
     end
 
     puts "Booting a Rails server. Verify the release by:"
@@ -272,7 +272,7 @@ namespace :all do
   end
 
   task :commit do
-    unless `git status -s`.strip.empty?
+    unless %x(git status -s).strip.empty?
       File.open("pkg/commit_message.txt", "w") do |f|
         f.puts "# Preparing for #{version} release\n"
         f.puts
@@ -330,7 +330,7 @@ task :announce do
       future_date = Date.today + 5
       future_date += 1 while future_date.saturday? || future_date.sunday?
 
-      github_user = `git config github.user`.chomp
+      github_user = %x(git config github.user).chomp
     end
 
     require "erb"

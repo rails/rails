@@ -10,7 +10,7 @@ class Rails::RunnerTest < ActiveSupport::TestCase
   teardown :teardown_app
 
   def test_rails_runner_with_stdin
-    command_output = `echo "puts 'Hello world'" | #{app_path}/bin/rails runner -`
+    command_output = %x(echo "puts 'Hello world'" | #{app_path}/bin/rails runner -)
 
     assert_equal <<~OUTPUT, command_output
       Hello world

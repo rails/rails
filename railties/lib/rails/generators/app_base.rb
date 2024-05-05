@@ -521,7 +521,7 @@ module Rails
       def node_version
         if using_node?
           ENV.fetch("NODE_VERSION") do
-            `node --version`[/\d+\.\d+\.\d+/]
+            %x(node --version)[/\d+\.\d+\.\d+/]
           rescue
             NODE_LTS_VERSION
           end
@@ -529,13 +529,13 @@ module Rails
       end
 
       def dockerfile_yarn_version
-        using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
+        using_node? and %x(yarn --version)[/\d+\.\d+\.\d+/]
       rescue
         "latest"
       end
 
       def dockerfile_bun_version
-        using_bun? and `bun --version`[/\d+\.\d+\.\d+/]
+        using_bun? and %x(bun --version)[/\d+\.\d+\.\d+/]
       rescue
         BUN_VERSION
       end
@@ -745,13 +745,13 @@ module Rails
       end
 
       def user_default_branch
-        @user_default_branch ||= `git config init.defaultbranch`
+        @user_default_branch ||= %x(git config init.defaultbranch)
       end
 
       def git_init_command
         return "git init" if user_default_branch.strip.present?
 
-        git_version = `git --version`[/\d+\.\d+\.\d+/]
+        git_version = %x(git --version)[/\d+\.\d+\.\d+/]
 
         if Gem::Version.new(git_version) >= Gem::Version.new("2.28.0")
           "git init -b main"

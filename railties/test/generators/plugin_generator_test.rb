@@ -135,31 +135,31 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_initializes_git_repo_with_main_branch_without_user_default
-    current_default_branch = `git config --global init.defaultBranch`
-    `git config --global --unset init.defaultBranch`
+    current_default_branch = %x(git config --global init.defaultBranch)
+    %x(git config --global --unset init.defaultBranch)
 
     run_generator
     assert_file ".git/HEAD", /main/
   ensure
     if !current_default_branch.strip.empty?
-      `git config --global init.defaultBranch #{current_default_branch}`
+      %x(git config --global init.defaultBranch #{current_default_branch})
     end
   end
 
   def test_version_control_initializes_git_repo_with_user_default_branch
-    git_version = `git --version`[/\d+.\d+.\d+/]
+    git_version = %x(git --version)[/\d+.\d+.\d+/]
     return if Gem::Version.new(git_version) < Gem::Version.new("2.28.0")
 
-    current_default_branch = `git config --global init.defaultBranch`
-    `git config --global init.defaultBranch master`
+    current_default_branch = %x(git config --global init.defaultBranch)
+    %x(git config --global init.defaultBranch master)
 
     run_generator
     assert_file ".git/HEAD", /master/
   ensure
     if current_default_branch && current_default_branch.strip.empty?
-      `git config --global --unset init.defaultBranch`
+      %x(git config --global --unset init.defaultBranch)
     elsif current_default_branch
-      `git config --global init.defaultBranch #{current_default_branch}`
+      %x(git config --global init.defaultBranch #{current_default_branch})
     end
   end
 
@@ -314,7 +314,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     in_plugin_context(destination_root) do
       quietly { system "bundle install" }
-      output = `bin/rails db:migrate 2>&1`
+      output = %x(bin/rails db:migrate 2>&1)
       assert_predicate $?, :success?, "Command failed: #{output}"
     end
   end
@@ -590,7 +590,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     prepare_plugin(destination_root)
 
     in_plugin_context(destination_root) do
-      output = `bin/test 2>&1`
+      output = %x(bin/test 2>&1)
       assert_predicate $?, :success?, "Command failed: #{output}"
     end
   end
@@ -762,7 +762,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--mountable"]
 
     capture(:stdout) do
-      `#{destination_root}/bin/rails g controller admin/dashboard foo`
+      %x(#{destination_root}/bin/rails g controller admin/dashboard foo)
     end
 
     assert_file "config/routes.rb" do |contents|
@@ -772,8 +772,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_git_name_and_email_in_gemspec_file
-    name = `git config user.name`.chomp rescue "TODO: Write your name"
-    email = `git config user.email`.chomp rescue "TODO: Write your email address"
+    name = %x(git config user.name).chomp rescue "TODO: Write your name"
+    email = %x(git config user.email).chomp rescue "TODO: Write your email address"
 
     run_generator
     assert_file "bukkits.gemspec" do |contents|
@@ -783,7 +783,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_git_name_in_license_file
-    name = `git config user.name`.chomp rescue "TODO: Write your name"
+    name = %x(git config user.name).chomp rescue "TODO: Write your name"
 
     run_generator
     assert_file "MIT-LICENSE" do |contents|
@@ -855,7 +855,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--mountable", "--api"]
 
     capture(:stdout) do
-      `#{destination_root}/bin/rails g scaffold article`
+      %x(#{destination_root}/bin/rails g scaffold article)
     end
 
     assert_file "app/models/bukkits/article.rb"
@@ -871,7 +871,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_model_with_existent_application_record_in_mountable_engine
     run_generator [destination_root, "--mountable"]
     capture(:stdout) do
-      `#{destination_root}/bin/rails g model article`
+      %x(#{destination_root}/bin/rails g model article)
     end
 
     assert_file "app/models/bukkits/article.rb", /class Article < ApplicationRecord/
@@ -881,7 +881,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--mountable"]
     FileUtils.rm "#{destination_root}/app/mailers/bukkits/application_mailer.rb"
     capture(:stdout) do
-      `#{destination_root}/bin/rails g mailer User`
+      %x(#{destination_root}/bin/rails g mailer User)
     end
 
     assert_file "#{destination_root}/app/mailers/bukkits/application_mailer.rb" do |mailer|
@@ -893,7 +893,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_generate_mailer_layouts_when_does_not_exist_in_mountable_engine
     run_generator [destination_root, "--mountable"]
     capture(:stdout) do
-      `#{destination_root}/bin/rails g mailer User`
+      %x(#{destination_root}/bin/rails g mailer User)
     end
 
     assert_file "#{destination_root}/app/views/layouts/bukkits/mailer.text.erb" do |view|
@@ -909,7 +909,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--mountable"]
     FileUtils.rm "#{destination_root}/app/jobs/bukkits/application_job.rb"
     capture(:stdout) do
-      `#{destination_root}/bin/rails g job refresh_counters`
+      %x(#{destination_root}/bin/rails g job refresh_counters)
     end
 
     assert_file "#{destination_root}/app/jobs/bukkits/application_job.rb" do |record|

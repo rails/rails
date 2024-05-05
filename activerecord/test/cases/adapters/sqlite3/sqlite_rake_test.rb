@@ -171,8 +171,8 @@ module ActiveRecord
         "database" => @database
       }
 
-      `sqlite3 #{@database} 'CREATE TABLE bar(id INTEGER)'`
-      `sqlite3 #{@database} 'CREATE TABLE foo(id INTEGER)'`
+      %x(sqlite3 #{@database} 'CREATE TABLE bar(id INTEGER)')
+      %x(sqlite3 #{@database} 'CREATE TABLE foo(id INTEGER)')
     end
 
     def test_structure_dump

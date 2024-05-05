@@ -147,7 +147,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     output = nil
     Dir.chdir(destination_root) do
-      output = `#{File.expand_path("../../exe/rails", __dir__)} new mysecondapp`
+      output = %x(#{File.expand_path("../../exe/rails", __dir__)} new mysecondapp)
     end
     assert_equal "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\nType 'rails' for help.\n", output
     assert_equal false, $?.success?
@@ -156,7 +156,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_application_new_show_help_message_inside_existing_rails_directory
     run_generator
     output = Dir.chdir(destination_root) do
-      `#{File.expand_path("../../exe/rails", __dir__)} new --help`
+      %x(#{File.expand_path("../../exe/rails", __dir__)} new --help)
     end
     assert_match(/rails new APP_PATH \[options\]/, output)
     assert_equal true, $?.success?
@@ -611,7 +611,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-system-test"]
 
     Dir.chdir(destination_root) do
-      quietly { `./bin/rails g scaffold User` }
+      quietly { %x(./bin/rails g scaffold User) }
 
       assert_no_file("test/application_system_test_case.rb")
       assert_no_file("test/system/users_test.rb")
@@ -1078,31 +1078,31 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_default_branch_main_without_user_default
-    current_default_branch = `git config --global init.defaultBranch`
-    `git config --global --unset init.defaultBranch`
+    current_default_branch = %x(git config --global init.defaultBranch)
+    %x(git config --global --unset init.defaultBranch)
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /main/
   ensure
     if !current_default_branch.strip.empty?
-      `git config --global init.defaultBranch #{current_default_branch}`
+      %x(git config --global init.defaultBranch #{current_default_branch})
     end
   end
 
   def test_version_control_initializes_git_repo_with_user_default_branch
-    git_version = `git --version`[/\d+.\d+.\d+/]
+    git_version = %x(git --version)[/\d+.\d+.\d+/]
     return if Gem::Version.new(git_version) < Gem::Version.new("2.28.0")
 
-    current_default_branch = `git config --global init.defaultBranch`
-    `git config --global init.defaultBranch master`
+    current_default_branch = %x(git config --global init.defaultBranch)
+    %x(git config --global init.defaultBranch master)
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /master/
   ensure
     if current_default_branch && current_default_branch.strip.empty?
-      `git config --global --unset init.defaultBranch`
+      %x(git config --global --unset init.defaultBranch)
     elsif current_default_branch
-      `git config --global init.defaultBranch #{current_default_branch}`
+      %x(git config --global init.defaultBranch #{current_default_branch})
     end
   end
 

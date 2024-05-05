@@ -38,7 +38,7 @@ class TestRunnerInEngineTest < ActiveSupport::TestCase
 
     def run_test_command(arguments = "")
       Dir.chdir(plugin_path) do
-        switch_env("BUNDLE_GEMFILE", "") { `bin/rails test #{arguments}` }
+        switch_env("BUNDLE_GEMFILE", "") { %x(bin/rails test #{arguments}) }
       end
     end
 end

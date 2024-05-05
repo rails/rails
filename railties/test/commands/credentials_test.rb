@@ -252,7 +252,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match %r/git diff driver/i, run_edit_command
 
     Dir.chdir(app_path) do
-      assert_equal "bin/rails credentials:diff", `git config --get 'diff.rails_credentials.textconv'`.strip
+      assert_equal "bin/rails credentials:diff", %x(git config --get 'diff.rails_credentials.textconv').strip
     end
 
     assert_no_match %r/git diff driver/i, run_edit_command

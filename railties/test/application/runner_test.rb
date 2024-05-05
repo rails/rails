@@ -55,7 +55,7 @@ module ApplicationTests
       p $LOADED_FEATURES.grep(/minitest/)
       SCRIPT
       assert_match "[]", Dir.chdir(app_path) {
-        `RAILS_ENV=production bin/rails runner "bin/print_features.rb"`
+        %x(RAILS_ENV=production bin/rails runner "bin/print_features.rb")
       }
     end
 
@@ -88,7 +88,7 @@ module ApplicationTests
       puts User.count
       SCRIPT
 
-      assert_match "42", Dir.chdir(app_path) { `cat bin/count_users.rb | bin/rails runner -` }
+      assert_match "42", Dir.chdir(app_path) { %x(cat bin/count_users.rb | bin/rails runner -) }
     end
 
     def test_with_hook

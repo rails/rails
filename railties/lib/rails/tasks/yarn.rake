@@ -10,7 +10,7 @@ namespace :yarn do
     end
 
     yarn_flags =
-      if `yarn --version`.start_with?("1")
+      if %x(yarn --version).start_with?("1")
         "--no-progress --frozen-lockfile"
       else
         "--immutable"

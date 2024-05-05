@@ -410,7 +410,7 @@ module Rails
         if skip_git?
           @author = default
         else
-          @author = `git config user.name`.chomp rescue default
+          @author = %x(git config user.name).chomp rescue default
         end
       end
 
@@ -419,7 +419,7 @@ module Rails
         if skip_git?
           @email = default
         else
-          @email = `git config user.email`.chomp rescue default
+          @email = %x(git config user.email).chomp rescue default
         end
       end
 

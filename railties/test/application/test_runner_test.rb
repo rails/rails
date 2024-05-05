@@ -345,7 +345,7 @@ module ApplicationTests
       RUBY
 
       Dir.chdir(app_path) do
-        `ruby -Itest test/models/post_test.rb`.tap do |output|
+        %x(ruby -Itest test/models/post_test.rb).tap do |output|
           assert_match "PostTest", output
           assert_no_match "is already defined in", output
         end
@@ -977,7 +977,7 @@ module ApplicationTests
       create_test_file :models, "post", pass: false
       # This specifically verifies TEST for backwards compatibility with rake test
       # as `bin/rails test` already supports running tests from a single file more cleanly.
-      output = Dir.chdir(app_path) { `bin/rake test TEST=test/models/post_test.rb` }
+      output = Dir.chdir(app_path) { %x(bin/rake test TEST=test/models/post_test.rb) }
 
       assert_match "PostTest", output, "passing TEST= should run selected test"
       assert_no_match "AccountTest", output, "passing TEST= should only run selected test"
@@ -986,7 +986,7 @@ module ApplicationTests
 
     def test_pass_rake_options
       create_test_file :models, "account"
-      output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile --trace=stdout test` }
+      output = Dir.chdir(app_path) { %x(bin/rake --rakefile Rakefile --trace=stdout test) }
 
       assert_match "1 runs, 1 assertions", output
       assert_match "Execute test", output
@@ -995,7 +995,7 @@ module ApplicationTests
     def test_rails_db_create_all_restores_db_connection
       create_test_file :models, "account"
       rails "db:create:all", "db:migrate"
-      output = Dir.chdir(app_path) { `echo ".tables" | rails dbconsole` }
+      output = Dir.chdir(app_path) { %x(echo ".tables" | rails dbconsole) }
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
@@ -1003,13 +1003,13 @@ module ApplicationTests
       create_test_file :models, "account"
       rails "db:create:all" # create all to avoid warnings
       rails "db:drop:all", "db:create:all", "db:migrate"
-      output = Dir.chdir(app_path) { `echo ".tables" | rails dbconsole` }
+      output = Dir.chdir(app_path) { %x(echo ".tables" | rails dbconsole) }
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
     def test_rake_passes_TESTOPTS_to_minitest
       create_test_file :models, "account"
-      output = Dir.chdir(app_path) { `bin/rake test TESTOPTS=-v` }
+      output = Dir.chdir(app_path) { %x(bin/rake test TESTOPTS=-v) }
       assert_match "AccountTest#test_truth", output, "passing TESTOPTS= should be sent to the test runner"
     end
 
@@ -1020,7 +1020,7 @@ module ApplicationTests
 
       file = create_test_for_env("test")
       results = Dir.chdir(app_path) {
-        `ruby -Ilib:test #{file}`.each_line.filter_map { |line| JSON.parse(line) if line.start_with?("{") }
+        %x(ruby -Ilib:test #{file}).each_line.filter_map { |line| JSON.parse(line) if line.start_with?("{") }
       }
       assert_equal 1, results.length
       failures = results.first["failures"]
@@ -1037,7 +1037,7 @@ module ApplicationTests
 
       file = create_test_for_env("development")
       results = Dir.chdir(app_path) {
-        `RAILS_ENV=development ruby -Ilib:test #{file}`.each_line.
+        %x(RAILS_ENV=development ruby -Ilib:test #{file}).each_line.
           filter_map { |line| JSON.parse(line) if line.start_with?("{") }
       }
       assert_equal 1, results.length
@@ -1050,7 +1050,7 @@ module ApplicationTests
 
     def test_rake_passes_multiple_TESTOPTS_to_minitest
       create_test_file :models, "account"
-      output = Dir.chdir(app_path) { `bin/rake test TESTOPTS='-v --seed=1234'` }
+      output = Dir.chdir(app_path) { %x(bin/rake test TESTOPTS='-v --seed=1234') }
       assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
       assert_match "seed=1234", output, "passing TEST= should run selected test"
     end
@@ -1058,14 +1058,14 @@ module ApplicationTests
     def test_rake_runs_multiple_test_tasks
       create_test_file :models, "account"
       create_test_file :controllers, "accounts_controller"
-      output = Dir.chdir(app_path) { `bin/rake test:models test:controllers TESTOPTS='-v'` }
+      output = Dir.chdir(app_path) { %x(bin/rake test:models test:controllers TESTOPTS='-v') }
       assert_match "AccountTest#test_truth", output
       assert_match "AccountsControllerTest#test_truth", output
     end
 
     def test_rake_db_and_test_tasks_parses_args_correctly
       create_test_file :models, "account"
-      output = Dir.chdir(app_path) { `bin/rake db:migrate test:models TESTOPTS='-v' && echo ".tables" | rails dbconsole` }
+      output = Dir.chdir(app_path) { %x(bin/rake db:migrate test:models TESTOPTS='-v' && echo ".tables" | rails dbconsole) }
       assert_match "AccountTest#test_truth", output
       assert_match "ar_internal_metadata", output
     end
@@ -1076,7 +1076,7 @@ module ApplicationTests
           puts "echo"
         end
       RUBY
-      output = Dir.chdir(app_path) { `bin/rake test echo` }
+      output = Dir.chdir(app_path) { %x(bin/rake test echo) }
       assert_equal "echo", output.split("\n").last
     end
 
@@ -1087,7 +1087,7 @@ module ApplicationTests
           puts "echo"
         end
       RUBY
-      output = Dir.chdir(app_path) { `bin/rake test echo` }
+      output = Dir.chdir(app_path) { %x(bin/rake test echo) }
       assert_no_match "echo", output
       assert_not_predicate $?, :success?
     end
@@ -1211,7 +1211,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `bin/rake test` }
+      output = Dir.chdir(app_path) { %x(bin/rake test) }
       assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
@@ -1227,7 +1227,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `bin/rake test TEST=test/system/dummy_test.rb` }
+      output = Dir.chdir(app_path) { %x(bin/rake test TEST=test/system/dummy_test.rb) }
       assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
@@ -1248,7 +1248,7 @@ module ApplicationTests
     def test_can_exclude_files_from_being_tested_via_rake_task_by_setting_DEFAULT_TEST_EXCLUDE_env_var
       create_test_file "smoke", "smoke_foo"
 
-      output = Dir.chdir(app_path) { `DEFAULT_TEST_EXCLUDE="test/smoke/**/*_test.rb" bin/rake test` }
+      output = Dir.chdir(app_path) { %x(DEFAULT_TEST_EXCLUDE="test/smoke/**/*_test.rb" bin/rake test) }
       assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
     end
 

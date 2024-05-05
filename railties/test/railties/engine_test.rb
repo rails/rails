@@ -68,7 +68,7 @@ module RailtiesTest
       RUBY
 
       Dir.chdir(@plugin.path) do
-        output = `bundle exec rake foo`
+        output = %x(bundle exec rake foo)
         assert_match "Task ran", output
       end
     end
@@ -102,7 +102,7 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(app_path) do
-        output = `bundle exec rake bukkits:install:migrations`
+        output = %x(bundle exec rake bukkits:install:migrations)
 
         ["CreateUsers", "AddLastNameToUsers", "CreateSessions"].each do |migration_name|
           assert migrations.detect { |migration| migration.name == migration_name }
@@ -115,7 +115,7 @@ module RailtiesTest
 
         assert_equal migrations.length, migrations_count
 
-        output = `bundle exec rake railties:install:migrations`.split("\n")
+        output = %x(bundle exec rake railties:install:migrations).split("\n")
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
 
@@ -155,7 +155,7 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(app_path) do
-        output = `bundle exec rake bukkits:install:migrations DATABASE=animals`
+        output = %x(bundle exec rake bukkits:install:migrations DATABASE=animals)
 
         ["CreateUsers", "AddLastNameToUsers", "CreateSessions"].each do |migration_name|
           assert migrations("animals").detect { |migration| migration.name == migration_name }
@@ -168,7 +168,7 @@ module RailtiesTest
 
         assert_equal migrations("animals").length, migrations_count
 
-        output = `bundle exec rake railties:install:migrations DATABASE=animals`.split("\n")
+        output = %x(bundle exec rake railties:install:migrations DATABASE=animals).split("\n")
 
         assert_equal migrations_count, Dir["#{app_path}/db/animals_migrate/*.rb"].length
 
@@ -206,7 +206,7 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(app_path) do
-        output = `bundle exec rake railties:install:migrations`.split("\n")
+        output = %x(bundle exec rake railties:install:migrations).split("\n")
 
         assert_match(/Copied migration \d+_create_users\.bukkits\.rb from bukkits/, output.first)
         assert_match(/Copied migration \d+_create_blogs\.blog_engine\.rb from blog_engine/, output.second)
@@ -245,7 +245,7 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(app_path) do
-        output = `bundle exec rake railties:install:migrations`.split("\n")
+        output = %x(bundle exec rake railties:install:migrations).split("\n")
 
         assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.first)
         assert_match(/Copied migration \d+_create_keys\.api_engine\.rb from api_engine/, output.second)
@@ -276,7 +276,7 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(@plugin.path) do
-        output = `bundle exec rake app:bukkits:install:migrations`
+        output = %x(bundle exec rake app:bukkits:install:migrations)
 
         migration_with_engine_path = migrations.detect { |migration| migration.name == "AddFirstNameToUsers" }
         assert migration_with_engine_path
@@ -1870,7 +1870,7 @@ en:
     end
 
     def assert_command_succeeds(command)
-      output = `#{command}`
+      output = %x(#{command})
       assert_predicate $?, :success?, "Command did not succeed: #{command}\n#{output}"
     end
   end

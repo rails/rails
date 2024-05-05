@@ -205,7 +205,7 @@ module Rails
 
     class EdgeTask < RepoTask
       def rails_version
-        "main@#{`git rev-parse HEAD`[0, 7]}"
+        "main@#{%x(git rev-parse HEAD)[0, 7]}"
       end
 
       def badge_version

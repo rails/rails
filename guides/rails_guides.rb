@@ -17,7 +17,7 @@ env_value = ->(name) { ENV[name].presence }
 env_flag  = ->(name) { "1" == env_value[name] }
 
 version = env_value["RAILS_VERSION"]
-edge    = `git rev-parse HEAD`.strip unless version
+edge    = %x(git rev-parse HEAD).strip unless version
 
 RailsGuides::Generator.new(
   edge:      edge,

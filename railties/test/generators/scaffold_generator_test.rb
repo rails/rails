@@ -573,10 +573,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     with_new_plugin(engine_path, "--mountable") do
       quietly do
-        `bin/rails g scaffold User name:string age:integer;
-        bin/rails db:migrate`
+        %x(bin/rails g scaffold User name:string age:integer;
+        bin/rails db:migrate)
       end
-      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, %x(bin/rails test 2>&1))
     end
   end
 
@@ -585,8 +585,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     with_new_plugin(engine_path, "--mountable") do
       quietly do
-        `bin/rails g scaffold User name:string age:integer;
-        bin/rails db:migrate`
+        %x(bin/rails g scaffold User name:string age:integer;
+        bin/rails db:migrate)
       end
 
       assert_file "bukkits-admin/app/controllers/bukkits/admin/users_controller.rb" do |content|
@@ -594,7 +594,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         assert_match(/class UsersController < ApplicationController/, content)
       end
 
-      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, %x(bin/rails test 2>&1))
     end
   end
 
@@ -603,10 +603,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     with_new_plugin(engine_path, "--full") do
       quietly do
-        `bin/rails g scaffold User name:string age:integer;
-        bin/rails db:migrate`
+        %x(bin/rails g scaffold User name:string age:integer;
+        bin/rails db:migrate)
       end
-      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/8 runs, 12 assertions, 0 failures, 0 errors/, %x(bin/rails test 2>&1))
     end
   end
 
@@ -615,10 +615,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     with_new_plugin(engine_path, "--mountable", "--api") do
       quietly do
-        `bin/rails g scaffold User name:string age:integer;
-        bin/rails db:migrate`
+        %x(bin/rails g scaffold User name:string age:integer;
+        bin/rails db:migrate)
       end
-      assert_match(/6 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/6 runs, 10 assertions, 0 failures, 0 errors/, %x(bin/rails test 2>&1))
     end
   end
 
@@ -627,19 +627,19 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     with_new_plugin(engine_path, "--full", "--api") do
       quietly do
-        `bin/rails g scaffold User name:string age:integer;
-        bin/rails db:migrate`
+        %x(bin/rails g scaffold User name:string age:integer;
+        bin/rails db:migrate)
       end
-      assert_match(/6 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+      assert_match(/6 runs, 10 assertions, 0 failures, 0 errors/, %x(bin/rails test 2>&1))
     end
   end
 
   def test_scaffold_on_invoke_inside_mountable_engine
-    Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+    Dir.chdir(destination_root) { %x(bundle exec rails plugin new bukkits --mountable) }
     engine_path = File.join(destination_root, "bukkits")
 
     Dir.chdir(engine_path) do
-      quietly { `bin/rails generate scaffold User name:string age:integer` }
+      quietly { %x(bin/rails generate scaffold User name:string age:integer) }
 
       assert File.exist?("app/models/bukkits/user.rb")
       assert File.exist?("test/models/bukkits/user_test.rb")
@@ -661,12 +661,12 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_scaffold_on_revoke_inside_mountable_engine
-    Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+    Dir.chdir(destination_root) { %x(bundle exec rails plugin new bukkits --mountable) }
     engine_path = File.join(destination_root, "bukkits")
 
     Dir.chdir(engine_path) do
-      quietly { `bin/rails generate scaffold User name:string age:integer` }
-      quietly { `bin/rails destroy scaffold User` }
+      quietly { %x(bin/rails generate scaffold User name:string age:integer) }
+      quietly { %x(bin/rails destroy scaffold User) }
 
       assert_not File.exist?("app/models/bukkits/user.rb")
       assert_not File.exist?("test/models/bukkits/user_test.rb")

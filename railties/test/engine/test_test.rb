@@ -18,11 +18,11 @@ class Rails::Engine::TestTest < ActiveSupport::TestCase
   test "automatically synchronize test schema" do
     in_plugin_context(plugin_path) do
       # In order to confirm that migration files are loaded, generate multiple migration files.
-      `bin/rails generate model user name:string;
+      %x(bin/rails generate model user name:string;
        bin/rails generate model todo name:string;
-       RAILS_ENV=development bin/rails db:migrate`
+       RAILS_ENV=development bin/rails db:migrate)
 
-      output = `bin/rails test test/models/bukkits/user_test.rb`
+      output = %x(bin/rails test test/models/bukkits/user_test.rb)
       assert_includes(output, "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips")
     end
   end

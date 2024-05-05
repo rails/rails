@@ -24,11 +24,11 @@ module RailtiesTests
     end
 
     def bundled_rails(cmd)
-      `bundle exec rails #{cmd}`
+      %x(bundle exec rails #{cmd})
     end
 
     def rails(cmd)
-      `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails #{cmd}`
+      %x(#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails #{cmd})
     end
 
     def build_engine(is_mountable = false)

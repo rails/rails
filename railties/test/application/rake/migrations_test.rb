@@ -295,7 +295,7 @@ module ApplicationTests
           rails "generate", "model", "user", "username:string", "password:string"
           rails "generate", "migration", "add_email_to_users", "email:string"
           rails "db:migrate"
-          `rm db/migrate/*email*.rb`
+          %x(rm db/migrate/*email*.rb)
 
           output = rails("db:migrate:status")
           assert_match(/up\s+\d{14}\s+Create users/, output)
@@ -509,7 +509,7 @@ module ApplicationTests
           rails "generate", "model", "user", "username:string", "password:string"
           rails "generate", "migration", "add_email_to_users", "email:string"
           rails "db:migrate"
-          `rm db/migrate/*email*.rb`
+          %x(rm db/migrate/*email*.rb)
 
           output = rails("db:migrate:status")
 

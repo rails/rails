@@ -177,7 +177,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `bin/rails do_something RAILS_ENV=production` }
+      output = Dir.chdir(app_path) { %x(bin/rails do_something RAILS_ENV=production) }
       assert_equal "Answer: 42\n", output.lines.last
     end
 

@@ -322,6 +322,10 @@ Style/OpenStructUse:
 Style/ArrayIntersect:
   Enabled: true
 
+Style/CommandLiteral:
+  Enabled: true
+  EnforcedStyle: percent_x
+
 Performance/BindCall:
   Enabled: true
 
