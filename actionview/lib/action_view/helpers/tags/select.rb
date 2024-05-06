@@ -8,7 +8,7 @@ module ActionView
         include FormOptionsHelper
 
         def initialize(object_name, method_name, template_object, choices, options, html_options)
-          @choices = block_given? ? template_object.capture { yield || "" } : choices
+          @choices = block_given? ? template_object.capture { yield } || "" : choices
           @choices = @choices.to_a if @choices.is_a?(Range)
 
           @html_options = html_options
