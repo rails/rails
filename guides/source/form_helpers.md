@@ -904,13 +904,17 @@ The form builder customizations do add indirection (and may seem like an overkil
 Form Input Naming Conventions and `params` Hash
 -----------------------------------------------
 
-Values from forms can be at the top level of the `params` hash or nested in another hash. For example, in a standard `create` action for a Person model, `params[:person]` would usually be a hash of all the attributes for the person to create. The `params` hash can also contain arrays, arrays of hashes, and so on.
+All of the form helpers described above help with generating the HTML for form elements so that the user can enter various types of input. How do you access the user input values in the Controller? The `params` hash is the answer. You've already seen the `params` hash in the above example. This section will more explicitly go over naming conventions around how form input is structured in the `params` hash.
 
-Fundamentally HTML forms don't know about any sort of structured data, all they generate is name-value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
+The `params` hash can contain arrays and arrays of hashes. Values can be at the top level of the `params` hash or nested in another hash. For example, in a standard `create` action for a Person model, `params[:person]` will be a hash of all the attributes for the `Person` object.
 
-### Basic Structures
+Note that HTML forms don't have an inherent structure to the user input data, all they generate is name-value string pairs. The arrays and hashes you see in your application are the result of parameter naming conventions that Rails uses.
 
-The two basic structures are arrays and hashes. Hashes mirror the syntax used for accessing the value in `params`. For example, if a form contains:
+### Basic Structure
+
+The two basic structures for user input form data are arrays and hashes.
+
+Hashes mirror the syntax used for accessing the value in `params`. For example, if a form contains:
 
 ```html
 <input id="person_name" name="person[name]" type="text" value="Henry"/>
@@ -936,7 +940,9 @@ will result in the `params` hash being
 { 'person' => { 'address' => { 'city' => 'New York' } } }
 ```
 
-Normally Rails ignores duplicate parameter names. If the parameter name ends with an empty set of square brackets `[]` then they will be accumulated in an array. If you wanted users to be able to input multiple phone numbers, you could place this in the form:
+The other structure is Array. Normally Rails ignores duplicate parameter names.But if the parameter name ends with an empty set of square brackets `[]` then they will be accumulated in an array.
+
+For example, if you want users to be able to input multiple phone numbers, you could place this in the form:
 
 ```html
 <input name="person[phone_number][]" type="text"/>
@@ -948,7 +954,9 @@ This would result in `params[:person][:phone_number]` being an array containing 
 
 ### Combining Arrays and Hashes
 
-We can mix and match these two concepts. One element of a hash might be an array as in the previous example, or you can have an array of hashes. For example, a form might let you create any number of addresses by repeating the following form fragment
+You can mix and match these two concepts. One element of a hash might be an array as in the previous example `params[:person]` hash has a key called `[:phone_number]` whose value is an array.
+
+You also can have an array of hashes. For example, a form can let a user create any number of addresses by repeating the following form fragment:
 
 ```html
 <input name="person[addresses][][line1]" type="text"/>
@@ -959,9 +967,9 @@ We can mix and match these two concepts. One element of a hash might be an array
 <input name="person[addresses][][city]" type="text"/>
 ```
 
-This would result in `params[:person][:addresses]` being an array of hashes with keys `line1`, `line2`, and `city`.
+This would result in `params[:person][:addresses]` being an array of hashes. Each hash in the array will have the keys `line1`, `line2`, and `city`.
 
-There's a restriction, however: while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes; for example, instead of having an array of model objects, one can have a hash of model objects keyed by their id, an array index, or some other parameter.
+It's important to note that while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes though. For example, instead of an array of model objects, you can have a hash of model objects keyed by their id or similar.
 
 WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted and if it is checked then both are submitted but the value submitted by the checkbox takes precedence.
 
@@ -1097,7 +1105,6 @@ The following form allows a user to create a `Person` and its associated address
   </ul>
 <% end %>
 ```
-
 
 When an association accepts nested attributes `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses it renders nothing. A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 2 sets of address fields being rendered on the new person form.
 
