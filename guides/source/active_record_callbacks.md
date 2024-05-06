@@ -680,29 +680,48 @@ Skipping Callbacks
 Just as with [validations](active_record_validations.html), it is also possible
 to skip callbacks by using the following methods:
 
-* `decrement!`
-* `decrement_counter`
-* `delete`
-* `delete_all`
-* `delete_by`
-* `increment!`
-* `increment_counter`
-* `insert`
-* `insert!`
-* `insert_all`
-* `insert_all!`
-* `touch_all`
-* `update_column`
-* `update_columns`
-* `update_all`
-* `update_counters`
-* `upsert`
-* `upsert_all`
+* [`decrement!`][]
+* [`decrement_counter`][]
+* [`delete`][]
+* [`delete_all`][]
+* [`delete_by`][]
+* [`increment!`][]
+* [`increment_counter`][]
+* [`insert`][]
+* [`insert!`][]
+* [`insert_all`][]
+* [`insert_all!`][]
+* [`touch_all`][]
+* [`update_column`][]
+* [`update_columns`][]
+* [`update_all`][]
+* [`update_counters`][]
+* [`upsert`][]
+* [`upsert_all`][]
 
 WARNING. These methods should be used with caution because there may be
 important business rules and application logic in callbacks that you do not want
 to bypass. Bypassing them without understanding the potential implications may
 lead to invalid data.
+
+[`decrement!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
+[`decrement_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
+[`delete`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-delete
+[`delete_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-delete_all
+[`delete_by`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-delete_by
+[`increment!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-increment-21
+[`increment_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
+[`insert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
+[`insert!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
+[`insert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
+[`insert_all!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
+[`touch_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
+[`update_column`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column
+[`update_columns`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_columns
+[`update_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_all
+[`update_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
+[`upsert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
+[`upsert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
 
 Halting Execution
 -----------------
