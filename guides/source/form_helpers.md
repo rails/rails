@@ -91,7 +91,7 @@ For example, if the form contains `<%= form.text_field :query %>`, then you
 would be able to get the value of this field in the controller with
 `params[:query]`.
 
-When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in the [Understanding Parameter Naming Conventions](#understanding-parameter-naming-conventions) section of this guide. For details on the precise usage of these helpers, please refer to the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
+When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in the [For Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) section of this guide. For details on the precise usage of these helpers, please refer to the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
 
 #### Checkboxes
 
@@ -258,7 +258,7 @@ It will generate this HTML:
 Some important things to note when using `form_with` with a model object:
 
 * The form `action` is automatically filled with an appropriate value, `action="/books"`. If you were updating a book, it would be `action="/books/42"`.
-* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Understanding Parameter Naming Conventions](#understanding-parameter-naming-conventions) of this guide.
+* The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
 * The submit button is automatically given an appropriate text value, "Create Book" in this case.
 
 TIP: Typically your form inputs will mirror model attributes. However, they don't have to. If there is other information you need you can include a field in your form and access it via `params[:book][:my_non_attribute_input]`.
@@ -866,9 +866,9 @@ If you reuse this frequently you could define a `labeled_form_with` helper that 
 
 ```ruby
 module ApplicationHelper
-  def labeled_form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
+  def labeled_form_with(**options, &block)
     options[:builder] = LabellingFormBuilder
-    form_with model: model, scope: scope, url: url, format: format, **options, &block
+    form_with **options, &block
   end
 end
 ```
@@ -876,7 +876,7 @@ end
 and use it instead of `form_with`:
 
 ```erb
-<%= labeled_form_with model: Person.new do |form| %>
+<%= labeled_form_with model: @person do |form| %>
   <%= form.text_field :first_name %>
 <% end %>
 ```
@@ -891,8 +891,6 @@ All three cases above will generate the same HTML output:
 </form>
 ```
 
-Some of the customization may seem like an overkill. Choose between extending `FormBuilder` class and creating helpers based on how frequently your application need the custom form elements.
-
 The form builder used also determines what happens when you do:
 
 ```erb
@@ -901,8 +899,10 @@ The form builder used also determines what happens when you do:
 
 If `f` is an instance of `ActionView::Helpers::FormBuilder`, then this will render the `form` partial, setting the partial's object to the form builder. If the form builder is of class `LabellingFormBuilder`, then the `labelling_form` partial would be rendered instead.
 
-Understanding Parameter Naming Conventions
-------------------------------------------
+The form builder customizations do add indirection (and may seem like an overkill for the simple example above). Choose between different customizations, extending `FormBuilder` class or creating helpers, based on how frequently your forms use the custom elements.
+
+Form Input Naming Conventions and `params` Hash
+-----------------------------------------------
 
 Values from forms can be at the top level of the `params` hash or nested in another hash. For example, in a standard `create` action for a Person model, `params[:person]` would usually be a hash of all the attributes for the person to create. The `params` hash can also contain arrays, arrays of hashes, and so on.
 
@@ -946,7 +946,7 @@ Normally Rails ignores duplicate parameter names. If the parameter name ends wit
 
 This would result in `params[:person][:phone_number]` being an array containing the inputted phone numbers.
 
-### Combining Them
+### Combining Arrays and Hashes
 
 We can mix and match these two concepts. One element of a hash might be an array as in the previous example, or you can have an array of hashes. For example, a form might let you create any number of addresses by repeating the following form fragment
 
@@ -1053,25 +1053,6 @@ Lastly, as a shortcut, instead of specifying an ID for `:index` (e.g.
 ```
 
 produces exactly the same output as our original example.
-
-Forms to External Resources
----------------------------
-
-Rails' form helpers can also be used to build a form for posting data to an external resource. However, at times it can be necessary to set an `authenticity_token` for the resource; this can be done by passing an `authenticity_token: 'your_external_token'` parameter to the `form_with` options:
-
-```erb
-<%= form_with url: 'http://farfar.away/form', authenticity_token: 'external_token' do %>
-  Form contents
-<% end %>
-```
-
-Sometimes when submitting data to an external resource, like a payment gateway, the fields that can be used in the form are limited by an external API and it may be undesirable to generate an `authenticity_token`. To not send a token, simply pass `false` to the `:authenticity_token` option:
-
-```erb
-<%= form_with url: 'http://farfar.away/form', authenticity_token: false do %>
-  Form contents
-<% end %>
-```
 
 Building Complex Forms
 ----------------------
@@ -1228,6 +1209,25 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 ### Adding Fields on the Fly
 
 Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an "Add new address" button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds since the [epoch](https://en.wikipedia.org/wiki/Unix_time)) is a common choice.
+
+Forms to External Resources
+---------------------------
+
+Rails' form helpers can also be used to build a form for posting data to an external resource. However, at times it can be necessary to set an `authenticity_token` for the resource; this can be done by passing an `authenticity_token: 'your_external_token'` parameter to the `form_with` options:
+
+```erb
+<%= form_with url: 'http://farfar.away/form', authenticity_token: 'external_token' do %>
+  Form contents
+<% end %>
+```
+
+Sometimes when submitting data to an external resource, like a payment gateway, the fields that can be used in the form are limited by an external API and it may be undesirable to generate an `authenticity_token`. To not send a token, simply pass `false` to the `:authenticity_token` option:
+
+```erb
+<%= form_with url: 'http://farfar.away/form', authenticity_token: false do %>
+  Form contents
+<% end %>
+```
 
 Using Tag Helpers without a Form Builder
 ----------------------------------------
