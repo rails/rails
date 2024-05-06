@@ -25,11 +25,11 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def write_prompt(command, expected_output = nil)
+  def write_prompt(command, expected_output = nil, prompt: "> ")
     @primary.puts command
     assert_output command, @primary
     assert_output expected_output, @primary, 100 if expected_output
-    assert_output "> ", @primary
+    assert_output prompt, @primary
   end
 
   def spawn_console(options, wait_for_prompt: true, env: {})
@@ -123,21 +123,21 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     options = "-e production"
     spawn_console(options)
 
-    write_prompt "123", "app-template(prod)> 123"
+    write_prompt "123", prompt: "app-template(prod)>"
   end
 
   def test_development_console_prompt
     options = "-e development"
     spawn_console(options)
 
-    write_prompt "123", "app-template(dev)> 123"
+    write_prompt "123", prompt: "app-template(dev)> "
   end
 
   def test_test_console_prompt
     options = "-e test"
     spawn_console(options)
 
-    write_prompt "123", "app-template(test)> 123"
+    write_prompt "123", prompt: "app-template(test)> "
   end
 
   def test_helper_helper_method
@@ -219,7 +219,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     options = "-e test"
     spawn_console(options, env: { "IRBRC" => irbrc.path })
 
-    write_prompt "123", ">> 123"
+    write_prompt "123", prompt: ">> "
   ensure
     File.unlink(irbrc)
   end
