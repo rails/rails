@@ -7,8 +7,8 @@ module ActionView
         include SelectRenderer
         include FormOptionsHelper
 
-        def initialize(object_name, method_name, template_object, choices, options, html_options)
-          @choices = block_given? ? template_object.capture { yield } || "" : choices
+        def initialize(object_name, method_name, template_object, choices, options, html_options, &block)
+          @choices = block_given? ? template_object.capture(&block) || "" : choices
           @choices = @choices.to_a if @choices.is_a?(Range)
 
           @html_options = html_options
