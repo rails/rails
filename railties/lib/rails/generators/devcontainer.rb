@@ -3,6 +3,12 @@
 module Rails
   module Generators
     module Devcontainer
+      DB_FEATURES = {
+        "mysql" => "ghcr.io/rails/devcontainer/features/mysql-client",
+        "postgresql" => "ghcr.io/rails/devcontainer/features/postgres-client",
+        "sqlite3" =>  "ghcr.io/rails/devcontainer/features/sqlite3"
+      }
+
       private
         def devcontainer_dependencies
           return @devcontainer_dependencies if @devcontainer_dependencies
@@ -124,6 +130,7 @@ module Rails
 
         def db_feature_for_devcontainer(database = options[:database])
           case database
+          when "sqlite3"        then sqlite3_feature
           when "mysql"          then mysql_feature
           when "postgresql"     then postgres_feature
           end
@@ -178,18 +185,19 @@ module Rails
         end
 
         def mysql_feature
-          { "ghcr.io/rails/devcontainer/features/mysql-client" => {} }
+          { DB_FEATURES["mysql"] => {} }
         end
 
         def postgres_feature
-          { "ghcr.io/rails/devcontainer/features/postgres-client" => {} }
+          { DB_FEATURES["postgresql"] => {} }
+        end
+
+        def sqlite3_feature
+          { DB_FEATURES["sqlite3"] => {} }
         end
 
         def db_features
-          [
-            "ghcr.io/rails/devcontainer/features/mysql-client",
-            "ghcr.io/rails/devcontainer/features/postgres-client"
-          ]
+          @db_features ||= DB_FEATURES.values
         end
 
         def local_rails_mount
