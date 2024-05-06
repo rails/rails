@@ -1,3 +1,8 @@
+*   Respect `html_options[:form]` when `collection_checkboxes` generates the
+    hidden `<input>`.
+
+    *Riccardo Odone*
+
 *   Improve error highlighting of multi-line methods in ERB templates or
     templates where the error occurs within a do-end block.
 
