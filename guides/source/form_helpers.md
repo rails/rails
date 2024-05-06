@@ -819,13 +819,11 @@ If the file an an image that needs to be stored with a model (e.g. user's profil
 Customizing Form Builders
 -------------------------
 
-The object yielded by `form_with` and `fields_for` is an instance of
-[`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html).
-Form builders encapsulate the notion of displaying form elements for a single
-object. While you can write helpers for your forms in the usual way, you can
-also create a subclass of `ActionView::Helpers::FormBuilder`, and add the
-helpers there. For example, assuming you have a helper method defined in your
-application called `text_field_with_label` as the following
+We call the objects yielded by `form_with` or `fields_for` Form Builders. Form builders encapsulate the notion of displaying form elements for a single
+object and are an instance of
+[`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). This class can be extended to add custom helpers for your application.
+
+For example, if you always want to display a `text_field` along with a `label`, you could add the following helper method to `application_helper.rb`:
 
 ```ruby
 module ApplicationHelper
@@ -835,13 +833,18 @@ module ApplicationHelper
 end
 ```
 
+And use it in a form as usual:
+
 ```erb
 <%= form_with model: @person do |form| %>
   <%= text_field_with_label form, :first_name %>
 <% end %>
 ```
 
-can be replaced with
+But you can also create a subclass of `ActionView::Helpers::FormBuilder`, and
+add the helpers there.
+
+The above form can be replaced with:
 
 ```erb
 <%= form_with model: @person, builder: LabellingFormBuilder do |form| %>
@@ -849,7 +852,7 @@ can be replaced with
 <% end %>
 ```
 
-by defining a `LabellingFormBuilder` class similar to the following:
+by defining a `LabellingFormBuilder` class like this:
 
 ```ruby
 class LabellingFormBuilder < ActionView::Helpers::FormBuilder
@@ -869,6 +872,26 @@ module ApplicationHelper
   end
 end
 ```
+
+and use it instead of `form_with`:
+
+```erb
+<%= labeled_form_with model: Person.new do |form| %>
+  <%= form.text_field :first_name %>
+<% end %>
+```
+
+All three cases above will generate the same HTML output:
+
+```html
+<form action="/people" accept-charset="UTF-8" method="post">
+  <!-- ... -->
+  <label for="person_first_name">First name</label>
+  <input type="text" name="person[first_name]" id="person_first_name">
+</form>
+```
+
+Some of the customization may seem like an overkill. Choose between extending `FormBuilder` class and creating helpers based on how frequently your application need the custom form elements.
 
 The form builder used also determines what happens when you do:
 
