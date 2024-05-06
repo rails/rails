@@ -1221,7 +1221,7 @@ Rather than rendering multiple sets of fields ahead of time you may wish to add 
 Forms to External Resources
 ---------------------------
 
-Rails' form helpers can also be used to build a form for posting data to an external resource. However, at times it can be necessary to set an `authenticity_token` for the resource; this can be done by passing an `authenticity_token: 'your_external_token'` parameter to the `form_with` options:
+Rails form helpers can be used to build a form for posting data to an external resource. If the external API expects an `authenticity_token` for the resource, this can be passed as `authenticity_token: 'your_external_token'` parameter to `form_with`:
 
 ```erb
 <%= form_with url: 'http://farfar.away/form', authenticity_token: 'external_token' do %>
@@ -1229,7 +1229,7 @@ Rails' form helpers can also be used to build a form for posting data to an exte
 <% end %>
 ```
 
-Sometimes when submitting data to an external resource, like a payment gateway, the fields that can be used in the form are limited by an external API and it may be undesirable to generate an `authenticity_token`. To not send a token, simply pass `false` to the `:authenticity_token` option:
+At other times, the fields that can be used in the form are limited by an external API and it may be undesirable to generate an `authenticity_token`. To _not_ send a token, you can pass `false` to the `:authenticity_token` option:
 
 ```erb
 <%= form_with url: 'http://farfar.away/form', authenticity_token: false do %>
@@ -1257,4 +1257,4 @@ Generally, these helpers have the same name as their form builder counterparts p
 Using `form_tag` and `form_for`
 -------------------------------
 
-Before `form_with` was introduced in Rails 5.1 its functionality used to be split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now soft-deprecated. Documentation on their usage can be found in [older versions of this guide](https://guides.rubyonrails.org/v5.2/form_helpers.html).
+Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now soft-deprecated in favor of `form_with`.
