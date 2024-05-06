@@ -782,11 +782,19 @@ The most important thing to remember with file uploads is that the rendered form
 <% end %>
 ```
 
-Note that, per `form_with` conventions, the field names in the two forms above will be different. In the first form, it will be `person[csv_file]` (accessible via `params[:person][:csv_file]`), and in the second form it will be just `csv_file` (accessible via `params[:csv_file]`).
+Both of which, output the following HTML form:
+
+```html
+<form enctype="multipart/form-data" action="/people" accept-charset="UTF-8" method="post">
+<!-- ... -->
+</form>
+```
+
+Note that, per `form_with` conventions, the field names in the two forms above will be different though. In the first form, it will be `person[csv_file]` (accessible via `params[:person][:csv_file]`), and in the second form it will be just `csv_file` (accessible via `params[:csv_file]`).
 
 ### CSV File Upload Example
 
-The object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](https://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). Here is an example of how to save data in an uploaded CSV file to records in your domain model:
+When using `file_field`, the object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](https://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). Here is an example of how to save data in an uploaded CSV file to records in your domain model:
 
 ```ruby
   require 'csv'
@@ -813,10 +821,11 @@ Customizing Form Builders
 
 The object yielded by `form_with` and `fields_for` is an instance of
 [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html).
-Form builders encapsulate the notion of displaying form elements for a single object. While you can write helpers for
-your forms in the usual way, you can also create a subclass of `ActionView::Helpers::FormBuilder`, and add the helpers
-there. For example, assuming you have a helper method defined in your application called `text_field_with_label` as the
-following
+Form builders encapsulate the notion of displaying form elements for a single
+object. While you can write helpers for your forms in the usual way, you can
+also create a subclass of `ActionView::Helpers::FormBuilder`, and add the
+helpers there. For example, assuming you have a helper method defined in your
+application called `text_field_with_label` as the following
 
 ```ruby
 module ApplicationHelper
