@@ -975,7 +975,7 @@ WARNING: Array parameters do not play well with the `check_box` helper. Accordin
 
 ### The `fields_for` Helper `:index` Option
 
-Let's say we want to render a form with a set of fields for each of a person's
+Let's say you want to render a form with a set of fields for each of a person's
 addresses. The [`fields_for`][] helper with its `:index` option can assist:
 
 ```erb
@@ -990,7 +990,7 @@ addresses. The [`fields_for`][] helper with its `:index` option can assist:
 ```
 
 Assuming the person has two addresses with IDs 23 and 45, the above form would
-render output similar to:
+render this output:
 
 ```html
 <form accept-charset="UTF-8" action="/people/1" method="post">
@@ -1021,11 +1021,12 @@ Which will result in a `params` hash that looks like:
 
 All of the form inputs map to the `"person"` hash because we called `fields_for`
 on the `person_form` form builder. Also, by specifying `index: address.id`, we
-rendered the `name` attribute of each city input as `person[address][#{address.id}][city]`
-instead of `person[address][city]`. Thus we are able to determine which Address
-records should be modified when processing the `params` hash.
+rendered the `name` attribute of each city input as
+`person[address][#{address.id}][city]` instead of `person[address][city]`. This
+way you can tell which `Address` records should be modified when processing the
+`params` hash.
 
-You can pass other numbers or strings of significance via the `:index` option.
+You can pass other numbers or strings via the `:index` option.
 You can even pass `nil`, which will produce an array parameter.
 
 To create more intricate nestings, you can specify the leading portion of the
@@ -1044,15 +1045,15 @@ will create inputs like:
 ```
 
 You can also pass an `:index` option directly to helpers such as `text_field`,
-but it is usually less repetitive to specify this at the form builder level
-than on individual input fields.
+but it is usually less repetitive to specify this at the form builder level than
+on individual input fields.
 
-Speaking generally, the final input name will be a concatenation of the name
-given to `fields_for` / `form_with`, the `:index` option value, and the name of
-the attribute.
+The final input name is generally a concatenation of the name given to
+`fields_for` / `form_with`, the `:index` option value, and the name of the
+attribute, `person_address_primary_23_city` in the above example.
 
-Lastly, as a shortcut, instead of specifying an ID for `:index` (e.g.
-`index: address.id`), you can append `"[]"` to the given name. For example:
+Lastly, instead of specifying an ID for `:index` (e.g. `index: address.id`), you
+can append `"[]"` to the given name, as a shorthand. For example:
 
 ```erb
 <%= fields_for 'person[address][primary][]', address do |address_form| %>
@@ -1060,7 +1061,7 @@ Lastly, as a shortcut, instead of specifying an ID for `:index` (e.g.
 <% end %>
 ```
 
-produces exactly the same output as our original example.
+will produce exactly the same output as the original example.
 
 Building Complex Forms
 ----------------------
