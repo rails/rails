@@ -124,12 +124,21 @@ module ActiveRecord
         end
 
         def replace_keys(record, force: false)
-          target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
-          reflection_fk = Array(reflection.foreign_key)
+          reflection_fk = reflection.foreign_key
+          if reflection_fk.is_a?(Array)
+            target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
+            reflection_fk = Array(reflection.foreign_key)
 
-          if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
-            reflection_fk.zip(target_key_values).each do |key, value|
-              owner[key] = value
+            if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
+              reflection_fk.each_with_index do |key, index|
+                owner[key] = target_key_values[index]
+              end
+            end
+          else
+            target_key_value = record ? record._read_attribute(primary_key(record.class)) : nil
+
+            if force || owner._read_attribute(reflection_fk) != target_key_value
+              owner[reflection_fk] = target_key_value
             end
           end
         end
