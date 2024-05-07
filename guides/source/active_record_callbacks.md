@@ -699,6 +699,35 @@ to skip callbacks by using the following methods:
 * [`upsert`][]
 * [`upsert_all`][]
 
+Let's consider a `User` model where the `before_save` callback logs any changes
+to the user's email address:
+
+```ruby
+class User < ApplicationRecord
+  before_save :log_email_change
+
+  private
+
+  def log_email_change
+    if email_changed?
+      Rails.logger.info("Email changed from #{email_was} to #{email}")
+    end
+  end
+end
+```
+
+Now, suppose there's a scenario where you want to update the user's email
+address without triggering the `before_save` callback to log the email change.
+You can use the `update_columns` method for this purpose:
+
+```ruby
+user = User.find(1)
+user.update_columns(email: 'new_email@example.com')
+```
+
+The above will update the user's email address without triggering the
+`before_save` callback.
+
 WARNING. These methods should be used with caution because there may be
 important business rules and application logic in callbacks that you do not want
 to bypass. Bypassing them without understanding the potential implications may
