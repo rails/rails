@@ -182,27 +182,26 @@ class User < ApplicationRecord
   validate :location_information, on: :location_info
 
   private
+    def personal_information
+      errors.add(:base, "Name must be present") if first_name.blank?
+      errors.add(:base, "Age must be at least 18") if age && age < 18
+    end
 
-  def personal_information
-    errors.add(:base, "Name must be present") if first_name.blank?
-    errors.add(:base, "Age must be at least 18") if age && age < 18
-  end
+    def contact_information
+      errors.add(:base, "Email must be present") if email.blank?
+      errors.add(:base, "Phone number must be present") if phone.blank?
+    end
 
-  def contact_information
-    errors.add(:base, "Email must be present") if email.blank?
-    errors.add(:base, "Phone number must be present") if phone.blank?
-  end
-
-  def location_information
-    errors.add(:base, "Address must be present") if address.blank?
-    errors.add(:base, "City must be present") if city.blank?
-  end
+    def location_information
+      errors.add(:base, "Address must be present") if address.blank?
+      errors.add(:base, "City must be present") if city.blank?
+    end
 end
 ```
 
 Then, you can use this custom context to trigger the validations:
 
-```ruby
+```irb
 irb> user = User.new(name: "John Doe", age: 17, email: "jane@example.com", phone: "1234567890", address: "123 Main St")
 irb> user.valid?(:personal_info) # => false
 irb> user.valid?(:contact_info) # => true
@@ -213,7 +212,7 @@ You can also use the custom contexts to trigger the validations on any method
 that supports callbacks. For example, you could use the custom context to
 trigger the validations on `save`:
 
-```ruby
+```irb
 irb> user = User.new(name: "John Doe", age: 17, email: "jane@example.com", phone: "1234567890", address: "123 Main St")
 irb> user.save(context: :personal_info) # => false
 irb> user.save(context: :contact_info) # => true
@@ -731,12 +730,11 @@ class User < ApplicationRecord
   before_save :log_email_change
 
   private
-
-  def log_email_change
-    if email_changed?
-      Rails.logger.info("Email changed from #{email_was} to #{email}")
+    def log_email_change
+      if email_changed?
+        Rails.logger.info("Email changed from #{email_was} to #{email}")
+      end
     end
-  end
 end
 ```
 
@@ -744,9 +742,9 @@ Now, suppose there's a scenario where you want to update the user's email
 address without triggering the `before_save` callback to log the email change.
 You can use the `update_columns` method for this purpose:
 
-```ruby
-user = User.find(1)
-user.update_columns(email: 'new_email@example.com')
+```irb
+irb> user = User.find(1)
+irb> user.update_columns(email: 'new_email@example.com')
 ```
 
 The above will update the user's email address without triggering the
