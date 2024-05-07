@@ -52,9 +52,10 @@ module Rails
               assert_match "curl libvips postgresql-client", content
             end
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_match(/"DB_HOST": "postgres"/, content)
-              assert_match(/"ghcr.io\/rails\/devcontainer\/features\/postgres-client":/, content)
+            assert_devcontainer_json_file do |content|
+              assert_equal "postgres", content["containerEnv"]["DB_HOST"]
+              assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
+              assert_not_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite"
             end
 
             assert_compose_file do |compose_config|
@@ -94,9 +95,9 @@ module Rails
               assert_match "curl default-mysql-client libvips", content
             end
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_match(/"DB_HOST": "mysql"/, content)
-              assert_match(/"ghcr.io\/rails\/devcontainer\/features\/mysql-client":/, content)
+            assert_devcontainer_json_file do |content|
+              assert_equal "mysql", content["containerEnv"]["DB_HOST"]
+              assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/mysql-client"])
             end
 
             assert_compose_file do |compose_config|
@@ -136,8 +137,8 @@ module Rails
               assert_match "curl libsqlite3-0 libvips", content
             end
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_no_match(/"DB_HOST"/, content)
+            assert_devcontainer_json_file do |content|
+              assert_not_includes content["containerEnv"].keys, "DB_HOST"
             end
           end
 
@@ -160,8 +161,8 @@ module Rails
               assert_no_match "default-libmysqlclient-dev", content
             end
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_match(/"DB_HOST": "mariadb"/, content)
+            assert_devcontainer_json_file do |content|
+              assert_match "mariadb", content["containerEnv"]["DB_HOST"]
             end
 
             assert_compose_file do |compose_config|
@@ -203,9 +204,9 @@ module Rails
             run_generator ["--to", "mysql"]
             run_generator ["--to", "sqlite3", "--force"]
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_no_match(/"DB_HOST"/, content)
-              assert_no_match(/"ghcr.io\/rails\/devcontainer\/features\/mysql-client":/, content)
+            assert_devcontainer_json_file do |content|
+              assert_not_includes content["containerEnv"].keys, "DB_HOST"
+              assert_not_includes content["features"].keys, "ghcr.io\/rails\/devcontainer\/features\/mysql-client"
             end
 
             assert_compose_file do |compose_config|

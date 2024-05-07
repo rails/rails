@@ -1287,6 +1287,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal "selenium", content["containerEnv"]["SELENIUM_HOST"]
       assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/activestorage"])
       assert_equal({}, content["features"]["ghcr.io/devcontainers/features/github-cli:1"])
+      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/sqlite3"])
       assert_includes(content["forwardPorts"], 3000)
       assert_includes(content["forwardPorts"], 6379)
     end
