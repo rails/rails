@@ -452,25 +452,18 @@ config.assets.digest = false
 
 When this option is true, digests will be generated for asset URLs.
 
-### Turning Source Maps On
+##Assets
 
-You can turn on source maps by updating `config/environments/development.rb` to
-include:
+### Source Maps
 
-```ruby
-config.assets.debug = true
+Starting with Rails 7, Webpacker is used to manage JavaScript and CSS assets. To enable source maps for debugging in development, you need to configure Webpacker to generate them. To do this, add the following to your `config/webpacker.yml` file:
+
+```yaml
+development:
+  devtool: 'source-map'
 ```
 
-When debug mode is on, Sprockets will generate a Source Map for each asset. This
-allows you to debug each file individually in your browser's developer tools.
-
-Assets are compiled and cached on the first request after the server is started.
-Sprockets sets a `must-revalidate` Cache-Control HTTP header to reduce request
-overhead on subsequent requests - on these the browser gets a 304 (Not Modified)
-response.
-
-If any of the files in the manifest change between requests, the server
-responds with a new compiled file.
+This will cause Webpacker to generate source maps for your JavaScript and CSS assets during development, allowing you to debug your files individually in the browser's developer console.
 
 In Production
 -------------
