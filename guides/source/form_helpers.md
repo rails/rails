@@ -1058,7 +1058,7 @@ Building Complex Forms
 
 As your application grows, you may need to create more complex forms, beyond editing a single object. For example, when creating a `Person` you can allow the user to create multiple `Address` records (home, work, etc.) within the same form. When later editing that person the user should be able to add, remove, or update addresses as well.
 
-### Configuring the Model
+### Configuring the Model for Nested Attributes
 
 For editing an associated record for a given model (`Person` in this case),Active Record provides model level support via the [`accepts_nested_attributes_for`](https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for) method:
 
@@ -1073,9 +1073,9 @@ class Address < ApplicationRecord
 end
 ```
 
-This creates an `addresses_attributes=` method on `Person` that allows you to create, update, and (optionally) destroy addresses.
+This creates an `addresses_attributes=` method on `Person` that allows you to create, update, and destroy addresses.
 
-### Nested Forms
+### Nested Forms in the View
 
 The following form allows a user to create a `Person` and its associated addresses.
 
@@ -1101,6 +1101,8 @@ When an association accepts nested attributes `fields_for` renders its block onc
 
 A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 2 sets of address fields being rendered on the new person form.
 
+For example, the above `form_with` with this change:
+
 ```ruby
 def new
   @person = Person.new
@@ -1108,9 +1110,36 @@ def new
 end
 ```
 
-The `fields_for` yields a form builder. The parameters' name will be what
+Will output the following HTML:
+
+```html
+<form action="/people" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="lWTbg-4_5i4rNe6ygRFowjDfTj7uf-6UPFQnsL7H9U9Fe2GGUho5PuOxfcohgm2Z-By3veuXwcwDIl-MLdwFRg" autocomplete="off">
+  Addresses:
+  <ul>
+      <li>
+        <label for="person_addresses_attributes_0_kind">Kind</label>
+        <input type="text" name="person[addresses_attributes][0][kind]" id="person_addresses_attributes_0_kind">
+
+        <label for="person_addresses_attributes_0_street">Street</label>
+        <input type="text" name="person[addresses_attributes][0][street]" id="person_addresses_attributes_0_street">
+        ...
+      </li>
+
+      <li>
+        <label for="person_addresses_attributes_1_kind">Kind</label>
+        <input type="text" name="person[addresses_attributes][1][kind]" id="person_addresses_attributes_1_kind">
+
+        <label for="person_addresses_attributes_1_street">Street</label>
+        <input type="text" name="person[addresses_attributes][1][street]" id="person_addresses_attributes_1_street">
+        ...
+      </li>
+  </ul>
+</form>
+```
+
+The `fields_for` yields a form builder. The parameter names will be what
 `accepts_nested_attributes_for` expects. For example, when creating a person
-with 2 addresses, the submitted parameters would look like:
+with 2 addresses, the submitted parameters in `params` would look like this:
 
 ```ruby
 {
@@ -1130,11 +1159,11 @@ with 2 addresses, the submitted parameters would look like:
 }
 ```
 
-The actual values of the keys in the `:addresses_attributes` hash are unimportant; however they need to be strings of integers and different for each address.
+The actual value of the keys in the `:addresses_attributes` hash is not important. But they need to be strings of integers and different for each address.
 
 If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `include_id: false` to `fields_for`.
 
-### The Controller
+### Permitting Parameters in The Controller
 
 As usual you need to [declare the permitted
 parameters](action_controller_overview.html#strong-parameters) in the controller
@@ -1152,7 +1181,7 @@ private
   end
 ```
 
-### Removing Objects
+### Removing Associated Objects
 
 You can allow users to delete associated objects by passing `allow_destroy: true` to `accepts_nested_attributes_for`
 
@@ -1183,7 +1212,13 @@ destroyed. This form allows users to remove addresses:
 <% end %>
 ```
 
-Don't forget to update the permitted params in your controller to also include
+With this HTML for the `_destroy` field:
+
+```html
+<input type="checkbox" value="1" name="person[addresses_attributes][0][_destroy]" id="person_addresses_attributes_0__destroy">
+```
+
+You also need to update the permitted params in your controller to include
 the `_destroy` field:
 
 ```ruby
@@ -1208,7 +1243,7 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 ### Adding Fields on the Fly
 
-Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an "Add new address" button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds since the [epoch](https://en.wikipedia.org/wiki/Unix_time)) is a common choice.
+Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an "Add new address" button. Rails does not provide any built-in support for this though.
 
 Forms to External Resources
 ---------------------------
