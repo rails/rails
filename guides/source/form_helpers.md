@@ -1066,11 +1066,11 @@ will produce exactly the same output as the original example.
 Building Complex Forms
 ----------------------
 
-Many apps grow beyond simple forms editing a single object. For example, when creating a `Person` you might want to allow the user to (on the same form) create multiple address records (home, work, etc.). When later editing that person the user should be able to add, remove, or amend addresses as necessary.
+As your application grows, you may need to create more complex forms, beyond editing a single object. For example, when creating a `Person` you can allow the user to create multiple `Address` records (home, work, etc.) within the same form. When later editing that person the user should be able to add, remove, or update addresses as well.
 
 ### Configuring the Model
 
-Active Record provides model level support via the [`accepts_nested_attributes_for`](https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for) method:
+For editing an associated record for a given model (`Person` in this case),Active Record provides model level support via the [`accepts_nested_attributes_for`](https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for) method:
 
 ```ruby
 class Person < ApplicationRecord
@@ -1107,7 +1107,9 @@ The following form allows a user to create a `Person` and its associated address
 <% end %>
 ```
 
-When an association accepts nested attributes `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses it renders nothing. A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 2 sets of address fields being rendered on the new person form.
+When an association accepts nested attributes `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses it renders nothing.
+
+A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 2 sets of address fields being rendered on the new person form.
 
 ```ruby
 def new
@@ -1117,8 +1119,8 @@ end
 ```
 
 The `fields_for` yields a form builder. The parameters' name will be what
-`accepts_nested_attributes_for` expects. For example, when creating a user with
-2 addresses, the submitted parameters would look like:
+`accepts_nested_attributes_for` expects. For example, when creating a person
+with 2 addresses, the submitted parameters would look like:
 
 ```ruby
 {
@@ -1144,9 +1146,9 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 
 ### The Controller
 
-As usual you need to
-[declare the permitted parameters](action_controller_overview.html#strong-parameters) in
-the controller before you pass them to the model:
+As usual you need to [declare the permitted
+parameters](action_controller_overview.html#strong-parameters) in the controller
+before you pass them to the model:
 
 ```ruby
 def create
@@ -1171,9 +1173,9 @@ class Person < ApplicationRecord
 end
 ```
 
-If the hash of attributes for an object contains the key `_destroy` with a value that
-evaluates to `true` (e.g. 1, '1', true, or 'true') then the object will be destroyed.
-This form allows users to remove addresses:
+If the hash of attributes for an object contains the key `_destroy` with a value
+that evaluates to `true` (e.g. 1, '1', true, or 'true') then the object will be
+destroyed. This form allows users to remove addresses:
 
 ```erb
 <%= form_with model: @person do |form| %>
