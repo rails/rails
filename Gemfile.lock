@@ -210,7 +210,6 @@ GEM
     digest-crc (0.6.5)
       rake (>= 12.0.0, < 14.0.0)
     drb (2.2.1)
-    error_highlight (0.6.0)
     erubi (1.12.0)
     et-orbi (1.2.11)
       tzinfo
@@ -679,7 +678,6 @@ DEPENDENCIES
   debug (>= 1.1.0)
   delayed_job
   delayed_job_active_record
-  error_highlight (>= 0.4.0)
   google-cloud-storage (~> 1.11)
   httpclient!
   image_processing (~> 1.2)
