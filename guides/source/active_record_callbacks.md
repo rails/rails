@@ -387,6 +387,7 @@ User created with email: john.doe@example.com
 User welcome email sent to: john.doe@example.com
 => #<User id: 10, email: "john.doe@example.com", created_at: "2024-03-20 16:19:52.405195000 +0000", updated_at: "2024-03-20 16:19:52.405195000 +0000", name: "John Doe">
 ```
+
 ### Updating an Object
 
 * [`before_validation`][]
@@ -802,6 +803,7 @@ class User < ApplicationRecord
   end
 end
 ```
+
 In this example, the `after_create` callback triggers the `send_welcome_email`
 method every time a new user is created.
 
