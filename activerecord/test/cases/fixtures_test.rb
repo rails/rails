@@ -34,6 +34,7 @@ require "models/task"
 require "models/topic"
 require "models/traffic_light"
 require "models/treasure"
+require "models/tree"
 require "models/cpk"
 
 class FixturesTest < ActiveRecord::TestCase
@@ -43,7 +44,7 @@ class FixturesTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   # other_topics fixture should not be included here
-  fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries, :traffic_lights
+  fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries, :traffic_lights, :trees
 
   FIXTURES = %w( accounts binaries companies customers
                  developers developers_projects entrants
@@ -550,6 +551,8 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_yaml_file_with_symbol_columns
     ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "trees")
+    root = Tree.find(1)
+    assert root
   end
 
   def test_omap_fixtures
@@ -820,6 +823,7 @@ class SetupTest < ActiveRecord::TestCase
   end
 
   def test_nothing
+    pass
   end
 end
 
@@ -1428,9 +1432,11 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_only_generates_a_pk_if_necessary
-    m = Matey.first
-    m.pirate = pirates(:blackbeard)
-    m.target = pirates(:redbeard)
+    assert_nothing_raised do
+      m = Matey.first
+      m.pirate = pirates(:blackbeard)
+      m.target = pirates(:redbeard)
+    end
   end
 
   def test_supports_sti

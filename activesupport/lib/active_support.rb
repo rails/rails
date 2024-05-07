@@ -111,17 +111,15 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone
-    DateAndTime::Compatibility.preserve_timezone
+    ActiveSupport.deprecator.warn(
+      "`config.active_support.to_time_preserves_timezone` has been deprecated and will be removed in Rails 7.3."
+    )
   end
 
   def self.to_time_preserves_timezone=(value)
-    unless value
-      ActiveSupport.deprecator.warn(
-        "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.2."
-      )
-    end
-
-    DateAndTime::Compatibility.preserve_timezone = value
+    ActiveSupport.deprecator.warn(
+      "`config.active_support.to_time_preserves_timezone` has been deprecated and will be removed in Rails 7.3."
+    )
   end
 
   def self.utc_to_local_returns_utc_offset_times

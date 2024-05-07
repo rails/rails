@@ -2,6 +2,52 @@
 
     *DHH*
 
+*   Added support for recursive common table expressions.
+
+    ```ruby
+    Post.with_recursive(
+      post_and_replies: [
+        Post.where(id: 42),
+        Post.joins('JOIN post_and_replies ON posts.in_reply_to_id = post_and_replies.id'),
+      ]
+    )
+    ```
+
+    Generates the following SQL:
+
+    ```sql
+    WITH RECURSIVE "post_and_replies" AS (
+      (SELECT "posts".* FROM "posts" WHERE "posts"."id" = 42)
+      UNION ALL
+      (SELECT "posts".* FROM "posts" JOIN post_and_replies ON posts.in_reply_to_id = post_and_replies.id)
+    )
+    SELECT "posts".* FROM "posts"
+    ```
+
+    *ClearlyClaire*
+
+*   `validate_constraint` can be called in a `change_table` block.
+
+    ex:
+    ```ruby
+    change_table :products do |t|
+      t.check_constraint "price > discounted_price", name: "price_check", validate: false
+      t.validate_check_constraint "price_check"
+    end
+    ```
+
+    *Cody Cutrer*
+
+*   `PostgreSQLAdapter` now decodes columns of type date to `Date` instead of string.
+
+    Ex:
+    ```ruby
+    ActiveRecord::Base.connection
+         .select_value("select '2024-01-01'::date").class #=> Date
+    ```
+
+    *Joé Dupuis*
+
 *   Strict loading using `:n_plus_one_only` does not eagerly load child associations.
 
     With this change, child associations are no longer eagerly loaded, to

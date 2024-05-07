@@ -3,11 +3,11 @@
 require "cases/helper"
 require "models/comment"
 require "models/post"
+require "models/company"
 
 module ActiveRecord
   class WithTest < ActiveRecord::TestCase
-    fixtures :comments
-    fixtures :posts
+    fixtures :comments, :posts, :companies
 
     POSTS_WITH_TAGS = [1, 2, 7, 8, 9, 10, 11].freeze
     POSTS_WITH_COMMENTS = [1, 2, 4, 5, 7].freeze
@@ -57,9 +57,35 @@ module ActiveRecord
       end
 
       def test_with_when_invalid_params_are_passed
-        assert_raise(ArgumentError) { Post.with }
         assert_raise(ArgumentError) { Post.with(posts_with_tags: nil).load }
-        assert_raise(ArgumentError) { Post.with(posts_with_tags: [Post.where("tags_count > 0")]).load }
+        assert_raise(ArgumentError) { Post.with(posts_with_tags: [Post.where("tags_count > 0"), 5]).load }
+      end
+
+      def test_with_when_passing_arrays
+        relation = Post
+          .with(posts_with_tags_or_comments: [
+            Post.where("tags_count > 0"),
+            Post.where("legacy_comments_count > 0")
+          ])
+          .from("posts_with_tags_or_comments AS posts")
+
+        assert_equal (POSTS_WITH_TAGS + POSTS_WITH_COMMENTS).sort, relation.order(:id).pluck(:id)
+      end
+
+      def test_with_recursive
+        top_companies = Company.where(firm_id: nil).to_a
+        child_companies = Company.where(firm_id: top_companies).to_a
+        top_companies_and_children = (top_companies.map(&:id) + child_companies.map(&:id)).sort
+
+        relation = Company.with_recursive(
+          top_companies_and_children: [
+            Company.where(firm_id: nil),
+            Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id"),
+          ]
+        ).from("top_companies_and_children AS companies")
+
+        assert_equal top_companies_and_children, relation.order(:id).pluck(:id)
+        assert_match "WITH RECURSIVE", relation.to_sql
       end
 
       def test_with_joins

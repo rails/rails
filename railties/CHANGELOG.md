@@ -1,3 +1,52 @@
+*   Add options to bin/rails app:update.
+
+    `bin/rails app:update` now supports the same generic options that generators do:
+
+    * `--force`: Accept all changes to existing files
+    * `--skip`: Refuse all changes to existing files
+    * `--pretend`: Don't make any changes
+    * `--quiet`: Don't output all changes made
+
+    *Étienne Barrié*
+
+*   Implement Rails console commands and helpers with IRB v1.13's extension APIs
+
+    Rails console users will now see `helper`, `controller`, `new_session`, and `app` under
+    IRB help message's `Helper methods` category. And `reload!` command will be displayed under
+    the new `Rails console` commands category.
+
+    Prior to this change, Rails console's commands and helper methods are added through IRB's
+    private components and don't show up in its help message, which led to poor discoverability.
+
+    *Stan Lo*
+
+*   Remove deprecated `Rails::Generators::Testing::Behaviour`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `find_cmd_and_exec` console helper.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.config.enable_dependency_loading`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.application.secrets`.
+
+    *Rafael Mendonça França*
+
+*   Generated Gemfile will include `require: "debug/prelude"` for the `debug` gem
+
+    Requiring `debug` gem directly automatically activates it, which could introduce
+    additional overhead and memory usage even without entering a debugging session.
+
+    By making Bundler require `debug/prelude` instead, developers can keep their access
+    to breakpoint methods like `debugger` or `binding.break`, but the debugger won't be
+    activated until a breakpoint is hit.
+
+    *Stan Lo*
+
 *   Allow Actionable Errors encountered when running tests to be retried.
 
     ```txt

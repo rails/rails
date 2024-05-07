@@ -1,11 +1,68 @@
-*   Allow assertionless tests to be reported.
+*   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
 
-    `ActiveSupport::TestCase` can be configured to report tests that do not run any assertions.
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to call the following methods without passing a deprecator:
+
+    - `deprecate`
+    - `deprecate_constant`
+    - `ActiveSupport::Deprecation::DeprecatedObjectProxy.new`
+    - `ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new`
+    - `ActiveSupport::Deprecation::DeprecatedConstantProxy.new`
+    - `assert_deprecated`
+    - `assert_not_deprecated`
+    - `collect_deprecations`
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::Deprecation` delegation to instance.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `SafeBuffer#clone_empty`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#to_default_s` from `Array`, `Date`, `DateTime` and `Time`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing `Dalli::Client` instances to `MemCacheStore`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_support.use_rfc4122_namespaced_uuids`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_support.remove_deprecated_time_with_zone_name`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_support.disable_to_s_conversion`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to bolding log text with positional boolean in `ActiveSupport::LogSubscriber#color`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated constants `ActiveSupport::LogSubscriber::CLEAR` and `ActiveSupport::LogSubscriber::BOLD`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for `config.active_support.cache_format_version = 6.1`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `:pool_size` and `:pool_timeout` options for the cache storage.
+
+    *Rafael Mendonça França*
+
+*   Warn on tests without assertions.
+
+    `ActiveSupport::TestCase` now warns when tests do not run any assertions.
     This is helpful in detecting broken tests that do not perform intended assertions.
-
-    ```ruby
-    config.active_support.assertionless_tests_behavior = :raise
-    ```
 
     *fatkodima*
 
@@ -13,7 +70,7 @@
 
     *heka1024*
 
-*   Deprecate `ActiveSupport::ProxyObject` in favor of Ruby's buildin `BasicObject`
+*   Deprecate `ActiveSupport::ProxyObject` in favor of Ruby's built-in `BasicObject`
 
     *Earlopain*
 
@@ -57,6 +114,18 @@
     ```
 
     *Sean Doyle*
+
+*   Remove deprecated support for the pre-Ruby 2.4 behavior of `to_time` returning a `Time` object with local timezone.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.to_time_preserves_timezone`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `DateAndTime::Compatibility.preserve_timezone`.
+
+    *Rafael Mendonça França*
 
 *   Yield instance to `Object#with` block
 

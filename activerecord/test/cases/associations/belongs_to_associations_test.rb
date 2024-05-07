@@ -1159,8 +1159,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_proxy_should_respond_to_private_methods_via_send
-    companies(:first_firm).send(:private_method)
-    companies(:second_client).firm.send(:private_method)
+    assert_nothing_raised do
+      companies(:first_firm).send(:private_method)
+      companies(:second_client).firm.send(:private_method)
+    end
   end
 
   def test_save_of_record_with_loaded_belongs_to

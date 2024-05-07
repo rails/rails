@@ -62,7 +62,12 @@ module ActionText
       def enable_image_processing_gem
         if (gemfile_path = Pathname(destination_root).join("Gemfile")).exist?
           say "Ensure image_processing gem has been enabled so image uploads will work (remember to bundle!)"
-          uncomment_lines gemfile_path, /gem "image_processing"/
+          image_processing_regex = /gem ["']image_processing["']/
+          if File.readlines(gemfile_path).grep(image_processing_regex).any?
+            uncomment_lines gemfile_path, image_processing_regex
+          else
+            run "bundle add --skip-install image_processing"
+          end
         end
       end
 

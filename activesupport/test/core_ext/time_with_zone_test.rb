@@ -517,29 +517,14 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal time, Time.at(time)
   end
 
-  def test_to_time_with_preserve_timezone
-    with_preserve_timezone(true) do
-      with_env_tz "US/Eastern" do
-        time = @twz.to_time
+  def test_to_time
+    with_env_tz "US/Eastern" do
+      time = @twz.to_time
 
-        assert_equal Time, time.class
-        assert_equal time.object_id, @twz.to_time.object_id
-        assert_equal Time.local(1999, 12, 31, 19), time
-        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
-      end
-    end
-  end
-
-  def test_to_time_without_preserve_timezone
-    with_preserve_timezone(false) do
-      with_env_tz "US/Eastern" do
-        time = @twz.to_time
-
-        assert_equal Time, time.class
-        assert_equal time.object_id, @twz.to_time.object_id
-        assert_equal Time.local(1999, 12, 31, 19), time
-        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
-      end
+      assert_equal Time, time.class
+      assert_equal time.object_id, @twz.to_time.object_id
+      assert_equal Time.local(1999, 12, 31, 19), time
+      assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
     end
   end
 

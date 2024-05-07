@@ -39,4 +39,10 @@ class PostgresqlDateTest < ActiveRecord::PostgreSQLTestCase
     topic = Topic.create!(last_read: date)
     assert_equal date, Topic.find(topic.id).last_read
   end
+
+  def test_date_decoder
+    date = ActiveRecord::Base.connection.select_value("select '2024-01-01'::date")
+    assert_equal Date.new(2024, 01, 01), date
+    assert_equal Date, date.class
+  end
 end

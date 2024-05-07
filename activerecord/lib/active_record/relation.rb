@@ -60,7 +60,7 @@ module ActiveRecord
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :with]
+    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :with, :with_recursive]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -263,12 +263,14 @@ module ActiveRecord
     # and failed due to validation errors it won't be persisted, you get what #create returns in
     # such situation.
     def create_or_find_by(attributes, &block)
-      transaction(requires_new: true) { create(attributes, &block) }
-    rescue ActiveRecord::RecordNotUnique
-      if lease_connection.transaction_open?
-        where(attributes).lock.find_by!(attributes)
-      else
-        find_by!(attributes)
+      with_connection do |connection|
+        transaction(requires_new: true) { create(attributes, &block) }
+      rescue ActiveRecord::RecordNotUnique
+        if connection.transaction_open?
+          where(attributes).lock.find_by!(attributes)
+        else
+          find_by!(attributes)
+        end
       end
     end
 
@@ -276,12 +278,14 @@ module ActiveRecord
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
     def create_or_find_by!(attributes, &block)
-      transaction(requires_new: true) { create!(attributes, &block) }
-    rescue ActiveRecord::RecordNotUnique
-      if lease_connection.transaction_open?
-        where(attributes).lock.find_by!(attributes)
-      else
-        find_by!(attributes)
+      with_connection do |connection|
+        transaction(requires_new: true) { create!(attributes, &block) }
+      rescue ActiveRecord::RecordNotUnique
+        if connection.transaction_open?
+          where(attributes).lock.find_by!(attributes)
+        else
+          find_by!(attributes)
+        end
       end
     end
 
@@ -590,18 +594,18 @@ module ActiveRecord
         values = Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      arel = eager_loading? ? apply_join_dependency.arel : build_arel
-      arel.source.left = table
-
-      group_values_arel_columns = arel_columns(group_values.uniq)
-      having_clause_ast = having_clause.ast unless having_clause.empty?
-      key = if klass.composite_primary_key?
-        primary_key.map { |pk| table[pk] }
-      else
-        table[primary_key]
-      end
-      stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
       klass.with_connection do |c|
+        arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
+        arel.source.left = table
+
+        group_values_arel_columns = arel_columns(group_values.uniq)
+        having_clause_ast = having_clause.ast unless having_clause.empty?
+        key = if klass.composite_primary_key?
+          primary_key.map { |pk| table[pk] }
+        else
+          table[primary_key]
+        end
+        stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
         c.update(stmt, "#{klass} Update All").tap { reset }
       end
     end
@@ -730,19 +734,19 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      arel = eager_loading? ? apply_join_dependency.arel : build_arel
-      arel.source.left = table
-
-      group_values_arel_columns = arel_columns(group_values.uniq)
-      having_clause_ast = having_clause.ast unless having_clause.empty?
-      key = if klass.composite_primary_key?
-        primary_key.map { |pk| table[pk] }
-      else
-        table[primary_key]
-      end
-      stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
-
       klass.with_connection do |c|
+        arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
+        arel.source.left = table
+
+        group_values_arel_columns = arel_columns(group_values.uniq)
+        having_clause_ast = having_clause.ast unless having_clause.empty?
+        key = if klass.composite_primary_key?
+          primary_key.map { |pk| table[pk] }
+        else
+          table[primary_key]
+        end
+        stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
+
         c.delete(stmt, "#{klass} Delete All").tap { reset }
       end
     end
@@ -947,7 +951,7 @@ module ActiveRecord
     end
 
     def alias_tracker(joins = [], aliases = nil) # :nodoc:
-      ActiveRecord::Associations::AliasTracker.create(lease_connection, table.name, joins, aliases)
+      ActiveRecord::Associations::AliasTracker.create(connection_pool, table.name, joins, aliases)
     end
 
     class StrictLoadingScope # :nodoc:
@@ -1075,7 +1079,7 @@ module ActiveRecord
           if where_clause.contradiction?
             [].freeze
           elsif eager_loading?
-            with_connection do |c|
+            klass.with_connection do |c|
               apply_join_dependency do |relation, join_dependency|
                 if relation.null_relation?
                   [].freeze
@@ -1087,7 +1091,9 @@ module ActiveRecord
               end
             end
           else
-            klass._query_by_sql(arel, async: async)
+            klass.with_connection do |c|
+              klass._query_by_sql(c, arel, async: async)
+            end
           end
         end
       end

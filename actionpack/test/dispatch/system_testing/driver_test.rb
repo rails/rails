@@ -30,8 +30,10 @@ class DriverTest < ActiveSupport::TestCase
 
   test "initializing the driver with a headless chrome and custom path" do
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
-    ::Selenium::WebDriver::Chrome::Service.driver_path = "bin/test"
-    ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_chrome, screen_size: [1400, 1400])
+    assert_nothing_raised do
+      ::Selenium::WebDriver::Chrome::Service.driver_path = "bin/test"
+      ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_chrome, screen_size: [1400, 1400])
+    end
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
@@ -47,8 +49,10 @@ class DriverTest < ActiveSupport::TestCase
 
   test "initializing the driver with a headless firefox and custom path" do
     original_driver_path = ::Selenium::WebDriver::Firefox::Service.driver_path
-    ::Selenium::WebDriver::Firefox::Service.driver_path = "bin/test"
-    ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_firefox, screen_size: [1400, 1400])
+    assert_nothing_raised do
+      ::Selenium::WebDriver::Firefox::Service.driver_path = "bin/test"
+      ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_firefox, screen_size: [1400, 1400])
+    end
   ensure
     ::Selenium::WebDriver::Firefox::Service.driver_path = original_driver_path
   end

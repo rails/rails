@@ -26,5 +26,6 @@ RailsGuides::Generator.new(
   only:      env_value["ONLY"],
   epub:      env_flag["EPUB"],
   language:  env_value["GUIDES_LANGUAGE"],
-  direction: env_value["DIRECTION"]
+  direction: env_value["DIRECTION"],
+  lint:      env_flag["GUIDES_LINT"]
 ).generate

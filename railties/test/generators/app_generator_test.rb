@@ -188,6 +188,34 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file defaults_path
   end
 
+  def test_app_update_supports_skip
+    run_generator
+    FileUtils.cd(destination_root) do
+      config = "config/application.rb"
+      File.open(config, "a") do |file|
+        file.puts "# some configuration"
+      end
+      assert_no_changes -> { File.readlines(config) } do
+        run_app_update(flags: "--skip")
+      end
+    end
+  end
+
+  def test_app_update_supports_pretend
+    run_generator
+    FileUtils.cd(destination_root) do
+      config = "config/application.rb"
+      File.open(config, "a") do |file|
+        file.puts "# some configuration"
+      end
+      assert_no_changes -> { File.readlines(config) } do
+        run_app_update(flags: "--pretend --force")
+      end
+      defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
+      assert_no_file defaults_path
+    end
+  end
+
   def test_app_update_does_not_create_rack_cors
     run_generator
     run_app_update
@@ -1500,13 +1528,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    def run_app_update(app_root = destination_root)
+    def run_app_update(app_root = destination_root, flags: "--force")
       Dir.chdir(app_root) do
         gemfile_contents = File.read("Gemfile")
         gemfile_contents.sub!(/^(gem "rails").*/, "\\1, path: #{File.expand_path("../../..", __dir__).inspect}")
         File.write("Gemfile", gemfile_contents)
 
-        quietly { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "yes | bin/rails app:update", exception: true) }
+        quietly { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "bin/rails app:update #{flags}", exception: true) }
       end
     end
 
