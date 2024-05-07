@@ -1,3 +1,7 @@
+*   Add ENV["SKIP_TEST_DATABASE_TRUNCATE"] flag to speed up multi-process test runs on large DBs when all tests run within default txn. (This cuts ~10s from the test run of HEY when run by 24 processes against the 178 tables, since ~4,000 table truncates can then be skipped.)
+
+    *DHH*
+
 *   Added support for recursive common table expressions.
 
     ```ruby
