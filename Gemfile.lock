@@ -746,4 +746,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.5.4
+   2.5.10
