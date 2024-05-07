@@ -47,10 +47,13 @@ module ActiveRecord
     end
 
     def initialize(columns, rows, column_types = nil)
-      @columns      = columns
+      # We freeze the strings to prevent them getting duped when
+      # used as keys in ActiveRecord::Base's @attributes hash
+      @columns      = columns.each(&:-@).freeze
       @rows         = rows
       @hash_rows    = nil
       @column_types = column_types || EMPTY_HASH
+      @column_indexes = nil
     end
 
     # Returns true if this result set includes the column named +name+
@@ -131,7 +134,7 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @columns      = columns.dup
+      @columns      = columns
       @rows         = rows.dup
       @column_types = column_types.dup
       @hash_rows    = nil
@@ -140,6 +143,19 @@ module ActiveRecord
     def freeze # :nodoc:
       hash_rows.freeze
       super
+    end
+
+    def column_indexes # :nodoc:
+      @column_indexes ||= begin
+        index = 0
+        hash = {}
+        length  = columns.length
+        while index < length
+          hash[columns[index]] = index
+          index += 1
+        end
+        hash
+      end
     end
 
     private
@@ -152,44 +168,11 @@ module ActiveRecord
       end
 
       def hash_rows
-        @hash_rows ||=
-          begin
-            # We freeze the strings to prevent them getting duped when
-            # used as keys in ActiveRecord::Base's @attributes hash
-            columns = @columns.map(&:-@)
-            length  = columns.length
-            template = nil
-
-            @rows.map { |row|
-              if template
-                # We use transform_values to build subsequent rows from the
-                # hash of the first row. This is faster because we avoid any
-                # reallocs and in Ruby 2.7+ avoid hashing entirely.
-                index = -1
-                template.transform_values do
-                  row[index += 1]
-                end
-              else
-                # In the past we used Hash[columns.zip(row)]
-                #  though elegant, the verbose way is much more efficient
-                #  both time and memory wise cause it avoids a big array allocation
-                #  this method is called a lot and needs to be micro optimised
-                hash = {}
-
-                index = 0
-                while index < length
-                  hash[columns[index]] = row[index]
-                  index += 1
-                end
-
-                # It's possible to select the same column twice, in which case
-                # we can't use a template
-                template = hash if hash.length == length
-
-                hash
-              end
-            }
-          end
+        # We use transform_values to rows.
+        # This is faster because we avoid any reallocs and avoid hashing entirely.
+        @hash_rows ||= @rows.map do |row|
+          column_indexes.transform_values { |index| row[index] }
+        end
       end
 
       empty_array = [].freeze
