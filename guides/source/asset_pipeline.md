@@ -452,7 +452,6 @@ config.assets.digest = false
 
 When this option is true, digests will be generated for asset URLs.
 
-##Assets
 
 ### Source Maps
 
