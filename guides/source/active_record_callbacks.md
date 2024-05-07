@@ -776,6 +776,58 @@ lead to invalid data.
 [`upsert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
 [`upsert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
 
+Suppressing Callbacks
+---------------------
+
+In certain scenarios, you may need to temporarily prevent certain callbacks from
+being executed within your Rails application. This can be useful when you want
+to skip specific actions during certain operations without permanently disabling
+the callbacks.
+
+Rails provides a mechanism for suppressing callbacks using the
+[`ActiveRecord::Suppressor`
+module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html). By
+using this module, you can wrap a block of code where you want to suppress
+callbacks, ensuring that they are not executed during that specific operation.
+
+Let's consider a scenario where we have a `User` model with a callback that
+sends a welcome email to new users after they sign up. However, there might be
+cases where we want to create a user without sending the welcome email, such as
+during seeding the database with test data.
+
+```ruby
+class User < ApplicationRecord
+  after_create :send_welcome_email
+
+  def send_welcome_email
+    puts "Welcome email sent to #{self.email}"
+  end
+end
+```
+In this example, the `after_create` callback triggers the `send_welcome_email`
+method every time a new user is created.
+
+To create a user without sending the welcome email, we can use the
+`ActiveRecord::Suppressor` module as follows:
+
+```ruby
+User.suppress do
+  User.create(name: "Jane", email: "jane@example.com")
+end
+```
+
+In the above code, the `User.suppress` block ensures that the
+`send_welcome_email` callback is not executed during the creation of the "Jane"
+user, allowing us to create the user without sending the welcome email.
+
+WARNING: Using the Active Record Suppressor, while potentially beneficial for
+selectively controlling callback execution, can introduce complexity and
+unexpected behavior. Suppressing callbacks can obscure the intended flow of your
+application, leading to difficulties in understanding and maintaining the
+codebase over time. Carefully consider the implications of suppressing
+callbacks, ensuring thorough documentation and thoughtful testing to mitigate
+risks of unintended side effects, performance issues, and test failures.
+
 Halting Execution
 -----------------
 
