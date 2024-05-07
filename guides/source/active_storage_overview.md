@@ -961,6 +961,12 @@ location.
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
+Some transformations accept optional arguments. Pass any additional arguments to the transformation function as key: value pairs inside a hash:
+
+```erb
+<%= image_tag user.avatar.variant(resize_to_fill: [100, 100, { crop: :centre }]) %>
+```
+
 If a variant is requested, Active Storage will automatically apply
 transformations depending on the image's format:
 
