@@ -184,6 +184,42 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "c", "=> 3"
   end
 
+  def test_rails_console_methods_patch_backward_compatibility_with_module_inclusion
+    add_to_config <<-RUBY
+      module MyConsole
+        def foo
+          "this is foo"
+        end
+      end
+
+      console do
+        ::Rails::ConsoleMethods.include(MyConsole)
+      end
+    RUBY
+
+    spawn_console("-e development", wait_for_prompt: false)
+
+    assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
+    write_prompt "foo", "=> \"this is foo\""
+  end
+
+  def test_rails_console_methods_patch_backward_compatibility_with_module_reopening
+    add_to_config <<-RUBY
+      console do
+        ::Rails::ConsoleMethods.module_eval do
+          def foo
+            "this is foo"
+          end
+        end
+      end
+    RUBY
+
+    spawn_console("-e development", wait_for_prompt: false)
+
+    assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
+    write_prompt "foo", "=> \"this is foo\""
+  end
+
   def test_reload_command_reload_constants
     app_file "app/models/user.rb", <<-MODEL
       class User

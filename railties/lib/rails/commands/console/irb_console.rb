@@ -14,7 +14,7 @@ module Rails
 
       # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
       def execute
-        helper
+        ApplicationController.helpers
       end
     end
 
@@ -23,23 +23,31 @@ module Rails
 
       # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
       def execute
-        controller
+        @controller ||= ApplicationController.new
       end
     end
 
     class NewSession < RailsHelperBase
       description "Create a new session. If a block is given, the new session will be yielded to the block before being returned."
 
-      def execute
-        new_session
+      def execute(*)
+        app = Rails.application
+        session = ActionDispatch::Integration::Session.new(app)
+
+        # This makes app.url_for and app.foo_path available in the console
+        session.extend(app.routes.url_helpers)
+        session.extend(app.routes.mounted_helpers)
+
+        session
       end
     end
 
-    class AppInstance < RailsHelperBase
+    class AppInstance < NewSession
       description "Reference the global 'app' instance, created on demand. To recreate the instance, pass a non-false value as the parameter."
 
       def execute(create = false)
-        app(create)
+        @app_integration_instance = nil if create
+        @app_integration_instance ||= super
       end
     end
 
@@ -50,7 +58,8 @@ module Rails
       description "Reloads the environment."
 
       def execute(*)
-        reload!
+        puts "Reloading..."
+        Rails.application.reloader.reload!
       end
     end
 
@@ -100,6 +109,10 @@ module Rails
             Rails.backtrace_cleaner.filter(backtrace)
           end
         end
+
+        # Because some users/libs use Rails::ConsoleMethods to extend Rails console,
+        # we still include it for backward compatibility.
+        IRB::ExtendCommandBundle.include ConsoleMethods
 
         # Respect user's choice of prompt mode.
         IRB.conf[:PROMPT_MODE] = :RAILS_PROMPT if IRB.conf[:PROMPT_MODE] == :DEFAULT
