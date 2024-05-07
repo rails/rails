@@ -456,7 +456,7 @@ When this option is true, digests will be generated for asset URLs.
 
 Starting with Rails 7, Webpacker is used to manage JavaScript and CSS assets. To enable source maps for debugging in development, you need to configure Webpacker to generate them. To do this, add the following to your `config/webpacker.yml` file:
 
-```yaml
+```ruby
 development:
   devtool: 'source-map'
 ```
