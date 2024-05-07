@@ -127,7 +127,6 @@ module ActiveRecord
           reflection_fk = reflection.foreign_key
           if reflection_fk.is_a?(Array)
             target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
-            reflection_fk = Array(reflection.foreign_key)
 
             if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
               reflection_fk.each_with_index do |key, index|
