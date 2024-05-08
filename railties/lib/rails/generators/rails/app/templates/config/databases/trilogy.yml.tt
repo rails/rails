@@ -15,10 +15,10 @@ default: &default
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
   password:
-<% if mysql_socket -%>
-  socket: <%= mysql_socket %>
+<% if database.socket -%>
+  socket: <%= database.socket %>
 <% else -%>
-  host: <%= mysql_database_host %>
+  host: <%%= ENV.fetch("DB_HOST") { "<%= database.host %>" } %>
 <% end -%>
 
 development:

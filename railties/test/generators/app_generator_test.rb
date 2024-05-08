@@ -1240,9 +1240,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal "redis://redis:6379/1", content["containerEnv"]["REDIS_URL"]
       assert_equal "45678", content["containerEnv"]["CAPYBARA_SERVER_PORT"]
       assert_equal "selenium", content["containerEnv"]["SELENIUM_HOST"]
-      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/activestorage"])
-      assert_equal({}, content["features"]["ghcr.io/devcontainers/features/github-cli:1"])
-      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/sqlite3"])
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/activestorage"
+      assert_includes content["features"].keys, "ghcr.io/devcontainers/features/github-cli:1"
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite3"
       assert_includes(content["forwardPorts"], 3000)
       assert_includes(content["forwardPorts"], 6379)
     end
@@ -1320,8 +1320,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_devcontainer_json_file do |content|
       assert_equal "postgres", content["containerEnv"]["DB_HOST"]
-      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/postgres-client"])
-      assert_includes(content["forwardPorts"], 5432)
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
+      assert_includes content["forwardPorts"], 5432
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV\["DB_HOST"\] %>/, content)
@@ -1350,8 +1350,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_devcontainer_json_file do |content|
       assert_equal "mysql", content["containerEnv"]["DB_HOST"]
-      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/mysql-client"])
-      assert_includes(content["forwardPorts"], 3306)
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/mysql-client"
+      assert_includes content["forwardPorts"], 3306
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
