@@ -919,7 +919,7 @@ belongs_to :author, class_name: Blorgh.author_class
 The `set_author` method in the `Blorgh::Article` model should also use this class:
 
 ```ruby
-self.author = Blorgh.author_class.constantize.find_or_create_by(name: author_name)
+self.author = Blorgh.author_class.find_or_create_by(name: author_name)
 ```
 
 To save having to call `constantize` on the `author_class` result all the time,
