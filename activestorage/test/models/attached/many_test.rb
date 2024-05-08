@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "database/setup"
+require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -975,5 +976,102 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_predicate @user.reload.highlights, :attached?
     assert_equal 1, @user.highlights.count
     assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
+  end
+
+  def run_test_attached_callbacks_on_record(user, tracking_variants = true)
+    funky_io = { io: StringIO.new("FUNKY"), filename: "funky.jpg", content_type: "image/jpeg" }
+    racecar_file = fixture_file_upload("racecar.jpg")
+    town_io = { io: StringIO.new("TOWN"), filename: "town.jpg", content_type: "image/jpeg" }
+
+    before_attached_blobs = {}
+    after_attached_blobs = {}
+
+    # Stub the callbacks so we can track the blobs integrity being passed to them
+    before_blob_attached_proc = Proc.new do |blob, from = :main|
+      before_attached_blobs[from] ||= []
+      before_attached_blobs[from] << blob
+    end
+
+    after_blob_attached_proc = Proc.new do |blob, from = :main|
+      after_attached_blobs[from] ||= []
+      after_attached_blobs[from] << blob
+    end
+
+    user.stub("before_blob_attached", before_blob_attached_proc) do
+      user.stub("after_blob_attached", after_blob_attached_proc) do
+        user.highlights.attach funky_io, town_io
+      end
+    end
+
+    # After attaching multiple io attachables, check the count and that the blob
+    # that were used to invoke the callbacks
+    assert_equal 2, before_attached_blobs[:main].count
+
+    filenames = before_attached_blobs[:main].map(&:filename)
+    assert_includes filenames, "funky.jpg"
+    assert_includes filenames, "town.jpg"
+
+    assert_equal 2, after_attached_blobs[:main].count
+
+    filenames = after_attached_blobs[:main].map(&:filename)
+    assert_includes filenames, "funky.jpg"
+    assert_includes filenames, "town.jpg"
+
+
+
+    before_attached_blobs[:main].clear
+    after_attached_blobs[:main].clear
+    variant = nil
+
+
+    user.stub("before_blob_attached", before_blob_attached_proc) do
+      user.stub("after_blob_attached", after_blob_attached_proc) do
+        # upload variants
+        user.highlights_with_variants.attach racecar_file
+        variant = user.highlights_with_variants.first.variant(:thumb).processed
+      end
+    end
+
+    assert_equal 1, before_attached_blobs[:main].count
+    assert_equal 1, before_attached_blobs[:thumb].count
+
+    assert_equal 1, after_attached_blobs[:main].count
+    assert_equal 1, after_attached_blobs[:thumb].count
+
+    main_blob = after_attached_blobs[:main].first
+    variant_blob = after_attached_blobs[:thumb].first
+
+    assert_not_nil variant
+
+    assert_not_nil main_blob, "Main Blob should not be nil"
+    assert_not_nil variant_blob, "Variant Blob should not be nil"
+
+
+    filenames = after_attached_blobs[:main].map(&:filename)
+    assert_includes filenames, "racecar.jpg"
+
+    if tracking_variants
+      assert_not_equal main_blob.id, variant_blob.id, "Blobs should be different"
+    else
+      variant_file = variant_blob
+      assert_not_equal main_blob, variant_file, "Blobs should be different"
+
+      assert_kind_of Tempfile, variant_file, "Variant should be a Tempfile"
+      assert_kind_of ActiveStorage::Blob, main_blob, "Main Blob should be an ActiveStorage::Blob"
+
+      assert_equal true, variant_file.closed?, "Variant TempFile should be closed"
+    end
+  end
+
+  test "invokes before and after attached callbacks on the record" do
+    run_test_attached_callbacks_on_record(@user)
+  end
+
+  test "invokes before and after attached callbacks on the record when untracked variants" do
+    @was_tracking, ActiveStorage.track_variants = ActiveStorage.track_variants, false
+
+    run_test_attached_callbacks_on_record(@user, false)
+
+    ActiveStorage.track_variants = @was_tracking
   end
 end

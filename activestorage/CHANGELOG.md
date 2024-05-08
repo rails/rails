@@ -1,3 +1,7 @@
+*   Add support for **Before** and **After** callbacks to `ActiveRecord::Base` attachments and attachments variants.
+
+    *Aaron Patterson, Gary Tou, Matt Boldt, and Robert Peralta*
+
 *   Improve `ActiveStorage::Filename#sanitized` method to handle special characters more effectively.
     Replace the characters `"*?<>` with `-` if they exist in the Filename to match the Filename convention of Win OS.
 

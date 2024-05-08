@@ -917,4 +917,86 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def run_test_before_and_after_attached_callbacks_on_user(user, tracking_variants = true)
+    before_attached_blobs = {}
+    after_attached_blobs = {}
+
+    # Stub the callbacks so we can track the blobs being passed to them
+    before_blob_attached_proc = Proc.new do |blob, from = :main|
+      before_attached_blobs[from] ||= []
+      before_attached_blobs[from] << blob
+    end
+
+    after_blob_attached_proc = Proc.new do |blob, from = :main|
+      after_attached_blobs[from] ||= []
+      after_attached_blobs[from] << blob
+    end
+
+    user.stub("before_blob_attached", before_blob_attached_proc) do
+      user.stub("after_blob_attached", after_blob_attached_proc) do
+        # upload avatar
+        user.avatar.attach fixture_file_upload("racecar.jpg")
+      end
+    end
+
+    # check that before and after were attached
+    filenames = before_attached_blobs[:main].map(&:filename)
+    assert_includes filenames, "racecar.jpg"
+
+    filenames = after_attached_blobs[:main].map(&:filename)
+    assert_includes filenames, "racecar.jpg"
+
+
+    before_attached_blobs[:main].clear
+    after_attached_blobs[:main].clear
+    variant = nil
+
+    user.stub("before_blob_attached", before_blob_attached_proc) do
+      user.stub("after_blob_attached", after_blob_attached_proc) do
+        # upload variants
+        user.avatar_with_variants.attach fixture_file_upload("racecar.jpg")
+        variant = user.avatar_with_variants.variant(:thumb).processed
+      end
+    end
+
+    assert_equal 1, before_attached_blobs[:main].count
+    assert_equal 1, before_attached_blobs[:thumb].count
+
+    assert_equal 1, after_attached_blobs[:main].count
+    assert_equal 1, after_attached_blobs[:thumb].count
+
+
+    main_blob = after_attached_blobs[:main].first
+    variant_blob = after_attached_blobs[:thumb].first
+
+    assert_not_nil variant
+
+    assert_not_nil main_blob, "Main Blob should not be nil"
+    assert_not_nil variant_blob, "Variant Blob should not be nil"
+
+    if tracking_variants
+      assert_not_equal main_blob.id, variant_blob.id, "Blobs should be different"
+    else
+      variant_file = variant_blob
+      assert_not_equal main_blob, variant_file, "Blobs should be different"
+
+      assert_kind_of Tempfile, variant_file, "Variant should be a Tempfile"
+      assert_kind_of ActiveStorage::Blob, main_blob, "Main Blob should be an ActiveStorage::Blob"
+
+      assert_equal true, variant_file.closed?, "Variant TempFile should be closed"
+    end
+  end
+
+  test "invokes before and after attached callbacks on the record" do
+    run_test_before_and_after_attached_callbacks_on_user(@user)
+  end
+
+  test "invokes before and after attached callbacks on the record when untracked variants" do
+    @was_tracking, ActiveStorage.track_variants = ActiveStorage.track_variants, false
+
+    run_test_before_and_after_attached_callbacks_on_user(@user, false)
+
+    ActiveStorage.track_variants = @was_tracking
+  end
 end
