@@ -47,35 +47,6 @@
 
     *Stan Lo*
 
-*   Allow Actionable Errors encountered when running tests to be retried.
-
-    ```txt
-    Migrations are pending. To resolve this issue, run:
-
-            bin/rails db:migrate
-
-    You have 1 pending migration:
-
-    db/migrate/20240201213806_add_a_to_b.rb
-    Run pending migrations? [Yn] Y
-    == 20240201213806 AddAToB: migrating =========================================
-    == 20240201213806 AddAToB: migrated (0.0000s) ================================
-
-    Running 7 tests in a single process (parallelization threshold is 50)
-    Run options: --seed 22200
-
-    # Running:
-
-    .......
-
-    Finished in 0.243394s, 28.7600 runs/s, 45.1942 assertions/s.
-    7 runs, 11 assertions, 0 failures, 0 errors, 0 skips
-    ```
-
-    This feature will only be present on interactive terminals.
-
-    *Andrew Novoselac & Gannon McGibbon*
-
 *   Skip generating a `test` job in ci.yml when a new application is generated with the
     `--skip-test` option.
 
