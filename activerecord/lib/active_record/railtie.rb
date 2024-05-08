@@ -217,6 +217,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.postgresql_adapter_decode_dates" do
+      config.after_initialize do
+        if config.active_record.postgresql_adapter_decode_dates
+          ActiveSupport.on_load(:active_record_postgresqladapter) do
+            self.decode_dates = true
+          end
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
@@ -245,7 +255,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :cache_query_log_tags,
           :sqlite3_adapter_strict_strings_by_default,
           :check_schema_cache_dump_version,
-          :use_schema_cache_dump
+          :use_schema_cache_dump,
+          :postgresql_adapter_decode_dates,
         )
 
         configs.each do |k, v|
