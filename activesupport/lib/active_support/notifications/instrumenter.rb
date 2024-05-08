@@ -117,6 +117,8 @@ module ActiveSupport
         @cpu_time_finish = 0.0
         @allocation_count_start = 0
         @allocation_count_finish = 0
+        @gc_time_start = 0
+        @gc_time_finish = 0
       end
 
       def time
@@ -144,12 +146,14 @@ module ActiveSupport
       def start!
         @time = now
         @cpu_time_start = now_cpu
+        @gc_time_start = now_gc
         @allocation_count_start = now_allocations
       end
 
       # Record information at the time this event finishes
       def finish!
         @cpu_time_finish = now_cpu
+        @gc_time_finish = now_gc
         @end = now
         @allocation_count_finish = now_allocations
       end
@@ -171,6 +175,12 @@ module ActiveSupport
       # the call to #finish!.
       def allocations
         @allocation_count_finish - @allocation_count_start
+      end
+
+      # Returns the time spent in GC (in milliseconds) between the call to #start!
+      # and the call to #finish!
+      def gc_time
+        (@gc_time_finish - @gc_time_start) / 1_000_000.0
       end
 
       # Returns the difference in milliseconds between when the execution of the
@@ -203,6 +213,16 @@ module ActiveSupport
         rescue
           def now_cpu
             0.0
+          end
+        end
+
+        if GC.respond_to?(:total_time)
+          def now_gc
+            GC.total_time
+          end
+        else
+          def now_gc
+            0
           end
         end
 
