@@ -311,7 +311,7 @@ You can learn more about associations [here](association_basics.html).
 
 ### Model Generators
 
-The model, resource, and scaffold generators will create migrations appropriate
+In addition to the `migration` generator, the `model`, `resource`, and `scaffold` generators will create migrations appropriate
 for adding a new model. This migration will already contain instructions for
 creating the relevant table. If you tell Rails what columns you want, then
 statements for adding these columns will also be created. For example, running:
