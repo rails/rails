@@ -2,59 +2,84 @@
 
 module Rails
   module Generators
-    module Database # :nodoc:
+    class Database
       DATABASES = %w( mysql trilogy postgresql sqlite3 )
 
-      def gem_for_database(database = options[:database])
-        case database
-        when "mysql"          then ["mysql2", ["~> 0.5"]]
-        when "trilogy"        then ["trilogy", ["~> 2.7"]]
-        when "postgresql"     then ["pg", ["~> 1.1"]]
-        when "sqlite3"        then ["sqlite3", [">= 1.4"]]
-        else [database, nil]
+      class << self
+        def build(database_name)
+          case database_name
+          when "mysql" then MySQL.new
+          when "postgresql" then PostgreSQL.new
+          when "trilogy" then MariaDB.new
+          when "sqlite3" then SQLite3.new
+          else Null.new
+          end
+        end
+
+        def all
+          @all ||= [
+            MySQL.new,
+            PostgreSQL.new,
+            MariaDB.new,
+            SQLite3.new,
+          ]
         end
       end
 
-      def docker_for_database_base(database = options[:database])
-        case database
-        when "mysql"          then "curl default-mysql-client libvips"
-        when "trilogy"        then "curl libvips"
-        when "postgresql"     then "curl libvips postgresql-client"
-        when "sqlite3"        then "curl libsqlite3-0 libvips"
-        else nil
-        end
+      def name
+        raise NotImplementedError
       end
 
-      def docker_for_database_build(database = options[:database])
-        case database
-        when "mysql"          then "build-essential default-libmysqlclient-dev git"
-        when "trilogy"        then "build-essential git"
-        when "postgresql"     then "build-essential git libpq-dev"
-        when "sqlite3"        then "build-essential git"
-        else nil
-        end
+      def service
+        raise NotImplementedError
       end
 
-      def base_package_for_database(database = options[:database])
-        case database
-        when "mysql" then "default-mysql-client"
-        when "postgresql" then "postgresql-client"
-        when "sqlite3" then "libsqlite3-0"
-        else nil
-        end
+      def port
+        raise NotImplementedError
       end
 
-      def build_package_for_database(database = options[:database])
-        case database
-        when "mysql" then "default-libmysqlclient-dev"
-        when "postgresql" then "libpq-dev"
-        else nil
-        end
+      def feature_name
+        raise NotImplementedError
       end
 
-      private
-        def mysql_socket
-          @mysql_socket ||= [
+      def gem
+        raise NotImplementedError
+      end
+
+      def docker_base
+        raise NotImplementedError
+      end
+
+      def docker_build
+        raise NotImplementedError
+      end
+
+      def base_package
+        raise NotImplementedError
+      end
+
+      def build_package
+        raise NotImplementedError
+      end
+
+      def socket; end
+      def host; end
+
+      def feature
+        return unless feature_name
+
+        { feature_name => {} }
+      end
+
+      def volume
+        return unless service
+
+        "#{name}-data"
+      end
+
+      module MySqlSocket
+        def socket
+          @socket ||= [
             "/tmp/mysql.sock",                        # default
             "/var/run/mysqld/mysqld.sock",            # debian/gentoo
             "/var/tmp/mysql.sock",                    # freebsd
@@ -67,13 +92,204 @@ module Rails
           ].find { |f| File.exist?(f) } unless Gem.win_platform?
         end
 
-        def mysql_database_host
-          if options[:skip_devcontainer]
-            "localhost"
-          else
-            "<%= ENV.fetch(\"DB_HOST\") { \"localhost\" } %>"
-          end
+        def host
+          "localhost"
         end
+      end
+
+      class MySQL < Database
+        include MySqlSocket
+
+        def name
+          "mysql"
+        end
+
+        def service
+          {
+            "image" => "mysql/mysql-server:8.0",
+            "restart" => "unless-stopped",
+            "environment" => {
+              "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
+              "MYSQL_ROOT_HOST" => "%"
+            },
+            "volumes" => ["mysql-data:/var/lib/mysql"],
+            "networks" => ["default"],
+          }
+        end
+
+        def port
+          3306
+        end
+
+        def gem
+          ["mysql2", ["~> 0.5"]]
+        end
+
+        def docker_base
+          "curl default-mysql-client libvips"
+        end
+
+        def docker_build
+          "build-essential default-libmysqlclient-dev git"
+        end
+
+        def base_package
+          "default-mysql-client"
+        end
+
+        def build_package
+          "default-libmysqlclient-dev"
+        end
+
+        def feature_name
+          "ghcr.io/rails/devcontainer/features/mysql-client"
+        end
+      end
+
+      class PostgreSQL < Database
+        def name
+          "postgres"
+        end
+
+        def service
+          {
+            "image" => "postgres:16.1",
+            "restart" => "unless-stopped",
+            "networks" => ["default"],
+            "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+            "environment" => {
+              "POSTGRES_USER" => "postgres",
+              "POSTGRES_PASSWORD" => "postgres"
+            }
+          }
+        end
+
+        def port
+          5432
+        end
+
+        def gem
+          ["pg", ["~> 1.1"]]
+        end
+
+        def docker_base
+          "curl libvips postgresql-client"
+        end
+
+        def docker_build
+          "build-essential git libpq-dev"
+        end
+
+        def base_package
+          "postgresql-client"
+        end
+
+        def build_package
+          "libpq-dev"
+        end
+
+        def feature_name
+          "ghcr.io/rails/devcontainer/features/postgres-client"
+        end
+      end
+
+      class MariaDB < Database
+        include MySqlSocket
+
+        def name
+          "mariadb"
+        end
+
+        def service
+          {
+            "image" => "mariadb:10.5",
+            "restart" => "unless-stopped",
+            "networks" => ["default"],
+            "volumes" => ["mariadb-data:/var/lib/mysql"],
+            "environment" => {
+              "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
+            },
+          }
+        end
+
+        def port
+          3306
+        end
+
+        def gem
+          ["trilogy", ["~> 2.7"]]
+        end
+
+        def docker_base
+          "curl libvips"
+        end
+
+        def docker_build
+          "build-essential git"
+        end
+
+        def base_package
+          nil
+        end
+
+        def build_package
+          nil
+        end
+
+        def feature_name
+          nil
+        end
+      end
+
+      class SQLite3 < Database
+        def name
+          "sqlite3"
+        end
+
+        def service
+          nil
+        end
+
+        def port
+          nil
+        end
+
+        def gem
+          ["sqlite3", [">= 1.4"]]
+        end
+
+        def docker_base
+          "curl libsqlite3-0 libvips"
+        end
+
+        def docker_build
+          "build-essential git"
+        end
+
+        def base_package
+          "libsqlite3-0"
+        end
+
+        def build_package
+          nil
+        end
+
+        def feature_name
+          "ghcr.io/rails/devcontainer/features/sqlite3"
+        end
+      end
+
+      class Null < Database
+        def name; end
+        def service; end
+        def port; end
+        def volume; end
+        def docker_base; end
+        def docker_build; end
+        def base_package; end
+        def build_package; end
+        def feature_name; end
+      end
     end
   end
 end

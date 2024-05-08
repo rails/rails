@@ -9,8 +9,6 @@ module Rails
     module Db
       module System
         class ChangeGenerator < Base # :nodoc:
-          include Database
-          include Devcontainer
           include AppName
 
           class_option :to, required: true,
@@ -24,8 +22,8 @@ module Rails
           def initialize(*)
             super
 
-            unless DATABASES.include?(options[:to])
-              raise Error, "Invalid value for --to option. Supported preconfigurations are: #{DATABASES.join(", ")}."
+            unless Database::DATABASES.include?(options[:to])
+              raise Error, "Invalid value for --to option. Supported preconfigurations are: #{Database::DATABASES.join(", ")}."
             end
 
             opt = options.dup
@@ -38,7 +36,7 @@ module Rails
           end
 
           def edit_gemfile
-            name, version = gem_for_database
+            name, version = database.gem
             gsub_file("Gemfile", all_database_gems_regex, name)
             gsub_file("Gemfile", gem_entry_regex_for(name), gem_entry_for(name, *version))
           end
@@ -47,8 +45,8 @@ module Rails
             dockerfile_path = File.expand_path("Dockerfile", destination_root)
             return unless File.exist?(dockerfile_path)
 
-            base_name = docker_for_database_base
-            build_name = docker_for_database_build
+            base_name = database.docker_base
+            build_name = database.docker_build
             if base_name
               gsub_file("Dockerfile", all_docker_bases_regex, base_name)
             end
@@ -67,15 +65,15 @@ module Rails
 
           private
             def all_database_gems
-              DATABASES.map { |database| gem_for_database(database) }
+              Database.all.map { |database| database.gem }
             end
 
             def all_docker_bases
-              DATABASES.filter_map { |database| docker_for_database_base(database) }
+              Database.all.filter_map { |database| database.docker_base }
             end
 
             def all_docker_builds
-              DATABASES.filter_map { |database| docker_for_database_build(database) }
+              Database.all.filter_map { |database| database.docker_build }
             end
 
             def all_database_gems_regex
@@ -113,19 +111,17 @@ module Rails
 
               compose_config = YAML.load_file(compose_yaml_path)
 
-              db_service_names.each do |db_service_name|
-                compose_config["services"].delete(db_service_name)
-                compose_config["volumes"]&.delete("#{db_service_name}-data")
-                compose_config["services"]["rails-app"]["depends_on"]&.delete(db_service_name)
+              Database.all.each do |database|
+                compose_config["services"].delete(database.name)
+                compose_config["volumes"]&.delete(database.volume)
+                compose_config["services"]["rails-app"]["depends_on"]&.delete(database.name)
               end
 
-              db_service = db_service_for_devcontainer
-
-              if db_service
-                compose_config["services"].merge!(db_service)
-                compose_config["volumes"] = { db_volume_name_for_devcontainer => nil }.merge(compose_config["volumes"] || {})
+              if database.service
+                compose_config["services"][database.name] = database.service
+                compose_config["volumes"] = { database.volume => nil }.merge(compose_config["volumes"] || {})
                 compose_config["services"]["rails-app"]["depends_on"] = [
-                  db_name_for_devcontainer,
+                  database.name,
                   compose_config["services"]["rails-app"]["depends_on"]
                 ].flatten.compact
               end
@@ -138,16 +134,16 @@ module Rails
 
             def update_devcontainer_db_host
               container_env = devcontainer_json["containerEnv"]
-              db_name = db_name_for_devcontainer
+              db_name = database.name
 
               if container_env["DB_HOST"]
-                if db_name
+                if database.service
                   container_env["DB_HOST"] = db_name
                 else
                   container_env.delete("DB_HOST")
                 end
               else
-                if db_name
+                if database.service
                   container_env["DB_HOST"] = db_name
                 end
               end
@@ -159,10 +155,10 @@ module Rails
 
             def update_devcontainer_db_feature
               features = devcontainer_json["features"]
-              db_feature = db_feature_for_devcontainer
+              db_feature = database.feature
 
-              db_features.each do |feature|
-                features.delete(feature)
+              Database.all.each do |database|
+                features.delete(database.feature_name)
               end
 
               features.merge!(db_feature) if db_feature
@@ -180,6 +176,10 @@ module Rails
 
             def devcontainer_json_path
               File.expand_path(".devcontainer/devcontainer.json", destination_root)
+            end
+
+            def database
+              @database ||= Database.build(options[:database])
             end
         end
       end
