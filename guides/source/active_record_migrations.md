@@ -62,7 +62,6 @@ models. The `timestamps` macro adds two columns, `created_at` and `updated_at`.
 These special columns are automatically managed by Active Record if they exist.
 
 ```ruby
-
 # db/schema.rb
 ActiveRecord::Schema[7.2].define(version: 2024_05_02_100843) do
   # These are extensions that must be enabled in order to support this database
@@ -74,7 +73,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_05_02_100843) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
-
 end
 ```
 
@@ -1666,7 +1664,6 @@ database adapter to work with UUIDs.
     class CreateAuthors < ActiveRecord::Migration[7.2]
       def change
         create_table :authors, id: :uuid do |t|
-
           t.timestamps
         end
       end
