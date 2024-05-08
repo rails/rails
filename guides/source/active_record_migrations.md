@@ -134,6 +134,9 @@ This generator can do much more than prepend a timestamp to the file name. Based
 on naming conventions and additional (optional) arguments it can also start
 fleshing out the migration.
 
+The following sections will cover the various ways you can create migrations
+based on conventions and additional arguments.
+
 ### Creating a New Table
 
 If the migration name is of the form "CreateXXX" and is followed by a list of
@@ -511,7 +514,7 @@ people to understand the data model and generate documentation. Currently only
 the MySQL and PostgreSQL adapters support comments.
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[6.0]
+class AddDetailsToProducts < ActiveRecord::Migration[7.2]
   def change
     add_column :products, :price, :decimal, precision: 8, scale: 2, comment: "The price of the product in USD"
     add_column :products, :stock_quantity, :integer, comment: "The current stock quantity of the product"
@@ -521,7 +524,6 @@ end
 
 [`create_table`]:
     https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_table
-
 
 ### Creating a Join Table
 
@@ -1631,8 +1633,7 @@ database adapter to work with UUIDs.
     This setting instructs Rails to use UUIDs as the default primary key type
     for ActiveRecord models.
 
-
-4. Adding References with UUIDs:
+3. Adding References with UUIDs:
 
     When creating associations between models using references, ensure that you
     specify the data type as :uuid to maintain consistency with the primary key
@@ -1652,7 +1653,7 @@ database adapter to work with UUIDs.
     key it references. Adjust the syntax accordingly for other associations and
     databases.
 
-3. Migration Changes
+4. Migration Changes
 
     When generating migrations for your models, you'll notice that it secifies
     the id to be of type uuid:
