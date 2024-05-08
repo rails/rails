@@ -628,6 +628,35 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
   end
 
+  def test_using_query_constraints_warns_about_changing_behavior
+    has_many_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.has_many :clients` is deprecated.
+      To maintain current behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_deprecated(has_many_expected_message, ActiveRecord.deprecator) do
+      ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    end
+
+    has_one_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.has_one :account` is deprecated.
+      To maintain current behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_deprecated(has_one_expected_message, ActiveRecord.deprecator) do
+      ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    end
+
+    belongs_to_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.belongs_to :client` is deprecated.
+      To maintain current behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_deprecated(belongs_to_expected_message, ActiveRecord.deprecator) do
+      ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    end
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)

@@ -522,6 +522,13 @@ module ActiveRecord
         @foreign_key = nil
         @association_foreign_key = nil
         @association_primary_key = nil
+        if options[:query_constraints]
+          ActiveRecord.deprecator.warn <<~MSG.squish
+            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is deprecated.
+            To maintain current behavior, use the `foreign_key` option instead.
+          MSG
+        end
+
         # If the foreign key is an array, set query constraints options and don't use the foreign key
         if options[:foreign_key].is_a?(Array)
           options[:query_constraints] = options.delete(:foreign_key)
