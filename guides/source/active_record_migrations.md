@@ -28,7 +28,7 @@ use a Ruby [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) so that
 you don't have to write SQL by hand, allowing your schema and changes to be
 database independent. We recommend that you read the guides for [Active Record
 Basics](active_record_basics.html) and the [Active Record
-Associations](association_basics.html) to learn about the some of the concepts
+Associations](association_basics.html) to learn more about some of the concepts
 mentioned here.
 
 You can think of each migration as being a new 'version' of the database. A
