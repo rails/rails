@@ -113,7 +113,7 @@ followed by the name of the migration. The name of the migration class
 should be run and in what order, so if you're copying a migration from another
 application or generate a file yourself, be aware of its position in the order.
 
-Of course, calculating timestamps is not fun, so Active Record provides a
+Of course, calculating timestamps manually is tedious, so Active Record provides a
 generator to handle making it for you:
 
 ```bash
