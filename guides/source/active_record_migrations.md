@@ -309,10 +309,11 @@ You can learn more about associations [here](association_basics.html).
 [`remove_column`]:
     https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_column
 
-### Model Generators
+### Other Generators that Create Migrations
 
-In addition to the `migration` generator, the `model`, `resource`, and `scaffold` generators will create migrations appropriate
-for adding a new model. This migration will already contain instructions for
+In addition to the `migration` generator, the `model`, `resource`, and
+`scaffold` generators will create migrations appropriate for adding a new model.
+This migration will already contain instructions for
 creating the relevant table. If you tell Rails what columns you want, then
 statements for adding these columns will also be created. For example, running:
 
@@ -446,7 +447,9 @@ create_table "users", primary_key: "user_id", force: :cascade do |t|
 end
 ```
 
-You can also pass an array to `:primary_key` for a composite primary key.
+You can also pass an array to `:primary_key` for a composite primary key. Read
+more about composite primary keys
+[here](active_record_composite_primary_keys.html).
 
 ```ruby
 class CreateUsers < ActiveRecord::Migration[7.2]
