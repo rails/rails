@@ -18,15 +18,11 @@ module ActiveRecord
         def compute_attribute(inner_error)
           association_name = association.reflection.name
 
-          attribute =
-            if index_errors_setting && index
-              "#{association_name}[#{index}]"
-            else
-              association_name
-            end
-
-          attribute = :"#{attribute}.#{inner_error.attribute}" if inner_error.attribute != :base
-          attribute.to_sym
+          if index_errors_setting && index
+            "#{association_name}[#{index}].#{inner_error.attribute}".to_sym
+          else
+            "#{association_name}.#{inner_error.attribute}".to_sym
+          end
         end
 
         def index_errors_setting
