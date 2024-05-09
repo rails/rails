@@ -1613,7 +1613,8 @@ module ActiveRecord
         #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
         #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
         # [+:polymorphic+]
-        #   Specify this association is a polymorphic association by passing +true+.
+        #   Specify this association is a polymorphic association by passing +true+. Or pass an array of allowed class names
+        #   to additionally add an inclusion validator to the +foreign_key+ column.
         #   Note: Since polymorphic associations rely on storing class names in the database, make sure to update the class names in the
         #   <tt>*_type</tt> polymorphic type column of the corresponding rows.
         # [+:validate+]
