@@ -121,6 +121,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
         required = !reflection.options[:optional]
       end
 
+      if reflection.options[:polymorphic].is_a?(Array)
+        model.validates reflection.foreign_type,
+          inclusion: { in: reflection.options[:polymorphic].map { |klass| klass.to_s } },
+          allow_blank: true
+      end
+
       super
 
       if required
