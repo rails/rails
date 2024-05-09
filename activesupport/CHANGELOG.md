@@ -1,3 +1,12 @@
+*   Added new test assertions  `assert_error_on` and `assert_no_error_on` to simplify testing for specific validation errors on models.
+    Example usage:
+    ```ruby
+    assert_error_on user :name, :blank
+    assert_no_error user, :name, :blank
+    ```
+
+    *Daniela Velasquez*
+
 *   Fix `ActiveSupport::HashWithIndifferentAccess#stringify_keys` to stringify all keys not just symbols.
 
     Previously:
