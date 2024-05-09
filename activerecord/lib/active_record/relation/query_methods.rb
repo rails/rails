@@ -696,13 +696,14 @@ module ActiveRecord
     #   #     WHEN "conversations"."status" = 0 THEN 3
     #   #   END ASC
     #
-    # +only_values+ can be set to +false+ to include all scope instead of only the ones specified in +values+.
+    # +only_values+ can be set to +false+ to include all results instead of only the ones specified in +values+.
     #
     #   Conversation.in_order_of(:status, [:archived, :active], only_values: false)
     #   # SELECT "conversations".* FROM "conversations"
     #   #   ORDER BY CASE
     #   #     WHEN "conversations"."status" = 1 THEN 1
     #   #     WHEN "conversations"."status" = 0 THEN 2
+    #   #     ELSE 3
     #   #   END ASC
     #
     def in_order_of(column, values, only_values: true)

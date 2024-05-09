@@ -1,3 +1,7 @@
+*   Add option `only_values` on `in_order_of` to allow put some values as priority in the sorting without filter results by this values.
+
+    *Igor Depolli*
+
 *   Fix `index_errors` having incorrect index in association validation errors.
 
     *lulalala*
