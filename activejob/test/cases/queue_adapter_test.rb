@@ -53,6 +53,19 @@ class QueueAdapterTest < ActiveJob::TestCase
     assert_equal base_queue_adapter, child_job_three.queue_adapter, "child_job_three's queue adapter should remain unchanged"
   end
 
+  test "should default to :async adapter if no adapters are set at all" do
+    ActiveJob::Base.disable_test_adapter
+    _queue_adapter_was = ActiveJob::Base._queue_adapter
+    _queue_adapter_name_was = ActiveJob::Base._queue_adapter_name
+    ActiveJob::Base._queue_adapter = ActiveJob::Base._queue_adapter_name = nil
+
+    assert_equal "async", ActiveJob::Base.queue_adapter_name
+    assert_kind_of ActiveJob::QueueAdapters::AsyncAdapter, ActiveJob::Base.queue_adapter
+  ensure
+    ActiveJob::Base._queue_adapter = _queue_adapter_was
+    ActiveJob::Base._queue_adapter_name = _queue_adapter_name_was
+  end
+
   test "should extract a reasonable name from a class instance" do
     child_job = Class.new(ActiveJob::Base)
     child_job.queue_adapter = ActiveJob::QueueAdapters::StubOneAdapter.new
