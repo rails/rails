@@ -282,6 +282,86 @@ module ActiveSupport
         retval
       end
 
+      # Asserts that an ActiveModel object has a specific error on a given attribute.
+      #
+      # This assertion checks whether a validation error of a specific type
+      # exists on the provided attribute of the object. If the error does not
+      # exist, the test will fail, displaying an optional custom error message or
+      # a default one indicating the expected and actual outcomes.
+      #
+      # Example:
+      #
+      #   assert_error_on(user, :name, :blank)
+      #   # Asserts that the `user` object has a `:blank` validation error on the `:name` attribute.
+      #
+      # Arguments:
+      #   obj: The ActiveModel object being validated. It must respond to `#errors`.
+      #   attribute: The attribute for which the validation error is expected (e.g., `:name`).
+      #   type: The specific type of validation error (e.g., `:blank`, `:invalid`, etc.).
+      #   msg: An optional custom message to display if the assertion fails. If not provided,
+      #        a default message is generated based on the provided attribute and error type.
+      #
+      # Raises:
+      #   ArgumentError: If the `obj` does not respond to `#errors`.
+      #
+      # Example Custom Error Message:
+      #
+      #   assert_error_on(user, :name, :blank, "Expected 'name' to be present but it's blank.")
+      #
+      # Failing Example:
+      #
+      #   assert_error_on(user, :email, :invalid)
+      #   # Fails if `user.errors` does not contain an `:invalid` error for the `:email` attribute.
+      def assert_error_on(obj, attribute, type, msg = nil)
+        raise ArgumentError.new("#{obj.inspect} does not respond to #errors") unless obj.respond_to?(:errors)
+
+        msg = message(msg) {
+          data = [type, attribute]
+          "Expected error %s on %s" % data
+        }
+
+        assert(obj.errors.added?(attribute, type), msg)
+      end
+
+      # Asserts that an ActiveModel object does not have a specific error on a given attribute.
+      #
+      # This assertion checks that a validation error of a specific type is not present
+      # on the provided attribute of the object. If the error exists, the test will fail,
+      # displaying an optional custom error message or a default one indicating the
+      # unexpected error on the attribute.
+      #
+      # Example:
+      #
+      #   assert_no_error_on(user, :name, :blank)
+      #   # Asserts that the `user` object does not have a `:blank` validation error on the `:name` attribute.
+      #
+      # Arguments:
+      #   obj: The ActiveModel object being validated. It must respond to `#errors`.
+      #   attribute: The attribute for which the absence of a specific validation error is expected (e.g., `:name`).
+      #   type: The specific type of validation error that is expected *not* to be present (e.g., `:blank`, `:invalid`).
+      #   msg: An optional custom message to display if the assertion fails. If not provided,
+      #        a default message is generated based on the provided attribute and error type.
+      #
+      # Raises:
+      #   ArgumentError: If the `obj` does not respond to `#errors`.
+      #
+      # Example Custom Error Message:
+      #
+      #   assert_no_error_on(user, :name, :blank, "Expected 'name' to be valid and not blank.")
+      #
+      # Failing Example:
+      #
+      #   assert_no_error_on(user, :email, :invalid)
+      #   # Fails if `user.errors` contains an `:invalid` error for the `:email` attribute.
+      def assert_no_error_on(obj, attribute, type, msg = nil)
+        raise ArgumentError.new("#{obj.inspect} does not respond to #errors") unless obj.respond_to?(:errors)
+        msg = message(msg) {
+          data = [attribute, type]
+          "Expected %s to not be %s" % data
+        }
+        assert_not(obj.errors.added?(attribute, type), msg)
+      end
+
       private
         def _assert_nothing_raised_or_warn(assertion, &block)
           assert_nothing_raised(&block)
