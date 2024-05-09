@@ -81,6 +81,17 @@ Upgrading from Rails 7.1 to Rails 7.2
 
 For more information on changes made to Rails 7.2 please see the [release notes](7_2_release_notes.html).
 
+### All tests now respect the `active_job.queue_adapter` config
+
+If you have set `config.active_job.queue_adapter` in your `config/application.rb` or `config/environments/test.rb` file,
+the adapter you selected was previously not used consistently across all tests. In some tests your adapter would be
+used, but other tests would use the `TestAdapter`.
+
+In Rails 7.2, all tests will respect the `queue_adapter` config if provided. This may cause test errors, if you had
+set the `queue_adapter` config to something other than `:test`, but written tests in a way that was dependent on the `TestAdapter`.
+
+If no config is provided, the `TestAdapter` will continue to be used.
+
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 
