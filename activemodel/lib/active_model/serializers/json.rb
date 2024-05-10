@@ -114,7 +114,7 @@ module ActiveModel
       #   class Person
       #     include ActiveModel::Serializers::JSON
       #
-      #     attr_accessor :name, :age, :awesome
+      #     attr_accessor :name, :age, :awesome, :born_on
       #
       #     def attributes=(hash)
       #       hash.each do |key, value|
@@ -127,25 +127,36 @@ module ActiveModel
       #     end
       #   end
       #
-      #   json = { name: 'bob', age: 22, awesome:true }.to_json
+      #   json = { name: 'bob', age: 22, awesome: true, born_on: '2024-03-07' }.to_json
       #   person = Person.new
       #   person.from_json(json) # => #<Person:0x007fec5e7a0088 @age=22, @awesome=true, @name="bob">
       #   person.name            # => "bob"
       #   person.age             # => 22
       #   person.awesome         # => true
+      #   person.born_on         # => "2024-03-07"
       #
       # The default value for +include_root+ is +false+. You can change it to
       # +true+ if the given JSON string includes a single root node.
       #
-      #   json = { person: { name: 'bob', age: 22, awesome:true } }.to_json
+      #   json = { person: { name: 'bob', age: 22, awesome: true, born_on: '2024-03-07' } }.to_json
       #   person = Person.new
       #   person.from_json(json, true) # => #<Person:0x007fec5e7a0088 @age=22, @awesome=true, @name="bob">
       #   person.name                  # => "bob"
       #   person.age                   # => 22
       #   person.awesome               # => true
+      #   person.born_on               # => "2024-03-07"
+      #
+      # The +attributes+ are yielded to a block to transform them before assignment:
+      #
+      #   json = { name: 'bob', bornOn: '2024-03-07' }.to_json
+      #   person = Person.new
+      #   person.from_json(json) { |attributes| attributes.deep_transform_keys!(&:underscore) }
+      #   person.name            # => "bob"
+      #   person.born_on         # => "2024-03-07"
       def from_json(json, include_root = include_root_in_json)
         hash = ActiveSupport::JSON.decode(json)
         hash = hash.values.first if include_root
+        hash = yield hash if block_given?
         self.attributes = hash
         self
       end

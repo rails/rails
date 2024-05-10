@@ -145,6 +145,37 @@ class JsonSerializationTest < ActiveModel::TestCase
     Contact.include_root_in_json = original_include_root_in_json
   end
 
+  test "from_json yields the attribute Hash to a block" do
+    data = @contact.as_json.deep_transform_keys! { |key| key.camelize(:lower) }
+    json = data.to_json
+    result = Contact.new.from_json(json) { |hash| hash.deep_transform_keys!(&:underscore) }
+
+    assert_equal result.name, @contact.name
+    assert_equal result.age, @contact.age
+    assert_equal Time.parse(result.created_at), @contact.created_at
+    assert_equal result.awesome, @contact.awesome
+    assert_equal result.preferences, @contact.preferences
+  end
+
+  test "from_json can be overridden with a default block" do
+    snake_case_contact = Class.new Contact do
+      def from_json(*args, &block)
+        default_transform = proc { _1.deep_transform_keys!(&:underscore) }
+
+        super(*args, &(block || default_transform))
+      end
+    end
+    data = @contact.as_json.deep_transform_keys! { |key| key.camelize(:lower) }
+    json = data.to_json
+    result = snake_case_contact.new.from_json(json)
+
+    assert_equal result.name, @contact.name
+    assert_equal result.age, @contact.age
+    assert_equal Time.parse(result.created_at), @contact.created_at
+    assert_equal result.awesome, @contact.awesome
+    assert_equal result.preferences, @contact.preferences
+  end
+
   test "from_json should work without a root (class attribute)" do
     json = @contact.to_json
     result = Contact.new.from_json(json)
