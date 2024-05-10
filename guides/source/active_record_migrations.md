@@ -781,7 +781,7 @@ Keys](active_record_composite_primary_keys.html) guide to learn more.
 
 ### Execute Arbitrary SQL
 
-If the helpers provided by Active Record aren't enough you can use the
+If the helpers provided by Active Record aren't enough, you can use the
 [`execute`][] method to execute arbitrary SQL. For example,
 
 ```ruby
