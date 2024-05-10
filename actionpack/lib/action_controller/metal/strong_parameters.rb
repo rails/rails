@@ -972,7 +972,7 @@ module ActionController
     # the returned array will include empty strings.
     #
     #   params = ActionController::Parameters.new(tags: "ruby,rails,,web")
-    #   params.extract_value(:tags) # => ["ruby", "rails", "", "web"]
+    #   params.extract_value(:tags, delimiter: ",") # => ["ruby", "rails", "", "web"]
     def extract_value(key, delimiter: "_")
       @parameters[key]&.split(delimiter, -1)
     end
