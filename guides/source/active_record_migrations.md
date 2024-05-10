@@ -857,7 +857,7 @@ actions automatically. Below are some of the actions that `change` supports:
 [`change_table`][] is also reversible, as long as the block only calls
 reversible operations like the ones listed above.
 
-If you're going to need to use any other methods, you should use `reversible` or
+If you need to use any other methods, you should use `reversible` or
 write the `up` and `down` methods instead of using the `change` method.
 
 [`add_check_constraint`]:
