@@ -1499,7 +1499,7 @@ constraints at the database level can potentially lead to integrity issues.
 Therefore, it's advisable to complement the AR pattern with database-level
 constraints where appropriate. These constraints should have their counterparts
 explicitly defined in your code using associations and validations to ensure
-data integrity across both application and database layers
+data integrity across both application and database layers.
 
 [foreign key constraints]: #foreign-keys
 
