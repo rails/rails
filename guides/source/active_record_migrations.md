@@ -672,9 +672,10 @@ acting as the connection between one or more associations.
 add_reference :users, :role
 ```
 
-This migration will create a `role_id` column in the users table. It creates an
-index for this column as well, unless explicitly told not to with the `index:
-false` option.
+This migration will create a foreign key column called `role_id` in the users
+table. `role_id` is a reference to the `id` column in the `roles` table. In
+addition, it creates an index for the `role_id` column, unless it is explicitly
+told not to do so with the `index: false` option.
 
 INFO: See also the [Active Record Associations][] guide to learn more.
 
