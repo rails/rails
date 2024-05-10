@@ -619,7 +619,7 @@ change_column_default :products, :approved, from: true, to: false
 
 This sets `:name` field on products to a `NOT NULL` column and the default value
 of the `:approved` field from true to false. Both of these changes will only be
-applied to future transactions, any existing records do not apply.
+applied to future records, any existing records do not change.
 
 When setting the null constraint to true, this means that column will accept a
 null value, otherwise the `NOT NULL` constraint is applied and a value must be
