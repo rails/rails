@@ -23,6 +23,24 @@ module TestGenerationPrefix
     def persisted?; true; end
   end
 
+  class Comment
+    extend ActiveModel::Naming
+
+    def to_param
+      "1"
+    end
+
+    def self.model_name
+      klass = +"Comment"
+      def klass.name; self end
+
+      ActiveModel::Name.new(klass)
+    end
+
+    def to_model; self; end
+    def persisted?; true; end
+  end
+
   class WithMountedEngine < ActionDispatch::IntegrationTest
     class BlogEngine < Rails::Engine
       routes.draw do
@@ -46,6 +64,8 @@ module TestGenerationPrefix
         get "/absolute_option_redirect", to: redirect(path: "/foo")
         get "/absolute_custom_root",     to: redirect { |params, request| "/" }
         get "/absolute_custom_redirect", to: redirect { |params, request| "/foo" }
+
+        resource :comment
       end
     end
 
@@ -325,6 +345,14 @@ module TestGenerationPrefix
 
       path = engine_object.polymorphic_url(Post.new, host: "www.example.com")
       assert_equal "http://www.example.com/awesome/blog/posts/1", path
+    end
+
+    test "[OBJECT] generating engine's route with polymorphic_url from singular resource" do
+      path = engine_object.polymorphic_path(Comment.new)
+      assert_equal "/awesome/blog/comment", path
+
+      path = engine_object.polymorphic_url(Comment.new, host: "www.example.com")
+      assert_equal "http://www.example.com/awesome/blog/comment", path
     end
 
     private
