@@ -799,6 +799,11 @@ end
 In this example, we're updating the `price` column of the products table to
 'free' for all records.
 
+WARNING: Modifying data directly in migrations should be approached with
+caution. Consider if this is the best approach for your use case, and be aware
+of potential drawbacks such as increase complexity and maintenance overhead,
+risks to data integrity and database portability.
+
 For more details and examples of individual methods, check the API
 documentation.
 
@@ -1143,17 +1148,18 @@ $ bin/rails db:rollback STEP=3
 
 The last 3 migrations will be reverted.
 
-The `db:migrate:redo` command is a shortcut for doing a rollback and then
-migrating back up again. As with the `db:rollback` command, you can use the
+In some cases where you modify a local migration and would like to rollback that
+specific migration before migrating back up again, you can use the
+`db:migrate:redo` command. As with the `db:rollback` command, you can use the
 `STEP` parameter if you need to go more than one version back, for example:
 
 ```bash
 $ bin/rails db:migrate:redo STEP=3
 ```
 
-Neither of these rails commands do anything you could not do with `db:migrate`.
-They are there for convenience, since you do not need to explicitly specify the
-version to migrate to.
+NOTE: You could get the same result using `db:migrate`. However, these are there for
+convenience so that you do not need to explicitly specify the version to
+migrate to.
 
 #### Transactions
 
@@ -1175,7 +1181,7 @@ adapter supports DDL transactions you can use `disable_ddl_transaction!` method
 to disable transactions for a single migration, allowing these queries to be
 executed outside the transactional boundary.
 
-### Setup the Database
+### Setting Up the Database
 
 The `bin/rails db:setup` command will create the database, load the schema, and
 initialize it with the seed data.
@@ -1362,13 +1368,14 @@ nothing when you run `bin/rails db:migrate`. You must rollback the migration
 (for example with `bin/rails db:rollback`), edit your migration, and then run
 `bin/rails db:migrate` to run the corrected version.
 
-In general, editing existing migrations is not a good idea. You will be creating
-extra work for yourself and your co-workers and cause major headaches if the
-existing version of the migration has already been run on production machines.
+In general, editing existing migrations that have been already committed to
+source control is not a good idea. You will be creating extra work for yourself
+and your co-workers and cause major headaches if the existing version of the
+migration has already been run on production machines. Instead, you should write
+a new migration that performs the changes you require.
 
-Instead, you should write a new migration that performs the changes you require.
-Editing a freshly generated migration that has not yet been committed to source
-control (or, more generally, which has not been propagated beyond your
+However, editing a freshly generated migration that has not yet been committed
+to source control (or, more generally, which has not been propagated beyond your
 development machine) is relatively harmless.
 
 The `revert` method can be helpful when writing a new migration to undo previous
@@ -1393,7 +1400,7 @@ than it is to replay the entire migration history. [Old migrations][] may fail
 to apply correctly if those migrations use changing external dependencies or
 rely on application code which evolves separately from your migrations.
 
-Schema files are also useful if you want a quick look at what attributes an
+TIP: Schema files are also useful if you want a quick look at what attributes an
 Active Record object has. This information is not in the model's code and is
 frequently spread across several migrations, but the information is nicely
 summed up in the schema file.
