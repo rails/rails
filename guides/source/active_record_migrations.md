@@ -1116,17 +1116,17 @@ your database.
 If you specify a target version, Active Record will run the required migrations
 (change, up, down) until it has reached the specified version. The version is
 the numerical prefix on the migration's filename. For example, to migrate to
-version 20080906120000 run:
+version 20240428000000 run:
 
 ```bash
-$ bin/rails db:migrate VERSION=20080906120000
+$ bin/rails db:migrate VERSION=20240428000000
 ```
 
-If version 20080906120000 is greater than the current version (i.e., it is
+If version 20240428000000 is greater than the current version (i.e., it is
 migrating upwards), this will run the `change` (or `up`) method on all
-migrations up to and including 20080906120000, and will not execute any later
+migrations up to and including 20240428000000, and will not execute any later
 migrations. If migrating downwards, this will run the `down` method on all the
-migrations down to, but not including, 20080906120000.
+migrations down to, but not including, 20240428000000.
 
 ### Rolling Back
 
@@ -1227,11 +1227,11 @@ and the corresponding migration will have its `change`, `up` or `down` method
 invoked, for example:
 
 ```bash
-$ bin/rails db:migrate:up VERSION=20080906120000
+$ bin/rails db:migrate:up VERSION=20240428000000
 ```
 
 By running this command the `change` method (or the `up` method) will be
-executed for the migration with the version "20080906120000".
+executed for the migration with the version "20240428000000".
 
 First, this command will check whether the migration exists and if it has
 already been performed and will do nothing if so.
