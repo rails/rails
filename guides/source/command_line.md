@@ -46,27 +46,28 @@ Rails will set up what seems like a huge amount of stuff for such a tiny command
 
 If you wish to skip some files from being generated or skip some libraries, you can append any of the following arguments to your `rails new` command:
 
-| Argument                | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `--skip-git`            | Skip git init, .gitignore, and .gitattributes               |
-| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint    |
-| `--skip-keeps`          | Skip source control .keep files                             |
-| `--skip-action-mailer`  | Skip Action Mailer files                                    |
-| `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
-| `--skip-action-text`    | Skip Action Text gem                                        |
-| `--skip-active-record`  | Skip Active Record files                                    |
-| `--skip-active-job`     | Skip Active Job                                             |
-| `--skip-active-storage` | Skip Active Storage files                                   |
-| `--skip-action-cable`   | Skip Action Cable files                                     |
-| `--skip-asset-pipeline` | Skip Asset Pipeline                                         |
-| `--skip-javascript`     | Skip JavaScript files                                       |
-| `--skip-hotwire`        | Skip Hotwire integration                                    |
-| `--skip-jbuilder`       | Skip jbuilder gem                                           |
-| `--skip-test`           | Skip test files                                             |
-| `--skip-system-test`    | Skip system test files                                      |
-| `--skip-bootsnap`       | Skip bootsnap gem                                           |
-| `--skip-dev-gems`       | Skip adding development gems                                |
-| `--skip-rubocop`        | Skip RuboCop setup                                          |
+| Argument                | Description                                              |
+|-------------------------|----------------------------------------------------------|
+| `--skip-git`            | Skip git init, .gitignore, and .gitattributes            |
+| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint |
+| `--skip-keeps`          | Skip source control .keep files                          |
+| `--skip-action-mailer`  | Skip Action Mailer files                                 |
+| `--skip-action-mailbox` | Skip Action Mailbox gem                                  |
+| `--skip-action-text`    | Skip Action Text gem                                     |
+| `--skip-active-record`  | Skip Active Record files                                 |
+| `--skip-active-job`     | Skip Active Job                                          |
+| `--skip-active-storage` | Skip Active Storage files                                |
+| `--skip-action-cable`   | Skip Action Cable files                                  |
+| `--skip-asset-pipeline` | Skip Asset Pipeline                                      |
+| `--skip-javascript`     | Skip JavaScript files                                    |
+| `--skip-hotwire`        | Skip Hotwire integration                                 |
+| `--skip-jbuilder`       | Skip jbuilder gem                                        |
+| `--skip-test`           | Skip test files                                          |
+| `--skip-system-test`    | Skip system test files                                   |
+| `--skip-bootsnap`       | Skip bootsnap gem                                        |
+| `--skip-dev-gems`       | Skip adding development gems                             |
+| `--skip-rubocop`        | Skip RuboCop setup                                       |
+| `--skip-devcontainer`   | Skip Dev Container setup                                 |
 
 These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
 
