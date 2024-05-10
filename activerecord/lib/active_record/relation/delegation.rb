@@ -100,7 +100,7 @@ module ActiveRecord
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :primary_key, :connection, :transaction, to: :klass
+    delegate :primary_key, :lease_connection, :connection, :with_connection, :transaction, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
