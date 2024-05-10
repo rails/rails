@@ -15,8 +15,15 @@ module ActiveRecord
       end
     end
 
-    def initialize(model, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      @model, @connection, @inserts = model, connection, inserts.map(&:stringify_keys)
+    def initialize(model, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil, column_names: nil)
+      @model, @connection, @inserts = model, connection
+
+      if column_names
+        @inserts = inserts.map { |values| column_names.map(&:to_s).zip(values).to_h }
+      else
+        @inserts = inserts.map(&:stringify_keys)
+      end
+
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 

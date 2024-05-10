@@ -64,6 +64,26 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_with_column_names
+    assert_difference "Book.count", +10 do
+      column_names = [:name, :author_id]
+      books_data = [
+        ["Rework", 1],
+        ["Patterns of Enterprise Application Architecture", 1],
+        ["Design of Everyday Things", 1],
+        ["Practical Object-Oriented Design in Ruby", 1],
+        ["Clean Code", 1],
+        ["Ruby Under a Microscope", 1],
+        ["The Principles of Product Development Flow", 1],
+        ["Peopleware", 1],
+        ["About Face", 1],
+        ["Eloquent Ruby", 1]
+      ]
+
+      Book.insert_all(books_data, column_names: column_names)
+    end
+  end
+
   def test_insert_all_should_handle_empty_arrays
     skip unless supports_insert_on_duplicate_update?
 
