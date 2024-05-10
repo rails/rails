@@ -36,7 +36,7 @@ get '/patients/:id', to: 'patients#show'
 
 the request is dispatched to the `patients` controller's `show` action with `{ id: '17' }` in `params`.
 
-NOTE: Rails uses snake_case for controller names here, if you have a multiple word controller like `MonsterTrucksController`, you want to use `monster_trucks#show` for example.
+NOTE: Rails uses snake_case for controller names, if you have a multiple word controller like `MonsterTrucksController`, you'd use `monster_trucks#show` when specifying the route.
 
 ### Generating Paths and URLs from Code
 
@@ -62,7 +62,7 @@ then the router will generate the path `/patients/17`. This reduces the brittlen
 
 ### Configuring the Rails Router
 
-The routes for your application or engine live in the file `config/routes.rb` and typically looks like this:
+Here is an example of what routes look like in a typical Rails application, which live in `config/routes.rb`. The sections that follow will explain the different route helpers used in this file:
 
 ```ruby
 Rails.application.routes.draw do
@@ -76,7 +76,7 @@ Rails.application.routes.draw do
 end
 ```
 
-Since this is a regular Ruby source file you can use all of its features to help you define your routes but be careful with variable names as they can clash with the DSL methods of the router.
+Since this is a regular Ruby source file you can use all of its features to help you define your routes. (Be careful with variable names as they can clash with the DSL methods of the router.)
 
 NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL and must not be deleted.
 
@@ -127,7 +127,7 @@ creates seven different routes in your application, all mapping to the `Photos` 
 | PATCH/PUT | /photos/:id      | photos#update     | update a specific photo                      |
 | DELETE    | /photos/:id      | photos#destroy    | delete a specific photo                      |
 
-NOTE: Because the router uses the HTTP verb and URL to match inbound requests, four URLs map to seven different actions.
+Because the router uses the HTTP verb *and* path to match inbound requests, four URLs can map to seven different controller actions. For example, The path `photos/` matches to `photoes#index` when the verb is `GET` and `photoes#create` when the verb is `POST`.
 
 NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. To fix this, move the `get` line **above** the `resources` line so that it is matched first.
 
@@ -181,6 +181,8 @@ resource :geocoder
 resolve('Geocoder') { [:geocoder] }
 ```
 
+NOTE: The call to `resolve` is necessary for converting instances of the `Geocoder` to routes through [record identification](form_helpers.html#relying-on-record-identification).
+
 creates six different routes in your application, all mapping to the `Geocoders` controller:
 
 | HTTP Verb | Path           | Controller#Action | Used for                                      |
@@ -199,8 +201,6 @@ A singular resourceful route generates these helpers:
 * `new_geocoder_path` returns `/geocoder/new`
 * `edit_geocoder_path` returns `/geocoder/edit`
 * `geocoder_path` returns `/geocoder`
-
-NOTE: The call to `resolve` is necessary for converting instances of the `Geocoder` to routes through [record identification](form_helpers.html#relying-on-record-identification).
 
 As with plural resources, the same helpers ending in `_url` will also include the host, port, and path prefix.
 
