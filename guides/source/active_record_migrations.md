@@ -933,8 +933,8 @@ class ChangeProductsPrice < ActiveRecord::Migration[7.2]
 end
 ```
 
-Additionally, `reversible` can be useful is for executing raw SQL queries or
-performing a database operations that do not have a direct equivalent in
+Additionally, `reversible` is useful when executing raw SQL queries or
+performing database operations that do not have a direct equivalent in
 ActiveRecord methods. You can use [`reversible`][] to specify what to do when
 running a migration and what else to do when reverting it. For example:
 
