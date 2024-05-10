@@ -1476,7 +1476,7 @@ migrations you add and commit them.
 Active Record and Referential Integrity
 ---------------------------------------
 
-The Active Record way suggests that intelligence should primarily reside in your
+The Active Record pattern suggests that intelligence should primarily reside in your
 models rather than in the database. Consequently, features like triggers or
 constraints, which delegate some of that intelligence back into the database,
 are not always favored.
