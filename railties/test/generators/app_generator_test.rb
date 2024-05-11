@@ -1309,6 +1309,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
     end
     assert_compose_file do |compose_config|
+      assert_equal "my_app", compose_config["name"]
+
       expected_rails_app_config = {
         "build" => {
           "context" => "..",
