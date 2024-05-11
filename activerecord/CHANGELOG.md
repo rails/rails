@@ -1,3 +1,7 @@
+*   Add support for `:if_not_exists` and `:force` options to `create_schema`
+
+    *fatkodima*
+
 *   Fix `index_errors` having incorrect index in association validation errors.
 
     *lulalala*
