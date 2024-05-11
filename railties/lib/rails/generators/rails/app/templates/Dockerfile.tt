@@ -4,6 +4,8 @@
 # docker build -t <%= app_name %> .
 # docker run -d -p 80:<%= skip_thruster? ? 3000 : 80 %> -e RAILS_MASTER_KEY=<value from config/master.key> --name <%= app_name %> <%= app_name %>
 
+# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=<%= gem_ruby_version %>
 FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
