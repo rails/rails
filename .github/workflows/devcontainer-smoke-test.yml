@@ -33,6 +33,10 @@ jobs:
       - name: Generate rails app sqlite3
         run: bundle exec railties/exe/rails new myapp_sqlite --database="sqlite3" --dev
 
+      - name: Remove old deprecated docker-compose
+        run: |
+          sudo rm /usr/local/bin/docker-compose
+
       - name: Test devcontainer sqlite3
         uses: devcontainers/ci@v0.3
         with:
