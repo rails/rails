@@ -37,6 +37,8 @@ module ActiveRecord
             return if value.nil?
 
             if value.acts_like?(:time)
+              return value.in_time_zone.change(year: 2000, day: 1, month: 1) if self.type == :time
+
               value.in_time_zone
             elsif value.respond_to?(:infinite?) && value.infinite?
               value
