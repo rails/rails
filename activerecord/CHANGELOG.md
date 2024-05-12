@@ -560,7 +560,7 @@
 
     *Hartley McGuire*
 
-*   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be instrospected
+*   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be introspected
 
     *JP Rosevear*
 
