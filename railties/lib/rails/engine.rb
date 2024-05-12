@@ -349,6 +349,7 @@ module Rails
   #   config.railties_order = [Blog::Engine, :main_app, :all]
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
+    autoload :RouteSet,      "rails/engine/route_set"
 
     class << self
       attr_accessor :called_from, :isolated
@@ -543,7 +544,7 @@ module Rails
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
     def routes(&block)
-      @routes ||= ActionDispatch::Routing::RouteSet.new_with_config(config)
+      @routes ||= RouteSet.new_with_config(config)
       @routes.append(&block) if block_given?
       @routes
     end

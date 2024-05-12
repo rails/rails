@@ -46,7 +46,9 @@ module ActionDispatch
           def create_routes
             app = self.app
             routes = ActionDispatch::Routing::RouteSet.new
-            rack_app = app.config.middleware.build(routes)
+            middleware = app.config.middleware.dup
+            middleware.delete(Rails::Rack::LoadRoutes) if defined?(Rails::Rack::LoadRoutes)
+            rack_app = middleware.build(routes)
             https = integration_session.https?
             host = integration_session.host
 

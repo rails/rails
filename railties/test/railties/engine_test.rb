@@ -950,8 +950,8 @@ en:
       assert_equal "bukkits_", Bukkits.table_name_prefix
       assert_equal "bukkits", Bukkits::Engine.engine_name
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
-      assert ::Bukkits::MyMailer.method_defined?(:foo_url)
-      assert_not ::Bukkits::MyMailer.method_defined?(:bar_url)
+      assert ::Bukkits::MyMailer.new.respond_to?(:foo_url)
+      assert_not ::Bukkits::MyMailer.new.respond_to?(:bar_url)
 
       get("/bar")
       assert_equal "/bar", last_response.body
