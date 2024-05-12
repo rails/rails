@@ -24,6 +24,23 @@ module ActiveRecord
         assert_instance_of ::Time, topic.bonus_time
       end
 
+      def test_default_year_is_correct_with_time_zone
+        with_timezone_config default: :local, aware_attributes: true, zone: "America/New_York" do
+          Topic.reset_column_information
+
+          topic = Topic.new(bonus_time: "22:30")
+
+          before_save_time = topic.bonus_time
+
+          topic.save!
+          topic.reload
+
+          assert_equal before_save_time, topic.bonus_time
+        end
+      ensure
+        Topic.reset_column_information
+      end
+
       test "serialize_cast_value is equivalent to serialize after cast" do
         type = Type::Time.new(precision: 1)
         value = type.cast("1999-12-31T12:34:56.789-10:00")
