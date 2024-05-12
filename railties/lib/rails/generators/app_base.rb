@@ -101,6 +101,9 @@ module Rails
         class_option :skip_dev_gems,       type: :boolean, default: nil,
                                            desc: "Skip development gems (e.g., web-console)"
 
+        class_option :skip_thruster,       type: :boolean, default: nil,
+                                           desc: "Skip Thruster setup"
+
         class_option :skip_rubocop,        type: :boolean, default: nil,
                                            desc: "Skip RuboCop setup"
 
@@ -390,6 +393,10 @@ module Rails
 
       def skip_propshaft?
         skip_asset_pipeline? || options[:asset_pipeline] != "propshaft"
+      end
+
+      def skip_thruster?
+        options[:skip_thruster]
       end
 
       def skip_rubocop?
