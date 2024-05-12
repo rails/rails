@@ -92,6 +92,10 @@ module Rails
       template "rubocop.yml", ".rubocop.yml"
     end
 
+    def kamal
+      template "env.erb", ".env.erb"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -108,7 +112,7 @@ module Rails
     end
 
     def bin
-      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?), (/kamal/ if skip_kamal?)].compact)
       directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
@@ -129,6 +133,7 @@ module Rails
         template "cable.yml" unless options[:update] || options[:skip_action_cable]
         template "puma.rb"   unless options[:update]
         template "storage.yml" unless options[:update] || skip_active_storage?
+        template "deploy.yml" unless options[:update] || skip_kamal?
 
         directory "environments"
         directory "initializers"
@@ -392,6 +397,11 @@ module Rails
       def create_cifiles
         return if skip_ci?
         build(:cifiles)
+      end
+
+      def create_kamal_files
+        return if skip_kamal?
+        build(:kamal)
       end
 
       def create_config_files

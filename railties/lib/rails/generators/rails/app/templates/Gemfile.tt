@@ -19,6 +19,11 @@ gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 <% end -%>
+<% unless skip_kamal? -%>
+
+# Deploy application anywhere in a Docker container [https://kamal-deploy.org]
+gem "kamal", require: false
+<% end -%>
 <% unless skip_active_storage? -%>
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]

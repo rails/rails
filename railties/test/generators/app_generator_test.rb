@@ -39,6 +39,7 @@ DEFAULT_APP_FILES = %w(
   app/views/pwa/service-worker.js
   bin/brakeman
   bin/docker-entrypoint
+  bin/kamal
   bin/rails
   bin/rake
   bin/rubocop
@@ -697,6 +698,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file ".github/workflows/ci.yml"
     assert_no_file ".github/dependabot.yml"
+  end
+
+  def test_inclusion_of_kamal_files
+    run_generator
+    assert_file "bin/kamal"
+    assert_file "config/deploy.yml"
+    assert_file ".env.erb"
+  end
+
+  def test_kamal_files_are_skipped_if_required
+    run_generator [destination_root, "--skip-kamal"]
+
+    assert_no_file "bin/kamal"
+    assert_no_file "config/deploy.yml"
+    assert_no_file ".env.erb"
   end
 
   def test_usage_read_from_file

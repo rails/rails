@@ -113,6 +113,9 @@ module Rails
         class_option :skip_devcontainer,   type: :boolean, default: false,
                                            desc: "Skip devcontainer files"
 
+        class_option :skip_kamal,          type: :boolean, default: false,
+                                           desc: "Skip Kamal setup"
+
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -406,6 +409,10 @@ module Rails
 
       def skip_devcontainer?
         options[:skip_devcontainer]
+      end
+
+      def skip_kamal?
+        options[:skip_kamal]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
