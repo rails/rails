@@ -16,6 +16,7 @@ DEFAULT_APP_FILES = %w(
   .gitignore
   .rubocop.yml
   .ruby-version
+  .env.erb
   Dockerfile
   Gemfile
   README.md
@@ -50,6 +51,7 @@ DEFAULT_APP_FILES = %w(
   config/cable.yml
   config/credentials.yml.enc
   config/database.yml
+  config/deploy.yml
   config/environment.rb
   config/environments/development.rb
   config/environments/production.rb
