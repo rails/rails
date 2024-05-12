@@ -76,7 +76,7 @@ module Rails
 
         class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil
 
-        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
+        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "propshaft",
                                            enum: ASSET_PIPELINE_OPTIONS,
                                            desc: "Choose your asset pipeline"
 
