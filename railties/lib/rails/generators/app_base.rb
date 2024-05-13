@@ -726,6 +726,15 @@ module Rails
         end
       end
 
+      def run_kamal
+        return if options[:skip_kamal] || !bundle_install?
+
+        bundle_command("binstubs kamal")
+        bundle_command("exec kamal init")
+        template "env.erb", ".env.erb"
+        template "config/deploy.yml", force: true
+      end
+
       def add_bundler_platforms
         if bundle_install?
           # The vast majority of Rails apps will be deployed on `x86_64-linux`.

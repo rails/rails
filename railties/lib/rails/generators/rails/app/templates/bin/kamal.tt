@@ -1,4 +1,0 @@
-require "rubygems"
-require "bundler/setup"
-
-load Gem.bin_path("kamal", "kamal")
