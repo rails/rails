@@ -135,7 +135,7 @@ module Rails
         after_generate do |files|
           parsable_files = files.filter { |file| File.exist?(file) && file.end_with?(".rb") }
           unless parsable_files.empty?
-            system(RbConfig.ruby, "bin/rubocop", "-A", "--fail-level=E", *parsable_files, exception: true)
+            system(RbConfig.ruby, "bin/rubocop", "-A", "--fail-level=E", "--format=quiet", *parsable_files, exception: true)
           end
         end
       end
