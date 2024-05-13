@@ -1,3 +1,8 @@
+*   Upgrade Trix to 1.3.2 to fix [CVE-2024-34341](https://github.com/basecamp/trix/security/advisories/GHSA-qjqp-xr96-cj99).
+
+    *Rafael Mendonça França*
+
+
 ## Rails 7.1.3.2 (February 21, 2024) ##
 
 *   No changes.
