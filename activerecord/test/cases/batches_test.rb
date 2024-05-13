@@ -390,7 +390,7 @@ class EachTest < ActiveRecord::TestCase
     assert_queries_count(6 + 6) do # 6 selects, 6 updates
       Developer.in_batches(of: 2).touch_all(time: time)
     end
-    assert_equal Developer.all.pluck(:updated_at), [time] * Developer.count
+    assert_equal [time] * Developer.count, Developer.all.pluck(:updated_at)
   end
 
   def test_in_batches_touch_all_returns_rows_affected
