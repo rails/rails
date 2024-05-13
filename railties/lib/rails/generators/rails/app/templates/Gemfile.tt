@@ -21,7 +21,7 @@ gem "bootsnap", require: false
 <% end -%>
 <% unless options.skip_kamal? -%>
 
-# Deploy application anywhere in a Docker container [https://kamal-deploy.org]
+# Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "kamal", require: false
 <% end -%>
 <% unless skip_active_storage? -%>
