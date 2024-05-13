@@ -314,8 +314,9 @@ GEM
     image_processing (1.12.2)
       mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
-    importmap-rails (1.1.5)
+    importmap-rails (2.0.1)
       actionpack (>= 6.0.0)
+      activesupport (>= 6.0.0)
       railties (>= 6.0.0)
     io-console (0.6.0)
     irb (1.6.3)
@@ -526,6 +527,10 @@ GEM
       concurrent-ruby (~> 1.0)
     tailwindcss-rails (2.0.21)
       railties (>= 6.0.0)
+    tailwindcss-rails (2.0.21-x86_64-darwin)
+      railties (>= 6.0.0)
+    tailwindcss-rails (2.0.21-x86_64-linux)
+      railties (>= 6.0.0)
     terser (1.1.13)
       execjs (>= 0.3.0, < 3)
     thin (1.8.1)
@@ -592,7 +597,7 @@ DEPENDENCIES
   google-cloud-storage (~> 1.11)
   hiredis
   image_processing (~> 1.2)
-  importmap-rails
+  importmap-rails (>= 1.2.3)
   jsbundling-rails
   json (>= 2.0.0)
   libxml-ruby
