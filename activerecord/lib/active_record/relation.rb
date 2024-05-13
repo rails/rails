@@ -66,7 +66,7 @@ module ActiveRecord
 
     include Enumerable
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
-    include SignedId::RelationMethods
+    include SignedId::RelationMethods, TokenFor::RelationMethods
 
     attr_reader :table, :klass, :loaded, :predicate_builder
     attr_accessor :skip_preloading_value
