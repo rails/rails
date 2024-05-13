@@ -135,6 +135,19 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_not_equal previously_updated_at, developer.updated_at
   end
 
+  def test_touch_all_with_aliased_for_update_timestamp
+    assert Developer.attribute_aliases.key?("updated_at")
+
+    developer = developers(:david)
+    previously_created_at = developer.created_at
+    previously_updated_at = developer.updated_at
+    Developer.where(name: "David").touch_all(:updated_at)
+    developer.reload
+
+    assert_equal previously_created_at, developer.created_at
+    assert_not_equal previously_updated_at, developer.updated_at
+  end
+
   def test_touch_all_with_given_time
     developer = developers(:david)
     previously_created_at = developer.created_at
