@@ -1,3 +1,9 @@
+*   Remove support for `oracle`, `sqlserver` and JRuby specific database adapters from the
+    `rails new` and `rails db:system:change` commands. The supported options are `sqlite3`,
+    `mysql`, `postgresql` and `trilogy`.
+
+    *Andrew Novoselac*
+
 *   Defer route drawing to the first request, or when url_helpers are called
 
     Executes the first routes reload in middleware, or when a route set's

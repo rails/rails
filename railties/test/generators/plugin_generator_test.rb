@@ -235,11 +235,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_default_database_dependency_is_sqlite
     run_generator
     assert_file "test/dummy/config/database.yml", /sqlite/
-    if defined?(JRUBY_VERSION)
-      assert_gem "activerecord-jdbcsqlite3-adapter"
-    else
-      assert_gem "sqlite3"
-    end
+    assert_gem "sqlite3"
   end
 
   def test_custom_database_dependency
