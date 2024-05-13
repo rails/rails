@@ -511,39 +511,6 @@ module ActiveRecord
         @composite_query_constraints_list ||= query_constraints_list || Array(primary_key)
       end
 
-      # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
-      # therefore all callbacks and filters are fired off before the object is deleted. This method is
-      # less efficient than #delete but allows cleanup methods and other actions to be run.
-      #
-      # This essentially finds the object (or multiple objects) with the given id, creates a new object
-      # from the attributes, and then calls destroy on it.
-      #
-      # ==== Parameters
-      #
-      # * +id+ - This should be the id or an array of ids to be destroyed.
-      #
-      # ==== Examples
-      #
-      #   # Destroy a single object
-      #   Todo.destroy(1)
-      #
-      #   # Destroy multiple objects
-      #   todos = [1,2,3]
-      #   Todo.destroy(todos)
-      def destroy(id)
-        multiple_ids = if composite_primary_key?
-          id.first.is_a?(Array)
-        else
-          id.is_a?(Array)
-        end
-
-        if multiple_ids
-          find(id).each(&:destroy)
-        else
-          find(id).destroy
-        end
-      end
-
       def _insert_record(connection, values, returning) # :nodoc:
         primary_key = self.primary_key
         primary_key_value = nil
