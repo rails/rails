@@ -1,8 +1,8 @@
 # syntax = docker/dockerfile:1
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t my-app .
-# docker run -d -p 80:3000 --name my-app -e RAILS_MASTER_KEY=<value from config/master.key> my-app
+# docker build -t <%= app_name %> .
+# docker run -d -p 80:<%= skip_thruster? ? 3000 : 80 %> -e RAILS_MASTER_KEY=<value from config/master.key> --name <%= app_name %> <%= app_name %>
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=<%= gem_ruby_version %>
@@ -111,7 +111,6 @@ EXPOSE 3000
 CMD ["./bin/rails", "server"]
 <% else -%>
 # Start server via Thruster by default, this can be overwritten at runtime
-ENV THRUSTER_HTTP_PORT="3000" THRUSTER_TARGET_PORT="3001" PORT="3001"
-EXPOSE 3000
+EXPOSE 80
 CMD ["./bin/thrust", "./bin/rails", "server"]
 <% end -%>
