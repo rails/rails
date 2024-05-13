@@ -32,8 +32,11 @@ module ActiveRecord
       end
 
       if model.scope_attributes?
-        @scope_attributes = model.scope_attributes
-        @keys |= @scope_attributes.keys
+        reflection = model.current_scope.proxy_association.reflection if model.current_scope.respond_to?(:proxy_association)
+        association_keys = [ reflection&.foreign_key, reflection&.type ].compact
+        @association_attributes = model.scope_attributes.slice(*association_keys)
+        @scope_attributes = model.scope_attributes.except(*association_keys)
+        @keys |= @scope_attributes.keys | @association_attributes.keys
       end
       @keys = @keys.to_set
 
@@ -74,7 +77,8 @@ module ActiveRecord
     def map_key_with_value
       inserts.map do |attributes|
         attributes = attributes.stringify_keys
-        attributes.merge!(scope_attributes) if scope_attributes
+        attributes.merge!(association_attributes) if association_attributes
+        attributes.reverse_merge!(scope_attributes) if scope_attributes
         attributes.reverse_merge!(timestamps_for_create) if record_timestamps?
 
         verify_attributes(attributes)
@@ -99,7 +103,7 @@ module ActiveRecord
     end
 
     private
-      attr_reader :scope_attributes
+      attr_reader :association_attributes, :scope_attributes
 
       def has_attribute_aliases?(attributes)
         attributes.keys.any? { |attribute| model.attribute_alias?(attribute) }

@@ -710,6 +710,16 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_on_scope_precedence
+    author = Author.create!(name: "Jimmy")
+
+    assert_difference "author.books.count", +1 do
+      assert_difference "author.books.written.count", +1 do
+        author.books.published.insert_all!([{ name: "My little book", isbn: "1974522598", status: :written }])
+      end
+    end
+  end
+
   def test_insert_all_create_with
     assert_difference "Book.where(format: 'X').count", +2 do
       Book.create_with(format: "X").insert_all!([ { name: "A" }, { name: "B" } ])
@@ -739,6 +749,18 @@ class InsertAllTest < ActiveRecord::TestCase
 
     assert_difference "author.books.count", +1 do
       author.books.upsert_all([{ name: "My little book", isbn: "1974522598", author_id: second_author.id }])
+    end
+  end
+
+  def test_upsert_all_on_scope_precedence
+    skip unless supports_insert_on_duplicate_update?
+
+    author = Author.create!(name: "Jimmy")
+
+    assert_difference "author.books.count", +1 do
+      assert_difference "author.books.written.count", +1 do
+        author.books.published.upsert_all([{ name: "My little book", isbn: "1974522598", status: :written }])
+      end
     end
   end
 
