@@ -330,6 +330,8 @@ module Rails
             active_record.validate_migration_timestamps = true
             active_record.automatically_invert_plural_associations = true
           end
+        when "8.0"
+          load_defaults "7.2"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

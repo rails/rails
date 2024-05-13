@@ -183,7 +183,7 @@ With no further work, `bin/rails server` will run our new shiny Rails app:
 $ cd my_app
 $ bin/rails server
 => Booting Puma
-=> Rails 7.2.0 application starting in development
+=> Rails 8.0.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
@@ -415,7 +415,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 7.2.0)
+Loading development environment in sandbox (Rails 8.0.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -512,7 +512,7 @@ $ bin/rails destroy model Oops
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             7.2.0
+Rails version             8.0.0
 Ruby version              3.1.0 (x86_64-linux)
 RubyGems version          3.3.7
 Rack version              3.0.8
