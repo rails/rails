@@ -8,22 +8,22 @@
 /* Same bottom margin for special boxes than for regular paragraphs, this way
 intermediate whitespace looks uniform. */
 
-.interstitial {
+.interstitial,
+dl dd .interstitial {
   background-repeat: no-repeat;
   background-size: 36px 36px;
   border-radius: $base-border-radius;
   border: 2px solid $gray-500;
   border-style: solid !important;
   border-width: 2px !important;
-  min-height: calc(36px + 1.2em);
+  min-height: calc(36px + 1.5em);
   margin: 2em auto;
   padding: 0.75em !important;
   position: relative;
 
   // Padding and spacing for LTR vs RTL langauge defaults
-  :where(body[dir="ltr"]) & { background-position: 10px 10px; padding-right: 1em !important; padding-left: 56px !important; }
-  :where(body[dir="rtl"]) &,
-  html.translated-rtl & { background-position: calc(100% - 10px) 10px; padding-right: 56px !important; padding-left: 1em !important; }
+  :where(html[dir="ltr"]) & { background-position: 10px 10px; padding-right: 1em !important; padding-left: 56px !important; }
+  :where(html[dir="rtl"]) & { background-position: calc(100% - 10px) 10px; padding-right: 56px !important; padding-left: 1em !important; }
 
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
   spurious blank area below with the box background. */
@@ -96,4 +96,3 @@ intermediate whitespace looks uniform. */
     padding-top: 1em !important;
   }
 } // .interstitial
-
