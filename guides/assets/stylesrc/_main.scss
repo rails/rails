@@ -17,13 +17,6 @@ body.guide {
 
   -webkit-tap-highlight-color:rgba(38, 27, 35, 0);
 
-  html[dir="rtl"] & {
-    direction: rtl;
-
-    p {
-      text-align: right;
-    }
-  }
 
     // ----------------------------------------------------------------------------
   // Typographic Baseline
@@ -64,9 +57,7 @@ body.guide {
     hyphenate-limit-last: always;
 
     margin: 0 0 0.75em 0; // Space after paragraph
-
-    :where(html[dir="ltr"]) & { text-align: left; }
-    :where(html[dir="rtl"]) & { text-align: right; }
+    text-align: left;
   } // p
 
   // Links
@@ -116,9 +107,7 @@ body.guide {
       color: #fff;
       font-size: 0.875em;
       padding: 0.5em;
-      
-      :where(html[dir="ltr"]) & { text-align: left; }
-      :where(html[dir="rtl"]) & { text-align: right; }
+      text-align: left;
     }
 
     tr {
@@ -328,9 +317,7 @@ body.guide {
 
   .wrapper {
     padding: 1em;
-
-    :where(html[dir="ltr"]) & { text-align: left; }
-    :where(html[dir="rtl"]) & { text-align: right; }
+    text-align: left;
 
     @include media('>desktop') { // 1024
       max-width: calc(55rem + 420px);
@@ -632,10 +619,8 @@ body.guide {
       .guides-section {
         flex: auto;
         margin: 0 2em 0.5em 0;
+        text-align: left;
         width: 33%;
-
-        :where(html[dir="ltr"]) & { text-align: left; }
-        :where(html[dir="rtl"]) & { text-align: right; }
 
         dt, dd {
           font-weight: 400 !important;
@@ -823,29 +808,38 @@ body.guide {
   
 } // body.guide
 
-html[dir="rtl"]:lang("ar"),
-html[dir="rtl"]:lang("fa") {
+html[dir="rtl"] {
   body.guide {
-    h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li,
-    header#page_header nav#feature_nav .header-logo a {
-      font-family: "Noto Sans Arabic", sans-serif !important;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      font-style: normal;
-      font-variation-settings: "wdth" 100;
-    }
-  }
-}
+    direction: rtl;
 
-html[dir="rtl"]:lang("he"),
-html[dir="rtl"]:lang( "iw") {
-  body.guide {
-    h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li,
-    header#page_header nav#feature_nav .header-logo a {
-      font-family: "Heebo", sans-serif !important;
-      font-optical-sizing: auto;
-      font-weight: 400;
-      font-style: normal;
+    p, table th, .wrapper,
+    #guides .guides-section-container .guides-section {
+      text-align: right;
     }
-  }
-}
+  } // body.guide
+
+  &:lang("ar"), &:lang("fa") {
+    body.guide {
+      h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li,
+      header#page_header nav#feature_nav .header-logo a {
+        font-family: "Noto Sans Arabic", sans-serif !important;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+        font-variation-settings: "wdth" 100;
+      }
+    } // body.guide
+  }&:lang("ar"), &:lang("fa")
+
+  &:lang("he"), &:lang("iw") {
+    body.guide {
+      h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li,
+      header#page_header nav#feature_nav .header-logo a {
+        font-family: "Heebo", sans-serif !important;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+      }
+    } // body.guide
+  } // &:lang("he"), &:lang("iw")
+} // html[dir="rtl"]
