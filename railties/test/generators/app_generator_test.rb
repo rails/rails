@@ -9,6 +9,7 @@ DEFAULT_APP_FILES = %w(
   .devcontainer/compose.yaml
   .devcontainer/devcontainer.json
   .dockerignore
+  .env.erb
   .git
   .gitattributes
   .github/dependabot.yml
@@ -16,7 +17,6 @@ DEFAULT_APP_FILES = %w(
   .gitignore
   .rubocop.yml
   .ruby-version
-  .env.erb
   Dockerfile
   Gemfile
   README.md
