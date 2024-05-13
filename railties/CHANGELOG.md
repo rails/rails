@@ -5,6 +5,9 @@
     Previously, this was executed unconditionally on boot, which can
     slow down boot time unnecessarily for larger apps with lots of routes.
 
+    Environments like production that have `config.eager_load = true` will
+    continue to eagerly load routes on boot.
+
     *Gannon McGibbon*
 
 *   Add options to bin/rails app:update.
