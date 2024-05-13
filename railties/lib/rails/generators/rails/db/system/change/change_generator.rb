@@ -71,11 +71,11 @@ module Rails
             end
 
             def all_docker_bases
-              DATABASES.map { |database| docker_for_database_base(database).nil? ? nil : docker_for_database_base(database) }.compact!
+              DATABASES.filter_map { |database| docker_for_database_base(database) }
             end
 
             def all_docker_builds
-              DATABASES.map { |database| docker_for_database_build(database).nil? ? nil : docker_for_database_build(database) }.compact!
+              DATABASES.filter_map { |database| docker_for_database_build(database) }
             end
 
             def all_database_gems_regex

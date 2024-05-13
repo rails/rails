@@ -3,13 +3,7 @@
 module Rails
   module Generators
     module Database # :nodoc:
-      JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
-      DATABASES = %w( mysql trilogy postgresql sqlite3 oracle sqlserver ) + JDBC_DATABASES
-
-      def initialize(*)
-        super
-        convert_database_option_for_jruby
-      end
+      DATABASES = %w( mysql trilogy postgresql sqlite3 )
 
       def gem_for_database(database = options[:database])
         case database
@@ -17,12 +11,6 @@ module Rails
         when "trilogy"        then ["trilogy", ["~> 2.7"]]
         when "postgresql"     then ["pg", ["~> 1.1"]]
         when "sqlite3"        then ["sqlite3", [">= 1.4"]]
-        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
-        when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
-        when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
-        when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]
-        when "jdbcpostgresql" then ["activerecord-jdbcpostgresql-adapter", nil]
-        when "jdbc"           then ["activerecord-jdbc-adapter", nil]
         else [database, nil]
         end
       end
@@ -44,18 +32,6 @@ module Rails
         when "postgresql"     then "build-essential git libpq-dev"
         when "sqlite3"        then "build-essential git"
         else nil
-        end
-      end
-
-      def convert_database_option_for_jruby
-        if defined?(JRUBY_VERSION)
-          opt = options.dup
-          case opt[:database]
-          when "postgresql" then opt[:database] = "jdbcpostgresql"
-          when "mysql"      then opt[:database] = "jdbcmysql"
-          when "sqlite3"    then opt[:database] = "jdbcsqlite3"
-          end
-          self.options = opt.freeze
         end
       end
 
