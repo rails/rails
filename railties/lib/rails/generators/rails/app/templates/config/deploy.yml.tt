@@ -45,16 +45,21 @@ asset_path: /rails/public/assets
 # ssh:
 #   user: app
 
-# Configure builder setup.
+# Configure builder setup (defaults to multi-arch images).
 # builder:
+#   # Build same-arch image locally (use for x86->x86)
+#   multiarch: false
+#
+#   # Build diff-arch image via remote server
+#   remote:
+#     arch: amd64
+#     host: ssh://app@192.168.0.1
+#
 #   args:
 #     RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
 #   secrets:
 #     - GITHUB_TOKEN
 #     - RAILS_MASTER_KEY
-#   remote:
-#     arch: amd64
-#     host: ssh://app@192.168.0.1
 
 # Use accessory services (secrets come from .env).
 # accessories:
