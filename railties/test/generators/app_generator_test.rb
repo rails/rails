@@ -9,7 +9,6 @@ DEFAULT_APP_FILES = %w(
   .devcontainer/compose.yaml
   .devcontainer/devcontainer.json
   .dockerignore
-  .env.erb
   .git
   .gitattributes
   .github/dependabot.yml
@@ -40,7 +39,6 @@ DEFAULT_APP_FILES = %w(
   app/views/pwa/service-worker.js
   bin/brakeman
   bin/docker-entrypoint
-  bin/kamal
   bin/rails
   bin/rake
   bin/rubocop
@@ -51,7 +49,6 @@ DEFAULT_APP_FILES = %w(
   config/cable.yml
   config/credentials.yml.enc
   config/database.yml
-  config/deploy.yml
   config/environment.rb
   config/environments/development.rb
   config/environments/production.rb
