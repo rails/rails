@@ -544,30 +544,6 @@ module ActiveRecord
         end
       end
 
-      # Deletes the row with a primary key matching the +id+ argument, using an
-      # SQL +DELETE+ statement, and returns the number of rows deleted. Active
-      # Record objects are not instantiated, so the object's callbacks are not
-      # executed, including any <tt>:dependent</tt> association options.
-      #
-      # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
-      #
-      # Note: Although it is often much faster than the alternative, #destroy,
-      # skipping callbacks might bypass business logic in your application
-      # that ensures referential integrity or performs other essential jobs.
-      #
-      # ==== Examples
-      #
-      #   # Delete a single row
-      #   Todo.delete(1)
-      #
-      #   # Delete multiple rows
-      #   Todo.delete([2,3,4])
-      def delete(id_or_array)
-        return 0 if id_or_array.nil? || (id_or_array.is_a?(Array) && id_or_array.empty?)
-
-        delete_by(primary_key => id_or_array)
-      end
-
       def _insert_record(connection, values, returning) # :nodoc:
         primary_key = self.primary_key
         primary_key_value = nil
