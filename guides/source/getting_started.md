@@ -135,10 +135,10 @@ run the following in a new terminal:
 
 ```bash
 $ rails --version
-Rails 7.2.0
+Rails 8.0.0
 ```
 
-If it says something like "Rails 7.2.0", you are ready to continue.
+If it says something like "Rails 8.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -474,7 +474,7 @@ $ bin/rails console
 You should see an `irb` prompt like:
 
 ```irb
-Loading development environment (Rails 7.2.0)
+Loading development environment (Rails 8.0.0)
 irb(main):001:0>
 ```
 

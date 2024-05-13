@@ -36,7 +36,7 @@ You can create a table with a composite primary key by passing the
 `:primary_key` option to `create_table` with an array value:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.2]
+class CreateProducts < ActiveRecord::Migration[8.0]
   def change
     create_table :products, primary_key: [:store_id, :sku] do |t|
       t.integer :store_id
