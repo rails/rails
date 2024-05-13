@@ -721,7 +721,8 @@ body.guide {
         width: 400px;
         
         :where(html[dir="rtl"]) & {
-          right: auto; left: 50px;
+          right: auto; 
+          left: 50px;
         }
       }
 
@@ -731,11 +732,20 @@ body.guide {
 
       @include media('>desktop-ultra-wide') {
         right: calc(30vw - 400px);
+
+        :where(html[dir="rtl"]) & {
+          right: auto; 
+          left: calc(30vw - 400px);
+        }
       }
 
       @include media('>desktop-hd') { // 1920
-      
         right: calc(40vw - 400px);
+
+        :where(html[dir="rtl"]) & {
+          right: auto; 
+          left: calc(40vw - 400px);
+        }
       }
 
       h3.chapter img {
