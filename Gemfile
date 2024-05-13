@@ -163,30 +163,6 @@ platforms :ruby, :windows do
   end
 end
 
-platforms :jruby do
-  if ENV["AR_JDBC"]
-    gem "activerecord-jdbcsqlite3-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
-    group :db do
-      gem "activerecord-jdbcmysql-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
-      gem "activerecord-jdbcpostgresql-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
-    end
-  else
-    gem "activerecord-jdbcsqlite3-adapter", ">= 1.3.0"
-    group :db do
-      gem "activerecord-jdbcmysql-adapter", ">= 1.3.0"
-      gem "activerecord-jdbcpostgresql-adapter", ">= 1.3.0"
-    end
-  end
-end
-
-# Gems that are necessary for Active Record tests with Oracle.
-if ENV["ORACLE_ENHANCED"]
-  platforms :ruby do
-    gem "ruby-oci8", "~> 2.2"
-  end
-  gem "activerecord-oracle_enhanced-adapter", github: "rsim/oracle-enhanced", branch: "master"
-end
-
 gem "tzinfo-data", platforms: [:windows, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:windows]
 
