@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
+- [`config.action_view.void_element_trailing_slash`](#config-action-view-void-element-trailing-slash): `false`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
 - [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
@@ -2246,6 +2247,37 @@ Configures the set of HTML sanitizers used by Action View by setting `ActionView
 | 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+
+#### `config.action_view.void_element_trailing_slash`
+
+Determines whether void HTML elements have a trailing slash or not.
+
+When `true`, the void HTML elements generated through Rails helpers have a trailing slash. For example:
+
+```erb
+<%= tag "br" %>
+# => <br />
+
+<%= text_field_tag "name" %>
+# => <input type="text" name="name" id="name" />
+```
+
+When `false`, the void HTML elements generated through Rails helpers do not have a trailing slash. For example:
+
+```erb
+<%= tag "br" %>
+# => <br>
+
+<%= text_field_tag "name" %>
+# => <input type="text" name="name" id="name">
+```
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.2                   | `false`              |
 
 ### Configuring Action Mailbox
 

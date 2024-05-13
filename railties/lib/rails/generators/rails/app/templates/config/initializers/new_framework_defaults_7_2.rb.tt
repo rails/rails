@@ -66,3 +66,12 @@
 # on `Post`. With this option enabled, it will also look for a `:comments` association.
 #++
 # Rails.application.config.active_record.automatically_invert_plural_associations = true
+
+###
+# Controls whether Action View's tag helpers add ending slashes to the void HTML elements or not.
+#
+# Affects any tag helpers that generate void HTML elements, such as `tag "br"` or `text_field_tag "name"`. When the
+# configuration is set to `false`, the trailing slash is not added, e.g. `<br>`. When the configuration is set to
+# `true`, the trailing slash is added, e.g. `<br />`.
+#++
+# Rails.application.config.action_view.void_element_trailing_slash = false

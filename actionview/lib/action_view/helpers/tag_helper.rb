@@ -18,6 +18,8 @@ module ActionView
       include CaptureHelper
       include OutputSafetyHelper
 
+      mattr_accessor :void_element_trailing_slash, default: false
+
       BOOLEAN_ATTRIBUTES = %w(allowfullscreen allowpaymentrequest async autofocus
                               autoplay checked compact controls declare default
                               defaultchecked defaultmuted defaultselected defer
@@ -72,7 +74,8 @@ module ActionView
                   TEXT
                   tag_string("#{name}", content, options, escape: escape, &block)
                 else
-                  self_closing_tag_string("#{name}", options, escape, ">")
+                  tag_suffix = ActionView::Helpers::TagHelper.void_element_trailing_slash ? " />" : ">"
+                  self_closing_tag_string("#{name}", options, escape, tag_suffix)
                 end
               end
             RUBY
@@ -86,7 +89,7 @@ module ActionView
                 if content || block
                   tag_string("#{name}", content, options, escape: escape, &block)
                 else
-                  self_closing_tag_string("#{name}", options, escape)
+                  self_closing_tag_string("#{name}", options, escape, " />")
                 end
               end
             RUBY
@@ -245,7 +248,7 @@ module ActionView
           content_tag_string(name, content, options, escape)
         end
 
-        def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
+        def self_closing_tag_string(name, options, escape = true, tag_suffix = ">")
           "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
         end
 
@@ -444,15 +447,17 @@ module ActionView
       #
       # === Legacy syntax
       #
-      # The following format is for legacy syntax support. It will be deprecated in future versions of \Rails.
+      # The following format is for legacy (XHTML) syntax support. It will be deprecated in future versions of \Rails.
       #
-      #   tag(name, options = nil, open = false, escape = true)
+      #   tag(name, options = nil, open = nil, escape = true)
       #
-      # It returns an empty HTML tag of type +name+ which by default is XHTML
-      # compliant. Set +open+ to true to create an open tag compatible
-      # with HTML 4.0 and below. Add HTML attributes by passing an attributes
-      # hash to +options+. Set +escape+ to false to disable attribute value
-      # escaping.
+      # It returns an empty HTML tag of type +name+ which by default is HTML
+      # compliant. Set +open+ to false to create an open tag compatible
+      # with XHTML. Add HTML attributes by passing an attributes hash to
+      # +options+. Set +escape+ to false to disable attribute value escaping.
+      # Tags can be to be XHTML compliant by default by setting
+      # <tt>config.action_view.void_element_trailing_slash = true</tt>.
+      #
       #
       # ==== Options
       #
@@ -467,34 +472,34 @@ module ActionView
       # ==== Examples
       #
       #   tag("br")
-      #   # => <br />
-      #
-      #   tag("br", nil, true)
       #   # => <br>
       #
+      #   tag("br", nil, false)
+      #   # => <br />
+      #
       #   tag("input", type: 'text', disabled: true)
-      #   # => <input type="text" disabled="disabled" />
+      #   # => <input type="text" disabled="disabled">
       #
       #   tag("input", type: 'text', class: ["strong", "highlight"])
-      #   # => <input class="strong highlight" type="text" />
+      #   # => <input class="strong highlight" type="text">
       #
       #   tag("img", src: "open & shut.png")
-      #   # => <img src="open &amp; shut.png" />
+      #   # => <img src="open &amp; shut.png">
       #
       #   tag("img", { src: "open &amp; shut.png" }, false, false)
       #   # => <img src="open &amp; shut.png" />
       #
       #   tag("div", data: { name: 'Stephen', city_state: %w(Chicago IL) })
-      #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
+      #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]">
       #
       #   tag("div", class: { highlight: current_user.admin? })
-      #   # => <div class="highlight" />
-      def tag(name = nil, options = nil, open = false, escape = true)
+      #   # => <div class="highlight">
+      def tag(name = nil, options = nil, open = nil, escape = true)
         if name.nil?
           tag_builder
         else
           ensure_valid_html5_tag_name(name)
-          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{" /" if open == false || (open.nil? && void_element_trailing_slash == true)}>".html_safe
         end
       end
 

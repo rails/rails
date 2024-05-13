@@ -24,7 +24,7 @@ module ActionView # :nodoc:
   #
   #   <b>Names of all the people</b>
   #   <% @people.each do |person| %>
-  #     Name: <%= person.name %><br/>
+  #     Name: <%= person.name %><br>
   #   <% end %>
   #
   # The loop is set up in regular embedding tags <tt><% %></tt>, and the name is written using the output embedding tag <tt><%= %></tt>. Note that this

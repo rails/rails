@@ -337,7 +337,7 @@ module ActionView
       # Two or more consecutive newlines (<tt>\n\n</tt> or <tt>\r\n\r\n</tt>) are
       # considered a paragraph and wrapped in <tt><p></tt> tags. One newline
       # (<tt>\n</tt> or <tt>\r\n</tt>) is considered a linebreak and a
-      # <tt><br /></tt> tag is appended. This method does not remove the
+      # <tt><br></tt> tag is appended. This method does not remove the
       # newlines from the +text+.
       #
       # You can pass any HTML attributes into <tt>html_options</tt>. These
@@ -352,10 +352,10 @@ module ActionView
       #   my_text = "Here is some basic text...\n...with a line break."
       #
       #   simple_format(my_text)
-      #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
+      #   # => "<p>Here is some basic text...\n<br>...with a line break.</p>"
       #
       #   simple_format(my_text, {}, wrapper_tag: "div")
-      #   # => "<div>Here is some basic text...\n<br />...with a line break.</div>"
+      #   # => "<div>Here is some basic text...\n<br>...with a line break.</div>"
       #
       #   more_text = "We want to put a paragraph...\n\n...right there."
       #
@@ -533,7 +533,7 @@ module ActionView
           return [] if text.blank?
 
           text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/).map! do |t|
-            t.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') || t
+            t.gsub!(/([^\n]\n)(?=[^\n])/, "\\1#{tag("br")}") || t
           end
         end
 

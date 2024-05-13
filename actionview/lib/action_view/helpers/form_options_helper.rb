@@ -646,11 +646,11 @@ module ActionView
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial)
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
-      #   <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
+      #   <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked">
       #   <label for="post_author_id_1">D. Heinemeier Hansson</label>
-      #   <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
+      #   <input id="post_author_id_2" name="post[author_id]" type="radio" value="2">
       #   <label for="post_author_id_2">D. Thomas</label>
-      #   <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
+      #   <input id="post_author_id_3" name="post[author_id]" type="radio" value="3">
       #   <label for="post_author_id_3">M. Clark</label>
       #
       # It is also possible to customize the way the elements will be shown by
@@ -726,13 +726,13 @@ module ActionView
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
       #
       # If <tt>@post.author_ids</tt> is already <tt>[1]</tt>, this would return:
-      #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
+      #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked">
       #   <label for="post_author_ids_1">D. Heinemeier Hansson</label>
-      #   <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
+      #   <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2">
       #   <label for="post_author_ids_2">D. Thomas</label>
-      #   <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
+      #   <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3">
       #   <label for="post_author_ids_3">M. Clark</label>
-      #   <input name="post[author_ids][]" type="hidden" value="" />
+      #   <input name="post[author_ids][]" type="hidden" value="">
       #
       # It is also possible to customize the way the elements will be shown by
       # giving a block to the method:

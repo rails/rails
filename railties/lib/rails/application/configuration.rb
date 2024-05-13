@@ -330,6 +330,10 @@ module Rails
             active_record.validate_migration_timestamps = true
             active_record.automatically_invert_plural_associations = true
           end
+
+          if respond_to?(:action_view)
+            action_view.void_element_trailing_slash = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

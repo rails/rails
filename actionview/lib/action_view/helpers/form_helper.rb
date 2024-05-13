@@ -45,10 +45,10 @@ module ActionView
     #
     #   <%= form_for @person do |f| %>
     #     <%= f.label :first_name %>:
-    #     <%= f.text_field :first_name %><br />
+    #     <%= f.text_field :first_name %><br>
     #
     #     <%= f.label :last_name %>:
-    #     <%= f.text_field :last_name %><br />
+    #     <%= f.text_field :last_name %><br>
     #
     #     <%= f.submit %>
     #   <% end %>
@@ -56,14 +56,14 @@ module ActionView
     # The HTML generated for this would be (modulus formatting):
     #
     #   <form action="/people" class="new_person" id="new_person" method="post">
-    #     <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
+    #     <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=">
     #     <label for="person_first_name">First name</label>:
-    #     <input id="person_first_name" name="person[first_name]" type="text" /><br />
+    #     <input id="person_first_name" name="person[first_name]" type="text"><br>
     #
     #     <label for="person_last_name">Last name</label>:
-    #     <input id="person_last_name" name="person[last_name]" type="text" /><br />
+    #     <input id="person_last_name" name="person[last_name]" type="text"><br>
     #
-    #     <input name="commit" type="submit" value="Create Person" />
+    #     <input name="commit" type="submit" value="Create Person">
     #   </form>
     #
     # As you see, the HTML reflects knowledge about the resource in several spots,
@@ -85,15 +85,15 @@ module ActionView
     # the code above as is would yield instead:
     #
     #   <form action="/people/256" class="edit_person" id="edit_person_256" method="post">
-    #     <input name="_method" type="hidden" value="patch" />
-    #     <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
+    #     <input name="_method" type="hidden" value="patch">
+    #     <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=">
     #     <label for="person_first_name">First name</label>:
-    #     <input id="person_first_name" name="person[first_name]" type="text" value="John" /><br />
+    #     <input id="person_first_name" name="person[first_name]" type="text" value="John"><br>
     #
     #     <label for="person_last_name">Last name</label>:
-    #     <input id="person_last_name" name="person[last_name]" type="text" value="Smith" /><br />
+    #     <input id="person_last_name" name="person[last_name]" type="text" value="Smith"><br>
     #
-    #     <input name="commit" type="submit" value="Update Person" />
+    #     <input name="commit" type="submit" value="Update Person">
     #   </form>
     #
     # Note that the endpoint, default values, and submit button label are tailored for <tt>@person</tt>.
@@ -130,10 +130,10 @@ module ActionView
       # the object we are concerned with:
       #
       #   <%= form_for :person do |f| %>
-      #     First name: <%= f.text_field :first_name %><br />
-      #     Last name : <%= f.text_field :last_name %><br />
-      #     Biography : <%= f.text_area :biography %><br />
-      #     Admin?    : <%= f.check_box :admin %><br />
+      #     First name: <%= f.text_field :first_name %><br>
+      #     Last name : <%= f.text_field :last_name %><br>
+      #     Biography : <%= f.text_area :biography %><br>
+      #     Admin?    : <%= f.check_box :admin %><br>
       #     <%= f.submit %>
       #   <% end %>
       #
@@ -341,7 +341,7 @@ module ActionView
       # The HTML generated for this would be:
       #
       #   <form action='http://www.example.com' method='post' data-remote='true'>
-      #     <input name='_method' type='hidden' value='patch' />
+      #     <input name='_method' type='hidden' value='patch'>
       #     ...
       #   </form>
       #
@@ -357,7 +357,7 @@ module ActionView
       # The HTML generated for this would be:
       #
       #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
-      #     <input name='_method' type='hidden' value='patch' />
+      #     <input name='_method' type='hidden' value='patch'>
       #     ...
       #   </form>
       #
@@ -490,7 +490,7 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form action="/articles" method="post">
-      #     <input type="text" name="title" />
+      #     <input type="text" name="title">
       #   </form>
       #
       #   # With an intentionally empty URL:
@@ -499,7 +499,7 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form method="post">
-      #     <input type="text" name="title" />
+      #     <input type="text" name="title">
       #   </form>
       #
       #   # Adding a scope prefixes the input field names:
@@ -508,7 +508,7 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form action="/articles" method="post">
-      #     <input type="text" name="article[title]" />
+      #     <input type="text" name="article[title]">
       #   </form>
       #
       #   # Using a model infers both the URL and scope:
@@ -517,7 +517,7 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form action="/articles" method="post">
-      #     <input type="text" name="article[title]" />
+      #     <input type="text" name="article[title]">
       #   </form>
       #
       #   # An existing model makes an update form and fills out field values:
@@ -526,8 +526,8 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form action="/articles/1" method="post">
-      #     <input type="hidden" name="_method" value="patch" />
-      #     <input type="text" name="article[title]" value="<the title of the article>" />
+      #     <input type="hidden" name="_method" value="patch">
+      #     <input type="text" name="article[title]" value="<the title of the article>">
       #   </form>
       #   # Though the fields don't have to correspond to model attributes:
       #   <%= form_with model: Cat.new do |form| %>
@@ -536,8 +536,8 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form action="/cats" method="post">
-      #     <input type="text" name="cat[cats_dont_have_gills]" />
-      #     <input type="text" name="cat[but_in_forms_they_can]" />
+      #     <input type="text" name="cat[cats_dont_have_gills]">
+      #     <input type="text" name="cat[but_in_forms_they_can]">
       #   </form>
       #
       # The parameters in the forms are accessible in controllers according to
@@ -700,7 +700,7 @@ module ActionView
       # generates
       #
       #   <form action="/articles/123" method="post" data-behavior="autosave" name="go">
-      #     <input name="_method" type="hidden" value="patch" />
+      #     <input name="_method" type="hidden" value="patch">
       #     ...
       #   </form>
       #
@@ -1159,19 +1159,19 @@ module ActionView
       #
       # ==== Examples
       #   text_field(:article, :title, size: 20)
-      #   # => <input type="text" id="article_title" name="article[title]" size="20" value="#{@article.title}" />
+      #   # => <input type="text" id="article_title" name="article[title]" size="20" value="#{@article.title}">
       #
       #   text_field(:article, :title, class: "create_input")
-      #   # => <input type="text" id="article_title" name="article[title]" value="#{@article.title}" class="create_input" />
+      #   # => <input type="text" id="article_title" name="article[title]" value="#{@article.title}" class="create_input">
       #
       #   text_field(:article, :title,  maxlength: 30, class: "title_input")
-      #   # => <input type="text" id="article_title" name="article[title]" maxlength="30" size="30" value="#{@article.title}" class="title_input" />
+      #   # => <input type="text" id="article_title" name="article[title]" maxlength="30" size="30" value="#{@article.title}" class="title_input">
       #
       #   text_field(:session, :user, onchange: "if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }")
-      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange="if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }"/>
+      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange="if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }">
       #
       #   text_field(:snippet, :code, size: 20, class: 'code_input')
-      #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
+      #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input">
       def text_field(object_name, method, options = {})
         Tags::TextField.new(object_name, method, self, options).render
       end
@@ -1183,16 +1183,16 @@ module ActionView
       #
       # ==== Examples
       #   password_field(:login, :pass, size: 20)
-      #   # => <input type="password" id="login_pass" name="login[pass]" size="20" />
+      #   # => <input type="password" id="login_pass" name="login[pass]" size="20">
       #
       #   password_field(:account, :secret, class: "form_input", value: @account.secret)
-      #   # => <input type="password" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
+      #   # => <input type="password" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input">
       #
       #   password_field(:user, :password, onchange: "if ($('#user_password').val().length > 30) { alert('Your password needs to be shorter!'); }")
-      #   # => <input type="password" id="user_password" name="user[password]" onchange="if ($('#user_password').val().length > 30) { alert('Your password needs to be shorter!'); }"/>
+      #   # => <input type="password" id="user_password" name="user[password]" onchange="if ($('#user_password').val().length > 30) { alert('Your password needs to be shorter!'); }">
       #
       #   password_field(:account, :pin, size: 20, class: 'form_input')
-      #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
+      #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input">
       def password_field(object_name, method, options = {})
         Tags::PasswordField.new(object_name, method, self, options).render
       end
@@ -1204,13 +1204,13 @@ module ActionView
       #
       # ==== Examples
       #   hidden_field(:signup, :pass_confirm)
-      #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="#{@signup.pass_confirm}" />
+      #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="#{@signup.pass_confirm}">
       #
       #   hidden_field(:article, :tag_list)
-      #   # => <input type="hidden" id="article_tag_list" name="article[tag_list]" value="#{@article.tag_list}" />
+      #   # => <input type="hidden" id="article_tag_list" name="article[tag_list]" value="#{@article.tag_list}">
       #
       #   hidden_field(:user, :token)
-      #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
+      #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}">
       def hidden_field(object_name, method, options = {})
         Tags::HiddenField.new(object_name, method, self, options).render
       end
@@ -1231,19 +1231,19 @@ module ActionView
       #
       # ==== Examples
       #   file_field(:user, :avatar)
-      #   # => <input type="file" id="user_avatar" name="user[avatar]" />
+      #   # => <input type="file" id="user_avatar" name="user[avatar]">
       #
       #   file_field(:article, :image, multiple: true)
-      #   # => <input type="file" id="article_image" name="article[image][]" multiple="multiple" />
+      #   # => <input type="file" id="article_image" name="article[image][]" multiple="multiple">
       #
       #   file_field(:article, :attached, accept: 'text/html')
-      #   # => <input accept="text/html" type="file" id="article_attached" name="article[attached]" />
+      #   # => <input accept="text/html" type="file" id="article_attached" name="article[attached]">
       #
       #   file_field(:article, :image, accept: 'image/png,image/gif,image/jpeg')
-      #   # => <input type="file" id="article_image" name="article[image]" accept="image/png,image/gif,image/jpeg" />
+      #   # => <input type="file" id="article_image" name="article[image]" accept="image/png,image/gif,image/jpeg">
       #
       #   file_field(:attachment, :file, class: 'file_input')
-      #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
+      #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input">
       def file_field(object_name, method, options = {})
         options = { include_hidden: multiple_file_field_include_hidden }.merge!(options)
 
@@ -1331,17 +1331,17 @@ module ActionView
       #
       #   # Let's say that @article.validated? is 1:
       #   check_box("article", "validated")
-      #   # => <input name="article[validated]" type="hidden" value="0" />
-      #   #    <input checked="checked" type="checkbox" id="article_validated" name="article[validated]" value="1" />
+      #   # => <input name="article[validated]" type="hidden" value="0">
+      #   #    <input checked="checked" type="checkbox" id="article_validated" name="article[validated]" value="1">
       #
       #   # Let's say that @puppy.gooddog is "no":
       #   check_box("puppy", "gooddog", {}, "yes", "no")
-      #   # => <input name="puppy[gooddog]" type="hidden" value="no" />
-      #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
+      #   # => <input name="puppy[gooddog]" type="hidden" value="no">
+      #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes">
       #
       #   check_box("eula", "accepted", { class: 'eula_check' }, "yes", "no")
-      #   # => <input name="eula[accepted]" type="hidden" value="no" />
-      #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
+      #   # => <input name="eula[accepted]" type="hidden" value="no">
+      #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes">
       def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
         Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
       end
@@ -1356,14 +1356,14 @@ module ActionView
       #   # Let's say that @article.category returns "rails":
       #   radio_button("article", "category", "rails")
       #   radio_button("article", "category", "java")
-      #   # => <input type="radio" id="article_category_rails" name="article[category]" value="rails" checked="checked" />
-      #   #    <input type="radio" id="article_category_java" name="article[category]" value="java" />
+      #   # => <input type="radio" id="article_category_rails" name="article[category]" value="rails" checked="checked">
+      #   #    <input type="radio" id="article_category_java" name="article[category]" value="java">
       #
       #   # Let's say that @user.receive_newsletter returns "no":
       #   radio_button("user", "receive_newsletter", "yes")
       #   radio_button("user", "receive_newsletter", "no")
-      #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
-      #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
+      #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes">
+      #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked">
       def radio_button(object_name, method, tag_value, options = {})
         Tags::RadioButton.new(object_name, method, self, tag_value, options).render
       end
@@ -1371,7 +1371,7 @@ module ActionView
       # Returns a text_field of type "color".
       #
       #   color_field("car", "color")
-      #   # => <input id="car_color" name="car[color]" type="color" value="#000000" />
+      #   # => <input id="car_color" name="car[color]" type="color" value="#000000">
       def color_field(object_name, method, options = {})
         Tags::ColorField.new(object_name, method, self, options).render
       end
@@ -1381,20 +1381,20 @@ module ActionView
       # some browsers.
       #
       #   search_field(:user, :name)
-      #   # => <input id="user_name" name="user[name]" type="search" />
+      #   # => <input id="user_name" name="user[name]" type="search">
       #   search_field(:user, :name, autosave: false)
-      #   # => <input autosave="false" id="user_name" name="user[name]" type="search" />
+      #   # => <input autosave="false" id="user_name" name="user[name]" type="search">
       #   search_field(:user, :name, results: 3)
-      #   # => <input id="user_name" name="user[name]" results="3" type="search" />
+      #   # => <input id="user_name" name="user[name]" results="3" type="search">
       #   #  Assume request.host returns "www.example.com"
       #   search_field(:user, :name, autosave: true)
-      #   # => <input autosave="com.example.www" id="user_name" name="user[name]" results="10" type="search" />
+      #   # => <input autosave="com.example.www" id="user_name" name="user[name]" results="10" type="search">
       #   search_field(:user, :name, onsearch: true)
-      #   # => <input id="user_name" incremental="true" name="user[name]" onsearch="true" type="search" />
+      #   # => <input id="user_name" incremental="true" name="user[name]" onsearch="true" type="search">
       #   search_field(:user, :name, autosave: false, onsearch: true)
-      #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" type="search" />
+      #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" type="search">
       #   search_field(:user, :name, autosave: true, onsearch: true)
-      #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" type="search" />
+      #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" type="search">
       def search_field(object_name, method, options = {})
         Tags::SearchField.new(object_name, method, self, options).render
       end
@@ -1402,7 +1402,7 @@ module ActionView
       # Returns a text_field of type "tel".
       #
       #   telephone_field("user", "phone")
-      #   # => <input id="user_phone" name="user[phone]" type="tel" />
+      #   # => <input id="user_phone" name="user[phone]" type="tel">
       #
       def telephone_field(object_name, method, options = {})
         Tags::TelField.new(object_name, method, self, options).render
@@ -1413,7 +1413,7 @@ module ActionView
       # Returns a text_field of type "date".
       #
       #   date_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="date">
       #
       # The default value is generated by trying to call +strftime+ with "%Y-%m-%d"
       # on the object's value, which makes it behave as expected for instances
@@ -1422,19 +1422,19 @@ module ActionView
       #
       #   @user.born_on = Date.new(1984, 1, 27)
       #   date_field("user", "born_on", value: "1984-05-12")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-05-12" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-05-12">
       #
       # You can create values for the "min" and "max" attributes by passing
       # instances of Date or Time to the options hash.
       #
       #   date_field("user", "born_on", min: Date.today)
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" min="2014-05-20" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="date" min="2014-05-20">
       #
       # Alternatively, you can pass a String formatted as an ISO8601 date as the
       # values for "min" and "max."
       #
       #   date_field("user", "born_on", min: "2014-05-20")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" min="2014-05-20" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="date" min="2014-05-20">
       #
       def date_field(object_name, method, options = {})
         Tags::DateField.new(object_name, method, self, options).render
@@ -1454,26 +1454,26 @@ module ActionView
       # ==== Examples
       #
       #   time_field("task", "started_at")
-      #   # => <input id="task_started_at" name="task[started_at]" type="time" />
+      #   # => <input id="task_started_at" name="task[started_at]" type="time">
       #
       # You can create values for the "min" and "max" attributes by passing
       # instances of Date or Time to the options hash.
       #
       #   time_field("task", "started_at", min: Time.now)
-      #   # => <input id="task_started_at" name="task[started_at]" type="time" min="01:00:00.000" />
+      #   # => <input id="task_started_at" name="task[started_at]" type="time" min="01:00:00.000">
       #
       # Alternatively, you can pass a String formatted as an ISO8601 time as the
       # values for "min" and "max."
       #
       #   time_field("task", "started_at", min: "01:00:00")
-      #   # => <input id="task_started_at" name="task[started_at]" type="time" min="01:00:00.000" />
+      #   # => <input id="task_started_at" name="task[started_at]" type="time" min="01:00:00.000">
       #
       # By default, provided times will be formatted including seconds. You can render just the hour
       # and minute by passing <tt>include_seconds: false</tt>. Some browsers will render a simpler UI
       # if you exclude seconds in the timestamp format.
       #
       #   time_field("task", "started_at", value: Time.now, include_seconds: false)
-      #   # => <input id="task_started_at" name="task[started_at]" type="time" value="01:00" />
+      #   # => <input id="task_started_at" name="task[started_at]" type="time" value="01:00">
       def time_field(object_name, method, options = {})
         Tags::TimeField.new(object_name, method, self, options).render
       end
@@ -1481,7 +1481,7 @@ module ActionView
       # Returns a text_field of type "datetime-local".
       #
       #   datetime_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local">
       #
       # The default value is generated by trying to call +strftime+ with "%Y-%m-%dT%T"
       # on the object's value, which makes it behave as expected for instances
@@ -1489,26 +1489,26 @@ module ActionView
       #
       #   @user.born_on = Date.new(1984, 1, 12)
       #   datetime_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" value="1984-01-12T00:00:00" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" value="1984-01-12T00:00:00">
       #
       # You can create values for the "min" and "max" attributes by passing
       # instances of Date or Time to the options hash.
       #
       #   datetime_field("user", "born_on", min: Date.today)
-      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000">
       #
       # Alternatively, you can pass a String formatted as an ISO8601 datetime as
       # the values for "min" and "max."
       #
       #   datetime_field("user", "born_on", min: "2014-05-20T00:00:00")
-      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000">
       #
       # By default, provided datetimes will be formatted including seconds. You can render just the date, hour,
       # and minute by passing <tt>include_seconds: false</tt>.
       #
       #   @user.born_on = Time.current
       #   datetime_field("user", "born_on", include_seconds: false)
-      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" value="2014-05-20T14:35" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" value="2014-05-20T14:35">
       def datetime_field(object_name, method, options = {})
         Tags::DatetimeLocalField.new(object_name, method, self, options).render
       end
@@ -1518,7 +1518,7 @@ module ActionView
       # Returns a text_field of type "month".
       #
       #   month_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="month" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="month">
       #
       # The default value is generated by trying to call +strftime+ with "%Y-%m"
       # on the object's value, which makes it behave as expected for instances
@@ -1526,7 +1526,7 @@ module ActionView
       #
       #   @user.born_on = Date.new(1984, 1, 27)
       #   month_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-01" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-01">
       #
       def month_field(object_name, method, options = {})
         Tags::MonthField.new(object_name, method, self, options).render
@@ -1535,7 +1535,7 @@ module ActionView
       # Returns a text_field of type "week".
       #
       #   week_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="week" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="week">
       #
       # The default value is generated by trying to call +strftime+ with "%Y-W%W"
       # on the object's value, which makes it behave as expected for instances
@@ -1543,7 +1543,7 @@ module ActionView
       #
       #   @user.born_on = Date.new(1984, 5, 12)
       #   week_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-W19" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-W19">
       #
       def week_field(object_name, method, options = {})
         Tags::WeekField.new(object_name, method, self, options).render
@@ -1552,7 +1552,7 @@ module ActionView
       # Returns a text_field of type "url".
       #
       #   url_field("user", "homepage")
-      #   # => <input id="user_homepage" name="user[homepage]" type="url" />
+      #   # => <input id="user_homepage" name="user[homepage]" type="url">
       #
       def url_field(object_name, method, options = {})
         Tags::UrlField.new(object_name, method, self, options).render
@@ -1561,7 +1561,7 @@ module ActionView
       # Returns a text_field of type "email".
       #
       #   email_field("user", "address")
-      #   # => <input id="user_address" name="user[address]" type="email" />
+      #   # => <input id="user_address" name="user[address]" type="email">
       #
       def email_field(object_name, method, options = {})
         Tags::EmailField.new(object_name, method, self, options).render
@@ -2459,18 +2459,18 @@ module ActionView
       #
       #   # Let's say that @article.validated? is 1:
       #   check_box("validated")
-      #   # => <input name="article[validated]" type="hidden" value="0" />
-      #   #    <input checked="checked" type="checkbox" id="article_validated" name="article[validated]" value="1" />
+      #   # => <input name="article[validated]" type="hidden" value="0">
+      #   #    <input checked="checked" type="checkbox" id="article_validated" name="article[validated]" value="1">
       #
       #   # Let's say that @puppy.gooddog is "no":
       #   check_box("gooddog", {}, "yes", "no")
-      #   # => <input name="puppy[gooddog]" type="hidden" value="no" />
-      #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
+      #   # => <input name="puppy[gooddog]" type="hidden" value="no">
+      #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes">
       #
       #   # Let's say that @eula.accepted is "no":
       #   check_box("accepted", { class: 'eula_check' }, "yes", "no")
-      #   # => <input name="eula[accepted]" type="hidden" value="no" />
-      #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
+      #   # => <input name="eula[accepted]" type="hidden" value="no">
+      #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes">
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
         @template.check_box(@object_name, method, objectify_options(options), checked_value, unchecked_value)
       end
@@ -2485,14 +2485,14 @@ module ActionView
       #   # Let's say that @article.category returns "rails":
       #   radio_button("category", "rails")
       #   radio_button("category", "java")
-      #   # => <input type="radio" id="article_category_rails" name="article[category]" value="rails" checked="checked" />
-      #   #    <input type="radio" id="article_category_java" name="article[category]" value="java" />
+      #   # => <input type="radio" id="article_category_rails" name="article[category]" value="rails" checked="checked">
+      #   #    <input type="radio" id="article_category_java" name="article[category]" value="java">
       #
       #   # Let's say that @user.receive_newsletter returns "no":
       #   radio_button("receive_newsletter", "yes")
       #   radio_button("receive_newsletter", "no")
-      #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
-      #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
+      #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes">
+      #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked">
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
@@ -2505,15 +2505,15 @@ module ActionView
       # ==== Examples
       #   # Let's say that @signup.pass_confirm returns true:
       #   hidden_field(:pass_confirm)
-      #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="true" />
+      #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="true">
       #
       #   # Let's say that @article.tag_list returns "blog, ruby":
       #   hidden_field(:tag_list)
-      #   # => <input type="hidden" id="article_tag_list" name="article[tag_list]" value="blog, ruby" />
+      #   # => <input type="hidden" id="article_tag_list" name="article[tag_list]" value="blog, ruby">
       #
       #   # Let's say that @user.token returns "abcde":
       #   hidden_field(:token)
-      #   # => <input type="hidden" id="user_token" name="user[token]" value="abcde" />
+      #   # => <input type="hidden" id="user_token" name="user[token]" value="abcde">
       #
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
@@ -2537,23 +2537,23 @@ module ActionView
       # ==== Examples
       #   # Let's say that @user has avatar:
       #   file_field(:avatar)
-      #   # => <input type="file" id="user_avatar" name="user[avatar]" />
+      #   # => <input type="file" id="user_avatar" name="user[avatar]">
       #
       #   # Let's say that @article has image:
       #   file_field(:image, :multiple => true)
-      #   # => <input type="file" id="article_image" name="article[image][]" multiple="multiple" />
+      #   # => <input type="file" id="article_image" name="article[image][]" multiple="multiple">
       #
       #   # Let's say that @article has attached:
       #   file_field(:attached, accept: 'text/html')
-      #   # => <input accept="text/html" type="file" id="article_attached" name="article[attached]" />
+      #   # => <input accept="text/html" type="file" id="article_attached" name="article[attached]">
       #
       #   # Let's say that @article has image:
       #   file_field(:image, accept: 'image/png,image/gif,image/jpeg')
-      #   # => <input type="file" id="article_image" name="article[image]" accept="image/png,image/gif,image/jpeg" />
+      #   # => <input type="file" id="article_image" name="article[image]" accept="image/png,image/gif,image/jpeg">
       #
       #   # Let's say that @attachment has file:
       #   file_field(:file, class: 'file_input')
-      #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
+      #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input">
       def file_field(method, options = {})
         self.multipart = true
         @template.file_field(@object_name, method, objectify_options(options))

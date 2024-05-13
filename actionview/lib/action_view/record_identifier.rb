@@ -19,14 +19,14 @@ module ActionView
   # is:
   #
   #    <form class="new_post" id="new_post" action="/posts" accept-charset="UTF-8" method="post">
-  #      <input type="text" name="post[body]" id="post_body" />
+  #      <input type="text" name="post[body]" id="post_body">
   #    </form>
   #
   # When +post+ is a persisted ActiveRecord::Base instance, the resulting HTML
   # is:
   #
   #   <form class="edit_post" id="edit_post_42" action="/posts/42" accept-charset="UTF-8" method="post">
-  #     <input type="text" value="What a wonderful world!" name="post[body]" id="post_body" />
+  #     <input type="text" value="What a wonderful world!" name="post[body]" id="post_body">
   #   </form>
   #
   # In both cases, the +id+ and +class+ of the wrapping DOM element are
