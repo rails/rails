@@ -136,7 +136,7 @@ body.guide {
   // TODO: media queries to increase font size, current sizes are for desktop, so drop base to mobile appropriate and MQ up twice (min width 60/120 em, minheight 30/60em)
   h1 {
     color: $rf-brand;
-    font-family: 'Calibre', "Noto Sans Arabic", "Heebo", sans-serif;
+    font-family: 'Calibre', sans-serif;
     font-size: 3rem; /* 48px */
     font-weight: 700; /* Light */
     line-height: 1em;
@@ -146,7 +146,7 @@ body.guide {
   } // h1
 
   h2 {
-    font-family: 'Calibre', "Noto Sans Arabic", "Heebo", sans-serif;
+    font-family: 'Calibre', sans-serif;
     font-size: 2.25rem; // Calibre is smaller than inter at the same size
     font-weight: 700; /* Bold */
 
@@ -449,7 +449,7 @@ body.guide {
           background-repeat: no-repeat;
           background-position: top center;
           display: inline-block;
-          font-family: 'Calibre', "Noto Sans Arabic", "Heebo", sans-serif;
+          font-family: 'Calibre', sans-serif;
           font-size: 2.25rem;
           font-weight: 700;
           margin: 0 auto;
@@ -816,8 +816,9 @@ body.guide {
 html[dir="rtl"]:lang("ar"),
 html[dir="rtl"]:lang("fa") {
   body.guide {
-    h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li {
-      font-family: "Noto Sans Arabic", sans-serif;
+    h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li,
+    header#page_header nav#feature_nav .header-logo a {
+      font-family: "Noto Sans Arabic", sans-serif !important;
       font-optical-sizing: auto;
       font-weight: 400;
       font-style: normal;
@@ -829,8 +830,9 @@ html[dir="rtl"]:lang("fa") {
 html[dir="rtl"]:lang("he"),
 html[dir="rtl"]:lang( "iw") {
   body.guide {
-    h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li {
-      font-family: "Heebo", sans-serif;
+    h1, h2, h3, h4, h5, h6, p, dl, dd, dt, ul, ol, li,
+    header#page_header nav#feature_nav .header-logo a {
+      font-family: "Heebo", sans-serif !important;
       font-optical-sizing: auto;
       font-weight: 400;
       font-style: normal;
