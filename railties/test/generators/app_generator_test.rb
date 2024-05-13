@@ -703,16 +703,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_inclusion_of_kamal_files
-    run_generator
-    assert_file "bin/kamal"
+    run_generator_and_bundler [destination_root]
+
     assert_file "config/deploy.yml"
     assert_file ".env.erb"
   end
 
   def test_kamal_files_are_skipped_if_required
-    run_generator [destination_root, "--skip-kamal"]
+    run_generator_and_bundler [destination_root, "--skip-kamal"]
 
-    assert_no_file "bin/kamal"
     assert_no_file "config/deploy.yml"
     assert_no_file ".env.erb"
   end
