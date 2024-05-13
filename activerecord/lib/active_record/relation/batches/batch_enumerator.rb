@@ -77,6 +77,17 @@ module ActiveRecord
         end
       end
 
+      # Touches records in batches. Returns the total number of rows affected.
+      #
+      #   Person.in_batches.touch_all
+      #
+      # See Relation#touch_all for details of how each batch is touched.
+      def touch_all(...)
+        sum do |relation|
+          relation.touch_all(...)
+        end
+      end
+
       # Destroys records in batches.
       #
       #   Person.where("age < 10").in_batches.destroy_all

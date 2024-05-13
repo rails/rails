@@ -1,3 +1,11 @@
+*   Support `touch_all` in batches.
+
+    ```ruby
+    Post.in_batches.touch_all
+    ```
+
+    *fatkodima*
+
 *   Add support for `:if_not_exists` and `:force` options to `create_schema`
 
     *fatkodima*
