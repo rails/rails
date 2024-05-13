@@ -10,7 +10,7 @@ module ActiveRecord
       :first_or_create, :first_or_create!, :first_or_initialize,
       :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
       :create_or_find_by, :create_or_find_by!,
-      :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
+      :destroy_all, :delete, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
       :select, :reselect, :order, :regroup, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
       :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,

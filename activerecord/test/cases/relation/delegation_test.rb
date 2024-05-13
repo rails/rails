@@ -67,7 +67,7 @@ module ActiveRecord
         :first_or_create, :first_or_create!, :first_or_initialize,
         :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
         :create_or_find_by, :create_or_find_by!,
-        :destroy_all, :delete_all, :update_all, :touch_all, :delete_by, :destroy_by
+        :destroy_all, :delete, :delete_all, :update_all, :touch_all, :delete_by, :destroy_by
       ]
 
     def test_delegate_querying_methods
@@ -89,14 +89,14 @@ module ActiveRecord
 
     test "delegation doesn't override methods defined in other relation subclasses" do
       # precondition, some methods are available on ActiveRecord::Relation subclasses
-      # but not ActiveRecord::Relation itself. Here `delete` is just an example.
-      assert_equal false, ActiveRecord::Relation.method_defined?(:delete)
-      assert_equal true, ActiveRecord::Associations::CollectionProxy.method_defined?(:delete)
+      # but not ActiveRecord::Relation itself. Here `target` is just an example.
+      assert_equal false, ActiveRecord::Relation.method_defined?(:target)
+      assert_equal true, ActiveRecord::Associations::CollectionProxy.method_defined?(:target)
 
       project = projects(:active_record)
-      original_owner = project.developers_with_callbacks.method(:delete).owner
-      Developer.all.delete(12345)
-      assert_equal original_owner, project.developers_with_callbacks.method(:delete).owner
+      original_owner = project.developers_with_callbacks.method(:target).owner
+      assert_equal :__target__, Developer.all.target
+      assert_equal original_owner, project.developers_with_callbacks.method(:target).owner
     end
   end
 end
