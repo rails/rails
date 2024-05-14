@@ -158,6 +158,7 @@ GEM
       dante (> 0.1.5)
     base64 (0.2.0)
     bcrypt (3.1.20)
+    bcrypt_pbkdf (1.1.0)
     beaneater (1.1.3)
     bigdecimal (3.1.5)
     bindex (0.8.1)
@@ -205,8 +206,10 @@ GEM
       delayed_job (>= 3.0, < 5)
     digest-crc (0.6.5)
       rake (>= 12.0.0, < 14.0.0)
+    dotenv (2.8.1)
     drb (2.2.0)
       ruby2_keywords
+    ed25519 (1.3.0)
     erubi (1.12.0)
     et-orbi (1.2.7)
       tzinfo
@@ -300,6 +303,17 @@ GEM
       railties (>= 6.0.0)
     json (2.7.1)
     jwt (2.7.1)
+    kamal (1.5.2)
+      activesupport (>= 7.0)
+      base64 (~> 0.2)
+      bcrypt_pbkdf (~> 1.0)
+      concurrent-ruby (~> 1.2)
+      dotenv (~> 2.8)
+      ed25519 (~> 1.2)
+      net-ssh (~> 7.0)
+      sshkit (~> 1.21)
+      thor (~> 1.2)
+      zeitwerk (~> 2.5)
     kramdown (2.4.0)
       rexml
     kramdown-parser-gfm (1.1.0)
@@ -349,6 +363,7 @@ GEM
     msgpack (1.7.2)
     multi_json (1.15.0)
     multipart-post (2.3.0)
+    mutex_m (0.2.0)
     mysql2 (0.5.6)
     net-http-persistent (4.0.2)
       connection_pool (~> 2.2)
@@ -359,8 +374,13 @@ GEM
       net-protocol
     net-protocol (0.2.2)
       timeout
+    net-scp (4.0.0)
+      net-ssh (>= 2.6.5, < 8.0.0)
+    net-sftp (4.0.0)
+      net-ssh (>= 5.0.0, < 8.0.0)
     net-smtp (0.4.0)
       net-protocol
+    net-ssh (7.2.3)
     nio4r (2.7.0)
     nokogiri (1.16.0)
       mini_portile2 (~> 2.8.2)
@@ -532,6 +552,12 @@ GEM
       mini_portile2 (~> 2.8.0)
     sqlite3 (2.0.0-x86_64-darwin)
     sqlite3 (2.0.0-x86_64-linux-gnu)
+    sshkit (1.22.2)
+      base64
+      mutex_m
+      net-scp (>= 1.1.2)
+      net-sftp (>= 2.1.2)
+      net-ssh (>= 2.8.0)
     stackprof (0.2.25)
     stimulus-rails (1.3.0)
       railties (>= 6.0.0)
@@ -590,9 +616,6 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activerecord-jdbcmysql-adapter (>= 1.3.0)
-  activerecord-jdbcpostgresql-adapter (>= 1.3.0)
-  activerecord-jdbcsqlite3-adapter (>= 1.3.0)
   aws-sdk-s3
   aws-sdk-sns
   azure-storage-blob (~> 2.0)
@@ -616,6 +639,7 @@ DEPENDENCIES
   jbuilder
   jsbundling-rails
   json (>= 2.0.0, != 2.7.0)
+  kamal
   launchy
   libxml-ruby
   listen (~> 3.3)
