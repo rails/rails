@@ -1,3 +1,8 @@
+*   Use Kamal for deployment by default, which includes generating a Rails-specific config/deploy.yml.
+    This can be skipped using --skip-kamal. See more: https://kamal-deploy.org/
+
+    *DHH* 
+
 *   Defer route drawing to the first request, or when url_helpers are called
 
     Executes the first routes reload in middleware, or when a route set's
