@@ -46,6 +46,7 @@ module ActiveSupport
         "Date"       => "date",
         "DateTime"   => "dateTime",
         "Time"       => "dateTime",
+        "ActiveSupport::Duration" => "duration",
         "Array"      => "array",
         "Hash"       => "hash"
       }
@@ -56,6 +57,7 @@ module ActiveSupport
       "symbol"   => Proc.new { |symbol| symbol.to_s },
       "date"     => Proc.new { |date| date.to_fs(:db) },
       "dateTime" => Proc.new { |time| time.xmlschema },
+      "duration" => Proc.new { |duration| duration.iso8601 },
       "binary"   => Proc.new { |binary| ::Base64.encode64(binary) },
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
     } unless defined?(FORMATTING)
@@ -66,6 +68,7 @@ module ActiveSupport
         "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
         "date"         => Proc.new { |date|    ::Date.parse(date) },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
+        "duration"     => Proc.new { |duration| Duration.parse(duration) },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|

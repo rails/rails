@@ -1,3 +1,5 @@
+name: "<%= app_name %>"
+
 services:
   rails-app:
     build:

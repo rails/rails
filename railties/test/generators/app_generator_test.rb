@@ -477,21 +477,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
-    if defined?(JRUBY_VERSION)
-      assert_gem "activerecord-jdbcsqlite3-adapter"
-    else
-      assert_gem "sqlite3", '">= 1.4"'
-    end
+    assert_gem "sqlite3", '">= 1.4"'
   end
 
   def test_config_mysql_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
-    if defined?(JRUBY_VERSION)
-      assert_gem "activerecord-jdbcmysql-adapter"
-    else
-      assert_gem "mysql2", '"~> 0.5"'
-    end
+    assert_gem "mysql2", '"~> 0.5"'
   end
 
   def test_config_database_app_name_with_period
@@ -502,44 +494,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_postgresql_database
     run_generator([destination_root, "-d", "postgresql"])
     assert_file "config/database.yml", /postgresql/
-    if defined?(JRUBY_VERSION)
-      assert_gem "activerecord-jdbcpostgresql-adapter"
-    else
-      assert_gem "pg", '"~> 1.1"'
-    end
-  end
-
-  def test_config_jdbcmysql_database
-    run_generator([destination_root, "-d", "jdbcmysql"])
-    assert_file "config/database.yml", /mysql/
-    assert_gem "activerecord-jdbcmysql-adapter"
-  end
-
-  def test_config_jdbcsqlite3_database
-    run_generator([destination_root, "-d", "jdbcsqlite3"])
-    assert_file "config/database.yml", /sqlite3/
-    assert_gem "activerecord-jdbcsqlite3-adapter"
-  end
-
-  def test_config_jdbcpostgresql_database
-    run_generator([destination_root, "-d", "jdbcpostgresql"])
-    assert_file "config/database.yml", /postgresql/
-    assert_gem "activerecord-jdbcpostgresql-adapter"
-  end
-
-  def test_config_jdbc_database
-    run_generator([destination_root, "-d", "jdbc"])
-    assert_file "config/database.yml", /jdbc/
-    assert_file "config/database.yml", /mssql/
-    assert_gem "activerecord-jdbc-adapter"
-  end
-
-  if defined?(JRUBY_VERSION)
-    def test_config_jdbc_database_when_no_option_given
-      run_generator
-      assert_file "config/database.yml", /sqlite3/
-      assert_gem "activerecord-jdbcsqlite3-adapter"
-    end
+    assert_gem "pg", '"~> 1.1"'
   end
 
   def test_generator_defaults_to_puma_version
@@ -697,6 +652,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file ".github/workflows/ci.yml"
     assert_no_file ".github/dependabot.yml"
+  end
+
+  def test_inclusion_of_kamal_files
+    run_generator_and_bundler [destination_root]
+
+    assert_file "config/deploy.yml"
+    assert_file ".env.erb"
+  end
+
+  def test_kamal_files_are_skipped_if_required
+    run_generator_and_bundler [destination_root, "--skip-kamal"]
+
+    assert_no_file "config/deploy.yml"
+    assert_no_file ".env.erb"
   end
 
   def test_usage_read_from_file
@@ -1285,9 +1254,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal "redis://redis:6379/1", content["containerEnv"]["REDIS_URL"]
       assert_equal "45678", content["containerEnv"]["CAPYBARA_SERVER_PORT"]
       assert_equal "selenium", content["containerEnv"]["SELENIUM_HOST"]
-      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/activestorage"])
-      assert_equal({}, content["features"]["ghcr.io/devcontainers/features/github-cli:1"])
-      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/sqlite3"])
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/activestorage"
+      assert_includes content["features"].keys, "ghcr.io/devcontainers/features/github-cli:1"
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite3"
       assert_includes(content["forwardPorts"], 3000)
       assert_includes(content["forwardPorts"], 6379)
     end
@@ -1295,6 +1264,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
     end
     assert_compose_file do |compose_config|
+      assert_equal "my_app", compose_config["name"]
+
       expected_rails_app_config = {
         "build" => {
           "context" => "..",
@@ -1365,8 +1336,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_devcontainer_json_file do |content|
       assert_equal "postgres", content["containerEnv"]["DB_HOST"]
-      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/postgres-client"])
-      assert_includes(content["forwardPorts"], 5432)
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
+      assert_includes content["forwardPorts"], 5432
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV\["DB_HOST"\] %>/, content)
@@ -1395,8 +1366,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_devcontainer_json_file do |content|
       assert_equal "mysql", content["containerEnv"]["DB_HOST"]
-      assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/mysql-client"])
-      assert_includes(content["forwardPorts"], 3306)
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/mysql-client"
+      assert_includes content["forwardPorts"], 3306
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)

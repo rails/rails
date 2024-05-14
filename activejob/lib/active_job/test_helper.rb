@@ -39,8 +39,9 @@ module ActiveJob
     end
 
     def before_setup # :nodoc:
+      queue_adapter_specific_to_this_test_class = queue_adapter_for_test
       queue_adapter_changed_jobs.each do |klass|
-        if (queue_adapter_specific_to_this_test_class = queue_adapter_for_test)
+        if queue_adapter_specific_to_this_test_class
           klass.enable_test_adapter(queue_adapter_specific_to_this_test_class)
         elsif klass._queue_adapter.nil?
           klass.enable_test_adapter(ActiveJob::QueueAdapters::TestAdapter.new)

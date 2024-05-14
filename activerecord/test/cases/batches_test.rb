@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "models/comment"
 require "models/post"
 require "models/subscriber"
+require "models/developer"
 require "models/cpk"
 
 class EachTest < ActiveRecord::TestCase
-  fixtures :posts, :subscribers, :cpk_orders
+  fixtures :posts, :subscribers, :developers, :cpk_orders
 
   def setup
     @posts = Post.order("id asc")
@@ -384,6 +384,22 @@ class EachTest < ActiveRecord::TestCase
     assert_equal 0, Post.where("1=0").in_batches(of: 2).update_all(title: "updated-title")
   end
 
+  def test_in_batches_touch_all_affect_all_records
+    time = Time.new(2000, 1, 1, 0, 0, 0)
+    assert_queries_count(6 + 6) do # 6 selects, 6 updates
+      Developer.in_batches(of: 2).touch_all(time: time)
+    end
+    assert_equal [time] * Developer.count, Developer.all.pluck(:updated_at)
+  end
+
+  def test_in_batches_touch_all_returns_rows_affected
+    assert_equal 11, Developer.in_batches(of: 2).touch_all
+  end
+
+  def test_in_batches_touch_all_returns_zero_when_no_batches
+    assert_equal 0, Developer.where("1=0").in_batches(of: 2).touch_all
+  end
+
   def test_in_batches_delete_all_should_not_delete_records_in_other_batches
     not_deleted_count = Post.where("id <= 2").count
     Post.where("id > 2").in_batches(of: 2).delete_all
@@ -397,6 +413,22 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_delete_all_returns_zero_when_no_batches
     assert_equal 0, Post.where("1=0").in_batches(of: 2).delete_all
+  end
+
+  def test_in_batches_destroy_all_should_not_destroy_records_in_other_batches
+    not_destroyed_count = Post.where("id <= 2").count
+    Post.where("id > 2").in_batches(of: 2).destroy_all
+    assert_equal 0, Post.where("id > 2").count
+    assert_equal not_destroyed_count, Post.count
+  end
+
+  def test_in_batches_destroy_all_returns_rows_affected
+    # 1 records is not destroyed because of the callback.
+    assert_equal 10, PostWithDestroyCallback.in_batches(of: 2).destroy_all
+  end
+
+  def test_in_batches_destroy_all_returns_zero_when_no_batches
+    assert_equal 0, Post.where("1=0").in_batches(of: 2).destroy_all
   end
 
   def test_in_batches_should_not_be_loaded

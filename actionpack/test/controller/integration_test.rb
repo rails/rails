@@ -1309,6 +1309,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
   end
 end
 
+# rubocop:disable Lint/Debugger
 class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def index
@@ -1392,3 +1393,4 @@ class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 end
+# rubocop:enable Lint/Debugger
