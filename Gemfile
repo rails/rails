@@ -21,6 +21,7 @@ gem "cssbundling-rails"
 gem "importmap-rails", ">= 1.2.3"
 gem "tailwindcss-rails"
 gem "dartsass-rails"
+gem "kamal"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
