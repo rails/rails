@@ -90,7 +90,8 @@ module Rails
 
         env = colorized_env
         app_name = @app.class.module_parent_name.underscore.dasherize
-        prompt_prefix = "#{app_name}(#{env})"
+        prompt_prefix = "%N(#{env})"
+        IRB.conf[:IRB_NAME] = app_name
 
         IRB.conf[:PROMPT][:RAILS_PROMPT] = {
           PROMPT_I: "#{prompt_prefix}> ",
