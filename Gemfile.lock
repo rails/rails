@@ -590,9 +590,6 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activerecord-jdbcmysql-adapter (>= 1.3.0)
-  activerecord-jdbcpostgresql-adapter (>= 1.3.0)
-  activerecord-jdbcsqlite3-adapter (>= 1.3.0)
   aws-sdk-s3
   aws-sdk-sns
   azure-storage-blob (~> 2.0)
