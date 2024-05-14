@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "models/comment"
 require "models/post"
 require "models/subscriber"
 require "models/developer"
@@ -414,6 +413,22 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_delete_all_returns_zero_when_no_batches
     assert_equal 0, Post.where("1=0").in_batches(of: 2).delete_all
+  end
+
+  def test_in_batches_destroy_all_should_not_destroy_records_in_other_batches
+    not_destroyed_count = Post.where("id <= 2").count
+    Post.where("id > 2").in_batches(of: 2).destroy_all
+    assert_equal 0, Post.where("id > 2").count
+    assert_equal not_destroyed_count, Post.count
+  end
+
+  def test_in_batches_destroy_all_returns_rows_affected
+    # 1 records is not destroyed because of the callback.
+    assert_equal 10, PostWithDestroyCallback.in_batches(of: 2).destroy_all
+  end
+
+  def test_in_batches_destroy_all_returns_zero_when_no_batches
+    assert_equal 0, Post.where("1=0").in_batches(of: 2).destroy_all
   end
 
   def test_in_batches_should_not_be_loaded

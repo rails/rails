@@ -1,3 +1,9 @@
+*   Change `BatchEnumerator#destroy_all` to return the total number of affected rows.
+
+    Previously, it always returned `nil`.
+
+    *fatkodima*
+
 *   Support `touch_all` in batches.
 
     ```ruby
