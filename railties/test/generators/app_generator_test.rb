@@ -618,7 +618,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/thrust"
   end
 
-
   def test_inclusion_of_rubocop
     run_generator
     assert_gem "rubocop-rails-omakase"
