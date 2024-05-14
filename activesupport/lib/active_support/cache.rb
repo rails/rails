@@ -1038,7 +1038,8 @@ module ActiveSupport
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now.to_f + race_ttl
-              write_entry(key, entry, expires_in: race_ttl * 2)
+              options[:expires_in] = race_ttl * 2
+              write_entry(key, entry, **options)
             else
               delete_entry(key, **options)
             end
