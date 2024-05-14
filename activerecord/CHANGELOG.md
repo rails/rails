@@ -1,3 +1,7 @@
+*   Fix Active Record serialization to not include instantiated but not loaded associations
+
+    *Jean Boussier*, *Ben Kyriakou*
+
 *   Allow `Sqlite3Adapter` to use `sqlite3` gem version `2.x`
 
     *Mike Dalessio*

@@ -80,7 +80,7 @@ module ActiveRecord
 
       def add_cached_associations(record, entry)
         record.class.reflections.each_value do |reflection|
-          if record.association_cached?(reflection.name)
+          if record.association_cached?(reflection.name) && record.association(reflection.name).loaded?
             entry << reflection.name << encode(record.association(reflection.name).target)
           end
         end
