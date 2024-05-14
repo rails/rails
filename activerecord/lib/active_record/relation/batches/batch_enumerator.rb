@@ -88,13 +88,15 @@ module ActiveRecord
         end
       end
 
-      # Destroys records in batches.
+      # Destroys records in batches. Returns the total number of rows affected.
       #
       #   Person.where("age < 10").in_batches.destroy_all
       #
       # See Relation#destroy_all for details of how each batch is destroyed.
       def destroy_all
-        each(&:destroy_all)
+        sum do |relation|
+          relation.destroy_all.count(&:destroyed?)
+        end
       end
 
       # Yields an ActiveRecord::Relation object for each batch of records.
