@@ -115,6 +115,9 @@ module Rails
         class_option :skip_devcontainer,   type: :boolean, default: false,
                                            desc: "Skip devcontainer files"
 
+        class_option :skip_kamal,          type: :boolean, default: false,
+                                           desc: "Skip Kamal setup"
+
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -412,6 +415,10 @@ module Rails
 
       def skip_devcontainer?
         options[:skip_devcontainer]
+      end
+
+      def skip_kamal?
+        options[:skip_kamal]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -723,6 +730,16 @@ module Rails
         else
           rails_command "css:install:#{options[:css]}"
         end
+      end
+
+      def run_kamal
+        return if options[:skip_kamal] || !bundle_install?
+
+        bundle_command "binstubs kamal"
+        bundle_command "exec kamal init"
+
+        template "env.erb", ".env.erb"
+        template "config/deploy.yml", force: true
       end
 
       def add_bundler_platforms
