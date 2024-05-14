@@ -11,6 +11,9 @@ module Rails
         class ChangeGenerator < Base # :nodoc:
           include AppName
 
+          BASE_PACKAGES = %w( curl libvips )
+          BUILD_PACKAGES = %w( build-essential git )
+
           class_option :to, required: true,
             desc: "The database system to switch to."
 
@@ -45,14 +48,8 @@ module Rails
             dockerfile_path = File.expand_path("Dockerfile", destination_root)
             return unless File.exist?(dockerfile_path)
 
-            base_name = database.docker_base
-            build_name = database.docker_build
-            if base_name
-              gsub_file("Dockerfile", all_docker_bases_regex, base_name)
-            end
-            if build_name
-              gsub_file("Dockerfile", all_docker_builds_regex, build_name)
-            end
+            gsub_file("Dockerfile", all_docker_bases_regex, docker_base_packages(database.base_package))
+            gsub_file("Dockerfile", all_docker_builds_regex, docker_build_packages(database.build_package))
           end
 
           def edit_devcontainer_files
@@ -69,11 +66,27 @@ module Rails
             end
 
             def all_docker_bases
-              Database.all.filter_map { |database| database.docker_base }
+              Database.all.map { |database| docker_base_packages(database.base_package) }.uniq
+            end
+
+            def docker_base_packages(database_package)
+              if database_package
+                [database_package].concat(BASE_PACKAGES).sort
+              else
+                BASE_PACKAGES
+              end.join("\s")
             end
 
             def all_docker_builds
-              Database.all.filter_map { |database| database.docker_build }
+              Database.all.map { |database| docker_build_packages(database.build_package) }.uniq
+            end
+
+            def docker_build_packages(database_package)
+              if database_package
+                [database_package].concat(BUILD_PACKAGES).sort
+              else
+                BUILD_PACKAGES
+              end.join("\s")
             end
 
             def all_database_gems_regex
