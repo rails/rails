@@ -570,6 +570,7 @@ module Rails
       public_task :run_javascript
       public_task :run_hotwire
       public_task :run_css
+      public_task :run_kamal
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)

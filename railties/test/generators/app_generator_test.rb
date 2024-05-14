@@ -654,6 +654,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".github/dependabot.yml"
   end
 
+  def test_inclusion_of_kamal_files
+    run_generator_and_bundler [destination_root]
+
+    assert_file "config/deploy.yml"
+    assert_file ".env.erb"
+  end
+
+  def test_kamal_files_are_skipped_if_required
+    run_generator_and_bundler [destination_root, "--skip-kamal"]
+
+    assert_no_file "config/deploy.yml"
+    assert_no_file ".env.erb"
+  end
+
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
