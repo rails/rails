@@ -1,3 +1,7 @@
+*   PostgreSQL `Cidr#change?` detects the address prefix change.
+
+    *Taketo Takashima*
+
 *   Change `BatchEnumerator#destroy_all` to return the total number of affected rows.
 
     Previously, it always returned `nil`.
