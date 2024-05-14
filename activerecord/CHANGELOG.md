@@ -1,3 +1,7 @@
+*   PostgreSQL `Cidr#change?` detects the address prefix change.
+
+    *Taketo Takashima*
+
 *   Fix Active Record serialization to not include instantiated but not loaded associations
 
     *Jean Boussier*, *Ben Kyriakou*
