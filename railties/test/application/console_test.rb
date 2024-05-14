@@ -111,14 +111,14 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_prompt_is_properly_set
-    options = "-e test"
+    options = "-e test -- --verbose"
     spawn_console(options)
 
     write_prompt "a = 1", "a = 1", prompt: "app-template(test)>"
   end
 
   def test_prompt_allows_changing_irb_name
-    options = "-e test"
+    options = "-e test -- --verbose"
     spawn_console(options)
 
     write_prompt "conf.irb_name = 'foo'"
