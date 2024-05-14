@@ -650,6 +650,37 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_pool.lock_thread = false
   end
 
+  test "query cache callbacks exit gracefully from a fork" do
+    # Regression test for #51298
+    pid = nil
+    status = nil
+
+    # Run forking Rack app
+    middleware { |env|
+      pid = fork
+      _, status = Process.wait2(pid) if pid.present?
+      [200, {}, nil]
+    }.call({})
+
+
+    # Happy path, the fork exit 0 and the main process
+    # asserts on the exit status of the fork
+    if pid.nil?
+      exit 0
+    else
+      assert_equal 0, status.exitstatus
+    end
+  rescue
+    # Unhappy path, the fork exit 1.
+    # The main process should not reach here, but in case
+    # something's wrong we need to re-raise the error.
+    if pid.nil?
+      exit 1
+    else
+      raise
+    end
+  end
+
   private
     def with_temporary_connection_pool(&block)
       pool_config = ActiveRecord::Base.connection.pool.pool_config

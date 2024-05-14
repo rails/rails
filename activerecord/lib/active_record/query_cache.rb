@@ -30,7 +30,7 @@ module ActiveRecord
     end
 
     def self.complete(pools)
-      pools.each { |pool| pool.disable_query_cache! }
+      pools.each { |pool| pool.disable_query_cache! unless pool.discarded? }
 
       ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
         pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
