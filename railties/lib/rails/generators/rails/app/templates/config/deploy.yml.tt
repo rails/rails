@@ -26,10 +26,10 @@ registry:
 # Inject ENV variables into containers (secrets come from .env).
 # Remember to run `kamal env push` after making changes!
 env:
-  clear:
-    # DB_HOST: 192.168.0.2
   secret:
     - RAILS_MASTER_KEY
+  # clear:
+  #   DB_HOST: 192.168.0.2
 
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
 # Recommended to change this to a mounted volume path that is backed up off server.
