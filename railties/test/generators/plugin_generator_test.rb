@@ -8,11 +8,15 @@ require "rails/engine/updater"
 
 DEFAULT_PLUGIN_FILES = %w(
   .git
+  .github/dependabot.yml
+  .github/workflows/ci.yml
   .gitignore
+  .rubocop.yml
   Gemfile
   MIT-LICENSE
   README.md
   Rakefile
+  bin/rubocop
   bin/test
   bukkits.gemspec
   lib/bukkits.rb
