@@ -662,6 +662,15 @@ Enables the use of SHA256 fingerprints in asset names. Set to `true` by default.
 
 Disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
 
+In previous versions of Rails, `config.assets.debug` was set to `true` by default in the development environment, which disabled the concatenation and preprocessing of assets to facilitate easier debugging. This was particularly useful when working with a large number of complex assets, as it allowed developers to trace issues directly to specific files.
+
+However, as of Rails 7.0 (commit adec7e7 on Aug 10, 2021), this setting is no longer included by default in the `development.rb` configuration. The change was made because the move towards using ECMAScript Modules (ESM) in development generally eliminates the need for concatenating or preprocessing large JavaScript files, rendering debug mode less relevant.
+
+To explicitly enable or disable asset debugging in the current version of Rails, developers may add the following line to `config/environments/development.rb`
+: #Enable or disable asset concatenation and preprocessing for easier debugging
+  config.assets.debug = true  # Set to `false` to enable concatenation and compression
+
+
 #### `config.assets.version`
 
 Is an option string that is used in SHA256 hash generation. This can be changed to force all files to be recompiled.
