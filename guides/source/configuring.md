@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
 - [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
+- [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
 
@@ -1489,6 +1490,24 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.1                   | `true`               |
+
+#### `config.active_record.postgresql_adapter_decode_dates`
+
+Specifies whether the PostgresqlAdapter should decode date columns.
+
+```ruby
+ActiveRecord::Base.connection
+     .select_value("select '2024-01-01'::date").class #=> Date
+```
+
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.2                   | `true`               |
+
 
 #### `config.active_record.async_query_executor`
 
