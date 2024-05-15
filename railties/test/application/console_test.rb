@@ -110,6 +110,22 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     @primary.puts "quit"
   end
 
+  def test_prompt_is_properly_set
+    options = "-e test -- --verbose"
+    spawn_console(options)
+
+    write_prompt "a = 1", "a = 1", prompt: "app-template(test)>"
+  end
+
+  def test_prompt_allows_changing_irb_name
+    options = "-e test -- --verbose"
+    spawn_console(options)
+
+    write_prompt "conf.irb_name = 'foo'"
+    write_prompt "a = 1", "a = 1", prompt: "foo(test)>"
+    @primary.puts "quit"
+  end
+
   def test_environment_option_and_irb_option
     options = "-e test -- --verbose"
     spawn_console(options)
