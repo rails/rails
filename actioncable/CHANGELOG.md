@@ -7,9 +7,11 @@
     *yauhenininjia*
 
 *   Add two new assertion methods for Action Cable test cases: `assert_has_no_stream`
-    and `assert_has_no_stream_for`. These methods can be used to assert that a
-    stream has been stopped, e.g. via `stop_stream` or `stop_stream_for`. They complement
-    the already existing `assert_has_stream` and `assert_has_stream_for` methods.
+    and `assert_has_no_stream_for`.
+    
+    These methods can be used to assert that a stream has been stopped, e.g. via
+    `stop_stream` or `stop_stream_for`. They complement the already existing
+    `assert_has_stream` and `assert_has_stream_for` methods.
 
     ```ruby
     assert_has_no_stream "messages"

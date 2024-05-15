@@ -1,4 +1,4 @@
-*   All tests now respect the `active_job.queue_adapter` config
+*   All tests now respect the `active_job.queue_adapter` config.
 
     Previously if you had set `config.active_job.queue_adapter` in your `config/application.rb`
     or `config/environments/test.rb` file, the adapter you selected was previously not used consistently

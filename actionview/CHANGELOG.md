@@ -1,4 +1,4 @@
-*   Add queries count to template rendering instrumentation
+*   Add queries count to template rendering instrumentation.
 
     ```
     # Before
@@ -10,20 +10,21 @@
 
     *fatkodima*
 
-*   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
+*   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`.
 
     *Sean Doyle*
 
 *   Add the `nonce: true` option for `stylesheet_link_tag` helper to support automatic nonce generation for Content Security Policy.
+
     Works the same way as `javascript_include_tag nonce: true` does.
 
     *Akhil G Krishnan*, *AJ Esler*
 
-*   Parse `ActionView::TestCase#rendered` HTML content as `Nokogiri::XML::DocumentFragment` instead of `Nokogiri::XML::Document`
+*   Parse `ActionView::TestCase#rendered` HTML content as `Nokogiri::XML::DocumentFragment` instead of `Nokogiri::XML::Document`.
 
     *Sean Doyle*
 
-*   Rename `ActionView::TestCase::Behavior::Content` to `ActionView::TestCase::Behavior::RenderedViewContent`
+*   Rename `ActionView::TestCase::Behavior::Content` to `ActionView::TestCase::Behavior::RenderedViewContent`.
 
     Make `RenderedViewContent` inherit from `String`. Make private API with `:nodoc:`
 
@@ -33,7 +34,7 @@
 
     *Collin Jilbert*
 
-*   Alias `field_set_tag` helper to `fieldset_tag` to match `<fieldset>` element
+*   Alias `field_set_tag` helper to `fieldset_tag` to match `<fieldset>` element.
 
     *Sean Doyle*
 
@@ -45,7 +46,7 @@
 
     *Earlopain*
 
-*   Automatically discard the implicit locals injected by collection rendering for template that can't accept them
+*   Automatically discard the implicit locals injected by collection rendering for template that can't accept them.
 
     When rendering a collection, two implicit variables are injected, which breaks templates with strict locals.
 
@@ -53,11 +54,11 @@
 
     *Yasha Krasnou*, *Jean Boussier*
 
-*   Fix `@rails/ujs` calling `start()` an extra time when using bundlers
+*   Fix `@rails/ujs` calling `start()` an extra time when using bundlers.
 
     *Hartley McGuire*, *Ryunosuke Sato*
 
-*   Fix the `capture` view helper compatibility with HAML and Slim
+*   Fix the `capture` view helper compatibility with HAML and Slim.
 
     When a blank string was captured in HAML or Slim (and possibly other template engines)
     it would instead return the entire buffer.
@@ -71,10 +72,11 @@
 
     *Ryunosuke Sato*
 
-*   Added validation for HTML tag names in the `tag` and `content_tag` helper method. The `tag` and
-    `content_tag` method now checks that the provided tag name adheres to the HTML specification. If
-    an invalid HTML tag name is provided, the method raises an `ArgumentError` with an appropriate error
-    message.
+*   Added validation for HTML tag names in the `tag` and `content_tag` helper method.
+
+    The `tag` and `content_tag` method now checks that the provided tag name adheres to the HTML
+    specification. If an invalid HTML tag name is provided, the method raises an `ArgumentError`
+    with an appropriate error message.
 
     Examples:
 

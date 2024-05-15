@@ -74,7 +74,7 @@
 
     *heka1024*
 
-*   Deprecate `ActiveSupport::ProxyObject` in favor of Ruby's built-in `BasicObject`
+*   Deprecate `ActiveSupport::ProxyObject` in favor of Ruby's built-in `BasicObject`.
 
     *Earlopain*
 
@@ -82,18 +82,18 @@
 
     *Jean Boussier*
 
-*   Make ActiveSupport::BacktraceCleaner copy filters and silencers on dup and clone
+*   Make `ActiveSupport::BacktraceCleaner` copy filters and silencers on dup and clone.
 
     Previously the copy would still share the internal silencers and filters array,
     causing state to leak.
 
     *Jean Boussier*
 
-*   Updating Astana with Western Kazakhstan TZInfo identifier
+*   Updating Astana with Western Kazakhstan TZInfo identifier.
 
     *Damian Nelson*
 
-*   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`
+*   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`.
 
     ```ruby
     logger = Logger.new('/var/log/rails.log')
@@ -103,13 +103,14 @@
     *Christian Schmidt*
 
 *   Include `IPAddr#prefix` when serializing an `IPAddr` using the
-    `ActiveSupport::MessagePack` serializer. This change is backward and forward
-    compatible — old payloads can still be read, and new payloads will be
-    readable by older versions of Rails.
+    `ActiveSupport::MessagePack` serializer.
+    
+    This change is backward and forward compatible — old payloads can
+    still be read, and new payloads will be readable by older versions of Rails.
 
     *Taiki Komaba*
 
-*   Add `default:` support for `ActiveSupport::CurrentAttributes.attribute`
+*   Add `default:` support for `ActiveSupport::CurrentAttributes.attribute`.
 
     ```ruby
     class Current < ActiveSupport::CurrentAttributes
@@ -131,7 +132,7 @@
 
     *Rafael Mendonça França*
 
-*   Yield instance to `Object#with` block
+*   Yield instance to `Object#with` block.
 
     ```ruby
     client.with(timeout: 5_000) do |c|
@@ -151,7 +152,7 @@
     There is a bug in the current implementation of #travel_to:
     it remembers a timezone of its argument, and all stubbed methods start
     returning results in that remembered timezone. However, the expected
-    behaviour is to return results in a system timezone.
+    behavior is to return results in a system timezone.
 
     *Aleksei Chernenkov*
 
@@ -189,7 +190,7 @@
 
     *Hartley McGuire*
 
-*   Improve error messages of `assert_changes` and `assert_no_changes`
+*   Improve error messages of `assert_changes` and `assert_no_changes`.
 
     `assert_changes` error messages now display objects with `.inspect` to make it easier
     to differentiate nil from empty strings, strings from symbols, etc.

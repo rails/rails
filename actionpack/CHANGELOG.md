@@ -7,7 +7,8 @@
 
     *Joshua Young*
 
-*   Add `save_and_open_page` helper to IntegrationTest
+*   Add `save_and_open_page` helper to `IntegrationTest`.
+
     `save_and_open_page` is a helpful helper to keep a short feedback loop when working on system tests.
     A similar helper with matching signature has been added to integration tests.
 
@@ -71,17 +72,17 @@
 
     *DHH*, *Jean Boussier*
 
-*   Add `image/svg+xml` to the compressible content types of ActionDispatch::Static
+*   Add `image/svg+xml` to the compressible content types of `ActionDispatch::Static`.
 
     *Georg Ledermann*
 
-*   Add instrumentation for ActionController::Live#send_stream
+*   Add instrumentation for `ActionController::Live#send_stream`.
 
     Allows subscribing to `send_stream` events. The event payload contains the filename, disposition, and type.
 
     *Hannah Ramadan*
 
-*   Add support for `with_routing` test helper in `ActionDispatch::IntegrationTest`
+*   Add support for `with_routing` test helper in `ActionDispatch::IntegrationTest`.
 
     *Gannon McGibbon*
 
@@ -110,7 +111,7 @@
     *Rafael Mendonça França*
 
 *   Fix a race condition that could cause a `Text file busy - chromedriver`
-    error with parallel system tests
+    error with parallel system tests.
 
     *Matt Brictson*
 
