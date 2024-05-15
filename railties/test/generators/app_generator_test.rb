@@ -668,6 +668,34 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".env.erb"
   end
 
+  def test_inclusion_of_kamal_storage_volume
+    run_generator_and_bundler [destination_root]
+
+    assert_file "config/deploy.yml" do |content|
+      assert_match(%r{storage:/rails/storage}, content)
+    end
+  end
+
+  def test_inclusion_of_kamal_storage_volume_if_only_skip_active_storage_is_given
+    run_generator_and_bundler [destination_root, "--skip-active-storage"]
+
+    assert_file "config/deploy.yml" do |content|
+      assert_match(%r{storage:/rails/storage}, content)
+    end
+  end
+
+  def test_kamal_storage_volume_is_skipped_if_required
+    run_generator_and_bundler [
+      destination_root,
+      "--skip-active-storage",
+      "--database=postgresql"
+    ]
+
+    assert_file "config/deploy.yml" do |content|
+      assert_no_match(%r{storage:/rails/storage}, content)
+    end
+  end
+
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
