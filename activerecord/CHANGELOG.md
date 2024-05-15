@@ -16,7 +16,7 @@
 
     *fatkodima*
 
-*   Add support for `:if_not_exists` and `:force` options to `create_schema`
+*   Add support for `:if_not_exists` and `:force` options to `create_schema`.
 
     *fatkodima*
 
@@ -38,7 +38,9 @@
 
     *Nikita Vasilevsky*
 
-*   Add ENV["SKIP_TEST_DATABASE_TRUNCATE"] flag to speed up multi-process test runs on large DBs when all tests run within default txn. (This cuts ~10s from the test run of HEY when run by 24 processes against the 178 tables, since ~4,000 table truncates can then be skipped.)
+*   Add `ENV["SKIP_TEST_DATABASE_TRUNCATE"]` flag to speed up multi-process test runs on large DBs when all tests run within default transaction. 
+
+    This cuts ~10s from the test run of HEY when run by 24 processes against the 178 tables, since ~4,000 table truncates can then be skipped.
 
     *DHH*
 
@@ -118,11 +120,11 @@
 
     *Reid Lynch*
 
-*   Allow `Sqlite3Adapter` to use `sqlite3` gem version `2.x`
+*   Allow `Sqlite3Adapter` to use `sqlite3` gem version `2.x`.
 
     *Mike Dalessio*
 
-*   Allow `ActiveRecord::Base#pluck` to accept hash values
+*   Allow `ActiveRecord::Base#pluck` to accept hash values.
 
     ```ruby
     # Before
@@ -287,13 +289,15 @@
     *Jean Boussier*
 
 *   Using `Model.query_constraints` with a single non-primary-key column used to raise as expected, but with an
-    incorrect error message. This has been fixed to raise with a more appropriate error message.
+    incorrect error message.
+    
+    This has been fixed to raise with a more appropriate error message.
 
     *Joshua Young*
 
 *   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
 
-    This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising
+    This behavior is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising
     an `ActiveRecord::ReadonlyAttributeError` when the foreign key attribute is marked as read-only.
 
     *Joshua Young*
@@ -364,7 +368,7 @@
 
     *Rafael Mendonça França*
 
-*   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+*   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`.
 
     *Rafael Mendonça França*
 
@@ -425,7 +429,7 @@
 
     *Rafael Mendonça França*
 
-*   Add ActiveRecord::Encryption::MessagePackMessageSerializer
+*   Add `ActiveRecord::Encryption::MessagePackMessageSerializer`.
 
     Serialize data to the MessagePack format, for efficient storage in binary columns.
 
@@ -434,7 +438,7 @@
 
     *Donal McBreen*
 
-*   Add support for encrypting binary columns
+*   Add support for encrypting binary columns.
 
     Ensure encryption and decryption pass `Type::Binary::Data` around for binary data.
 
@@ -509,7 +513,7 @@
 
     *Adrianna Chang*
 
-*   Properly synchronize `Mysql2Adapter#active?` and `TrilogyAdapter#active?`
+*   Properly synchronize `Mysql2Adapter#active?` and `TrilogyAdapter#active?`.
 
     As well as `disconnect!` and `verify!`.
 
@@ -519,7 +523,7 @@
 
     *Jean Boussier*
 
-*   Support `:source_location` tag option for query log tags
+*   Support `:source_location` tag option for query log tags.
 
     ```ruby
     config.active_record.query_log_tags << :source_location
@@ -531,7 +535,7 @@
 
     *fatkodima*
 
-*   Add an option to `ActiveRecord::Encryption::Encryptor` to disable compression
+*   Add an option to `ActiveRecord::Encryption::Encryptor` to disable compression.
 
     Allow compression to be disabled by setting `compress: false`
 
@@ -549,7 +553,7 @@
 
     *Rafael Mendonça França*
 
-*   Add row_count field to sql.active_record notification
+*   Add `row_count` field to `sql.active_record` notification.
 
     This field returns the amount of rows returned by the query that emitted the notification.
 
@@ -565,7 +569,7 @@
 
     *Joshua Young*
 
-*   Fix single quote escapes on default generated MySQL columns
+*   Fix single quote escapes on default generated MySQL columns.
 
     MySQL 5.7.5+ supports generated columns, which can be used to create a column that is computed from an expression.
 
@@ -582,11 +586,11 @@
 
     *Hartley McGuire*
 
-*   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be introspected
+*   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be introspected.
 
     *JP Rosevear*
 
-*   Make `schema_dump`, `query_cache`, `replica` and `database_tasks` configurable via `DATABASE_URL`
+*   Make `schema_dump`, `query_cache`, `replica` and `database_tasks` configurable via `DATABASE_URL`.
 
     This wouldn't always work previously because boolean values would be interpreted as strings.
 
@@ -595,7 +599,7 @@
 
     *Mike Coutermarsh*, *Jean Boussier*
 
-*   Introduce `ActiveRecord::Transactions::ClassMethods#set_callback`
+*   Introduce `ActiveRecord::Transactions::ClassMethods#set_callback`.
 
      It is identical to `ActiveSupport::Callbacks::ClassMethods#set_callback`
      but with support for `after_commit` and `after_rollback` callback options.

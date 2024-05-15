@@ -2,7 +2,7 @@
 
     *Petrik de Heus*
 
-*   Delegate `ActionText::Content#deconstruct` to `Nokogiri::XML::DocumentFragment#elements`
+*   Delegate `ActionText::Content#deconstruct` to `Nokogiri::XML::DocumentFragment#elements`.
 
     ```ruby
     content = ActionText::Content.new <<~HTML
@@ -28,7 +28,7 @@
 
     *Matias Grunberg*
 
-*   Fix using actiontext.js with Sprockets
+*   Fix using actiontext.js with Sprockets.
 
     *Matias Grunberg*
 
@@ -36,7 +36,7 @@
 
     *Hartley McGuire*
 
-*   Fix using Trix with Sprockets
+*   Fix using Trix with Sprockets.
 
     *Hartley McGuire*
 
