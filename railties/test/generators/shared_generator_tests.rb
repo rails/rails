@@ -234,7 +234,7 @@ module SharedGeneratorTests
     end
     assert_file "#{application_path}/config/environments/production.rb" do |content|
       assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
-      assert_match(/^  # config\.require_master_key = true/, content)
+      assert_match(/^  config\.require_master_key = true/, content)
     end
   end
 
