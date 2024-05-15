@@ -33,13 +33,13 @@ whenever an Active Record object is initialized, created, saved, updated, delete
 or loaded from the database.
 
 ```ruby
-class Baby < ApplicationRecord
+class BirthdayCake < ApplicationRecord
   after_create -> { Rails.logger.info("Congratulations, the callback has run!") }
 end
 ```
 
 ```irb
-irb> baby = Baby.create
+irb> cake = BirthdayCake.create
 Congratulations, the callback has run!
 ```
 
