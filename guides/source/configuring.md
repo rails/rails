@@ -666,10 +666,12 @@ In previous versions of Rails, `config.assets.debug` was set to `true` by defaul
 
 However, as of Rails 7.0 (commit adec7e7 on Aug 10, 2021), this setting is no longer included by default in the `development.rb` configuration. The change was made because the move towards using ECMAScript Modules (ESM) in development generally eliminates the need for concatenating or preprocessing large JavaScript files, rendering debug mode less relevant.
 
-To explicitly enable or disable asset debugging in the current version of Rails, developers may add the following line to `config/environments/development.rb`
-: #Enable or disable asset concatenation and preprocessing for easier debugging
-  config.assets.debug = true  # Set to `false` to enable concatenation and compression
+To explicitly enable or disable asset debugging in the current version of Rails, developers may add the following line to `config/environments/development.rb`:
 
+```ruby
+# Enable or disable asset concatenation and preprocessing for easier debugging
+config.assets.debug = true  # Set to `false` to enable concatenation and compression
+```
 
 #### `config.assets.version`
 
