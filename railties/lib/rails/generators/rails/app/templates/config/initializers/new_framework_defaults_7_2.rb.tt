@@ -66,3 +66,13 @@
 # on `Post`. With this option enabled, it will also look for a `:comments` association.
 #++
 # Rails.application.config.active_record.automatically_invert_plural_associations = true
+
+###
+# Controls whether the PostgresqlAdapter should decode dates automatically with manual queries.
+#
+# Example:
+#   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date") #=> Date
+#
+# This query used to return a `String`.
+#++
+# Rails.application.config.active_record.postgresql_adapter_decode_dates = true

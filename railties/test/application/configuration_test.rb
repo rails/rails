@@ -2793,6 +2793,40 @@ module ApplicationTests
       assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
     end
 
+    test "PostgresqlAdapter.decode_dates is true by default for new apps" do
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+    end
+
+    test "PostgresqlAdapter.decode_dates is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+    end
+
+    test "PostgresqlAdapter.decode_dates can be configured via config.active_record.postgresql_adapter_decode_dates" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.postgresql_adapter_decode_dates = true"
+
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+    end
+
     test "SQLite3Adapter.strict_strings_by_default is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")

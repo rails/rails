@@ -30,6 +30,10 @@
 
     *lulalala*
 
+*   Add `Rails.application.config.active_record.postgresql_adapter_decode_dates` to opt out of decoding dates automatically with the postgresql adapter. Defaults to true.
+
+    *Joé Dupuis*
+
 *   Association option `query_constraints` is deprecated in favor of `foreign_key`.
 
     *Nikita Vasilevsky*
