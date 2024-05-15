@@ -622,7 +622,7 @@ Module.new do
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
   contents = File.read("#{app_template_path}/config/application.rb")
-  contents.sub!(/^Bundler\.require.*/, "%w(sprockets/railtie importmap-rails).each { |r| require r }")
+  contents.sub!(/^Bundler\.require.*/, "%w(importmap-rails).each { |r| require r }")
   File.write("#{app_template_path}/config/application.rb", contents)
 
   require "rails"
@@ -637,7 +637,7 @@ Module.new do
   require "action_cable"
   require "action_mailbox"
   require "action_text"
-  require "sprockets"
+  require "propshaft"
 
   require "action_view/helpers"
   require "action_dispatch/routing/route_set"
