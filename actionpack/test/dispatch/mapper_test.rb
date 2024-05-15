@@ -64,7 +64,7 @@ module ActionDispatch
         mapper.get "/foo", to: "posts#index", as: :main, format: true
         assert_equal({ controller: "posts", action: "index" },
                      fakeset.defaults.first)
-        assert_equal "/foo.:format", fakeset.asts.first.to_s
+        assert_equal "/foo.:format(+:variant)", fakeset.asts.first.to_s
       end
 
       def test_scoped_formatted
@@ -75,7 +75,7 @@ module ActionDispatch
         end
         assert_equal({ controller: "posts", action: "index" },
                      fakeset.defaults.first)
-        assert_equal "/foo.:format", fakeset.asts.first.to_s
+        assert_equal "/foo.:format(+:variant)", fakeset.asts.first.to_s
       end
 
       def test_random_keys
@@ -130,14 +130,14 @@ module ActionDispatch
         mapper = Mapper.new fakeset
 
         mapper.get "/one/two/", to: "posts#index", as: :main
-        assert_equal "/one/two(.:format)", fakeset.asts.first.to_s
+        assert_equal "/one/two(.:format(+:variant))", fakeset.asts.first.to_s
       end
 
       def test_map_wildcard
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get "/*path", to: "pages#show"
-        assert_equal "/*path(.:format)", fakeset.asts.first.to_s
+        assert_equal "/*path(.:format(+:variant))", fakeset.asts.first.to_s
         assert_equal(/.+?/m, fakeset.requirements.first[:path])
       end
 
@@ -145,7 +145,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get "/*path/foo/:bar", to: "pages#show"
-        assert_equal "/*path/foo/:bar(.:format)", fakeset.asts.first.to_s
+        assert_equal "/*path/foo/:bar(.:format(+:variant))", fakeset.asts.first.to_s
         assert_equal(/.+?/m, fakeset.requirements.first[:path])
       end
 
@@ -153,7 +153,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get "/*foo/*bar", to: "pages#show"
-        assert_equal "/*foo/*bar(.:format)", fakeset.asts.first.to_s
+        assert_equal "/*foo/*bar(.:format(+:variant))", fakeset.asts.first.to_s
         assert_equal(/.+?/m, fakeset.requirements.first[:foo])
         assert_equal(/.+?/m, fakeset.requirements.first[:bar])
       end
@@ -170,7 +170,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get "/*path", to: "pages#show", format: true
-        assert_equal "/*path.:format", fakeset.asts.first.to_s
+        assert_equal "/*path.:format(+:variant)", fakeset.asts.first.to_s
       end
 
       def test_can_pass_anchor_to_mount

@@ -501,7 +501,7 @@ module ActionController
       # ActionDispatch::IntegrationTest for making multiple requests in the same test.
       #
       # Note that the request method is not verified.
-      def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
+      def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil, variant: nil)
         check_required_ivars
         @controller.clear_instance_variables_between_requests
 
@@ -535,6 +535,7 @@ module ActionController
 
         if format
           parameters[:format] = format
+          parameters[:variant] = variant if variant
         end
 
         setup_request(controller_class_name, action, parameters, session, flash, xhr)

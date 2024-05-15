@@ -357,7 +357,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     get URI("http://test.host/admin/user/list/10")
 
     assert_equal(
-      "/:controller(/:action(/:id))(.:format)",
+      "/:controller(/:action(/:id))(.:format(+:variant))",
       controller.request.route_uri_pattern
     )
 

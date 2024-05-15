@@ -41,6 +41,7 @@ module ActionDispatch
           terminals.each_with_index { |s, index|
             next if index < 1
             next if s.type == :DOT || s.type == :SLASH
+            next if s.name == "format" || s.name == "variant"
 
             back = terminals[index - 1]
             fwd = terminals[index + 1]

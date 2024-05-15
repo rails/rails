@@ -82,9 +82,9 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
     assert_includes run_unused_routes_command(allow_failure: true), <<~OUTPUT
       Found 2 unused routes:
 
-      Prefix Verb URI Pattern    Controller#Action
-         one GET  /one(.:format) action#one
-         two GET  /two(.:format) action#two
+      Prefix Verb URI Pattern               Controller#Action
+         one GET  /one(.:format(+:variant)) action#one
+         two GET  /two(.:format(+:variant)) action#two
     OUTPUT
   end
 
@@ -99,8 +99,8 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
     assert_includes run_unused_routes_command(["-g", "one"], allow_failure: true), <<~OUTPUT
       Found 1 unused route:
 
-      Prefix Verb URI Pattern    Controller#Action
-         one GET  /one(.:format) posts#one
+      Prefix Verb URI Pattern               Controller#Action
+         one GET  /one(.:format(+:variant)) posts#one
     OUTPUT
   end
 
@@ -126,8 +126,8 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
     assert_includes run_unused_routes_command(["-c", "posts"], allow_failure: true), <<~OUTPUT
       Found 1 unused route:
 
-      Prefix Verb URI Pattern    Controller#Action
-         one GET  /one(.:format) posts#one
+      Prefix Verb URI Pattern               Controller#Action
+         one GET  /one(.:format(+:variant)) posts#one
     OUTPUT
   end
 

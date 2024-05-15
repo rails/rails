@@ -98,7 +98,11 @@ module ActionDispatch
       end
 
       def variant
-        @variant ||= ActiveSupport::ArrayInquirer.new
+        @variant ||= begin
+          param_variant = Array(parameters[:variant]&.to_sym) if params_readable?
+          param_variant ||= []
+          ActiveSupport::ArrayInquirer.new(param_variant)
+        end
       end
 
       # Sets the format by string extension, which can be used to force custom formats
