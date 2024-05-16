@@ -12,8 +12,8 @@ After reading this guide, you will know:
 * How to register, run, and skip callbacks that respond to these events.
 * How to create relational, association, conditional, and transactional
   callbacks.
-* How to create objects that encapsulate common behavior for your
-  callbacks to be reused.
+* How to create objects that encapsulate common behavior for your callbacks to
+  be reused.
 
 --------------------------------------------------------------------------------
 
@@ -26,11 +26,11 @@ destroyed](active_record_basics.html#crud-reading-and-writing-data). Active
 Record provides hooks into this object life cycle so that you can control your
 application and its data.
 
-Callbacks allow you to trigger logic before or after a change to an
-object's state. They are methods that get called at certain moments of an
-object's life cycle. With callbacks it is possible to write code that will run
-whenever an Active Record object is initialized, created, saved, updated, deleted, validated,
-or loaded from the database.
+Callbacks allow you to trigger logic before or after a change to an object's
+state. They are methods that get called at certain moments of an object's life
+cycle. With callbacks it is possible to write code that will run whenever an
+Active Record object is initialized, created, saved, updated, deleted,
+validated, or loaded from the database.
 
 ```ruby
 class BirthdayCake < ApplicationRecord
@@ -262,8 +262,8 @@ order in which they will get called** during the respective operations:
     https://api.rubyonrails.org/classes/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-before_validation
 
 There are examples below that show how to use these callbacks. We've grouped
-them by the operation they are associated with, and lastly show how they can
-be used in combination.
+them by the operation they are associated with, and lastly show how they can be
+used in combination.
 
 #### Validation Callbacks
 
@@ -272,7 +272,9 @@ the
 [`valid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F)
 ( or its alias
 [`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-validate))
-or [`invalid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-invalid-3F) method, or indirectly via `create`, `update`, or `save`. They are called before
+or
+[`invalid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-invalid-3F)
+method, or indirectly via `create`, `update`, or `save`. They are called before
 and after the validation phase.
 
 ```ruby
@@ -756,24 +758,42 @@ important business rules and application logic in callbacks that you do not want
 to bypass. Bypassing them without understanding the potential implications may
 lead to invalid data.
 
-[`decrement!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
-[`decrement_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
-[`delete`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-delete
-[`delete_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-delete_all
-[`delete_by`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-delete_by
-[`increment!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-increment-21
-[`increment_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
-[`insert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
-[`insert!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
-[`insert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
-[`insert_all!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
-[`touch_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
-[`update_column`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column
-[`update_columns`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_columns
-[`update_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_all
-[`update_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
-[`upsert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
-[`upsert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
+[`decrement!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
+[`decrement_counter`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
+[`delete`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-delete
+[`delete_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-delete_all
+[`delete_by`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-delete_by
+[`increment!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-increment-21
+[`increment_counter`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
+[`insert`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
+[`insert!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
+[`insert_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
+[`insert_all!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
+[`touch_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
+[`update_column`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column
+[`update_columns`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_columns
+[`update_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_all
+[`update_counters`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
+[`upsert`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
+[`upsert_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
 
 Suppressing Callbacks
 ---------------------
@@ -1082,11 +1102,11 @@ class PictureFile < ApplicationRecord
 end
 ```
 
-If anything raises an exception after the
-`after_destroy` callback is called and the transaction rolls back, then the file
-will have been deleted and the model will be left in an inconsistent state. For
-example, suppose that `picture_file_2` in the code below is not valid and the
-`save!` method raises an error.
+If anything raises an exception after the `after_destroy` callback is called and
+the transaction rolls back, then the file will have been deleted and the model
+will be left in an inconsistent state. For example, suppose that
+`picture_file_2` in the code below is not valid and the `save!` method raises an
+error.
 
 ```ruby
 PictureFile.transaction do
@@ -1123,15 +1143,15 @@ callback in order to allow other callbacks to run. <br><br> `after_commit` makes
 very different guarantees than `after_save`, `after_update`, and
 `after_destroy`. For example, if an exception occurs in an `after_save` the
 transaction will be rolled back and the data will not be persisted. However,
-during `after_commit` the data was already persisted to the database, and thus any
-exception won't roll anything back anymore. Also note that the code executed
-within `after_commit` or `after_rollback` callbacks is itself not enclosed within a
-transaction. <br><br> In the context of a single transaction, if you interact
-with multiple loaded objects that represent the same record in the database,
-there's a crucial behavior in the `after_commit` and `after_rollback` callbacks
-to note. These callbacks are triggered only for the first object of the specific
-record that changes within the transaction. Other loaded objects, despite
-representing the same database record, will not have their respective
+during `after_commit` the data was already persisted to the database, and thus
+any exception won't roll anything back anymore. Also note that the code executed
+within `after_commit` or `after_rollback` callbacks is itself not enclosed
+within a transaction. <br><br> In the context of a single transaction, if you
+interact with multiple loaded objects that represent the same record in the
+database, there's a crucial behavior in the `after_commit` and `after_rollback`
+callbacks to note. These callbacks are triggered only for the first object of
+the specific record that changes within the transaction. Other loaded objects,
+despite representing the same database record, will not have their respective
 `after_commit` or `after_rollback` callbacks triggered. This nuanced behavior is
 particularly impactful in scenarios where you expect independent callback
 execution for each object associated with the same database record. It can
@@ -1211,7 +1231,8 @@ User was saved to database
 
 ### Transactional Callback Ordering
 
-By default (from Rails 7.1), transaction callbacks will run in the order they are defined.
+By default (from Rails 7.1), transaction callbacks will run in the order they
+are defined.
 
 ```ruby
 class User < ActiveRecord::Base
