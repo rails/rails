@@ -12,8 +12,12 @@ require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
-    # :stopdoc:
     class RouteSet
+      def from_requirements(requirements)
+        routes.find { |route| route.requirements == requirements }
+      end
+      # :stopdoc:
+
       # Since the router holds references to many parts of the system like engines,
       # controllers and the application itself, inspecting the route set can actually
       # be really slow, therefore we default alias inspect to to_s.
