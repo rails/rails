@@ -10,7 +10,7 @@ module ActionMailbox
     MAJOR = 7
     MINOR = 0
     TINY  = 8
-    PRE   = "1"
+    PRE   = "2"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

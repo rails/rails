@@ -1,6 +1,6 @@
 {
   "name": "@rails/actiontext",
-  "version": "7.0.8-1",
+  "version": "7.0.8-2",
   "description": "Edit and display rich text in Rails applications",
   "main": "app/assets/javascripts/actiontext.js",
   "type": "module",
@@ -25,13 +25,13 @@
     "@rails/activestorage": ">= 7.0.0-alpha1"
   },
   "peerDependencies": {
-    "trix": "^1.3.1"
+    "trix": "^2.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-commonjs": "^19.0.1",
     "rollup": "^2.35.1",
-    "trix": "^1.3.1"
+    "trix": "^2.0.0"
   },
   "scripts": {
     "build": "rollup --config rollup.config.js"

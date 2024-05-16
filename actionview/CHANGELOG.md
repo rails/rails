@@ -3,6 +3,11 @@
     *Earlopain*
 
 
+## Rails 7.0.8.2 (May 16, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.0.8.1 (February 21, 2024) ##
 
 *   No changes.

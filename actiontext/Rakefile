@@ -18,4 +18,27 @@ Rake::TestTask.new "test:system" do |t|
   t.verbose = true
 end
 
+task :vendor_trix do
+  require "importmap-rails"
+  require "importmap/packager"
+
+  packager = Importmap::Packager.new(vendor_path: "app/assets/javascripts")
+  imports = packager.import("trix@^1.3.2", from: "unpkg")
+  imports.each do |package, url|
+    url.gsub!("esm.min.js", "umd.js")
+    puts %(Vendoring "#{package}" to #{packager.vendor_path}/#{package}.js via download from #{url})
+    packager.download(package, url)
+
+    css_url = url.gsub("umd.js", "css")
+    puts %(Vendoring "#{package}" to #{packager.vendor_path}/#{package}.css via download from #{css_url})
+
+    response = Net::HTTP.get_response(URI(css_url))
+    if response.code == "200"
+      File.open(Pathname.new("app/assets/stylesheets/trix.css"), "w+") do |file|
+        file.write response.body
+      end
+    end
+  end
+end
+
 task default: :test
