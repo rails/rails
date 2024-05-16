@@ -27,6 +27,12 @@
 
     *Jean Boussier*
 
+
+## Rails 7.1.3.3 (May 16, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.1.3.2 (February 21, 2024) ##
 
 *   Fix `raise_on_missing_translations` not working correctly with the
