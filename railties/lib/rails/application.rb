@@ -9,6 +9,7 @@ require "active_support/deprecation"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
+require "active_support/parameter_filter"
 require "rails/engine"
 require "rails/autoloaders"
 

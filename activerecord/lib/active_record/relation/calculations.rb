@@ -510,73 +510,73 @@ module ActiveRecord
         end
         group_fields = arel_columns(group_fields)
 
-        column_alias_tracker = ColumnAliasTracker.new(lease_connection)
+        @klass.with_connection do |connection|
+          column_alias_tracker = ColumnAliasTracker.new(connection)
 
-        group_aliases = group_fields.map { |field|
-          field = lease_connection.visitor.compile(field) if Arel.arel_node?(field)
-          column_alias_tracker.alias_for(field.to_s.downcase)
-        }
-        group_columns = group_aliases.zip(group_fields)
+          group_aliases = group_fields.map { |field|
+            field = connection.visitor.compile(field) if Arel.arel_node?(field)
+            column_alias_tracker.alias_for(field.to_s.downcase)
+          }
+          group_columns = group_aliases.zip(group_fields)
 
-        column = aggregate_column(column_name)
-        column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
-        select_value = operation_over_aggregate_column(column, operation, distinct)
-        select_value.as(adapter_class.quote_column_name(column_alias))
+          column = aggregate_column(column_name)
+          column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
+          select_value = operation_over_aggregate_column(column, operation, distinct)
+          select_value.as(adapter_class.quote_column_name(column_alias))
 
-        select_values = [select_value]
-        select_values += self.select_values unless having_clause.empty?
+          select_values = [select_value]
+          select_values += self.select_values unless having_clause.empty?
 
-        select_values.concat group_columns.map { |aliaz, field|
-          aliaz = adapter_class.quote_column_name(aliaz)
-          if field.respond_to?(:as)
-            field.as(aliaz)
-          else
-            "#{field} AS #{aliaz}"
-          end
-        }
-
-        relation = except(:group).distinct!(false)
-        relation.group_values  = group_fields
-        relation.select_values = select_values
-
-        result = skip_query_cache_if_necessary do
-          @klass.with_connection do |c|
-            c.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: @async)
-          end
-        end
-
-        result.then do |calculated_data|
-          if association
-            key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
-            key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
-            key_records = key_records.index_by(&:id)
-          end
-
-          key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
-            types[aliaz] = col_name.try(:type_caster) ||
-              type_for(col_name) do
-                calculated_data.column_types.fetch(aliaz, Type.default_value)
-              end
-          end
-
-          hash_rows = calculated_data.cast_values(key_types).map! do |row|
-            calculated_data.columns.each_with_object({}).with_index do |(col_name, hash), i|
-              hash[col_name] = row[i]
+          select_values.concat group_columns.map { |aliaz, field|
+            aliaz = adapter_class.quote_column_name(aliaz)
+            if field.respond_to?(:as)
+              field.as(aliaz)
+            else
+              "#{field} AS #{aliaz}"
             end
+          }
+
+          relation = except(:group).distinct!(false)
+          relation.group_values  = group_fields
+          relation.select_values = select_values
+
+          result = skip_query_cache_if_necessary do
+            connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: @async)
           end
 
-          if operation != "count"
-            type = column.try(:type_caster) ||
-              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-            type = type.subtype if Enum::EnumType === type
-          end
+          result.then do |calculated_data|
+            if association
+              key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
+              key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
+              key_records = key_records.index_by(&:id)
+            end
 
-          hash_rows.each_with_object({}) do |row, result|
-            key = group_aliases.map { |aliaz| row[aliaz] }
-            key = key.first if key.size == 1
-            key = key_records[key] if associated
+            key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
+              types[aliaz] = col_name.try(:type_caster) ||
+                type_for(col_name) do
+                  calculated_data.column_types.fetch(aliaz, Type.default_value)
+                end
+            end
 
-            result[key] = type_cast_calculated_value(row[column_alias], operation, type)
+            hash_rows = calculated_data.cast_values(key_types).map! do |row|
+              calculated_data.columns.each_with_object({}).with_index do |(col_name, hash), i|
+                hash[col_name] = row[i]
+              end
+            end
+
+            if operation != "count"
+              type = column.try(:type_caster) ||
+                lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+              type = type.subtype if Enum::EnumType === type
+            end
+
+            hash_rows.each_with_object({}) do |row, result|
+              key = group_aliases.map { |aliaz| row[aliaz] }
+              key = key.first if key.size == 1
+              key = key_records[key] if associated
+
+              result[key] = type_cast_calculated_value(row[column_alias], operation, type)
+            end
           end
         end
       end

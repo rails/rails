@@ -159,8 +159,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
         end
 
         def load_console
-          require "rails/console/app"
-          require "rails/console/helpers"
+          require "rails/console/methods"
         end
       end
       mocked_app.new(console)

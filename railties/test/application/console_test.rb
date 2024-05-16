@@ -25,11 +25,11 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def write_prompt(command, expected_output = nil)
+  def write_prompt(command, expected_output = nil, prompt: "> ")
     @primary.puts command
     assert_output command, @primary
     assert_output expected_output, @primary, 100 if expected_output
-    assert_output "> ", @primary
+    assert_output prompt, @primary
   end
 
   def spawn_console(options, wait_for_prompt: true, env: {})
@@ -110,6 +110,22 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     @primary.puts "quit"
   end
 
+  def test_prompt_is_properly_set
+    options = "-e test -- --verbose"
+    spawn_console(options)
+
+    write_prompt "a = 1", "a = 1", prompt: "app-template(test)>"
+  end
+
+  def test_prompt_allows_changing_irb_name
+    options = "-e test -- --verbose"
+    spawn_console(options)
+
+    write_prompt "conf.irb_name = 'foo'"
+    write_prompt "a = 1", "a = 1", prompt: "foo(test)>"
+    @primary.puts "quit"
+  end
+
   def test_environment_option_and_irb_option
     options = "-e test -- --verbose"
     spawn_console(options)
@@ -123,21 +139,21 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     options = "-e production"
     spawn_console(options)
 
-    write_prompt "123", "app-template(prod)> 123"
+    write_prompt "123", prompt: "app-template(prod)>"
   end
 
   def test_development_console_prompt
     options = "-e development"
     spawn_console(options)
 
-    write_prompt "123", "app-template(dev)> 123"
+    write_prompt "123", prompt: "app-template(dev)> "
   end
 
   def test_test_console_prompt
     options = "-e test"
     spawn_console(options)
 
-    write_prompt "123", "app-template(test)> 123"
+    write_prompt "123", prompt: "app-template(test)> "
   end
 
   def test_helper_helper_method
@@ -184,6 +200,42 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "c", "=> 3"
   end
 
+  def test_rails_console_methods_patch_backward_compatibility_with_module_inclusion
+    add_to_config <<-RUBY
+      module MyConsole
+        def foo
+          "this is foo"
+        end
+      end
+
+      console do
+        ::Rails::ConsoleMethods.include(MyConsole)
+      end
+    RUBY
+
+    spawn_console("-e development", wait_for_prompt: false)
+
+    assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
+    write_prompt "foo", "=> \"this is foo\""
+  end
+
+  def test_rails_console_methods_patch_backward_compatibility_with_module_reopening
+    add_to_config <<-RUBY
+      console do
+        ::Rails::ConsoleMethods.module_eval do
+          def foo
+            "this is foo"
+          end
+        end
+      end
+    RUBY
+
+    spawn_console("-e development", wait_for_prompt: false)
+
+    assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
+    write_prompt "foo", "=> \"this is foo\""
+  end
+
   def test_reload_command_reload_constants
     app_file "app/models/user.rb", <<-MODEL
       class User
@@ -219,7 +271,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     options = "-e test"
     spawn_console(options, env: { "IRBRC" => irbrc.path })
 
-    write_prompt "123", ">> 123"
+    write_prompt "123", prompt: ">> "
   ensure
     File.unlink(irbrc)
   end

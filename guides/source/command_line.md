@@ -46,27 +46,28 @@ Rails will set up what seems like a huge amount of stuff for such a tiny command
 
 If you wish to skip some files from being generated or skip some libraries, you can append any of the following arguments to your `rails new` command:
 
-| Argument                | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `--skip-git`            | Skip git init, .gitignore, and .gitattributes               |
-| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint    |
-| `--skip-keeps`          | Skip source control .keep files                             |
-| `--skip-action-mailer`  | Skip Action Mailer files                                    |
-| `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
-| `--skip-action-text`    | Skip Action Text gem                                        |
-| `--skip-active-record`  | Skip Active Record files                                    |
-| `--skip-active-job`     | Skip Active Job                                             |
-| `--skip-active-storage` | Skip Active Storage files                                   |
-| `--skip-action-cable`   | Skip Action Cable files                                     |
-| `--skip-asset-pipeline` | Skip Asset Pipeline                                         |
-| `--skip-javascript`     | Skip JavaScript files                                       |
-| `--skip-hotwire`        | Skip Hotwire integration                                    |
-| `--skip-jbuilder`       | Skip jbuilder gem                                           |
-| `--skip-test`           | Skip test files                                             |
-| `--skip-system-test`    | Skip system test files                                      |
-| `--skip-bootsnap`       | Skip bootsnap gem                                           |
-| `--skip-dev-gems`       | Skip adding development gems                                |
-| `--skip-rubocop`        | Skip RuboCop setup                                          |
+| Argument                | Description                                              |
+|-------------------------|----------------------------------------------------------|
+| `--skip-git`            | Skip git init, .gitignore, and .gitattributes            |
+| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint |
+| `--skip-keeps`          | Skip source control .keep files                          |
+| `--skip-action-mailer`  | Skip Action Mailer files                                 |
+| `--skip-action-mailbox` | Skip Action Mailbox gem                                  |
+| `--skip-action-text`    | Skip Action Text gem                                     |
+| `--skip-active-record`  | Skip Active Record files                                 |
+| `--skip-active-job`     | Skip Active Job                                          |
+| `--skip-active-storage` | Skip Active Storage files                                |
+| `--skip-action-cable`   | Skip Action Cable files                                  |
+| `--skip-asset-pipeline` | Skip Asset Pipeline                                      |
+| `--skip-javascript`     | Skip JavaScript files                                    |
+| `--skip-hotwire`        | Skip Hotwire integration                                 |
+| `--skip-jbuilder`       | Skip jbuilder gem                                        |
+| `--skip-test`           | Skip test files                                          |
+| `--skip-system-test`    | Skip system test files                                   |
+| `--skip-bootsnap`       | Skip bootsnap gem                                        |
+| `--skip-dev-gems`       | Skip adding development gems                             |
+| `--skip-rubocop`        | Skip RuboCop setup                                       |
+| `--skip-devcontainer`   | Skip Dev Container setup                                 |
 
 These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
 
@@ -182,7 +183,7 @@ With no further work, `bin/rails server` will run our new shiny Rails app:
 $ cd my_app
 $ bin/rails server
 => Booting Puma
-=> Rails 7.2.0 application starting in development
+=> Rails 8.0.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
@@ -414,7 +415,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 7.2.0)
+Loading development environment in sandbox (Rails 8.0.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -511,7 +512,7 @@ $ bin/rails destroy model Oops
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             7.2.0
+Rails version             8.0.0
 Ruby version              3.1.0 (x86_64-linux)
 RubyGems version          3.3.7
 Rack version              3.0.8

@@ -1182,7 +1182,7 @@ module ActiveRecord
         #
         # This is an internal hook to make possible connection adapters to build
         # custom result objects with connection-specific data.
-        def build_result(columns:, rows:, column_types: {})
+        def build_result(columns:, rows:, column_types: nil)
           ActiveRecord::Result.new(columns, rows, column_types)
         end
 

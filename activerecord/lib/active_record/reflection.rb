@@ -22,12 +22,12 @@ module ActiveRecord
 
       def add_reflection(ar, name, reflection)
         ar.clear_reflections_cache
-        name = -name.to_s
+        name = name.to_sym
         ar._reflections = ar._reflections.except(name).merge!(name => reflection)
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(-name.to_s => reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_sym => reflection)
       end
 
       private
@@ -68,7 +68,7 @@ module ActiveRecord
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
-        aggregate_reflections[aggregation.to_s]
+        aggregate_reflections[aggregation.to_sym]
       end
 
       # Returns a Hash of name of the reflection as the key and an AssociationReflection as the value.
@@ -76,6 +76,10 @@ module ActiveRecord
       #   Account.reflections # => {"balance" => AggregateReflection}
       #
       def reflections
+        normalized_reflections.stringify_keys
+      end
+
+      def normalized_reflections # :nodoc
         @__reflections ||= begin
           ref = {}
 
@@ -84,13 +88,13 @@ module ActiveRecord
 
             if parent_reflection
               parent_name = parent_reflection.name
-              ref[parent_name.to_s] = parent_reflection
+              ref[parent_name] = parent_reflection
             else
               ref[name] = reflection
             end
           end
 
-          ref
+          ref.freeze
         end
       end
 
@@ -105,7 +109,7 @@ module ActiveRecord
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
       def reflect_on_all_associations(macro = nil)
-        association_reflections = reflections.values
+        association_reflections = normalized_reflections.values
         association_reflections.select! { |reflection| reflection.macro == macro } if macro
         association_reflections
       end
@@ -116,16 +120,18 @@ module ActiveRecord
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
-        reflections[association.to_s]
+        normalized_reflections[association.to_sym]
       end
 
       def _reflect_on_association(association) # :nodoc:
-        _reflections[association.to_s]
+        _reflections[association.to_sym]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
       def reflect_on_all_autosave_associations
-        reflections.values.select { |reflection| reflection.options[:autosave] }
+        reflections = normalized_reflections.values
+        reflections.select! { |reflection| reflection.options[:autosave] }
+        reflections
       end
 
       def clear_reflections_cache # :nodoc:
@@ -516,6 +522,13 @@ module ActiveRecord
         @foreign_key = nil
         @association_foreign_key = nil
         @association_primary_key = nil
+        if options[:query_constraints]
+          ActiveRecord.deprecator.warn <<~MSG.squish
+            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is deprecated.
+            To maintain current behavior, use the `foreign_key` option instead.
+          MSG
+        end
+
         # If the foreign key is an array, set query constraints options and don't use the foreign key
         if options[:foreign_key].is_a?(Array)
           options[:query_constraints] = options.delete(:foreign_key)
@@ -529,7 +542,9 @@ module ActiveRecord
         if polymorphic?
           key = [key, owner._read_attribute(@foreign_type)]
         end
-        klass.cached_find_by_statement(key, &block)
+        klass.with_connection do |connection|
+          klass.cached_find_by_statement(connection, key, &block)
+        end
       end
 
       def join_table
@@ -1157,7 +1172,7 @@ module ActiveRecord
         end
 
         if parent_reflection.nil?
-          reflections = active_record.reflections.keys.map(&:to_sym)
+          reflections = active_record.normalized_reflections.keys
 
           if reflections.index(through_reflection.name) > reflections.index(name)
             raise HasManyThroughOrderError.new(active_record.name, self, through_reflection)

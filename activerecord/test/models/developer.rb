@@ -30,6 +30,10 @@ class Developer < ActiveRecord::Base
     end
   end
 
+  def self.target
+    :__target__ # Used by delegation_test.rb
+  end
+
   belongs_to :mentor
   belongs_to :strict_loading_mentor, strict_loading: true, foreign_key: :mentor_id, class_name: "Mentor"
   belongs_to :strict_loading_off_mentor, strict_loading: false, foreign_key: :mentor_id, class_name: "Mentor"

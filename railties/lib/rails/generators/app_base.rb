@@ -12,7 +12,6 @@ require "active_support/core_ext/array/extract_options"
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      include Database
       include Devcontainer
       include AppName
 
@@ -40,7 +39,7 @@ module Rails
                                            desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
-                                           enum: DATABASES,
+                                           enum: Database::DATABASES,
                                            desc: "Preconfigure for selected database"
 
         class_option :skip_git,            type: :boolean, aliases: "-G", default: nil,
@@ -112,6 +111,9 @@ module Rails
 
         class_option :skip_devcontainer,   type: :boolean, default: false,
                                            desc: "Skip devcontainer files"
+
+        class_option :skip_kamal,          type: :boolean, default: false,
+                                           desc: "Skip Kamal setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
@@ -279,7 +281,7 @@ module Rails
       def database_gemfile_entry # :doc:
         return if options[:skip_active_record]
 
-        gem_name, gem_version = gem_for_database
+        gem_name, gem_version = database.gem
         GemfileEntry.version gem_name, gem_version,
           "Use #{options[:database]} as the database for Active Record"
       end
@@ -406,6 +408,10 @@ module Rails
 
       def skip_devcontainer?
         options[:skip_devcontainer]
+      end
+
+      def skip_kamal?
+        options[:skip_kamal]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -574,7 +580,7 @@ module Rails
         packages = ["curl"]
 
         # ActiveRecord databases
-        packages << base_package_for_database unless skip_active_record?
+        packages << database.base_package unless skip_active_record?
 
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
@@ -590,7 +596,7 @@ module Rails
         packages = %w(build-essential git pkg-config)
 
         # add database support
-        packages << build_package_for_database unless skip_active_record?
+        packages << database.build_package unless skip_active_record?
 
         packages << "unzip" if using_bun?
 
@@ -719,6 +725,17 @@ module Rails
         end
       end
 
+      def run_kamal
+        return if options[:skip_kamal] || !bundle_install?
+
+        bundle_command "binstubs kamal"
+        bundle_command "exec kamal init"
+
+        remove_file ".env"
+        template "env.erb", ".env.erb"
+        template "config/deploy.yml", force: true
+      end
+
       def add_bundler_platforms
         if bundle_install?
           # The vast majority of Rails apps will be deployed on `x86_64-linux`.
@@ -771,6 +788,10 @@ module Rails
         directories << "db" unless skip_active_record?
 
         directories.sort
+      end
+
+      def database
+        @database ||= Database.build(options[:database])
       end
     end
   end

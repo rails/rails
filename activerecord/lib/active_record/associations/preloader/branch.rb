@@ -9,7 +9,13 @@ module ActiveRecord
         attr_writer :preloaded_records
 
         def initialize(association:, children:, parent:, associate_by_default:, scope:)
-          @association = association
+          @association = if association
+            begin
+              @association = association.to_sym
+            rescue NoMethodError
+              raise ArgumentError, "Association names must be Symbol or String, got: #{association.class.name}"
+            end
+          end
           @parent = parent
           @scope = scope
           @associate_by_default = associate_by_default

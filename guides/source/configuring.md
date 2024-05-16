@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
 - [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
+- [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
 
@@ -1490,6 +1491,24 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.1                   | `true`               |
 
+#### `config.active_record.postgresql_adapter_decode_dates`
+
+Specifies whether the PostgresqlAdapter should decode date columns.
+
+```ruby
+ActiveRecord::Base.connection
+     .select_value("select '2024-01-01'::date").class #=> Date
+```
+
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.2                   | `true`               |
+
+
 #### `config.active_record.async_query_executor`
 
 Specifies how asynchronous queries are pooled.
@@ -2053,7 +2072,7 @@ The `config.action_dispatch.show_exceptions` configuration controls how Action P
 
 Setting the value to `:all` configures Action Pack to rescue from exceptions and render corresponding error pages. For example, Action Pack would rescue from an `ActiveRecord::RecordNotFound` exception and render the contents of `public/404.html` with a `404 Not found` status code.
 
-Setting the value to `:rescueable` configures Action Pack rescue from exceptions defined in [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses), and raise all others. For example, Action Pack would rescue from `ActiveRecord::RecordNotFound`, but would raise a `NoMethodError`.
+Setting the value to `:rescuable` configures Action Pack rescue from exceptions defined in [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses), and raise all others. For example, Action Pack would rescue from `ActiveRecord::RecordNotFound`, but would raise a `NoMethodError`.
 
 Setting the value to `:none` configures Action Pack raise all exceptions.
 

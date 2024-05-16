@@ -115,6 +115,7 @@ module Rails
       opts[:skip_brakeman] = true
       opts[:skip_bundle] = true
       opts[:skip_ci] = true
+      opts[:skip_kamal] = true
       opts[:skip_git] = true
       opts[:skip_hotwire] = true
       opts[:skip_rubocop] = true

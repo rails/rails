@@ -226,7 +226,7 @@ module ActiveRecord
 
       # Returns the current transaction. See ActiveRecord::Transactions API docs.
       def current_transaction
-        connection_pool.active_connection&.current_transaction || ConnectionAdapters::NULL_TRANSACTION
+        connection_pool.active_connection&.current_transaction || ConnectionAdapters::TransactionManager::NULL_TRANSACTION
       end
 
       def before_commit(*args, &block) # :nodoc:

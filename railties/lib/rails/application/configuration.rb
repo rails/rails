@@ -327,9 +327,12 @@ module Rails
           end
 
           if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_dates = true
             active_record.validate_migration_timestamps = true
             active_record.automatically_invert_plural_associations = true
           end
+        when "8.0"
+          load_defaults "7.2"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -350,13 +353,12 @@ module Rails
       end
 
       def read_encrypted_secrets
-        Rails.deprecator.warn(`config.read_encrypted_secrets is deprecated and will be removed in Rails 7.3.`)
+        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 7.3.")
       end
 
       def read_encrypted_secrets=(value)
-        Rails.deprecator.warn(`config.read_encrypted_secrets is deprecated and will be removed in Rails 7.3.`)
+        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 7.3.")
       end
-
 
       def encoding=(value)
         @encoding = value

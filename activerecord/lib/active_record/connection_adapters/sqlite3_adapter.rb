@@ -112,13 +112,9 @@ module ActiveRecord
           dirname = File.dirname(@config[:database])
           unless File.directory?(dirname)
             begin
-              Dir.mkdir(dirname)
-            rescue Errno::ENOENT => error
-              if error.message.include?("No such file or directory")
-                raise ActiveRecord::NoDatabaseError.new(connection_pool: @pool)
-              else
-                raise
-              end
+              FileUtils.mkdir_p(dirname)
+            rescue SystemCallError
+              raise ActiveRecord::NoDatabaseError.new(connection_pool: @pool)
             end
           end
         end

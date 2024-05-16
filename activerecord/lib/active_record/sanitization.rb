@@ -163,13 +163,19 @@ module ActiveRecord
       def sanitize_sql_array(ary)
         statement, *values = ary
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)
-          replace_named_bind_variables(statement, values.first)
+          with_connection do |c|
+            replace_named_bind_variables(c, statement, values.first)
+          end
         elsif statement.include?("?")
-          replace_bind_variables(statement, values)
+          with_connection do |c|
+            replace_bind_variables(c, statement, values)
+          end
         elsif statement.blank?
           statement
         else
-          statement % values.collect { |value| lease_connection.quote_string(value.to_s) }
+          with_connection do |c|
+            statement % values.collect { |value| c.quote_string(value.to_s) }
+          end
         end
       end
 
@@ -193,48 +199,47 @@ module ActiveRecord
       end
 
       private
-        def replace_bind_variables(statement, values)
+        def replace_bind_variables(connection, statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
           bound = values.dup
-          c = lease_connection
           statement.gsub(/\?/) do
-            replace_bind_variable(bound.shift, c)
+            replace_bind_variable(connection, bound.shift)
           end
         end
 
-        def replace_bind_variable(value, c = lease_connection)
+        def replace_bind_variable(connection, value)
           if ActiveRecord::Relation === value
             value.to_sql
           else
-            quote_bound_value(value, c)
+            quote_bound_value(connection, value)
           end
         end
 
-        def replace_named_bind_variables(statement, bind_vars)
+        def replace_named_bind_variables(connection, statement, bind_vars)
           statement.gsub(/([:\\]?):([a-zA-Z]\w*)/) do |match|
             if $1 == ":" # skip PostgreSQL casts
               match # return the whole match
             elsif $1 == "\\" # escaped literal colon
               match[1..-1] # return match with escaping backlash char removed
             elsif bind_vars.include?(match = $2.to_sym)
-              replace_bind_variable(bind_vars[match])
+              replace_bind_variable(connection, bind_vars[match])
             else
               raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
             end
           end
         end
 
-        def quote_bound_value(value, c = lease_connection)
+        def quote_bound_value(connection, value)
           if value.respond_to?(:map) && !value.acts_like?(:string)
             values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
             if values.empty?
-              c.quote(c.cast_bound_value(nil))
+              connection.quote(connection.cast_bound_value(nil))
             else
-              values.map! { |v| c.quote(c.cast_bound_value(v)) }.join(",")
+              values.map! { |v| connection.quote(connection.cast_bound_value(v)) }.join(",")
             end
           else
             value = value.id_for_database if value.respond_to?(:id_for_database)
-            c.quote(c.cast_bound_value(value))
+            connection.quote(connection.cast_bound_value(value))
           end
         end
 

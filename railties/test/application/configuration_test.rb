@@ -2793,6 +2793,40 @@ module ApplicationTests
       assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
     end
 
+    test "PostgresqlAdapter.decode_dates is true by default for new apps" do
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+    end
+
+    test "PostgresqlAdapter.decode_dates is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+    end
+
+    test "PostgresqlAdapter.decode_dates can be configured via config.active_record.postgresql_adapter_decode_dates" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.postgresql_adapter_decode_dates = true"
+
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+    end
+
     test "SQLite3Adapter.strict_strings_by_default is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
@@ -4633,6 +4667,42 @@ module ApplicationTests
 
       assert_equal "potato", ActiveRecord::Base.lease_connection.pool.db_config.adapter
       assert_equal "SQLite", ActiveRecord::Base.lease_connection.adapter_name
+    end
+
+    ["development", "production"].each do |env|
+      test "active job adapter is async in #{env}" do
+        app(env)
+        assert_equal :async, Rails.application.config.active_job.queue_adapter
+        adapter = ActiveJob::Base.queue_adapter
+        assert_instance_of ActiveJob::QueueAdapters::AsyncAdapter, adapter
+      end
+
+      test "active job adapter can be overridden in #{env} via application.rb" do
+        add_to_config "config.active_job.queue_adapter = :inline"
+        app(env)
+        assert_equal :inline, Rails.application.config.active_job.queue_adapter
+        adapter = ActiveJob::Base.queue_adapter
+        assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, adapter
+      end
+
+      test "active job adapter can be overridden in #{env} via environment config" do
+        app_file "config/environments/#{env}.rb", <<-RUBY
+          Rails.application.configure do
+            config.active_job.queue_adapter = :inline
+          end
+        RUBY
+        app(env)
+        assert_equal :inline, Rails.application.config.active_job.queue_adapter
+        adapter = ActiveJob::Base.queue_adapter
+        assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, adapter
+      end
+    end
+
+    test "active job adapter is `:test` in test environment" do
+      app "test"
+      assert_equal :test, Rails.application.config.active_job.queue_adapter
+      adapter = ActiveJob::Base.queue_adapter
+      assert_instance_of ActiveJob::QueueAdapters::TestAdapter, adapter
     end
 
     private
