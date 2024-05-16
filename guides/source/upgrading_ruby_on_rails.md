@@ -583,6 +583,32 @@ processes have been updated you can set `config.active_support.cache_format_vers
 Rails 7.0 is able to read both formats so the cache won't be invalidated during the
 upgrade.
 
+#### A note about `Cache Versioning`
+
+If your application is not yet loading defaults from Rails v6.0+ and you follow the steps above, your
+application will (among other things) set `config.active_record.cache_versioning = true`
+(which is the default value since Rails 6.0) and will require the `cache_store` used in your application
+to support cache versioning.
+
+If you happen to be using `redis-rails` gem, or any other store that doesn't support versioning yet, you
+will see the following message:
+
+```
+You're using a cache store that doesn't support native cache versioning.
+Your best option is to upgrade to a newer version of ActiveSupport::Cache::RedisStore
+that supports cache versioning (ActiveSupport::Cache::RedisStore.supports_cache_versioning? #=> true).
+
+Next best, switch to a different cache store that does support cache versioning:
+https://guides.rubyonrails.org/caching_with_rails.html#cache-stores.
+
+To keep using the current cache store, you can turn off cache versioning entirely:
+
+  config.active_record.cache_versioning = false
+```
+
+If you see the message above you will have to change your application to one of the 3 options
+described.
+
 ### Active Storage video preview image generation
 
 Video preview image generation now uses FFmpeg's scene change detection to generate
