@@ -10,7 +10,7 @@ module ActionCable
     MAJOR = 7
     MINOR = 1
     TINY  = 3
-    PRE   = "2"
+    PRE   = "3"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
