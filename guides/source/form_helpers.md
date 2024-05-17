@@ -371,7 +371,7 @@ If you have several levels of namespacing then the syntax is similar:
 form_with model: [:admin, :management, @article]
 ```
 
-For more information on Rails' routing system and the associated conventions, please see [Rails Routing from the Outside In](routing.html) guide.
+For more information on Rails' routing system and the associated conventions, please see the [Rails Routing from the Outside In](routing.html) guide.
 
 ### Forms with PATCH, PUT, or DELETE Methods
 
@@ -428,7 +428,7 @@ In this case, the "Update" button will be treated as `PATCH` and the "Delete" bu
 Making Select Boxes with Ease
 -----------------------------
 
-Select boxes, also know as drop-down list, allow users to select from a list of options. The HTML for select boxes requires a decent amount of markup - one `<option>` element for each option to choose from. Rails provides helper methods to help generate that markup.
+Select boxes, also known as drop-down list, allow users to select from a list of options. The HTML for select boxes requires a decent amount of markup - one `<option>` element for each option to choose from. Rails provides helper methods to help generate that markup.
 
 For example, let's say we have a list of cities for the user to choose from. We can use the [`select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select) helper like so:
 
@@ -482,7 +482,7 @@ Output:
 </select>
 ```
 
-### Option Groups For Select
+### Option Groups for Select Boxes
 
 In some cases we may want to improve the user experience by grouping related options together. We can do so by passing a `Hash` (or comparable `Array`) to `select`:
 
@@ -543,7 +543,7 @@ Notice that the appropriate option was automatically marked `selected="selected"
 
 When you need to ask users what time zone they are in, there is a very convenient [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper to use.
 
-Typically you would have to provide a list of time zone options for users to select from. This can get tedious if not for the list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects. The `time_with_zone` helper wraps this and can be used like this:
+Typically, you would have to provide a list of time zone options for users to select from. This can get tedious if not for the list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects. The `time_with_zone` helper wraps this and can be used as follows:
 
 ```erb
 <%= form.time_zone_select :time_zone %>
@@ -611,9 +611,9 @@ Outputs select boxes like:
 </select>
 ```
 
-Notice that, when the form is submitted, there will be no single value in the `params` hash that contains the full date. Instead, there will be several values with special names like `"birth_date(1i)"`. However, Active Record knows how to assemble these values into a full date, based on the declared type of the model attribute. So we can pass `params[:person]` to `Person.new` or `Person#update` just like we would if the form used a single field to represent the full date.
+Notice that, when the form is submitted, there will be no single value in the `params` hash that contains the full date. Instead, there will be several values with special names like `"birth_date(1i)"`. However, Active Model knows how to assemble these values into a full date, based on the declared type of the model attribute. So we can pass `params[:person]` to `Person.new` or `Person#update` just like we would if the form used a single field to represent the full date.
 
-In addition to the [`date_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-date_select) helper, Rails provides [`time_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_select) which outputs select boxes for hour and minute. There is [`datetime_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-datetime_select) as well which combines both date and time select boxes.
+In addition to the [`date_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-date_select) helper, Rails provides [`time_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_select) which outputs select boxes for the hour and minute. There is [`datetime_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-datetime_select) as well which combines both date and time select boxes.
 
 ### Select Boxes for Individual Temporal Components
 
@@ -659,14 +659,14 @@ class Person < ApplicationRecord
 end
 ```
 
-Assuming we have this content for `City` in the database:
+Assuming we have the following cities stored in the database:
 
 ```ruby
 City.order(:name).map { |city| [city.name, city.id] }
 # => [["Berlin", 3], ["Chicago", 1], ["Madrid", 2]]
 ```
 
-We can allow the user to choose from those cities with the following form:
+We can allow the user to choose from the cities with the following form:
 
 ```erb
 <%= form_with model: @person do |form| %>
@@ -684,7 +684,7 @@ Which will generate this HTML:
 </select>
 ```
 
-That is how you'd generate the choices manually. However, Rails has helpers that generate choices from a collection without having to explicitly iterate over it. These helpers determine the value and text label of each choice by calling specified methods on each object in the collection.
+The above example shows how you'd generate the choices manually. However, Rails has helpers that generate choices from a collection without having to explicitly iterate over it. These helpers determine the value and text label of each choice by calling specified methods on each object in the collection.
 
 NOTE: When rendering a field for a `belongs_to` association, you must specify the name of the foreign key (`city_id` in the above example), rather than the name of the association itself.
 
@@ -780,7 +780,7 @@ Both of which, output the following HTML form:
 </form>
 ```
 
-Note that, per `form_with` conventions, the field names in the two forms above will be different though. In the first form, it will be `person[csv_file]` (accessible via `params[:person][:csv_file]`), and in the second form it will be just `csv_file` (accessible via `params[:csv_file]`).
+Note that, per `form_with` conventions, the field names in the two forms above will be different. In the first form, it will be `person[csv_file]` (accessible via `params[:person][:csv_file]`), and in the second form it will be just `csv_file` (accessible via `params[:csv_file]`).
 
 ### CSV File Upload Example
 
@@ -804,13 +804,13 @@ When using `file_field`, the object in the `params` hash is an instance of [`Act
   end
 ```
 
-If the file an an image that needs to be stored with a model (e.g. user's profile picture), there are a number of tasks to consider, like where to store the file (on Disk, Amazon S3, etc), resizing image files, and generating thumbnails, etc. [Active Storage](active_storage_overview.html) is designed to assist with these tasks.
+If the file is an image that needs to be stored with a model (e.g. user's profile picture), there are a number of tasks to consider, like where to store the file (on Disk, Amazon S3, etc), resizing image files, and generating thumbnails, etc. [Active Storage](active_storage_overview.html) is designed to assist with these tasks.
 
 Customizing Form Builders
 -------------------------
 
-We call the objects yielded by `form_with` or `fields_for` Form Builders. Form builders encapsulate the notion of displaying form elements for a single
-object and are an instance of
+We call the objects yielded by `form_with` or `fields_for` Form Builders. Form builders allow you to generate form elements associated with a model object
+and are an instance of
 [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). This class can be extended to add custom helpers for your application.
 
 For example, if you always want to display a `text_field` along with a `label`, you could add the following helper method to `application_helper.rb`:
