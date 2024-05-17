@@ -4974,10 +4974,10 @@ tough-cookie@~2.4.3:
     psl "^1.1.24"
     punycode "^1.4.1"
 
-trix@^2.0.0:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/trix/-/trix-2.1.1.tgz#688f1213601316cf8b92c5e625d2f562c118c780"
-  integrity sha512-IljOMGOlRUPg1i5Pk/+x/Ia65ZY7Gw5JxxKCh/4caxG5ZaKuFJCKdn1+TF0efUYfdg+bqWenB/mAYCHjZu0zpQ==
+trix@^1.3.1:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/trix/-/trix-1.3.2.tgz#9568c3bbda1085b9fcf2619ac41363011493d57f"
+  integrity sha512-nV8IL6eS/czlaOu9TVIEcblQuPHeuuFpeoO7jFKII5q1pMUXCUGalJtEstS70HSkBSfUXU2vGJUfYXvSItcRCA==
 
 tsconfig-paths@^3.14.1:
   version "3.14.1"

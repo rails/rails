@@ -45,6 +45,11 @@
     *Nobuyoshi Nakada*, *Shouichi Kamiya*, *Hartley McGuire*
 
 
+## Rails 7.0.8.3 (May 17, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.0.8.2 (May 16, 2024) ##
 
 *   No changes.
