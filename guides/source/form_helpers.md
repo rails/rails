@@ -640,7 +640,7 @@ Outputs a select box like:
 </select>
 ```
 
-For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value, and the appropriate temporal component will be extracted and used.
+For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value (for example `<%= select_year Date.today, prefix: "party" %> ` instead of the above), and the appropriate temporal component will be extracted and used.
 
 Collection Related Helpers
 --------------------------
@@ -662,7 +662,7 @@ Assuming we have the following cities stored in the database:
 
 ```ruby
 City.order(:name).map { |city| [city.name, city.id] }
-# => [["Berlin", 3], ["Chicago", 1], ["Madrid", 2]]
+# => [["Berlin", 1], ["Chicago", 3], ["Madrid", 2]]
 ```
 
 We can allow the user to choose from the cities with the following form:
@@ -705,7 +705,7 @@ Which outputs the same HTML as the manual iteration above:
 </select>
 ```
 
-NOTE: The order of arguments for `collection_select` is different from the order for `select`. With `collection_select` we specify the value method first (`:id` in the example above), and the text label method second (`:name` in the example above).  This is opposite of the order used when specifying choices for the `select` helper, where the text label comes first and the value second (`["Berlin", 3]` in the previous example).
+NOTE: The order of arguments for `collection_select` is different from the order for `select`. With `collection_select` we specify the value method first (`:id` in the example above), and the text label method second (`:name` in the example above).  This is opposite of the order used when specifying choices for the `select` helper, where the text label comes first and the value second (`["Berlin", 1]` in the previous example).
 
 ### The `collection_radio_buttons` Helper
 
