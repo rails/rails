@@ -97,27 +97,28 @@ When naming inputs, Rails uses certain conventions that make it possible to subm
 
 #### Checkboxes
 
-Checkboxes are form controls that give the user a set of options they can enable or disable.
+A Checkbox is a form control that allows for a single value to be selected or deselected. A group of Checkboxes are generally used to allow a user a choose one or more options from the group.
 
 For example, these two checkboxes in a form:
 
 ```erb
-<%= form.check_box :fiction %>
-<%= form.label :fiction, "Fiction" %>
-<%= form.check_box :non_fiction %>
-<%= form.label :non_fiction, "Non-fiction" %>
+<%= form.check_box :biography %>
+<%= form.label :biography, "Biography" %>
+<%= form.check_box :romance %>
+<%= form.label :romance, "Romance" %>
+<%= form.check_box :mystery %>
+<%= form.label :mystery, "Mystery" %>
 ```
 
 Will generate the following:
 
 ```html
-  <input name="fiction" type="hidden" value="0" autocomplete="off">
-  <input type="checkbox" value="1" name="fiction" id="fiction">
-  <label for="fiction">Fiction</label>
-  <input name="non_fiction" type="hidden" value="0" autocomplete="off">
-  <input type="checkbox" value="1" name="non_fiction" id="non_fiction">
-  <label for="non_fiction">Non-fiction</label>
-</form>
+<input name="biography" type="hidden" value="0" autocomplete="off"><input type="checkbox" value="1" name="biography" id="biography">
+<label for="biography">Biography</label>
+<input name="romance" type="hidden" value="0" autocomplete="off"><input type="checkbox" value="1" name="romance" id="romance">
+<label for="romance">Romance</label>
+<input name="mystery" type="hidden" value="0" autocomplete="off"><input type="checkbox" value="1" name="mystery" id="mystery">
+<label for="mystery">Mystery</label>
 ```
 
 The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "fiction" checkbox only, the `params` hash would contain `params: {"fiction"=>"1", "non_fiction"=>"0"}`. You can use `params[:fiction]` to check if that checkbox is checked by the user.
@@ -1184,6 +1185,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
     }
   }
 }
+```
 
 ### Permitting Parameters in The Controller
 
