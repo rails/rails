@@ -10,7 +10,7 @@ module ActiveStorage
     MAJOR = 7
     MINOR = 0
     TINY  = 8
-    PRE   = "2"
+    PRE   = "3"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

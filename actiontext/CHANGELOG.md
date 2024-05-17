@@ -1,3 +1,5 @@
+## Rails 7.0.8.3 (May 17, 2024) ##
+
 *   Fix vendored trix.css to be correct file.
 
     *Hartley McGuire*
