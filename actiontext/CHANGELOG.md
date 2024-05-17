@@ -1,3 +1,7 @@
+*   Fix vendored trix.css to be correct file.
+
+    *Hartley McGuire*
+
 ## Rails 7.0.8.2 (May 16, 2024) ##
 
 *   Upgrade Trix to 1.3.2 to fix [CVE-2024-34341](https://github.com/basecamp/trix/security/advisories/GHSA-qjqp-xr96-cj99).
