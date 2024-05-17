@@ -12,7 +12,21 @@ require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
+    # The RouteSet contains a collection of Route instances, representing the routes
+    # typically defined in `config/routes.rb`.
+    #
     class RouteSet
+      # Returns a Route matching the given requirements, or `nil` if none are found.
+      # This is intended for use by tools such as Language Servers.
+      #
+      # Given the routes are defined as:
+      #
+      #   resources :posts
+      #
+      # Then the following will return the Route for the `show` action:
+      #
+      #   Rails.application.routes.set.from_requirements(controller: :posts, action: :show)
+      #
       def from_requirements(requirements)
         routes.find { |route| route.requirements == requirements }
       end
