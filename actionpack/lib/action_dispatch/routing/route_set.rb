@@ -26,7 +26,6 @@ module ActionDispatch
       # Then the following will return the Route for the `show` action:
       #
       #   Rails.application.routes.from_requirements(controller: "posts", action: "show")
-      #
       def from_requirements(requirements)
         routes.find { |route| route.requirements == requirements }
       end
