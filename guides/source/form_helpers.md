@@ -51,7 +51,7 @@ One of the most basic forms on the web is a search form. This form contains:
 * a text input element, and
 * a submit element.
 
-Here is how to create a search form with `form_with` and the form builder object:
+Here is how to create a search form with `form_with`:
 
 ```erb
 <%= form_with url: "/search", method: :get do |form| %>
@@ -74,6 +74,8 @@ This will generate the following HTML:
 Notice that for the search form we are using the `url` option of `form_with`. Setting `url: "/search"` changes the form action value from the default current page path to `action="/search"`.
 
 In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Record objects to the form, as you will learn [below](#creating-forms-with-model-objects).
+
+The search form example also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like`form.label` and `form.text_field` in the above example) in the next section.
 
 TIP: For every form `input` element, an `id` attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
