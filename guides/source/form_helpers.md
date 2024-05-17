@@ -555,7 +555,7 @@ Typically, you would have to provide a list of time zone options for users to se
 Using Date and Time Form Helpers
 --------------------------------
 
-Rails provides alternative date and time form helpers that render plain select boxes. The `date_select` helper renders a separate select box for year, month, and day.
+In addition to the `date_field` and `time_field` helpers mentioned [earlier](#other-helpers-of-interest), Rails provides alternative date and time form helpers that render plain select boxes. The `date_select` helper renders a separate select box for year, month, and day.
 
 For example, if we have a `@person` model object like:
 
