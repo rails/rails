@@ -16,6 +16,7 @@ module ActionDispatch
     # typically defined in `config/routes.rb`.
     class RouteSet
       # Returns a Route matching the given requirements, or `nil` if none are found.
+      #
       # This is intended for use by tools such as Language Servers.
       #
       # Given the routes are defined as:
