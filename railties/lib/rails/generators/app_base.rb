@@ -12,7 +12,6 @@ require "active_support/core_ext/array/extract_options"
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      include Devcontainer
       include AppName
 
       NODE_LTS_VERSION = "20.11.1"
@@ -452,10 +451,6 @@ module Rails
             *options.map { |key, value| ", #{key}: #{value.inspect}" },
           ].compact.join
         end
-      end
-
-      def gem_ruby_version
-        Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
       end
 
       def rails_prerelease?
