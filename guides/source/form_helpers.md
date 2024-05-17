@@ -121,9 +121,9 @@ Will generate the following:
 <label for="mystery">Mystery</label>
 ```
 
-The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "fiction" checkbox only, the `params` hash would contain `params: {"fiction"=>"1", "non_fiction"=>"0"}`. You can use `params[:fiction]` to check if that checkbox is checked by the user.
+The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "Biography" checkbox only, the `params` hash would contain `params: {"biography"=>"1", "romance"=>"0", "mystery"=>"0"}`. You can use `params[:biography]` to check if that checkbox is checked by the user.
 
-The checkbox's values (the values that will appear in `params`) can optionally be specified using the third and fourth parameters. See the API documentation for more details.
+The checkbox's values (the values that will appear in `params`) can optionally be specified using the third and fourth parameters. See the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-check_box) for more details.
 
 #### Radio Buttons
 
@@ -150,8 +150,8 @@ Will generate the following HTML:
 The second parameter to [`radio_button`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-radio_button) is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either `"child"` or `"adult"`.
 
 NOTE: Always use labels for checkbox and radio buttons. They associate text with
-a specific option and, by expanding the clickable region, make it easier for
-users to click the inputs.
+a specific option using the `for` atribute and, by expanding the clickable
+region, make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
@@ -256,7 +256,7 @@ Some important things to note when using `form_with` with a model object:
 
 TIP: Typically your form inputs will mirror model attributes. However, they don't have to. If there is other information you need you can include a field in your form and access it via `params[:book][:my_non_attribute_input]`.
 
-#### Composite primary key forms
+#### Composite Primary Key Forms
 
 If you have a model with a [composite primary key](active_record_composite_primary_keys.html), forms building syntax is the same with slightly different output.
 
@@ -294,10 +294,10 @@ primary key.
 #### The `fields_for` Helper
 
 The `fields_for` helper is used to render fields for related model objects
-within the same form. The "inner" model is usually related to the "main" model
-via an Active Record association. For example, if you had a `Person` model with
-an associated `ContactDetail` model, you could create a single form with inputs
-for both models like so:
+within the same form. The associated "inner" model is usually related to the
+"main" form model via an Active Record association. For example, if you had a
+`Person` model with an associated `ContactDetail` model, you could create a
+single form with inputs for both models like so:
 
 ```erb
 <%= form_with model: @person do |person_form| %>
@@ -512,7 +512,7 @@ Output:
 </select>
 ```
 
-### Select Boxes and Model Objects
+### Binding Select Boxes to Model Objects
 
 Like other form controls, a select box can be bound to a model attribute. For example, if we have a `@person` model object like:
 
@@ -551,10 +551,6 @@ Typically, you would have to provide a list of time zone options for users to se
 ```erb
 <%= form.time_zone_select :time_zone %>
 ```
-
-### Country Select
-
-Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select gem](https://github.com/stefanpenner/country_select).
 
 Using Date and Time Form Helpers
 --------------------------------
