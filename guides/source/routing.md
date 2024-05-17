@@ -18,7 +18,7 @@ After reading this guide, you will know:
 The Purpose of the Rails Router
 -------------------------------
 
-The Rails router dispatches incoming HTTP requests to your Rails application to specific controller actions based on the URL path. (It can also dispatch to a Rack application.) It can also generate paths and URLs, avoiding the need to hardcode strings in your views.
+Rails routing is a very powerful and flexible feature. The Rails router dispatches incoming HTTP requests to your Rails application to specific controller actions based on the URL path. (It can also dispatch to a Rack application.) It can also generate paths and URLs based on the resources configured, avoiding the need to hardcode strings in your views.
 
 ### Connecting URLs to Code
 
