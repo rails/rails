@@ -795,7 +795,7 @@ When using `file_field`, the object in the `params` hash is an instance of [`Act
       csv_data.each do |row|
         # Process each row of the CSV file
         # SomeInvoiceModel.create(amount: row['Amount'], status: row['Status'])
-        puts row.inspect
+        Rails.logger.info row.inspect
         #<CSV::Row "id":"po_1KE3FRDSYPMwkcNz9SFKuaYd" "Amount":"96.22" "Created (UTC)":"2022-01-04 02:59" "Arrival Date (UTC)":"2022-01-05 00:00" "Status":"paid">
       end
     end
