@@ -812,7 +812,7 @@ We call the objects yielded by `form_with` or `fields_for` Form Builders. Form b
 and are an instance of
 [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). This class can be extended to add custom helpers for your application.
 
-For example, if you want to display a `text_field` along with a `label` across your applciation, you could add the following helper method to `application_helper.rb`:
+For example, if you want to display a `text_field` along with a `label` across your application, you could add the following helper method to `application_helper.rb`:
 
 ```ruby
 module ApplicationHelper
@@ -831,17 +831,7 @@ And use it in a form as usual:
 ```
 
 But you can also create a subclass of `ActionView::Helpers::FormBuilder`, and
-add the helpers there.
-
-The above form can be replaced with:
-
-```erb
-<%= form_with model: @person, builder: LabellingFormBuilder do |form| %>
-  <%= form.text_field :first_name %>
-<% end %>
-```
-
-by defining a `LabellingFormBuilder` class like this:
+add the helpers there. After defining this `LabellingFormBuilder` subclass:
 
 ```ruby
 class LabellingFormBuilder < ActionView::Helpers::FormBuilder
@@ -849,6 +839,14 @@ class LabellingFormBuilder < ActionView::Helpers::FormBuilder
     label(attribute) + super
   end
 end
+```
+
+The above form can be replaced with:
+
+```erb
+<%= form_with model: @person, builder: LabellingFormBuilder do |form| %>
+  <%= form.text_field :first_name %>
+<% end %>
 ```
 
 If you reuse this frequently you could define a `labeled_form_with` helper that automatically applies the `builder: LabellingFormBuilder` option:
@@ -870,7 +868,7 @@ and use it instead of `form_with`:
 <% end %>
 ```
 
-All three cases above will generate the same HTML output:
+All three cases above (the `text_field_with_label` helper, the `LabellingFormBuilder` subclass, and the `labeled_form_with` helper) will generate the same HTML output:
 
 ```html
 <form action="/people" accept-charset="UTF-8" method="post">
