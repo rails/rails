@@ -813,7 +813,7 @@ We call the objects yielded by `form_with` or `fields_for` Form Builders. Form b
 and are an instance of
 [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). This class can be extended to add custom helpers for your application.
 
-For example, if you always want to display a `text_field` along with a `label`, you could add the following helper method to `application_helper.rb`:
+For example, if you want to display a `text_field` along with a `label` across your applciation, you could add the following helper method to `application_helper.rb`:
 
 ```ruby
 module ApplicationHelper
@@ -930,7 +930,7 @@ will result in the `params` hash being
 { 'person' => { 'address' => { 'city' => 'New York' } } }
 ```
 
-The other structure is Array. Normally Rails ignores duplicate parameter names.But if the parameter name ends with an empty set of square brackets `[]` then they will be accumulated in an array.
+The other structure is an Array. Normally Rails ignores duplicate parameter names, but if the parameter name ends with an empty set of square brackets `[]` then the parameters will be accumulated in an Array.
 
 For example, if you want users to be able to input multiple phone numbers, you could place this in the form:
 
@@ -940,13 +940,13 @@ For example, if you want users to be able to input multiple phone numbers, you c
 <input name="person[phone_number][]" type="text"/>
 ```
 
-This would result in `params[:person][:phone_number]` being an array containing the inputted phone numbers.
+This would result in `params[:person][:phone_number]` being an array containing the submitted phone numbers.
 
 ### Combining Arrays and Hashes
 
 You can mix and match these two concepts. One element of a hash might be an array as in the previous example `params[:person]` hash has a key called `[:phone_number]` whose value is an array.
 
-You also can have an array of hashes. For example, a form can let a user create any number of addresses by repeating the following form fragment:
+You also can have an array of hashes. For example, you can create any number of addresses by repeating the following form fragment:
 
 ```html
 <input name="person[addresses][][line1]" type="text"/>
@@ -959,9 +959,9 @@ You also can have an array of hashes. For example, a form can let a user create 
 
 This would result in `params[:person][:addresses]` being an array of hashes. Each hash in the array will have the keys `line1`, `line2`, and `city`.
 
-It's important to note that while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes though. For example, instead of an array of model objects, you can have a hash of model objects keyed by their id or similar.
+It's important to note that while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes. For example, instead of an array of model objects, you can have a hash of model objects keyed by their id or similar.
 
-WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted and if it is checked then both are submitted but the value submitted by the checkbox takes precedence.
+WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If it is checked then both are submitted but the value submitted by the checkbox takes precedence.
 
 ### The `fields_for` Helper `:index` Option
 
@@ -1020,6 +1020,7 @@ You can pass other numbers or strings via the `:index` option.
 You can even pass `nil`, which will produce an array parameter.
 
 To create more intricate nestings, you can specify the leading portion of the
+input name explicitly. For example, if we have a primary address:
 input name explicitly. For example:
 
 ```erb
@@ -1040,7 +1041,7 @@ on individual input fields.
 
 The final input name is generally a concatenation of the name given to
 `fields_for` / `form_with`, the `:index` option value, and the name of the
-attribute, `person_address_primary_23_city` in the above example.
+attribute (`person_address_primary_23_city` in the above example).
 
 Lastly, instead of specifying an ID for `:index` (e.g. `index: address.id`), you
 can append `"[]"` to the given name, as a shorthand. For example:
@@ -1060,7 +1061,7 @@ As your application grows, you may need to create more complex forms, beyond edi
 
 ### Configuring the Model for Nested Attributes
 
-For editing an associated record for a given model (`Person` in this case),Active Record provides model level support via the [`accepts_nested_attributes_for`](https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for) method:
+For editing an associated record for a given model (`Person` in this case), Active Record provides model level support via the [`accepts_nested_attributes_for`](https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for) method:
 
 ```ruby
 class Person < ApplicationRecord
@@ -1163,6 +1164,25 @@ The actual value of the keys in the `:addresses_attributes` hash is not importan
 
 If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `include_id: false` to `fields_for`.
 
+```ruby
+{
+  'person' => {
+    'name' => 'John Doe',
+    'addresses_attributes' => {
+      '0' => {
+        'id' => 1,
+        'kind' => 'Home',
+        'street' => '221b Baker Street'
+      },
+      '1' => {
+        'id' => '2',
+        'kind' => 'Office',
+        'street' => '31 Spooner Street'
+      }
+    }
+  }
+}
+
 ### Permitting Parameters in The Controller
 
 As usual you need to [declare the permitted
@@ -1248,7 +1268,7 @@ Rather than rendering multiple sets of fields ahead of time you may wish to add 
 Forms to External Resources
 ---------------------------
 
-Rails form helpers can be used to build a form for posting data to an external resource. If the external API expects an `authenticity_token` for the resource, this can be passed as `authenticity_token: 'your_external_token'` parameter to `form_with`:
+Rails form helpers can be used to build a form for posting data to an external resource. If the external API expects an `authenticity_token` for the resource, this can be passed as an `authenticity_token: 'your_external_token'` parameter to `form_with`:
 
 ```erb
 <%= form_with url: 'http://farfar.away/form', authenticity_token: 'external_token' do %>
