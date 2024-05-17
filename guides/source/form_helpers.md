@@ -3,11 +3,11 @@
 Action View Form Helpers
 ========================
 
-Forms are a common interface for user input in web applications. However, form markup can be tedious to write and maintain because of the need to handle form controls naming and attributes. Rails simplifies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
+Forms are a common interface for user input in web applications. However, form markup can be tedious to write and maintain because of the need to handle form controls, naming and attributes. Rails simplifies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
 
 After reading this guide, you will know:
 
-* How to create generic forms that do not represent models in your application, such as a search form.
+* How to create basic forms, such as a search form.
 * How to work with model-based forms for creating and editing specific database records.
 * How to generate select boxes from multiple types of data.
 * What date and time helpers Rails provides.
@@ -30,7 +30,7 @@ The main form helper is [`form_with`](https://api.rubyonrails.org/classes/Action
 <% end %>
 ```
 
-When called without arguments like this, it creates an HTML `<form>` tag which, when submitted, will POST to the current page. For example, assuming the current page is a home page at `/home`, the generated HTML will look like this:
+When called without arguments, it creates an HTML `<form>` tag which, when submitted, will POST to the current page. For example, assuming the current page is a home page at `/home`, the generated HTML will look like this:
 
 ```html
 <form action="/home" accept-charset="UTF-8" method="post">
@@ -91,13 +91,13 @@ For example, if the form contains `<%= form.text_field :query %>`, then you
 would be able to get the value of this field in the controller with
 `params[:query]`.
 
-When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in the [For Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) section of this guide. For details on the precise usage of these helpers, please refer to the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
+When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in the [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) section of this guide. For details on the precise usage of these helpers, please refer to the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
 
 #### Checkboxes
 
 Checkboxes are form controls that give the user a set of options they can enable or disable.
 
-For example, these two checkboxes in form:
+For example, these two checkboxes in a form:
 
 ```erb
 <%= form.check_box :fiction %>
@@ -106,7 +106,7 @@ For example, these two checkboxes in form:
 <%= form.label :non_fiction, "Non-fiction" %>
 ```
 
-Will generates the following:
+Will generate the following:
 
 ```html
   <input name="fiction" type="hidden" value="0" autocomplete="off">
@@ -118,7 +118,7 @@ Will generates the following:
 </form>
 ```
 
-The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input. This can be found in the `params` hash. If the user has checked "fiction" checkbox only, the `params` hash would contain `params: {"fiction"=>"1", "non_fiction"=>"0"}` and you can use `params[:fiction]` to check if that checkbox is checked by the user.
+The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "fiction" checkbox only, the `params` hash would contain `params: {"fiction"=>"1", "non_fiction"=>"0"}`. You can use `params[:fiction]` to check if that checkbox is checked by the user.
 
 The checkbox's values (the values that will appear in `params`) can optionally be specified using the third and fourth parameters. See the API documentation for more details.
 
@@ -255,7 +255,7 @@ TIP: Typically your form inputs will mirror model attributes. However, they don'
 
 #### Composite primary key forms
 
-If you have a model with [composite primary key](active_record_composite_primary_keys.html), forms building syntax is the same with slightly different output.
+If you have a model with a [composite primary key](active_record_composite_primary_keys.html), forms building syntax is the same with slightly different output.
 
 For example, to update a `@book` model object with a composite key `[:author_id, :id]` like this:
 
@@ -322,7 +322,7 @@ docs](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#me
 
 ### Relying on Record Identification
 
-When dealing with RESTful resources, calls to `form_with` can be simplified by relying on **record identification**. This means you pass the model instance and have Rails figure out model name, method, and other things. In the example below for creating a new record, both `form_with` have the same generated HTML:
+When dealing with RESTful resources, calls to `form_with` can be simplified by relying on **record identification**. This means you pass the model instance and have Rails figure out the model name, method, and other things. In the example below for creating a new record, both calls to `form_with` generate the same HTML:
 
 ```ruby
 # longer way:
@@ -331,7 +331,7 @@ form_with(model: @article, url: articles_path)
 form_with(model: @article)
 ```
 
-As do both `form_with` below for editing and existing article:
+Similarly, for editing an existing article like below, both the calls to `form_with` will also generate the same HTML:
 
 ```ruby
 # longer way:
@@ -351,19 +351,19 @@ resource :article
 resolve('Article') { [:article] }
 ```
 
-TIP: Declaring a resource has a number of side effects. See [Rails Routing from the Outside In](routing.html#resource-routing-the-rails-default) guide for more information on setting up and using resources.
+TIP: Declaring a resource has a number of side effects. See the [Rails Routing from the Outside In](routing.html#resource-routing-the-rails-default) guide for more information on setting up and using resources.
 
 WARNING: When you're using [single-table inheritance](association_basics.html#single-table-inheritance-sti) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify `:url`, and `:scope` (the model name) explicitly.
 
 ### Working with Namespaces
 
-If you have namespaced routes, `form_with` has a shorthand for that as well. For example, if your application has an `admin` namespace then
+If you have namespaced routes, `form_with` has a shorthand for that. For example, if your application has an `admin` namespace then
 
 ```ruby
 form_with model: [:admin, @article]
 ```
 
-will create a form that submits to the `Admin::ArticlesController` inside the admin namespace, submitting to `admin_article_path(@article)` in the case of an update.
+will create a form that submits to the `Admin::ArticlesController` inside the admin namespace,  therefore submitting to `admin_article_path(@article)` in the case of an update.
 
 If you have several levels of namespacing then the syntax is similar:
 
@@ -393,7 +393,7 @@ Will generate this HTML output:
 </form>
 ```
 
-When parsing POSTed data, Rails will take into account the special hidden `_method` input and proceed as if the request's HTTP method was the one set as the value of `_method` (`PATCH` in this example).
+When parsing POSTed data, Rails will take into account the special `_method` parameter and proceed as if the request's HTTP method was the one set as the value of `_method` (`PATCH` in this example).
 
 When rendering a form, submission buttons can override the declared `method` attribute through the `formmethod:` keyword:
 
