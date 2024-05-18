@@ -104,7 +104,7 @@
 
 *   Include `IPAddr#prefix` when serializing an `IPAddr` using the
     `ActiveSupport::MessagePack` serializer.
-    
+
     This change is backward and forward compatible — old payloads can
     still be read, and new payloads will be readable by older versions of Rails.
 

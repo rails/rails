@@ -1,6 +1,6 @@
 *   Remove support for `oracle`, `sqlserver` and JRuby specific database adapters from the
     `rails new` and `rails db:system:change` commands.
-    
+
     The supported options are `sqlite3`, `mysql`, `postgresql` and `trilogy`.
 
     *Andrew Novoselac*
@@ -250,7 +250,7 @@
 
 *   In Action Mailer previews, list inline attachments separately from normal
     attachments.
-    
+
     For example, attachments that were previously listed like
 
       > Attachments: logo.png file1.pdf file2.pdf
