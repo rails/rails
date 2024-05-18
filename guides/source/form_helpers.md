@@ -155,45 +155,65 @@ region, make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
-There are many other form controls such as text areas, hidden fields, password fields, number fields, date and time fields.
+There are many other form controls for text, email, password, date, and time. Below examples show some more helpers and their generated HTML.
 
-Here is an example of using many of them:
+Date and time related helpers:
 
 ```erb
-<%= form.text_area :message, size: "70x5" %>
-<%= form.hidden_field :parent_id, value: "foo" %>
-<%= form.password_field :password %>
-<%= form.number_field :price, in: 1.0..20.0, step: 0.5 %>
-<%= form.range_field :discount, in: 1..100 %>
 <%= form.date_field :born_on %>
 <%= form.time_field :started_at %>
 <%= form.datetime_local_field :graduation_day %>
 <%= form.month_field :birthday_month %>
 <%= form.week_field :birthday_week %>
-<%= form.search_field :name %>
-<%= form.email_field :address %>
-<%= form.telephone_field :phone %>
-<%= form.url_field :homepage %>
-<%= form.color_field :favorite_color %>
 ```
 
-And the generated HTML output:
+Output:
 
 ```html
-<textarea name="message" id="message" cols="70" rows="5"></textarea>
-<input value="foo" autocomplete="off" type="hidden" name="parent_id" id="parent_id">
-<input type="password" name="password" id="password">
-<input step="0.5" min="1.0" max="20.0" type="number" name="price" id="price">
-<input min="1" max="100" type="range" name="discount" id="discount">
 <input type="date" name="born_on" id="born_on">
 <input type="time" name="started_at" id="started_at">
 <input type="datetime-local" name="graduation_day" id="graduation_day">
 <input type="month" name="birthday_month" id="birthday_month">
 <input type="week" name="birthday_week" id="birthday_week">
-<input type="search" name="name" id="name">
+```
+
+Helpers with special formatting:
+
+```erb
+<%= form.password_field :password %>
+<%= form.email_field :address %>
+<%= form.telephone_field :phone %>
+<%= form.url_field :homepage %>
+```
+
+Output:
+
+```html
+<input type="password" name="password" id="password">
 <input type="email" name="address" id="address">
 <input type="tel" name="phone" id="phone">
 <input type="url" name="homepage" id="homepage">
+```
+
+Other miscellaneous helpers:
+
+```erb
+<%= form.text_area :message, size: "70x5" %>
+<%= form.hidden_field :parent_id, value: "foo" %>
+<%= form.number_field :price, in: 1.0..20.0, step: 0.5 %>
+<%= form.range_field :discount, in: 1..100 %>
+<%= form.search_field :name %>
+<%= form.color_field :favorite_color %>
+```
+
+Output:
+
+```html
+<textarea name="message" id="message" cols="70" rows="5"></textarea>
+<input value="foo" autocomplete="off" type="hidden" name="parent_id" id="parent_id">
+<input step="0.5" min="1.0" max="20.0" type="number" name="price" id="price">
+<input min="1" max="100" type="range" name="discount" id="discount">
+<input type="search" name="name" id="name">
 <input value="#000000" type="color" name="favorite_color" id="favorite_color">
 ```
 
@@ -640,7 +660,7 @@ Outputs a select box like:
 </select>
 ```
 
-For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value (for example `<%= select_year Date.today, prefix: "party" %> ` instead of the above), and the appropriate temporal component will be extracted and used.
+For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value (for example `<%= select_year Date.today, prefix: "party" %>` instead of the above), and the appropriate temporal component will be extracted and used.
 
 Collection Related Helpers
 --------------------------
