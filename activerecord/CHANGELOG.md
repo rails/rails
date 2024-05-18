@@ -38,7 +38,7 @@
 
     *Nikita Vasilevsky*
 
-*   Add `ENV["SKIP_TEST_DATABASE_TRUNCATE"]` flag to speed up multi-process test runs on large DBs when all tests run within default transaction. 
+*   Add `ENV["SKIP_TEST_DATABASE_TRUNCATE"]` flag to speed up multi-process test runs on large DBs when all tests run within default transaction.
 
     This cuts ~10s from the test run of HEY when run by 24 processes against the 178 tables, since ~4,000 table truncates can then be skipped.
 
@@ -290,7 +290,7 @@
 
 *   Using `Model.query_constraints` with a single non-primary-key column used to raise as expected, but with an
     incorrect error message.
-    
+
     This has been fixed to raise with a more appropriate error message.
 
     *Joshua Young*
