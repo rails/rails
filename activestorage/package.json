@@ -24,8 +24,8 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-commonjs": "^19.0.1",
-    "eslint": "^4.3.0",
-    "eslint-plugin-import": "^2.23.4",
+    "eslint": "^8.40.0",
+    "eslint-plugin-import": "^2.29.0",
     "rollup": "^2.35.1",
     "rollup-plugin-terser": "^7.0.2"
   },
