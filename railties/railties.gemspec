@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "RDOC_MAIN.md", "exe/**/*", "lib/**/{*,.[a-z]*}"]
+  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "RDOC_MAIN.md", "exe/**/*", "lib/**/{*,.[a-z]*}", "lib/**/.[a-z]*/*"]
   s.require_path = "lib"
 
   s.bindir      = "exe"
