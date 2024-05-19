@@ -36,7 +36,9 @@ db_namespace = namespace :db do
       desc "Create #{name} database for current environment"
       task name => :load_config do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::Tasks::DatabaseTasks.create(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
+          ActiveRecord::Tasks::DatabaseTasks.create(db_config)
+        end
       end
     end
   end
@@ -55,7 +57,9 @@ db_namespace = namespace :db do
       desc "Drop #{name} database for current environment"
       task name => [:load_config, :check_protected_environments] do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::Tasks::DatabaseTasks.drop(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
+          ActiveRecord::Tasks::DatabaseTasks.drop(db_config)
+        end
       end
     end
   end
@@ -555,7 +559,9 @@ db_namespace = namespace :db do
     # desc "Empty the test database"
     task purge: %w(load_config check_protected_environments) do
       ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
-        ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
+          ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
+        end
       end
     end
 
