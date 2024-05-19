@@ -107,7 +107,7 @@ module ActiveRecord
         coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
         serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
         store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
-        attribute store_attribute, :json, default: -> { {} } if columns_hash[store_attribute.to_s].type == :json
+        set_default_for_json_column(store_attribute) if columns_hash[store_attribute.to_s].type == :json
       end
 
       def store_accessor(store_attribute, *keys, prefix: nil, suffix: nil)
@@ -204,6 +204,11 @@ module ActiveRecord
         end
         parent
       end
+
+      private
+        def set_default_for_json_column(store_attribute)
+          attribute store_attribute, :json, default: -> { {} }
+        end
     end
 
     private

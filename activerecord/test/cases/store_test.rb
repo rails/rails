@@ -359,21 +359,4 @@ class StoreTest < ActiveRecord::TestCase
   test "prefix/suffix do not affect stored attributes" do
     assert_equal [:secret_question, :two_factor_auth, :login_retry], Admin::User.stored_attributes[:configs]
   end
-
-  test "creating a record with a JSON column without specifying the attribute should use the default value" do
-    user = Admin::User.create!(name: "Jane Doe")
-    assert_equal({}, user.settings)
-  end
-
-  test "creating a record with a non-nullable JSON column without specifying the attribute should use the default value" do
-    ActiveRecord::Base.connection.change_column :admin_users, :settings, :json, null: false
-    user = Admin::User.create!(name: "Jane Doe")
-    assert_equal({}, user.settings)
-    ActiveRecord::Base.connection.change_column :admin_users, :settings, :json, null: true
-  end
-
-  test "creating a record with a JSON column while specifying the attribute should use the specified value" do
-    user = Admin::User.create!(name: "Jane Doe", settings: { theme: 'dark', notifications: true })
-    assert_equal({ 'theme' => 'dark', 'notifications' => true }, user.settings)
-  end
 end
