@@ -376,11 +376,10 @@ This will generate the exact same routes as the first example. You can also spec
 resources :articles, shallow: true do
   resources :comments
   resources :quotes
-  resources :drafts
 end
 ```
 
-The articles resource here will have the following routes generated for it:
+The articles resource above will generate the following routes:
 
 | HTTP Verb | Path                                         | Controller#Action | Named Route Helper       |
 | --------- | -------------------------------------------- | ----------------- | ------------------------ |
@@ -398,13 +397,6 @@ The articles resource here will have the following routes generated for it:
 | GET       | /quotes/:id(.:format)                        | quotes#show       | quote_path               |
 | PATCH/PUT | /quotes/:id(.:format)                        | quotes#update     | quote_path               |
 | DELETE    | /quotes/:id(.:format)                        | quotes#destroy    | quote_path               |
-| GET       | /articles/:article_id/drafts(.:format)       | drafts#index      | article_drafts_path      |
-| POST      | /articles/:article_id/drafts(.:format)       | drafts#create     | article_drafts_path      |
-| GET       | /articles/:article_id/drafts/new(.:format)   | drafts#new        | new_article_draft_path   |
-| GET       | /drafts/:id/edit(.:format)                   | drafts#edit       | edit_draft_path          |
-| GET       | /drafts/:id(.:format)                        | drafts#show       | draft_path               |
-| PATCH/PUT | /drafts/:id(.:format)                        | drafts#update     | draft_path               |
-| DELETE    | /drafts/:id(.:format)                        | drafts#destroy    | draft_path               |
 | GET       | /articles(.:format)                          | articles#index    | articles_path            |
 | POST      | /articles(.:format)                          | articles#create   | articles_path            |
 | GET       | /articles/new(.:format)                      | articles#new      | new_article_path         |
@@ -413,19 +405,20 @@ The articles resource here will have the following routes generated for it:
 | PATCH/PUT | /articles/:id(.:format)                      | articles#update   | article_path             |
 | DELETE    | /articles/:id(.:format)                      | articles#destroy  | article_path             |
 
-The [`shallow`][] method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
+The [`shallow`][] method with a block creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
 
 ```ruby
 shallow do
   resources :articles do
     resources :comments
     resources :quotes
-    resources :drafts
   end
 end
 ```
 
-There exist two options for `scope` to customize shallow routes. `:shallow_path` prefixes member paths with the specified parameter:
+There are two options that can be used with `scope` to customize shallow routes - `:shallow_path` and `:shallow_prefix`.
+
+The `shallow_path` option prefixes member paths with the given parameter:
 
 ```ruby
 scope shallow_path: "sekret" do
@@ -447,7 +440,7 @@ The comments resource here will have the following routes generated for it:
 | PATCH/PUT | /sekret/comments/:id(.:format)               | comments#update   | comment_path             |
 | DELETE    | /sekret/comments/:id(.:format)               | comments#destroy  | comment_path             |
 
-The `:shallow_prefix` option adds the specified parameter to the named route helpers:
+The `:shallow_prefix` option adds the specified parameter to the `_path` and `_url` route helpers:
 
 ```ruby
 scope shallow_prefix: "sekret" do
