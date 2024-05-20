@@ -20,11 +20,7 @@ module ActiveRecord
       #   end
       #
       def while_preventing_access(&block)
-        previous_enabled = preventing_access?
-        AccessPrevention.enabled = true
-        yield
-      ensure
-        AccessPrevention.enabled = previous_enabled
+        AccessPrevention.with(enabled: true, &block)
       end
 
       # Determines whether access is currently being prevented.
