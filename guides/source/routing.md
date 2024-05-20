@@ -276,7 +276,7 @@ Another way to write the above:
 resources :articles, path: '/admin/articles'
 ```
 
-For both alternatives (without `/admin` in path and without `Admin::` in module prefix), the named route helpers remain the same as if you did not use `scope`. 
+For both alternatives (without `/admin` in path and without `Admin::` in module prefix), the named route helpers remain the same as if you did not use `scope`.
 
 In the last case, the following paths map to `ArticlesController`:
 
@@ -309,7 +309,7 @@ class Ad < ApplicationRecord
 end
 ```
 
-Nested routes allow you to capture this relationship in your routing. In this case, you could include this route declaration:
+Nested routes allow you to capture this relationship in your routing. If you can add this nested route declaration:
 
 ```ruby
 resources :magazines do
@@ -317,7 +317,7 @@ resources :magazines do
 end
 ```
 
-In addition to the routes for magazines, this declaration will also route ads to an `AdsController`. The ad URLs require a magazine:
+In addition to the routes for magazines, this declaration will also route ads to an `AdsController`. Here are all of the routes for the nested `ads` resource:
 
 | HTTP Verb | Path                                 | Controller#Action | Used for                                                                   |
 | --------- | ------------------------------------ | ----------------- | -------------------------------------------------------------------------- |
@@ -329,7 +329,7 @@ In addition to the routes for magazines, this declaration will also route ads to
 | PATCH/PUT | /magazines/:magazine_id/ads/:id      | ads#update        | update a specific ad belonging to a specific magazine                      |
 | DELETE    | /magazines/:magazine_id/ads/:id      | ads#destroy       | delete a specific ad belonging to a specific magazine                      |
 
-This will also create routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. These helpers take an instance of Magazine as the first parameter (`magazine_ads_url(@magazine)`).
+This will also create the usual path and url routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. Since the `ads` resource is nested below `magazines`, The ad URLs require a magazine. The helpers can take an instance of `Magazine` as the first parameter (`magazine_ads_url(@magazine)`).
 
 #### Limits to Nesting
 
@@ -343,15 +343,13 @@ resources :publishers do
 end
 ```
 
-Deeply-nested resources quickly become cumbersome. In this case, for example, the application would recognize paths such as:
+Deeply nested resources can become cumbersome to maintain and reason about. In the above example, the application would recognize paths such as:
 
 ```
 /publishers/1/magazines/2/photos/3
 ```
 
-The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a [popular article by Jamis Buck](http://weblog.jamisbuck.org/2007/2/5/nesting-resources) proposes a rule of thumb for good Rails design:
-
-TIP: Resources should never be nested more than 1 level deep.
+The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. This can become confusing and overly complex. Therefore, the general rule of thumb is to only nest resources 1 level deep.
 
 #### Shallow Nesting
 
