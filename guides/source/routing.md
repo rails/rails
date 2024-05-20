@@ -18,47 +18,56 @@ After reading this guide, you will know:
 The Purpose of the Rails Router
 -------------------------------
 
-Rails routing is a very powerful and flexible feature. The Rails router dispatches incoming HTTP requests to your Rails application to specific controller actions based on the URL path. (It can also dispatch to a Rack application.) It can also generate paths and URLs based on the resources configured, avoiding the need to hardcode strings in your views.
+Rails routing is a very powerful and flexible feature. The Rails router
+dispatches incoming HTTP requests to specific controller actions in your Rails
+application based on the URL path. (It can also dispatch to a
+[Rack](rails_on_rack.html) application.) It can also generate paths and URLs
+that can be used in your views (instead of hard-coding strings) based on the
+resources configured in the router.
 
-### Connecting URLs to Code
+### Routing Incoming URLs to Code
 
 When your Rails application receives an incoming request for:
 
 ```
-GET /patients/17
+GET /users/17
 ```
 
 it asks the router to match it to a controller action. If the first matching route is:
 
 ```ruby
-get '/patients/:id', to: 'patients#show'
+get '/users/:id', to: 'user#show'
 ```
 
-the request is dispatched to the `patients` controller's `show` action with `{ id: '17' }` in `params`.
+the request is dispatched to the `users` controller's `show` action with `{ id: '17' }` in `params`.
 
-NOTE: Rails uses snake_case for controller names, if you have a multiple word controller like `MonsterTrucksController`, you'd use `monster_trucks#show` when specifying the route.
+NOTE: Rails uses snake_case for controller names, if you have a multiple word controller like `UserProfilesController`, you'd use `user_profiles#show` when specifying the route.
 
 ### Generating Paths and URLs from Code
 
-You can also generate paths and URLs. If the route above is modified to be:
+Router also automatically generates paths and URLs that can be used throughout your application. Such as `user_path` and `user_url` in the below example. 
+
+If the route above is modified to be:
 
 ```ruby
-get '/patients/:id', to: 'patients#show', as: 'patient'
+get '/users/:id', to: 'users#show', as: 'user'
 ```
 
 and your application contains this code in the controller:
 
 ```ruby
-@patient = Patient.find(params[:id])
+@user = User.find(params[:id])
 ```
 
 and this in the corresponding view:
 
 ```erb
-<%= link_to 'Patient Record', patient_path(@patient) %>
+<%= link_to 'User Record', user_path(@user) %>
 ```
 
-then the router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
+then the router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code path in your views. 
+
+There is also `user_url` which has a similar purpose. While `user_path` generates a relative url, `user_url` generates an absolute url (something like `https://yourdomain.com/users/17` in the above example).
 
 ### Configuring the Rails Router
 
