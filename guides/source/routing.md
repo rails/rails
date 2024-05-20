@@ -222,11 +222,11 @@ As with plural resources, the same helpers ending in `_url` will also include th
 
 ### Controller Namespaces and Routing
 
-You may wish to organize groups of controllers under a namespace. Most commonly, you might group a number of administrative controllers under an `Admin::` namespace, and place these controllers under the `app/controllers/admin` directory. You can route to such a group by using a [`namespace`][] block:
+In large applications, you may wish to organize groups of controllers under a namespace. For example, you may have a number of controllers under an `Admin::` namespace, which are inside the `app/controllers/admin` directory. You can route to such a group by using a [`namespace`][] block:
 
 ```ruby
 namespace :admin do
-  resources :articles, :comments
+  resources :articles
 end
 ```
 
@@ -242,35 +242,43 @@ This will create a number of routes for each of the `articles` and `comments` co
 | PATCH/PUT | /admin/articles/:id      | admin/articles#update  | admin_article_path(:id)      |
 | DELETE    | /admin/articles/:id      | admin/articles#destroy | admin_article_path(:id)      |
 
+Note that in the above example all of the paths have a `/admin` prefix by default convention for `namespace`.
+
+#### Using Module
+
 If instead you want to route `/articles` (without the prefix `/admin`) to `Admin::ArticlesController`, you can specify the module with a [`scope`][] block:
 
 ```ruby
 scope module: 'admin' do
-  resources :articles, :comments
+  resources :articles
 end
 ```
 
-This can also be done for a single route:
+Another way to write the above:
 
 ```ruby
 resources :articles, module: 'admin'
 ```
 
-If instead you want to route `/admin/articles` to `ArticlesController` (without the `Admin::` module prefix), you can specify the path with a `scope` block:
+#### Using Scope
+
+Alternatively, you can also route `/admin/articles` to `ArticlesController` (without the `Admin::` module prefix). You can specify the path with a `scope` block:
 
 ```ruby
 scope '/admin' do
-  resources :articles, :comments
+  resources :articles
 end
 ```
 
-This can also be done for a single route:
+Another way to write the above:
 
 ```ruby
 resources :articles, path: '/admin/articles'
 ```
 
-In both of these cases, the named route helpers remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
+For both alternatives (without `/admin` in path and without `Admin::` in module prefix), the named route helpers remain the same as if you did not use `scope`. 
+
+In the last case, the following paths map to `ArticlesController`:
 
 | HTTP Verb | Path                     | Controller#Action    | Named Route Helper     |
 | --------- | ------------------------ | -------------------- | ---------------------- |
