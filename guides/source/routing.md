@@ -532,7 +532,7 @@ You can also use [`url_for`][ActionView::RoutingUrlFor#url_for] with a set of ob
 <%= link_to 'Ad details', url_for([@magazine, @ad]) %>
 ```
 
-In this case, Rails will see that `@magazine` is a `Magazine` and `@ad` is an `Ad` and will therefore use the `magazine_ad_path` helper. In helpers like `link_to`, you can specify just the object in place of the full `url_for` call:
+In this case, Rails will see that `@magazine` is a `Magazine` and `@ad` is an `Ad` and will therefore use the `magazine_ad_path` helper. An even shorter way to write that `link_to` is to specify just the object instead of the full `url_for` call:
 
 ```erb
 <%= link_to 'Ad details', [@magazine, @ad] %>
@@ -544,7 +544,7 @@ If you wanted to link to just a magazine:
 <%= link_to 'Magazine details', @magazine %>
 ```
 
-For other actions, you just need to insert the action name as the first element of the array:
+For other actions, you need to insert the action name as the first element of the array, for `edit_magazine_ad_path`:
 
 ```erb
 <%= link_to 'Edit Ad', [:edit, @magazine, @ad] %>
