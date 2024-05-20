@@ -129,28 +129,32 @@ The checkbox's values (the values that will appear in `params`) can optionally b
 
 Radio buttons are form controls that allow the user to select one option from a set of options. The user can only select one option at a time as the choices are mutually exclusive.
 
-For example, radio buttons for selecting an age range:
+For example, radio buttons for choosing your favorite ice-cream flavor:
 
 ```erb
-<%= form.radio_button :age, "child" %>
-<%= form.label :age_child, "I am younger than 21" %>
-<%= form.radio_button :age, "adult" %>
-<%= form.label :age_adult, "I am over 21" %>
+<%= form.radio_button :flavor, "chocolate_chip" %>
+<%= form.label :flavor_chocolate_chip, "Chocolate Chip" %>
+<%= form.radio_button :flavor, "vanilla" %>
+<%= form.label :flavor_vanilla, "Vanilla" %>
+<%= form.radio_button :flavor, "hazelnut" %>
+<%= form.label :flavor_hazelnut, "Hazelnut" %>
 ```
 
 Will generate the following HTML:
 
 ```html
-<input type="radio" value="child" name="age" id="age_child">
-<label for="age_child">I am younger than 21</label>
-<input type="radio" value="adult" name="age" id="age_adult">
-<label for="age_adult">I am over 21</label>
+<input type="radio" value="chocolate_chip" name="flavor" id="flavor_chocolate_chip">
+<label for="flavor_chocolate_chip">Chocolate Chip</label>
+<input type="radio" value="vanilla" name="flavor" id="flavor_vanilla">
+<label for="flavor_vanilla">Vanilla</label>
+<input type="radio" value="hazelnut" name="flavor" id="flavor_hazelnut">
+<label for="flavor_hazelnut">Hazelnut</label>
 ```
 
-The second parameter to [`radio_button`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-radio_button) is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either `"child"` or `"adult"`.
+The second parameter to [`radio_button`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-radio_button) is the value of the input. Because these radio buttons share the same name (`flavor`), the user will only be able to select one of them, and `params[:flavor]` will contain either `"chocolate_chip"`, `"vanilla"`, or `hazelnut`.
 
 NOTE: Always use labels for checkbox and radio buttons. They associate text with
-a specific option using the `for` atribute and, by expanding the clickable
+a specific option using the `for` attribute and, by expanding the clickable
 region, make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
@@ -195,7 +199,7 @@ Output:
 <input type="url" name="homepage" id="homepage">
 ```
 
-Other miscellaneous helpers:
+Other common helpers:
 
 ```erb
 <%= form.text_area :message, size: "70x5" %>
