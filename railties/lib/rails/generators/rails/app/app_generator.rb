@@ -455,7 +455,7 @@ module Rails
       end
 
       def create_storage_files
-        build(:storage)
+        build(:storage) unless skip_storage?
       end
 
       def create_devcontainer_files

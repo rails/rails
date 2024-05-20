@@ -312,6 +312,13 @@ module SharedGeneratorTests
     assert_no_file "#{application_path}/config/storage.yml"
   end
 
+  def test_generator_does_not_create_storage_dir_if_skip_active_storage_is_given_and_not_using_sqlite
+    run_generator [destination_root, "--skip-active-storage", "--database=postgresql"]
+
+    assert_no_directory "#{application_path}/storage"
+    assert_no_directory "#{application_path}/tmp/storage"
+  end
+
   def test_generator_if_skip_action_mailer_is_given
     run_generator [destination_root, "--skip-action-mailer"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/

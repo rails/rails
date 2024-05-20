@@ -363,6 +363,10 @@ module Rails
         options[:skip_active_storage]
       end
 
+      def skip_storage? # :doc:
+        skip_active_storage? && !sqlite3?
+      end
+
       def skip_action_cable? # :doc:
         options[:skip_action_cable]
       end
@@ -766,7 +770,7 @@ module Rails
       def dockerfile_chown_directories
         directories = %w(log tmp)
 
-        directories << "storage" unless skip_active_storage? && !sqlite3?
+        directories << "storage" unless skip_storage?
         directories << "db" unless skip_active_record?
 
         directories.sort
