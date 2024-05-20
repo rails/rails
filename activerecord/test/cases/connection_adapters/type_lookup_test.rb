@@ -88,12 +88,12 @@ module ActiveRecord
         end
 
         def test_decimal_without_scale
-           %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0) number(2) number(2,0)}.each do |type|
-              cast_type = @connection.send(:type_map).lookup(type)
+          %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0) number(2) number(2,0)}.each do |type|
+            cast_type = @connection.send(:type_map).lookup(type)
 
-              assert_equal :decimal, cast_type.type
-              assert_equal 2, cast_type.cast(2.1)
-           end
+            assert_equal :decimal, cast_type.type
+            assert_equal 2, cast_type.cast(2.1)
+          end
         end
 
         private
