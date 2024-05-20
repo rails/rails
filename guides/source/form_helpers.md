@@ -129,7 +129,7 @@ The checkbox's values (the values that will appear in `params`) can optionally b
 
 Radio buttons are form controls that allow the user to select one option from a set of options. The user can only select one option at a time as the choices are mutually exclusive.
 
-For example, radio buttons for choosing your favorite ice-cream flavor:
+For example, radio buttons for choosing your favorite ice cream flavor:
 
 ```erb
 <%= form.radio_button :flavor, "chocolate_chip" %>
