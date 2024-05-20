@@ -560,7 +560,7 @@ You are not limited to the seven routes that RESTful routing creates by default.
 
 #### Adding Member Routes
 
-To add a member route, just add a [`member`][] block into the resource block:
+You can add a [`member`][] block into the resource block like this:
 
 ```ruby
 resources :photos do
@@ -570,12 +570,14 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
+This will recognize URL `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
-Within the block of member routes, each route name specifies the HTTP verb that
-will be recognized. You can use [`get`][], [`patch`][], [`put`][], [`post`][], or [`delete`][] here
-. If you don't have multiple `member` routes, you can also pass `:on` to a
-route, eliminating the block:
+Within the `member` block, each route definition specifies the HTTP verb (`get`
+in the above example with `get 'preview`). In addition to [`get`][], you can use
+[`patch`][], [`put`][], [`post`][], or [`delete`][].
+
+If you don't have multiple `member` routes, you can also
+pass `:on` to a route, eliminating the block:
 
 ```ruby
 resources :photos do
@@ -583,7 +585,7 @@ resources :photos do
 end
 ```
 
-You can leave out the `:on` option, this will create the same member route except that the resource id value will be available in `params[:photo_id]` instead of `params[:id]`. Route helpers will also be renamed from `preview_photo_url` and `preview_photo_path` to `photo_preview_url` and `photo_preview_path`.
+You can also leave out the `:on` option, this will create the same member route except that the resource id value will be available in `params[:photo_id]` instead of `params[:id]`. Route helpers will also be renamed from `preview_photo_url` and `preview_photo_path` to `photo_preview_url` and `photo_preview_path`.
 
 [`delete`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-delete
 [`get`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-get
