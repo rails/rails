@@ -466,7 +466,7 @@ The comments resource here will have the following routes generated for it:
 
 ### Routing Concerns
 
-Routing concerns allow you to declare common routes that can be reused inside other resources and routes. To define a concern, use a [`concern`][] block:
+Routing concerns allow you to declare common routes that can be reused inside other resources. To define a concern, use a [`concern`][] block:
 
 ```ruby
 concern :commentable do
