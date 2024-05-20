@@ -916,7 +916,7 @@ This event is only emitted when using the Google Cloud Storage service.
 Exceptions
 ----------
 
-If an exception happens during any instrumentation the payload will include
+If an exception happens during any instrumentation, the payload will include
 information about it.
 
 | Key                 | Value                                                          |
