@@ -28,6 +28,9 @@ module ActiveModel
 
     attr_reader :name, :value_before_type_cast, :type
 
+    # This constant is used to prebuild 
+    EMPTY_HASH = {}.freeze
+
     # This method should not be called directly.
     # Use #from_database or #from_user
     def initialize(name, value_before_type_cast, type, original_attribute = nil, value = nil)
@@ -124,15 +127,15 @@ module ActiveModel
       [self.class, name, value_before_type_cast, type].hash
     end
 
-    def init_with(coder)
+    def init_with(coder = EMPTY_HASH)
       @name = coder["name"]
       @value_before_type_cast = coder["value_before_type_cast"]
       @type = coder["type"]
       @original_attribute = coder["original_attribute"]
-      @value = coder["value"] if coder.map.key?("value")
+      @value = coder["value"] if coder.key?("value")
     end
 
-    def encode_with(coder)
+    def encode_with(coder = EMPTY_HASH)
       coder["name"] = name
       coder["value_before_type_cast"] = value_before_type_cast unless value_before_type_cast.nil?
       coder["type"] = type if type
@@ -153,7 +156,9 @@ module ActiveModel
       alias :assigned? :original_attribute
 
       def initialize_dup(other)
-        if @value&.duplicable?
+        # Using `defined?(@value)` ensures that it only proceed if `@value` is actually set
+        # Ensures no unnecessary memory allocation by checking if `@value` is set and duplicable.
+        if defined?(@value) && @value&.duplicable?
           @value = @value.dup
         end
       end
@@ -240,7 +245,7 @@ module ActiveModel
       end
 
       class Uninitialized < Attribute # :nodoc:
-        UNINITIALIZED_ORIGINAL_VALUE = Object.new
+        UNINITIALIZED_ORIGINAL_VALUE = Object.new.freeze
 
         def initialize(name, type)
           super(name, nil, type)
