@@ -31,7 +31,7 @@ Datatypes
 PostgreSQL offers a number of specific datatypes. Following is a list of types,
 that are supported by the PostgreSQL adapter.
 
-### Bytea
+### Bytes
 
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-binary.html)
 * [functions and operators](https://www.postgresql.org/docs/current/static/functions-binarystring.html)
