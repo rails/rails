@@ -45,7 +45,7 @@ NOTE: Rails uses snake_case for controller names, if you have a multiple word co
 
 ### Generating Paths and URLs from Code
 
-Router also automatically generates paths and URLs that can be used throughout your application. Such as `user_path` and `user_url` in the below example. 
+Router also automatically generates paths and URLs that can be used throughout your application. Such as `user_path` and `user_url` in the below example.
 
 If the route above is modified to be:
 
@@ -65,7 +65,7 @@ and this in the corresponding view:
 <%= link_to 'User Record', user_path(@user) %>
 ```
 
-then the router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code path in your views. 
+then the router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code path in your views.
 
 There is also `user_url` which has a similar purpose. While `user_path` generates a relative url, `user_url` generates an absolute url (something like `https://yourdomain.com/users/17` in the above example).
 
@@ -98,7 +98,7 @@ Resource routing allows you to quickly declare all of the common routes for a gi
 
 ### Resources on the Web
 
-Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as `GET`, `POST`, `PATCH`, `PUT`, and `DELETE`. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.
+Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as `GET`, `POST`, `PATCH`, `PUT`, and `DELETE`. Each method is a request to perform an operation on the resource. A resource route maps related requests to methods (aka actions) in a single controller.
 
 When your Rails application receives an incoming request for:
 
@@ -116,9 +116,10 @@ Rails would dispatch that request to the `destroy` action on the `photos` contro
 
 ### CRUD, Verbs, and Actions
 
-In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to
-controller actions. By convention, each action also maps to a specific CRUD
-operation in a database. A single entry in the routing file, such as:
+In Rails, resourceful routes provide a mapping from incoming requests (a
+combination of HTTP verb + URL) to controller actions. By convention, each
+action generally maps to a specific [CRUD](active_record_basics.html#crud-reading-and-writing-data) operation on your data. A single entry in
+the routing file, such as:
 
 ```ruby
 resources :photos
@@ -136,9 +137,9 @@ creates seven different routes in your application, all mapping to the `Photos` 
 | PATCH/PUT | /photos/:id      | photos#update     | update a specific photo                      |
 | DELETE    | /photos/:id      | photos#destroy    | delete a specific photo                      |
 
-Because the router uses the HTTP verb *and* path to match inbound requests, four URLs can map to seven different controller actions. For example, The path `photos/` matches to `photoes#index` when the verb is `GET` and `photoes#create` when the verb is `POST`.
+Because the router uses the HTTP verb *and* path to match inbound requests, four URLs map to seven different controller actions. For example, the same `photos/` path matches to `photos#index` when the verb is `GET` and `photos#create` when the verb is `POST`.
 
-NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. To fix this, move the `get` line **above** the `resources` line so that it is matched first.
+NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. Order matters in the `routes.rb` file. If you want the `photos/poll` route to match first, you'll need to move the `get` line **above** the `resources` line.
 
 ### Path and URL Helpers
 
