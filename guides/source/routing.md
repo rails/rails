@@ -143,14 +143,20 @@ NOTE: Rails routes are matched in the order they are specified, so if you have a
 
 ### Path and URL Helpers
 
-Creating a resourceful route will also expose a number of helpers to the controllers in your application. In the case of `resources :photos`:
+Creating a resourceful route will also expose a number of helpers to controllers and views in your application.
 
-* `photos_path` returns `/photos`
-* `new_photo_path` returns `/photos/new`
-* `edit_photo_path(:id)` returns `/photos/:id/edit` (for instance, `edit_photo_path(10)` returns `/photos/10/edit`)
-* `photo_path(:id)` returns `/photos/:id` (for instance, `photo_path(10)` returns `/photos/10`)
+For example, adding `resources :photos` to the route files will generate these `_path` helpers:
 
-Each of these helpers has a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port, and path prefix.
+| Path Helper | Returns URL |
+| --------- | ---------------- |
+| `photos_path` | /photos |
+| `new_photo_path` | /photos/new |
+| `edit_photo_path(:id)` | /photos/:id/edit` |
+| `photo_path(:id)` | /photos/:id |
+
+Parameters to the path helpers, such as `:id` above, are passed to the generated URL, such that `edit_photo_path(10)` will return `/photos/10/edit`.
+
+Each of these `_path` helpers also have a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port, and path prefix.
 
 TIP: To find the route helper names for your routes, see [Listing existing routes](#listing-existing-routes) below.
 
@@ -162,7 +168,7 @@ If you need to create routes for more than one resource, you can save a bit of t
 resources :photos, :books, :videos
 ```
 
-This works exactly the same as:
+The above is a shortcut for:
 
 ```ruby
 resources :photos
@@ -184,7 +190,7 @@ Passing a `String` to `to:` will expect a `controller#action` format. When using
 get 'profile', action: :show, controller: 'users'
 ```
 
-This resourceful route:
+The below resourceful route creates six routes in your application, all mapping to the `Geocoders` controller:
 
 ```ruby
 resource :geocoder
@@ -193,7 +199,7 @@ resolve('Geocoder') { [:geocoder] }
 
 NOTE: The call to `resolve` is necessary for converting instances of the `Geocoder` to routes through [record identification](form_helpers.html#relying-on-record-identification).
 
-creates six different routes in your application, all mapping to the `Geocoders` controller:
+Here are all of the routes created for a singular resource:
 
 | HTTP Verb | Path           | Controller#Action | Used for                                      |
 | --------- | -------------- | ----------------- | --------------------------------------------- |
