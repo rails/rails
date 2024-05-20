@@ -290,6 +290,15 @@ google:
   gsa_email: "foobar@baz.iam.gserviceaccount.com"
 ```
 
+Optionally set a [UserProject](https://cloud.google.com/storage/docs/using-requester-pays#using) to support ["Requester Pays" buckets](https://cloud.google.com/storage/docs/requester-pays). 
+
+```yaml
+google:
+  service: GCS
+  ...
+  user_project: "a-user-project"
+```
+
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/main/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby

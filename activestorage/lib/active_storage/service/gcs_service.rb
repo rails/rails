@@ -159,6 +159,10 @@ module ActiveStorage
           args[:signer] = signer
         end
 
+        if user_project
+          args[:query][:userProject] = user_project
+        end
+
         file_for(key).signed_url(**args)
       end
 
@@ -189,11 +193,11 @@ module ActiveStorage
       end
 
       def bucket
-        @bucket ||= client.bucket(config.fetch(:bucket), skip_lookup: true)
+        @bucket ||= client.bucket(config.fetch(:bucket), skip_lookup: true, user_project: user_project)
       end
 
       def client
-        @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control, :iam, :gsa_email))
+        @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control, :iam, :gsa_email, :user_project))
       end
 
       def issuer
@@ -227,6 +231,10 @@ module ActiveStorage
 
       def custom_metadata_headers(metadata)
         metadata.transform_keys { |key| "x-goog-meta-#{key}" }
+      end
+
+      def user_project
+        config.fetch(:user_project, nil)
       end
   end
 end
