@@ -16,9 +16,13 @@ After reading this guide, you will know how to:
 Why Associations?
 -----------------
 
-In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code.
+In Rails, an _association_ is a connection between two Active Record models.
+Associations are essential because they simplify common operations in your code.
+They enhance readability, help to maintain database integrity, and leverage
+powerful Rails methods for managing related data effortlessly.
 
-For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books.
+Consider a simple Rails application that has a model for authors and a model for
+books. Each author can have many books.
 
 Without associations, the model declarations would look like this:
 
@@ -30,13 +34,15 @@ class Book < ApplicationRecord
 end
 ```
 
-Now, suppose we wanted to add a new book for an existing author. We'd need to do something like this:
+Now, suppose we wanted to add a new book for an existing author. We'd need to do
+something like this:
 
 ```ruby
 @book = Book.create(published_at: Time.now, author_id: @author.id)
 ```
 
-Or consider deleting an author, and ensuring that all of its books get deleted as well:
+Or consider deleting an author, and ensuring that all of its books get deleted
+as well:
 
 ```ruby
 @books = Book.where(author_id: @author.id)
@@ -46,7 +52,10 @@ end
 @author.destroy
 ```
 
-With Active Record associations, we can streamline these - and other - operations by declaratively telling Rails that there is a connection between the two models. Here's the revised code for setting up authors and books:
+With Active Record associations, we can streamline these operations, as well as
+others, by explicitly informing Rails about the connection between the two
+models. Here's the revised code for setting up authors and books using
+associations:
 
 ```ruby
 class Author < ApplicationRecord
@@ -70,7 +79,10 @@ Deleting an author and all of its books is *much* easier:
 @author.destroy
 ```
 
-To learn more about the different types of associations, read the next section of this guide. That's followed by some tips and tricks for working with associations, and then by a complete reference to the methods and options for associations in Rails.
+To learn more about the different types of associations, you can read the next
+section of this guide. Following that, you'll find some tips and tricks for
+working with associations. Finally, there's a complete reference to the methods
+and options for associations in Rails.
 
 The Types of Associations
 -------------------------
