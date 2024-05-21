@@ -919,7 +919,7 @@ get '*pages', to: 'pages#show', format: true
 
 ### Redirection
 
-You can redirect any path to another path by using the [`redirect`][] helper in your router:
+You can redirect any path to any other path by using the [`redirect`][] helper in your router:
 
 ```ruby
 get '/stories', to: redirect('/articles')
@@ -944,23 +944,23 @@ Please note that default redirection is a 301 "Moved Permanently" redirect. Keep
 get '/stories/:name', to: redirect('/articles/%{name}', status: 302)
 ```
 
-In all of these cases, if you don't provide the leading host (`http://www.example.com`), Rails will take those details from the current request.
+In all of these cases, if you don't provide the host (`http://www.example.com`), Rails will take those details from the current request.
 
 [`redirect`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Redirection.html#method-i-redirect
 
 ### Routing to Rack Applications
 
-Instead of a String like `'articles#index'`, which corresponds to the `index` action in the `ArticlesController`, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
+Instead of a String like `'articles#index'`, which corresponds to the `index` method in the `ArticlesController` class, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
 
 ```ruby
 match '/application.js', to: MyRackApp, via: :all
 ```
 
-As long as `MyRackApp` responds to `call` and returns a `[status, headers, body]`, the router won't know the difference between the Rack application and an action. This is an appropriate use of `via: :all`, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
+As long as `MyRackApp` responds to `call` and returns a `[status, headers, body]`, the router won't know the difference between the Rack application and a controller action. This is an appropriate use of `via: :all`, as you will want to allow your Rack application to handle all verbs.
 
-NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesController.action(:index)`, which returns a valid Rack application.
+NOTE: An interesting tidbit - `'articles#index'` expands out to `ArticlesController.action(:index)`, which returns a valid Rack application.
 
-NOTE: Since procs/lambdas are objects that respond to `call`, you can implement very simple routes (e.g. for health checks) inline:<br>`get '/health', to: ->(env) { [204, {}, ['']] }`
+NOTE: Since procs/lambdas are objects that respond to `call`, you can implement very simple routes (e.g. for health checks) inline, something like: `get '/health', to: ->(env) { [204, {}, ['']] }`
 
 If you specify a Rack application as the endpoint for a matcher, remember that
 the route will be unchanged in the receiving application. With the following
