@@ -85,6 +85,20 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
     test_copy_table "binaries", "binaries2"
   end
 
+  def test_copy_table_with_virtual_column
+    @connection.create_table :virtual_columns, force: true do |t|
+      t.string  :name
+      t.virtual :upper_name, type: :string, as: "UPPER(name)", stored: true
+    end
+
+    test_copy_table("virtual_columns", "virtual_columns2") do
+      column = @connection.columns("virtual_columns2").find { |col| col.name == "upper_name" }
+      assert_predicate column, :virtual_stored?
+      assert_equal :string, column.type
+      assert_equal "UPPER(name)", column.default_function
+    end
+  end
+
 private
   def copy_table(from, to, options = {})
     @connection.send(:copy_table, from, to, { temporary: true }.merge(options))

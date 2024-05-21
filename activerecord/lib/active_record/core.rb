@@ -354,7 +354,7 @@ module ActiveRecord
         elsif abstract_class?
           "#{super}(abstract)"
         elsif !connected?
-          "#{super} (call '#{super}.connection' to establish a connection)"
+          "#{super} (call '#{super}.lease_connection' to establish a connection)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
@@ -376,9 +376,9 @@ module ActiveRecord
         TypeCaster::Map.new(self)
       end
 
-      def cached_find_by_statement(key, &block) # :nodoc:
-        cache = @find_by_statement_cache[lease_connection.prepared_statements]
-        cache.compute_if_absent(key) { StatementCache.create(lease_connection, &block) }
+      def cached_find_by_statement(connection, key, &block) # :nodoc:
+        cache = @find_by_statement_cache[connection.prepared_statements]
+        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
       end
 
       private
@@ -419,21 +419,23 @@ module ActiveRecord
         end
 
         def cached_find_by(keys, values)
-          statement = cached_find_by_statement(keys) { |params|
-            wheres = keys.index_with do |key|
-              if key.is_a?(Array)
-                [key.map { params.bind }]
-              else
-                params.bind
+          with_connection do |connection|
+            statement = cached_find_by_statement(connection, keys) { |params|
+              wheres = keys.index_with do |key|
+                if key.is_a?(Array)
+                  [key.map { params.bind }]
+                else
+                  params.bind
+                end
               end
-            end
-            where(wheres).limit(1)
-          }
+              where(wheres).limit(1)
+            }
 
-          begin
-            statement.execute(values.flatten, lease_connection, allow_retry: true).first
-          rescue TypeError
-            raise ActiveRecord::StatementInvalid
+            begin
+              statement.execute(values.flatten, connection, allow_retry: true).first
+            rescue TypeError
+              raise ActiveRecord::StatementInvalid
+            end
           end
         end
     end
@@ -702,6 +704,11 @@ module ActiveRecord
     # Returns +true+ if the record uses strict_loading with +:n_plus_one_only+ mode enabled.
     def strict_loading_n_plus_one_only?
       @strict_loading_mode == :n_plus_one_only
+    end
+
+    # Returns +true+ if the record uses strict_loading with +:all+ mode enabled.
+    def strict_loading_all?
+      @strict_loading_mode == :all
     end
 
     # Marks this record as read only.

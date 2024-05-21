@@ -277,24 +277,18 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
   end
 
   def test_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.offset(1).count }
     assert_equal 1, queries.length
     assert_match(/OFFSET/, queries.first)
   end
 
   def test_limit_with_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
@@ -401,6 +395,10 @@ class CalculationsTest < ActiveRecord::TestCase
     book = cpk_books(:cpk_great_author_first_book)
     expected = { book.author_id => Cpk::Book.where(author_id: book.author_id).count }
     assert_equal(expected, Cpk::Book.where(author_id: book.author_id).group(:author_id).count)
+  end
+
+  def test_count_for_a_composite_primary_key_model_with_includes_and_references
+    assert_equal Cpk::Book.count, Cpk::Book.includes(:chapters).references(:chapters).count
   end
 
   def test_should_group_by_summed_field_having_condition
@@ -840,11 +838,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_without_column_names
-    if current_adapter?(:OracleAdapter)
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil, "active"]], Company.order(:id).limit(1).pluck
-    else
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
-    end
+    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
   end
 
   def test_pluck_type_cast
@@ -950,6 +944,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
     assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
+  end
+
+  def test_pluck_with_hash_argument
+    expected = [
+      [1, "The First Topic"],
+      [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"]
+    ]
+    assert_equal expected, Topic.order(:id).limit(3).pluck(:id, topics: [:title])
+  end
+
+  def test_pluck_with_hash_argument_with_multiple_tables
+    expected = [
+      [1, 1, "Thank you for the welcome"],
+      [1, 2, "Thank you again for the welcome"],
+      [2, 3, "Don't think too hard"]
+    ]
+    assert_equal expected, Post.joins(:comments).order(posts: { id: :asc }, comments: { id: :asc }).limit(3).pluck(posts: [:id], comments: [:id, :body])
+  end
+
+  def test_pluck_with_hash_argument_containing_non_existent_field
+    assert_raises(ActiveRecord::StatementInvalid) do
+      Topic.pluck(topics: [:non_existent])
+    end
   end
 
   def test_ids

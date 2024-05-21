@@ -60,7 +60,6 @@ module ActiveRecord
     end
 
     delegate :empty?, :to_a, to: :result
-    delegate_missing_to :result
 
     attr_reader :lock_wait
 

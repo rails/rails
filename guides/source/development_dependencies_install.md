@@ -86,33 +86,6 @@ $ brew services start mysql
 
 Replace `mysql` with the name of the service you want to start.
 
-##### Potential Issues
-
-This section details some of the potential issues you may run into with native extensions on macOS, particularly when bundling the mysql2 gem in local development. This documentation is subject to change and may be incorrect as Apple makes changes to the developer environment on Rails.
-
-In order to compile the `mysql2` gem on macOS you will need the following:
-
-1. `openssl@1.1` installed (not `openssl@3`)
-2. Ruby compiled with  `openssl@1.1`
-3. Set compiler flags in the bundle config for `mysql2`.
-
-If both `openssl@1.1` and `openssl@3` are installed, you will need to tell Ruby to use `openssl@1.1` in order for Rails to bundle `mysql2`.
-
-In your `.bash_profile` set the `PATH` and `RUBY_CONFIGURE_OPTS` to point to `openssl@1.1`:
-
-```sh
-export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
-```
-
-In your `~/.bundle/config` set the following for `mysql2`. Be sure to delete any other entries for `BUNDLE_BUILD__MYSQL2`:
-
-```
-BUNDLE_BUILD__MYSQL2: "--with-ldflags=-L/usr/local/opt/openssl@1.1/lib --with-cppflags=-L/usr/local/opt/openssl@1.1/include"
-```
-
-By setting these flags before installing Ruby and bundling Rails, you should be able to get your local macOS development environment working.
-
 #### Ubuntu
 
 To install all run:

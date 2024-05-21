@@ -11,7 +11,7 @@ require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", "~> 1.4"
+gem "sqlite3", ">= 1.4"
 require "sqlite3"
 
 module ActiveRecord
@@ -112,13 +112,9 @@ module ActiveRecord
           dirname = File.dirname(@config[:database])
           unless File.directory?(dirname)
             begin
-              Dir.mkdir(dirname)
-            rescue Errno::ENOENT => error
-              if error.message.include?("No such file or directory")
-                raise ActiveRecord::NoDatabaseError.new(connection_pool: @pool)
-              else
-                raise
-              end
+              FileUtils.mkdir_p(dirname)
+            rescue SystemCallError
+              raise ActiveRecord::NoDatabaseError.new(connection_pool: @pool)
             end
           end
         end
@@ -291,7 +287,7 @@ module ActiveRecord
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
-        rename_table_indexes(table_name, new_name)
+        rename_table_indexes(table_name, new_name, **options)
       end
 
       def add_column(table_name, column_name, type, **options) # :nodoc:
@@ -578,12 +574,6 @@ module ActiveRecord
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
 
-              if column.has_default?
-                type = lookup_cast_type_from_column(column)
-                default = type.deserialize(column.default)
-                default = -> { column.default_function } if default.nil?
-              end
-
               column_options = {
                 limit: column.limit,
                 precision: column.precision,
@@ -593,19 +583,31 @@ module ActiveRecord
                 primary_key: column_name == from_primary_key
               }
 
-              unless column.auto_increment?
-                column_options[:default] = default
+              if column.virtual?
+                column_options[:as] = column.default_function
+                column_options[:stored] = column.virtual_stored?
+                column_options[:type] = column.type
+              elsif column.has_default?
+                type = lookup_cast_type_from_column(column)
+                default = type.deserialize(column.default)
+                default = -> { column.default_function } if default.nil?
+
+                unless column.auto_increment?
+                  column_options[:default] = default
+                end
               end
 
-              column_type = column.bigint? ? :bigint : column.type
+              column_type = column.virtual? ? :virtual : (column.bigint? ? :bigint : column.type)
               @definition.column(column_name, column_type, **column_options)
             end
 
             yield @definition if block_given?
           end
           copy_table_indexes(from, to, options[:rename] || {})
+
+          columns_to_copy = @definition.columns.reject { |col| col.options.key?(:as) }.map(&:name)
           copy_table_contents(from, to,
-            @definition.columns.map(&:name),
+            columns_to_copy,
             options[:rename] || {})
         end
 

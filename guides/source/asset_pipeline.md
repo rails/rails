@@ -240,10 +240,10 @@ pin "md5", to: "https://cdn.jsdelivr.net/npm/md5@2.3.0/md5.js"
 ```
 
 ```erb
-# app/views/layouts/application.html.erb
+<%# app/views/layouts/application.html.erb %>
 <%= javascript_importmap_tags %>
 
-# will include the following link before the importmap is setup:
+<%# will include the following link before the importmap is setup: %>
 <link rel="modulepreload" href="https://ga.jspm.io/npm:@github/hotkey@1.4.4/dist/index.js">
 ...
 ```

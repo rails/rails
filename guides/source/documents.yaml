@@ -70,7 +70,6 @@
       description: >
         Action View is responsible for generating the HTML for web responses.
         This guide provides an introduction to Action View.
-      work_in_progress: true
     -
       name: Layouts and Rendering in Rails
       url: layouts_and_rendering.html
@@ -82,7 +81,6 @@
         Action View has helpers for handling everything from formatting dates
         and linking to images, to sanitizing and localizing content. This guide
         introduces a few of the more common Action View helpers.
-      work_in_progress: true
     -
       name: Action View Form Helpers
       url: form_helpers.html
@@ -328,6 +326,11 @@
       description: >
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
+    -
+      name: Version 8.0 - ?
+      url: 8_0_release_notes.html
+      description: Release notes for Rails 8.0.
+      work_in_progress: true
     -
       name: Version 7.2 - ?
       url: 7_2_release_notes.html

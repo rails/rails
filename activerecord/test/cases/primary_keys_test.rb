@@ -241,8 +241,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_create_without_primary_key_no_extra_query
-    skip if current_adapter?(:OracleAdapter)
-
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "dashboards"
     end
@@ -457,15 +455,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_derives_composite_primary_key
-    def test_primary_key_issues_warning
-      model = Class.new(ActiveRecord::Base) do
-        def self.table_name
-          "uber_barcodes"
-        end
+    model = Class.new(ActiveRecord::Base) do
+      def self.table_name
+        "uber_barcodes"
       end
-
-      assert_equal ["region", "code"], model.primary_key
     end
+
+    assert_equal ["region", "code"], model.primary_key
   end
 
   def test_collectly_dump_composite_primary_key

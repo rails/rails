@@ -1506,6 +1506,13 @@ module ActiveRecord
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
         #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
+        # [:index_errors]
+        #   Allows differentiation of multiple validation errors from the association records, by including
+        #   an index in the error attribute name, e.g. `roles[2].level`.
+        #   When set to +true+, the index is based on association order, i.e. database order, with yet to be
+        #   persisted new records placed at the end.
+        #   When set to +:nested_attributes_order+, the index is based on the record order received by
+        #   nested attributes setter, when accepts_nested_attributes_for is used.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1519,6 +1526,7 @@ module ActiveRecord
         #   has_many :subscribers, through: :subscriptions, disable_joins: true
         #   has_many :comments, strict_loading: true
         #   has_many :comments, query_constraints: [:blog_id, :post_id]
+        #   has_many :comments, index_errors: :nested_attributes_order
         def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
           Reflection.add_reflection self, name, reflection
@@ -1661,9 +1669,14 @@ module ActiveRecord
         #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
         # [+:autosave+]
-        #   If true, always save the associated object or destroy it if marked for destruction,
-        #   when saving the parent object. If false, never save or destroy the associated object.
-        #   By default, only save the associated object if it's a new record.
+        #   If +true+, always saves the associated object or destroys it if marked for destruction,
+        #   when saving the parent object.
+        #   If +false+, never save or destroy the associated object.
+        #
+        #   By default, only saves the associated object if it's a new record. Setting this option
+        #   to +true+ also enables validations on the associated object unless explicitly disabled
+        #   with <tt>validate: false</tt>. This is because saving an object with invalid associated
+        #   objects would fail, so any associated objects will go through validation checks.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
@@ -1816,15 +1829,23 @@ module ActiveRecord
         #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
         #   is used on the associate class (such as a Post class) - that is the migration for
         #   <tt>#{table_name}_count</tt> is created on the associate class (such that <tt>Post.comments_count</tt> will
-        #   return the count cached, see note below). You can also specify a custom counter
+        #   return the count cached). You can also specify a custom counter
         #   cache column by providing a column name instead of a +true+/+false+ value to this
         #   option (e.g., <tt>counter_cache: :my_custom_counter</tt>.)
-        #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
-        #   using +attr_readonly+.
-        # [+:polymorphic+]
-        #   Specify this association is a polymorphic association by passing +true+.
+        #
+        #   Starting to use counter caches on existing large tables can be troublesome, because the column
+        #   values must be backfilled separately of the column addition (to not lock the table for too long)
+        #   and before the use of +:counter_cache+ (otherwise methods like +size+/+any?+/etc, which use
+        #   counter caches internally, can produce incorrect results). To safely backfill the values while keeping
+        #   counter cache columns updated with the child records creation/removal and to avoid the mentioned methods
+        #   use the possibly incorrect counter cache column values and always get the results from the database,
+        #   use <tt>counter_cache: { active: false }</tt>.
+        #   If you also need to specify a custom column name, use <tt>counter_cache: { active: false, column: :my_custom_counter }</tt>.
+        #
         #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
         #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
+        # [+:polymorphic+]
+        #   Specify this association is a polymorphic association by passing +true+.
         #   Note: Since polymorphic associations rely on storing class names in the database, make sure to update the class names in the
         #   <tt>*_type</tt> polymorphic type column of the corresponding rows.
         # [+:validate+]
@@ -1907,7 +1928,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.2]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[8.0]
         #     def change
         #       create_join_table :developers, :projects
         #     end
@@ -2101,7 +2122,7 @@ module ActiveRecord
           end
 
           has_many name, scope, **hm_options, &extension
-          _reflections[name.to_s].parent_reflection = habtm_reflection
+          _reflections[name].parent_reflection = habtm_reflection
         end
       end
   end

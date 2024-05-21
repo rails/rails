@@ -1218,7 +1218,11 @@ class ResourcesTest < ActionController::TestCase
       assert_recognizes(options[:shallow_options].merge(action: "update",  id: "1", format: "xml"), path: "#{member_path}.xml",       method: :put)
       assert_recognizes(options[:shallow_options].merge(action: "destroy", id: "1", format: "xml"), path: "#{member_path}.xml",       method: :delete)
 
-      yield route_options if block_given?
+      if block_given?
+        _assert_nothing_raised_or_warn("assert_restful_routes_for") do
+          yield route_options
+        end
+      end
     end
 
     # test named routes like foo_path and foos_path map to the correct options.
@@ -1267,7 +1271,11 @@ class ResourcesTest < ActionController::TestCase
       assert_named_route "#{shallow_path}/1/#{edit_action}", "edit_#{shallow_prefix}#{singular_name}_path", options[:shallow_options].merge(id: "1")
       assert_named_route "#{shallow_path}/1/#{edit_action}.xml", "edit_#{shallow_prefix}#{singular_name}_path", options[:shallow_options].merge(id: "1", format: "xml")
 
-      yield route_options if block_given?
+      if block_given?
+        _assert_nothing_raised_or_warn("assert_restful_named_routes_for") do
+          yield route_options
+        end
+      end
     end
 
     def assert_singleton_routes_for(singleton_name, options = {})
@@ -1302,7 +1310,11 @@ class ResourcesTest < ActionController::TestCase
       assert_recognizes(route_options.merge(action: "update",  format: "xml"), path: "#{full_path}.xml",  method: :put)
       assert_recognizes(route_options.merge(action: "destroy", format: "xml"), path: "#{full_path}.xml",  method: :delete)
 
-      yield route_options if block_given?
+      if block_given?
+        _assert_nothing_raised_or_warn("assert_singleton_routes_for") do
+          yield route_options
+        end
+      end
     end
 
     def assert_singleton_named_routes_for(singleton_name, options = {})
@@ -1323,6 +1335,12 @@ class ResourcesTest < ActionController::TestCase
       assert_named_route "#{full_path}/new.xml",  "new_#{name_prefix}#{singleton_name}_path",  route_options.merge(format: "xml")
       assert_named_route "#{full_path}/edit",     "edit_#{name_prefix}#{singleton_name}_path",           route_options
       assert_named_route "#{full_path}/edit.xml", "edit_#{name_prefix}#{singleton_name}_path", route_options.merge(format: "xml")
+
+      if block_given?
+        _assert_nothing_raised_or_warn("assert_singleton_named_routes_for") do
+          yield route_options
+        end
+      end
     end
 
     def assert_named_route(expected, route, options)

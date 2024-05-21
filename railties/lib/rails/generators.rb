@@ -203,7 +203,6 @@ module Rails
         rails.map! { |n| n.delete_prefix("rails:") }
         rails.delete("app")
         rails.delete("plugin")
-        rails.delete("encrypted_secrets")
         rails.delete("encrypted_file")
         rails.delete("encryption_key_file")
         rails.delete("master_key")

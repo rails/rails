@@ -195,21 +195,6 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_kind_of NilClass, @buffer.slice("chipchop")
   end
 
-  test "clone_empty returns an empty buffer" do
-    assert_deprecated(ActiveSupport.deprecator) do
-      assert_equal "", ActiveSupport::SafeBuffer.new("foo").clone_empty
-    end
-  end
-
-  test "clone_empty keeps the original dirtiness" do
-    assert_deprecated(ActiveSupport.deprecator) do
-      assert_predicate @buffer.clone_empty, :html_safe?
-    end
-    assert_deprecated(ActiveSupport.deprecator) do
-      assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
-    end
-  end
-
   test "Should be safe when sliced if original value was safe" do
     new_buffer = @buffer[0, 0]
     assert_not_nil new_buffer

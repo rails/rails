@@ -1,7 +1,7 @@
 body.guide {
   &::-webkit-scrollbar {
     width: 12px;
-    background-color: transparent;
+    background-color: $gray-100;
   }
   
   &::-webkit-scrollbar-track {
@@ -30,7 +30,7 @@ body.guide {
   }
 
   font-family: Inter, sans-serif;
-  font-size: 1.125rem; /* 18px */
+  font-size: 1rem; /* 16px */
   font-style: normal;
   font-weight: 400;
   line-height: 1.4;
@@ -214,13 +214,14 @@ body.guide {
   hr {
     height: 1em;
     border: 0;
-    background: url("../images/hr_rails.svg") center no-repeat;
+    background: url("../images/hr_rails_mobile.svg") center no-repeat;
     background-size: contain;
     margin: 1em auto;
     width: 90%;
 
     @include media('>tablet') {
       height: 1.5em;
+      background: url("../images/hr_rails.svg") center no-repeat;
     }
 
     @include media('>desktop-ultra-wide') {
@@ -253,7 +254,7 @@ body.guide {
       border-bottom: 1px solid $gray-500;
       margin: 0 0 1em 0;
 
-      &:last-child {
+      .guides-indes-list &:last-child {
         border-bottom: none;
       }
     } // dd
@@ -277,7 +278,6 @@ body.guide {
     line-height: 1.5;
     margin: 1em 0;
     overflow: auto;
-    color: #222;
   } // pre, code
   
   p code, ul code {
@@ -333,10 +333,23 @@ body.guide {
     }
   } // .wrapper
 
+  #container .wrapper {
+    padding-top: 0;
+
+    h2:first-child {
+      margin-top: 0;
+    }
+  }
+
+  select {
+    border-radius: $base-border-radius;
+    padding: 0.25em;
+  }
+
   // topNav is a hidden area for mobile only
   nav#topNav {
-    background-color: $gray-800;
-    color: $gray-400;
+    background-color: $gray-200;
+    color: $gray-600;
     padding: 0.5em 0;
     font-size: 0.875rem;
 
@@ -403,7 +416,7 @@ body.guide {
     width: 100%;
 
     .wrapper {
-      max-width: calc(50em + 400px);
+      max-width: calc(57em + 400px);
       padding-right: 0;
     }
 
@@ -582,7 +595,7 @@ body.guide {
     display: block;
     border-radius: $base-border-radius;
     color: $gray-900;
-    height: 58em;
+    height: 61em;
     padding: 2em 2em 1.5em 2em;
     position: absolute;
       top: 25px;
@@ -602,7 +615,7 @@ body.guide {
       display: flex;
       flex-direction: column;
       flex-wrap: wrap;
-      max-height: 53em;
+      max-height: 60em;
       width: 100%;
 
       .guides-section {
@@ -640,8 +653,8 @@ body.guide {
       
           a:hover,
           a:active {
-            color: $rf-brand;
-            text-decoration: underline;
+            color: $rf-brand !important;
+            text-decoration: underline !important;
           }
         }
       }
@@ -653,11 +666,15 @@ body.guide {
     background-color: $gray-800;
     color: #fff;
     font-size: 0.75em;
-    padding: 1.5em 0 .5em 0;
+    padding: 1.5em 1.5em .5em 1.5em;
     width: 100%;
 
     .wrapper {
       padding: 0;
+
+      @include media('>desktop') {
+        padding: 0 1.5em;
+      }
     }
 
     p {
@@ -672,6 +689,10 @@ body.guide {
       background-color: #fff;
     }
 
+    hr {
+      margin-top: 2.5em;
+    }
+
     #subCol {
       background-color: $gray-100;
       border-radius: $base-border-radius;
@@ -683,8 +704,12 @@ body.guide {
         position: fixed;
           top: 100px;
           right: 50px;
-        max-height: calc(100vh - 90px);
+        max-height: calc(100vh - 200px);
         width: 400px;
+      }
+
+      &.guide-index {
+        background-color: transparent !important;
       }
 
       @include media('>desktop-ultra-wide') {
@@ -701,6 +726,9 @@ body.guide {
       }
 
       ol.chapters {
+        padding-inline-start: 3.5em;
+        padding-inline-end: 1em;
+
         &::-webkit-scrollbar
         {
           width: 6px;
@@ -729,11 +757,17 @@ body.guide {
         @include media('>desktop') {
           overflow-y: auto;
           overflow-x: hidden;
-          max-height: 73vh;
+          max-height: calc(100vh - 350px);
         }
 
         li {
           font-weight: bold;
+
+          a {
+            position: relative;
+            display: block;
+            word-wrap: break-word;
+          }
 
           a,
           a:link,
@@ -752,19 +786,68 @@ body.guide {
             margin-top: 0.5em;
             margin-bottom: 0.75em;
             padding-inline-start: 1em;
-            @include media('>desktop') {
-              max-width: 310px;
-              width: 310px;
-            }
+            padding-inline-end: 0.25em;
             
             li {
               font-weight: 400;
-              @include media('>desktop') {
-                width: 310px;
+
+              a.active::after { // highlight
+                @include media('>desktop') {
+                  width: 328px;
+                }
+                left: -3em;
+              }
+
+              a.active::before { // red square
+                left: -2.5em;
+                top: 7px;
               }
             } // li
           } // ul
+
+          a::after { // highlight
+            content: '';
+            position: absolute;
+            display: block;
+            height: calc(100% + 10px);
+            @include media('>desktop') {
+              width: 352px;
+            }
+            top: 50%;
+            transform: translateY(-50%);
+            left: -3.5em;
+            border-radius: 8px;
+            background-color: $stop-bkgnd;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+          }
+
+          a.active::after {
+            opacity: 1;
+          }
+
+          a::before { // red square
+            content: '';
+            display: block;
+            position: absolute;
+            height: 10px;
+            width: 10px;
+            top: 6px;
+            left: -3em;
+            border-radius: 3px;
+            background-color: $rf-brand;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+          }
+
+          a.active::before {
+            opacity: 1;
+          }
         } // li
+
+        > li:first-child {
+          margin-top: 0.5em;
+        }
       } // ol
     }
   }

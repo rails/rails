@@ -138,7 +138,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_4.*limit: 4}, output
     end
 
-    if current_adapter?(:SQLite3Adapter, :OracleAdapter)
+    if current_adapter?(:SQLite3Adapter)
       assert_match %r{c_int_5.*limit: 5}, output
       assert_match %r{c_int_6.*limit: 6}, output
       assert_match %r{c_int_7.*limit: 7}, output
@@ -423,12 +423,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump
-    # Oracle supports precision up to 38 and it identifies decimals with scale 0 as integers
-    if current_adapter?(:OracleAdapter)
-      assert_match %r{t\.integer\s+"atoms_in_universe",\s+precision: 38}, output
-    else
-      assert_match %r{t\.decimal\s+"atoms_in_universe",\s+precision: 55}, output
-    end
+
+    assert_match %r{t\.decimal\s+"atoms_in_universe",\s+precision: 55}, output
   end
 
   def test_schema_dump_keeps_id_column_when_id_is_false_and_id_column_added
@@ -473,21 +469,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  class CreateDogMigration < ActiveRecord::Migration::Current
+  class CreateCatMigration < ActiveRecord::Migration::Current
     def up
-      create_table("dog_owners") do |t|
+      create_table("cat_owners") do |t|
       end
 
-      create_table("dogs") do |t|
+      create_table("cats") do |t|
         t.column :name, :string
         t.references :owner
         t.index [:name]
-        t.foreign_key :dog_owners, column: "owner_id"
+        t.foreign_key :cat_owners, column: "owner_id"
       end
     end
     def down
-      drop_table("dogs")
-      drop_table("dog_owners")
+      drop_table("cats")
+      drop_table("cat_owners")
     end
   end
 
@@ -497,16 +493,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = "foo_"
     ActiveRecord::Base.table_name_suffix = "_bar"
 
-    migration = CreateDogMigration.new
+    migration = CreateCatMigration.new
     migration.migrate(:up)
 
-    output = dump_table_schema("dog_owners", "dogs")
+    output = dump_table_schema("foo_cat_owners_bar", "foo_cats_bar")
+
+    assert_match %r{create_table "cat_owners"}, output
+    assert_match %r{create_table "cats"}, output
+    assert_match %r{t\.index \["name"\], name: "index_foo_cats_bar_on_name"}, output
     assert_no_match %r{create_table "foo_.+_bar"}, output
     assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
 
     if ActiveRecord::Base.lease_connection.supports_foreign_keys?
+      assert_match %r{add_foreign_key "cats", "cat_owners", column: "owner_id"}, output
       assert_no_match %r{add_foreign_key "foo_.+_bar"}, output
       assert_no_match %r{add_foreign_key "[^"]+", "foo_.+_bar"}, output
     end
@@ -524,16 +525,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = "foo$"
     ActiveRecord::Base.table_name_suffix = "$bar"
 
-    migration = CreateDogMigration.new
+    migration = CreateCatMigration.new
     migration.migrate(:up)
 
-    output = dump_table_schema("dog_owners", "dog")
+    output = dump_table_schema("foo$cat_owners$bar", "foo$cat$bar")
+
+    assert_match %r{create_table "cat_owners"}, output
+    assert_match %r{create_table "cats"}, output
+    assert_match %r{t\.index \["name"\], name: "index_foo\$cats\$bar_on_name"}, output
     assert_no_match %r{create_table "foo\$.+\$bar"}, output
     assert_no_match %r{add_index "foo\$.+\$bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
 
     if ActiveRecord::Base.lease_connection.supports_foreign_keys?
+      assert_match %r{add_foreign_key "cats", "cat_owners", column: "owner_id"}, output
       assert_no_match %r{add_foreign_key "foo\$.+\$bar"}, output
       assert_no_match %r{add_foreign_key "[^"]+", "foo\$.+\$bar"}, output
     end

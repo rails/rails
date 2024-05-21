@@ -8,8 +8,8 @@
 @media (prefers-color-scheme: dark) {
   body.guide {
 
-    background-color: $gray-900;
-    color: #fff;
+    background-color: $gray-1000;
+    color: $text-on-darker-bg;
 
     &::-webkit-scrollbar {
       width: 12px;
@@ -27,8 +27,9 @@
         border-radius: 10px;
         -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
     }
-    h1 {
-      color: #fff;
+
+    h1, h2, h3 {
+      color: $large-text-on-darker-bg;
     }
 
     a {
@@ -44,45 +45,51 @@
       } // &:visited
     } // a
 
-    h2 a {
+    h2 a, h3 a {
       &:link,
       &:visited {
-        color: #fff;
+        color: inherit;
       } 
     } // h2 a
     
     table {
       th {
-        background-color: $gray-1000;
+        background-color: $gray-900;
+        border-bottom: 2px solid $gray-700;
+        color: $text-on-darker-bg;
       } // th
   
       tr {
         &:nth-child(even) {
-          background-color: $gray-800;
+          background-color: $gray-900;
         }
       }
     } // table
 
-    h3, h4, h5, h6 {
+    h4, h5, h6 {
       a,
       a:link,
       a:visited {
-        color: #fff;
+        color: inherit;
       } // a, a:link, a:visited
     } // h3
 
     hr {
-      background: url("../images/hr_rails_white.svg") center no-repeat;
+      background: url("../images/hr_rails_white_mobile.svg") center no-repeat;
+
+      @include media('>tablet') {
+        background: url("../images/hr_rails_white.svg") center no-repeat;
+      }
     }
 
     pre, code {
-      background-color: $gray-1000;
+      background-color: $gray-900;
       color: #fff;
     } // pre, code
 
     p code, ul code, li code {
-      background-color: $gray-650;
-      color: #fff;
+      background-color: $gray-850;
+      color: $text-on-darker-bg;
     }
 
     td code {
@@ -94,16 +101,16 @@
       color: #fff;
     }
 
-    nav#topNav {
-      background-color: $gray-200;
-      color: $gray-600;
+    nav#topNav {    background-color: $gray-900;
+      color: $gray-400;
+  
 
       .more-info-links {
-        background: $gray-900;
+        background: $gray-1000;
       } // .more-info-links
 
       li {
-        border-bottom: 1px solid $gray-700;
+        border-bottom: 1px solid $gray-800;
       } // li
     } // nav#topNav
 
@@ -117,7 +124,7 @@
             color: $gray-400;
 
             select {
-              background-color: $gray-800;
+              background-color: $gray-900;
               color: $gray-400;
             } // select
           } // span#version_switcher
@@ -125,14 +132,14 @@
 
         ul.nav {
           li {
-            background: $gray-900;
-            border-bottom: 1px solid $gray-900;
+            background: $gray-1000;
+            border-bottom: 1px solid $gray-1000;
 
             @include media('>desktop'){
               a,
               a:link,
               a:visited {
-                color: $gray-100;
+                color: $text-on-darker-bg;
               } // a
 
               a#home_nav {
@@ -145,15 +152,15 @@
     } // header#page_header
 
     #guides {
-      background: $gray-700;
-      color: $gray-100;
+      background: $gray-800;
+      color: $text-on-dark-bg;
 
       .guides-section {
         dd {
           a,
           a:link,
           a:visited {
-            color: $gray-100;
+            color: $text-on-dark-bg;
           } // a
 
           a:hover,
@@ -166,18 +173,18 @@
 
 
     #feature {
-      background-color: $gray-800;
+      background-color: $gray-900;
 
       @include media('>desktop') {
-        background-color: $gray-900;
+        background-color: $gray-1000;
       }
 
       #subCol {
-        background-color: $gray-800; 
+        background-color: $gray-900; 
 
         ol.chapters {
           &::-webkit-scrollbar {
-            background-color: $gray-700;
+            background-color: $gray-800;
           }
           
           &::-webkit-scrollbar-track {
@@ -199,7 +206,7 @@
             a,
             a:link,
             a:visited {
-              color: $gray-100;
+              color: inherit;
             }
             
             a:hover,
@@ -213,7 +220,8 @@
 
     .interstitial {
       &.code {
-        background-color: $gray-1000;
+        background-color: $gray-900;
+        border: 1px solid $gray-800 !important;
         color: $gray-200;
       }
       &.note,

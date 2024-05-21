@@ -103,10 +103,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_no_match(/`firm_with_primary_keys_companies`\.`id`/, sql)
       assert_match(/`firm_with_primary_keys_companies`\.`name`/, sql)
-    elsif current_adapter?(:OracleAdapter)
-      # on Oracle aliases are truncated to 30 characters and are quoted in uppercase
-      assert_no_match(/"firm_with_primary_keys_compani"\."id"/i, sql)
-      assert_match(/"firm_with_primary_keys_compani"\."name"/i, sql)
     else
       assert_no_match(/"firm_with_primary_keys_companies"\."id"/, sql)
       assert_match(/"firm_with_primary_keys_companies"\."name"/, sql)
@@ -1159,8 +1155,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_proxy_should_respond_to_private_methods_via_send
-    companies(:first_firm).send(:private_method)
-    companies(:second_client).firm.send(:private_method)
+    assert_nothing_raised do
+      companies(:first_firm).send(:private_method)
+      companies(:second_client).firm.send(:private_method)
+    end
   end
 
   def test_save_of_record_with_loaded_belongs_to

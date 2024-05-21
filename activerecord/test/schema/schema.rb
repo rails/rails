@@ -198,6 +198,8 @@ ActiveRecord::Schema.define do
     t.integer :engines_count
     t.integer :wheels_count, default: 0, null: false
     t.datetime :wheels_owned_at
+    t.integer :bulbs_count
+    t.integer :custom_tyres_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end
@@ -380,13 +382,7 @@ ActiveRecord::Schema.define do
 
   create_table :comments, force: true do |t|
     t.integer :post_id, null: false
-    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
-    # Oracle SELECT WHERE clause which causes many unit test failures
-    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
-      t.string  :body, null: false, limit: 4000
-    else
-      t.text    :body, null: false
-    end
+    t.text    :body, null: false
     t.string  :type
     t.integer :label, default: 0
     t.integer :tags_count, default: 0
@@ -871,12 +867,7 @@ ActiveRecord::Schema.define do
     t.numeric :numeric_number
     t.float   :temperature
     t.decimal :decimal_number_big_precision, precision: 20
-    # Oracle/SQLServer supports precision up to 38
-    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter, :SQLServerAdapter)
-      t.decimal :atoms_in_universe, precision: 38, scale: 0
-    else
-      t.decimal :atoms_in_universe, precision: 55, scale: 0
-    end
+    t.decimal :atoms_in_universe, precision: 55, scale: 0
   end
 
   create_table :orders, force: true do |t|
@@ -1010,13 +1001,7 @@ ActiveRecord::Schema.define do
   create_table :posts, force: true do |t|
     t.references :author
     t.string :title, null: false
-    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
-    # Oracle SELECT WHERE clause which causes many unit test failures
-    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
-      t.string  :body, null: false, limit: 4000
-    else
-      t.text    :body, null: false
-    end
+    t.text    :body, null: false
     t.string  :type
     t.integer :legacy_comments_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
@@ -1256,15 +1241,8 @@ ActiveRecord::Schema.define do
     end
     t.time     :bonus_time
     t.date     :last_read
-    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
-    # Oracle SELECT WHERE clause which causes many unit test failures
-    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
-      t.string   :content, limit: 4000
-      t.string   :important, limit: 4000
-    else
-      t.text     :content
-      t.text     :important
-    end
+    t.text     :content
+    t.text     :important
     t.blob     :binary_content
     t.boolean  :approved, default: true
     t.integer  :replies_count, default: 0

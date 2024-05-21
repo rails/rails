@@ -19,6 +19,11 @@ gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 <% end -%>
+<% unless options.skip_kamal? -%>
+
+# Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
+gem "kamal", require: false
+<% end -%>
 <% unless skip_active_storage? -%>
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
@@ -33,7 +38,7 @@ gem "bootsnap", require: false
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri <%= bundler_windows_platforms %> ]
+  gem "debug", platforms: %i[ mri <%= bundler_windows_platforms %> ], require: "debug/prelude"
 <%- unless options.skip_brakeman? -%>
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
@@ -47,23 +52,12 @@ group :development, :test do
 end
 <% end -%>
 
-group :development do
 <%- unless options.api? || options.skip_dev_gems? -%>
+group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-
-  # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
-  # gem "rack-mini-profiler"
-
-<%- end -%>
-  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
-  # gem "spring"
-<%- if RUBY_VERSION < "3.2" -%>
-
-  # Highlight the fine-grained location where an error occurred [https://github.com/ruby/error_highlight]
-  gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
-<%- end -%>
 end
+<%- end -%>
 
 <%- if depends_on_system_test? -%>
 group :test do

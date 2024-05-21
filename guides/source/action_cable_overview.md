@@ -762,9 +762,8 @@ production:
   adapter: redis
   url: rediss://10.10.3.153:tls_port
   channel_prefix: appname_production
-  ssl_params: {
+  ssl_params:
     ca_file: "/path/to/ca.crt"
-  }
 ```
 
 The options given to `ssl_params` are passed directly to the `OpenSSL::SSL::SSLContext#set_params` method and can be any valid attribute of the SSL context.

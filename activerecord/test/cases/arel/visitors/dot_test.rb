@@ -25,12 +25,14 @@ module Arel
         define_method("test_#{klass.name.gsub('::', '_')}") do
           op = klass.new(:a, "z")
           @visitor.accept op, Collectors::PlainString.new
+          pass
         end
       end
 
       def test_named_function
         func = Nodes::NamedFunction.new "omg", "omg"
         @visitor.accept func, Collectors::PlainString.new
+        pass
       end
 
       # unary ops
@@ -48,6 +50,7 @@ module Arel
         define_method("test_#{klass.name.gsub('::', '_')}") do
           op = klass.new(:a)
           @visitor.accept op, Collectors::PlainString.new
+          pass
         end
       end
 
@@ -65,7 +68,6 @@ module Arel
         Arel::Nodes::Matches,
         Arel::Nodes::NotEqual,
         Arel::Nodes::NotIn,
-        Arel::Nodes::Or,
         Arel::Nodes::TableAlias,
         Arel::Nodes::As,
         Arel::Nodes::JoinSource,
@@ -74,6 +76,19 @@ module Arel
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new(:a, :b)
           @visitor.accept binary, Collectors::PlainString.new
+          pass
+        end
+      end
+
+      # nary ops
+      [
+        Arel::Nodes::And,
+        Arel::Nodes::Or,
+      ].each do |klass|
+        define_method("test_#{klass.name.gsub('::', '_')}") do
+          binary = klass.new([:a, :b])
+          @visitor.accept binary, Collectors::PlainString.new
+          pass
         end
       end
 

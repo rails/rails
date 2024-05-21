@@ -129,8 +129,10 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
-  # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
-  # methods when a record is invalid and cannot be saved.
+  # {ActiveRecord::Base.update_attribute!}[rdoc-ref:Persistence#update_attribute!]
+  # methods when a record is failed to validate or cannot be saved due to any of the
+  # <tt>before_*</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
@@ -574,5 +576,10 @@ module ActiveRecord
   # Again, such a workaround should *not* be used when passing user-provided
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
+  end
+
+  # DatabaseVersionError will be raised when the database version is not supported, or when
+  # the database version cannot be determined.
+  class DatabaseVersionError < ActiveRecordError
   end
 end

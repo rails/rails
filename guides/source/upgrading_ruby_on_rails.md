@@ -64,7 +64,7 @@ $ bin/rails app:update
     conflict  config/application.rb
 Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
        force  config/application.rb
-      create  config/initializers/new_framework_defaults_7_2.rb
+      create  config/initializers/new_framework_defaults_8_0.rb
 ...
 ```
 
@@ -76,10 +76,26 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X.Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 7.2 to Rails 8.0
+-------------------------------------
+
+For more information on changes made to Rails 8.0 please see the [release notes](8_0_release_notes.html).
+
 Upgrading from Rails 7.1 to Rails 7.2
 -------------------------------------
 
 For more information on changes made to Rails 7.2 please see the [release notes](7_2_release_notes.html).
+
+### All tests now respect the `active_job.queue_adapter` config
+
+If you have set `config.active_job.queue_adapter` in your `config/application.rb` or `config/environments/test.rb` file,
+the adapter you selected was previously not used consistently across all tests. In some tests your adapter would be
+used, but other tests would use the `TestAdapter`.
+
+In Rails 7.2, all tests will respect the `queue_adapter` config if provided. This may cause test errors, if you had
+set the `queue_adapter` config to something other than `:test`, but written tests in a way that was dependent on the `TestAdapter`.
+
+If no config is provided, the `TestAdapter` will continue to be used.
 
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------

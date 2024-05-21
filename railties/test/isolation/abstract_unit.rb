@@ -34,7 +34,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/testing/isolation"
 require "active_support/core_ext/kernel/reporting"
 require "tmpdir"
-require "rails/secrets"
 
 module TestHelpers
   module Paths
@@ -265,6 +264,7 @@ module TestHelpers
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :info
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+      @app.config.middleware.delete Rails::Rack::LoadRoutes
 
       yield @app if block_given?
       @app.initialize!

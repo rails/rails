@@ -62,6 +62,8 @@ module Rails
             middleware.use ::ActionDispatch::ActionableExceptions
           end
 
+          middleware.use ::Rails::Rack::LoadRoutes, app.routes_reloader unless app.config.eager_load
+
           if config.reloading_enabled?
             middleware.use ::ActionDispatch::Reloader, app.reloader
           end

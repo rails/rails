@@ -1,3 +1,5 @@
+name: "<%= app_name %>"
+
 services:
   rails-app:
     build:
@@ -26,8 +28,8 @@ services:
     - <%= dependency %>
 <%- end -%>
 <%- end -%>
-
 <%- if depends_on_system_test? -%>
+
   selenium:
     image: seleniarm/standalone-chromium
     restart: unless-stopped
@@ -43,10 +45,9 @@ services:
     - default
     volumes:
     - redis-data:/data
+
 <%- end -%>
-
   <%= devcontainer_db_service_yaml(indentation: 4) %>
-
 <%- if !devcontainer_volumes.empty? -%>
 volumes:
 <%- devcontainer_volumes.each do |volume| -%>

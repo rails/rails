@@ -28,6 +28,14 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `Rails::Generators::Testing::Behaviour`.
+
+*   Remove deprecated `Rails.application.secrets`.
+
+*   Remove deprecated `Rails.config.enable_dependency_loading`.
+
+*   Remove deprecated `find_cmd_and_exec` console helper.
+
 ### Deprecations
 
 ### Notable changes
@@ -181,6 +189,10 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config.active_storage.replace_on_assign_to_many`.
+
+*   Remove deprecated `config.active_storage.silence_invalid_content_types_warning`.
+
 ### Deprecations
 
 ### Notable changes
@@ -203,7 +215,48 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
+
+*   Remove deprecated support to call the following methods without passing a deprecator:
+
+    - `deprecate`
+    - `deprecate_constant`
+    - `ActiveSupport::Deprecation::DeprecatedObjectProxy.new`
+    - `ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new`
+    - `ActiveSupport::Deprecation::DeprecatedConstantProxy.new`
+    - `assert_deprecated`
+    - `assert_not_deprecated`
+    - `collect_deprecations`
+
+*   Remove deprecated `ActiveSupport::Deprecation` delegation to instance.
+
+*   Remove deprecated `SafeBuffer#clone_empty`.
+
+*   Remove deprecated `#to_default_s` from `Array`, `Date`, `DateTime` and `Time`.
+
+*   Remove deprecated `:pool_size` and `:pool_timeout` options for the cache storage.
+
+*   Remove deprecated support for `config.active_support.cache_format_version = 6.1`.
+
+*   Remove deprecated constants `ActiveSupport::LogSubscriber::CLEAR` and `ActiveSupport::LogSubscriber::BOLD`.
+
+*   Remove deprecated support to bolding log text with positional boolean in `ActiveSupport::LogSubscriber#color`.
+
+*   Remove deprecated `config.active_support.disable_to_s_conversion`.
+
+*   Remove deprecated `config.active_support.remove_deprecated_time_with_zone_name`.
+
+*   Remove deprecated `config.active_support.use_rfc4122_namespaced_uuids`.
+
+*   Remove deprecated support to passing `Dalli::Client` instances to `MemCacheStore`.
+
+*   Remove deprecated support for the pre-Ruby 2.4 behavior of `to_time` returning a `Time` object with local timezone.
+
 ### Deprecations
+
+*   Deprecate `config.active_support.to_time_preserves_timezone`.
+
+*   Deprecate `DateAndTime::Compatibility.preserve_timezone`.
 
 ### Notable changes
 
@@ -263,16 +316,16 @@ See the
 for the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 
-[railties]:       https://github.com/rails/rails/blob/main/railties/CHANGELOG.md
-[action-pack]:    https://github.com/rails/rails/blob/main/actionpack/CHANGELOG.md
-[action-view]:    https://github.com/rails/rails/blob/main/actionview/CHANGELOG.md
-[action-mailer]:  https://github.com/rails/rails/blob/main/actionmailer/CHANGELOG.md
-[action-cable]:   https://github.com/rails/rails/blob/main/actioncable/CHANGELOG.md
-[active-record]:  https://github.com/rails/rails/blob/main/activerecord/CHANGELOG.md
-[active-storage]: https://github.com/rails/rails/blob/main/activestorage/CHANGELOG.md
-[active-model]:   https://github.com/rails/rails/blob/main/activemodel/CHANGELOG.md
-[active-support]: https://github.com/rails/rails/blob/main/activesupport/CHANGELOG.md
-[active-job]:     https://github.com/rails/rails/blob/main/activejob/CHANGELOG.md
-[action-text]:    https://github.com/rails/rails/blob/main/actiontext/CHANGELOG.md
-[action-mailbox]: https://github.com/rails/rails/blob/main/actionmailbox/CHANGELOG.md
-[guides]:         https://github.com/rails/rails/blob/main/guides/CHANGELOG.md
+[railties]:       https://github.com/rails/rails/blob/7-2-stable/railties/CHANGELOG.md
+[action-pack]:    https://github.com/rails/rails/blob/7-2-stable/actionpack/CHANGELOG.md
+[action-view]:    https://github.com/rails/rails/blob/7-2-stable/actionview/CHANGELOG.md
+[action-mailer]:  https://github.com/rails/rails/blob/7-2-stable/actionmailer/CHANGELOG.md
+[action-cable]:   https://github.com/rails/rails/blob/7-2-stable/actioncable/CHANGELOG.md
+[active-record]:  https://github.com/rails/rails/blob/7-2-stable/activerecord/CHANGELOG.md
+[active-storage]: https://github.com/rails/rails/blob/7-2-stable/activestorage/CHANGELOG.md
+[active-model]:   https://github.com/rails/rails/blob/7-2-stable/activemodel/CHANGELOG.md
+[active-support]: https://github.com/rails/rails/blob/7-2-stable/activesupport/CHANGELOG.md
+[active-job]:     https://github.com/rails/rails/blob/7-2-stable/activejob/CHANGELOG.md
+[action-text]:    https://github.com/rails/rails/blob/7-2-stable/actiontext/CHANGELOG.md
+[action-mailbox]: https://github.com/rails/rails/blob/7-2-stable/actionmailbox/CHANGELOG.md
+[guides]:         https://github.com/rails/rails/blob/7-2-stable/guides/CHANGELOG.md

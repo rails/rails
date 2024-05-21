@@ -1,7 +1,7 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/ruby/.devcontainer/base.Dockerfile
 
 # [Choice] Ruby version: 3, 3.3, 3.2, 3.1, 3.0, 2, 2.7, 2.6
-ARG VARIANT="3.3.0"
+ARG VARIANT="3.3.1"
 FROM ghcr.io/rails/devcontainer/images/ruby:${VARIANT}
 
 # [Optional] Uncomment this section to install additional OS packages.
@@ -36,4 +36,3 @@ USER vscode
 RUN cd /tmp/rails \
     && /home/vscode/.rbenv/shims/bundle install \
     && rm -rf /tmp/rails
-

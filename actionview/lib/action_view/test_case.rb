@@ -171,8 +171,8 @@ module ActionView
           # Almost a duplicate from ActionController::Helpers
           methods.flatten.each do |method|
             _helpers_for_modification.module_eval <<~end_eval, __FILE__, __LINE__ + 1
-              def #{method}(...)                    # def current_user(*args, &block)
-                _test_case.send(:'#{method}', ...)  #   _test_case.send(:'current_user', *args, &block)
+              def #{method}(...)                    # def current_user(...)
+                _test_case.send(:'#{method}', ...)  #   _test_case.send(:'current_user', ...)
               end                                   # end
             end_eval
           end

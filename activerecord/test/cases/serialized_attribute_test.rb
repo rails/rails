@@ -434,10 +434,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end
 
     subclass = Class.new(klass) do
-      self.table_name = "posts"
+      self.table_name = "topics"
     end
 
     subclass.define_attribute_methods
+
+    topic = subclass.create!(content: { foo: 1 })
+    assert_equal [topic], subclass.where(content: { foo: 1 }).to_a
   end
 
   def test_nil_is_always_persisted_as_null
@@ -502,11 +505,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
       store :content, coder: ActiveRecord::Coders::JSON
-      attribute(:content) { |subtype| EncryptedType.new(subtype: subtype) }
+      decorate_attributes([:content]) do |name, type|
+        EncryptedType.new(subtype: type)
+      end
     end
 
     topic = klass.create!(content: { trial: true })
-
     assert_equal({ "trial" => true }, topic.content)
   end
 

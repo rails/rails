@@ -51,6 +51,7 @@ $gray-600: #666666;
 $gray-650: #505050;
 $gray-700: #3A3939;
 $gray-800: #343434;
+$gray-850: #2E2E2E;
 $gray-900: #292929;
 $gray-1000: #181818;
 
@@ -69,6 +70,14 @@ $stop: $rf-brand;
 $stop-dark: rgba($stop, 0.5);
 $stop-bkgnd: rgba($stop, 15%);
 $stop-bkgnd-dark: rgba($stop, 5%);
+
+// APCA has different rules if the background is darker than #333333.
+// The variables with darker in them are intended for those cases.
+// Large text is text that is > 24px
+// See https://github.com/Myndex/SAPC-APCA/discussions/106
+$text-on-dark-bg: #EDEDED; // APCA Lc 90 on gray-800
+$text-on-darker-bg: #E5E5E5; // APCA Lc -89.9 on gray-1000, Lc -87.4 on gray-900
+$large-text-on-darker-bg: #CCCCCC; // APCA Lc -74.6 on gray-1000, Lc -72.0 on gray-900
 
 // ----------------------------------------------------------------------------
 // Fonts
