@@ -730,7 +730,7 @@ This will define a `user_path` helper that will match a route such as `/jane`. I
 
 ### HTTP Verb Constraints
 
-In general, you should use the [`get`][], [`post`][], [`put`][], [`patch`][], and [`delete`][] methods to constrain a route to a particular verb. You can use the [`match`][] method with the `:via` option to match multiple verbs at once:
+In general, you should use the [`get`][], [`post`][], [`put`][], [`patch`][], and [`delete`][] methods to constrain a route to a particular verb. There is a [`match`][] method that you could use with the `:via` option to match multiple verbs at once:
 
 ```ruby
 match 'photos', to: 'photos#show', via: [:get, :post]
@@ -742,7 +742,7 @@ You can match all verbs to a particular route using `via: :all`:
 match 'photos', to: 'photos#show', via: :all
 ```
 
-NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason to.
+NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason.
 
 NOTE: `GET` in Rails won't check for CSRF token. You should never write to the database from `GET` requests, for more information see the [security guide](security.html#csrf-countermeasures) on CSRF countermeasures.
 
@@ -756,7 +756,7 @@ You can use the `:constraints` option to enforce a format for a dynamic segment:
 get 'photos/:id', to: 'photos#show', constraints: { id: /[A-Z]\d{5}/ }
 ```
 
-This route would match paths such as `/photos/A12345`, but not `/photos/893`. You can more succinctly express the same route this way:
+The above route definition requires `id` to be 5 alphanumeric characters long. Therefore, this route would match paths such as `/photos/A12345`, but not `/photos/893`. You can more succinctly express the same route this way:
 
 ```ruby
 get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
@@ -770,22 +770,26 @@ get '/:id', to: 'articles#show', constraints: { id: /^\d/ }
 
 However, note that you don't need to use anchors because all routes are anchored at the start and the end.
 
-For example, the following routes would allow for `articles` with `to_param` values like `1-hello-world` that always begin with a number and `users` with `to_param` values like `david` that never begin with a number to share the root namespace:
+For example:
 
 ```ruby
 get '/:id', to: 'articles#show', constraints: { id: /\d.+/ }
 get '/:username', to: 'users#show'
 ```
 
+The above routes would allow for `articles` with `id` values like `1-hello-world` that always begin with a number and `users` with `username` values like `david` that never begin with a number to share the root namespace.
+
 ### Request-Based Constraints
 
 You can also constrain a route based on any method on the [Request object](action_controller_overview.html#the-request-object) that returns a `String`.
 
-You specify a request-based constraint the same way that you specify a segment constraint:
+You specify a request-based constraint the same way that you specify a segment constraint. For example:
 
 ```ruby
 get 'photos', to: 'photos#index', constraints: { subdomain: 'admin' }
 ```
+
+Will match an incoming request with a path to `admin` subdomain.
 
 You can also specify constraints by using a [`constraints`][] block:
 
@@ -797,9 +801,11 @@ namespace :admin do
 end
 ```
 
+Will match something like `https://admin.yourdomain.com/photos`.
+
 NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then comparing the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected. However, using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
 
-NOTE: There is an exception for the `format` constraint: while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the `format` constraint is only applied as such when enforced through a hash. For example, `get 'foo', constraints: { format: 'json' }` will match `GET  /foo` because the format is optional by default. However, you can [use a lambda](#advanced-constraints) like in `get 'foo', constraints: lambda { |req| req.format == :json }` and the route will only match explicit JSON requests.
+NOTE: There is an exception for the `format` constraint, while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the `format` constraint is only applied when enforced through a hash. For example, `get 'foo', constraints: { format: 'json' }` will match `GET  /foo` because the format is optional by default. However, you can [use a lambda](#advanced-constraints) like in `get 'foo', constraints: lambda { |req| req.format == :json }` and the route will only match explicit JSON requests.
 
 [`constraints`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-constraints
 
