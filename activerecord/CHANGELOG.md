@@ -4,7 +4,7 @@
 
     ```ruby
     ActiveRecord.schema_cache_ignored_tables = ["developers"]
-    ActiveRecord.schema_cache_ignored_tables?("developers")
+    ActiveRecord.schema_cache_ignored_table?("developers")
     => true
     ```
 
