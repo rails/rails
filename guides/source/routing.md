@@ -1214,19 +1214,21 @@ url_for([@account, @article])            # => /1/article/9
 form_with(model: [@account, @article])   # => <form action="/1/article/9" ...>
 ```
 
-We are [using a constraint](#segment-constraints) to limit the scope to only match ID-like strings. You can change the constraint to suit your needs, or omit it entirely. The `:as` option is also not strictly required, but without it, Rails will raise an error when evaluating `url_for([@account, @article])` or other helpers that rely on `url_for`, such as [`form_with`][].
+The `:as` option is also not required, but without it, Rails will raise an error when evaluating `url_for([@account, @article])` or other helpers that rely on `url_for`, such as [`form_with`][].
 
 [`form_with`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with
 
 ### Restricting the Routes Created
 
-By default, Rails creates routes for the seven default actions (`index`, `show`, `new`, `create`, `edit`, `update`, and `destroy`) for every RESTful route in your application. You can use the `:only` and `:except` options to fine-tune this behavior. The `:only` option tells Rails to create only the specified routes:
+By default, using `resources` creates routes for the seven default actions (`index`, `show`, `new`, `create`, `edit`, `update`, and `destroy`). You can use the `:only` and `:except` options to limit which routes are created. 
+
+The `:only` option tells Rails to create only the specified routes:
 
 ```ruby
 resources :photos, only: [:index, :show]
 ```
 
-Now, a `GET` request to `/photos` would succeed, but a `POST` request to `/photos` (which would ordinarily be routed to the `create` action) will fail.
+Now, a `GET` request to `/photos` would succeed, but a `POST` request to `/photos` will fail.
 
 The `:except` option specifies a route or list of routes that Rails should _not_ create:
 
