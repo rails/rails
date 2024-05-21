@@ -53,8 +53,7 @@ module Rails
           end
 
           def edit_devcontainer_files
-            devcontainer_path = File.expand_path(".devcontainer", destination_root)
-            return unless File.exist?(devcontainer_path)
+            return unless devcontainer?
 
             edit_devcontainer_json
             edit_compose_yaml
@@ -193,6 +192,12 @@ module Rails
 
             def database
               @database ||= Database.build(options[:database])
+            end
+
+            def devcontainer?
+              return @devcontainer if defined?(@devcontainer)
+
+              @devcontainer = File.exist?(File.expand_path(".devcontainer", destination_root))
             end
         end
       end

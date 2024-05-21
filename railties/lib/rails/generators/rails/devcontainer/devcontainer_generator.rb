@@ -26,6 +26,8 @@ module Rails
       class_option :dev, type: :boolean, default: false,
                     desc: "For applications pointing to a local Rails checkout"
 
+      source_paths << File.expand_path(File.join(base_name, "app", "templates"), base_root)
+
       def create_devcontainer
         empty_directory ".devcontainer"
 
@@ -41,7 +43,22 @@ module Rails
         gsub_file("test/application_system_test_case.rb", /^(\s*driven_by\b.*)/, system_test_configuration)
       end
 
+      def update_database_yml
+        # Only postgresql has devcontainer specific configuration, so only update database.yml if we are using postgres
+        return unless options[:database] == "postgresql"
+
+        template("config/databases/#{options[:database]}.yml", "config/database.yml")
+      end
+
       private
+        def devcontainer?
+          true
+        end
+
+        def app_name
+          options[:app_name]
+        end
+
         def dependencies
           return @dependencies if @dependencies
 

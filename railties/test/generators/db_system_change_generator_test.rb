@@ -38,6 +38,7 @@ module Rails
             assert_file("config/database.yml") do |content|
               assert_match "adapter: postgresql", content
               assert_match "database: tmp_production", content
+              assert_match "host: <%= ENV[\"DB_HOST\"] %>", content
             end
 
             assert_file("Gemfile") do |content|

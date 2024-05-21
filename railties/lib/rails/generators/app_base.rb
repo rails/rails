@@ -413,6 +413,10 @@ module Rails
         !options[:devcontainer]
       end
 
+      def devcontainer?
+        options[:devcontainer]
+      end
+
       def skip_kamal?
         options[:skip_kamal]
       end
