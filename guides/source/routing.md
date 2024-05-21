@@ -1356,7 +1356,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 ### Listing Existing Routes
 
-To get a complete list of the available routes in your application, visit <http://localhost:3000/rails/info/routes> in your browser while your server is running in the **development** environment. You can also execute the `bin/rails routes` command in your terminal to produce the same output.
+To get a complete list of routes available in an application, visit `http://localhost:3000/rails/info/routes` in the **development** environment. You can also execute the `bin/rails routes` command in your terminal to get the same output.
 
 Both methods will list all of your routes, in the same order that they appear in `config/routes.rb`. For each route, you'll see:
 
@@ -1401,7 +1401,9 @@ URI               | /users/:id/edit(.:format)
 Controller#Action | users#edit
 ```
 
-You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
+### Searching Routes
+
+You can search through your routes with the grep option: `-g`. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```bash
 $ bin/rails routes -g new_comment
@@ -1409,7 +1411,7 @@ $ bin/rails routes -g POST
 $ bin/rails routes -g admin
 ```
 
-If you only want to see the routes that map to a specific controller, there's the -c option.
+If you only want to see the routes that map to a specific controller, there's the `-c` option.
 
 ```bash
 $ bin/rails routes -c users
@@ -1418,7 +1420,7 @@ $ bin/rails routes -c Comments
 $ bin/rails routes -c Articles::CommentsController
 ```
 
-TIP: You'll find that the output from `bin/rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
+TIP: The output from `bin/rails routes` is easier to read if you widen your terminal window until the output lines don't wrap.
 
 ### Testing Routes
 
@@ -1457,7 +1459,7 @@ assert_recognizes({ controller: 'photos', action: 'create' }, { path: 'photos', 
 
 #### The `assert_routing` Assertion
 
-The [`assert_routing`][] assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of `assert_generates` and `assert_recognizes`:
+The [`assert_routing`][] assertion checks the route both ways. It combines the functionality of both `assert_generates` and `assert_recognizes`. It tests that the path generates the options, and that the options generate the path:
 
 ```ruby
 assert_routing({ path: 'photos', method: :post }, { controller: 'photos', action: 'create' })
