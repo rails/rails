@@ -869,15 +869,17 @@ Rails.application.routes.draw do
 end
 ```
 
-### Route Globbing and Wildcard Segments
+### Wildcard Segments
 
-Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example:
+A route definition can have a wildcard segment, which is a segment prefixed with a star, such as`*other`:
 
 ```ruby
 get 'photos/*other', to: 'photos#unknown'
 ```
 
-This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The segments prefixed with a star are called "wildcard segments".
+Wildcard segments allow for something called "route globbing", which is a way to specify that a particular parameter (`*other` above) be matched to the remaining part of a route.
+
+So the above route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`.
 
 Wildcard segments can occur anywhere in a route. For example:
 
@@ -887,7 +889,7 @@ get 'books/*section/:title', to: 'books#show'
 
 would match `books/some/section/last-words-a-memoir` with `params[:section]` equals `'some/section'`, and `params[:title]` equals `'last-words-a-memoir'`.
 
-Technically, a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example:
+Technically, a route can have even more than one wildcard segment. The matcher assigns segments to parameters in the order they occur. For example:
 
 ```ruby
 get '*a/foo/*b', to: 'test#index'
@@ -895,13 +897,21 @@ get '*a/foo/*b', to: 'test#index'
 
 would match `zoo/woo/foo/bar/baz` with `params[:a]` equals `'zoo/woo'`, and `params[:b]` equals `'bar/baz'`.
 
-NOTE: By requesting `'/foo/bar.json'`, your `params[:pages]` will be equal to `'foo/bar'` with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `format: false` like this:
+### Format Segments
+
+Given this route definition:
+
+```ruby
+get '*pages', to: 'pages#show'
+```
+
+By requesting `'/foo/bar.json'`, your `params[:pages]` will be equal to `'foo/bar'` with the request format of JSON. If you want to match URLs without an explicit format and ignore URLs that include a format extension, you could supply `format: false` like this:
 
 ```ruby
 get '*pages', to: 'pages#show', format: false
 ```
 
-NOTE: If you want to make the format segment mandatory, so it cannot be omitted, you can supply `format: true` like this:
+If you want to make the format segment mandatory, so it cannot be omitted, you can supply `format: true` like this:
 
 ```ruby
 get '*pages', to: 'pages#show', format: true
