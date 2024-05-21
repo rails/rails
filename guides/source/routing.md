@@ -988,7 +988,7 @@ root to: 'pages#main'
 root 'pages#main' # shortcut for the above
 ```
 
-You should put the `root` route at the top of the file, because it is the most popular route and should be matched first.
+You typically put the `root` route at the top of the file so that it can be matched first.
 
 NOTE: The `root` route only routes `GET` requests to the action.
 
@@ -1002,6 +1002,8 @@ end
 root to: "home#index"
 ```
 
+Will match `/admin` to the `index` action for the `AdminController` and match `/` to `index` action of the `HomeController`.
+
 [`root`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-root
 
 ### Unicode Character Routes
@@ -1014,7 +1016,7 @@ get 'こんにちは', to: 'welcome#index'
 
 ### Direct Routes
 
-You can create custom URL helpers directly by calling [`direct`][]. For example:
+You can create custom URL helpers by calling [`direct`][]. For example:
 
 ```ruby
 direct :homepage do
@@ -1025,7 +1027,7 @@ end
 # => "https://rubyonrails.org"
 ```
 
-The return value of the block must be a valid argument for the `url_for` method. So, you can pass a valid string URL, Hash, Array, an Active Model instance, or an Active Model class.
+The return value of the block must be a valid argument for the [`url_for`][] method. So, you can pass a valid string URL, Hash, Array, an Active Model instance, or an Active Model class.
 
 ```ruby
 direct :commentable do |model|
@@ -1038,6 +1040,7 @@ end
 ```
 
 [`direct`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/CustomUrls.html#method-i-direct
+[`url_for`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/UrlFor.html
 
 ### Using `resolve`
 
