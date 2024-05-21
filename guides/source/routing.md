@@ -1311,14 +1311,12 @@ video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
 
-Breaking Up *Very* Large Route File into Multiple Small Ones
--------------------------------------------------------
+Breaking Up Large a Route File With `draw`
+-----------------------------------------
 
-If you work in a large application with thousands of routes, a single `config/routes.rb` file can become cumbersome and hard to read.
+In a large application with thousands of routes, a single `config/routes.rb` file can become cumbersome and hard to read. Rails offers a way to break up a single `routes.rb` file into multiple small ones using the [`draw`][] macro.
 
-Rails offers a way to break a gigantic single `routes.rb` file into multiple small ones using the [`draw`][] macro.
-
-You could have an `admin.rb` route that contains all the routes for the admin area, another `api.rb` file for API related resources, etc.
+For example, you could add an `admin.rb` file that contains all the routes related to admin, another `api.rb` file for API related resources, etc.
 
 ```ruby
 # config/routes.rb
@@ -1338,17 +1336,17 @@ namespace :admin do
 end
 ```
 
-Calling `draw(:admin)` inside the `Rails.application.routes.draw` block itself will try to load a route
-file that has the same name as the argument given (`admin.rb` in this example).
-The file needs to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` or `config/routes/external/admin.rb`).
+Calling `draw(:admin)` inside the `Rails.application.routes.draw` block itself
+will try to load a route file that has the same name as the argument given
+(`admin.rb` in this example). The file needs to be located inside the
+`config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` or
+`config/routes/external/admin.rb`).
 
-You can use the normal routing DSL inside the `admin.rb` routing file, but you **shouldn't** surround it with the `Rails.application.routes.draw` block like you did in the main `config/routes.rb` file.
+NOTE: You can use the normal routing DSL inside a secondary routing file such as `admin.rb`, but *do not* surround it with the `Rails.application.routes.draw` block. That should be used in the main `config/routes.rb` file only.
 
 [`draw`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-draw
 
-### Don't Use This Feature Unless You Really Need It
-
-Having multiple routing files makes discoverability and understandability harder. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.
+NOTE: Don't use the `draw` feature unless you really need it. Having multiple routing files make it harder to discover routes in one place. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.
 
 
 Inspecting and Testing Routes
