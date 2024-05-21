@@ -1285,6 +1285,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file(".devcontainer/Dockerfile") do |content|
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
     end
+    assert_file("test/application_system_test_case.rb") do |content|
+      assert_match(/served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)
+    end
     assert_compose_file do |compose_config|
       assert_equal "my_app", compose_config["name"]
 
