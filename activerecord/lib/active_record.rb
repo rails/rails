@@ -196,6 +196,17 @@ module ActiveRecord
   singleton_class.attr_accessor :schema_cache_ignored_tables
   self.schema_cache_ignored_tables = []
 
+  # Checks to see if the +table_name+ is ignored by checking
+  # against the +schema_cache_ignored_tables` option.
+  #
+  #   table_ignored?(:developers)
+  #
+  def self.schema_cache_ignored_table?(table_name)
+    ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
+      ignored === table_name
+    end
+  end
+
   singleton_class.attr_reader :default_timezone
 
   # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
