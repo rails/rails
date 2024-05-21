@@ -10,12 +10,11 @@ changes to your tables.
 
 After reading this guide, you will know:
 
-* The generators you can use to create migrations.
-* The methods Active Record provides to manipulate your database.
-* The details of manipulating migrations and your schema.
-* Changing existing migrations.
+* Which generators you can use to create migrations.
+* Which methods Active Record provides to manipulate your database.
+* How to change existing migrations and update your schema.
 * How migrations relate to `schema.rb`.
-* Referential integrity.
+* How to maintain referential integrity.
 
 --------------------------------------------------------------------------------
 
@@ -277,7 +276,7 @@ written as:
 $ bin/rails generate migration AddUserRefToProducts user:belongs_to
 ```
 
-generating a migration that looks like the same as the previous one.
+generating a migration that looks like the same as above.
 
 There is also a generator which will produce join tables if `JoinTable` is part
 of the name:
@@ -361,10 +360,9 @@ class AddDetailsToProducts < ActiveRecord::Migration[8.0]
 end
 ```
 
-TIP: When seeking further details about generators, you run `bin/rails generate
---help`. Additionally, remember that specific generators like `bin/rails
-generate model --help` or `bin/rails generate migration --help` can provide more
-focused assistance.
+TIP: For further help with generators, run `bin/rails generate --help`.
+Alternatively, you can also run `bin/rails generate model --help` or `bin/rails
+generate migration --help` for help with specific generators.
 
 Writing Migrations
 ------------------
@@ -502,6 +500,9 @@ create_table :users do |t|
 end
 ```
 
+[`create_table`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_table
+
 #### Comments
 
 You can pass the `:comment` option with any description for the table that will
@@ -519,9 +520,6 @@ class AddDetailsToProducts < ActiveRecord::Migration[8.0]
   end
 end
 ```
-
-[`create_table`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_table
 
 ### Creating a Join Table
 
@@ -719,7 +717,8 @@ add_foreign_key :articles, :authors
 
 This [`add_foreign_key`][] call adds a new constraint to the `articles` table.
 The constraint guarantees that a row in the `authors` table exists where the
-`id` column matches the `articles.author_id`.
+`id` column matches the `articles.author_id` to ensure all reviewers listed in
+the articles table are valid authors listed in the authors table.
 
 If the `from_table` column name cannot be derived from the `to_table` name, you
 can use the `:column` option. Use the `:primary_key` option if the referenced
@@ -1234,7 +1233,7 @@ By running this command the `change` method (or the `up` method) will be
 executed for the migration with the version "20240428000000".
 
 First, this command will check whether the migration exists and if it has
-already been performed and will do nothing if so.
+already been performed and if so, it will do nothing.
 
 If the version specified does not exist, Rails will throw an exception.
 
@@ -1513,7 +1512,7 @@ data integrity across both application and database layers.
 Migrations and Seed Data
 ------------------------
 
-The main purpose of Rails migration feature is to issue commands that modify the
+The main purpose of the Rails migration feature is to issue commands that modify the
 schema using a consistent process. Migrations can also be used to add or modify
 data. This is useful in an existing database that can't be destroyed and
 recreated, such as a production database.
