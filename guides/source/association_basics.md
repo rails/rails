@@ -418,6 +418,9 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[7.2]
 end
 ```
 
+Choosing an Association
+-------------------------
+
 ### Choosing Between `belongs_to` and `has_one`
 
 If you want to set up a one-to-one relationship between two models, you'll need to add `belongs_to` to one, and `has_one` to the other. How do you know which is which?
@@ -496,6 +499,9 @@ You should use `has_many :through` if you need validations, callbacks, or extra 
 
 While `has_and_belongs_to_many` suggests creating a join table with no primary key via `id: false`, consider using a composite primary key for the join table in the `has_many :through` relationship.
 For example, it's recommended to use `create_table :manifests, primary_key: [:assembly_id, :part_id]` in the example above.
+
+Advanced Associations
+-------------------------
 
 ### Polymorphic Associations
 
