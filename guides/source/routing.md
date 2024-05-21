@@ -1129,7 +1129,7 @@ The `:as` option lets you override the default naming for the route helpers. For
 resources :photos, as: 'images'
 ```
 
-This will match `/photos` and route the requests to `PhotosController` as usual, *but* use the value of the `:as` option to name the helpers `images_path` etc., as shown: 
+This will match `/photos` and route the requests to `PhotosController` as usual, *but* use the value of the `:as` option to name the helpers `images_path` etc., as shown:
 
 | HTTP Verb | Path             | Controller#Action | Named Route Helper   |
 | --------- | ---------------- | ----------------- | -------------------- |
@@ -1220,7 +1220,7 @@ The `:as` option is also not required, but without it, Rails will raise an error
 
 ### Restricting the Routes Created
 
-By default, using `resources` creates routes for the seven default actions (`index`, `show`, `new`, `create`, `edit`, `update`, and `destroy`). You can use the `:only` and `:except` options to limit which routes are created. 
+By default, using `resources` creates routes for the seven default actions (`index`, `show`, `new`, `create`, `edit`, `update`, and `destroy`). You can use the `:only` and `:except` options to limit which routes are created.
 
 The `:only` option tells Rails to create only the specified routes:
 
@@ -1262,21 +1262,9 @@ Rails now creates routes to the `CategoriesController`.
 | PATCH/PUT | /kategorien/:id            | categories#update  | category_path(:id)      |
 | DELETE    | /kategorien/:id            | categories#destroy | category_path(:id)      |
 
-### Overriding the Singular Form
-
-If you want to override the singular form of a resource, you should add additional rules to the inflector via [`inflections`][]:
-
-```ruby
-ActiveSupport::Inflector.inflections do |inflect|
-  inflect.irregular 'tooth', 'teeth'
-end
-```
-
-[`inflections`]: https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-inflections
-
 ### Using `:as` in Nested Resources
 
-The `:as` option overrides the automatically-generated name for the resource in nested route helpers. For example:
+The `:as` option can override routing helper names for resources in nested routes as well. For example:
 
 ```ruby
 resources :magazines do
@@ -1284,18 +1272,17 @@ resources :magazines do
 end
 ```
 
-This will create routing helpers such as `magazine_periodical_ads_url` and `edit_magazine_periodical_ad_path`.
+This will create routing helpers such as `magazine_periodical_ads_url` and `edit_magazine_periodical_ad_path` instead of the default `magazine_ads_url` and `edit_magazine_ad_path`.
 
-### Overriding Named Route Parameters
+### Renaming Default Route Parameter `id`
 
-The `:param` option overrides the default resource identifier `:id` (name of
-the [dynamic segment](routing.html#dynamic-segments) used to generate the
-routes). You can access that segment from your controller using
-`params[<:param>]`.
+It is possible to rename the default parameter name `id` with the `:param` option. For example:
 
 ```ruby
 resources :videos, param: :identifier
 ```
+
+Will now use `params[:identifier]` instead of `params[:id]`.
 
 ```
     videos GET  /videos(.:format)                  videos#index
@@ -1308,8 +1295,8 @@ edit_video GET  /videos/:identifier/edit(.:format) videos#edit
 Video.find_by(identifier: params[:identifier])
 ```
 
-You can override `ActiveRecord::Base#to_param` of the associated model to construct
-a URL:
+You can override `ActiveRecord::Base#to_param` of the associated model to
+construct a URL:
 
 ```ruby
 class Video < ApplicationRecord
