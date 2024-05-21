@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-gem "azure-storage-blob", ">= 2.0"
+gem "azure-blob-storage"
 
 require "active_support/core_ext/numeric/bytes"
-require "azure/storage/blob"
-require "azure/storage/common/core/auth/shared_access_signature"
+require "azure_blob_storage"
 
 module ActiveStorage
   # = Active Storage \Azure Storage \Service
@@ -15,10 +14,13 @@ module ActiveStorage
     attr_reader :client, :container, :signer
 
     def initialize(storage_account_name:, storage_access_key:, container:, public: false, **options)
-      @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
-      @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container
       @public = public
+      @client = AzureBlobStorage::Client.new(
+        account_name: storage_account_name,
+        access_key: storage_access_key,
+        container: container,
+        **options)
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, custom_metadata: {}, **)
@@ -26,7 +28,7 @@ module ActiveStorage
         handle_errors do
           content_disposition = content_disposition_with(filename: filename, type: disposition) if disposition && filename
 
-          client.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
+          client.create_block_blob(key, IO.try_convert(io) || io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
         end
       end
     end
@@ -39,7 +41,7 @@ module ActiveStorage
       else
         instrument :download, key: key do
           handle_errors do
-            _, io = client.get_blob(container, key)
+            io = client.get_blob(key)
             io.force_encoding(Encoding::BINARY)
           end
         end
@@ -49,7 +51,7 @@ module ActiveStorage
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
         handle_errors do
-          _, io = client.get_blob(container, key, start_range: range.begin, end_range: range.exclude_end? ? range.end - 1 : range.end)
+          io = client.get_blob(key, start: range.begin, end: range.exclude_end? ? range.end - 1 : range.end)
           io.force_encoding(Encoding::BINARY)
         end
       end
@@ -57,42 +59,28 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key: key do
-        client.delete_blob(container, key)
-      rescue Azure::Core::Http::HTTPError => e
-        raise unless e.type == "BlobNotFound"
+        client.delete_blob(key)
+      rescue AzureBlobStorage::Http::FileNotFoundError
         # Ignore files already deleted
       end
     end
 
     def delete_prefixed(prefix)
       instrument :delete_prefixed, prefix: prefix do
-        marker = nil
-
-        loop do
-          results = client.list_blobs(container, prefix: prefix, marker: marker)
-
-          results.each do |blob|
-            client.delete_blob(container, blob.name)
-          end
-
-          break unless marker = results.continuation_token.presence
-        end
+        client.delete_prefix(prefix)
       end
     end
 
     def exist?(key)
       instrument :exist, key: key do |payload|
-        answer = blob_for(key).present?
-        payload[:exist] = answer
-        answer
+        payload[:exist] = blob_for(key).present?
       end
     end
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
-        generated_url = signer.signed_uri(
-          uri_for(key), false,
-          service: "b",
+        generated_url = client.signed_uri(
+          key,
           permissions: "rw",
           expiry: format_expiry(expires_in)
         ).to_s
@@ -113,25 +101,23 @@ module ActiveStorage
       content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
 
       client.create_append_blob(
-        container,
         destination_key,
         content_type: content_type,
         content_disposition: content_disposition,
         metadata: custom_metadata,
-      ).tap do |blob|
-        source_keys.each do |source_key|
-          stream(source_key) do |chunk|
-            client.append_blob_block(container, blob.name, chunk)
-          end
+      )
+
+      source_keys.each do |source_key|
+        stream(source_key) do |chunk|
+          client.append_blob_block(destination_key, chunk)
         end
       end
     end
 
     private
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
-        signer.signed_uri(
-          uri_for(key), false,
-          service: "b",
+        client.signed_uri(
+          key,
           permissions: "r",
           expiry: format_expiry(expires_in),
           content_disposition: content_disposition_with(type: disposition, filename: filename),
@@ -149,8 +135,8 @@ module ActiveStorage
       end
 
       def blob_for(key)
-        client.get_blob_properties(container, key)
-      rescue Azure::Core::Http::HTTPError
+        client.get_blob_properties(key)
+      rescue AzureBlobStorage::Http::FileNotFoundError
         false
       end
 
@@ -167,8 +153,8 @@ module ActiveStorage
 
         raise ActiveStorage::FileNotFoundError unless blob.present?
 
-        while offset < blob.properties[:content_length]
-          _, chunk = client.get_blob(container, key, start_range: offset, end_range: offset + chunk_size - 1)
+        while offset < blob.size
+          chunk = client.get_blob(key, start: offset, end: offset + chunk_size - 1)
           yield chunk.force_encoding(Encoding::BINARY)
           offset += chunk_size
         end
@@ -176,19 +162,14 @@ module ActiveStorage
 
       def handle_errors
         yield
-      rescue Azure::Core::Http::HTTPError => e
-        case e.type
-        when "BlobNotFound"
-          raise ActiveStorage::FileNotFoundError
-        when "Md5Mismatch"
-          raise ActiveStorage::IntegrityError
-        else
-          raise
-        end
+      rescue AzureBlobStorage::Http::IntegrityError
+        raise ActiveStorage::IntegrityError
+      rescue AzureBlobStorage::Http::FileNotFoundError
+        raise ActiveStorage::FileNotFoundError
       end
 
       def custom_metadata_headers(metadata)
-        metadata.transform_keys { |key| "x-ms-meta-#{key}" }
+        AzureBlobStorage::Metadata.new(metadata).headers
       end
   end
 end
