@@ -406,6 +406,15 @@ This event is only emitted when [`config.active_record.action_on_strict_loading_
 }
 ```
 
+#### `transaction.active_record`
+
+This event is emmited for every transaction to the database.
+
+| Key                  | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| `:connection`        | Connection object                                    |
+| `:outcome`           | `:commit`, `:rollback`, `:restart`, or `:incomplete` |
+
 ### Action Mailer
 
 #### `deliver.action_mailer`
