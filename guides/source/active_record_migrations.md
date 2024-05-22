@@ -91,7 +91,7 @@ Active Record intelligently handles the removal of the table, maintaining
 database consistency throughout the process. You can read more about reversing
 migrations [here](#using-reversible).
 
-Generating Migrations
+Generating Migration Files
 ----------------------
 
 ### Creating a Standalone Migration
@@ -165,7 +165,7 @@ The generated file with its contents is just a starting point, and you can add
 or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_create_products.rb` file.
 
-### Adding New Columns
+### Adding Columns
 
 If the migration name is of the form "AddColumnToTable" or
 "RemoveColumnFromTable" and is followed by a list of column names and types then
@@ -366,11 +366,13 @@ TIP: For further help with generators, run `bin/rails generate --help`.
 Alternatively, you can also run `bin/rails generate model --help` or `bin/rails
 generate migration --help` for help with specific generators.
 
-Writing Migrations
+Updating Migrations
 ------------------
 
-Once you have created your migration using one of the generators it's time to
-get to work!
+Once you have created your migration using one of the generators from the above
+[section](#generating-migration-files), you can update the generated migration
+file in the `db/migrate` folder to define the specific changes you want to make
+to your database schema.
 
 ### Creating a Table
 
