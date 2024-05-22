@@ -615,8 +615,9 @@ change_column :products, :part_number, :text
 
 This changes the column `part_number` on products table to be a `:text` field.
 
-NOTE: The `change_column` command is **irreversible**. You should provide your
-own `reversible` migration, you can read more about reversible migrations
+NOTE: The `change_column` command is **irreversible**. To ensure your migration
+can be safely reverted, you will need to provide your own `reversible`
+migration. You can read more about reversible migrations
 [here](#using-reversible).
 
 Besides `change_column`, the [`change_column_null`][] and
