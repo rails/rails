@@ -741,7 +741,7 @@ the table and you'll have the option to add a foreign key using `foreign_key:
 true` to that column. However, if you want to add a foreign key to an existing
 column, you can use `add_foreign_key`.
 
-If the column name of the table that we're adding the foreign key to cannot be
+If the column name of the table to which we're adding the foreign key cannot be
 derived from the table with the referenced primary key then you can use the
 `:column` option to specify the column name. Additionally, you can use the
 `:primary_key` option if the referenced primary key is not `:id`.
@@ -922,7 +922,8 @@ write the `up` and `down` methods instead of using the `change` method.
 ### Using `reversible`
 
 If you'd like for a migration to do something that Active Record doesn't know
-how to reverse, then you can use `reversible`:
+how to reverse, then you can use `reversible` to specify what to do when running a
+migration and what else to do when reverting it.
 
 ```ruby
 class ChangeProductsPrice < ActiveRecord::Migration[8.0]
