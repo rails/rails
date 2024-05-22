@@ -854,6 +854,10 @@ class DontUseDistributorsViewMigration < ActiveRecord::Migration[7.2]
   def change
     revert do
       # copy-pasted code from ExampleMigration
+      create_table :distributors do |t|
+        t.string :zipcode
+      end
+
       reversible do |direction|
         direction.up do
           # create a distributors view
