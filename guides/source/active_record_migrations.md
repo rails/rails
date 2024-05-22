@@ -138,9 +138,10 @@ based on conventions and additional arguments.
 
 ### Creating a New Table
 
-If the migration name is of the form "CreateXXX" and is followed by a list of
-column names and types then a migration creating the table XXX with the columns
-listed will be generated.
+When you want to create a new table in your database, you can use a migration
+with the format "CreateXXX" followed by a list of column names and types. This
+will generate a migration file that sets up the table with the specified
+columns.
 
 ```bash
 $ bin/rails generate migration CreateProducts name:string part_number:string
@@ -167,10 +168,10 @@ or remove from it as you see fit by editing the
 
 ### Adding Columns
 
-If the migration name is of the form "AddColumnToTable" or
-"RemoveColumnFromTable" and is followed by a list of column names and types then
-a migration containing the appropriate [`add_column`][] and [`remove_column`][]
-statements will be created.
+When you want to add a new column to an existing table in your database, you can
+use a migration with the format "AddColumnToTable" followed by a list of column
+names and types. This will generate a migration file containing the appropriate
+[`add_column`][] statements.
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts part_number:string
@@ -224,14 +225,15 @@ end
 
 ### Removing Columns
 
-Similarly, you can generate a migration to remove a column from the command
-line:
+Similarly, if the migration name is of the form "RemoveColumnFromTable" and is
+followed by a list of column names and types then a migration containing the
+appropriate [`remove_column`][] statements will be created.
 
 ```bash
 $ bin/rails generate migration RemovePartNumberFromProducts part_number:string
 ```
 
-This generates the appropriate [`remove_column`][] statements:
+This will generate the appropriate [`remove_column`][] statements:
 
 ```ruby
 class RemovePartNumberFromProducts < ActiveRecord::Migration[8.0]
@@ -243,9 +245,16 @@ end
 
 ### Creating Associations
 
-The generator accepts column type as `references`. [References](#references) are
-a shorthand for creating columns, indexes, foreign keys, or even polymorphic
-association columns.
+Active Record associations are used to define relationships between different
+models in your application, allowing them to interact with each other through
+their relationships and making it easier to work with related data. To learn
+more about associations, you can refer to the [Association Basics
+guide](association_basics.html).
+
+One common use case for associations is creating foreign key references between
+tables. The generator accepts column types such as `references` to facilitate
+this process. [References](#references) are a shorthand for creating columns,
+indexes, foreign keys, or even polymorphic association columns.
 
 For example, generating the following migration will create a `user_id` column
 and additionally create an index on that column.
@@ -300,8 +309,6 @@ class CreateJoinTableUserProduct < ActiveRecord::Migration[8.0]
 end
 ```
 
-You can learn more about associations [here](association_basics.html).
-
 [`add_column`]:
     https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column
 [`add_index`]:
@@ -342,8 +349,10 @@ You can append as many column name/type pairs as you want.
 
 ### Passing Modifiers
 
-Some commonly used [type modifiers](#column-modifiers) can be passed directly on
-the command line. They are enclosed by curly braces and follow the field type:
+When generating migrations, you can pass commonly used [type
+modifiers](#column-modifiers) directly on the command line. These modifiers,
+enclosed by curly braces, follow the field type and allow you to define specific
+attributes for your columns.
 
 For instance, running:
 
@@ -369,10 +378,10 @@ generate migration --help` for help with specific generators.
 Updating Migrations
 ------------------
 
-Once you have created your migration using one of the generators from the above
-[section](#generating-migration-files), you can update the generated migration
-file in the `db/migrate` folder to define the specific changes you want to make
-to your database schema.
+Once you have created your migration file using one of the generators from the
+above [section](#generating-migration-files), you can update the generated
+migration file in the `db/migrate` folder to define further changes you want to
+make to your database schema.
 
 ### Creating a Table
 
@@ -409,8 +418,8 @@ create_table :products do |t|
 end
 ```
 
-You can also specify the column type and index creation using the `:polymorphic`
-option:
+You can also specify the column type and index creation using the
+[`:polymorphic`](association_basics.html#polymorphic-associations) option:
 
 ```ruby
 create_table :taggings do |t|
