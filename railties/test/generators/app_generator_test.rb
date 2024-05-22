@@ -582,7 +582,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_javascript_is_skipped_if_required
-    run_generator [destination_root, "--skip-javascript"]
+    run_generator [destination_root, "-a", "sprockets", "--skip-javascript"]
 
     assert_no_file "app/javascript"
 
