@@ -24,6 +24,14 @@ GIT
       rdoc (>= 5.0)
       rouge
 
+GIT
+  remote: https://github.com/ruby/rdoc.git
+  revision: 5c7ea6fa15f403b1c84f5b823716f75595c97d8c
+  branch: master
+  specs:
+    rdoc (6.6.3.1)
+      psych (>= 4.0.0)
+
 PATH
   remote: .
   specs:
@@ -435,8 +443,6 @@ GEM
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     rbtree (0.4.6)
-    rdoc (6.6.3.1)
-      psych (>= 4.0.0)
     redcarpet (3.2.3)
     redis (5.0.8)
       redis-client (>= 0.17.0)
@@ -661,7 +667,7 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 13)
-  rdoc (~> 6.5)
+  rdoc!
   redcarpet (~> 3.2.3)
   redis (>= 4.0.1)
   redis-namespace
