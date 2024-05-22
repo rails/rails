@@ -48,7 +48,7 @@ module ActionController
     #     `If-None-Match` header may receive a `304 Not Modified` response if the
     #     ETag matches exactly.
     #
-    #     A weak ETag indicates semantic equivalence, not byte-for-byte equality, so
+    # :   A weak ETag indicates semantic equivalence, not byte-for-byte equality, so
     #     they're good for caching HTML pages in browser caches. They can't be used
     #     for responses that must be byte-identical, like serving `Range` requests
     #     within a PDF file.
@@ -58,7 +58,7 @@ module ActionController
     #     `If-None-Match` header may receive a `304 Not Modified` response if the
     #     ETag matches exactly.
     #
-    #     A strong ETag implies exact equality -- the response must match byte for
+    # :   A strong ETag implies exact equality -- the response must match byte for
     #     byte. This is necessary for serving `Range` requests within a large video
     #     or PDF file, for example, or for compatibility with some CDNs that don't
     #     support weak ETags.
