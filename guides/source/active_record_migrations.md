@@ -351,8 +351,9 @@ You can append as many column name/type pairs as you want.
 
 When generating migrations, you can pass commonly used [type
 modifiers](#column-modifiers) directly on the command line. These modifiers,
-enclosed by curly braces, follow the field type and allow you to define specific
-attributes for your columns.
+enclosed by curly braces and following the field type, allow you to tailor the
+characteristics of your database columns without needing to manually edit the
+migration file afterward.
 
 For instance, running:
 
@@ -1044,6 +1045,18 @@ example, it might destroy some data.
 In such cases, you can raise `ActiveRecord::IrreversibleMigration` in your
 `down` block.
 
+```ruby
+class IrreversibleMigrationExample < ActiveRecord::Migration[8.0]
+  def up
+    drop_table :example_table
+  end
+
+  def down
+    raise ActiveRecord::IrreversibleMigration, "This migration cannot be reverted because it destroys data."
+  end
+end
+```
+
 If someone tries to revert your migration, an error message will be displayed
 saying that it can't be done.
 
@@ -1202,7 +1215,8 @@ initialize it with the seed data.
 ### Preparing the Database
 
 The `bin/rails db:prepare` command is similar to `bin/rails db:setup`, but it
-operates idempotently.
+operates idempotently, so it can safely be called several times, but it will
+only perform the necessary tasks once.
 
 * If the database has not been created yet, the command will run as the
   `bin/rails db:setup` does.
