@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest", ">= 5.15.0", "< 5.22.0"
+gem "minitest", ">= 5.15.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -61,7 +61,7 @@ end
 
 group :doc do
   gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
-  gem "rdoc", "~> 6.5"
+  gem "rdoc", github: "rails/rdoc", branch: "master"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"

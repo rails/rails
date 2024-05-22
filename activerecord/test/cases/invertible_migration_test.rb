@@ -481,7 +481,7 @@ module ActiveRecord
     end
 
     # MySQL 5.7 and Oracle do not allow to create duplicate indexes on the same columns
-    unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :OracleAdapter)
+    unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_migrate_revert_add_index_with_name
         RevertNamedIndexMigration1.new.migrate(:up)
         RevertNamedIndexMigration2.new.migrate(:up)

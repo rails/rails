@@ -327,6 +327,7 @@ module Rails
           end
 
           if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_dates = true
             active_record.validate_migration_timestamps = true
             active_record.automatically_invert_plural_associations = true
           end
