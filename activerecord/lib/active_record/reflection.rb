@@ -428,11 +428,15 @@ module ActiveRecord
       # a new association object. Use +build_association+ or +create_association+
       # instead. This allows plugins to hook into association object creation.
       def klass
-        @klass ||= compute_class(class_name)
+        @klass ||= compute_class(compute_name(class_name))
       end
 
       def compute_class(name)
         name.constantize
+      end
+
+      def compute_name(name) # :nodoc:
+        active_record.name.demodulize == name ? "::#{name}" : name
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
@@ -994,7 +998,7 @@ module ActiveRecord
       end
 
       def klass
-        @klass ||= delegate_reflection.compute_class(class_name)
+        @klass ||= delegate_reflection.compute_class(compute_name(class_name))
       end
 
       # Returns the source of the through reflection. It checks both a singularized

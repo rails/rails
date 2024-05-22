@@ -1,3 +1,17 @@
+*   Fix inference of association model on nested models with the same demodularized name.
+
+    E.g. with the following setup:
+
+    ```ruby
+    class Nested::Post < ApplicationRecord
+      has_one :post, through: :other
+    end
+    ```
+
+    Before, `#post` would infer the model as `Nested::Post`, but now it correctly infers `Post`.
+
+    *Joshua Young*
+
 *   PostgreSQL `Cidr#change?` detects the address prefix change.
 
     *Taketo Takashima*
