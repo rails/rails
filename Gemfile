@@ -60,7 +60,7 @@ end
 
 group :doc do
   gem "sdoc"
-  gem "rdoc", github: "ruby/rdoc", branch: "master"
+  gem "rdoc", github: "rails/rdoc", branch: "master"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"

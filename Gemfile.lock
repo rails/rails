@@ -15,8 +15,8 @@ GIT
     httpclient (2.8.3)
 
 GIT
-  remote: https://github.com/ruby/rdoc.git
-  revision: 5c7ea6fa15f403b1c84f5b823716f75595c97d8c
+  remote: https://github.com/rails/rdoc.git
+  revision: 7472b691920b65b9e0f9f4d1bd6ed757c71d5c70
   branch: master
   specs:
     rdoc (6.6.3.1)
