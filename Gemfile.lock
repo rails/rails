@@ -15,6 +15,14 @@ GIT
     httpclient (2.8.3)
 
 GIT
+  remote: https://github.com/rails/rdoc.git
+  revision: 7472b691920b65b9e0f9f4d1bd6ed757c71d5c70
+  branch: master
+  specs:
+    rdoc (6.6.3.1)
+      psych (>= 4.0.0)
+
+GIT
   remote: https://github.com/rails/sdoc.git
   revision: e9bb867eba81f48c402a129e688e810ec1fa387c
   branch: main
@@ -23,14 +31,6 @@ GIT
       nokogiri
       rdoc (>= 5.0)
       rouge
-
-GIT
-  remote: https://github.com/ruby/rdoc.git
-  revision: 5c7ea6fa15f403b1c84f5b823716f75595c97d8c
-  branch: master
-  specs:
-    rdoc (6.6.3.1)
-      psych (>= 4.0.0)
 
 PATH
   remote: .
