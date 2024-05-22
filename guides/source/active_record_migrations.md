@@ -91,7 +91,6 @@ Active Record intelligently handles the removal of the table, maintaining
 database consistency throughout the process. You can read more about reversing
 migrations [here](#using-reversible).
 
-
 Generating Migrations
 ----------------------
 
@@ -100,24 +99,27 @@ Generating Migrations
 Migrations are stored as files in the `db/migrate` directory, one for each
 migration class.
 
-The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, that is
-to say a UTC timestamp identifying the migration followed by an underscore
+The name of the file is of the form `YYYYMMDDHHMMSS_create_products.rb`, it
+contains a UTC timestamp identifying the migration followed by an underscore
 followed by the name of the migration. The name of the migration class
-(CamelCased version) should match the latter part of the file name. For example,
-`20240502100843_create_products.rb` should define class `CreateProducts` and
-`20240502101659_add_details_to_products.rb` should define class
-`AddDetailsToProducts`. Rails uses this timestamp to determine which migration
-should be run and in what order, so if you're copying a migration from another
-application or generate a file yourself, be aware of its position in the order.
+(CamelCased version) should match the latter part of the file name.
 
-Of course, calculating timestamps manually is tedious, so Active Record provides a
-generator to handle making it for you:
+For example, `20240502100843_create_products.rb` should define class
+`CreateProducts` and `20240502101659_add_details_to_products.rb` should define
+class `AddDetailsToProducts`. Rails uses this timestamp to determine which
+migration should be run and in what order, so if you're copying a migration from
+another application or generating a file yourself, be aware of its position in
+the order. You can read more about how the timestamps are used in the [Rails
+Migration Version Control](#rails-migration-version-control) section.
+
+When generating a migration, Active Record automatically prepends the current
+timestamp to the file name of the migration. For example, running the command
+below will create an empty migration file whereby the filename is made up of a
+timestamp prepended to the underscored name of the migration.
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts
 ```
-
-This will create an appropriately named empty migration:
 
 ```ruby
 # db/migrate/20240502101659_add_part_number_to_products.rb
@@ -127,7 +129,7 @@ class AddPartNumberToProducts < ActiveRecord::Migration[8.0]
 end
 ```
 
-This generator can do much more than prepend a timestamp to the file name. Based
+The generator can do much more than prepend a timestamp to the file name. Based
 on naming conventions and additional (optional) arguments it can also start
 fleshing out the migration.
 
