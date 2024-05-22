@@ -256,8 +256,7 @@ tables. The generator accepts column types such as `references` to facilitate
 this process. [References](#references) are a shorthand for creating columns,
 indexes, foreign keys, or even polymorphic association columns.
 
-For example, generating the following migration will create a `user_id` column
-and additionally create an index on that column.
+For example,
 
 ```bash
 $ bin/rails generate migration AddUserRefToProducts user:references
@@ -273,7 +272,9 @@ class AddUserRefToProducts < ActiveRecord::Migration[8.0]
 end
 ```
 
-with the following changes to your schema:
+The above migration creates a foreign key called `user_id`in the `products` table,
+where `user_id` is a reference to the `id` column in the `users` table. It also
+creates an index for the `user_id` column. The schema looks as follows:
 
 ```ruby
   t.uuid "user_id", null: false
@@ -730,14 +731,20 @@ While it's not required, you might want to add foreign key constraints to
 add_foreign_key :articles, :authors
 ```
 
-This [`add_foreign_key`][] call adds a new constraint to the `articles` table.
+The [`add_foreign_key`][] call adds a new constraint to the `articles` table.
 The constraint guarantees that a row in the `authors` table exists where the
 `id` column matches the `articles.author_id` to ensure all reviewers listed in
 the articles table are valid authors listed in the authors table.
 
-If the `from_table` column name cannot be derived from the `to_table` name, you
-can use the `:column` option. Use the `:primary_key` option if the referenced
-primary key is not `:id`.
+NOTE: When using `references` in a migration, you are creating a new column in
+the table and you'll have the option to add a foreign key using `foreign_key:
+true` to that column. However, if you want to add a foreign key to an existing
+column, you can use `add_foreign_key`.
+
+If the column name of the table that we're adding the foreign key to cannot be
+derived from the table with the referenced primary key then you can use the
+`:column` option to specify the column name. Additionally, you can use the
+`:primary_key` option if the referenced primary key is not `:id`.
 
 For example, to add a foreign key on `articles.reviewer` referencing
 `authors.email`:
