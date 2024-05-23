@@ -137,19 +137,29 @@ module ActiveRecord
           reader, writer = IO.pipe
 
           pid = fork do
+            puts 1
             Timeout.timeout(1){reader.close}
+            puts 2
             pool =Timeout.timeout(1){ ConnectionPool.new(pool_config)}
+            puts 3
 
             conn, child =Timeout.timeout(1){ new_conn_in_thread(pool)}
+            puts 4
             Timeout.timeout(1){child.terminate}
+            puts 5
 
             Timeout.timeout(1){wait_for_conn_idle(conn)}
+            puts 6
             Timeout.timeout(1){writer.close}
+            puts 7
             if Timeout.timeout(1){conn.in_use?}
-              exit!(1)
+              puts 8
+              Timeout.timeout(1){exit!(1)}
             else
-              exit!(0)
+              puts 9
+              Timeout.timeout(1){exit!(0)}
             end
+            puts 10
           end
 
           writer.close
