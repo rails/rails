@@ -110,7 +110,7 @@ module Minitest
   # minitest-reporters, maxitest, and others.
   def self.plugin_rails_init(options)
     # Don't mess with Minitest unless RAILS_ENV is set
-    return unless ENV["RAILS_ENV"]
+    return unless ENV["RAILS_ENV"] || ENV["RAILS_MINITEST_PLUGIN"]
 
     unless options[:full_backtrace]
       # Plugin can run without Rails loaded, check before filtering.
