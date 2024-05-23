@@ -1,3 +1,8 @@
+*   Add Rubocop and GitHub Actions to plugin generator.
+    This can be skipped using --skip-rubocop and --skip-ci.
+
+    *Chris Oliver*
+
 *   Use Kamal for deployment by default, which includes generating a Rails-specific config/deploy.yml.
     This can be skipped using --skip-kamal. See more: https://kamal-deploy.org/
 
