@@ -123,7 +123,8 @@ module ActiveRecord
           pool.flush
         end
       end
-
+ 
+      require 'timeout'
       if Process.respond_to?(:fork)
         def test_connection_pool_starts_reaper_in_fork
           pool_config = duplicated_pool_config(reaping_frequency: "0.0001")
@@ -136,15 +137,15 @@ module ActiveRecord
           reader, writer = IO.pipe
 
           pid = fork do
-            reader.close
-            pool = ConnectionPool.new(pool_config)
+            Timeout.timeout(1){reader.close}
+            pool =Timeout.timeout(1){ ConnectionPool.new(pool_config)}
 
-            conn, child = new_conn_in_thread(pool)
-            child.terminate
+            conn, child =Timeout.timeout(1){ new_conn_in_thread(pool)}
+            Timeout.timeout(1){child.terminate}
 
-            wait_for_conn_idle(conn)
-            writer.close
-            if conn.in_use?
+            Timeout.timeout(1){wait_for_conn_idle(conn)}
+            Timeout.timeout(1){writer.close}
+            if Timeout.timeout(1){conn.in_use?}
               exit!(1)
             else
               exit!(0)
