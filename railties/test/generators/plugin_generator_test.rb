@@ -54,7 +54,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/environments/production.rb
   test/dummy/config/environments/test.rb
   test/dummy/config/initializers/content_security_policy.rb
-  test/dummy/config/initializers/enable_yjit.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
   test/dummy/config/initializers/permissions_policy.rb
