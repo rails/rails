@@ -470,7 +470,7 @@ GEM
     retriable (3.1.2)
     rexml (3.2.6)
     rouge (4.2.0)
-    rubocop (1.63.5)
+    rubocop (1.64.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)

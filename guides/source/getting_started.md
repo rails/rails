@@ -198,7 +198,6 @@ of the files and folders that Rails creates by default:
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more information about ignoring files.|
 |.rubocop.yml|This file contains the configuration for RuboCop.|
 |.ruby-version|This file contains the default Ruby version.|
-|.devcontainer/|This folder contains the Dev Container configuration|
 
 Hello, Rails!
 -------------

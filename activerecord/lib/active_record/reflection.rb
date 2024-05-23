@@ -428,11 +428,15 @@ module ActiveRecord
       # a new association object. Use +build_association+ or +create_association+
       # instead. This allows plugins to hook into association object creation.
       def klass
-        @klass ||= compute_class(class_name)
+        @klass ||= compute_class(compute_name(class_name))
       end
 
       def compute_class(name)
         name.constantize
+      end
+
+      def compute_name(name) # :nodoc:
+        active_record.name.demodulize == name ? "::#{name}" : name
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
@@ -756,21 +760,9 @@ module ActiveRecord
 
             begin
               reflection = klass._reflect_on_association(inverse_name)
-              if !reflection
+              if !reflection && active_record.automatically_invert_plural_associations
                 plural_inverse_name = ActiveSupport::Inflector.pluralize(inverse_name)
                 reflection = klass._reflect_on_association(plural_inverse_name)
-
-                if valid_inverse_reflection?(reflection) && !active_record.automatically_invert_plural_associations
-                  ActiveRecord.deprecator.warn(
-                    "The `#{active_record.name}##{name}` inverse association could have been automatically" \
-                    " inferred as `#{klass.name}##{plural_inverse_name}` but wasn't because `automatically_invert_plural_associations`" \
-                    " is disabled.\n\n" \
-                    "If automatic inference is intended, you can consider enabling" \
-                    " `config.active_record.automatically_invert_plural_associations`.\n\n" \
-                    "If automatic inference is not intended, you can silence this warning by defining the association with `inverse_of: nil`."
-                  )
-                  reflection = nil
-                end
               end
             rescue NameError => error
               raise unless error.name.to_s == class_name
@@ -994,7 +986,7 @@ module ActiveRecord
       end
 
       def klass
-        @klass ||= delegate_reflection.compute_class(class_name)
+        @klass ||= delegate_reflection.compute_class(compute_name(class_name))
       end
 
       # Returns the source of the through reflection. It checks both a singularized
