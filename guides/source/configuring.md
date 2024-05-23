@@ -61,7 +61,6 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 7.2
 
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
-- [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
@@ -1105,6 +1104,10 @@ class Comment < ApplicationRecord
   belongs_to :post, inverse_of: nil
 end
 ```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
 
 #### `config.active_record.validate_migration_timestamps`
 
