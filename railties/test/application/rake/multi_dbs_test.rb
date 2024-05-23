@@ -566,6 +566,35 @@ module ApplicationTests
         end
       end
 
+      test "db:prepare respects timestamp ordering across databases" do
+        require "#{app_path}/config/environment"
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/04_four_migration.rb", <<-MIGRATION
+        class FourMigration < ActiveRecord::Migration::Current
+        end
+        MIGRATION
+
+        app_file "db/migrate/03_three_migration.rb", <<-MIGRATION
+          class ThreeMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        Dir.chdir(app_path) do
+          output = rails "db:prepare"
+          entries = output.scan(/^== (\d+).+migrated/).map(&:first).map(&:to_i)
+          assert_equal [1, 2, 3, 4] * 2, entries # twice because for test env too
+        end
+      end
+
       test "migrations in different directories can have the same timestamp" do
         require "#{app_path}/config/environment"
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
