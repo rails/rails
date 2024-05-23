@@ -159,6 +159,7 @@ module Rails
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
         reloader.eager_load = app.config.eager_load
+        reloader.execute
         reloaders << reloader
 
         app.reloader.to_run do
@@ -176,12 +177,7 @@ module Rails
           ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
 
-        if reloader.eager_load
-          reloader.execute
-          ActiveSupport.run_load_hooks(:after_routes_loaded, self)
-        elsif reloader.loaded
-          ActiveSupport.run_load_hooks(:after_routes_loaded, self)
-        end
+        ActiveSupport.run_load_hooks(:after_routes_loaded, self)
       end
 
       # Set clearing dependencies after the finisher hook to ensure paths

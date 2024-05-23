@@ -5,18 +5,6 @@
 
     *Andrew Novoselac*
 
-*   Defer route drawing to the first request, or when url_helpers are called.
-
-    Executes the first routes reload in middleware, or when a route set's
-    url_helpers receives a route call / asked if it responds to a route.
-    Previously, this was executed unconditionally on boot, which can
-    slow down boot time unnecessarily for larger apps with lots of routes.
-
-    Environments like production that have `config.eager_load = true` will
-    continue to eagerly load routes on boot.
-
-    *Gannon McGibbon*
-
 *   Add options to `bin/rails app:update`.
 
     `bin/rails app:update` now supports the same generic options that generators do:

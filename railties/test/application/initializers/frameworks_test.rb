@@ -67,8 +67,8 @@ module ApplicationTests
       RUBY
 
       app("development")
-      assert Foo.new.respond_to?(:foo_url)
-      assert Foo.new.respond_to?(:main_app)
+      assert Foo.method_defined?(:foo_url)
+      assert Foo.method_defined?(:main_app)
     end
 
     test "allows to not load all helpers for controllers" do
