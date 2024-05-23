@@ -231,6 +231,12 @@ module Rails
           ActiveSupport::DescendantsTracker.disable_clear!
         end
       end
+
+      initializer :enable_yjit do
+        if config.yjit && defined?(RubyVM::YJIT.enable)
+          RubyVM::YJIT.enable
+        end
+      end
     end
   end
 end
