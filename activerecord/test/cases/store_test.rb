@@ -285,9 +285,13 @@ class StoreTest < ActiveRecord::TestCase
 
   test "stored_attributes are tracked per class" do
     first_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      store :data
       store_accessor :data, :color
     end
     second_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      store :data
       store_accessor :data, :width, :height
     end
 
@@ -297,6 +301,8 @@ class StoreTest < ActiveRecord::TestCase
 
   test "stored_attributes are tracked per subclass" do
     first_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      store :data
       store_accessor :data, :color
     end
     second_model = Class.new(first_model) do
@@ -358,5 +364,13 @@ class StoreTest < ActiveRecord::TestCase
 
   test "prefix/suffix do not affect stored attributes" do
     assert_equal [:secret_question, :two_factor_auth, :login_retry], Admin::User.stored_attributes[:configs]
+  end
+
+  test "store_accessor raises an exception if the column is not either serializable or a structured type" do
+    assert_raises ActiveRecord::ConfigurationError do
+      Class.new(Admin::User) do
+        store_accessor :name, :color
+      end
+    end
   end
 end

@@ -3,6 +3,12 @@
 require "support/schema_dumping_helper"
 require "pp"
 
+# ensure we have a "json_data_type" table when JsonDataType is defined,
+# because store_accessor checks the column for a store accessor.
+ActiveRecord::Base.lease_connection.create_table("json_data_type") do |t|
+  t.json "settings"
+end
+
 module JSONSharedTestCases
   include SchemaDumpingHelper
 

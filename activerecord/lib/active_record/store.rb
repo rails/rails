@@ -110,6 +110,10 @@ module ActiveRecord
       end
 
       def store_accessor(store_attribute, *keys, prefix: nil, suffix: nil)
+        unless type_for_attribute(store_attribute).respond_to?(:accessor)
+          raise ConfigurationError, "the column '#{store_attribute}' has not been configured as a store. Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your database supports it, use a structured column type like hstore or json."
+        end
+
         keys = keys.flatten
 
         accessor_prefix =

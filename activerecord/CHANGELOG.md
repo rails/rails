@@ -1,3 +1,19 @@
+*   Improve `ActiveRecord.store_accessor` to raise an exception if the column is not either
+    structured (e.g., PostgreSQL +hstore+/+json+, or MySQL +json+) or declared serializable via
+    `ActiveRecord.store`.
+
+    Previously, an exception would be raised late when the accessor was read or written:
+
+        NoMethodError: undefined method `accessor' for an instance of ActiveRecord::Type::Text
+
+    Now, an exception is raised early when `store_accessor` is called:
+
+        ActiveRecord::ConfigurationError: the column 'metadata' has not been configured as a store.
+          Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your
+          database supports it, use a structured column type like hstore or json.
+
+    *Mike Dalessio*
+
 *   Fix inference of association model on nested models with the same demodularized name.
 
     E.g. with the following setup:
