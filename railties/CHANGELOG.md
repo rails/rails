@@ -1,3 +1,10 @@
+*   Create a Dev Container Generator that generates a Dev Container setup based on the current configuration
+    of the application. Usage:
+
+    `bin/rails devcontainer`
+
+    *Andrew Novoselac*
+
 *   Add Rubocop and GitHub Actions to plugin generator.
     This can be skipped using --skip-rubocop and --skip-ci.
 

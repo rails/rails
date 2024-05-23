@@ -5,9 +5,6 @@ require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
-  .devcontainer/Dockerfile
-  .devcontainer/compose.yaml
-  .devcontainer/devcontainer.json
   .dockerignore
   .git
   .gitattributes
@@ -1008,9 +1005,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     ruby_version = "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"
 
-    assert_file ".devcontainer/Dockerfile" do |content|
-      assert_match(/ARG RUBY_VERSION=#{ruby_version}$/, content)
-    end
     assert_file "Dockerfile" do |content|
       assert_match(/ARG RUBY_VERSION=#{ruby_version}/, content)
     end
@@ -1233,7 +1227,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer
-    run_generator [destination_root, "--name=my-app"]
+    run_generator [destination_root, "--devcontainer", "--name=my-app"]
 
     assert_devcontainer_json_file do |content|
       assert_equal "my_app", content["name"]
@@ -1248,6 +1242,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file(".devcontainer/Dockerfile") do |content|
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
+    end
+    assert_file("test/application_system_test_case.rb") do |content|
+      assert_match(/served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)
     end
     assert_compose_file do |compose_config|
       assert_equal "my_app", compose_config["name"]
@@ -1287,7 +1284,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_no_redis_skipping_action_cable_and_active_job
-    run_generator [ destination_root, "--skip-action-cable", "--skip-active-job" ]
+    run_generator [ destination_root, "--devcontainer", "--skip-action-cable", "--skip-active-job" ]
 
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
@@ -1301,7 +1298,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_postgresql
-    run_generator [ destination_root, "-d", "postgresql" ]
+    run_generator [ destination_root, "--devcontainer", "-d", "postgresql" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
@@ -1331,7 +1328,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_mysql
-    run_generator [ destination_root, "-d", "mysql" ]
+    run_generator [ destination_root, "--devcontainer", "-d", "mysql" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
@@ -1361,7 +1358,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_mariadb
-    run_generator [ destination_root, "-d", "trilogy" ]
+    run_generator [ destination_root, "--devcontainer", "-d", "trilogy" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"
@@ -1388,7 +1385,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_no_selenium_when_skipping_system_test
-    run_generator [ destination_root, "--skip-system-test" ]
+    run_generator [ destination_root, "--devcontainer", "--skip-system-test" ]
 
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "selenium"
@@ -1400,7 +1397,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_no_feature_when_skipping_active_storage
-    run_generator [ destination_root, "--skip-active-storage" ]
+    run_generator [ destination_root, "--devcontainer", "--skip-active-storage" ]
 
     assert_devcontainer_json_file do |content|
       assert_nil content["features"]["ghcr.io/rails/devcontainer/features/activestorage"]
@@ -1408,7 +1405,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_no_depends_on_when_no_dependencies
-    run_generator [ destination_root, "--minimal" ]
+    run_generator [ destination_root, "--devcontainer", "--minimal" ]
 
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"].keys, "depends_on"
@@ -1416,7 +1413,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_adds_node_tooling_when_required
-    run_generator [destination_root, "--javascript=esbuild"]
+    run_generator [destination_root, "--devcontainer", "--javascript=esbuild"]
 
     assert_devcontainer_json_file do |devcontainer_config|
       assert_includes devcontainer_config["features"].keys, "ghcr.io/devcontainers/features/node:1"
@@ -1424,7 +1421,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_does_not_add_node_tooling_when_not_required
-    run_generator [destination_root]
+    run_generator [destination_root, "--devcontainer"]
 
     assert_devcontainer_json_file do |devcontainer_config|
       assert_not_includes devcontainer_config["features"].keys, "ghcr.io/devcontainers/features/node:1"
@@ -1432,7 +1429,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_dev_flag_mounts_local_rails_repo
-    run_generator_using_prerelease [ destination_root, "--dev" ]
+    run_generator_using_prerelease [ destination_root, "--devcontainer", "--dev" ]
 
     assert_devcontainer_json_file do |devcontainer_config|
       rails_mount = devcontainer_config["mounts"].sole
@@ -1443,8 +1440,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_skip_devcontainer
-    run_generator [ destination_root, "--skip-devcontainer" ]
+  def test_no_devcontainer_by_default
+    run_generator [ destination_root ]
 
     assert_no_file(".devcontainer/devcontainer.json")
     assert_no_file(".devcontainer/Dockerfile")

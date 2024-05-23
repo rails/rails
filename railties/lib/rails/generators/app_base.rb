@@ -12,7 +12,6 @@ require "active_support/core_ext/array/extract_options"
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      include Devcontainer
       include AppName
 
       NODE_LTS_VERSION = "20.11.1"
@@ -109,11 +108,11 @@ module Rails
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
-        class_option :skip_devcontainer,   type: :boolean, default: false,
-                                           desc: "Skip devcontainer files"
-
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
+
+        class_option :devcontainer,        type: :boolean, default: false,
+                                           desc: "Generate devcontainer files"
 
         class_option :edge,                type: :boolean, default: nil,
                                            desc: "Set up the #{name} with a Gemfile pointing to the #{edge_branch} branch on the Rails repository"
@@ -408,7 +407,11 @@ module Rails
       end
 
       def skip_devcontainer?
-        options[:skip_devcontainer]
+        !options[:devcontainer]
+      end
+
+      def devcontainer?
+        options[:devcontainer]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -445,10 +448,6 @@ module Rails
             *options.map { |key, value| ", #{key}: #{value.inspect}" },
           ].compact.join
         end
-      end
-
-      def gem_ruby_version
-        Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
       end
 
       def rails_prerelease?
