@@ -1,3 +1,8 @@
+*   Add Rubocop and GitHub Actions to plugin generator.
+    This can be skipped using --skip-rubocop and --skip-ci.
+
+    *Chris Oliver*
+
 *   Remove support for `oracle`, `sqlserver` and JRuby specific database adapters from the
     `rails new` and `rails db:system:change` commands.
 
