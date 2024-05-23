@@ -94,7 +94,7 @@ module Minitest
         if count.nil?
           warn("Non integer specified as profile count, separate " \
                "your path from options with -- e.g. " \
-               "`bin/test --profile -- #{value}`")
+               "`#{::Rails::TestUnitReporter.executable} --profile -- #{value}`")
           count = default_count
         end
       end
