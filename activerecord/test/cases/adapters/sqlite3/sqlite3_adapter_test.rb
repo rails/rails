@@ -743,7 +743,7 @@ module ActiveRecord
           error = assert_raises(StandardError) do
             conn.add_index :testings, :non_existent2
           end
-          assert_match(/no such column: non_existent2/, error.message)
+          assert_match(/no such column: "?non_existent2"?/, error.message)
           assert_equal conn.pool, error.connection_pool
         end
       end
@@ -755,7 +755,7 @@ module ActiveRecord
         error = assert_raises(StandardError) do
           conn.add_index :testings, :non_existent
         end
-        assert_match(/no such column: non_existent/, error.message)
+        assert_match(/no such column: "?non_existent"?/, error.message)
         assert_equal conn.pool, error.connection_pool
 
         with_strict_strings_by_default do
@@ -765,7 +765,7 @@ module ActiveRecord
           error = assert_raises(StandardError) do
             conn.add_index :testings, :non_existent2
           end
-          assert_match(/no such column: non_existent2/, error.message)
+          assert_match(/no such column: "?non_existent2"?/, error.message)
           assert_equal conn.pool, error.connection_pool
         end
       end
