@@ -1,4 +1,4 @@
-name: "<%= app_name %>"
+name: "<%= options[:app_name] %>"
 
 services:
   rails-app:
@@ -22,13 +22,13 @@ services:
     # (Adding the "ports" property to this file will not forward from a Codespace.)
     ports:
     - 45678:45678
-<%- if !devcontainer_dependencies.empty? -%>
+<%- if !dependencies.empty? -%>
     depends_on:
-<%- devcontainer_dependencies.each do |dependency| -%>
+<%- dependencies.each do |dependency| -%>
     - <%= dependency %>
 <%- end -%>
 <%- end -%>
-<%- if depends_on_system_test? -%>
+<%- if options[:system_test] -%>
 
   selenium:
     image: seleniarm/standalone-chromium
@@ -37,7 +37,7 @@ services:
     - default
 <%- end -%>
 
-<%- if devcontainer_needs_redis? -%>
+<%- if options[:redis] -%>
   redis:
     image: redis:7.2
     restart: unless-stopped
@@ -48,9 +48,9 @@ services:
 
 <%- end -%>
   <%= devcontainer_db_service_yaml(indentation: 4) %>
-<%- if !devcontainer_volumes.empty? -%>
+<%- if !volumes.empty? -%>
 volumes:
-<%- devcontainer_volumes.each do |volume| -%>
+<%- volumes.each do |volume| -%>
   <%= volume %>:
 <%- end -%>
 <%- end -%>
