@@ -9,6 +9,8 @@ module RailtiesTest
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
+    DUMMY_DIGEST = "e8dc057d3346e56aed7cf252185dbe1fa6454411"
+
     def setup
       build_app({ multi_db: true })
 
@@ -46,13 +48,13 @@ module RailtiesTest
       ActiveRecord::MigrationContext.new(migration_root, sm, im).migrations
     end
 
-    test "serving sprocket's assets" do
-      @plugin.write "app/assets/javascripts/engine.js.erb", "<%= :alert %>();"
+    test "serving propshaft assets" do
+      @plugin.write "app/assets/javascripts/engine-#{DUMMY_DIGEST}.digested.js", "alert()"
       add_to_env_config "development", "config.assets.digest = false"
 
       boot_rails
 
-      get "/assets/engine.js"
+      get "/assets/engine-#{DUMMY_DIGEST}.digested.js"
       assert_match "alert()", last_response.body
     end
 
@@ -1437,19 +1439,19 @@ en:
         App's bar partial
       RUBY
 
-      @plugin.write "app/assets/javascripts/foo.js", <<-RUBY
+      @plugin.write "app/assets/javascripts/foo-#{DUMMY_DIGEST}.digested.js", <<-RUBY
         // Bukkit's foo js
       RUBY
 
-      app_file "app/assets/javascripts/foo.js", <<-RUBY
+      app_file "app/assets/javascripts/foo-#{DUMMY_DIGEST}.digested.js", <<-RUBY
         // App's foo js
       RUBY
 
-      @blog.write "app/assets/javascripts/bar.js", <<-RUBY
+      @blog.write "app/assets/javascripts/bar-#{DUMMY_DIGEST}.digested.js", <<-RUBY
         // Blog's bar js
       RUBY
 
-      app_file "app/assets/javascripts/bar.js", <<-RUBY
+      app_file "app/assets/javascripts/bar-#{DUMMY_DIGEST}.digested.js", <<-RUBY
         // App's bar js
       RUBY
 
@@ -1464,10 +1466,10 @@ en:
       get("/bar")
       assert_equal "App's bar partial", last_response.body.strip
 
-      get("/assets/foo.js")
+      get("/assets/foo-#{DUMMY_DIGEST}.digested.js")
       assert_match "// Bukkit's foo js", last_response.body.strip
 
-      get("/assets/bar.js")
+      get("/assets/bar-#{DUMMY_DIGEST}.digested.js")
       assert_match "// App's bar js", last_response.body.strip
 
       assert_equal <<~EXPECTED, Rails.application.send(:ordered_railties).flatten.map(&:class).map(&:name).join("\n") << "\n"
@@ -1481,7 +1483,7 @@ en:
         ActiveJob::Railtie
         ActionMailer::Railtie
         Rails::TestUnitRailtie
-        Sprockets::Railtie
+        Propshaft::Railtie
         ActionView::Railtie
         ActiveStorage::Engine
         ActionCable::Engine

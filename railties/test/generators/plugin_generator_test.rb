@@ -657,7 +657,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_dummy_application_configures_asset_pipeline_when_mountable
-    run_generator [destination_root, "--mountable"]
+    run_generator [destination_root, "--mountable", "--asset-pipeline=sprockets"]
 
     assert_gem "sprockets-rails"
     assert_file "test/dummy/app/assets/config/manifest.js"

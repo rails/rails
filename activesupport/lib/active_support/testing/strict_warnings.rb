@@ -10,6 +10,7 @@ module ActiveSupport
     PROJECT_ROOT = File.expand_path("../../../../", __dir__)
     ALLOWED_WARNINGS = Regexp.union(
       /circular require considered harmful.*delayed_job/, # Bug in delayed job.
+      /circular require considered harmful.*rails-html-sanitizer/, # Bug when remove sprockets-rails.
 
       # Expected non-verbose warning emitted by Rails.
       /Ignoring .*\.yml because it has expired/,
