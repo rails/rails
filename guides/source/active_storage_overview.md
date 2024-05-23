@@ -1264,10 +1264,10 @@ import { DirectUpload } from "@rails/activestorage"
 
 class Uploader {
   constructor(file, url) {
-    this.upload = new DirectUpload(this.file, this.url, this)
+    this.upload = new DirectUpload(file, url, this)
   }
 
-  upload(file) {
+  uploadFile(file) {
     this.upload.create((error, blob) => {
       if (error) {
         // Handle the error
@@ -1304,10 +1304,10 @@ class Uploader {
     const headers = { 'Authentication': `Bearer ${token}` }
     // INFO: Sending headers is an optional parameter. If you choose not to send headers,
     //       authentication will be performed using cookies or session data.
-    this.upload = new DirectUpload(this.file, this.url, this, headers)
+    this.upload = new DirectUpload(file, url, this, headers)
   }
 
-  upload(file) {
+  uploadFile(file) {
     this.upload.create((error, blob) => {
       if (error) {
         // Handle the error
