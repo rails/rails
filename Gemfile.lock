@@ -14,14 +14,6 @@ GIT
   specs:
     httpclient (2.8.3)
 
-GIT
-  remote: https://github.com/rails/rdoc.git
-  revision: 7472b691920b65b9e0f9f4d1bd6ed757c71d5c70
-  branch: master
-  specs:
-    rdoc (6.6.3.1)
-      psych (>= 4.0.0)
-
 PATH
   remote: .
   specs:
@@ -413,6 +405,8 @@ GEM
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     rbtree (0.4.6)
+    rdoc (6.7.0)
+      psych (>= 4.0.0)
     redcarpet (3.2.3)
     redis (5.0.8)
       redis-client (>= 0.17.0)
@@ -632,7 +626,7 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 13)
-  rdoc!
+  rdoc (~> 6.7)
   redcarpet (~> 3.2.3)
   redis (>= 4.0.1)
   redis-namespace
