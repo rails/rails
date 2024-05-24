@@ -98,7 +98,7 @@ module ActiveStorage::Blob::Representable
     variable? || previewable?
   end
 
-  def preview_image_needed_before_processing_variants?
+  def preview_image_needed_before_processing_variants? # :nodoc:
     previewable? && !preview_image.attached?
   end
 
