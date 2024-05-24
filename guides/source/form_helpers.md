@@ -1300,10 +1300,6 @@ end
 
 As a convenience you can instead pass the symbol `:all_blank` which will create a proc that will reject records where all the attributes are blank excluding any value for `_destroy`.
 
-### Adding Fields on the Fly
-
-Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an "Add new address" button. Rails does not provide any built-in support for this though.
-
 Forms to External Resources
 ---------------------------
 
