@@ -83,7 +83,7 @@ class CoreTest < ActiveRecord::TestCase
 
     topic.instance_eval do
       def attribute_for_inspect(attr_name)
-        if attr_name == 'title'
+        if attr_name == "title"
           title.upcase.inspect
         else
           super
@@ -186,7 +186,7 @@ class CoreTest < ActiveRecord::TestCase
 
     topic.instance_eval do
       def attribute_for_inspect(attr_name)
-        if attr_name == 'title'
+        if attr_name == "title"
           title.upcase.inspect
         else
           super
