@@ -96,7 +96,7 @@ Puma preloads your application by default by calling `preload_app!` in `config/p
 
 ### Memory Allocators and Configuration
 
-CRuby normally uses your system's default memory allocator. You can switch to another allocator such as [jemalloc](https://github.com/jemalloc/jemalloc). You can also configure your allocator &mdash; e.g. Linux's glibc malloc allows setting MALLOC_ARENA_MAX to a low value like 2 to significantly reduce memory use.
+CRuby normally uses your system's default memory allocator. You can switch to another allocator such as [jemalloc](https://github.com/jemalloc/jemalloc). You can also configure your allocator &mdash; e.g. Linux's glibc malloc allows setting `MALLOC_ARENA_MAX` to a low value like 2 to significantly reduce memory use.
 
 This guide does not cover nonstandard allocators in significant detail. However, they can be a significant optimization relative to the system's default allocator. Long-running thread-based workers can be prone to memory fragmentation, which will reduce performance after many requests. A different allocator can help. The best tested by the Ruby community is jemalloc.
 
