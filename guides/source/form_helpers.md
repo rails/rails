@@ -79,7 +79,9 @@ The search form example also shows the [form builder](https://api.rubyonrails.or
 
 TIP: For every form `input` element, an `id` attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
-IMPORTANT: It is recommended to use "GET" as the method for search forms. This allows users to bookmark a specific search. More generally Rails encourages you to use the right HTTP verb for an action.
+IMPORTANT: Use "GET" as the method for search forms. In general, Rails
+conventions encourage using the right HTTP verb for an action. Using "GET" for
+search allows users to bookmark a specific search.
 
 ### Helpers for Generating Form Elements
 
@@ -140,7 +142,7 @@ For example, radio buttons for choosing your favorite ice cream flavor:
 <%= form.label :flavor_hazelnut, "Hazelnut" %>
 ```
 
-Will generate the following HTML:
+The above will generate the following HTML:
 
 ```html
 <input type="radio" value="chocolate_chip" name="flavor" id="flavor_chocolate_chip">
