@@ -16,14 +16,21 @@ After reading this guide, you will know how to:
 Why Associations?
 -----------------
 
-In Rails, an _association_ is a connection between two Active Record models.
-Associations are essential because they simplify common operations in your code,
-enhance readability, help to maintain database integrity, and leverage powerful
-Rails methods for managing related data effortlessly.
+_Associations_ in Rails are special macro style calls that make it easy to connect
+different models. You can use them to tell Rails how your models relate to each
+other, which helps you manage your data more effectively.
 
-Consider a simple Rails application with models for authors and books. Without
-associations, creating and deleting books for that author would require a
-tedious and manual process. Here's what that would look like:
+When you set up an association, you instruct Rails to maintain the [Primary
+Key](https://en.wikipedia.org/wiki/Primary_key) and [Foreign
+Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of
+the two models, ensuring that your data stays consistent and properly linked.
+This makes it easy to keep track of which records are related. It also adds
+useful methods to your models so you can work with related data more easily.
+
+Consider a simple Rails application with models for authors and books.
+
+**Without associations**, creating and deleting books for that author would
+require a tedious and manual process. Here's what that would look like:
 
 First, we set up the models. Notice how there is no association between an `author` and a `book`.
 
@@ -54,7 +61,7 @@ end
 @author.destroy
 ```
 
-However, With Active Record associations, we can streamline these operations, as
+However, **With Active Record associations**, we can streamline these operations, as
 well as others, by explicitly informing Rails about the connection between the
 two models. Here's the revised code for setting up authors and books using
 associations:
@@ -91,7 +98,8 @@ The Types of Associations
 
 Rails supports six types of associations, each with a particular use-case in mind.
 
-Here is a list of all of the supported types with a link to their API docs for more detailed information on how to use them, their method parameters, etc.
+Here is a list of all of the supported types with a link to their API docs for
+more detailed information on how to use them, their method parameters, etc.
 
 * [`belongs_to`][]
 * [`has_one`][]
@@ -100,9 +108,9 @@ Here is a list of all of the supported types with a link to their API docs for m
 * [`has_one :through`][`has_one`]
 * [`has_and_belongs_to_many`][]
 
-Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain [Primary Key](https://en.wikipedia.org/wiki/Primary_key)-[Foreign Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of the two models, and you also get a number of utility methods added to your model.
-
-In the remainder of this guide, you'll learn how to declare and use the various forms of associations. But first, a quick introduction to the situations where each association type is appropriate.
+In the remainder of this guide, you'll learn how to declare and use the various
+forms of associations. First, let's take a quick look at the situations where
+each association type is appropriate.
 
 [`belongs_to`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to
 [`has_and_belongs_to_many`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_and_belongs_to_many
