@@ -84,7 +84,7 @@ To set the number of threads, you can change the call to the `threads` method in
 
 When using hybrid threads and processes, it's best to run 1 process per available processor core. On hosts with less memory you may need to choose a lower value. But fewer processes per core will normally result in not using all cores for your application. Automatic methods to determine the number of cores are unreliable, so you should specify the number of processes manually.
 
-To set the number of worker processes, you can change the call to the +workers+ method in +config/puma.rb+. Or you can set the +WEB_CONCURRENCY+ environment variable, which will do the same.
+To set the number of worker processes, you can change the call to the `workers` method in `config/puma.rb`. Or you can set the `WEB_CONCURRENCY` environment variable, which will do the same.
 
 ### Preloading
 
@@ -92,7 +92,7 @@ Puma creates new workers from a master process. By loading your application code
 
 In a few cases it may not make sense to preload your application. In that case it's possible to turn off application preloading.
 
-Puma preloads your application by default by calling +preload_app!+ in +config/puma.rb+. If you remove this call, your application will not be preloaded unless you specify a command line parameter to preload it.
+Puma preloads your application by default by calling `preload_app!` in `config/puma.rb`. If you remove this call, your application will not be preloaded unless you specify a command line parameter to preload it.
 
 ### Memory Allocators and Configuration
 
