@@ -568,16 +568,6 @@ The only difference is that the selected option will be found in `params[:person
 
 Notice that the appropriate option was automatically marked `selected="selected"`. Since this select box was bound to an existing `@person` record, we didn't need to specify a `:selected` argument.
 
-### Selecting Time Zone
-
-When you need to ask users what time zone they are in, there is a very convenient [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper to use.
-
-Typically, you would have to provide a list of time zone options for users to select from. This can get tedious if not for the list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects. The `time_with_zone` helper wraps this and can be used as follows:
-
-```erb
-<%= form.time_zone_select :time_zone %>
-```
-
 Using Date and Time Form Helpers
 --------------------------------
 
@@ -667,6 +657,31 @@ Outputs a select box like:
 ```
 
 For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value (for example `<%= select_year Date.today, prefix: "party" %>` instead of the above), and the appropriate temporal component will be extracted and used.
+
+### Selecting Time Zone
+
+When you need to ask users what time zone they are in, there is a very convenient [`time_zone_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_zone_select) helper to use.
+
+Typically, you would have to provide a list of time zone options for users to select from. This can get tedious if not for the list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects. The `time_with_zone` helper wraps this and can be used as follows:
+
+```erb
+<%= form.time_zone_select :time_zone %>
+```
+
+Output:
+
+```html
+<select name="time_zone" id="time_zone">
+  <option value="International Date Line West">(GMT-12:00) International Date Line West</option>
+  <option value="American Samoa">(GMT-11:00) American Samoa</option>
+  <option value="Midway Island">(GMT-11:00) Midway Island</option>
+  <option value="Hawaii">(GMT-10:00) Hawaii</option>
+  <option value="Alaska">(GMT-09:00) Alaska</option>
+  ...
+  <option value="Samoa">(GMT+13:00) Samoa</option>
+  <option value="Tokelau Is.">(GMT+13:00) Tokelau Is.</option>
+</select>
+```
 
 Collection Related Helpers
 --------------------------
