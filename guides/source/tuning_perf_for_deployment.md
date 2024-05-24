@@ -131,7 +131,7 @@ You can change the number of threads in your test to find the best tradeoff betw
 
 You can change the number of processes to trade off performance and expense in many cases. Larger hosts with more memory and CPU cores will need more processes for best usage. You can vary the size and type of hosts from a hosting provider.
 
-You can also change other Puma configuration options such as wait_for_less_busy_worker, though you don't normally need to change them.
+You can also change other Puma configuration options such as `wait_for_less_busy_worker`, though you don't normally need to change them.
 
 You can test changes to memory configuration, such as using a different allocator. These are often simple better/worse tests to validate that a particular configuration works better in your production environment.
 
