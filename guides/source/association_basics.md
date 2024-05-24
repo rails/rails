@@ -107,7 +107,7 @@ In the remainder of this guide, you'll learn how to declare and use the various 
 [`has_many`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_many
 [`has_one`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one
 
-### The `belongs_to` Association
+### `belongs_to`
 
 A [`belongs_to`][] association sets up a connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes authors and books, and each book can be assigned to exactly one author, you'd declare the book model this way:
 
@@ -152,7 +152,7 @@ create_table :books do |t|
 end
 ```
 
-### The `has_one` Association
+### `has_one`
 
 A [`has_one`][] association indicates that one other model has a reference to this model. That model can be fetched through this association.
 
@@ -200,7 +200,7 @@ end
 
 This relation can be [bi-directional](#bi-directional-associations) when used in combination with `belongs_to` on the other model.
 
-### The `has_many` Association
+### `has_many`
 
 A [`has_many`][] association is similar to `has_one`, but indicates a one-to-many connection with another model. You'll often find this association on the "other side" of a `belongs_to` association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing authors and books, the author model could be declared like this:
 
@@ -243,7 +243,7 @@ create_table :books do |t|
 end
 ```
 
-### The `has_many :through` Association
+### `has_many :through`
 
 A [`has_many :through`][`has_many`] association is often used to set up a many-to-many connection with another model. This association indicates that the declaring model can be matched with zero or more instances of another model by proceeding _through_ a third model. For example, consider a medical practice where patients make appointments to see physicians. The relevant association declarations could look like this:
 
@@ -327,7 +327,7 @@ With `through: :sections` specified, Rails will now understand:
 @document.paragraphs
 ```
 
-### The `has_one :through` Association
+### `has_one :through`
 
 A [`has_one :through`][`has_one`] association sets up a one-to-one connection with another model. This association indicates
 that the declaring model can be matched with one instance of another model by proceeding _through_ a third model.
@@ -377,7 +377,7 @@ class CreateAccountHistories < ActiveRecord::Migration[7.2]
 end
 ```
 
-### The `has_and_belongs_to_many` Association
+### `has_and_belongs_to_many`
 
 A [`has_and_belongs_to_many`][] association creates a direct many-to-many connection with another model, with no intervening model.
 This association indicates that each instance of the declaring model refers to zero or more instances of another model.
@@ -421,7 +421,7 @@ end
 Choosing an Association
 -------------------------
 
-### Choosing Between `belongs_to` and `has_one`
+### `belongs_to` vs `has_one`
 
 If you want to set up a one-to-one relationship between two models, you'll need to add `belongs_to` to one, and `has_one` to the other. How do you know which is which?
 
@@ -460,7 +460,7 @@ end
 
 NOTE: Using `t.bigint :supplier_id` makes the foreign key naming obvious and explicit. In current versions of Rails, you can abstract away this implementation detail by using `t.references :supplier` instead.
 
-### Choosing Between `has_many :through` and `has_and_belongs_to_many`
+### `has_many :through` vs `has_and_belongs_to_many`
 
 Rails offers two different ways to declare a many-to-many relationship between models. The first way is to use `has_and_belongs_to_many`, which allows you to make the association directly:
 
@@ -500,7 +500,7 @@ You should use `has_many :through` if you need validations, callbacks, or extra 
 While `has_and_belongs_to_many` suggests creating a join table with no primary key via `id: false`, consider using a composite primary key for the join table in the `has_many :through` relationship.
 For example, it's recommended to use `create_table :manifests, primary_key: [:assembly_id, :part_id]` in the example above.
 
-Advanced Associations
+Other Associations
 -------------------------
 
 ### Polymorphic Associations
@@ -563,7 +563,7 @@ polymorphic type column.
 
 ![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
-### Associations between Models with Composite Primary Keys
+### Models with Composite Primary Keys
 
 Rails is often able to infer the primary key - foreign key information between associated models with composite
 primary keys without needing extra information. Take the following example:
@@ -1698,7 +1698,7 @@ Enforces strict loading every time the associated record is loaded through this 
 
 ##### `:through`
 
-The `:through` option specifies a join model through which to perform the query. `has_one :through` associations were discussed in detail [earlier in this guide](#the-has-one-through-association).
+The `:through` option specifies a join model through which to perform the query. `has_one :through` associations were discussed in detail [earlier in this guide](#has-one-through).
 
 ##### `:touch`
 
@@ -2190,7 +2190,7 @@ When set to true, enforces strict loading every time the associated record is lo
 
 ##### `:through`
 
-The `:through` option specifies a join model through which to perform the query. `has_many :through` associations provide a way to implement many-to-many relationships, as discussed [earlier in this guide](#the-has-many-through-association).
+The `:through` option specifies a join model through which to perform the query. `has_many :through` associations provide a way to implement many-to-many relationships, as discussed [earlier in this guide](#has-many-through).
 
 ##### `:validate`
 
