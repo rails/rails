@@ -101,7 +101,7 @@ When naming inputs, Rails uses certain conventions that make it possible to subm
 
 A Checkbox is a form control that allows for a single value to be selected or deselected. A group of Checkboxes is generally used to allow a user to choose one or more options from the group.
 
-For example, these two checkboxes in a form:
+For example, two checkboxes in a form:
 
 ```erb
 <%= form.check_box :biography %>
@@ -112,7 +112,7 @@ For example, these two checkboxes in a form:
 <%= form.label :mystery, "Mystery" %>
 ```
 
-Will generate the following:
+The above will generate the following:
 
 ```html
 <input name="biography" type="hidden" value="0" autocomplete="off"><input type="checkbox" value="1" name="biography" id="biography">
@@ -234,7 +234,7 @@ Creating Forms with Model Objects
 
 The `form_with` helper has a `:model` option that allows you to bind the form builder object to a model object. This means that the form will be scoped to that model object, and the form's fields will be populated with values from that model object.
 
-For example, if we have an `@book` model object like:
+For example, if we have an `@book` model object:
 
 ```ruby
 @book = Book.find(42)
@@ -334,7 +334,7 @@ single form with inputs for both models like so:
 <% end %>
 ```
 
-Which produces the following output:
+The above will produces the following output:
 
 ```html
 <form action="/people" accept-charset="UTF-8" method="post">
@@ -386,13 +386,13 @@ WARNING: When you're using [single-table inheritance](association_basics.html#si
 
 ### Working with Namespaces
 
-If you have namespaced routes, `form_with` has a shorthand for that. For example, if your application has an `admin` namespace then
+If you have namespaced routes, `form_with` has a shorthand for that. For example, if your application has an `admin` namespace:
 
 ```ruby
 form_with model: [:admin, @article]
 ```
 
-will create a form that submits to the `Admin::ArticlesController` inside the admin namespace,  therefore submitting to `admin_article_path(@article)` in the case of an update.
+The above will create a form that submits to the `Admin::ArticlesController` inside the admin namespace,  therefore submitting to `admin_article_path(@article)` in the case of an update.
 
 If you have several levels of namespacing then the syntax is similar:
 
@@ -406,13 +406,13 @@ For more information on Rails' routing system and the associated conventions, pl
 
 The Rails framework encourages RESTful design, which means forms in your application will make requests where the `method` is `PATCH`, `PUT`, or `DELETE` in addition to `GET` and `POST`. However, most browsers _don't support_ methods other than `GET` and `POST` when it comes to submitting forms.
 
-Rails works around this limitation by emulating other methods over POST with a hidden input named `"_method"`. For example, this form:
+Rails works around this limitation by emulating other methods over POST with a hidden input named `"_method"`. For example:
 
 ```ruby
 form_with(url: search_path, method: "patch")
 ```
 
-Will generate this HTML output:
+The above form Will generate this HTML output:
 
 ```html
 <form action="/search" accept-charset="UTF-8" method="post">
@@ -459,13 +459,13 @@ Making Select Boxes with Ease
 
 Select boxes, also known as drop-down list, allow users to select from a list of options. The HTML for select boxes requires a decent amount of markup - one `<option>` element for each option to choose from. Rails provides helper methods to help generate that markup.
 
-For example, let's say we have a list of cities for the user to choose from. We can use the [`select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select) helper like so:
+For example, let's say we have a list of cities for the user to choose from. We can use the [`select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select) helper:
 
 ```erb
 <%= form.select :city, ["Berlin", "Chicago", "Madrid"] %>
 ```
 
-Which will generate this HTML output:
+The above will generate this HTML output:
 
 ```html
 <select name="city" id="city">
@@ -554,7 +554,7 @@ The following form:
 <% end %>
 ```
 
-Outputs this select box:
+Will output this select box:
 
 ```html
 <select name="person[city]" id="person_city">
@@ -587,7 +587,7 @@ The following form:
 <% end %>
 ```
 
-Outputs select boxes like:
+Will output select boxes like:
 
 ```html
 <select name="person[birth_date(1i)]" id="person_birth_date_1i">
@@ -632,13 +632,13 @@ In addition to the [`date_select`](https://api.rubyonrails.org/classes/ActionVie
 
 ### Select Boxes for Time or Date Components
 
-Rails also provides helpers to render select boxes for individual temporal components: [`select_year`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_year), [`select_month`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_month), [`select_day`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_day), [`select_hour`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_hour), [`select_minute`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_minute), and [`select_second`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_second).  These helpers are "bare" methods, meaning they are not called on a form builder instance.  For example:
+Rails also provides helpers to render select boxes for individual date and time components: [`select_year`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_year), [`select_month`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_month), [`select_day`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_day), [`select_hour`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_hour), [`select_minute`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_minute), and [`select_second`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_second).  These helpers are "bare" methods, meaning they are not called on a form builder instance.  For example:
 
 ```erb
 <%= select_year 2024, prefix: "party" %>
 ```
 
-Outputs a select box like:
+The above outputs a select box like:
 
 ```html
 <select id="party_year" name="party[year]">
@@ -656,7 +656,7 @@ Outputs a select box like:
 </select>
 ```
 
-For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value (for example `<%= select_year Date.today, prefix: "party" %>` instead of the above), and the appropriate temporal component will be extracted and used.
+For each of these helpers, you may specify a `Date` or `Time` object instead of a number as the default value (for example `<%= select_year Date.today, prefix: "party" %>` instead of the above), and the appropriate date and time parts will be extracted and used.
 
 ### Selecting Time Zone
 
@@ -714,7 +714,7 @@ We can allow the user to choose from the cities with the following form:
 <% end %>
 ```
 
-Which will generate this HTML:
+The above will generate this HTML:
 
 ```html
 <select name="person[city_id]" id="person_city_id">
@@ -736,7 +736,7 @@ To generate a select box, we can use [`collection_select`](https://api.rubyonrai
 <%= form.collection_select :city_id, City.order(:name), :id, :name %>
 ```
 
-Which outputs the same HTML as the manual iteration above:
+The above outputs the same HTML as the manual iteration above:
 
 ```html
 <select name="person[city_id]" id="person_city_id">
@@ -824,7 +824,7 @@ Note that, per `form_with` conventions, the field names in the two forms above w
 
 ### CSV File Upload Example
 
-When using `file_field`, the object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](https://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). Here is an example of how to save data in an uploaded CSV file to records in your domain model:
+When using `file_field`, the object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](https://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). Here is an example of how to save data in an uploaded CSV file to records in your application:
 
 ```ruby
   require 'csv'
@@ -901,7 +901,7 @@ module ApplicationHelper
 end
 ```
 
-and use it instead of `form_with`:
+The above can be used instead of `form_with`:
 
 ```erb
 <%= labeled_form_with model: @person do |form| %>
@@ -927,7 +927,7 @@ The form builder used also determines what happens when you do:
 
 If `f` is an instance of `ActionView::Helpers::FormBuilder`, then this will render the `form` partial, setting the partial's object to the form builder. If the form builder is of class `LabellingFormBuilder`, then the `labelling_form` partial would be rendered instead.
 
-The form builder customizations do add indirection (and may seem like an overkill for the simple example above). Choose between different customizations, extending `FormBuilder` class or creating helpers, based on how frequently your forms use the custom elements.
+Form builder customizations, such as `LabellingFormBuilder`, do hide the implementation details (and may seem like an overkill for the simple example above). Choose between different customizations, extending `FormBuilder` class or creating helpers, based on how frequently your forms use the custom elements.
 
 Form Input Naming Conventions and `params` Hash
 -----------------------------------------------
@@ -962,7 +962,7 @@ Hashes can be nested as many levels as required, for example:
 <input id="person_address_city" name="person[address][city]" type="text" value="New York"/>
 ```
 
-will result in the `params` hash being
+The above will result in the `params` hash being
 
 ```ruby
 { 'person' => { 'address' => { 'city' => 'New York' } } }
@@ -1067,7 +1067,7 @@ input name explicitly. For example:
 <% end %>
 ```
 
-will create inputs like:
+The above will create inputs like:
 
 ```html
 <input id="person_address_primary_23_city" name="person[address][primary][23][city]" type="text" value="Paris" />
@@ -1090,7 +1090,7 @@ can append `"[]"` to the given name, as a shorthand. For example:
 <% end %>
 ```
 
-will produce exactly the same output as the original example.
+This will produce exactly the same output as the original example.
 
 Building Complex Forms
 ----------------------
@@ -1271,7 +1271,7 @@ destroyed. This form allows users to remove addresses:
 <% end %>
 ```
 
-With this HTML for the `_destroy` field:
+The HTML for the `_destroy` field:
 
 ```html
 <input type="checkbox" value="1" name="person[addresses_attributes][0][_destroy]" id="person_addresses_attributes_0__destroy">
