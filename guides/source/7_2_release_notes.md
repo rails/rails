@@ -36,9 +36,39 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `find_cmd_and_exec` console helper.
 
+*   Remove support for `oracle`, `sqlserver`, and JRuby specific database adapters from the rails new
+    and rails db:system:change commands.
+
+*   Remove `config.public_file_server.enabled` option from the generators.
+
 ### Deprecations
 
 ### Notable changes
+
+*   Add `RuboCop` with rules from [rubocop-rails-omakase](https://github.com/rails/rubocop-rails-omakase)
+    by default in both new applications and plugins.
+
+*   Add `Brakeman` with default configuration for security checks in new applications.
+
+*   Add GitHub CI files for `Dependabot`, `Brakeman`, `RuboCop`, and running tests by default for new applications and plugins.
+
+*   YJIT is now enabled by default for new applications running on Ruby 3.3+.
+
+*   Generate a `.devcontainer` folder for running the application in a container with Visual Studio Code.
+
+    ```bash
+    $ rails new myapp --devcontainer
+    ```
+
+*   Introduce `Rails::Generators::Testing::Assertions#assert_initializer` to test initializers.
+
+*   System tests now use headless Chrome by default for new applications.
+
+*   Support the `BACKTRACE` environment variable to turn off backtrace cleaning in normal server runnings. 
+    Previously, this was only available for the testing.
+
+*   Add default Progressive Web App (PWA) files for the manifest and service worker, served from `app/views/pwa`,
+    and make them dynamically renderable through ERB.
 
 Action Cable
 ------------
