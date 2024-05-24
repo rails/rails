@@ -3,7 +3,7 @@
 Action View Form Helpers
 ========================
 
-Forms are a common interface for user input in web applications. However, form markup can be tedious to write and maintain because of the need to handle form controls, naming and attributes. Rails simplifies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
+Forms are a common interface for user input in web applications. However, form markup can be tedious to write and maintain because of the need to handle form controls, naming, and attributes. Rails simplifies this by providing view helpers, which are methods that output HTML form markup. This guide will help you understand the different helper methods and when to use each.
 
 After reading this guide, you will know:
 
@@ -17,7 +17,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide is not intended to be a complete list of all available form helpers. Please reference [the Rails API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for an exhaustive list of form helpers and their arguments.
+NOTE: This guide is not intended to be a complete list of all available form helpers. Please refer to [the Rails API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for an exhaustive list of form helpers and their arguments.
 
 Working with Basic Forms
 ------------------------
@@ -97,7 +97,7 @@ When naming inputs, Rails uses certain conventions that make it possible to subm
 
 #### Checkboxes
 
-A Checkbox is a form control that allows for a single value to be selected or deselected. A group of Checkboxes are generally used to allow a user a choose one or more options from the group.
+A Checkbox is a form control that allows for a single value to be selected or deselected. A group of Checkboxes is generally used to allow a user to choose one or more options from the group.
 
 For example, these two checkboxes in a form:
 
@@ -121,13 +121,13 @@ Will generate the following:
 <label for="mystery">Mystery</label>
 ```
 
-The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "Biography" checkbox only, the `params` hash would contain `params: {"biography"=>"1", "romance"=>"0", "mystery"=>"0"}`. You can use `params[:biography]` to check if that checkbox is checked by the user.
+The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "Biography" checkbox only, the `params` hash would contain `params: {"biography"=>"1", "romance"=>"0", "mystery"=>"0"}`. You can use `params[:biography]` to check if that checkbox is selected by the user.
 
-The checkbox's values (the values that will appear in `params`) can optionally be specified using the third and fourth parameters. See the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-check_box) for more details.
+The checkbox's values (the values that will appear in `params`) can optionally be specified using the `checked_value` and `unchecked_value` parameters. See the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-check_box) for more details.
 
 #### Radio Buttons
 
-Radio buttons are form controls that allow the user to select one option from a set of options. The user can only select one option at a time as the choices are mutually exclusive.
+Radio buttons are form controls that only allow the user to select one option at a time from the list of choices.
 
 For example, radio buttons for choosing your favorite ice cream flavor:
 
@@ -282,7 +282,7 @@ TIP: Typically your form inputs will mirror model attributes. However, they don'
 
 #### Composite Primary Key Forms
 
-If you have a model with a [composite primary key](active_record_composite_primary_keys.html), forms building syntax is the same with slightly different output.
+If you have a model with a [composite primary key](active_record_composite_primary_keys.html), the form building syntax is the same with slightly different output.
 
 For example, to update a `@book` model object with a composite key `[:author_id, :id]` like this:
 
@@ -638,7 +638,7 @@ Notice that, when the form is submitted, there will be no single value in the `p
 
 In addition to the [`date_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-date_select) helper, Rails provides [`time_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-time_select) which outputs select boxes for the hour and minute. There is [`datetime_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-datetime_select) as well which combines both date and time select boxes.
 
-### Select Boxes for Individual Temporal Components
+### Select Boxes for Time or Date Components
 
 Rails also provides helpers to render select boxes for individual temporal components: [`select_year`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_year), [`select_month`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_month), [`select_day`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_day), [`select_hour`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_hour), [`select_minute`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_minute), and [`select_second`](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-select_second).  These helpers are "bare" methods, meaning they are not called on a form builder instance.  For example:
 
@@ -1078,7 +1078,7 @@ will produce exactly the same output as the original example.
 Building Complex Forms
 ----------------------
 
-As your application grows, you may need to create more complex forms, beyond editing a single object. For example, when creating a `Person` you can allow the user to create multiple `Address` records (home, work, etc.) within the same form. When later editing that person the user should be able to add, remove, or update addresses as well.
+As your application grows, you may need to create more complex forms, beyond editing a single object. For example, when creating a `Person` you can allow the user to create multiple `Address` records (home, work, etc.) within the same form. When editing a `Person` record later, the user should be able to add, remove, or update addresses as well.
 
 ### Configuring the Model for Nested Attributes
 
@@ -1119,7 +1119,7 @@ The following form allows a user to create a `Person` and its associated address
 <% end %>
 ```
 
-When an association accepts nested attributes `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses it renders nothing.
+When an association accepts nested attributes, `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses, it renders nothing.
 
 A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 2 sets of address fields being rendered on the new person form.
 
@@ -1205,7 +1205,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 }
 ```
 
-### Permitting Parameters in The Controller
+### Permitting Parameters in the Controller
 
 As usual you need to [declare the permitted
 parameters](action_controller_overview.html#strong-parameters) in the controller
