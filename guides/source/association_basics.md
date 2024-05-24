@@ -17,14 +17,15 @@ Why Associations?
 -----------------
 
 In Rails, an _association_ is a connection between two Active Record models.
-Associations are essential because they simplify common operations in your code.
-They enhance readability, help to maintain database integrity, and leverage
-powerful Rails methods for managing related data effortlessly.
+Associations are essential because they simplify common operations in your code,
+enhance readability, help to maintain database integrity, and leverage powerful
+Rails methods for managing related data effortlessly.
 
-Consider a simple Rails application that has a model for authors and a model for
-books. Each author can have many books.
+Consider a simple Rails application with models for authors and books. Without
+associations, creating and deleting books for that author would require a
+tedious and manual process. Here's what that would look like:
 
-Without associations, the model declarations would look like this:
+First, we set up the models. Notice how there is no association between an `author` and a `book`.
 
 ```ruby
 class Author < ApplicationRecord
@@ -34,15 +35,16 @@ class Book < ApplicationRecord
 end
 ```
 
-Now, suppose we wanted to add a new book for an existing author. We'd need to do
-something like this:
+To add a new book for an existing author, you'd need to provide the `author_id`
+value when creating the book.
 
 ```ruby
 @book = Book.create(published_at: Time.now, author_id: @author.id)
 ```
 
-Or consider deleting an author, and ensuring that all of its books get deleted
-as well:
+To delete an author and ensure all their books are also deleted, you need to
+retrieve all the author's `books`, loop through each `book` to destroy it, and
+then destroy the author.
 
 ```ruby
 @books = Book.where(author_id: @author.id)
@@ -52,9 +54,9 @@ end
 @author.destroy
 ```
 
-With Active Record associations, we can streamline these operations, as well as
-others, by explicitly informing Rails about the connection between the two
-models. Here's the revised code for setting up authors and books using
+However, With Active Record associations, we can streamline these operations, as
+well as others, by explicitly informing Rails about the connection between the
+two models. Here's the revised code for setting up authors and books using
 associations:
 
 ```ruby
@@ -67,13 +69,13 @@ class Book < ApplicationRecord
 end
 ```
 
-With this change, creating a new book for a particular author is easier:
+With this change, creating a new book for a particular author is simpler:
 
 ```ruby
 @book = @author.books.create(published_at: Time.now)
 ```
 
-Deleting an author and all of its books is *much* easier:
+Deleting an author and all of its books is much easier:
 
 ```ruby
 @author.destroy
