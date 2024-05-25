@@ -262,7 +262,7 @@ See the [announcement blog post for some before/after images](https://rubyonrail
 like Puma does. Switching to an allocator that uses different patterns to avoid fragmentation can decrease memory usage
 by a substantial margin.
 
-Rails 7.2 now includes [`jemalloc`](https://jemalloc.net/) in the default Dockerfile to optimize memory allocation.
+Rails 7.2 now includes [jemalloc](https://jemalloc.net/) in the default Dockerfile to optimize memory allocation.
 
 ### Suggest puma-dev configuration in bin/setup
 
