@@ -26,7 +26,7 @@ guide.
 Major Features
 --------------
 
-### Development Containers configuration for applications
+### Development containers configuration for applications
 
 A [development container](https://containers.dev/) (or dev container for short) allows you to use a container
 as a full-featured development environment.
@@ -34,11 +34,11 @@ as a full-featured development environment.
 Rails 7.2 adds the ability to generate a development container configuration for your application. This configuration
 includes a `.devcontainer` folder with a `Dockerfile`, a `docker-compose.yml` file, and a `devcontainer.json` file.
 
-By default the dev container contains the following:
+By default, the dev container contains the following:
 
-* A redis container for use with Kredis, Action Cable etc.
+* A Redis container for use with Kredis, Action Cable, etc.
 * A database (SQLite, Postgres, MySQL or MariaDB)
-* A Headless chrome container for system tests
+* A Headless Chrome container for system tests
 * Active Storage configured to use the local disk and with preview features working
 
 To generate a new application with a development container, you can run:
@@ -55,7 +55,7 @@ rails devcontainer
 
 For more information, see the [Getting Started with Dev Containers](https://edgeguides.rubyonrails.org/getting_started_with_devcontainer.html) guide.
 
-### Add browser version guard by default
+### Browser version guards
 
 Rails now adds the ability to specify the browser versions that will be allowed to access all actions
 (or some, as limited by `only:` or `except:`).
@@ -92,20 +92,20 @@ documentation.
 
 ### Make Ruby 3.1 the new minimum version
 
-Until now, Rails only droped compatibility with older Rubies on new majors version.
+Until now, Rails only dropped compatibility with older Rubies on new majors version.
 We are changing this policy because it causes us to keep compatibility with long
 unsupported versions of Ruby or to bump the Rails major version more often, and to
 drop multiple Ruby versions at once when we bump the major.
 
 Now we are going to drop Ruby versions on minor versions, following the recommendation
-from th Ruby team at the time of the release.
+from the Ruby team at the time of the release.
 
 For Rails 7.2, Ruby 3.1 is the new minimum version.
 
 ### Default Progressive Web Application (PWA) files
 
-In preparation to better support creating PWA applications with Rails, we now generate default PWA files for manifest
-and service-worker that are served from `app/views/pwa` and can be dynamically rendered through ERB. Those files
+In preparation to better supporting the creation of PWA applications with Rails, we now generate default PWA files for the manifest
+and service worker, which are served from `app/views/pwa` and can be dynamically rendered through ERB. Those files
 are mounted explicitly at the root with default routes in the generated routes file.
 
 For more information, see the [pull request adding the feature](https://github.com/rails/rails/pull/50528).
@@ -119,7 +119,7 @@ diversity. It was never meant as a language to be written exclusively in a singl
 frameworks, or applications. If you or your team has developed a particular house style that brings you joy,
 you should cherish that.
 
-This collection of Rubocop styles is for those who haven't committed to any specific dialect already. Who would just
+This collection of RuboCop styles is for those who haven't committed to any specific dialect already. Who would just
 like to have a reasonable starting point, and who will benefit from some default rules to at least start a consistent
 approach to Ruby styling.
 
@@ -134,9 +134,9 @@ we've done since the start with unit tests.
 
 It's of course true that GitHub Actions are a commercial cloud product for private repositories after you've used the
 free tokens. But given the relationship with GitHub and Rails, the overwhelming default nature of the platform for
-newcomers, and the value of teaching newcomers good CI habits, We find this to be an acceptable trade-off.
+newcomers, and the value of teaching newcomers good CI habits, we find this to be an acceptable trade-off.
 
-### Add Brakeman by default to new apps
+### Add Brakeman by default to new applications
 
 [Brakeman](https://brakemanscanner.org/) is a great way to prevent common security vulnerabilities in Rails from going
 into production.
@@ -148,10 +148,10 @@ every push.
 
 Rails changed the default number of threads in Puma from 5 to 3.
 
-Due to the nature of well optimized Rails applications, with quick SQL queries and slow 3rd party calls running via jobs,
+Due to the nature of well-optimized Rails applications, with quick SQL queries and slow 3rd-party calls running via jobs,
 Ruby spends most of its time waiting for the Global VM Lock (GVL) to release when the thread count is too high.
 
-After careful consideration, investigation and based on battle tested experience from applications running in
+After careful consideration, investigation, and based on battle-tested experience from applications running in
 production, we decided that a default of 3 threads is a good balance between concurrency and performance.
 
 You can follow a very detailed discussion about this change in [the issue](https://github.com/rails/rails/issues/50450).
@@ -180,6 +180,8 @@ class NewTopicNotificationJob < ApplicationJob
   self.enqueue_after_transaction_commit = false
 end
 ```
+
+### Per transaction commit and rollback callbacks
 
 This is now possible due to a new feature that allows to register transaction callbacks outside of a record.
 
@@ -217,15 +219,12 @@ def publish_article(article)
 end
 ```
 
-See the related pull requests for more information:
-
-https://github.com/rails/rails/pull/51474
-https://github.com/rails/rails/pull/51426
+See [#51474](https://github.com/rails/rails/pull/51474) and [#51426](https://github.com/rails/rails/pull/51426) for more information:
 
 ### Enable YJIT by default if running Ruby 3.3+
 
-YJIT in Ruby's JIT compiler that is available in CRuby since Ruby 3.1. It can provide significant performance
-improvements for Rails applications, ranging 15-25% latency improvements.
+YJIT is Ruby's JIT compiler that is available in CRuby since Ruby 3.1. It can provide significant performance
+improvements for Rails applications, offering 15-25% latency improvements.
 
 In Rails 7.2, YJIT is enabled by default if running Ruby 3.3 or newer.
 
@@ -245,31 +244,31 @@ consistent, clear, and up-to-date, it was time to tackle the design of the guide
 and fresh.
 
 We worked with UX designer [John Athayde](https://meticulous.com/) to take the look and feel of the homepage and
-transfer that over to the Rails Guide to make it clean, sleek, and up-to-date.
+transfer that over to the Rails guides to make them clean, sleek, and up-to-date.
 
-The layout will remain the same, but from today you will see the following changes reflected in the Guides:
+The layout will remain the same, but from today you will see the following changes reflected in the guides:
 
 * Cleaner, less busy design.
 * Fonts, color scheme, and logo more consistent with the home page.
 * Updated iconography.
 * Simplified navigation.
-* Sticky ‘Chapter’ navbar when scrolling.
+* Sticky "Chapters" navbar when scrolling.
 
 See the [announcement blog post for some before/after images](https://rubyonrails.org/2024/3/20/rails-guides-get-a-facelift).
 
 ### Setup jemalloc in default Dockerfile to optimize memory allocation
 
-[Ruby's use of malloc can create memory fragmentation problems, especially when using multiple threads](https://www.speedshop.co/2017/12/04/malloc-doubles-ruby-memory.html)
+[Ruby's use of `malloc` can create memory fragmentation problems, especially when using multiple threads](https://www.speedshop.co/2017/12/04/malloc-doubles-ruby-memory.html)
 like Puma does. Switching to an allocator that uses different patterns to avoid fragmentation can decrease memory usage
 by a substantial margin.
 
-Rails 7.2 now includes jemalloc in the default Dockerfile to optimize memory allocation.
+Rails 7.2 now includes [`jemalloc`](https://jemalloc.net/) in the default Dockerfile to optimize memory allocation.
 
 ### Suggest puma-dev configuration in bin/setup
 
-puma-dev is the golden path for developing multiple Rails applications locally, if you're not using Docker.
+[Puma-dev](https://github.com/puma/puma-dev) is the golden path for developing multiple Rails applications locally, if you're not using Docker.
 
-Rails now suggests how to get that setup for apps with bin/setup.
+Rails now suggests how to get that setup in a new comment you'll find in `bin/setup`.
 
 Railties
 --------
@@ -286,8 +285,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `find_cmd_and_exec` console helper.
 
-*   Remove support for `oracle`, `sqlserver`, and JRuby specific database adapters from the rails new
-    and rails db:system:change commands.
+*   Remove support for `oracle`, `sqlserver`, and JRuby specific database adapters from the `new`
+    and `db:system:change` `rails` commands.
 
 *   Remove `config.public_file_server.enabled` option from the generators.
 
@@ -295,12 +294,12 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Notable changes
 
-*   Add `RuboCop` with rules from [rubocop-rails-omakase](https://github.com/rails/rubocop-rails-omakase)
+*   Add RuboCop with rules from [rubocop-rails-omakase](https://github.com/rails/rubocop-rails-omakase)
     by default in both new applications and plugins.
 
-*   Add `Brakeman` with default configuration for security checks in new applications.
+*   Add Brakeman with default configuration for security checks in new applications.
 
-*   Add GitHub CI files for `Dependabot`, `Brakeman`, `RuboCop`, and running tests by default for new applications and plugins.
+*   Add GitHub CI files for Dependabot, Brakeman, RuboCop, and running tests by default for new applications and plugins.
 
 *   YJIT is now enabled by default for new applications running on Ruby 3.3+.
 
@@ -312,10 +311,10 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Introduce `Rails::Generators::Testing::Assertions#assert_initializer` to test initializers.
 
-*   System tests now use headless Chrome by default for new applications.
+*   System tests now use Headless Chrome by default for new applications.
 
 *   Support the `BACKTRACE` environment variable to turn off backtrace cleaning in normal server runnings.
-    Previously, this was only available for the testing.
+    Previously, this was only available for testing.
 
 *   Add default Progressive Web App (PWA) files for the manifest and service worker, served from `app/views/pwa`,
     and make them dynamically renderable through ERB.
@@ -363,7 +362,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
-*   Remove deprecated `@rails/ujs` in favor of `Turbo`.
+*   Remove deprecated `@rails/ujs` in favor of Turbo.
 
 ### Deprecations
 
