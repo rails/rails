@@ -197,7 +197,7 @@ module ActiveRecord
   self.schema_cache_ignored_tables = []
 
   # Checks to see if the +table_name+ is ignored by checking
-  # against the +schema_cache_ignored_tables` option.
+  # against the +schema_cache_ignored_tables+ option.
   #
   #   ActiveRecord.schema_cache_ignored_table?(:developers)
   #
