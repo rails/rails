@@ -55,7 +55,7 @@ rails devcontainer
 
 For more information, see the [Getting Started with Dev Containers](https://edgeguides.rubyonrails.org/getting_started_with_devcontainer.html) guide.
 
-### Browser version guards
+### Add browser version guard by default
 
 Rails now adds the ability to specify the browser versions that will be allowed to access all actions
 (or some, as limited by `only:` or `except:`).
@@ -86,6 +86,8 @@ class MessagesController < ApplicationController
   allow_browser versions: { opera: 104, chrome: 119 }, only: :show
 end
 ```
+
+Newly generated applications have this guard set in `ApplicationController`.
 
 For more information, see the [allow_browser](https://api.rubyonrails.org/classes/ActionController/AllowBrowser/ClassMethods.html#method-i-allow_browser)
 documentation.
