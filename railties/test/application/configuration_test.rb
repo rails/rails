@@ -2894,7 +2894,7 @@ module ApplicationTests
         Post.lease_connection.add_index :posts, :non_existent
       end
 
-      # Doesn't work in CI, bug when sprockets-rails is not required.
+      # FIXME: Doesn't work in CI, bug when sprockets-rails is not required.
       # assert_match(/no such column: non_existent/, error.message)
     end
 

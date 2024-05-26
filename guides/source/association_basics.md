@@ -950,7 +950,7 @@ recognize the bi-directional association. This can cause your application to:
     ```irb
     irb> author = Author.first
     irb> author.books.any? do |book|
-    irb>   book.author.equal?(author) # This executes an author query for every book
+    irb>   book.writer.equal?(author) # This executes an author query for every book
     irb> end
     => false
     ```
@@ -960,10 +960,10 @@ recognize the bi-directional association. This can cause your application to:
     ```irb
     irb> author = Author.first
     irb> book = author.books.first
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => true
     irb> author.name = "Changed Name"
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => false
     ```
 

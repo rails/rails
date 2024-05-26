@@ -359,4 +359,18 @@ class StoreTest < ActiveRecord::TestCase
   test "prefix/suffix do not affect stored attributes" do
     assert_equal [:secret_question, :two_factor_auth, :login_retry], Admin::User.stored_attributes[:configs]
   end
+
+  test "store_accessor raises an exception if the column is not either serializable or a structured type" do
+    user = Class.new(Admin::User) do
+      store_accessor :name, :color
+    end.new
+
+    assert_raises ActiveRecord::ConfigurationError do
+      user.color
+    end
+
+    assert_raises ActiveRecord::ConfigurationError do
+      user.color = "blue"
+    end
+  end
 end
