@@ -51,7 +51,7 @@ module SharedGeneratorTests
   end
 
   def test_skeleton_is_created
-    run_generator [destination_root]
+    run_generator
 
     generated_files_and_folders = []
 
