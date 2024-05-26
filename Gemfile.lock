@@ -406,7 +406,7 @@ GEM
     pg (1.5.4)
     prettier_print (1.2.1)
     prism (0.27.0)
-    propshaft (0.8.0)
+    propshaft (0.9.0)
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
       rack
