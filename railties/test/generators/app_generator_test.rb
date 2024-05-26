@@ -17,7 +17,6 @@ DEFAULT_APP_FILES = %w(
   Gemfile
   README.md
   Rakefile
-  app/assets/config/manifest.js
   app/assets/images/.keep
   app/assets/stylesheets/application.css
   app/channels/application_cable/channel.rb
@@ -583,7 +582,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+"application" %>/, contents)
+      assert_match(/stylesheet_link_tag\s+:all %>/, contents)
     end
   end
 
@@ -962,7 +961,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_tailwind
-    run_generator_and_bundler [destination_root, "--css=tailwind"]
+    run_generator_and_bundler [destination_root, "--asset-pipeline=sprockets", "--css=tailwind"]
     assert_gem "tailwindcss-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/tailwind/, content)
@@ -977,7 +976,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_sass
-    run_generator_and_bundler [destination_root, "--css=sass"]
+    run_generator_and_bundler [destination_root, "--asset-pipeline=sprockets", "--css=sass"]
     assert_gem "dartsass-rails"
     assert_file "app/assets/stylesheets/application.scss"
     assert_no_node_files
@@ -990,7 +989,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_cssbundling_gem
-    run_generator_and_bundler [destination_root, "--css=postcss"]
+    run_generator_and_bundler [destination_root, "--asset-pipeline=sprockets", "--css=postcss"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
     assert_node_files

@@ -8,7 +8,7 @@ gem "minitest", ">= 5.15.0"
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
 
-gem "sprockets-rails", ">= 2.0.0"
+gem "sprockets-rails", ">= 2.0.0", require: false
 gem "propshaft", ">= 0.1.7"
 gem "capybara", ">= 3.39"
 gem "selenium-webdriver", ">= 4.20.0"
