@@ -255,7 +255,12 @@ class Author < ApplicationRecord
 end
 ```
 
-NOTE: The name of the other model is pluralized when declaring a `has_many` association.
+`has_many` establishes a one-to-many relationship between models, allowing each
+instance of the declaring model (`Author`) to have multiple instances of the
+associated model (`Book`).
+
+NOTE: Unlike a `has_one` and `belongs_to` association, the name of the other
+model is pluralized when declaring a `has_many` association.
 
 ![has_many Association Diagram](images/association_basics/has_many.png)
 
@@ -278,8 +283,22 @@ class CreateAuthors < ActiveRecord::Migration[7.2]
 end
 ```
 
-Depending on the use case, it's usually a good idea to create a non-unique index and optionally
-a foreign key constraint on the author column for the books table:
+In this migration, the `authors` table is created with a `name` column to store
+the names of authors. The `books` table is also created, and it includes a
+`belongs_to :author` association. This association establishes a foreign key
+relationship between the `books` and `authors` tables. Specifically, the
+`author_id` column in the `books` table acts as a foreign key, referencing the
+`id` column in the `authors` table. By including this `belongs_to :author`
+association in the `books` table, we ensure that each book is associated with a
+single author, enabling a `has_many` association from the `Author` model. This
+setup allows each author to have multiple associated books.
+
+Depending on the use case, it's usually a good idea to create a non-unique index
+and optionally a foreign key constraint on the author column for the books
+table. Adding an index on the `author_id` column improves query performance when
+retrieving books associated with a specific author. Optionally, a foreign key
+constraint ensures that the `author_id` in the books table must correspond to a
+valid `id` in the `authors` table, maintaining data integrity.
 
 ```ruby
 create_table :books do |t|
