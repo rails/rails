@@ -13,12 +13,13 @@ After reading this guide, you will know how to:
 
 --------------------------------------------------------------------------------
 
-Why Associations?
+Associations Overview
 -----------------
 
-_Associations_ in Rails are special macro style calls that make it easy to connect
-different models. You can use them to tell Rails how your models relate to each
-other, which helps you manage your data more effectively.
+_Associations_ in Rails are special macro style calls that make it easy to
+connect different models. You can use them to tell Rails how your models relate
+to each other, which helps you manage your data more effectively, and makes
+common operations simpler and easier in your code.
 
 When you set up an association, you instruct Rails to maintain the [Primary
 Key](https://en.wikipedia.org/wiki/Primary_key) and [Foreign
@@ -61,7 +62,7 @@ end
 @author.destroy
 ```
 
-However, **With Active Record associations**, we can streamline these operations, as
+However, **with associations**, we can streamline these operations, as
 well as others, by explicitly informing Rails about the connection between the
 two models. Here's the revised code for setting up authors and books using
 associations:
@@ -87,6 +88,21 @@ Deleting an author and all of its books is much easier:
 ```ruby
 @author.destroy
 ```
+
+When you set up an association in Rails, you still need to create a
+[migration](active_record_migrations.html) to ensure that the database is
+properly configured to handle the association. This migration will need to add
+the necessary foreign key columns to your database tables. For example, if you
+set up a `belongs_to :author` association in the `Book` model, you would create
+a migration to add the `author_id` column to the `books` table:
+
+```bash
+rails generate migration AddAuthorToBooks author:references
+```
+
+This migration will add the `author_id` column and set up the foreign key
+relationship in the database, ensuring that your models and database stay in
+sync.
 
 To learn more about the different types of associations, you can read the next
 section of this guide. Following that, you'll find some tips and tricks for
@@ -121,15 +137,20 @@ each association type is appropriate.
 
 A [`belongs_to`][] association sets up a connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes authors and books, and each book can be assigned to exactly one author, you'd declare the book model this way:
 
+![belongs_to Association Diagram](images/association_basics/belongs_to.png)
+
 ```ruby
 class Book < ApplicationRecord
   belongs_to :author
 end
 ```
 
-![belongs_to Association Diagram](images/association_basics/belongs_to.png)
-
-NOTE: `belongs_to` associations _must_ use the singular term. If you used the pluralized form in the above example for the `author` association in the `Book` model and tried to create the instance by `Book.create(authors: @author)`, you would be told that there was an "uninitialized constant Book::Authors". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
+NOTE: A `belongs_to` association _must_ use the singular term. If you use the
+plural form, like `belongs_to :authors` in the `Book` model, and try to create a
+book with `Book.create(authors: @author)`, Rails will give you an "uninitialized
+constant Book::Authors" error. This happens because Rails automatically infers
+the class name from the association name. If the association name is pluralized,
+Rails will look for a class named `Authors` instead of `Author`.
 
 The corresponding migration might look like this:
 
@@ -153,7 +174,16 @@ end
 When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
 To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model, in this case the Author model.
 
-`belongs_to` does not ensure reference consistency if `optional` is set to true, so depending on the use case, you might also need to add a database-level foreign key constraint on the reference column, like this:
+If `optional` is set to true in the model, then `belongs_to` does not guarantee reference consistency. This means that the foreign key in one table might not reliably point to a valid primary key in the referenced table.
+
+```ruby
+class Book < ApplicationRecord
+  belongs_to :author, optional: true
+end
+```
+
+Hence, depending on the use case, you might also need to add a database-level
+foreign key constraint on the reference column, like this:
 
 ```ruby
 create_table :books do |t|
@@ -161,6 +191,8 @@ create_table :books do |t|
   # ...
 end
 ```
+
+This ensures that even if `optional: true` allows `author_id` to be NULL, when it is not NULL, it must point to a valid record in the authors table.
 
 ### `has_one`
 
