@@ -607,6 +607,18 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reflect_on_missing_source_assocation
+    assert_nothing_raised do
+      assert_nil Hotel.reflect_on_association(:lost_items).source_reflection
+    end
+  end
+
+  def test_reflect_on_missing_source_assocation_raise_exception
+    assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
+      Hotel.reflect_on_association(:lost_items).check_validity!
+    end
+  end
+
   def test_name_error_from_incidental_code_is_not_converted_to_name_error_for_association
     UserWithInvalidRelation.stub(:const_missing, proc { oops }) do
       reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
