@@ -330,7 +330,6 @@
       name: Version 7.2 - ?
       url: 7_2_release_notes.html
       description: Release notes for Rails 7.2.
-      work_in_progress: true
     -
       name: Version 7.1 - October 2023
       url: 7_1_release_notes.html
