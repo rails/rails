@@ -206,7 +206,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-The main difference from `belongs_to` is that the link column `supplier_id` is located in the other table, not the table where the `has_one` is declared:
+The main difference from `belongs_to` is that the link column `supplier_id` is located in the other table, not the table where the `has_one` is declared.
 
 ![has_one Association Diagram](images/association_basics/has_one.png)
 
@@ -328,6 +328,10 @@ class Patient < ApplicationRecord
 end
 ```
 
+`has_many :through` establishes a many-to-many relationship between models,
+allowing instances of one model (Physician) to be associated with multiple
+instances of another model (Patient) through a third "join" model (Appointment).
+
 ![has_many :through Association Diagram](images/association_basics/has_many_through.png)
 
 The corresponding migration might look like this:
@@ -355,6 +359,8 @@ class CreateAppointments < ActiveRecord::Migration[7.2]
 end
 ```
 
+In this migration the `physicians` table is created with a `name` column. The `patients` table is created with a `name` column. The `appointments` table is created with `physician_id` and `patient_id` columns, establishing the many-to-many relationship between `physicians` and `patients`.
+
 The collection of join models can be managed via the [`has_many` association methods](#has-many-association-reference).
 For example, if you assign:
 
@@ -365,7 +371,7 @@ physician.patients = patients
 Then new join models are automatically created for the newly associated objects.
 If some that existed previously are now missing, then their join rows are automatically deleted.
 
-WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered.
+WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered. You can read more about callbacks [here](active_record_callbacks.html).
 
 The `has_many :through` association is also useful for setting up "shortcuts" through nested `has_many` associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
 
