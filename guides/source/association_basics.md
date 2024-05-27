@@ -137,13 +137,13 @@ each association type is appropriate.
 
 A [`belongs_to`][] association sets up a connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes authors and books, and each book can be assigned to exactly one author, you'd declare the book model this way:
 
-![belongs_to Association Diagram](images/association_basics/belongs_to.png)
-
 ```ruby
 class Book < ApplicationRecord
   belongs_to :author
 end
 ```
+
+![belongs_to Association Diagram](images/association_basics/belongs_to.png)
 
 NOTE: A `belongs_to` association _must_ use the singular term. If you use the
 plural form, like `belongs_to :authors` in the `Book` model, and try to create a
