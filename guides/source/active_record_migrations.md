@@ -272,9 +272,9 @@ class AddUserRefToProducts < ActiveRecord::Migration[8.0]
 end
 ```
 
-The above migration creates a foreign key called `user_id`in the `products` table,
-where `user_id` is a reference to the `id` column in the `users` table. It also
-creates an index for the `user_id` column. The schema looks as follows:
+The above migration creates a foreign key called `user_id`in the `products`
+table, where `user_id` is a reference to the `id` column in the `users` table.
+It also creates an index for the `user_id` column. The schema looks as follows:
 
 ```ruby
   t.uuid "user_id", null: false
@@ -323,9 +323,9 @@ end
 
 In addition to the `migration` generator, the `model`, `resource`, and
 `scaffold` generators will create migrations appropriate for adding a new model.
-This migration will already contain instructions for
-creating the relevant table. If you tell Rails what columns you want, then
-statements for adding these columns will also be created. For example, running:
+This migration will already contain instructions for creating the relevant
+table. If you tell Rails what columns you want, then statements for adding these
+columns will also be created. For example, running:
 
 ```bash
 $ bin/rails generate model Product name:string description:text
@@ -635,9 +635,9 @@ This sets `:name` field on products to a `NOT NULL` column and the default value
 of the `:approved` field from true to false. Both of these changes will only be
 applied to future records, any existing records do not change.
 
-Setting the null constraint to `true` implies that column will accept a
-null value, otherwise the `NOT NULL` constraint is applied and a value must be
-passed in order to persist the record to the database.
+Setting the null constraint to `true` implies that column will accept a null
+value, otherwise the `NOT NULL` constraint is applied and a value must be passed
+in order to persist the record to the database.
 
 NOTE: You could also write the above `change_column_default` migration as
 `change_column_default :products, :approved, false`, but unlike the previous
@@ -883,8 +883,8 @@ actions automatically. Below are some of the actions that `change` supports:
 [`change_table`][] is also reversible, as long as the block only calls
 reversible operations like the ones listed above.
 
-If you need to use any other methods, you should use `reversible` or
-write the `up` and `down` methods instead of using the `change` method.
+If you need to use any other methods, you should use `reversible` or write the
+`up` and `down` methods instead of using the `change` method.
 
 [`add_check_constraint`]:
     https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_check_constraint
@@ -922,8 +922,8 @@ write the `up` and `down` methods instead of using the `change` method.
 ### Using `reversible`
 
 If you'd like for a migration to do something that Active Record doesn't know
-how to reverse, then you can use `reversible` to specify what to do when running a
-migration and what else to do when reverting it.
+how to reverse, then you can use `reversible` to specify what to do when running
+a migration and what else to do when reverting it.
 
 ```ruby
 class ChangeProductsPrice < ActiveRecord::Migration[8.0]
@@ -1191,8 +1191,8 @@ specific migration before migrating back up again, you can use the
 $ bin/rails db:migrate:redo STEP=3
 ```
 
-NOTE: You could get the same result using `db:migrate`. However, these are there for
-convenience so that you do not need to explicitly specify the version to
+NOTE: You could get the same result using `db:migrate`. However, these are there
+for convenience so that you do not need to explicitly specify the version to
 migrate to.
 
 #### Transactions
@@ -1518,8 +1518,8 @@ migrations you add and commit them.
 Active Record and Referential Integrity
 ---------------------------------------
 
-The Active Record pattern suggests that intelligence should primarily reside in your
-models rather than in the database. Consequently, features like triggers or
+The Active Record pattern suggests that intelligence should primarily reside in
+your models rather than in the database. Consequently, features like triggers or
 constraints, which delegate some of that intelligence back into the database,
 are not always favored.
 
@@ -1548,9 +1548,9 @@ data integrity across both application and database layers.
 Migrations and Seed Data
 ------------------------
 
-The main purpose of the Rails migration feature is to issue commands that modify the
-schema using a consistent process. Migrations can also be used to add or modify
-data. This is useful in an existing database that can't be destroyed and
+The main purpose of the Rails migration feature is to issue commands that modify
+the schema using a consistent process. Migrations can also be used to add or
+modify data. This is useful in an existing database that can't be destroyed and
 recreated, such as a production database.
 
 ```ruby
