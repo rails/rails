@@ -206,7 +206,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-The main difference from `belongs_to` is that the link column `supplier_id` is located in the other table:
+The main difference from `belongs_to` is that the link column `supplier_id` is located in the other table, not the table where the `has_one` is declared:
 
 ![has_one Association Diagram](images/association_basics/has_one.png)
 
@@ -229,9 +229,12 @@ class CreateSuppliers < ActiveRecord::Migration[7.2]
 end
 ```
 
-Depending on the use case, you might also need to create a unique index and/or
-a foreign key constraint on the supplier column for the accounts table. In this
-case, the column definition might look like this:
+Depending on the use case, you might also need to create a unique index and/or a
+foreign key constraint on the supplier column for the accounts table. The unique
+index ensures that each supplier is associated with only one account and allows
+you to query in a performant manner, while the foreign key constraint ensures
+that the supplier_id in the accounts table refers to a valid supplier in the
+suppliers table. This enforces the association at the database level.
 
 ```ruby
 create_table :accounts do |t|
