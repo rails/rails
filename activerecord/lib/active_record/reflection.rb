@@ -1007,6 +1007,8 @@ module ActiveRecord
       #   # => <ActiveRecord::Reflection::BelongsToReflection: @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
+        return unless source_reflection_name
+
         through_reflection.klass._reflect_on_association(source_reflection_name)
       end
 
