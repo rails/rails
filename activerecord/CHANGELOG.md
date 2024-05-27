@@ -1,3 +1,9 @@
+*   Add `ActiveRecord::Relation.readonly?`
+
+    Reflects if the relation has been marked as readonly.
+
+    *Theodor Tonum*
+
 *   Improve `ActiveRecord::Store` to raise a descriptive exception if the column is not either
     structured (e.g., PostgreSQL +hstore+/+json+, or MySQL +json+) or declared serializable via
     `ActiveRecord.store`.
