@@ -877,6 +877,7 @@ add the helpers there. After defining this `LabellingFormBuilder` subclass:
 ```ruby
 class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   def text_field(attribute, options = {})
+    # super will call the original text_field method
     label(attribute) + super
   end
 end
