@@ -608,7 +608,7 @@ the `upccode` column to `upc_code`.
 ### Changing Columns
 
 Similar to the `remove_column` and `add_column` methods we covered
-[earlier](#adding-new-columns), Rails also provides the [`change_column`][]
+[earlier](#adding-columns), Rails also provides the [`change_column`][]
 migration method.
 
 ```ruby
