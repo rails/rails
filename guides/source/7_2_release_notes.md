@@ -5,6 +5,21 @@ Ruby on Rails 7.2 Release Notes
 
 Highlights in Rails 7.2:
 
+* Development containers configuration for applications.
+* Add browser version guard by default.
+* Make Ruby 3.1 the new minimum version.
+* Default Progressive Web Application (PWA) files.
+* Add omakase RuboCop rules by default.
+* Add GitHub CI workflow by default to new applications.
+* Add Brakeman by default to new applications.
+* Set a new default for the Puma thread count.
+* Prevent jobs from being scheduled within transactions.
+* Per transaction commit and rollback callbacks.
+* Enable YJIT by default if running Ruby 3.3+.
+* New design for the Rails guides.
+* Setup jemalloc in default Dockerfile to optimize memory allocation.
+* Suggest puma-dev configuration in bin/setup.
+
 These release notes cover only the major changes. To learn about various bug
 fixes and changes, please refer to the changelogs or check out the [list of
 commits](https://github.com/rails/rails/commits/7-2-stable) in the main Rails
@@ -99,8 +114,7 @@ We are changing this policy because it causes us to keep compatibility with long
 unsupported versions of Ruby or to bump the Rails major version more often, and to
 drop multiple Ruby versions at once when we bump the major.
 
-Now we are going to drop Ruby versions on minor versions, following the recommendation
-from the Ruby team at the time of the release.
+We will now drop Ruby versions that are end-of-life on minor Rails versions at the time of the release.
 
 For Rails 7.2, Ruby 3.1 is the new minimum version.
 
@@ -135,7 +149,7 @@ start with automated scanning, linting, and testing. We find that a natural cont
 we've done since the start with unit tests.
 
 It's of course true that GitHub Actions are a commercial cloud product for private repositories after you've used the
-free tokens. But given the relationship with GitHub and Rails, the overwhelming default nature of the platform for
+free tokens. But given the relationship between GitHub and Rails, the overwhelming default nature of the platform for
 newcomers, and the value of teaching newcomers good CI habits, we find this to be an acceptable trade-off.
 
 ### Add Brakeman by default to new applications
@@ -143,7 +157,7 @@ newcomers, and the value of teaching newcomers good CI habits, we find this to b
 [Brakeman](https://brakemanscanner.org/) is a great way to prevent common security vulnerabilities in Rails from going
 into production.
 
-New application come with Brakeman installed and combined with the GitHub CI workflow, it will run automatically on
+New applications come with Brakeman installed and combined with the GitHub CI workflow, it will run automatically on
 every push.
 
 ### Set a new default for the Puma thread count
@@ -151,7 +165,8 @@ every push.
 Rails changed the default number of threads in Puma from 5 to 3.
 
 Due to the nature of well-optimized Rails applications, with quick SQL queries and slow 3rd-party calls running via jobs,
-Ruby spends most of its time waiting for the Global VM Lock (GVL) to release when the thread count is too high.
+Ruby can spend a significant amount of time waiting for the Global VM Lock (GVL) to release when the thread count is too
+high, which is hurting latency (request response time).
 
 After careful consideration, investigation, and based on battle-tested experience from applications running in
 production, we decided that a default of 3 threads is a good balance between concurrency and performance.
@@ -185,9 +200,9 @@ end
 
 ### Per transaction commit and rollback callbacks
 
-This is now possible due to a new feature that allows to register transaction callbacks outside of a record.
+This is now possible due to a new feature that allows registering transaction callbacks outside of a record.
 
-`ActiveRecord::Base.transaction` now yields an `ActiveRecord::Transaction` object, which allows to register callbacks
+`ActiveRecord::Base.transaction` now yields an `ActiveRecord::Transaction` object, which allows registering callbacks
 on it.
 
 ```ruby
@@ -209,7 +224,7 @@ end
 ```
 
 And finally, `ActiveRecord.after_all_transactions_commit` was added, for code that may run either inside or outside a
-transaction and need to perform works after the state changes have been properly persisted.
+transaction and needs to perform work after the state changes have been properly persisted.
 
 ```ruby
 def publish_article(article)
