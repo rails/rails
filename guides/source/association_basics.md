@@ -359,7 +359,7 @@ class CreateAppointments < ActiveRecord::Migration[7.2]
 end
 ```
 
-In this migration the `physicians` table is created with a `name` column. The `patients` table is created with a `name` column. The `appointments` table is created with `physician_id` and `patient_id` columns, establishing the many-to-many relationship between `physicians` and `patients`.
+In this migration the `physicians` and `patients` tables are created with a `name` column. The `appointments` table is created with `physician_id` and `patient_id` columns, establishing the many-to-many relationship between `physicians` and `patients`.
 
 The collection of join models can be managed via the [`has_many` association methods](#has-many-association-reference).
 For example, if you assign:
@@ -373,7 +373,9 @@ If some that existed previously are now missing, then their join rows are automa
 
 WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered. You can read more about callbacks [here](active_record_callbacks.html).
 
-The `has_many :through` association is also useful for setting up "shortcuts" through nested `has_many` associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
+The `has_many :through` association is also useful for setting up "shortcuts" through nested `has_many` associations. This is particularly beneficial when you need to access a collection of related records through an intermediary association. For example, if a document has many sections, and each section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document without having to manually traverse through each section.
+
+You can set this up with a `has_many :through` association as follows:
 
 ```ruby
 class Document < ApplicationRecord
@@ -395,6 +397,16 @@ With `through: :sections` specified, Rails will now understand:
 
 ```ruby
 @document.paragraphs
+```
+
+Whereas, if you had not set up a `has_many :through` association, you would have
+needed to do something like this to get paragraphs in a document:
+
+```ruby
+paragraphs = []
+@document.sections.each do |section|
+  paragraphs.concat(section.paragraphs)
+end
 ```
 
 ### `has_one :through`
