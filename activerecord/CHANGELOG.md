@@ -1,4 +1,4 @@
-*   Add an `filter` option to `in_order_of` to prioritize certain values in the sorting without filtering the results
+*   Add a `filter` option to `in_order_of` to prioritize certain values in the sorting without filtering the results
     by these values.
 
     *Igor Depolli*
