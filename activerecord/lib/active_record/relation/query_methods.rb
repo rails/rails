@@ -721,7 +721,7 @@ module ActiveRecord
       values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
       arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
-      scope = spawn.order!(build_case_for_value_position(arel_column, values, filter:))
+      scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
 
       if filter
         where_clause =
