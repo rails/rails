@@ -210,7 +210,7 @@ Here are all of the routes created for a singular resource:
 | PATCH/PUT | /geocoder      | geocoders#update  | update the one and only geocoder resource     |
 | DELETE    | /geocoder      | geocoders#destroy | delete the geocoder resource                  |
 
-NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers. So that, for example, `resource :photo` and `resources :photos` creates both singular and plural routes that map to the same controller (`PhotosController`).
+NOTE: Singular resources map to plural controllers. For example, the `geocoder` resource maps to the `GeocodersController`.
 
 A singular resourceful route generates these helpers:
 
@@ -551,6 +551,8 @@ For other actions, you need to insert the action name as the first element of th
 ```
 
 This allows you to treat instances of your models as URLs, and is a key advantage to using the resourceful style.
+
+NOTE: In order to automatically derive paths and URLs from objects such as `[@magazine, @ad]`, Rails uses methods from `ActiveModel::Naming` and `ActiveModel::Conversion` modules. Specifically the `@magazine.model_name.route_key` returns `magazines` and `@magazine.to_param` returns a string representation of the model's `id`. So the generated path may be something like `/magazines/1/ads/42` for the objects `[@magazine, @ad]`.
 
 [ActionView::RoutingUrlFor#url_for]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
 
