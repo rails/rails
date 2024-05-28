@@ -423,6 +423,10 @@ module Rails
           path = File.expand_path(File.join(base_name, generator_name), base_root)
           path if File.exist?(path)
         end
+
+        def gem_ruby_version
+          Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
+        end
     end
   end
 end

@@ -8,11 +8,15 @@ require "rails/engine/updater"
 
 DEFAULT_PLUGIN_FILES = %w(
   .git
+  .github/dependabot.yml
+  .github/workflows/ci.yml
   .gitignore
+  .rubocop.yml
   Gemfile
   MIT-LICENSE
   README.md
   Rakefile
+  bin/rubocop
   bin/test
   bukkits.gemspec
   lib/bukkits.rb
@@ -50,7 +54,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/environments/production.rb
   test/dummy/config/environments/test.rb
   test/dummy/config/initializers/content_security_policy.rb
-  test/dummy/config/initializers/enable_yjit.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
   test/dummy/config/initializers/permissions_policy.rb
@@ -235,11 +238,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_default_database_dependency_is_sqlite
     run_generator
     assert_file "test/dummy/config/database.yml", /sqlite/
-    if defined?(JRUBY_VERSION)
-      assert_gem "activerecord-jdbcsqlite3-adapter"
-    else
-      assert_gem "sqlite3"
-    end
+    assert_gem "sqlite3"
   end
 
   def test_custom_database_dependency
@@ -660,15 +659,19 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_dummy_application_configures_asset_pipeline_when_mountable
     run_generator [destination_root, "--mountable"]
 
-    assert_gem "sprockets-rails"
-    assert_file "test/dummy/app/assets/config/manifest.js"
+    assert_gem "propshaft"
+    assert_file "test/dummy/config/initializers/assets.rb"
   end
 
   def test_dummy_application_configures_asset_pipeline_when_full
     run_generator [destination_root, "--full"]
 
-    assert_gem "sprockets-rails"
-    assert_file "test/dummy/app/assets/config/manifest.js"
+    assert_gem "propshaft"
+    assert_no_gem "sprockets-rails"
+    assert_file "test/dummy/config/initializers/assets.rb"
+    assert_file "test/dummy/config/environments/development.rb" do |content|
+      assert_no_match "config.assets", content
+    end
   end
 
   def test_dummy_application_skips_asset_pipeline_when_flag_skip_asset_pipeline
@@ -682,20 +685,16 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_dummy_application_respects_asset_pipeline_gem_choice
-    run_generator [destination_root, "--mountable", "--asset-pipeline=propshaft"]
+    run_generator [destination_root, "--mountable", "--asset-pipeline=sprockets"]
 
-    assert_gem "propshaft"
-    assert_no_gem "sprockets-rails"
-    assert_file "test/dummy/config/initializers/assets.rb"
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match "config.assets", content
-    end
+    assert_gem "sprockets-rails"
+    assert_file "test/dummy/app/assets/config/manifest.js"
   end
 
   def test_no_asset_pipeline_gem_when_no_dummy_application
     run_generator [destination_root, "--mountable", "--skip-test"]
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_directory "test/dummy"
   end
 

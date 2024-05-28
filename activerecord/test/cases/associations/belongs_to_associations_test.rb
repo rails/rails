@@ -103,10 +103,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_no_match(/`firm_with_primary_keys_companies`\.`id`/, sql)
       assert_match(/`firm_with_primary_keys_companies`\.`name`/, sql)
-    elsif current_adapter?(:OracleAdapter)
-      # on Oracle aliases are truncated to 30 characters and are quoted in uppercase
-      assert_no_match(/"firm_with_primary_keys_compani"\."id"/i, sql)
-      assert_match(/"firm_with_primary_keys_compani"\."name"/i, sql)
     else
       assert_no_match(/"firm_with_primary_keys_companies"\."id"/, sql)
       assert_match(/"firm_with_primary_keys_companies"\."name"/, sql)

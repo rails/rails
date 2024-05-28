@@ -136,9 +136,10 @@ module ActiveRecord
 
       private
         def scope_association_reflection(association)
-          reflection = @scope.klass._reflect_on_association(association)
+          model = @scope.model
+          reflection = model._reflect_on_association(association)
           unless reflection
-            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{model.name}`.")
           end
           reflection
         end
@@ -252,6 +253,10 @@ module ActiveRecord
     def includes!(*args) # :nodoc:
       self.includes_values |= args
       self
+    end
+
+    def all # :nodoc:
+      spawn
     end
 
     # Specify associations +args+ to be eager loaded using a <tt>LEFT OUTER JOIN</tt>.
@@ -713,7 +718,7 @@ module ActiveRecord
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      values = values.map { |value| type_caster.type_cast_for_database(column, value) }
+      values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
       arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
       if only_values
@@ -1926,7 +1931,7 @@ module ActiveRecord
           case field
           when Symbol
             arel_column(field.to_s) do |attr_name|
-              adapter_class.quote_table_name(attr_name)
+              klass.adapter_class.quote_table_name(attr_name)
             end
           when String
             arel_column(field, &:itself)
@@ -1958,7 +1963,7 @@ module ActiveRecord
 
       def table_name_matches?(from)
         table_name = Regexp.escape(table.name)
-        quoted_table_name = Regexp.escape(adapter_class.quote_table_name(table.name))
+        quoted_table_name = Regexp.escape(klass.adapter_class.quote_table_name(table.name))
         /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i.match?(from.to_s)
       end
 
@@ -2093,7 +2098,7 @@ module ActiveRecord
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
-            Arel.sql(adapter_class.quote_table_name(attr_name), retryable: true)
+            Arel.sql(klass.adapter_class.quote_table_name(attr_name), retryable: true)
           end
         end
       end

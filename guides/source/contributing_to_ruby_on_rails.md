@@ -599,7 +599,7 @@ To ease the upgrade it's required to add the new default to the
 value:
 
 ```ruby
-# new_framework_defaults_7_2.rb.tt
+# new_framework_defaults_8_0.rb.tt
 
 # Rails.application.config.active_job.existing_behavior = false
 ```
@@ -763,7 +763,9 @@ is the open source life.
 If it's been over a week, and you haven't heard anything, you might want to try
 and nudge things along. You can use the *contributions* channel in the [Ruby on Rails Discord server](https://discord.gg/d8N68BCw49),
 or the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this.
-You can also leave another comment on the pull request.
+You can also leave another comment on the pull request. It's best to avoid pinging
+individual maintainers directly as we have limited bandwidth and may not
+be able to look at your PR.
 
 While you're waiting for feedback on your pull request, open up a few other
 pull requests and give someone else some! They'll appreciate it in

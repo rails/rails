@@ -76,13 +76,7 @@ module ActiveSupport
             when Hash
               result = {}
               value.each do |k, v|
-                unless String === k
-                  k = if Symbol === k
-                    k.name
-                  else
-                    k.to_s
-                  end
-                end
+                k = k.to_s unless Symbol === k || String === k
                 result[k] = jsonify(v)
               end
               result

@@ -217,7 +217,11 @@ module ActiveRecord
       end
 
       def store_accessor_for(store_attribute)
-        type_for_attribute(store_attribute).accessor
+        type_for_attribute(store_attribute).tap do |type|
+          unless type.respond_to?(:accessor)
+            raise ConfigurationError, "the column '#{store_attribute}' has not been configured as a store. Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your database supports it, use a structured column type like hstore or json."
+          end
+        end.accessor
       end
 
       class HashAccessor # :nodoc:

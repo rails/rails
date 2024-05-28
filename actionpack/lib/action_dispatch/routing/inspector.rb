@@ -289,7 +289,7 @@ module ActionDispatch
       end
 
       def section_title(title)
-        @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+        @buffer << %(<tr><th colspan="5">#{title}</th></tr>)
       end
 
       def section(routes)

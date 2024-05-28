@@ -122,6 +122,15 @@ module ActiveRecord
       # setting, you should immediately run <tt>bin/rails db:migrate</tt> to update the types in your schema.rb.
       class_attribute :datetime_type, default: :timestamp
 
+      ##
+      # :singleton-method:
+      # Toggles automatic decoding of date columns.
+      #
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date").class #=> String
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates = true
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date").class #=> Date
+      class_attribute :decode_dates, default: false
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
@@ -1159,8 +1168,8 @@ module ActiveRecord
             "bool" => PG::TextDecoder::Boolean,
             "timestamp" => PG::TextDecoder::TimestampUtc,
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
-            "date" => PG::TextDecoder::Date,
           }
+          coders_by_name["date"] = PG::TextDecoder::Date if decode_dates
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<~SQL % known_coder_types.join(", ")

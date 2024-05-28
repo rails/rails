@@ -64,6 +64,9 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
+TIP: New Rails apps come with a preconfigured Dev Container development environment. This
+is the fastest way to get started with Rails. For instructions see [Getting Start with Dev Containers](getting_started_with_devcontainer.html)
+
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
 needed.
@@ -132,10 +135,10 @@ run the following in a new terminal:
 
 ```bash
 $ rails --version
-Rails 7.2.0
+Rails 8.0.0
 ```
 
-If it says something like "Rails 7.2.0", you are ready to continue.
+If it says something like "Rails 8.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -470,7 +473,7 @@ $ bin/rails console
 You should see an `irb` prompt like:
 
 ```irb
-Loading development environment (Rails 7.2.0)
+Loading development environment (Rails 8.0.0)
 irb(main):001:0>
 ```
 

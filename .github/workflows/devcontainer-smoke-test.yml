@@ -1,6 +1,6 @@
 name: Devcontainer smoke test
 
-on: [push, pull_request]
+on: push
 
 jobs:
   build:
@@ -31,7 +31,11 @@ jobs:
           bundler-cache: true
 
       - name: Generate rails app sqlite3
-        run: bundle exec railties/exe/rails new myapp_sqlite --database="sqlite3" --dev
+        run: bundle exec railties/exe/rails new myapp_sqlite --database="sqlite3" --dev --devcontainer
+
+      - name: Remove old deprecated docker-compose
+        run: |
+          sudo rm /usr/local/bin/docker-compose
 
       - name: Test devcontainer sqlite3
         uses: devcontainers/ci@v0.3
@@ -48,7 +52,7 @@ jobs:
         run: docker ps -q | xargs docker stop
 
       - name: Generate rails app postgresql
-        run: bundle exec railties/exe/rails new myapp_postgresql --database="postgresql" --dev
+        run: bundle exec railties/exe/rails new myapp_postgresql --database="postgresql" --dev --devcontainer
 
       - name: Test devcontainer postgresql
         uses: devcontainers/ci@v0.3
@@ -65,7 +69,7 @@ jobs:
         run: docker ps -q | xargs docker stop
 
       - name: Generate rails app mysql
-        run: bundle exec railties/exe/rails new myapp_mysql --database="mysql" --dev
+        run: bundle exec railties/exe/rails new myapp_mysql --database="mysql" --dev --devcontainer
 
       - name: Test devcontainer mysql
         uses: devcontainers/ci@v0.3
@@ -82,7 +86,7 @@ jobs:
         run: docker ps -q | xargs docker stop
 
       - name: Generate rails app trilogy
-        run: bundle exec railties/exe/rails new myapp_trilogy --database="trilogy" --dev
+        run: bundle exec railties/exe/rails new myapp_trilogy --database="trilogy" --dev --devcontainer
 
       - name: Test devcontainer trilogy
         uses: devcontainers/ci@v0.3

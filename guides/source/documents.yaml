@@ -327,10 +327,14 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
+      name: Version 8.0 - ?
+      url: 8_0_release_notes.html
+      description: Release notes for Rails 8.0.
+      work_in_progress: true
+    -
       name: Version 7.2 - ?
       url: 7_2_release_notes.html
       description: Release notes for Rails 7.2.
-      work_in_progress: true
     -
       name: Version 7.1 - October 2023
       url: 7_1_release_notes.html

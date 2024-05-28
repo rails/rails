@@ -22,6 +22,9 @@ module ActiveRecord
     end
 
     module DelegateCache # :nodoc:
+      @delegate_base_methods = true
+      singleton_class.attr_accessor :delegate_base_methods
+
       def relation_delegate_class(klass)
         @relation_delegate_cache[klass]
       end
@@ -100,7 +103,7 @@ module ActiveRecord
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :primary_key, :connection, :transaction, to: :klass
+    delegate :primary_key, :with_connection, :connection, :table_name, :transaction, :sanitize_sql_like, :unscoped, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
@@ -114,9 +117,17 @@ module ActiveRecord
       private
         def method_missing(method, ...)
           if @klass.respond_to?(method)
-            unless Delegation.uncacheable_methods.include?(method)
+            if !DelegateCache.delegate_base_methods && Base.respond_to?(method)
+              # A common mistake in Active Record's own code is to call `ActiveRecord::Base`
+              # class methods on Association. It works because it's automatically delegated, but
+              # can introduce subtle bugs because it sets the global scope.
+              # We can't deprecate this behavior because gems might depend on it, however we
+              # can ban it from Active Record's own test suite to avoid regressions.
+              raise NotImplementedError, "Active Record code shouldn't rely on association delegation into ActiveRecord::Base methods"
+            elsif !Delegation.uncacheable_methods.include?(method)
               @klass.generate_relation_method(method)
             end
+
             scoping { @klass.public_send(method, ...) }
           else
             super

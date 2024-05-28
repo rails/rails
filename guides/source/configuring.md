@@ -61,9 +61,10 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 7.2
 
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
-- [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
+- [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
+- [`config.yjit`](#config-yjit): `true`
 
 #### Default Values for Target Version 7.1
 
@@ -612,6 +613,16 @@ Used to easily add nested custom configuration to the application config object
 
 See [Custom Configuration](#custom-configuration)
 
+#### `config.yjit`
+
+Enables YJIT as of Ruby 3.3, to bring sizeable performance improvements. If you are
+deploying to a memory constrained environment you may want to set this to `false`.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.2                   | `true`               |
+
 ### Configuring Assets
 
 #### `config.assets.css_compressor`
@@ -1094,6 +1105,10 @@ class Comment < ApplicationRecord
 end
 ```
 
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+
 #### `config.active_record.validate_migration_timestamps`
 
 Controls whether to validate migration timestamps. When set, an error will be raised if the
@@ -1489,6 +1504,24 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.1                   | `true`               |
+
+#### `config.active_record.postgresql_adapter_decode_dates`
+
+Specifies whether the PostgresqlAdapter should decode date columns.
+
+```ruby
+ActiveRecord::Base.connection
+     .select_value("select '2024-01-01'::date").class #=> Date
+```
+
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.2                   | `true`               |
+
 
 #### `config.active_record.async_query_executor`
 

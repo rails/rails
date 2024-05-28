@@ -106,9 +106,7 @@ module ActiveRecord
         columns = connection.columns(:testings)
         eight   = columns.detect { |c| c.name == "eight_int"   }
 
-        if current_adapter?(:OracleAdapter)
-          assert_equal "NUMBER(19)", eight.sql_type
-        elsif current_adapter?(:SQLite3Adapter)
+        if current_adapter?(:SQLite3Adapter)
           assert_equal "bigint", eight.sql_type
         else
           assert_equal :integer, eight.type
@@ -148,11 +146,6 @@ module ActiveRecord
           assert_match %r/\Atinyint/, one.sql_type
           assert_match %r/\Aint/, four.sql_type
           assert_match %r/\Abigint/, eight.sql_type
-        elsif current_adapter?(:OracleAdapter)
-          assert_equal "NUMBER(38)", default.sql_type
-          assert_equal "NUMBER(1)", one.sql_type
-          assert_equal "NUMBER(4)", four.sql_type
-          assert_equal "NUMBER(8)", eight.sql_type
         end
       end
 
@@ -284,8 +277,6 @@ module ActiveRecord
           assert_equal "timestamp without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           assert_equal "timestamp", column.sql_type
-        elsif current_adapter?(:OracleAdapter)
-          assert_equal "TIMESTAMP(6)", column.sql_type
         else
           assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
@@ -340,8 +331,6 @@ module ActiveRecord
           assert_equal "timestamp without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           assert_equal "timestamp", column.sql_type
-        elsif current_adapter?(:OracleAdapter)
-          assert_equal "TIMESTAMP(6)", column.sql_type
         else
           assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
@@ -354,12 +343,7 @@ module ActiveRecord
 
         connection.change_column :testings, :select, :string, limit: 10
 
-        # Oracle needs primary key value from sequence
-        if current_adapter?(:OracleAdapter)
-          connection.execute "insert into testings (id, #{connection.quote_column_name('select')}) values (testings_seq.nextval, '7 chars')"
-        else
-          connection.execute "insert into testings (#{connection.quote_column_name('select')}) values ('7 chars')"
-        end
+        connection.execute "insert into testings (#{connection.quote_column_name('select')}) values ('7 chars')"
 
         assert_equal 1, connection.select_value("SELECT COUNT(*) FROM testings")
       end
@@ -375,12 +359,7 @@ module ActiveRecord
         person_klass.reset_column_information
         assert_equal 99, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
-        # Oracle needs primary key value from sequence
-        if current_adapter?(:OracleAdapter)
-          assert_nothing_raised { person_klass.lease_connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')") }
-        else
-          assert_nothing_raised { person_klass.lease_connection.execute("insert into testings (title) values ('tester')") }
-        end
+        assert_nothing_raised { person_klass.lease_connection.execute("insert into testings (title) values ('tester')") }
 
         # change column default to see that column doesn't lose its not null definition
         person_klass.lease_connection.change_column_default "testings", "wealth", 100

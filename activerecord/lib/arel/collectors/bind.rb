@@ -13,7 +13,7 @@ module Arel # :nodoc: all
         self
       end
 
-      def add_bind(bind)
+      def add_bind(bind, &)
         @binds << bind
         self
       end

@@ -6,6 +6,8 @@ task default: :test
 
 task :package
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 Rake::TestTask.new do |t|
   t.pattern = "test/**/*_test.rb"
   t.warning = true

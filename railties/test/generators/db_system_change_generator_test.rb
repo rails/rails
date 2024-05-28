@@ -28,9 +28,7 @@ module Rails
             assert_match <<~MSG.squish, output
               Invalid value for --to option.
               Supported preconfigurations are:
-              mysql, trilogy, postgresql, sqlite3,
-              oracle, sqlserver, jdbcmysql,
-              jdbcsqlite3, jdbcpostgresql, jdbc.
+              mysql, trilogy, postgresql, sqlite3.
             MSG
           end
 
@@ -40,6 +38,7 @@ module Rails
             assert_file("config/database.yml") do |content|
               assert_match "adapter: postgresql", content
               assert_match "database: tmp_production", content
+              assert_match "host: <%= ENV[\"DB_HOST\"] %>", content
             end
 
             assert_file("Gemfile") do |content|
