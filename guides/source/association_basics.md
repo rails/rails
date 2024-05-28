@@ -465,7 +465,7 @@ end
 
 A [`has_and_belongs_to_many`][] association creates a direct many-to-many connection with another model, with no intervening model.
 This association indicates that each instance of the declaring model refers to zero or more instances of another model.
-For example, if your application includes assemblies and parts, with each assembly having many parts and each part appearing in many assemblies, you could declare the models this way:
+For example, consider an application with `Assembly` and `Part` models, where each assembly can contain many parts, and each part can be used in many assemblies. You can set up the models as follows:
 
 ```ruby
 class Assembly < ApplicationRecord
@@ -479,7 +479,7 @@ end
 
 ![has_and_belongs_to_many Association Diagram](images/association_basics/habtm.png)
 
-The corresponding migration might look like this:
+Even though a `has_and_belongs_to_many` does not require an intervening model, it does require a separate table to establish the many-to-many relationship between the two models involved. This intervening table serves to store the related data, mapping the associations between instances of the two models. UIt does not necessarily need a primary key since its purpose is solely to manage the relationship between the associated records. The corresponding migration might look like this:
 
 ```ruby
 class CreateAssembliesAndParts < ActiveRecord::Migration[7.2]
@@ -501,6 +501,16 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[7.2]
   end
 end
 ```
+
+In this migration, the `assemblies` table is created with columns for `name` and
+`timestamps`. The `parts` table is also created for parts with columns for
+`part_number` and `timestamps`. Finally, a join table called
+`assemblies_parts`is created to establish the many-to-many relationship between
+`assemblies` and `parts`. The `id: false` option indicates that this table does
+not need a primary key of its own. `t.belongs_to :assembly` and `t.belongs_to
+:part` creates foreign keys linking the join table to the `assemblies` and
+`parts` tables respectively, ensuring [referential
+integrity](https://en.wikipedia.org/wiki/Referential_integrity).
 
 Choosing an Association
 -------------------------
@@ -824,7 +834,10 @@ class AddAuthorToBooks < ActiveRecord::Migration[7.2]
 end
 ```
 
-NOTE: If you wish to [enforce referential integrity at the database level][foreign_keys], add the `foreign_key: true` option to the ‘reference’ column declarations above.
+NOTE: If you wish to [enforce [referential
+integrity](https://en.wikipedia.org/wiki/Referential_integrity) at the database
+level][foreign_keys], add the `foreign_key: true` option to the ‘reference’
+column declarations above.
 
 [foreign_keys]: active_record_migrations.html#foreign-keys
 
