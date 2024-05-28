@@ -748,9 +748,8 @@ module ActiveRecord
               pp.text attr_name
               pp.text ":"
               pp.breakable
-              value = _read_attribute(attr_name)
-              value = inspection_filter.filter_param(attr_name, value) unless value.nil?
-              pp.pp value
+              value = attribute_for_inspect(attr_name)
+              pp.text value
             end
           end
         else
