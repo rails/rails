@@ -13,7 +13,7 @@ module ActiveRecord
 
     def test_construction
       relation = Relation.new(FakeKlass, table: :b)
-      assert_equal FakeKlass, relation.klass
+      assert_equal FakeKlass, relation.model
       assert_equal :b, relation.table
       assert_not relation.loaded, "relation is not loaded"
     end

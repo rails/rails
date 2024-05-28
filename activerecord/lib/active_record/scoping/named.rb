@@ -23,7 +23,7 @@ module ActiveRecord
           scope = current_scope
 
           if scope
-            if self == scope.klass
+            if self == scope.model
               scope.clone
             else
               relation.merge!(scope)

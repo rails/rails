@@ -133,21 +133,21 @@ module ActiveRecord
       relation = (callable || block).call Params.new
       query_builder, binds = connection.cacheable_query(self, relation.arel)
       bind_map = BindMap.new(binds)
-      new(query_builder, bind_map, relation.klass)
+      new(query_builder, bind_map, relation.model)
     end
 
-    def initialize(query_builder, bind_map, klass)
+    def initialize(query_builder, bind_map, model)
       @query_builder = query_builder
       @bind_map = bind_map
-      @klass = klass
+      @model = model
     end
 
     def execute(params, connection, allow_retry: false, &block)
-      bind_values = bind_map.bind params
+      bind_values = @bind_map.bind params
 
-      sql = query_builder.sql_for bind_values, connection
+      sql = @query_builder.sql_for bind_values, connection
 
-      klass.find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
+      @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
     rescue ::RangeError
       []
     end
@@ -157,8 +157,5 @@ module ActiveRecord
       when NilClass, Array, Range, Hash, Relation, Base then true
       end
     end
-
-    private
-      attr_reader :query_builder, :bind_map, :klass
   end
 end
