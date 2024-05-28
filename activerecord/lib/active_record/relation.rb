@@ -68,19 +68,19 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
     include SignedId::RelationMethods, TokenFor::RelationMethods
 
-    attr_reader :table, :klass, :loaded, :predicate_builder
+    attr_reader :table, :model, :loaded, :predicate_builder
     attr_accessor :skip_preloading_value
-    alias :model :klass
+    alias :klass :model
     alias :loaded? :loaded
     alias :locked? :lock_value
 
-    def initialize(klass, table: klass.arel_table, predicate_builder: klass.predicate_builder, values: {})
-      @klass  = klass
+    def initialize(model, table: model.arel_table, predicate_builder: model.predicate_builder, values: {})
+      @model  = model
       @table  = table
       @values = values
       @loaded = false
       @predicate_builder = predicate_builder
-      @delegate_to_klass = false
+      @delegate_to_model = false
       @future_result = nil
       @records = nil
       @async = false
@@ -93,7 +93,7 @@ module ActiveRecord
     end
 
     def bind_attribute(name, value) # :nodoc:
-      if reflection = klass._reflect_on_association(name)
+      if reflection = model._reflect_on_association(name)
         name = reflection.foreign_key
         value = value.read_attribute(reflection.association_primary_key) unless value.nil?
       end
@@ -430,12 +430,12 @@ module ActiveRecord
     #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
     def cache_key(timestamp_column = "updated_at")
       @cache_keys ||= {}
-      @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
+      @cache_keys[timestamp_column] ||= model.collection_cache_key(self, timestamp_column)
     end
 
     def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
       query_signature = ActiveSupport::Digest.hexdigest(to_sql)
-      key = "#{klass.model_name.cache_key}/query-#{query_signature}"
+      key = "#{model.model_name.cache_key}/query-#{query_signature}"
 
       if model.collection_cache_versioning
         key
@@ -475,7 +475,7 @@ module ActiveRecord
 
         with_connection do |c|
           column = c.visitor.compile(table[timestamp_column])
-          select_values = "COUNT(*) AS #{klass.adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
+          select_values = "COUNT(*) AS #{model.adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
 
           if collection.has_limit_or_offset?
             query = collection.select("#{column} AS collection_cache_key_timestamp")
@@ -492,7 +492,7 @@ module ActiveRecord
           size, timestamp = c.select_rows(arel, nil).first
 
           if size
-            column_type = klass.type_for_attribute(timestamp_column)
+            column_type = model.type_for_attribute(timestamp_column)
             timestamp = column_type.deserialize(timestamp)
           else
             size = 0
@@ -532,7 +532,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping(all_queries: nil, &block)
-      registry = klass.scope_registry
+      registry = model.scope_registry
       if global_scope?(registry) && all_queries == false
         raise ArgumentError, "Scoping is set to apply to all queries and cannot be unset in a nested block."
       elsif already_in_scope?(registry)
@@ -543,11 +543,11 @@ module ActiveRecord
     end
 
     def _exec_scope(...) # :nodoc:
-      @delegate_to_klass = true
-      registry = klass.scope_registry
+      @delegate_to_model = true
+      registry = model.scope_registry
       _scoping(nil, registry) { instance_exec(...) || self }
     ensure
-      @delegate_to_klass = false
+      @delegate_to_model = false
     end
 
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
@@ -584,30 +584,30 @@ module ActiveRecord
       return 0 if @none
 
       if updates.is_a?(Hash)
-        if klass.locking_enabled? &&
-            !updates.key?(klass.locking_column) &&
-            !updates.key?(klass.locking_column.to_sym)
-          attr = table[klass.locking_column]
+        if model.locking_enabled? &&
+            !updates.key?(model.locking_column) &&
+            !updates.key?(model.locking_column.to_sym)
+          attr = table[model.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
         values = _substitute_values(updates)
       else
-        values = Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
+        values = Arel.sql(model.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      klass.with_connection do |c|
+      model.with_connection do |c|
         arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
         arel.source.left = table
 
         group_values_arel_columns = arel_columns(group_values.uniq)
         having_clause_ast = having_clause.ast unless having_clause.empty?
-        key = if klass.composite_primary_key?
+        key = if model.composite_primary_key?
           primary_key.map { |pk| table[pk] }
         else
           table[primary_key]
         end
         stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
-        c.update(stmt, "#{klass} Update All").tap { reset }
+        c.update(stmt, "#{model} Update All").tap { reset }
       end
     end
 
@@ -615,7 +615,7 @@ module ActiveRecord
       if id == :all
         each { |record| record.update(attributes) }
       else
-        klass.update(id, attributes)
+        model.update(id, attributes)
       end
     end
 
@@ -623,7 +623,7 @@ module ActiveRecord
       if id == :all
         each { |record| record.update!(attributes) }
       else
-        klass.update!(id, attributes)
+        model.update!(id, attributes)
       end
     end
 
@@ -929,7 +929,7 @@ module ActiveRecord
         names = touch if touch != true
         names = Array.wrap(names)
         options = names.extract_options!
-        touch_updates = klass.touch_attributes_with_time(*names, **options)
+        touch_updates = model.touch_attributes_with_time(*names, **options)
         updates.merge!(touch_updates) unless touch_updates.empty?
       end
 
@@ -960,7 +960,7 @@ module ActiveRecord
     #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
-      update_all klass.touch_attributes_with_time(*names, time: time)
+      update_all model.touch_attributes_with_time(*names, time: time)
     end
 
     # Destroys the records by instantiating each
@@ -1012,20 +1012,20 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      klass.with_connection do |c|
+      model.with_connection do |c|
         arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
         arel.source.left = table
 
         group_values_arel_columns = arel_columns(group_values.uniq)
         having_clause_ast = having_clause.ast unless having_clause.empty?
-        key = if klass.composite_primary_key?
+        key = if model.composite_primary_key?
           primary_key.map { |pk| table[pk] }
         else
           table[primary_key]
         end
         stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
 
-        c.delete(stmt, "#{klass} Delete All").tap { reset }
+        c.delete(stmt, "#{model} Delete All").tap { reset }
       end
     end
 
@@ -1180,7 +1180,7 @@ module ActiveRecord
     def reset
       @future_result&.cancel
       @future_result = nil
-      @delegate_to_klass = false
+      @delegate_to_model = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
       @cache_keys = nil
@@ -1200,7 +1200,7 @@ module ActiveRecord
           relation.to_sql
         end
       else
-        klass.with_connection do |conn|
+        model.with_connection do |conn|
           conn.unprepared_statement { conn.to_sql(arel) }
         end
       end
@@ -1210,12 +1210,12 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
-    def where_values_hash(relation_table_name = klass.table_name) # :nodoc:
+    def where_values_hash(relation_table_name = model.table_name) # :nodoc:
       where_clause.to_h(relation_table_name)
     end
 
     def scope_for_create
-      hash = where_clause.to_h(klass.table_name, equality_only: true)
+      hash = where_clause.to_h(model.table_name, equality_only: true)
       create_with_value.each { |k, v| hash[k.to_s] = v } unless create_with_value.empty?
       hash
     end
@@ -1283,7 +1283,7 @@ module ActiveRecord
     end
 
     def empty_scope? # :nodoc:
-      @values == klass.unscoped.values
+      @values == model.unscoped.values
     end
 
     def has_limit_or_offset? # :nodoc:
@@ -1291,7 +1291,7 @@ module ActiveRecord
     end
 
     def alias_tracker(joins = [], aliases = nil) # :nodoc:
-      ActiveRecord::Associations::AliasTracker.create(klass.connection_pool, table.name, joins, aliases)
+      ActiveRecord::Associations::AliasTracker.create(model.connection_pool, table.name, joins, aliases)
     end
 
     class StrictLoadingScope # :nodoc:
@@ -1321,46 +1321,46 @@ module ActiveRecord
 
     private
       def already_in_scope?(registry)
-        @delegate_to_klass && registry.current_scope(klass, true)
+        @delegate_to_model && registry.current_scope(model, true)
       end
 
       def global_scope?(registry)
-        registry.global_current_scope(klass, true)
+        registry.global_current_scope(model, true)
       end
 
       def current_scope_restoring_block(&block)
-        current_scope = klass.current_scope(true)
+        current_scope = model.current_scope(true)
         -> record do
-          klass.current_scope = current_scope
+          model.current_scope = current_scope
           yield record if block_given?
         end
       end
 
       def _new(attributes, &block)
-        klass.new(attributes, &block)
+        model.new(attributes, &block)
       end
 
       def _create(attributes, &block)
-        klass.create(attributes, &block)
+        model.create(attributes, &block)
       end
 
       def _create!(attributes, &block)
-        klass.create!(attributes, &block)
+        model.create!(attributes, &block)
       end
 
       def _scoping(scope, registry, all_queries = false)
-        previous = registry.current_scope(klass, true)
-        registry.set_current_scope(klass, scope)
+        previous = registry.current_scope(model, true)
+        registry.set_current_scope(model, scope)
 
         if all_queries
-          previous_global = registry.global_current_scope(klass, true)
-          registry.set_global_current_scope(klass, scope)
+          previous_global = registry.global_current_scope(model, true)
+          registry.set_global_current_scope(model, scope)
         end
         yield
       ensure
-        registry.set_current_scope(klass, previous)
+        registry.set_current_scope(model, previous)
         if all_queries
-          registry.set_global_current_scope(klass, previous_global)
+          registry.set_global_current_scope(model, previous_global)
         end
       end
 
@@ -1372,7 +1372,7 @@ module ActiveRecord
               value = Arel::Nodes::Grouping.new(value)
             end
           else
-            type = klass.type_for_attribute(attr.name)
+            type = model.type_for_attribute(attr.name)
             value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
           end
           [attr, value]
@@ -1419,7 +1419,7 @@ module ActiveRecord
           if where_clause.contradiction?
             [].freeze
           elsif eager_loading?
-            klass.with_connection do |c|
+            model.with_connection do |c|
               apply_join_dependency do |relation, join_dependency|
                 if relation.null_relation?
                   [].freeze
@@ -1431,8 +1431,8 @@ module ActiveRecord
               end
             end
           else
-            klass.with_connection do |c|
-              klass._query_by_sql(c, arel, async: async)
+            model.with_connection do |c|
+              model._query_by_sql(c, arel, async: async)
             end
           end
         end
@@ -1445,7 +1445,7 @@ module ActiveRecord
           @_join_dependency = nil
           records
         else
-          klass._load_from_sql(rows, &block).freeze
+          model._load_from_sql(rows, &block).freeze
         end
       end
 

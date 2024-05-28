@@ -94,7 +94,7 @@ module ActiveRecord
       def find(*args)
         if options[:inverse_of] && loaded?
           args_flatten = args.flatten
-          model = scope.klass
+          model = scope.model
 
           if args_flatten.blank?
             error_message = "Couldn't find #{model.name} without an ID"
