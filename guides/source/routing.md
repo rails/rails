@@ -558,7 +558,9 @@ NOTE: In order to automatically derive paths and URLs from objects such as `[@ma
 
 ### Adding More RESTful Actions
 
-You are not limited to the seven routes that RESTful routing creates by default. If you like, you may add additional routes that apply to the collection or individual members of the collection.
+You are not limited to the seven routes that RESTful routing creates by default. You can add additional routes that apply to the collection or individual members of the collection.
+
+The below sections describe adding member routes and collection routes. The term `member` refers to routes acting on a single element, such as `show`, `update`, or `destroy`. The term `collection` refers to routes acting on multiple, or a collection of, elements, such as the `index` route.
 
 #### Adding Member Routes
 
