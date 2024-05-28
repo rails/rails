@@ -928,7 +928,20 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def proxy_association # :nodoc:
+      # Returns the association object for the collection.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.proxy_association
+      #   # => #<ActiveRecord::Associations::HasManyAssociation owner="#<Person:0x00>">
+      #
+      # Returns the same object as <tt>person.association(:pets)</tt>,
+      # allowing you to make calls like <tt>person.pets.proxy_association.owner</tt>.
+      #
+      # See Associations::ClassMethods@Association+extensions for more.
+      def proxy_association
         @association
       end
 

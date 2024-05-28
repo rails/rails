@@ -234,7 +234,7 @@ module ActiveRecord
         if operation == "count"
           unless distinct_value || distinct_select?(column_name || select_for_count)
             relation.distinct!
-            relation.select_values = Array(klass.primary_key || table[Arel.star])
+            relation.select_values = Array(model.primary_key || table[Arel.star])
           end
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
           relation.order_values = [] if group_values.empty?
@@ -306,7 +306,7 @@ module ActiveRecord
         relation = apply_join_dependency
         relation.pluck(*column_names)
       else
-        klass.disallow_raw_sql!(flattened_args(column_names))
+        model.disallow_raw_sql!(flattened_args(column_names))
         columns = arel_columns(column_names)
         relation = spawn
         relation.select_values = columns
@@ -314,8 +314,8 @@ module ActiveRecord
           if where_clause.contradiction?
             ActiveRecord::Result.empty(async: @async)
           else
-            klass.with_connection do |c|
-              c.select_all(relation.arel, "#{klass.name} Pluck", async: @async)
+            model.with_connection do |c|
+              c.select_all(relation.arel, "#{model.name} Pluck", async: @async)
             end
           end
         end
@@ -391,8 +391,8 @@ module ActiveRecord
         ActiveRecord::Result.empty
       else
         skip_query_cache_if_necessary do
-          klass.with_connection do |c|
-            c.select_all(relation, "#{klass.name} Ids", async: @async)
+          model.with_connection do |c|
+            c.select_all(relation, "#{model.name} Ids", async: @async)
           end
         end
       end
@@ -408,7 +408,7 @@ module ActiveRecord
 
     private
       def all_attributes?(column_names)
-        (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+        (column_names.map(&:to_s) - model.attribute_names - model.attribute_aliases.keys).empty?
       end
 
       def has_include?(column_name)
@@ -482,8 +482,8 @@ module ActiveRecord
           ActiveRecord::Result.empty
         else
           skip_query_cache_if_necessary do
-            @klass.with_connection do |c|
-              c.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: @async)
+            model.with_connection do |c|
+              c.select_all(query_builder, "#{model.name} #{operation.capitalize}", async: @async)
             end
           end
         end
@@ -504,13 +504,13 @@ module ActiveRecord
         group_fields = group_fields.uniq if group_fields.size > 1
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
-          association  = klass._reflect_on_association(group_fields.first)
+          association  = model._reflect_on_association(group_fields.first)
           associated   = association && association.belongs_to? # only count belongs_to associations
           group_fields = Array(association.foreign_key) if associated
         end
         group_fields = arel_columns(group_fields)
 
-        @klass.with_connection do |connection|
+        model.with_connection do |connection|
           column_alias_tracker = ColumnAliasTracker.new(connection)
 
           group_aliases = group_fields.map { |field|
@@ -522,13 +522,13 @@ module ActiveRecord
           column = aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.as(klass.adapter_class.quote_column_name(column_alias))
+          select_value.as(model.adapter_class.quote_column_name(column_alias))
 
           select_values = [select_value]
           select_values += self.select_values unless having_clause.empty?
 
           select_values.concat group_columns.map { |aliaz, field|
-            aliaz = klass.adapter_class.quote_column_name(aliaz)
+            aliaz = model.adapter_class.quote_column_name(aliaz)
             if field.respond_to?(:as)
               field.as(aliaz)
             else
@@ -541,7 +541,7 @@ module ActiveRecord
           relation.select_values = select_values
 
           result = skip_query_cache_if_necessary do
-            connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: @async)
+            connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}", async: @async)
           end
 
           result.then do |calculated_data|
@@ -583,7 +583,7 @@ module ActiveRecord
 
       def type_for(field, &block)
         field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split(".").last
-        @klass.type_for_attribute(field_name, &block)
+        model.type_for_attribute(field_name, &block)
       end
 
       def lookup_cast_type_from_join_dependencies(name, join_dependencies = build_join_dependencies)
@@ -596,12 +596,12 @@ module ActiveRecord
 
       def type_cast_pluck_values(result, columns)
         cast_types = if result.columns.size != columns.size
-          klass.attribute_types
+          model.attribute_types
         else
           join_dependencies = nil
           columns.map.with_index do |column, i|
             column.try(:type_caster) ||
-              klass.attribute_types.fetch(name = result.columns[i]) do
+              model.attribute_types.fetch(name = result.columns[i]) do
                 join_dependencies ||= build_join_dependencies
                 lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
                   result.column_types[name] || Type.default_value
@@ -633,7 +633,7 @@ module ActiveRecord
         if select_values.present?
           return select_values.first if select_values.one?
 
-          adapter_class = klass.adapter_class
+          adapter_class = model.adapter_class
           select_values.map do |field|
             column = arel_column(field.to_s) do |attr_name|
               Arel.sql(attr_name)

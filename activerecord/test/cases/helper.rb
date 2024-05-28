@@ -28,6 +28,9 @@ ActiveRecord.permanent_connection_checkout = :disallowed
 
 ActiveRecord::Delegation::DelegateCache.delegate_base_methods = false
 
+# Ensure this alias isn't being used by Active Record itself.
+ActiveRecord::Relation.remove_method(:klass)
+
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 

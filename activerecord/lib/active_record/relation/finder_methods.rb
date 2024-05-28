@@ -376,7 +376,7 @@ module ActiveRecord
 
       skip_query_cache_if_necessary do
         with_connection do |c|
-          c.select_rows(relation.arel, "#{klass.name} Exists?").size == 1
+          c.select_rows(relation.arel, "#{model.name} Exists?").size == 1
         end
       end
     end
@@ -389,7 +389,7 @@ module ActiveRecord
     def include?(record)
       # The existing implementation relies on receiving an Active Record instance as the input parameter named record.
       # Any non-Active Record object passed to this implementation is guaranteed to return `false`.
-      return false unless record.is_a?(klass)
+      return false unless record.is_a?(model)
 
       if loaded? || offset_value || limit_value || having_clause.any?
         records.include?(record)
@@ -415,9 +415,9 @@ module ActiveRecord
     # the expected number of results should be provided in the +expected_size+
     # argument.
     def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key, not_found_ids = nil) # :nodoc:
-      conditions = " [#{arel.where_sql(klass)}]" unless where_clause.empty?
+      conditions = " [#{arel.where_sql(model)}]" unless where_clause.empty?
 
-      name = @klass.name
+      name = model.name
 
       if ids.nil?
         error = +"Couldn't find #{name}"
@@ -471,7 +471,7 @@ module ActiveRecord
             )
           )
           relation = skip_query_cache_if_necessary do
-            klass.with_connection do |c|
+            model.with_connection do |c|
               c.distinct_relation_for_primary_key(relation)
             end
           end
@@ -489,9 +489,9 @@ module ActiveRecord
       end
 
       def find_with_ids(*ids)
-        raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
+        raise UnknownPrimaryKey.new(model) if primary_key.nil?
 
-        expects_array = if klass.composite_primary_key?
+        expects_array = if model.composite_primary_key?
           ids.first.first.is_a?(Array)
         else
           ids.first.is_a?(Array)
@@ -503,7 +503,7 @@ module ActiveRecord
 
         ids = ids.compact.uniq
 
-        model_name = @klass.name
+        model_name = model.name
 
         case ids.size
         when 0
@@ -525,7 +525,7 @@ module ActiveRecord
           MSG
         end
 
-        relation = if klass.composite_primary_key?
+        relation = if model.composite_primary_key?
           where(primary_key.zip(id).to_h)
         else
           where(primary_key => id)
@@ -573,7 +573,7 @@ module ActiveRecord
         result = relation.records
 
         if result.size == ids.size
-          result.in_order_of(:id, ids.map { |id| @klass.type_for_attribute(primary_key).cast(id) })
+          result.in_order_of(:id, ids.map { |id| model.type_for_attribute(primary_key).cast(id) })
         else
           raise_record_not_found_exception!(ids, result.size, ids.size)
         end

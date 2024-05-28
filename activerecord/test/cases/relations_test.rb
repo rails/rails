@@ -57,7 +57,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_dynamic_finder
     x = Post.where("author_id = ?", 1)
-    assert_respond_to x.klass, :find_by_id
+    assert_respond_to x.model, :find_by_id
   end
 
   def test_multivalue_where

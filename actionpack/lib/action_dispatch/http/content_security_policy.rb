@@ -126,6 +126,7 @@ module ActionDispatch # :nodoc:
     MAPPINGS = {
       self:             "'self'",
       unsafe_eval:      "'unsafe-eval'",
+      wasm_unsafe_eval: "'wasm-unsafe-eval'",
       unsafe_hashes:    "'unsafe-hashes'",
       unsafe_inline:    "'unsafe-inline'",
       none:             "'none'",
