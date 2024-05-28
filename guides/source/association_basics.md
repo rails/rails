@@ -411,7 +411,7 @@ end
 
 ### `has_one :through`
 
-A [`has_one :through`][`has_one`] association sets up a one-to-one connection with another model. This association indicates
+A [`has_one :through`][`has_one`] association sets up a one-to-one connection with another model through an intermediary model. This association indicates
 that the declaring model can be matched with one instance of another model by proceeding _through_ a third model.
 For example, if each supplier has one account, and each account is associated with one account history, then the
 supplier model could look like this:
@@ -432,9 +432,11 @@ class AccountHistory < ApplicationRecord
 end
 ```
 
+This setup allows a `supplier` to directly access its `account_history` through its `account`.
+
 ![has_one :through Association Diagram](images/association_basics/has_one_through.png)
 
-The corresponding migration might look like this:
+The corresponding migration to set up these associations might look like this:
 
 ```ruby
 class CreateAccountHistories < ActiveRecord::Migration[7.2]
