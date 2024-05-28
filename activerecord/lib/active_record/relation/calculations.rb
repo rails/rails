@@ -522,13 +522,13 @@ module ActiveRecord
           column = aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.as(adapter_class.quote_column_name(column_alias))
+          select_value.as(klass.adapter_class.quote_column_name(column_alias))
 
           select_values = [select_value]
           select_values += self.select_values unless having_clause.empty?
 
           select_values.concat group_columns.map { |aliaz, field|
-            aliaz = adapter_class.quote_column_name(aliaz)
+            aliaz = klass.adapter_class.quote_column_name(aliaz)
             if field.respond_to?(:as)
               field.as(aliaz)
             else
@@ -633,6 +633,7 @@ module ActiveRecord
         if select_values.present?
           return select_values.first if select_values.one?
 
+          adapter_class = klass.adapter_class
           select_values.map do |field|
             column = arel_column(field.to_s) do |attr_name|
               Arel.sql(attr_name)

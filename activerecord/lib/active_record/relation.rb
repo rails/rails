@@ -437,7 +437,7 @@ module ActiveRecord
       query_signature = ActiveSupport::Digest.hexdigest(to_sql)
       key = "#{klass.model_name.cache_key}/query-#{query_signature}"
 
-      if collection_cache_versioning
+      if model.collection_cache_versioning
         key
       else
         "#{key}-#{compute_cache_version(timestamp_column)}"
@@ -456,7 +456,7 @@ module ActiveRecord
     #
     #    SELECT COUNT(*), MAX("products"."updated_at") FROM "products" WHERE (name like '%Cosmic Encounter%')
     def cache_version(timestamp_column = :updated_at)
-      if collection_cache_versioning
+      if model.collection_cache_versioning
         @cache_versions ||= {}
         @cache_versions[timestamp_column] ||= compute_cache_version(timestamp_column)
       end
@@ -475,7 +475,7 @@ module ActiveRecord
 
         with_connection do |c|
           column = c.visitor.compile(table[timestamp_column])
-          select_values = "COUNT(*) AS #{adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
+          select_values = "COUNT(*) AS #{klass.adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
 
           if collection.has_limit_or_offset?
             query = collection.select("#{column} AS collection_cache_key_timestamp")
@@ -501,7 +501,7 @@ module ActiveRecord
       end
 
       if timestamp
-        "#{size}-#{timestamp.utc.to_fs(cache_timestamp_format)}"
+        "#{size}-#{timestamp.utc.to_fs(model.cache_timestamp_format)}"
       else
         "#{size}"
       end
@@ -1291,7 +1291,7 @@ module ActiveRecord
     end
 
     def alias_tracker(joins = [], aliases = nil) # :nodoc:
-      ActiveRecord::Associations::AliasTracker.create(connection_pool, table.name, joins, aliases)
+      ActiveRecord::Associations::AliasTracker.create(klass.connection_pool, table.name, joins, aliases)
     end
 
     class StrictLoadingScope # :nodoc:
@@ -1451,7 +1451,7 @@ module ActiveRecord
 
       def skip_query_cache_if_necessary(&block)
         if skip_query_cache_value
-          uncached(&block)
+          model.uncached(&block)
         else
           yield
         end
