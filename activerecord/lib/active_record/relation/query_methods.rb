@@ -701,9 +701,9 @@ module ActiveRecord
     #   #     WHEN "conversations"."status" = 0 THEN 3
     #   #   END ASC
     #
-    # +only_values+ can be set to +false+ to include all results instead of only the ones specified in +values+.
+    # +filter+ can be set to +false+ to include all results instead of only the ones specified in +values+.
     #
-    #   Conversation.in_order_of(:status, [:archived, :active], only_values: false)
+    #   Conversation.in_order_of(:status, [:archived, :active], filter: false)
     #   # SELECT "conversations".* FROM "conversations"
     #   #   ORDER BY CASE
     #   #     WHEN "conversations"."status" = 1 THEN 1
@@ -711,7 +711,7 @@ module ActiveRecord
     #   #     ELSE 3
     #   #   END ASC
     #
-    def in_order_of(column, values, only_values: true)
+    def in_order_of(column, values, filter: true)
       klass.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
       return spawn.none! if values.empty?
 
@@ -721,17 +721,19 @@ module ActiveRecord
       values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
       arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
-      if only_values
+      scope = spawn.order!(build_case_for_value_position(arel_column, values, filter:))
+
+      if filter
         where_clause =
           if values.include?(nil)
             arel_column.in(values.compact).or(arel_column.eq(nil))
           else
             arel_column.in(values)
           end
+
+        scope = scope.where!(where_clause)
       end
 
-      scope = spawn.order!(build_case_for_value_position(arel_column, values, only_values))
-      scope = scope.where!(where_clause) if only_values
       scope
     end
 
@@ -2103,13 +2105,13 @@ module ActiveRecord
         end
       end
 
-      def build_case_for_value_position(column, values, only_values)
+      def build_case_for_value_position(column, values, filter: true)
         node = Arel::Nodes::Case.new
         values.each.with_index(1) do |value, order|
           node.when(column.eq(value)).then(order)
         end
 
-        node = node.else(values.length + 1) unless only_values
+        node = node.else(values.length + 1) unless filter
         Arel::Nodes::Ascending.new(node)
       end
 

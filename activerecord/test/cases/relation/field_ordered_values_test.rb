@@ -112,7 +112,7 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
 
   def test_in_order_of_with_only_values_false
     order = [3, 4, 1]
-    posts = Post.in_order_of(:id, order, only_values: false)
+    posts = Post.in_order_of(:id, order, filter: false)
 
     assert_equal(order, posts.limit(3).map(&:id))
     assert_equal(11, posts.count)

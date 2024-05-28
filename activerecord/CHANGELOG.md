@@ -1,4 +1,5 @@
-*   Add option `only_values` on `in_order_of` to allow put some values as priority in the sorting without filter results by this values.
+*   Add an `filter` option to `in_order_of` to prioritize certain values in the sorting without filtering the results
+    by these values.
 
     *Igor Depolli*
 
