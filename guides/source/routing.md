@@ -1443,6 +1443,25 @@ $ bin/rails routes -c Articles::CommentsController
 
 TIP: The output from `bin/rails routes` is easier to read if you widen your terminal window until the output lines don't wrap.
 
+### Listing Unused Routes
+
+You can scan your application for unused routes with the `--unused` option. For example:
+
+```bash
+$ rails routes --unused
+Found 8 unused routes:
+
+     Prefix Verb   URI Pattern                Controller#Action
+     people GET    /people(.:format)          people#index
+            POST   /people(.:format)          people#create
+ new_person GET    /people/new(.:format)      people#new
+edit_person GET    /people/:id/edit(.:format) people#edit
+     person GET    /people/:id(.:format)      people#show
+            PATCH  /people/:id(.:format)      people#update
+            PUT    /people/:id(.:format)      people#update
+            DELETE /people/:id(.:format)      people#destroy
+```
+
 ### Testing Routes
 
 Routes should be included in your testing strategy (just like the rest of your application). Rails offers three built-in assertions designed to make testing routes simpler:
