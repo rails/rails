@@ -68,7 +68,7 @@ For existing applications, a `devcontainer` command is now available:
 rails devcontainer
 ```
 
-For more information, see the [Getting Started with Dev Containers](https://edgeguides.rubyonrails.org/getting_started_with_devcontainer.html) guide.
+For more information, see the [Getting Started with Dev Containers](getting_started_with_devcontainer.html) guide.
 
 ### Add browser version guard by default
 
