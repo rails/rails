@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   Record ping on every Action Cable message.
 
     Previously only `ping` and `welcome` message types were keeping the connection active.

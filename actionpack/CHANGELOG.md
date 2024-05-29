@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   Fix `Mime::Type.parse` handling type parameters for HTTP Accept headers.
 
     *Taylor Chaparro*

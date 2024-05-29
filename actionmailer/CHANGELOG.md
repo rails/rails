@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   Remove deprecated params via `:args` for `assert_enqueued_email_with`.
 
     *Rafael Mendonça França*

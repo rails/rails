@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   Add queries count to template rendering instrumentation.
 
     ```

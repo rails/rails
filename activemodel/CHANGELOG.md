@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   Fix a bug where type casting of string to `Time` and `DateTime` doesn't
     calculate minus minute value in TZ offset correctly.
 

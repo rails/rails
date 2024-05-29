@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   All tests now respect the `active_job.queue_adapter` config.
 
     Previously if you had set `config.active_job.queue_adapter` in your `config/application.rb`

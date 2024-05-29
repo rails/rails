@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   Use `includes` instead of `eager_load` for `with_all_rich_text`.
 
     *Petrik de Heus*

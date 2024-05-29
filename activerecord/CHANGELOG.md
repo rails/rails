@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   Fix inference of association model on nested models with the same demodularized name.
 
     E.g. with the following setup:

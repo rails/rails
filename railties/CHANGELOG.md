@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta1 (May 29, 2024) ##
+
 *   Create a Dev Container Generator that generates a Dev Container setup based on the current configuration
     of the application. Usage:
 
