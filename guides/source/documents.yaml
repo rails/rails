@@ -252,6 +252,10 @@
       name: Composite Primary Keys
       url: active_record_composite_primary_keys.html
       description: This guide is an introduction to composite primary keys for database tables.
+    -
+      name: Tuning Performance for Deployment
+      url: tuning_performance_for_deployment.md
+      description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
 
 -
   name: Extending Rails
