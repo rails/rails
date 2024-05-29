@@ -519,7 +519,18 @@ Choosing an Association
 
 If you want to set up a one-to-one relationship between two models, you'll need to add `belongs_to` to one, and `has_one` to the other. How do you know which is which?
 
-The distinction is in where you place the foreign key (it goes on the table for the class declaring the `belongs_to` association), but you should give some thought to the actual meaning of the data as well. The `has_one` relationship says that one of something is yours - that is, that something points back to you. For example, it makes more sense to say that a supplier owns an account than that an account owns a supplier. This suggests that the correct relationships are like this:
+
+The distiction lies in the placement of the foreign key, which goes on the table of the class declaring the `belongs_to` association. However, it’s essential to understand the semantics to determine the correct associations:
+
+- `belongs_to`: This association indicates that the current model contains the foreign key and is a child in the relationship. It references another model, implying that each instance of this model is linked to one instance of the other model.
+- `has_one`: This association indicates that the current model is the parent in the relationship, and it owns one instance of the other model.
+
+For example, consider a scenario with suppliers and their accounts. It makes more sense to say that a supplier has/owns an account (where the supplier is the parent) rather than an account has/owns a supplier. Therefore, the correct associations would be:
+
+- A supplier has one account.
+- An account belongs to one supplier.
+
+Here is how you can define these associations in Rails:
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -531,7 +542,7 @@ class Account < ApplicationRecord
 end
 ```
 
-The corresponding migration might look like this:
+To implement these associations, you'll need to create the corresponding database tables and set up the foreign key. Here's an example migration:
 
 ```ruby
 class CreateSuppliers < ActiveRecord::Migration[7.2]
@@ -542,7 +553,7 @@ class CreateSuppliers < ActiveRecord::Migration[7.2]
     end
 
     create_table :accounts do |t|
-      t.bigint  :supplier_id
+      t.belongs_to  :supplier_id
       t.string  :account_number
       t.timestamps
     end
@@ -552,7 +563,7 @@ class CreateSuppliers < ActiveRecord::Migration[7.2]
 end
 ```
 
-NOTE: Using `t.bigint :supplier_id` makes the foreign key naming obvious and explicit. In current versions of Rails, you can abstract away this implementation detail by using `t.references :supplier` instead.
+Remember that the foreign key goes on the table of the class declaring the belongs_to association. In this case the `account` table.
 
 ### `has_many :through` vs `has_and_belongs_to_many`
 
