@@ -630,7 +630,7 @@ Other Associations
 
 ### Polymorphic Associations
 
-A slightly more advanced twist on associations is the _polymorphic association_. With polymorphic associations, a model can belong to more than one other model, on a single association. For example, you might have a picture model that belongs to either an employee model or a product model. Here's how this could be declared:
+A slightly more advanced twist on associations is the _polymorphic association_. Polymorphic associations in Rails allow a model to belong to multiple other models through a single association. This can be particularly useful when you have a model that needs to be linked to different types of models. For instance, imagine you have a `Picture` model that can belong to either an `Employee` or a `Product`, because each of these can have a profile picture. Here's how this could be declared:
 
 ```ruby
 class Picture < ApplicationRecord
@@ -646,11 +646,11 @@ class Product < ApplicationRecord
 end
 ```
 
-You can think of a polymorphic `belongs_to` declaration as setting up an interface that any other model can use. From an instance of the `Employee` model, you can retrieve a collection of pictures: `@employee.pictures`.
+You can think of a polymorphic `belongs_to` declaration as setting up an interface that any other model can use. This allows you to retrieve a collection of pictures from an instance of the `Employee` model using `@employee.pictures`. Similarly, you can retrieve a collection of pictures from an instance of the `Product` model using `@product.pictures`.
 
-Similarly, you can retrieve `@product.pictures`.
+If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`.
 
-If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
+To setup a polymorphic association manually you need to declare both a foreign key column (`imageable_id`) and a type column (`imageable_type`) in the model:
 
 ```ruby
 class CreatePictures < ActiveRecord::Migration[7.2]
@@ -667,7 +667,7 @@ class CreatePictures < ActiveRecord::Migration[7.2]
 end
 ```
 
-This migration can be simplified by using the `t.references` form:
+However, this migration can be simplified by using the `t.references` form and  specify `polymorphic: true` so that Rails knows that the association is polymorphic, and it automatically adds both the foreign key and type columns to the table. This helps maintain consistency and ensures that the database structure aligns with the requirements of the polymorphic association.
 
 ```ruby
 class CreatePictures < ActiveRecord::Migration[7.2]
@@ -681,10 +681,12 @@ class CreatePictures < ActiveRecord::Migration[7.2]
 end
 ```
 
-NOTE: Since polymorphic associations rely on storing class names in the
+Since polymorphic associations rely on storing class names in the
 database, that data must remain synchronized with the class name used by the
 Ruby code. When renaming a class, make sure to update the data in the
 polymorphic type column.
+
+For example, if you change the class name from `Product` to `Item` then you'd need to run a migration script to update the `imageable_type` column in the `pictures` table (or whichever table is affected) with the new class name. Additionally, you'll need to update any other references to the class name throughout your application code to reflect the change.
 
 ![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
