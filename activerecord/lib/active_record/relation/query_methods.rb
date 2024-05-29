@@ -136,9 +136,10 @@ module ActiveRecord
 
       private
         def scope_association_reflection(association)
-          reflection = @scope.klass._reflect_on_association(association)
+          model = @scope.model
+          reflection = model._reflect_on_association(association)
           unless reflection
-            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{model.name}`.")
           end
           reflection
         end
@@ -252,6 +253,10 @@ module ActiveRecord
     def includes!(*args) # :nodoc:
       self.includes_values |= args
       self
+    end
+
+    def all # :nodoc:
+      spawn
     end
 
     # Specify associations +args+ to be eager loaded using a <tt>LEFT OUTER JOIN</tt>.
@@ -697,13 +702,13 @@ module ActiveRecord
     #   #   END ASC
     #
     def in_order_of(column, values)
-      klass.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
+      model.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
       return spawn.none! if values.empty?
 
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      values = values.map { |value| type_caster.type_cast_for_database(column, value) }
+      values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
       arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
       where_clause =
@@ -1554,8 +1559,8 @@ module ActiveRecord
       records.flatten!(1)
       records.compact!
 
-      unless records.all?(klass) && relations.all? { |relation| relation.klass == klass }
-        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to ##{__callee__}."
+      unless records.all?(model) && relations.all? { |relation| relation.model == model }
+        raise ArgumentError, "You must only pass a single or collection of #{model.name} objects to ##{__callee__}."
       end
 
       spawn.excluding!(records + relations.flat_map(&:ids))
@@ -1575,7 +1580,7 @@ module ActiveRecord
 
     def construct_join_dependency(associations, join_type) # :nodoc:
       ActiveRecord::Associations::JoinDependency.new(
-        klass, table, associations, join_type
+        model, table, associations, join_type
       )
     end
 
@@ -1604,15 +1609,15 @@ module ActiveRecord
           elsif opts.include?("?")
             parts = [build_bound_sql_literal(opts, rest)]
           else
-            parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+            parts = [model.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
           end
         when Hash
           opts = opts.transform_keys do |key|
             if key.is_a?(Array)
-              key.map { |k| klass.attribute_aliases[k.to_s] || k.to_s }
+              key.map { |k| model.attribute_aliases[k.to_s] || k.to_s }
             else
               key = key.to_s
-              klass.attribute_aliases[key] || key
+              model.attribute_aliases[key] || key
             end
           end
           references = PredicateBuilder.references(opts)
@@ -1808,7 +1813,7 @@ module ActiveRecord
 
         joins = joins_values.dup
         if joins.last.is_a?(ActiveRecord::Associations::JoinDependency)
-          stashed_eager_load = joins.pop if joins.last.base_klass == klass
+          stashed_eager_load = joins.pop if joins.last.base_klass == model
         end
 
         joins.each_with_index do |join, i|
@@ -1865,8 +1870,8 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values))
-        elsif klass.ignored_columns.any? || klass.enumerate_columns_in_select_statements
-          arel.project(*klass.column_names.map { |field| table[field] })
+        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements
+          arel.project(*model.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
         end
@@ -1905,7 +1910,7 @@ module ActiveRecord
         with_table = Arel::Table.new(name)
 
         table.join(with_table, kind).on(
-          with_table[klass.model_name.to_s.foreign_key].eq(table[klass.primary_key])
+          with_table[model.model_name.to_s.foreign_key].eq(table[model.primary_key])
         ).join_sources.first
       end
 
@@ -1914,7 +1919,7 @@ module ActiveRecord
           case field
           when Symbol
             arel_column(field.to_s) do |attr_name|
-              adapter_class.quote_table_name(attr_name)
+              model.adapter_class.quote_table_name(attr_name)
             end
           when String
             arel_column(field, &:itself)
@@ -1929,10 +1934,10 @@ module ActiveRecord
       end
 
       def arel_column(field)
-        field = klass.attribute_aliases[field] || field
+        field = model.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
-        if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
+        if model.columns_hash.key?(field) && (!from || table_name_matches?(from))
           table[field]
         elsif field.match?(/\A\w+\.\w+\z/)
           table, column = field.split(".")
@@ -1946,7 +1951,7 @@ module ActiveRecord
 
       def table_name_matches?(from)
         table_name = Regexp.escape(table.name)
-        quoted_table_name = Regexp.escape(adapter_class.quote_table_name(table.name))
+        quoted_table_name = Regexp.escape(model.adapter_class.quote_table_name(table.name))
         /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i.match?(from.to_s)
       end
 
@@ -2017,7 +2022,7 @@ module ActiveRecord
       end
 
       def preprocess_order_args(order_args)
-        @klass.disallow_raw_sql!(
+        model.disallow_raw_sql!(
           flattened_args(order_args),
           permit: model.adapter_class.column_name_with_order_matcher
         )
@@ -2055,7 +2060,7 @@ module ActiveRecord
 
       def sanitize_order_arguments(order_args)
         order_args.map! do |arg|
-          klass.sanitize_sql_for_order(arg)
+          model.sanitize_sql_for_order(arg)
         end
       end
 
@@ -2081,7 +2086,7 @@ module ActiveRecord
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
-            Arel.sql(adapter_class.quote_table_name(attr_name), retryable: true)
+            Arel.sql(model.adapter_class.quote_table_name(attr_name), retryable: true)
           end
         end
       end
@@ -2175,7 +2180,7 @@ module ActiveRecord
             end
           when String, Symbol
             arel_column(key.to_s) do
-              predicate_builder.resolve_arel_attribute(klass.table_name, key.to_s)
+              predicate_builder.resolve_arel_attribute(model.table_name, key.to_s)
             end.as(columns_aliases.to_s)
           end
         end

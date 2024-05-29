@@ -121,7 +121,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
     actual = "".dup
     PP.pp(user, StringIO.new(actual))
 
-    assert_includes actual, 'name: "[FILTERED]"'
+    assert_includes actual, "name: [FILTERED]"
     assert_equal 1, actual.scan("[FILTERED]").length
   end
 
@@ -141,8 +141,8 @@ class FilterAttributesTest < ActiveRecord::TestCase
     actual = "".dup
     PP.pp(user, StringIO.new(actual))
 
-    assert_includes actual, 'auth_token: "[FILTERED]"'
-    assert_includes actual, 'token: "[FILTERED]"'
+    assert_includes actual, "auth_token: [FILTERED]"
+    assert_includes actual, "token: [FILTERED]"
   ensure
     User.instance_variable_set(:@filter_attributes, nil)
   end
