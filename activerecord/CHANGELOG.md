@@ -1,4 +1,4 @@
-*   Add `ActiveRecord::Relation.readonly?`
+*   Add `ActiveRecord::Relation#readonly?`.
 
     Reflects if the relation has been marked as readonly.
 
