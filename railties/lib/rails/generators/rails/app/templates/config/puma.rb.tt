@@ -32,10 +32,9 @@ when "production"
   # If you are running more than 1 thread per process, the workers count
   # should be equal to the number of processors (CPU cores) in production.
   #
-  # It defaults to 1 because it's impossible to reliably detect how many
-  # CPU cores are available. Make sure to set the `WEB_CONCURRENCY` environment
-  # variable to match the number of processors.
-  workers_count = Integer(ENV.fetch("WEB_CONCURRENCY", 1))
+  # Automatically detect the number of available processors in production.
+  require "concurrent-ruby"
+  workers_count = Integer(ENV.fetch("WEB_CONCURRENCY") { Concurrent.available_processor_count })
   workers workers_count if workers_count > 1
 
   preload_app!
