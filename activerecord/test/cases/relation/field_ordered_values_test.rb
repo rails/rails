@@ -110,7 +110,7 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     assert_equal(order, books.map { |book| book.author.name })
   end
 
-  def test_in_order_of_with_only_values_false
+  def test_in_order_of_with_filter_false
     order = [3, 4, 1]
     posts = Post.in_order_of(:id, order, filter: false)
 
