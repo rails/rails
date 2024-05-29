@@ -359,17 +359,31 @@ class CreateAppointments < ActiveRecord::Migration[7.2]
 end
 ```
 
-In this migration the `physicians` and `patients` tables are created with a `name` column. The `appointments` table is created with `physician_id` and `patient_id` columns, establishing the many-to-many relationship between `physicians` and `patients`.
+In this migration the `physicians` and `patients` tables are created with a `name` column. The `appointments` table, which acts as the join table, is created with `physician_id` and `patient_id` columns, establishing the many-to-many relationship between `physicians` and `patients`.
 
-The collection of join models can be managed via the [`has_many` association methods](#has-many-association-reference).
-For example, if you assign:
+You could also consider using a [composite primary key](active_record_composite_primary_keys.html) for the join table in the `has_many :through` relationship like below:
+
+```ruby
+class CreateAppointments < ActiveRecord::Migration[7.2]
+  def change
+    #  ...
+    create_table :appointments, primary_key: [:physician_id, :patient_id] do |t|
+      t.belongs_to :physician
+      t.belongs_to :patient
+      t.datetime :appointment_date
+      t.timestamps
+    end
+  end
+end
+```
+
+The collection of join models in a `has_many :through` association can be managed using standard [`has_many` association methods](#has-many-association-reference). For example, if you assign a list of patients to a physician like this:
 
 ```ruby
 physician.patients = patients
 ```
 
-Then new join models are automatically created for the newly associated objects.
-If some that existed previously are now missing, then their join rows are automatically deleted.
+Rails will automatically create new join models for any patients in the new list that were not previously associated with the physician. Additionally, if any patients that were previously associated with the physician are not included in the new list, their join records will be automatically deleted. This simplifies managing many-to-many relationships by handling the creation and deletion of the join models for you.
 
 WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered. You can read more about callbacks [here](active_record_callbacks.html).
 
