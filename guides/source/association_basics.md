@@ -645,6 +645,7 @@ class Product < ApplicationRecord
   has_many :pictures, as: :imageable
 end
 ```
+![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
 In the context above, `imageable` is a name chosen for the association. It's a symbolic name that represents the polymorphic association between the `Picture` model and other models such as `Employee` and `Product`. The important thing is to use the same name (`imageable`) consistently across all associated models to establish the polymorphic association correctly.
 
@@ -693,8 +694,6 @@ Ruby code. When renaming a class, make sure to update the data in the
 polymorphic type column.
 
 For example, if you change the class name from `Product` to `Item` then you'd need to run a migration script to update the `imageable_type` column in the `pictures` table (or whichever table is affected) with the new class name. Additionally, you'll need to update any other references to the class name throughout your application code to reflect the change.
-
-![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
 ### Models with Composite Primary Keys
 
