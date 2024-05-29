@@ -1,3 +1,15 @@
+*   Add `:wasm_unsafe_eval` mapping for `content_security_policy`
+
+    ```ruby
+    # Before
+    policy.script_src "'wasm-unsafe-eval'"
+
+    # After
+    policy.script_src :wasm_unsafe_eval
+    ```
+
+    *Joe Haig*
+
 *   Add `display_capture` and `keyboard_map` in `permissions_policy`
 
     *Cyril Blaecke*
