@@ -229,6 +229,7 @@ module ActiveSupport
     private
       def dispatch(&block)
         @broadcasts.each { |logger| block.call(logger) }
+        true
       end
 
       def method_missing(name, ...)

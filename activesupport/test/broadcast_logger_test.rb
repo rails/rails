@@ -302,6 +302,11 @@ module ActiveSupport
       assert_same logger, broadcast_logger.broadcasts.sole
     end
 
+    test "logging has no return value" do
+      assert_equal true, @logger.info("Hello")
+      assert_equal true, @logger.error("Hello")
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
