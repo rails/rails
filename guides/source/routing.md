@@ -1356,7 +1356,7 @@ NOTE: Don't use the `draw` feature unless you really need it. Having multiple ro
 Inspecting and Testing Routes
 -----------------------------
 
-Rails offers facilities for inspecting and testing your routes.
+Rails offers a few different ways of inspecting and testing your routes.
 
 ### Listing Existing Routes
 
@@ -1403,6 +1403,23 @@ Prefix            | edit_user
 Verb              | GET
 URI               | /users/:id/edit(.:format)
 Controller#Action | users#edit
+```
+
+### Routes in Rails Console
+
+You can access route helpers using `Rails.application.routes.url_helpers` within the [Rails Console](command_line.html#bin-rails-console). For example:
+
+```irb
+irb> helpers = Rails.application.routes.url_helpers
+=> #<Module:0x00007fc1dfc97f68>
+
+irb> helpers.users_path
+=> "/users"
+
+irb> user = User.first
+=> #<User:0x00007fc1eab81628
+irb> helpers.edit_user_path(user)
+=> "/users/1/edit"
 ```
 
 ### Searching Routes
