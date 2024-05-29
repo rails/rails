@@ -567,19 +567,9 @@ Remember that the foreign key goes on the table of the class declaring the belon
 
 ### `has_many :through` vs `has_and_belongs_to_many`
 
-Rails offers two different ways to declare a many-to-many relationship between models. The first way is to use `has_and_belongs_to_many`, which allows you to make the association directly:
+Rails offers two different ways to declare a many-to-many relationship between models: `has_many :through` and `has_and_belongs_to_many`. Understanding the differences and use cases for each can help you choose the best approach for your application's needs.
 
-```ruby
-class Assembly < ApplicationRecord
-  has_and_belongs_to_many :parts
-end
-
-class Part < ApplicationRecord
-  has_and_belongs_to_many :assemblies
-end
-```
-
-The second way to declare a many-to-many relationship is to use `has_many :through`. This makes the association indirectly, through a join model:
+The `has_many :through` association sets up a many-to-many relationship through an intermediary model (also known as a join model). This approach is more flexible and allows you to add validations, callbacks, and extra attributes to the join model. The join table needs a `primary_key` (or a composite primary key).
 
 ```ruby
 class Assembly < ApplicationRecord
@@ -598,12 +588,28 @@ class Part < ApplicationRecord
 end
 ```
 
-The simplest rule of thumb is that you should set up a `has_many :through` relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a `has_and_belongs_to_many` relationship (though you'll need to remember to create the joining table in the database).
+You'd use `has_many :through` when:
 
-You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
+- You need to add extra attributes or methods to the join table.
+- You require validations or callbacks on the join model.
+- The join table should be treated as an independent entity with its own behavior.
 
-While `has_and_belongs_to_many` suggests creating a join table with no primary key via `id: false`, consider using a composite primary key for the join table in the `has_many :through` relationship.
-For example, it's recommended to use `create_table :manifests, primary_key: [:assembly_id, :part_id]` in the example above.
+The `has_and_belongs_to_many` association allows you to create a many-to-many relationship directly between two models without needing an intermediary model. This method is straightforward and is suitable for simple associations where no additional attributes or behaviors are required on the join table. For `has_and_belongs_to_many` associations, you'll need to create a join table without a primary key.
+
+```ruby
+class Assembly < ApplicationRecord
+  has_and_belongs_to_many :parts
+end
+
+class Part < ApplicationRecord
+  has_and_belongs_to_many :assemblies
+end
+```
+
+You'd use `has_and_belongs_to_many` when:
+
+- The association is simple and does not require additional attributes or behaviors on the join table.
+- You do not need validations, callbacks, or extra methods on the join table.
 
 Other Associations
 -------------------------
