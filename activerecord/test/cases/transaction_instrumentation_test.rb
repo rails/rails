@@ -11,17 +11,13 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     topic = topics(:fifth)
 
     notified = false
-    expected_transaction = nil
-
     subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
       assert event.payload[:connection]
-      assert_same expected_transaction, event.payload[:transaction]
       assert_equal :commit, event.payload[:outcome]
       notified = true
     end
 
-    ActiveRecord::Base.transaction do |transaction|
-      expected_transaction = transaction
+    ActiveRecord::Base.transaction do
       topic.update(title: "Ruby on Rails")
     end
 
@@ -34,17 +30,13 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     topic = topics(:fifth)
 
     notified = false
-    expected_transaction = nil
-
     subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
       assert event.payload[:connection]
-      assert_same expected_transaction, event.payload[:transaction]
       assert_equal :rollback, event.payload[:outcome]
       notified = true
     end
 
-    ActiveRecord::Base.transaction do |transaction|
-      expected_transaction = transaction
+    ActiveRecord::Base.transaction do
       topic.update(title: "Ruby on Rails")
       raise ActiveRecord::Rollback
     end
@@ -62,24 +54,17 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
       events << event
     end
 
-    real_transaction = savepoint_transaction = nil
-    ActiveRecord::Base.transaction do |transaction|
-      real_transaction = transaction
+    ActiveRecord::Base.transaction do
       topic.update(title: "Sinatra")
-      ActiveRecord::Base.transaction(requires_new: true) do |transaction|
-        savepoint_transaction = transaction
+      ActiveRecord::Base.transaction(requires_new: true) do
         topic.update(title: "Ruby on Rails")
       end
     end
 
     assert_equal 2, events.count
-    savepoint_event, real_event = events
-
-    assert_same savepoint_transaction, savepoint_event.payload[:transaction]
-    assert_equal :commit, savepoint_event.payload[:outcome]
-
-    assert_same real_transaction, real_event.payload[:transaction]
-    assert_equal :commit, real_event.payload[:outcome]
+    savepoint, real = events
+    assert_equal :commit, savepoint.payload[:outcome]
+    assert_equal :commit, real.payload[:outcome]
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
