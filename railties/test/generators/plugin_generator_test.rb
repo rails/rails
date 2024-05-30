@@ -777,7 +777,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     global_email = `git config --global user.email`.chomp rescue ""
 
-    if global_email.empty?
+    if global_email.blank?
       email = default_email
     end
 
