@@ -22,11 +22,11 @@ if defined?(Prism)
           while (node = queue.shift)
             case node.type
             when :def_node
-              if node.name.start_with?("test") && node.location.start_line == start_line
+              if node.location.start_line == start_line
                 return [filepath, start_line..node.location.end_line]
               end
             when :call_node
-              if node.name == :test && node.location.start_line == start_line
+              if node.location.start_line == start_line
                 return [filepath, start_line..node.location.end_line]
               end
             end
