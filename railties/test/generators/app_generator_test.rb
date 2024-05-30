@@ -735,7 +735,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_force_option_overwrites_every_file_except_master_key
     run_generator [File.join(destination_root, "myapp")]
-    output = run_generator [File.join(destination_root, "myapp"), "--force"]
+    output = nil
+    silence_stream($stderr) do
+      output = run_generator [File.join(destination_root, "myapp"), "--force"]
+    end
     assert_match(/force/, output)
     assert_no_match("force  config/master.key", output)
   end
@@ -755,15 +758,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install
-    generator([destination_root])
-    run_generator_instance
+    run_generator_and_bundler([destination_root])
 
     assert_not_empty @bundle_commands.grep(/^install/)
   end
 
   def test_generation_runs_bundle_lock_for_linux
-    generator([destination_root])
-    run_generator_instance
+    run_generator_and_bundler([destination_root])
 
     assert_not_empty @bundle_commands.grep(/\Alock --add-platform=\S+-linux/)
   end
@@ -787,8 +788,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_bundler_binstub
-    generator([destination_root])
-    run_generator_instance
+    run_generator_and_bundler([destination_root])
 
     assert_equal 1, @bundle_commands.count("binstubs bundler")
   end
@@ -1135,11 +1135,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_after_bundle_callback
-    generator([destination_root]).send(:after_bundle) do
-      @bundle_commands_before_callback = @bundle_commands.dup
+    run_generator_and_bundler([destination_root]) do |generator|
+      generator.send(:after_bundle) do
+        @bundle_commands_before_callback = @bundle_commands.dup
+      end
     end
-
-    run_generator_instance
 
     assert_not_empty @bundle_commands_before_callback
     assert_equal @bundle_commands_before_callback, @bundle_commands
@@ -1523,6 +1523,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       option_args, positional_args = args.partition { |arg| arg.start_with?("--") }
       option_args << "--no-skip-bundle"
       generator(positional_args, option_args)
+
+      yield generator if block_given?
 
       # Stub `rails_gemfile_entry` so that Bundler resolves `gem "rails"` to the
       # current repository instead of searching for an invalid version number

@@ -80,7 +80,7 @@ module SharedGeneratorTests
     default_files.each { |path| assert_file path }
   end
 
-  def test_plugin_new_generate_pretend
+  def test_new_generate_pretend
     run_generator ["testapp", "--pretend"]
     default_files.each { |path| assert_no_file File.join("testapp", path) }
   end
@@ -173,7 +173,7 @@ module SharedGeneratorTests
     apply_stub = -> (path, *) { applied = path }
 
     generator.stub(:apply, apply_stub) do
-      run_generator_instance
+      quietly { run_generator_instance }
     end
 
     assert_equal url, applied
@@ -376,14 +376,14 @@ module SharedGeneratorTests
   end
 
   def test_edge_option
-    Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
+    Rails.stub(:gem_version, Gem::Version.new("7.0.0")) do
       run_generator_using_prerelease [destination_root, "--edge"]
     end
-    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']2-1-stable["']$}
+    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']7-0-stable["']$}
   end
 
   def test_edge_option_during_alpha
-    Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
+    Rails.stub(:gem_version, Gem::Version.new("7.0.0.alpha")) do
       run_generator_using_prerelease [destination_root, "--edge"]
     end
     assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
