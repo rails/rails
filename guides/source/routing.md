@@ -41,6 +41,12 @@ get '/users/:id', to: 'user#show'
 
 the request is dispatched to the `users` controller's `show` action with `{ id: '17' }` in `params`.
 
+Passing a `String` to `to:` will expect a `controller#action` format. When using a `Symbol`, the `to:` option should be replaced with `action:`. When using a `String` without a `#`, the `to:` option should be replaced with `controller:`:
+
+```ruby
+get '/users/:id', action: :show, controller: 'users'
+```
+
 NOTE: Rails uses snake_case for controller names, if you have a multiple word controller like `UserProfilesController`, you'd use `user_profiles#show` when specifying the route.
 
 ### Generating Paths and URLs from Code
@@ -178,17 +184,7 @@ resources :videos
 
 ### Singular Resources
 
-Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like `/profile` to always show the profile of the currently logged in user. In this case, you can use a singular resource to map `/profile` (rather than `/profile/:id`) to the `show` action:
-
-```ruby
-get 'profile', to: 'users#show'
-```
-
-Passing a `String` to `to:` will expect a `controller#action` format. When using a `Symbol`, the `to:` option should be replaced with `action:`. When using a `String` without a `#`, the `to:` option should be replaced with `controller:`:
-
-```ruby
-get 'profile', action: :show, controller: 'users'
-```
+Sometimes, you have a resource that users expect to have only one (i.e. it does not make sense to have an `index` action to list all values of that resource). In that case, you can use `resource` (singular) instead of `resources`.
 
 The below resourceful route creates six routes in your application, all mapping to the `Geocoders` controller:
 
