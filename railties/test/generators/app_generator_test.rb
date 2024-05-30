@@ -227,6 +227,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/initializers/cors.rb"
   end
 
+  def test_app_update_generates_public_folders
+    run_generator
+
+    FileUtils.rm_rf("#{destination_root}/public/406-unsupported-browser.html")
+
+    run_app_update
+
+    assert_file "public/406-unsupported-browser.html"
+  end
+
   def test_app_update_does_not_generate_assets_initializer_when_sprockets_and_propshaft_are_not_used
     run_generator [destination_root, "-a", "none"]
     run_app_update
