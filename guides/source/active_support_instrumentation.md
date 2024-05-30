@@ -412,9 +412,9 @@ This event is emmited for every transaction to the database.
 
 | Key                  | Value                                                |
 | -------------------- | ---------------------------------------------------- |
-| `:connection`        | Connection object                                    |
-| `:transaction`       | Transaction object
+| `:transaction`       | Transaction object                                   |
 | `:outcome`           | `:commit`, `:rollback`, `:restart`, or `:incomplete` |
+| `:connection`        | Connection object                                    |
 
 ### Action Mailer
 
