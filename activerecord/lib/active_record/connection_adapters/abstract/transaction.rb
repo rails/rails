@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/digest"
+
 module ActiveRecord
   module ConnectionAdapters
     # = Active Record Connection Adapters Transaction State
@@ -119,6 +121,7 @@ module ActiveRecord
       def before_commit; yield; end
       def after_commit; yield; end
       def after_rollback; end # noop
+      def uuid; Digest::UUID.nil_uuid; end
     end
 
     class Transaction < ActiveRecord::Transaction # :nodoc:
