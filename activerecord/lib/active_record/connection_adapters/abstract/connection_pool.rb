@@ -74,7 +74,7 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling.connection].
+    # 1. Simply use {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling#lease_connection].
     #    When you're done with the connection(s) and wish it to be returned to the pool, you call
     #    {ActiveRecord::Base.connection_handler.clear_active_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_active_connections!].
     #    This is the default behavior for Active Record when used in conjunction with
