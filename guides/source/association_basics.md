@@ -712,10 +712,7 @@ class Book < ApplicationRecord
 end
 ```
 
-In this setup, `Order` has a composite primary key consisting of `[:shop_id, :id]`, and `Book` belongs to `Order`. Rails will assume that the `:id` column
-should be used as the primary key for the association between an order and its
-books. It will infer that the foreign key column on the books table is
-`:order_id`.
+In this setup, `Order` has a composite primary key consisting of `[:shop_id, :id]`, and `Book` belongs to `Order`. Rails will assume that the `:id` column should be used as the primary key for the association between an order and its books. It will infer that the foreign key column on the books table is `:order_id`.
 
 Below we create an `Order` and a `Book` associated with it:
 
@@ -736,7 +733,7 @@ When doing so, Rails will generate the following SQL to access the order:
 SELECT * FROM orders WHERE id = 2
 ```
 
-You can see that Rails uses the orders `id` in its query, rather than both the `shop_id` and the `id`. In this case, the `id` is sufficient because the model's composite primary key does in fact contain the `:id` column, _and_ the column is unique for all records.
+You can see that Rails uses the order's `id` in its query, rather than both the `shop_id` and the `id`. In this case, the `id` is sufficient because the model's composite primary key does in fact contain the `:id` column, _and_ the column is unique for all records.
 
 However, if the above requirements are not met or you would like to use the full composite primary key in associations, you can set the `foreign_key:` option on the association. This option specifies a composite foreign key on the association; all columns in the foreign key will be used when querying the associated record(s). For example:
 
@@ -753,14 +750,14 @@ end
 
 In this setup, `Author` has a composite primary key consisting of `[:first_name, :last_name]`, and `Book` belongs to `Author` with a composite foreign key `[:author_first_name, :author_last_name]`.
 
-We create an Author and a Book associated with it:
+Create an `Author` and a `Book` associated with it:
 
 ```ruby
 author = Author.create!(first_name: "Jane", last_name: "Doe")
-book = author.books.create!(title: "A Cool Book")
+book = author.books.create!(title: "A Cool Book", author_first_name: "Jane", author_last_name: "Doe")
 ```
 
-To access the book's order, we reload the association:
+To access the book's author, we reload the association:
 
 ```ruby
 book.reload.author
