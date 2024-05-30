@@ -1,3 +1,7 @@
+*   The payload of `transaction.active_record` AS notification events now has the transaction the event is related to in the `:transaction` key.
+
+    *Xavier Noria*
+
 *   Define `ActiveRecord::Transaction#uuid`, which returns a UUID for the database transaction. This may be helpful when tracing database activity. These UUIDs are generated only on demand.
 
     *Xavier Noria*
