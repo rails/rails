@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/digest"
+
 module ActiveRecord
   class Transaction
     class Callback # :nodoc:
@@ -23,6 +25,7 @@ module ActiveRecord
 
     def initialize # :nodoc:
       @callbacks = nil
+      @uuid = nil
     end
 
     # Registers a block to be called before the current transaction is fully committed.
@@ -58,6 +61,11 @@ module ActiveRecord
     # the block is never called.
     def after_rollback(&block)
       (@callbacks ||= []) << Callback.new(:after_rollback, block)
+    end
+
+    # Returns a UUID for this transaction.
+    def uuid
+      @uuid ||= Digest::UUID.uuid_v4
     end
 
     protected
