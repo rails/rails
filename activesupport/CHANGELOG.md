@@ -1,5 +1,3 @@
-## Unreleased
-
 *   Define `Digest::UUID.nil_uuid`, which returns the so-called nil UUID.
 
     *Xavier Noria*
