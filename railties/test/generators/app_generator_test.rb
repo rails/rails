@@ -168,19 +168,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{app_moved_root}/config/environment.rb", /Rails\.application\.initialize!/
   end
 
-  def test_new_application_load_defaults
+  def test_app_update
     run_generator
-    assert_file "config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
-  end
 
-  def test_app_update_create_new_framework_defaults
     defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
 
-    run_generator
     assert_no_file defaults_path
+    assert_no_file "config/initializers/cors.rb"
 
     run_app_update
+
     assert_file defaults_path
+    assert_no_file "config/initializers/cors.rb"
   end
 
   def test_app_update_supports_skip
@@ -209,13 +208,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
       assert_no_file defaults_path
     end
-  end
-
-  def test_app_update_does_not_create_rack_cors
-    run_generator
-    run_app_update
-
-    assert_no_file "config/initializers/cors.rb"
   end
 
   def test_app_update_does_not_remove_rack_cors_if_already_present
@@ -339,23 +331,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_gem_for_active_storage
-    run_generator
-    assert_file "Gemfile", /^# gem "image_processing"/
-  end
-
-  def test_gem_for_active_storage_when_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
-
-    assert_no_gem "image_processing"
-
-    assert_file "Dockerfile" do |content|
-      assert_no_match(/libvips/, content)
-    end
-  end
-
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
     run_generator [destination_root, "--skip-active-storage"]
+
     run_app_update
 
     assert_file "config/environments/development.rb" do |content|
@@ -397,28 +375,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
   end
 
-  def test_generator_skips_action_mailbox_when_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
-  end
-
-  def test_generator_skips_action_mailbox_when_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
-  end
-
   def test_generator_skips_action_text_when_skip_action_text_is_given
     run_generator [destination_root, "--skip-action-text"]
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
-  end
-
-  def test_generator_skips_action_text_when_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
-  end
-
-  def test_generator_skips_action_text_when_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
   end
 
@@ -791,14 +749,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_and_bundler([destination_root])
 
     assert_equal 1, @bundle_commands.count("binstubs bundler")
-  end
-
-  def test_skip_active_record_option
-    run_generator [destination_root, "--skip-active-record"]
-
-    assert_file ".gitattributes" do |content|
-      assert_no_match(/schema.rb/, content)
-    end
   end
 
   def test_skip_active_job_option
@@ -1499,6 +1449,36 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
+    def assert_load_defaults
+      assert_file "config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
+    end
+
+    def assert_gem_for_active_storage
+      assert_file "Gemfile", /^# gem "image_processing"/
+    end
+
+    def assert_frameworks_are_not_required_when_active_storage_is_skipped
+      super
+      assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
+      assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
+    end
+
+    def assert_dockerfile_when_active_storage_is_skipped
+      assert_file "Dockerfile" do |content|
+        assert_no_match(/libvips/, content)
+      end
+    end
+
+    def assert_gems_when_active_storage_is_skipped
+      assert_no_gem "image_processing"
+    end
+
+    def assert_gitattributes_does_not_have_schema_file
+      assert_file ".gitattributes" do |content|
+        assert_no_match(/schema.rb/, content)
+      end
+    end
+
     def assert_node_files
       assert_file ".node-version" do |content|
         assert_match %r/\d+\.\d+\.\d+/, content
