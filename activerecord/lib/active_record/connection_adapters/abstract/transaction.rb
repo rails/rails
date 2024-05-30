@@ -141,7 +141,7 @@ module ActiveRecord
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
         @dirty = false
-        @instrumenter = TransactionInstrumenter.new(connection: connection)
+        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: self)
       end
 
       def dirty!
