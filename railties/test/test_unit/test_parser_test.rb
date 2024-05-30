@@ -38,6 +38,13 @@ class TestParserTestFixture < ActiveSupport::TestCase
     assert true
     assert_not false
   }
+
+  # Check that extensions can provide aliases for testing methods
+  def self.my_testing_alias(test_name, &)
+    define_method(:"test_#{test_name}", &)
+  end
+
+  my_testing_alias("method_alias") { assert true }
 end
 
 class TestParserTest < ActiveSupport::TestCase
@@ -57,7 +64,8 @@ class TestParserTest < ActiveSupport::TestCase
       [:test_declarative_explicit_receiver, __FILE__, 27..31],
       [:test_declarative_oneline, __FILE__, 33..33],
       [:test_declarative_oneline_do, __FILE__, 35..35],
-      [:"test_declarative_multiline_w/_braces", __FILE__, 37..40]
+      [:"test_declarative_multiline_w/_braces", __FILE__, 37..40],
+      [:"test_method_alias", __FILE__, 47..47],
     ]
 
     assert_equal expected, actual
