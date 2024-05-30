@@ -28,4 +28,8 @@ module Nested
   class User < ActiveRecord::Base
     self.table_name = "users"
   end
+
+  class NestedUser < ActiveRecord::Base
+    has_many :nested_users
+  end
 end
