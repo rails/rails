@@ -1,3 +1,7 @@
+*   Define `ActiveRecord::Transaction#uuid`, which returns a UUID for the database transaction. This may be helpful when tracing database activity. These UUIDs are generated only on demand.
+
+    *Xavier Noria*
+
 ## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Fix inference of association model on nested models with the same demodularized name.
