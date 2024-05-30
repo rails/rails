@@ -120,7 +120,11 @@ module ActiveRecord
         end
 
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
-        @connection_parameters = @config.merge(database: @config[:database].to_s, results_as_hash: true)
+        @connection_parameters = @config.merge(
+          database: @config[:database].to_s,
+          results_as_hash: true,
+          default_transaction_mode: :immediate,
+        )
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
