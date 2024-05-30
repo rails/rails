@@ -1,3 +1,9 @@
+## Unreleased
+
+*   Define `Digest::UUID.nil_uuid`, which returns the so-called nil UUID.
+
+    *Xavier Noria*
+
 ## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Support `duration` type in `ActiveSupport::XmlMini`.
