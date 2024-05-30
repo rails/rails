@@ -1,3 +1,9 @@
+*   Raise when using key which can't respond to `#to_sym` in `EncryptedConfiguration`.
+
+    As is the case when trying to use an Integer or Float as a key, which is unsupported.
+
+    *zzak*
+
 *   Deprecate addition and since between two `Time` and `ActiveSupport::TimeWithZone`.
 
     Previously adding time instances together such as `10.days.ago + 10.days.ago` or `10.days.ago.since(10.days.ago)` produced a nonsensical future date. This behavior is deprecated and will be removed in Rails 8.1.
