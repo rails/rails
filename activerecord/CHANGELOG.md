@@ -1,3 +1,7 @@
+*   Bump `sqlite3` gem version to `2.x`
+
+    *Stephen Margheim*
+
 *   Add `ActiveRecord::Relation#readonly?`.
 
     Reflects if the relation has been marked as readonly.

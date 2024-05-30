@@ -472,7 +472,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
-    assert_gem "sqlite3", '">= 1.4"'
+    assert_gem "sqlite3", '">= 2.0"'
   end
 
   def test_config_mysql_database

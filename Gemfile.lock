@@ -682,7 +682,7 @@ DEPENDENCIES
   sidekiq
   sneakers
   sprockets-rails (>= 2.0.0)
-  sqlite3 (>= 1.6.6)
+  sqlite3 (>= 2.0)
   stackprof
   stimulus-rails
   sucker_punch
