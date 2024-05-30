@@ -430,6 +430,7 @@ module ActionController
       res = get :write_sleep_autoload
       res.each { }
       ActiveSupport::Dependencies.interlock.done_running
+      pass
     end
 
     def test_async_stream

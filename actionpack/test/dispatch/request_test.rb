@@ -1152,7 +1152,9 @@ class RequestParameters < BaseRequestTest
     request = stub_request("QUERY_STRING" => "foo=%81E")
 
     ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
-      request.parameters
+      assert_nothing_raised do
+        request.parameters
+      end
     end
   end
 
@@ -1166,7 +1168,9 @@ class RequestParameters < BaseRequestTest
     )
 
     ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
-      request.parameters
+      assert_nothing_raised do
+        request.parameters
+      end
     end
   end
 

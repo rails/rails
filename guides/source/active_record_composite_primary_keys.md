@@ -36,7 +36,7 @@ You can create a table with a composite primary key by passing the
 `:primary_key` option to `create_table` with an array value:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.2]
+class CreateProducts < ActiveRecord::Migration[8.0]
   def change
     create_table :products, primary_key: [:store_id, :sku] do |t|
       t.integer :store_id
@@ -158,7 +158,7 @@ SELECT * FROM orders WHERE id = 2
 
 This only works if the model's composite primary key contains the `:id` column,
 _and_ the column is unique for all records. In order to use the full composite
-primary key in associations, set the `query_constraints` option on the
+primary key in associations, set the `foreign_key:` option on the
 association. This option specifies a composite foreign key on the association,
 meaning that all columns in the foreign key will be used to query the
 associated record(s). For example:
@@ -166,11 +166,11 @@ associated record(s). For example:
 ```ruby
 class Author < ApplicationRecord
   self.primary_key = [:first_name, :last_name]
-  has_many :books, query_constraints: [:first_name, :last_name]
+  has_many :books, foreign_key: [:first_name, :last_name]
 end
 
 class Book < ApplicationRecord
-  belongs_to :author, query_constraints: [:author_first_name, :author_last_name]
+  belongs_to :author, foreign_key: [:author_first_name, :author_last_name]
 end
 ```
 
@@ -285,8 +285,8 @@ you must use the `composite_identify` method:
 ```ruby
 class BookOrder < ApplicationRecord
   self.primary_key = [:shop_id, :id]
-  belongs_to :order, query_constraints: [:shop_id, :order_id]
-  belongs_to :book, query_constraints: [:author_id, :book_id]
+  belongs_to :order, foreign_key: [:shop_id, :order_id]
+  belongs_to :book, foreign_key: [:author_id, :book_id]
 end
 ```
 

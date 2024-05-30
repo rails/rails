@@ -46,6 +46,7 @@ module ActiveSupport
         "Date"       => "date",
         "DateTime"   => "dateTime",
         "Time"       => "dateTime",
+        "ActiveSupport::Duration" => "duration",
         "Array"      => "array",
         "Hash"       => "hash"
       }
@@ -56,6 +57,7 @@ module ActiveSupport
       "symbol"   => Proc.new { |symbol| symbol.to_s },
       "date"     => Proc.new { |date| date.to_fs(:db) },
       "dateTime" => Proc.new { |time| time.xmlschema },
+      "duration" => Proc.new { |duration| duration.iso8601 },
       "binary"   => Proc.new { |binary| ::Base64.encode64(binary) },
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
     } unless defined?(FORMATTING)
@@ -66,6 +68,7 @@ module ActiveSupport
         "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
         "date"         => Proc.new { |date|    ::Date.parse(date) },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
+        "duration"     => Proc.new { |duration| Duration.parse(duration) },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|
@@ -79,6 +82,7 @@ module ActiveSupport
         "string"       => Proc.new { |string|  string.to_s },
         "yaml"         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
         "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },
+        "hexBinary"    => Proc.new { |bin|     _parse_hex_binary(bin) },
         "binary"       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
         "file"         => Proc.new { |file, entity| _parse_file(file, entity) }
       }
@@ -162,11 +166,12 @@ module ActiveSupport
         "#{left}#{middle.tr('_ ', '--')}#{right}"
       end
 
-      # TODO: Add support for other encodings
       def _parse_binary(bin, entity)
         case entity["encoding"]
         when "base64"
           ::Base64.decode64(bin)
+        when "hex", "hexBinary"
+          _parse_hex_binary(bin)
         else
           bin
         end
@@ -178,6 +183,10 @@ module ActiveSupport
         f.original_filename = entity["name"]
         f.content_type = entity["content_type"]
         f
+      end
+
+      def _parse_hex_binary(bin)
+        [bin].pack("H*")
       end
 
       def current_thread_backend

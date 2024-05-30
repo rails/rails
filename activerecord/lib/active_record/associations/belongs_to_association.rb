@@ -12,11 +12,11 @@ module ActiveRecord
           raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
           if reflection.foreign_key.is_a?(Array)
-            primary_key_column = reflection.active_record_primary_key.map(&:to_sym)
-            id = reflection.foreign_key.map { |col| owner.public_send(col.to_sym) }
+            primary_key_column = reflection.active_record_primary_key
+            id = reflection.foreign_key.map { |col| owner.public_send(col) }
           else
-            primary_key_column = reflection.active_record_primary_key.to_sym
-            id = owner.public_send(reflection.foreign_key.to_sym)
+            primary_key_column = reflection.active_record_primary_key
+            id = owner.public_send(reflection.foreign_key)
           end
 
           enqueue_destroy_association(
@@ -124,12 +124,20 @@ module ActiveRecord
         end
 
         def replace_keys(record, force: false)
-          target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
-          reflection_fk = Array(reflection.foreign_key)
+          reflection_fk = reflection.foreign_key
+          if reflection_fk.is_a?(Array)
+            target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
 
-          if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
-            reflection_fk.zip(target_key_values).each do |key, value|
-              owner[key] = value
+            if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
+              reflection_fk.each_with_index do |key, index|
+                owner[key] = target_key_values[index]
+              end
+            end
+          else
+            target_key_value = record ? record._read_attribute(primary_key(record.class)) : nil
+
+            if force || owner._read_attribute(reflection_fk) != target_key_value
+              owner[reflection_fk] = target_key_value
             end
           end
         end
@@ -148,8 +156,7 @@ module ActiveRecord
         end
 
         def stale_state
-          result = owner._read_attribute(reflection.foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
-          result && result.to_s
+          owner._read_attribute(reflection.foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
         end
     end
   end

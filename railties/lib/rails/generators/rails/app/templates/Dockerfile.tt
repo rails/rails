@@ -1,15 +1,22 @@
 # syntax = docker/dockerfile:1
 
+# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
+# docker build -t my-app .
+# docker run -d -p 80:80 -p 443:443 --name my-app -e RAILS_MASTER_KEY=<value from config/master.key> my-app
+
+# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=<%= gem_ruby_version %>
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+FROM docker.io/library/ruby:$RUBY_VERSION-slim as base
 
 # Rails app lives here
 WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y <%= dockerfile_base_packages.join(" ") %>
+    apt-get install --no-install-recommends -y <%= dockerfile_base_packages.join(" ") %> && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
 ENV RAILS_ENV="production" \
@@ -21,7 +28,9 @@ ENV RAILS_ENV="production" \
 FROM base as build
 
 # Install packages needed to build gems<%= using_node? ? " and node modules" : "" %>
-RUN apt-get install --no-install-recommends -y <%= dockerfile_build_packages.join(" ") %>
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y <%= dockerfile_build_packages.join(" ") %> && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 <% if using_node? -%>
 # Install JavaScript dependencies
@@ -78,11 +87,12 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 <% end -%>
 
+<% if using_node? -%>
+RUN rm -rf node_modules
+<% end %>
+
 # Final stage for app image
 FROM base
-
-# Clean up installation packages to reduce image size
-RUN rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"

@@ -231,7 +231,9 @@ module ActiveRecord
 
       def test_marshal_dump_and_load_with_ignored_tables
         old_ignore = ActiveRecord.schema_cache_ignored_tables
+        assert_not ActiveRecord.schema_cache_ignored_table?("professors")
         ActiveRecord.schema_cache_ignored_tables = ["professors"]
+        assert ActiveRecord.schema_cache_ignored_table?("professors")
         # Create an empty cache.
         cache = new_bound_reflection
 
@@ -302,12 +304,12 @@ module ActiveRecord
         # Create an empty cache.
         cache = new_bound_reflection
 
-        tempfile_a = Tempfile.new(["schema_cache-", ".dump.gz"])
+        tempfile_a = Tempfile.new(["schema_cache-", ".yml.gz"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile_a.path)
         digest_a = Digest::MD5.file(tempfile_a).hexdigest
         sleep(1) # ensure timestamp changes
-        tempfile_b = Tempfile.new(["schema_cache-", ".dump.gz"])
+        tempfile_b = Tempfile.new(["schema_cache-", ".yml.gz"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile_b.path)
         digest_b = Digest::MD5.file(tempfile_b).hexdigest
@@ -325,7 +327,13 @@ module ActiveRecord
       end
 
       def test_clear_data_source_cache
+        # Cache data sources list.
+        assert @cache.data_source_exists?("courses")
+
         @cache.clear_data_source_cache!("courses")
+        assert_queries_count(1, include_schema: true) do
+          @cache.data_source_exists?("courses")
+        end
       end
 
       test "#columns_hash? is populated by #columns_hash" do

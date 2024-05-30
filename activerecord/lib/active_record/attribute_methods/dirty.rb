@@ -251,7 +251,7 @@ module ActiveRecord
             changed_attribute_names_to_save
           else
             attribute_names.reject do |attr_name|
-              if column_for_attribute(attr_name).default_function
+              if column_for_attribute(attr_name).auto_populated?
                 !attribute_changed?(attr_name)
               end
             end

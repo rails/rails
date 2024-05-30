@@ -5,9 +5,12 @@ Warning[:deprecated] = true
 
 module ActiveSupport
   module RaiseWarnings # :nodoc:
+    class WarningError < StandardError; end
+
     PROJECT_ROOT = File.expand_path("../../../../", __dir__)
     ALLOWED_WARNINGS = Regexp.union(
       /circular require considered harmful.*delayed_job/, # Bug in delayed job.
+      /circular require considered harmful.*rails-html-sanitizer/, # Bug when sprockets-rails is not required.
 
       # Expected non-verbose warning emitted by Rails.
       /Ignoring .*\.yml because it has expired/,
@@ -30,7 +33,7 @@ module ActiveSupport
       return if ALLOWED_WARNINGS.match?(message)
       return unless ENV["RAILS_STRICT_WARNINGS"] || ENV["BUILDKITE"]
 
-      raise message
+      raise WarningError.new(message)
     end
   end
 end

@@ -30,16 +30,23 @@ module ActionCable
       end
     end
 
+    class TestCookies < ActiveSupport::HashWithIndifferentAccess
+      def []=(name, options)
+        value = options.is_a?(Hash) ? options.symbolize_keys[:value] : options
+        super(name, value)
+      end
+    end
+
     # We don't want to use the whole "encryption stack" for connection unit-tests,
     # but we want to make sure that users test against the correct types of cookies
     # (i.e. signed or encrypted or plain)
-    class TestCookieJar < ActiveSupport::HashWithIndifferentAccess
+    class TestCookieJar < TestCookies
       def signed
-        self[:signed] ||= {}.with_indifferent_access
+        @signed ||= TestCookies.new
       end
 
       def encrypted
-        self[:encrypted] ||= {}.with_indifferent_access
+        @encrypted ||= TestCookies.new
       end
     end
 

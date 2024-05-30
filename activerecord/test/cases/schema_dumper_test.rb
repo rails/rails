@@ -138,7 +138,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_4.*limit: 4}, output
     end
 
-    if current_adapter?(:SQLite3Adapter, :OracleAdapter)
+    if current_adapter?(:SQLite3Adapter)
       assert_match %r{c_int_5.*limit: 5}, output
       assert_match %r{c_int_6.*limit: 6}, output
       assert_match %r{c_int_7.*limit: 7}, output
@@ -423,12 +423,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump
-    # Oracle supports precision up to 38 and it identifies decimals with scale 0 as integers
-    if current_adapter?(:OracleAdapter)
-      assert_match %r{t\.integer\s+"atoms_in_universe",\s+precision: 38}, output
-    else
-      assert_match %r{t\.decimal\s+"atoms_in_universe",\s+precision: 55}, output
-    end
+
+    assert_match %r{t\.decimal\s+"atoms_in_universe",\s+precision: 55}, output
   end
 
   def test_schema_dump_keeps_id_column_when_id_is_false_and_id_column_added

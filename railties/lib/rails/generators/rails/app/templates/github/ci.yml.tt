@@ -100,7 +100,7 @@ jobs:
     <%- end -%>
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= (dockerfile_base_packages + [build_package_for_database]).join(" ") %>
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= (dockerfile_base_packages + [database.base_package]).join(" ") %>
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -126,7 +126,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           <%- end -%>
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:setup test test:system
+        run: bin/rails db:test:prepare test test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4

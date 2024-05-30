@@ -28,6 +28,12 @@ module ActiveRecord
             end
           end
 
+          # TODO: Remove when IPAddr#== compares IPAddr#prefix. See
+          # https://github.com/ruby/ipaddr/issues/21
+          def changed?(old_value, new_value, _new_value_before_type_cast)
+            super || !old_value.nil? && old_value.prefix != new_value.prefix
+          end
+
           def cast_value(value)
             if value.nil?
               nil

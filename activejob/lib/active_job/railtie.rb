@@ -41,7 +41,7 @@ module ActiveJob
 
     initializer "active_job.set_configs" do |app|
       options = app.config.active_job
-      options.queue_adapter ||= :async
+      options.queue_adapter ||= (Rails.env.test? ? :test : :async)
 
       config.after_initialize do
         options.each do |k, v|

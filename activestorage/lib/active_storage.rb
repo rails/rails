@@ -365,22 +365,6 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
-  def self.replace_on_assign_to_many
-    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
-  end
-
-  def self.replace_on_assign_to_many=(value)
-    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
-  end
-
-  def self.silence_invalid_content_types_warning
-    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
-  end
-
-  def self.silence_invalid_content_types_warning=(value)
-    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
-  end
-
   module Transformers
     extend ActiveSupport::Autoload
 

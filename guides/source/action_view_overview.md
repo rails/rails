@@ -86,8 +86,8 @@ has a `.erb` extension, it uses embedded Ruby to build an HTML response. If the
 template has a `.jbuilder` extension, it uses the
 [Jbuilder](https://github.com/rails/jbuilder) gem to build a JSON response. And
 a template with a `.builder` extension uses the
-[`Builder::XmlMarkup`](https://github.com/jimweirich/builder) library to build
-an XML response.
+[`Builder::XmlMarkup`](https://github.com/rails/builder) library to build an XML
+response.
 
 Rails uses the file extension to distinguish among multiple template systems.
 For example, an HTML file using the ERB template system will have `.html.erb` as
@@ -213,8 +213,7 @@ would produce something like:
 </div>
 ```
 
-See [Builder documentation](https://github.com/jimweirich/builder) for more
-examples.
+See [Builder documentation](https://github.com/rails/builder) for more examples.
 
 ### Template Compilation
 

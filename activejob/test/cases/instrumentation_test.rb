@@ -23,18 +23,20 @@ class InstrumentationTest < ActiveSupport::TestCase
     assert_equal 1, events.size
   end
 
-  test "retry emits an enqueue retry event" do
-    events = subscribed("enqueue_retry.active_job") do
-      perform_enqueued_jobs { RetryJob.perform_later("DefaultsError", 2) }
+  unless adapter_is?(:inline, :sneakers)
+    test "retry emits an enqueue retry event" do
+      events = subscribed("enqueue_retry.active_job") do
+        perform_enqueued_jobs { RetryJob.perform_later("DefaultsError", 2) }
+      end
+      assert_equal 1, events.size
     end
-    assert_equal 1, events.size
-  end
 
-  test "retry exhaustion emits a retry_stopped event" do
-    events = subscribed("retry_stopped.active_job") do
-      perform_enqueued_jobs { RetryJob.perform_later("CustomCatchError", 6) }
+    test "retry exhaustion emits a retry_stopped event" do
+      events = subscribed("retry_stopped.active_job") do
+        perform_enqueued_jobs { RetryJob.perform_later("CustomCatchError", 6) }
+      end
+      assert_equal 1, events.size
     end
-    assert_equal 1, events.size
   end
 
   test "discard emits a discard event" do

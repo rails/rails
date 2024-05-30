@@ -115,5 +115,19 @@ module ActiveRecord
 
       assert_equal [[1.1, 2.2], [3.3, 4.4]], result.cast_values("col1" => Type::Float.new)
     end
+
+    test "each when two columns have the same name" do
+      result = Result.new(["foo", "foo"], [
+        ["col 1", "col 2"],
+        ["col 1", "col 2"],
+        ["col 1", "col 2"],
+      ])
+
+      assert_equal 2, result.columns.size
+      result.each do |row|
+        assert_equal 1, row.size
+        assert_equal "col 2", row["foo"]
+      end
+    end
   end
 end

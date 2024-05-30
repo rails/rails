@@ -823,21 +823,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_caching_of_columns
-    david = Developer.find(1)
-    # clear cache possibly created by other tests
-    david.projects.reset_column_information
-
-    assert_queries_count(include_schema: true) { david.projects.columns }
-    assert_no_queries { david.projects.columns }
-
-    ## and again to verify that reset_column_information clears the cache correctly
-    david.projects.reset_column_information
-
-    assert_queries_count(include_schema: true) { david.projects.columns }
-    assert_no_queries { david.projects.columns }
-  end
-
   def test_attributes_are_being_set_when_initialized_from_habtm_association_with_where_clause
     new_developer = projects(:action_controller).developers.where(name: "Marcelo").build
     assert_equal "Marcelo", new_developer.name
@@ -928,7 +913,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_habtm_with_reflection_using_class_name_and_fixtures
-    assert_not_nil Developer._reflections["shared_computers"]
+    assert_not_nil Developer._reflections[:shared_computers]
     # Checking the fixture for named association is important here, because it's the only way
     # we've been able to reproduce this bug
     assert_not_nil File.read(File.expand_path("../../fixtures/developers.yml", __dir__)).index("shared_computers")

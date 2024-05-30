@@ -1,35 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/all"
-require "action_controller"
+Rails.deprecator.warn(<<~MSG, caller_locations(0..1))
+`rails/console/app` has been deprecated and will be removed in Rails 8.0.
+Please require `rails/console/methods` instead.
+MSG
 
-module Rails
-  module ConsoleMethods
-    # reference the global "app" instance, created on demand. To recreate the
-    # instance, pass a non-false value as the parameter.
-    def app(create = false)
-      @app_integration_instance = nil if create
-      @app_integration_instance ||= new_session
-    end
-
-    # create a new session. If a block is given, the new session will be yielded
-    # to the block before being returned.
-    def new_session
-      app = Rails.application
-      session = ActionDispatch::Integration::Session.new(app)
-
-      # This makes app.url_for and app.foo_path available in the console
-      session.extend(app.routes.url_helpers)
-      session.extend(app.routes.mounted_helpers)
-
-      session
-    end
-
-    # reloads the environment
-    def reload!(print = true)
-      puts "Reloading..." if print
-      Rails.application.reloader.reload!
-      true
-    end
-  end
-end
+require "rails/console/methods"

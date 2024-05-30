@@ -579,18 +579,18 @@ SELECT * FROM orders WHERE id = 2
 ```
 
 This only works if the model's composite primary key contains the `:id` column, _and_ the column is unique for
-all records. In order to use the full composite primary key in associations, set the `query_constraints` option on
+all records. In order to use the full composite primary key in associations, set the `foreign_key:` option on
 the association. This option specifies a composite foreign key on the association: all columns in the foreign key will
 be used when querying the associated record(s). For example:
 
 ```ruby
 class Author < ApplicationRecord
   self.primary_key = [:first_name, :last_name]
-  has_many :books, query_constraints: [:first_name, :last_name]
+  has_many :books, foreign_key: [:first_name, :last_name]
 end
 
 class Book < ApplicationRecord
-  belongs_to :author, query_constraints: [:author_first_name, :author_last_name]
+  belongs_to :author, foreign_key: [:author_first_name, :author_last_name]
 end
 ```
 
@@ -950,7 +950,7 @@ recognize the bi-directional association. This can cause your application to:
     ```irb
     irb> author = Author.first
     irb> author.books.any? do |book|
-    irb>   book.author.equal?(author) # This executes an author query for every book
+    irb>   book.writer.equal?(author) # This executes an author query for every book
     irb> end
     => false
     ```
@@ -960,10 +960,10 @@ recognize the bi-directional association. This can cause your application to:
     ```irb
     irb> author = Author.first
     irb> book = author.books.first
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => true
     irb> author.name = "Changed Name"
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => false
     ```
 
@@ -2827,6 +2827,12 @@ class Supplier < ApplicationRecord
 end
 ```
 
+Extensions can refer to the internals of the association proxy using these three attributes of the `proxy_association` accessor:
+
+* `proxy_association.owner` returns the object that the association is a part of.
+* `proxy_association.reflection` returns the reflection object that describes the association.
+* `proxy_association.target` returns the associated object for `belongs_to` or `has_one`, or the collection of associated objects for `has_many` or `has_and_belongs_to_many`.
+
 ### Association Scoping using the Association Owner
 
 The owner of the association can be passed as a single argument to the scope
@@ -2903,6 +2909,46 @@ will run a query like:
 ```sql
 SELECT "vehicles".* FROM "vehicles" WHERE "vehicles"."type" IN ('Car')
 ```
+
+### Overriding the inheritance column
+
+There may be cases (like when working with a legacy database) where you need to
+override the name of the inheritance column. This can be achieved with the
+[inheritance_column][] method.
+
+```ruby
+# Schema: vehicles[ id, kind, created_at, updated_at ]
+class Vehicle < ApplicationRecord
+  self.inheritance_column = "kind"
+end
+
+class Car < Vehicle
+end
+
+Car.create
+# => #<Car kind: "Car">
+```
+
+### Disabling the inheritance column
+
+There may be cases (like when working with a legacy database) where you need to
+disable Single Table Inheritance altogether. Otherwise, you'll raise
+[`ActiveRecord::SubclassNotFound`][].
+
+This can be achieved by setting the [inheritance_column][] to `nil`.
+
+```ruby
+# Schema: vehicles[ id, type, created_at, updated_at ]
+class Vehicle < ApplicationRecord
+  self.inheritance_column = nil
+end
+
+Vehicle.create!(type: "Car")
+# => #<Vehicle type: "Car">
+```
+
+[inheritance_column]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-inheritance_column
+[`ActiveRecord::SubclassNotFound`]: https://api.rubyonrails.org/classes/ActiveRecord/SubclassNotFound.html
 
 Delegated Types
 ----------------

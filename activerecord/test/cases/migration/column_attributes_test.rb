@@ -62,12 +62,7 @@ module ActiveRecord
 
           connection.add_column "test_models", "wealth", :decimal, precision: "30", scale: "10"
 
-          # Do a manual insertion
-          if current_adapter?(:OracleAdapter)
-            connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
-          else
-            connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
-          end
+          connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
 
           # SELECT
           row = TestModel.first

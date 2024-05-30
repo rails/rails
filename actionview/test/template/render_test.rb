@@ -793,7 +793,7 @@ module RenderTestCases
   end
 
   def test_render_mutate_string_literal
-    assert_equal "foobar", @view.render(inline: "'foo' << 'bar'", type: :ruby)
+    assert_equal "foobar", @view.render(inline: "+'foo' << 'bar'", type: :ruby)
   end
 end
 

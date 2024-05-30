@@ -11,7 +11,7 @@ require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", "~> 1.4"
+gem "sqlite3", ">= 1.4"
 require "sqlite3"
 
 module ActiveRecord
@@ -112,13 +112,9 @@ module ActiveRecord
           dirname = File.dirname(@config[:database])
           unless File.directory?(dirname)
             begin
-              Dir.mkdir(dirname)
-            rescue Errno::ENOENT => error
-              if error.message.include?("No such file or directory")
-                raise ActiveRecord::NoDatabaseError.new(connection_pool: @pool)
-              else
-                raise
-              end
+              FileUtils.mkdir_p(dirname)
+            rescue SystemCallError
+              raise ActiveRecord::NoDatabaseError.new(connection_pool: @pool)
             end
           end
         end
@@ -291,7 +287,7 @@ module ActiveRecord
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
-        rename_table_indexes(table_name, new_name)
+        rename_table_indexes(table_name, new_name, **options)
       end
 
       def add_column(table_name, column_name, type, **options) # :nodoc:
@@ -695,6 +691,8 @@ module ActiveRecord
             end
 
             basic_structure.map do |column|
+              column = column.to_h
+
               column_name = column["name"]
 
               if collation_hash.has_key? column_name

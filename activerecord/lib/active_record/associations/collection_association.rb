@@ -28,6 +28,8 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association # :nodoc:
+      attr_accessor :nested_attributes_target
+
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
         ensure_klass_exists!
@@ -92,7 +94,7 @@ module ActiveRecord
       def find(*args)
         if options[:inverse_of] && loaded?
           args_flatten = args.flatten
-          model = scope.klass
+          model = scope.model
 
           if args_flatten.blank?
             error_message = "Couldn't find #{model.name} without an ID"
@@ -303,7 +305,7 @@ module ActiveRecord
 
       def find_from_target?
         loaded? ||
-          owner.strict_loading? ||
+          (owner.strict_loading? && owner.strict_loading_all?) ||
           reflection.strict_loading? ||
           owner.new_record? ||
           target.any? { |record| record.new_record? || record.changed? }

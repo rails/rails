@@ -3,15 +3,15 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest", ">= 5.15.0", "< 5.22.0"
+gem "minitest", ">= 5.15.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
 
-gem "sprockets-rails", ">= 2.0.0"
+gem "sprockets-rails", ">= 2.0.0", require: false
 gem "propshaft", ">= 0.1.7"
 gem "capybara", ">= 3.39"
-gem "selenium-webdriver", ">= 4.11.0"
+gem "selenium-webdriver", ">= 4.20.0"
 
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
@@ -21,6 +21,7 @@ gem "cssbundling-rails"
 gem "importmap-rails", ">= 1.2.3"
 gem "tailwindcss-rails"
 gem "dartsass-rails"
+gem "kamal", require: false
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -60,7 +61,7 @@ end
 
 group :doc do
   gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
-  gem "rdoc", "~> 6.5"
+  gem "rdoc", "~> 6.7"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
@@ -154,37 +155,13 @@ platforms :ruby, :windows do
   gem "racc", ">=1.4.6", require: false
 
   # Active Record.
-  gem "sqlite3", "~> 1.6", ">= 1.6.6"
+  gem "sqlite3", ">= 1.6.6"
 
   group :db do
     gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5"
     gem "trilogy", ">= 2.7.0"
   end
-end
-
-platforms :jruby do
-  if ENV["AR_JDBC"]
-    gem "activerecord-jdbcsqlite3-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
-    group :db do
-      gem "activerecord-jdbcmysql-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
-      gem "activerecord-jdbcpostgresql-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
-    end
-  else
-    gem "activerecord-jdbcsqlite3-adapter", ">= 1.3.0"
-    group :db do
-      gem "activerecord-jdbcmysql-adapter", ">= 1.3.0"
-      gem "activerecord-jdbcpostgresql-adapter", ">= 1.3.0"
-    end
-  end
-end
-
-# Gems that are necessary for Active Record tests with Oracle.
-if ENV["ORACLE_ENHANCED"]
-  platforms :ruby do
-    gem "ruby-oci8", "~> 2.2"
-  end
-  gem "activerecord-oracle_enhanced-adapter", github: "rsim/oracle-enhanced", branch: "master"
 end
 
 gem "tzinfo-data", platforms: [:windows, :jruby]
@@ -196,3 +173,4 @@ gem "wdm", ">= 0.1.0", platforms: [:windows]
 if RUBY_VERSION < "3.2"
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
 end
+gem "launchy"
