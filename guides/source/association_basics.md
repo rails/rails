@@ -771,25 +771,32 @@ SELECT * FROM authors WHERE first_name = 'Jane' AND last_name = 'Doe'
 
 ### Self Joins
 
-In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as between manager and subordinates. This situation can be modeled with self-joining associations:
+A self-join is a regular join, but the table is joined with itself. This is useful in situations where there is a hierarchical relationship within a single table. A common example is an employee management system where an employee can have a manager, and that manager is also an employee.
+
+Consider an organization where employees can be managers of other employees. We want to track this relationship using a single `employees` table.
+
+In your Rails model, you define the `Employee` class to reflect these relationships:
 
 ```ruby
 class Employee < ApplicationRecord
-  has_many :subordinates, class_name: "Employee",
-                          foreign_key: "manager_id"
+  # an employee can have many subordinates.
+  has_many :subordinates, class_name: "Employee", foreign_key: "manager_id"
 
+  # an employee can have one manager.
   belongs_to :manager, class_name: "Employee", optional: true
 end
 ```
 
-With this setup, you can retrieve `@employee.subordinates` and `@employee.manager`.
+- `has_many :subordinates` sets up a one-to-many relationship where an employee can have many subordinates. Here, we specify that the related model is also `Employee` (`class_name: "Employee"`) and the foreign key used to identify the manager is `manager_id`.
+- `belongs_to :manager` sets up a one-to-one relationship where an employee can belong to one manager. Again, we specify the related model as `Employee`.
 
-In your migrations/schema, you will add a references column to the model itself.
+To support this relationship, we need to add a `manager_id` column to the `employees` table. This column references the `id` of another employee (the manager).
 
 ```ruby
 class CreateEmployees < ActiveRecord::Migration[7.2]
   def change
     create_table :employees do |t|
+      # Add a reference to the manager, which is an employee.
       t.references :manager, foreign_key: { to_table: :employees }
       t.timestamps
     end
@@ -797,7 +804,25 @@ class CreateEmployees < ActiveRecord::Migration[7.2]
 end
 ```
 
+- `t.references :manager` adds a `manager_id` column to the `employees` table.
+- `foreign_key: { to_table: :employees }` ensures that the `manager_id` column references the `id` column of the `employees` table.
+
 NOTE: The `to_table` option passed to `foreign_key` and more are explained in [`SchemaStatements#add_reference`][connection.add_reference].
+
+With this setup, you can easily access an employee's subordinates and manager in your Rails application.
+
+To get an employee's subordinates:
+
+```ruby
+employee = Employee.find(1)
+subordinates = employee.subordinates
+```
+
+To get an employee's manager:
+
+```ruby
+manager = employee.manager
+```
 
 [connection.add_reference]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference
 
