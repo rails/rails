@@ -772,7 +772,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_git_name_and_email_in_gemspec_file
     name = `git config user.name`.chomp rescue "TODO: Write your name"
-    email = `git config user.email`.chomp rescue "TODO: Write your email address"
+    default_email = "TODO: Write your email address"
+    email = `git config user.email`.chomp rescue default_email
+
+    global_email = `git config --global user.email`.chomp rescue ""
+
+    if global_email.empty?
+      email = default_email
+    end
 
     run_generator
     assert_file "bukkits.gemspec" do |contents|

@@ -441,6 +441,7 @@ module Rails
           @email = default
         else
           @email = `git config user.email`.chomp rescue default
+          @email = default if @email.blank?
         end
       end
 
