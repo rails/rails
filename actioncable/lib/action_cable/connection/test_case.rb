@@ -30,7 +30,7 @@ module ActionCable
       end
     end
 
-    class TestCookies < ActiveSupport::HashWithIndifferentAccess
+    class TestCookies < ActiveSupport::HashWithIndifferentAccess # :nodoc:
       def []=(name, options)
         value = options.is_a?(Hash) ? options.symbolize_keys[:value] : options
         super(name, value)
