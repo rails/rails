@@ -301,12 +301,12 @@ class AssetTagHelperTest < ActionView::TestCase
     %(picture_tag("mouse.png", :image => { :alt => nil })) => %(<picture><img src="/images/mouse.png" /></picture>),
     %(picture_tag("data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", :image => { :alt => nil })) => %(<picture><img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" /></picture>),
     %(picture_tag("")) => %(<picture><img src="" /></picture>),
-    %(picture_tag("picture.webp", "picture.png")) => %(<picture><source srcset="/images/picture.webp" type="image/webp" /><source srcset="/images/picture.png" type="image/png" /><img src="/images/picture.png" /></picture>),
-    %(picture_tag("picture.webp", "picture.png", :class => "my-class")) => %(<picture class="my-class"><source srcset="/images/picture.webp" type="image/webp" /><source srcset="/images/picture.png" type="image/png" /><img src="/images/picture.png" /></picture>),
-    %(picture_tag("picture.webp", "picture.png", :image => { alt: "Image" })) => %(<picture><source srcset="/images/picture.webp" type="image/webp" /><source srcset="/images/picture.png" type="image/png" /><img alt="Image" src="/images/picture.png" /></picture>),
-    %(picture_tag(["picture.webp", "picture.png"], :image => { alt: "Image" })) => %(<picture><source srcset="/images/picture.webp" type="image/webp" /><source srcset="/images/picture.png" type="image/png" /><img alt="Image" src="/images/picture.png" /></picture>),
+    %(picture_tag("picture.webp", "picture.png")) => %(<picture><source srcset="/images/picture.webp" type="image/webp"><source srcset="/images/picture.png" type="image/png"><img src="/images/picture.png" /></picture>),
+    %(picture_tag("picture.webp", "picture.png", :class => "my-class")) => %(<picture class="my-class"><source srcset="/images/picture.webp" type="image/webp"><source srcset="/images/picture.png" type="image/png"><img src="/images/picture.png" /></picture>),
+    %(picture_tag("picture.webp", "picture.png", :image => { alt: "Image" })) => %(<picture><source srcset="/images/picture.webp" type="image/webp"><source srcset="/images/picture.png" type="image/png"><img alt="Image" src="/images/picture.png" /></picture>),
+    %(picture_tag(["picture.webp", "picture.png"], :image => { alt: "Image" })) => %(<picture><source srcset="/images/picture.webp" type="image/webp"><source srcset="/images/picture.png" type="image/png"><img alt="Image" src="/images/picture.png" /></picture>),
     %(picture_tag(:class => "my-class") { tag(:source, :srcset => image_path("picture.webp")) + image_tag("picture.png", :alt => "Image") }) => %(<picture class="my-class"><source srcset="/images/picture.webp" /><img alt="Image" src="/images/picture.png" /></picture>),
-    %(picture_tag { tag(:source, :srcset => image_path("picture-small.webp"), :media => "(min-width: 600px)") + tag(:source, :srcset => image_path("picture-big.webp")) + image_tag("picture.png", :alt => "Image") }) => %(<picture><source srcset="/images/picture-small.webp" media="(min-width: 600px)" /><source srcset="/images/picture-big.webp" /><img alt="Image" src="/images/picture.png" /></picture>),
+    %(picture_tag { tag(:source, :srcset => image_path("picture-small.webp"), :media => "(min-width: 600px)") + tag(:source, :srcset => image_path("picture-big.webp")) + image_tag("picture.png", :alt => "Image") } ) => %(<picture><source srcset="/images/picture-small.webp" media="(min-width: 600px)" /><source srcset="/images/picture-big.webp" /><img alt="Image" src="/images/picture.png" /></picture>),
   }
 
   FaviconLinkToTag = {
@@ -381,9 +381,9 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag("error.avi", "size" => "x")) => %(<video src="/videos/error.avi"></video>),
     %(video_tag("http://media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="http://media.rubyonrails.org/video/rails_blog_2.mov"></video>),
     %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov"></video>),
-    %(video_tag("multiple.ogg", "multiple.avi")) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
-    %(video_tag(["multiple.ogg", "multiple.avi"])) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
-    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>)
+    %(video_tag("multiple.ogg", "multiple.avi")) => %(<video><source src="/videos/multiple.ogg"><source src="/videos/multiple.avi"></video>),
+    %(video_tag(["multiple.ogg", "multiple.avi"])) => %(<video><source src="/videos/multiple.ogg"><source src="/videos/multiple.avi"></video>),
+    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg"><source src="/videos/multiple.avi"></video>)
   }
 
   AudioPathToTag = {
@@ -419,9 +419,9 @@ class AssetTagHelperTest < ActionView::TestCase
     %(audio_tag("rss.wav", :autoplay => true, :controls => true)) => %(<audio autoplay="autoplay" controls="controls" src="/audios/rss.wav"></audio>),
     %(audio_tag("http://media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="http://media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
     %(audio_tag("//media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="//media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
-    %(audio_tag("audio.mp3", "audio.ogg")) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
-    %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
-    %(audio_tag(["audio.mp3", "audio.ogg"], :preload => 'none', :controls => true)) => %(<audio preload="none" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
+    %(audio_tag("audio.mp3", "audio.ogg")) => %(<audio><source src="/audios/audio.mp3"><source src="/audios/audio.ogg"></audio>),
+    %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3"><source src="/audios/audio.ogg"></audio>),
+    %(audio_tag(["audio.mp3", "audio.ogg"], :preload => 'none', :controls => true)) => %(<audio preload="none" controls="controls"><source src="/audios/audio.mp3"><source src="/audios/audio.ogg"></audio>)
   }
 
   FontPathToTag = {
@@ -876,11 +876,11 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_image_tag_interpreting_email_cid_correctly
     # An inline image has no need for an alt tag to be automatically generated from the cid:
-    assert_equal '<img src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid")
+    assert_equal '<img src="cid:thi%25%25sis@acontentid">', image_tag("cid:thi%25%25sis@acontentid")
   end
 
   def test_image_tag_interpreting_email_adding_optional_alt_tag
-    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid", alt: "Image")
+    assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid">', image_tag("cid:thi%25%25sis@acontentid", alt: "Image")
   end
 
   def test_should_not_modify_source_string

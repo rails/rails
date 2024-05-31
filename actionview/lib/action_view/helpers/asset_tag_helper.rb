@@ -231,7 +231,7 @@ module ActionView
             tag_options["media"] = "screen"
           end
 
-          tag(:link, tag_options)
+          tag.link(**tag_options)
         }.join("\n").html_safe
 
         if use_preload_links_header
@@ -273,12 +273,11 @@ module ActionView
           raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss, :atom, or :json.")
         end
 
-        tag(
-          "link",
-          "rel"   => tag_options[:rel] || "alternate",
-          "type"  => tag_options[:type] || Template::Types[type].to_s,
-          "title" => tag_options[:title] || type.to_s.upcase,
-          "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(only_path: false)) : url_options
+        tag.link(
+          rel: tag_options[:rel] || "alternate",
+          type: tag_options[:type] || Template::Types[type].to_s,
+          title: tag_options[:title] || type.to_s.upcase,
+          href: url_options.is_a?(Hash) ? url_for(url_options.merge(only_path: false)) : url_options
         )
       end
 
@@ -310,11 +309,12 @@ module ActionView
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
       def favicon_link_tag(source = "favicon.ico", options = {})
-        tag("link", {
+        tag.link(
           rel: "icon",
           type: "image/x-icon",
-          href: path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
-        }.merge!(options.symbolize_keys))
+          href: path_to_image(source, skip_pipeline: options.delete(:skip_pipeline)),
+          **options.symbolize_keys
+        )
       end
 
       # Returns a link tag that browsers can use to preload the +source+.
@@ -446,7 +446,7 @@ module ActionView
         options[:loading] ||= image_loading if image_loading
         options[:decoding] ||= image_decoding if image_decoding
 
-        tag("img", options)
+        tag.img(**options)
       end
 
       # Returns an HTML picture tag for the +sources+. If +sources+ is a string,
@@ -501,9 +501,9 @@ module ActionView
             image_tag(sources.last, image_options)
           else
             source_tags = sources.map do |source|
-              tag("source",
-               srcset: resolve_asset_source("image", source, skip_pipeline),
-               type: Template::Types[File.extname(source)[1..]]&.to_s)
+              tag.source(
+                srcset: resolve_asset_source("image", source, skip_pipeline),
+                type: Template::Types[File.extname(source)[1..]]&.to_s)
             end
             safe_join(source_tags << image_tag(sources.last, image_options))
           end
@@ -604,7 +604,7 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: resolve_asset_source(type, source, skip_pipeline)) }
+              safe_join sources.map { |source| tag.source(src: resolve_asset_source(type, source, skip_pipeline)) }
             end
           else
             options[:src] = resolve_asset_source(type, sources.first, skip_pipeline)
