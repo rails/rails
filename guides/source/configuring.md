@@ -2219,7 +2219,7 @@ Determines whether to annotate rendered view with template file names. This defa
 
 #### `config.action_view.preload_links_header`
 
-Determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `Link` header that preload assets.
+Determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `link` header that preload assets.
 
 The default value depends on the `config.load_defaults` target version:
 

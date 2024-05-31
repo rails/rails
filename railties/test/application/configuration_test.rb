@@ -3188,7 +3188,7 @@ module ApplicationTests
       assert_equal false, ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default
     end
 
-    test "stylesheet_link_tag sets the Link header by default" do
+    test "stylesheet_link_tag sets the link header by default" do
       app_file "app/controllers/pages_controller.rb", <<-RUBY
       class PagesController < ApplicationController
         def index
@@ -3207,10 +3207,10 @@ module ApplicationTests
 
       get "/"
       assert_match %r[<link rel="stylesheet" href="/application.css" />], last_response.body
-      assert_equal "</application.css>; rel=preload; as=style; nopush", last_response.headers["Link"]
+      assert_equal "</application.css>; rel=preload; as=style; nopush", last_response.headers["link"]
     end
 
-    test "stylesheet_link_tag doesn't set the Link header when disabled" do
+    test "stylesheet_link_tag doesn't set the link header when disabled" do
       app_file "config/initializers/action_view.rb", <<-RUBY
         Rails.application.config.action_view.preload_links_header = false
       RUBY
@@ -3233,10 +3233,10 @@ module ApplicationTests
 
       get "/"
       assert_match %r[<link rel="stylesheet" href="/application.css" />], last_response.body
-      assert_nil last_response.headers["Link"]
+      assert_nil last_response.headers["link"]
     end
 
-    test "javascript_include_tag sets the Link header by default" do
+    test "javascript_include_tag sets the link header by default" do
       app_file "app/controllers/pages_controller.rb", <<-RUBY
       class PagesController < ApplicationController
         def index
@@ -3255,10 +3255,10 @@ module ApplicationTests
 
       get "/"
       assert_match %r[<script src="/application.js"></script>], last_response.body
-      assert_equal "</application.js>; rel=preload; as=script; nopush", last_response.headers["Link"]
+      assert_equal "</application.js>; rel=preload; as=script; nopush", last_response.headers["link"]
     end
 
-    test "javascript_include_tag doesn't set the Link header when disabled" do
+    test "javascript_include_tag doesn't set the link header when disabled" do
       app_file "config/initializers/action_view.rb", <<-RUBY
         Rails.application.config.action_view.preload_links_header = false
       RUBY
@@ -3281,7 +3281,7 @@ module ApplicationTests
 
       get "/"
       assert_match %r[<script src="/application.js"></script>], last_response.body
-      assert_nil last_response.headers["Link"]
+      assert_nil last_response.headers["link"]
     end
 
     test "ActiveJob::Base.retry_jitter is 0.15 by default for new apps" do

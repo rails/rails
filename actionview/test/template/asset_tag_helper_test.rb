@@ -634,7 +634,7 @@ class AssetTagHelperTest < ActionView::TestCase
       stylesheet_link_tag("http://example.com/style.css")
       javascript_include_tag("http://example.com/all.js")
       expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
-      assert_equal expected, @response.headers["Link"]
+      assert_equal expected, @response.headers["link"]
     end
   end
 
@@ -642,7 +642,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       stylesheet_link_tag("data:text/css;base64,YWxlcnQoIkhlbGxvIik7")
       javascript_include_tag("data:text/javascript;base64,YWxlcnQoIkhlbGxvIik7")
-      assert_nil @response.headers["Link"]
+      assert_nil @response.headers["link"]
     end
   end
 
@@ -650,7 +650,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       stylesheet_link_tag("http://example.com/style.css", preload_links_header: false)
       javascript_include_tag("http://example.com/all.js", preload_links_header: false)
-      assert_nil @response.headers["Link"]
+      assert_nil @response.headers["link"]
     end
   end
 
@@ -659,7 +659,7 @@ class AssetTagHelperTest < ActionView::TestCase
       stylesheet_link_tag("http://example.com/style.css", preload_links_header: true)
       javascript_include_tag("http://example.com/all.js", preload_links_header: true)
       expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
-      assert_equal expected, @response.headers["Link"]
+      assert_equal expected, @response.headers["link"]
     end
   end
 
@@ -669,7 +669,7 @@ class AssetTagHelperTest < ActionView::TestCase
         stylesheet_link_tag("http://example.com/style.css?#{i}")
         javascript_include_tag("http://example.com/all.js?#{i}")
       end
-      links = @response.headers["Link"].count(",")
+      links = @response.headers["link"].count(",")
       assert_equal 14, links
     end
   end
@@ -677,7 +677,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_should_not_preload_links_with_defer
     with_preload_links_header do
       javascript_include_tag("http://example.com/all.js", defer: true)
-      assert_nil @response.headers["Link"]
+      assert_nil @response.headers["link"]
     end
   end
 
@@ -686,7 +686,7 @@ class AssetTagHelperTest < ActionView::TestCase
       stylesheet_link_tag("http://example.com/style.css", nopush: false)
       javascript_include_tag("http://example.com/all.js", nopush: false)
       expected = "<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script"
-      assert_equal expected, @response.headers["Link"]
+      assert_equal expected, @response.headers["link"]
     end
   end
 
@@ -695,7 +695,7 @@ class AssetTagHelperTest < ActionView::TestCase
       stylesheet_link_tag("http://example.com/style.css", crossorigin: "use-credentials")
       javascript_include_tag("http://example.com/all.js", crossorigin: true)
       expected = "<http://example.com/style.css>; rel=preload; as=style; crossorigin=use-credentials; nopush,<http://example.com/all.js>; rel=preload; as=script; crossorigin=anonymous; nopush"
-      assert_equal expected, @response.headers["Link"]
+      assert_equal expected, @response.headers["link"]
     end
   end
 
@@ -703,7 +703,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       javascript_include_tag("http://example.com/all.js", type: "module")
       expected = "<http://example.com/all.js>; rel=modulepreload; as=script; nopush"
-      assert_equal expected, @response.headers["Link"]
+      assert_equal expected, @response.headers["link"]
     end
   end
 
@@ -711,7 +711,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       preload_link_tag("http://example.com/all.js", type: "module")
       expected = "<http://example.com/all.js>; rel=modulepreload; as=script; type=module"
-      assert_equal expected, @response.headers["Link"]
+      assert_equal expected, @response.headers["link"]
     end
   end
 
@@ -720,7 +720,7 @@ class AssetTagHelperTest < ActionView::TestCase
       stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
       javascript_include_tag("http://example.com/all.js", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs")
       expected = "<http://example.com/style.css>; rel=preload; as=style; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush,<http://example.com/all.js>; rel=preload; as=script; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush"
-      assert_equal expected, @response.headers["Link"]
+      assert_equal expected, @response.headers["link"]
     end
   end
 
@@ -728,7 +728,7 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header(false) do
       stylesheet_link_tag("http://example.com/style.css")
       javascript_include_tag("http://example.com/all.js")
-      assert_nil @response.headers["Link"]
+      assert_nil @response.headers["link"]
     end
   end
 

@@ -657,11 +657,11 @@ module ActionView
           return if response_present && response.sending?
 
           if respond_to?(:request) && request
-            request.send_early_hints("Link" => preload_links.join("\n"))
+            request.send_early_hints("link" => preload_links.join("\n"))
           end
 
           if response_present
-            header = +response.headers["Link"].to_s
+            header = +response.headers["link"].to_s
             preload_links.each do |link|
               break if header.bytesize + link.bytesize > max_header_size
 
@@ -672,7 +672,7 @@ module ActionView
               end
             end
 
-            response.headers["Link"] = header
+            response.headers["link"] = header
           end
         end
     end
