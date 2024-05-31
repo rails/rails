@@ -644,7 +644,7 @@ module ActiveRecord
         # MySQL 8.0.19 replaces `VALUES(<expression>)` clauses with row and column alias names, see https://dev.mysql.com/worklog/task/?id=6312 .
         # then MySQL 8.0.20 deprecates the `VALUES(<expression>)` see https://dev.mysql.com/worklog/task/?id=13325 .
         if supports_insert_raw_alias_syntax?
-          values_alias = quote_table_name("#{insert.model.table_name}_values")
+          values_alias = quote_table_name("#{insert.model.table_name.parameterize}_values")
           sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
 
           if insert.skip_duplicates?
