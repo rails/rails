@@ -1408,8 +1408,8 @@ class EarlyHintsRequestTest < BaseRequestTest
   end
 
   test "when early hints is set in the env link headers are sent" do
-    early_hints = @request.send_early_hints("link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
-    expected_hints = { "link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload" }
+    early_hints = @request.send_early_hints("link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload")
+    expected_hints = { "link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload" }
 
     assert_equal expected_hints, early_hints
   end
