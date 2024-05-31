@@ -21,13 +21,13 @@ module DateAndTime
 
     def self.preserve_timezone
       ActiveSupport.deprecator.warn(
-        "`DateAndTime::Compatibility.preserve_timezone` has been deprecated and will be removed in Rails 7.3."
+        "`DateAndTime::Compatibility.preserve_timezone` has been deprecated and will be removed in Rails 8.0."
       )
     end
 
     def self.preserve_timezone=(value)
       ActiveSupport.deprecator.warn(
-        "`DateAndTime::Compatibility.preserve_timezone=` has been deprecated and will be removed in Rails 7.3."
+        "`DateAndTime::Compatibility.preserve_timezone=` has been deprecated and will be removed in Rails 8.0."
       )
     end
   end

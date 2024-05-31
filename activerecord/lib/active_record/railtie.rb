@@ -187,7 +187,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       if config.active_record.warn_on_records_fetched_greater_than
         ActiveRecord.deprecator.warn <<~MSG.squish
           `config.active_record.warn_on_records_fetched_greater_than` is deprecated and will be
-          removed in Rails 7.3.
+          removed in Rails 8.0.
           Please subscribe to `sql.active_record` notifications and access the row count field to
           detect large result set sizes.
         MSG
