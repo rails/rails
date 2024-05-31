@@ -277,6 +277,7 @@ module ActiveRecord
             type_casted_binds: -> { type_casted_binds(binds) },
             name: name,
             connection: self,
+            transaction: current_transaction,
             cached: true
           }
         end
