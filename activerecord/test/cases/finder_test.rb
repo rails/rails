@@ -285,6 +285,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.exists?
   end
 
+  def test_exists_with_loaded_relation
+    topics = Topic.all.load
+    assert_no_queries do
+      assert_equal true, topics.exists?
+    end
+
+    Topic.delete_all
+    topics = Topic.all.load
+    assert_no_queries do
+      assert_equal false, topics.exists?
+    end
+  end
+
   def test_exists_returns_false_with_false_arg
     assert_equal false, Topic.exists?(false)
   end
