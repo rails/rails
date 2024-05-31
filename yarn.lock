@@ -105,13 +105,6 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@rails/activestorage@>= 7.1.0-alpha":
-  version "7.1.0-beta1"
-  resolved "https://registry.npmjs.org/@rails/activestorage/-/activestorage-7.1.0-beta1.tgz"
-  integrity sha512-5qQ5/65tBOVeFMgGq8F+PhXKrmBLMAnVpyZAe8WsCW5DbINRD8l8ysA8+zBmwCIxBMqn+M9hZoQVjuMPr35bvQ==
-  dependencies:
-    spark-md5 "^3.0.1"
-
 "@rollup/plugin-commonjs@^19.0.1":
   version "19.0.2"
   resolved "https://registry.npmjs.org/@rollup/plugin-commonjs/-/plugin-commonjs-19.0.2.tgz"
