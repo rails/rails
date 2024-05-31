@@ -185,8 +185,8 @@ module ActionController
   #
   # ## Calling multiple redirects or renders
   #
-  # An action may contain only a single render or a single redirect. Attempting to
-  # try to do either again will result in a DoubleRenderError:
+  # An action may perform only a single render or a single redirect. Attempting to
+  # do either again will result in a DoubleRenderError:
   #
   #     def do_something
   #       redirect_to action: "elsewhere"
@@ -194,10 +194,13 @@ module ActionController
   #     end
   #
   # If you need to redirect on the condition of something, then be sure to add
-  # "and return" to halt execution.
+  # "return" to halt execution.
   #
   #     def do_something
-  #       redirect_to(action: "elsewhere") and return if monkeys.nil?
+  #       if monkeys.nil?
+  #         redirect_to(action: "elsewhere")
+  #         return
+  #       end
   #       render action: "overthere" # won't be called if monkeys is nil
   #     end
   #
