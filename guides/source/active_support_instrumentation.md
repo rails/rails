@@ -360,6 +360,7 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:sql`               | SQL statement                            |
 | `:name`              | Name of the operation                    |
 | `:connection`        | Connection object                        |
+| `:transaction`       | Current transaction                      |
 | `:binds`             | Bind parameters                          |
 | `:type_casted_binds` | Typecasted bind parameters               |
 | `:statement_name`    | SQL Statement name                       |
@@ -374,12 +375,17 @@ Adapters may add their own data as well.
   sql: "SELECT \"posts\".* FROM \"posts\" ",
   name: "Post Load",
   connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
+  transaction: <ActiveRecord::ConnectionAdapters::RealTransaction:0x0000000121b5d3e0>
   binds: [<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
   statement_name: nil,
   row_count: 5
 }
 ```
+
+If there is no transaction started at the moment, `:transaction` has a null
+object with UUID `00000000-0000-0000-0000-000000000000` (the nil UUID). This may
+happen, for example, issuing a `SELECT` not wrapped in a transaction.
 
 #### `strict_loading_violation.active_record`
 

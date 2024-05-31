@@ -1118,6 +1118,7 @@ module ActiveRecord
             statement_name:    statement_name,
             async:             async,
             connection:        self,
+            transaction:       current_transaction,
             row_count:         0,
             &block
           )
