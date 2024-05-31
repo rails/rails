@@ -1,4 +1,8 @@
-*   The payload of `transaction.active_record` AS notification events now has the transaction the event is related to in the `:transaction` key.
+*   The payload of `sql.active_record` Active Support notifications now has the current transaction in the `:transaction` key.
+
+    *Xavier Noria*
+
+*   The payload of `transaction.active_record` Active Support notifications now has the transaction the event is related to in the `:transaction` key.
 
     *Xavier Noria*
 
