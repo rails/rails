@@ -321,12 +321,12 @@ module Rails
           end
 
           if respond_to?(:action_view)
-            require "rails-html-sanitizer"
+            require "action_view/helpers"
             action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
 
           if respond_to?(:action_text)
-            require "rails-html-sanitizer"
+            require "action_view/helpers"
             action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
         else
