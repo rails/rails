@@ -1,3 +1,7 @@
+*   Fix url generation in nested engine when script name is empty.
+
+    *zzak*
+
 *   Fix `Mime::Type.parse` handling type parameters for HTTP Accept headers.
 
     *Taylor Chaparro*

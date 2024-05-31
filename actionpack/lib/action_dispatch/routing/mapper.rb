@@ -717,7 +717,7 @@ module ActionDispatch
               def optimize_routes_generation?; false; end
 
               define_method :find_script_name do |options|
-                if options.key? :script_name
+                if options.key?(:script_name) && options[:script_name].present?
                   super(options)
                 else
                   script_namer.call(options)
