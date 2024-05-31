@@ -3,9 +3,7 @@
 Action Mailer Basics
 ====================
 
-This guide provides you with all you need to get started in sending
-emails from your application, and many internals of Action
-Mailer. It also covers how to test your mailers.
+This guide is all about sending emails from your application.
 
 After reading this guide, you will know:
 
@@ -19,19 +17,16 @@ After reading this guide, you will know:
 What is Action Mailer?
 ----------------------
 
-Action Mailer allows you to send emails from your application using mailer classes
-and views.
+Action Mailer allows you to send emails from your application. It's one of the two email related components in the Rails framework. While Action Mailer is for sending email, [Action Mailbox](action_mailbox_basics.html) is for receiving them.
 
-### Mailers are Similar to Controllers
+Action Mailer uses classes called "mailers" and views to create and configure the emails to send. Mailers are classes that inherit from [`ActionMailer::Base`][] and are analogous to controllers.
 
-They inherit from [`ActionMailer::Base`][] and live in `app/mailers`. Mailers also work
-very similarly to controllers. Some examples of similarities are enumerated below.
-Mailers have:
+Some similarities between controllers and mailers are listed below. Both have:
 
-* Actions, and also, associated views that appear in `app/views`.
 * Instance variables that are accessible in views.
-* The ability to utilise layouts and partials.
+* The ability to use layouts and partials.
 * The ability to access a params hash.
+* Actions and associated views in `app/views`.
 
 [`ActionMailer::Base`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html
 
