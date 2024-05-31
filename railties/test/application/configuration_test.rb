@@ -1760,13 +1760,15 @@ module ApplicationTests
       assert app.config.colorize_logging
     end
 
-    test "config.session_store with :active_record_store with activerecord-session_store gem" do
-      make_basic_app do |application|
-        ActionDispatch::Session::ActiveRecordStore = Class.new(ActionDispatch::Session::CookieStore)
-        application.config.session_store :active_record_store
+    test "config.session_store with custom custom stores search for it inside the ActionDispatch::Session namespace" do
+      assert_nothing_raised do
+        make_basic_app do |application|
+          ActionDispatch::Session::MyCustomStore = Class.new(ActionDispatch::Session::CookieStore)
+          application.config.session_store :my_custom_store
+        end
       end
     ensure
-      ActionDispatch::Session.send :remove_const, :ActiveRecordStore
+      ActionDispatch::Session.send :remove_const, :MyCustomStore
     end
 
     test "config.session_store with unknown store raises helpful error" do
