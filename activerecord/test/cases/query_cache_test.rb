@@ -1067,4 +1067,40 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
     assert_equal @connection_1, @connection_2
   end
+
+  test "payload with implicit transaction" do
+    expected_transaction = Task.current_transaction
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      if event.payload[:cached]
+        assert_same expected_transaction, event.payload[:transaction]
+      end
+    end
+
+    Task.cache do
+      2.times { Task.count }
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  test "payload with explicit transaction" do
+    expected_transaction = nil
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      if event.payload[:cached]
+        assert_same expected_transaction, event.payload[:transaction]
+      end
+    end
+
+    Task.transaction do |transaction|
+      expected_transaction = transaction
+
+      Task.cache do
+        2.times { Task.count }
+      end
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
 end

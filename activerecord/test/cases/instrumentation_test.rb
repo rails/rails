@@ -170,5 +170,36 @@ module ActiveRecord
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
+
+    def test_payload_with_implicit_transaction
+      expected_transaction = Book.current_transaction
+
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        if event.payload[:name] == "Book Count"
+          assert_same expected_transaction, event.payload[:transaction]
+        end
+      end
+
+      Book.count
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+
+    def test_payload_with_explicit_transaction
+      expected_transaction = nil
+
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        if event.payload[:name] == "Book Load"
+          assert_same expected_transaction, event.payload[:transaction]
+        end
+      end
+
+      Book.transaction do |transaction|
+        expected_transaction = transaction
+        Book.first
+      end
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
   end
 end
