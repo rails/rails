@@ -31,9 +31,9 @@ module Rails
       def create_devcontainer
         empty_directory ".devcontainer"
 
-        template ".devcontainer/devcontainer.json"
-        template ".devcontainer/Dockerfile"
-        template ".devcontainer/compose.yaml"
+        template "devcontainer/devcontainer.json", ".devcontainer/devcontainer.json"
+        template "devcontainer/Dockerfile", ".devcontainer/Dockerfile"
+        template "devcontainer/compose.yaml", ".devcontainer/compose.yaml"
       end
 
       def update_application_system_test_case
