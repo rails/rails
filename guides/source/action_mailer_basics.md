@@ -30,15 +30,13 @@ Some similarities between controllers and mailers are listed below. Both have:
 
 [`ActionMailer::Base`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html
 
-Sending Emails
---------------
+Creating a Mailer and Views
+---------------------------
 
 This section will provide a step-by-step guide to creating a mailer and its
 views.
 
-### Walkthrough to Generating a Mailer
-
-#### Create the Mailer
+### Generate the Mailer
 
 ```bash
 $ bin/rails generate mailer User
@@ -78,7 +76,7 @@ class MyMailer < ActionMailer::Base
 end
 ```
 
-#### Edit the Mailer
+### Edit the Mailer
 
 Mailers have methods called "actions" and they use views to structure their content.
 Where a controller generates content like HTML to send back to the client, a Mailer
@@ -119,7 +117,7 @@ Complete List of Action Mailer user-settable attributes section.
 [`default`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-default
 [`mail`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-mail
 
-#### Create a Mailer View
+### Create a Mailer View
 
 Create a file called `welcome_email.html.erb` in `app/views/user_mailer/`. This
 will be the template used for the email, formatted in HTML:
@@ -163,7 +161,7 @@ Thanks for joining and have a great day!
 When you call the `mail` method now, Action Mailer will detect the two templates
 (text and HTML) and automatically generate a `multipart/alternative` email.
 
-#### Calling the Mailer
+### Call the Mailer
 
 Mailers are really just another way to render a view. Instead of rendering a
 view and sending it over the HTTP protocol, they are sending it out through
@@ -254,6 +252,9 @@ access it with the [`message`][] method on the `ActionMailer::MessageDelivery` o
 [`message`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html#method-i-message
 [`with`]: https://api.rubyonrails.org/classes/ActionMailer/Parameterized/ClassMethods.html#method-i-with
 
+Encoding and Attachments
+------------------------
+
 ### Auto Encoding Header Values
 
 Action Mailer handles the auto encoding of multibyte characters inside of
@@ -280,7 +281,7 @@ message:
 [`attachments`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments
 [`headers`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-headers
 
-#### Adding Attachments
+### Adding Attachments
 
 Action Mailer makes it very easy to add attachments.
 
@@ -316,7 +317,7 @@ different, encode your content and pass in the encoded content and encoding in a
 NOTE: If you specify an encoding, Mail will assume that your content is already
 encoded and not try to Base64 encode it.
 
-#### Making Inline Attachments
+### Making Inline Attachments
 
 Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in pre 3.0 versions, much simpler and trivial as they should be.
 
@@ -347,7 +348,7 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
     <%= image_tag attachments['image.jpg'].url, alt: 'My Photo', class: 'photos' %>
     ```
 
-#### Sending Email to Multiple Recipients
+### Sending Email to Multiple Recipients
 
 It is possible to send email to one or more recipients in one email (e.g.,
 informing all admins of a new signup) by setting the list of emails to the `:to`
@@ -369,7 +370,7 @@ end
 The same format can be used to set carbon copy (Cc:) and blind carbon copy
 (Bcc:) recipients, by using the `:cc` and `:bcc` keys respectively.
 
-#### Sending Email with Name
+### Sending Email with Name
 
 Sometimes you wish to show the name of the person instead of just their email
 address when they receive the email. You can use [`email_address_with_name`][] for
@@ -397,7 +398,8 @@ If the name is a blank string, it returns just the address.
 
 [`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
 
-### Mailer Views
+Mailer Views
+------------
 
 Mailer views are located in the `app/views/name_of_mailer_class` directory. The
 specific mailer view is known to the class because its name is the same as the
@@ -468,7 +470,7 @@ You can also consider using the [`append_view_path`][] method.
 [`append_view_path`]: https://api.rubyonrails.org/classes/ActionView/ViewPaths/ClassMethods.html#method-i-append_view_path
 [`prepend_view_path`]: https://api.rubyonrails.org/classes/ActionView/ViewPaths/ClassMethods.html#method-i-prepend_view_path
 
-#### Caching Mailer View
+### Caching Mailer View
 
 You can perform fragment caching in mailer views like in application views using the [`cache`][] method.
 
@@ -638,6 +640,9 @@ Now you can display an image inside your email.
 <%= image_tag 'image.jpg' %>
 ```
 
+Sending Email
+-------------
+
 ### Sending Multipart Emails
 
 Action Mailer will automatically send multipart emails if you have different
@@ -803,8 +808,6 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-
-
 * Mailer callbacks abort further processing if body is set to a non-nil value. `before_deliver` can abort with `throw :abort`.
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
@@ -814,8 +817,8 @@ end
 [`before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-before_action
 [`before_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-before_deliver
 
-Using Action Mailer Helpers
----------------------------
+Action Mailer Helpers
+---------------------
 
 Action Mailer inherits from `AbstractController`, so you have access to most
 of the same helpers as you do in Action Controller.
@@ -909,7 +912,7 @@ You can find detailed instructions on how to test your mailers in the
 [testing guide](testing.html#testing-your-mailers).
 
 Intercepting and Observing Emails
--------------------
+---------------------------------
 
 Action Mailer provides hooks into the Mail observer and interceptor methods. These allow you to register classes that are called during the mail delivery life cycle of every email sent.
 
