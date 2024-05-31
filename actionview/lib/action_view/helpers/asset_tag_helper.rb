@@ -657,7 +657,7 @@ module ActionView
           return if response_present && response.sending?
 
           if respond_to?(:request) && request
-            request.send_early_hints("link" => preload_links.join("\n"))
+            request.send_early_hints("link" => preload_links.join(","))
           end
 
           if response_present
