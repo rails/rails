@@ -87,7 +87,7 @@ also increases memory usage.
 ### Practical Implications
 
 Users interested in optimizing for throughput and server utilization will want to run one process per CPU core and
-increase the number of threads per process until the impact on latency is dimmed too important.
+increase the number of threads per process until the impact on latency is deemed too important.
 
 Users interested in optimizing for latency will want to keep the number of threads per process low.
 To optimize for latency even further, users can even set the thread per process count to `1` and run `1.5` or `1.3`
