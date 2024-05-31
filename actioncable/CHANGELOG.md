@@ -1,3 +1,21 @@
+*   Bring `ActionCable::Connection::TestCookieJar` in alignment with `ActionDispatch::Cookies::CookieJar` in regards to setting the cookie value.
+
+    Before:
+
+    ```ruby
+    cookies[:foo] = { value: "bar" }
+    puts cookies[:foo] # => { value: "bar" }
+    ```
+
+    After:
+
+    ```ruby
+    cookies[:foo] = { value: "bar" }
+    puts cookies[:foo] # => "bar"
+    ```
+
+    *Justin Ko*
+
 ## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Record ping on every Action Cable message.
