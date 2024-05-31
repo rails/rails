@@ -59,13 +59,13 @@ By default, the dev container contains the following:
 To generate a new application with a development container, you can run:
 
 ```bash
-rails new myapp --devcontainer
+$ rails new myapp --devcontainer
 ```
 
 For existing applications, a `devcontainer` command is now available:
 
 ```bash
-rails devcontainer
+$ rails devcontainer
 ```
 
 For more information, see the [Getting Started with Dev Containers](getting_started_with_devcontainer.html) guide.
