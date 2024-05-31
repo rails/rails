@@ -349,7 +349,11 @@ The corresponding route helper would be `publisher_magazine_photo_url`, requirin
 
 #### Shallow Nesting
 
-One way to avoid deep nesting (as recommended above) is to generate the collection actions scoped under the parent, so as to get a sense of the hierarchy, but to not nest the member actions. In other words, to only build routes with the minimal amount of information to uniquely identify the resource, like this:
+One way to avoid deep nesting (as recommended above) is to generate the
+collection actions scoped under the parent, so as to get a sense of the
+hierarchy, but to not nest the member actions. In other words, to only build
+routes with the minimal amount of information to uniquely identify the resource,
+like this:
 
 ```ruby
 resources :articles do
