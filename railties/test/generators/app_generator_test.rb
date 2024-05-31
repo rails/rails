@@ -244,14 +244,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/config/manifest.js"
   end
 
-  def test_app_update_does_not_generate_manifest_config_when_propshaft_is_used
-    run_generator [destination_root, "-a", "propshaft"]
-    run_app_update
-
-    assert_file "config/initializers/assets.rb"
-    assert_no_file "app/assets/config/manifest.js"
-  end
-
   def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
     run_generator [destination_root, "--skip-action-cable"]
     run_app_update
@@ -328,8 +320,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_preserves_propshaft
-    run_generator [destination_root, "-a", "propshaft"]
+  def test_app_update_preserves_sprockets
+    run_generator [destination_root, "-a", "sprockets"]
 
     FileUtils.cd(destination_root) do
       config = "config/environments/production.rb"
@@ -949,7 +941,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_tailwind
-    generator [destination_root], ["--css=tailwind", "--asset-pipeline=sprockets"]
+    generator [destination_root], ["--css=tailwind"]
     run_generator_instance
 
     assert_includes @rails_commands, "tailwindcss:install", "`tailwindcss:install` expected to be called, but wasn't."
@@ -964,7 +956,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_sass
-    generator [destination_root], ["--css=sass", "--asset-pipeline=sprockets"]
+    generator [destination_root], ["--css=sass"]
     run_generator_instance
 
     assert_includes @rails_commands, "dartsass:install", "`dartsass:install` expected to be called, but wasn't."
@@ -979,7 +971,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_cssbundling_gem
-    generator [destination_root], ["--css=postcss", "--asset-pipeline=sprockets"]
+    generator [destination_root], ["--css=postcss"]
     run_generator_instance
 
     assert_includes @rails_commands, "css:install:postcss", "`css:install:postcss` expected to be called, but wasn't."
