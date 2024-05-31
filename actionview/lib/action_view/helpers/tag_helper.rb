@@ -66,7 +66,7 @@ module ActionView
                   ActionView.deprecator.warn <<~TEXT
                     Putting content inside a void element (#{name}) is invalid
                     according to the HTML5 spec, and so it is being deprecated
-                    without replacement. In Rails 7.3, passing content as a
+                    without replacement. In Rails 8.0, passing content as a
                     positional argument will raise, and using a block will have
                     no effect.
                   TEXT

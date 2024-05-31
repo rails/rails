@@ -14,7 +14,7 @@ module Rails
 
     def self.raise_deprecation_warning
       Rails.deprecator.warn(<<~MSG, caller_locations(1..1))
-        Extending Rails console through `Rails::ConsoleMethods` is deprecated and will be removed in Rails 7.3.
+        Extending Rails console through `Rails::ConsoleMethods` is deprecated and will be removed in Rails 8.0.
         Please directly use IRB's extension API to add new commands or helpers to the console.
         For more details, please visit: https://github.com/ruby/irb/blob/master/EXTEND_IRB.md
       MSG

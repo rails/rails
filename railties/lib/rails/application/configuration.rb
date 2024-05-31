@@ -353,11 +353,11 @@ module Rails
       end
 
       def read_encrypted_secrets
-        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 7.3.")
+        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 8.0.")
       end
 
       def read_encrypted_secrets=(value)
-        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 7.3.")
+        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 8.0.")
       end
 
       def encoding=(value)

@@ -112,13 +112,13 @@ module ActiveSupport
 
   def self.to_time_preserves_timezone
     ActiveSupport.deprecator.warn(
-      "`config.active_support.to_time_preserves_timezone` has been deprecated and will be removed in Rails 7.3."
+      "`config.active_support.to_time_preserves_timezone` has been deprecated and will be removed in Rails 8.0."
     )
   end
 
   def self.to_time_preserves_timezone=(value)
     ActiveSupport.deprecator.warn(
-      "`config.active_support.to_time_preserves_timezone` has been deprecated and will be removed in Rails 7.3."
+      "`config.active_support.to_time_preserves_timezone` has been deprecated and will be removed in Rails 8.0."
     )
   end
 

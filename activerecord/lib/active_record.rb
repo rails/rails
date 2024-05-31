@@ -347,14 +347,14 @@ module ActiveRecord
   def self.commit_transaction_on_non_local_return
     ActiveRecord.deprecator.warn <<-WARNING.squish
       `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 7.3.
+      is deprecated and will be removed in Rails 8.0.
     WARNING
   end
 
   def self.commit_transaction_on_non_local_return=(value)
     ActiveRecord.deprecator.warn <<-WARNING.squish
       `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 7.3.
+      is deprecated and will be removed in Rails 8.0.
     WARNING
   end
 
@@ -447,14 +447,14 @@ module ActiveRecord
   def self.allow_deprecated_singular_associations_name
     ActiveRecord.deprecator.warn <<-WARNING.squish
       `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 7.3.
+      is deprecated and will be removed in Rails 8.0.
     WARNING
   end
 
   def self.allow_deprecated_singular_associations_name=(value)
     ActiveRecord.deprecator.warn <<-WARNING.squish
       `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 7.3.
+      is deprecated and will be removed in Rails 8.0.
     WARNING
   end
 
