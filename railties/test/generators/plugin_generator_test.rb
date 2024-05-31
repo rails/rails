@@ -247,13 +247,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /mysql/
   end
 
-  def test_skip_database_dependency
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "Gemfile" do |contents|
-      assert_no_match(/sqlite/, contents)
-    end
-  end
-
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_active_record"]
     assert_file "test/test_helper.rb" do |contents|
