@@ -409,10 +409,6 @@ module Rails
         options[:skip_ci]
       end
 
-      def skip_devcontainer?
-        !options[:devcontainer]
-      end
-
       def devcontainer?
         options[:devcontainer]
       end

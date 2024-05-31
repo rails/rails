@@ -466,7 +466,7 @@ module Rails
       end
 
       def create_devcontainer_files
-        return if skip_devcontainer? || options[:dummy_app]
+        return if !options[:devcontainer] || options[:dummy_app]
         build(:devcontainer)
       end
 
