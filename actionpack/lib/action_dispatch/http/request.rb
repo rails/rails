@@ -230,11 +230,11 @@ module ActionDispatch
     # start making preparations for processing the final response.
     #
     # If the env contains `rack.early_hints` then the server accepts HTTP2 push for
-    # Link headers.
+    # link headers.
     #
     # The `send_early_hints` method accepts a hash of links as follows:
     #
-    #     send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
+    #     send_early_hints("link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
     #
     # If you are using `javascript_include_tag` or `stylesheet_link_tag` the Early
     # Hints headers are included by default if supported.
