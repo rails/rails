@@ -365,7 +365,6 @@ module ActiveRecord
       end
 
       return false if !conditions || limit_value == 0
-      return !records.empty? if conditions == :none && loaded?
 
       if eager_loading?
         relation = apply_join_dependency(eager_loading: false)
