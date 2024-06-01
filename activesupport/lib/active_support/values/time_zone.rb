@@ -208,9 +208,7 @@ module ActiveSupport
         TZInfo::Timezone.get(MAPPING[name] || name)
       end
 
-      # :stopdoc:
-      alias_method :create, :new
-      # :startdoc:
+      alias_method :create, :new # :nodoc:
 
       # Returns a TimeZone instance with the given name, or +nil+ if no
       # such TimeZone instance exists. (This exists to support the use of
