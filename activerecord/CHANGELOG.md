@@ -1,3 +1,9 @@
+*   Optimize `Relation#exists?` when records are loaded and the relation has no conditions.
+
+    This can avoid queries in some cases.
+
+    *fatkodima*
+
 *   Add a `filter` option to `in_order_of` to prioritize certain values in the sorting without filtering the results
     by these values.
 

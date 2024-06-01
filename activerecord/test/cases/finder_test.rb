@@ -289,6 +289,30 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(false)
   end
 
+  def test_exists_with_loaded_relation
+    topics = Topic.all.load
+    assert_no_queries do
+      assert_predicate topics, :exists?
+    end
+  end
+
+  def test_exists_with_empty_loaded_relation
+    Topic.delete_all
+    topics = Topic.all.load
+    assert_no_queries do
+      assert_not_predicate topics, :exists?
+    end
+  end
+
+  def test_exists_with_loaded_relation_having_unsaved_records
+    author = authors(:david)
+    posts = author.posts.load
+    assert_not_empty posts
+    posts.each(&:destroy)
+
+    assert_not_predicate posts, :exists?
+  end
+
   # exists? should handle nil for id's that come from URLs and always return false
   # (example: Topic.exists?(params[:id])) where params[:id] is nil
   def test_exists_with_nil_arg
