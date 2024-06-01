@@ -112,6 +112,11 @@ module ActiveRecord
       def store_accessor(store_attribute, *keys, prefix: nil, suffix: nil)
         keys = keys.flatten
 
+        aliases = keys.grep(Hash)
+        direct_keys = (keys - aliases).index_with(&:itself)
+
+        mapped_keys = Hash(aliases.reduce(&:merge)).merge(direct_keys)
+
         accessor_prefix =
           case prefix
           when String, Symbol
@@ -132,8 +137,8 @@ module ActiveRecord
           end
 
         _store_accessors_module.module_eval do
-          keys.each do |key|
-            accessor_key = "#{accessor_prefix}#{key}#{accessor_suffix}"
+          mapped_keys.each do |alias_name, key|
+            accessor_key = "#{accessor_prefix}#{alias_name}#{accessor_suffix}"
 
             define_method("#{accessor_key}=") do |value|
               write_store_attribute(store_attribute, key, value)
@@ -185,7 +190,7 @@ module ActiveRecord
         # has its own hash of stored attributes.
         self.local_stored_attributes ||= {}
         self.local_stored_attributes[store_attribute] ||= []
-        self.local_stored_attributes[store_attribute] |= keys
+        self.local_stored_attributes[store_attribute] |= mapped_keys.values
       end
 
       def _store_accessors_module # :nodoc:

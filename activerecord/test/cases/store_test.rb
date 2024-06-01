@@ -285,19 +285,19 @@ class StoreTest < ActiveRecord::TestCase
 
   test "stored_attributes are tracked per class" do
     first_model = Class.new(ActiveRecord::Base) do
-      store_accessor :data, :color
+      store_accessor :data, :color, { size: :length }
     end
     second_model = Class.new(ActiveRecord::Base) do
-      store_accessor :data, :width, :height
+      store_accessor :data, { base: :basis }, :width, :height
     end
 
-    assert_equal [:color], first_model.stored_attributes[:data]
-    assert_equal [:width, :height], second_model.stored_attributes[:data]
+    assert_equal [:length, :color], first_model.stored_attributes[:data]
+    assert_equal [:basis, :width, :height], second_model.stored_attributes[:data]
   end
 
   test "stored_attributes are tracked per subclass" do
     first_model = Class.new(ActiveRecord::Base) do
-      store_accessor :data, :color
+      store_accessor :data, :color, { size: :length }
     end
     second_model = Class.new(first_model) do
       store_accessor :data, :width, :height
@@ -306,10 +306,10 @@ class StoreTest < ActiveRecord::TestCase
       store_accessor :data, :area, :volume
     end
 
-    assert_equal [:color], first_model.stored_attributes[:data]
-    assert_equal [:color, :width, :height], second_model.stored_attributes[:data]
-    assert_equal [:color, :area, :volume], third_model.stored_attributes[:data]
-    assert_equal [:color], first_model.stored_attributes[:data]
+    assert_equal [:length, :color], first_model.stored_attributes[:data]
+    assert_equal [:length, :color, :width, :height], second_model.stored_attributes[:data]
+    assert_equal [:length, :color, :area, :volume], third_model.stored_attributes[:data]
+    assert_equal [:length, :color], first_model.stored_attributes[:data]
   end
 
   test "YAML coder initializes the store when a Nil value is given" do
