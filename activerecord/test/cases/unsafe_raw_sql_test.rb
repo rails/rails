@@ -189,7 +189,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids
   end
 
-  test "order: logs deprecation warning for unrecognized column" do
+  test "order: disallows dangerous query method" do
     e = assert_raises(ActiveRecord::UnknownAttributeReference) do
       Post.order("REPLACE(title, 'misc', 'zzzz')")
     end
@@ -295,7 +295,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal excepted_values, values
   end
 
-  test "pluck: logs deprecation warning" do
+  test "pluck: disallows dangerous query method" do
     e = assert_raises(ActiveRecord::UnknownAttributeReference) do
       Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
     end
