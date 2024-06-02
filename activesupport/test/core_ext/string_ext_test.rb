@@ -610,10 +610,17 @@ class StringConversionsTest < ActiveSupport::TestCase
 
   def test_string_to_time_utc_offset
     with_env_tz "US/Eastern" do
-      assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
-      assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
-      assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
-      assert_equal(-3600, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      if ActiveSupport.to_time_preserves_timezone
+        assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+        assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+        assert_equal(-3600, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      else
+        assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+        assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+        assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
+      end
     end
   end
 

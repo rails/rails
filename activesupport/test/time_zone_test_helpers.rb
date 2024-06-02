@@ -16,6 +16,20 @@ module TimeZoneTestHelpers
     old_tz ? ENV["TZ"] = old_tz : ENV.delete("TZ")
   end
 
+  def with_preserve_timezone(value)
+    old_preserve_tz = ActiveSupport.to_time_preserves_timezone
+
+    ActiveSupport.deprecator.silence do
+      ActiveSupport.to_time_preserves_timezone = value
+    end
+
+    yield
+  ensure
+    ActiveSupport.deprecator.silence do
+      ActiveSupport.to_time_preserves_timezone = old_preserve_tz
+    end
+  end
+
   def with_tz_mappings(mappings)
     old_mappings = ActiveSupport::TimeZone::MAPPING.dup
     ActiveSupport::TimeZone.clear

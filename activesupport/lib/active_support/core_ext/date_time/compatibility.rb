@@ -8,9 +8,11 @@ class DateTime
 
   silence_redefinition_of_method :to_time
 
-  # Return an instance of +Time+ with the same UTC offset
-  # as +self+.
+  # Either return an instance of +Time+ with the same UTC offset
+  # as +self+ or an instance of +Time+ representing the same time
+  # in the local system timezone depending on the setting of
+  # on the setting of +ActiveSupport.to_time_preserves_timezone+.
   def to_time
-    getlocal(utc_offset)
+    preserve_timezone ? getlocal(utc_offset) : getlocal
   end
 end
