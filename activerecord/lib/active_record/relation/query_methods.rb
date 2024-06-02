@@ -1498,7 +1498,7 @@ module ActiveRecord
       self
     end
 
-    # Adds an SQL comment to queries generated from this relation. For example:
+    # Adds a SQL comment to queries generated from this relation. For example:
     #
     #   User.annotate("selecting user names").select(:name)
     #   # SELECT "users"."name" FROM "users" /* selecting user names */
