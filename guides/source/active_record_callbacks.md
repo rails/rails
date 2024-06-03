@@ -114,7 +114,7 @@ class AddUsername
 end
 ```
 
-### Registering Callbacks to Fire on Lifecycle Events
+### Registering Callbacks to Fire on Life Cycle Events
 
 Callbacks can also be registered to only fire on certain life cycle events, this
 can be done using the `:on` option and allows complete control over when and in
