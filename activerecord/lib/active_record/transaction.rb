@@ -12,28 +12,28 @@ module ActiveRecord
   # After updating the database state, you may sometimes need to perform some extra work, or reflect these
   # changes in a remote system like clearing or updating a cache:
   #
-  # def publish_article(article)
-  #   article.update!(published: true)
-  #   NotificationService.article_published(article)
-  # end
+  #   def publish_article(article)
+  #     article.update!(published: true)
+  #     NotificationService.article_published(article)
+  #   end
   #
   # The above code works but has one important flaw, which is that it no longer works properly if called inside
   # a transaction, as it will interact with the remote system before the changes are persisted:
   #
-  # Article.transaction do
-  #   article = create_article(article)
-  #   publish_article(article)
-  # end
+  #   Article.transaction do
+  #     article = create_article(article)
+  #     publish_article(article)
+  #   end
   #
   # The callbacks offered by ActiveRecord::Transaction allow to rewriting this method in a way that is compatible
   # with transactions:
   #
-  # def publish_article(article)
-  #   article.update!(published: true)
-  #   Article.current_transaction.after_commit do
-  #     NotificationService.article_published(article)
+  #   def publish_article(article)
+  #     article.update!(published: true)
+  #     Article.current_transaction.after_commit do
+  #       NotificationService.article_published(article)
+  #     end
   #   end
-  # end
   #
   # In the above example, if +publish_article+ is called inside a transaction, the callback will be invoked
   # after the transaction is successfully committed, and if called outside a transaction, the callback will be invoked
