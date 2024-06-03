@@ -33,12 +33,12 @@ Some similarities between controllers and mailers are listed below. Both have:
 Creating a Mailer and Views
 ---------------------------
 
-This section will provide a step-by-step guide to creating a mailer and its
+This section will provide a step-by-step guide to creating a Mailer and its
 views.
 
 ### Generate the Mailer
 
-You can user the "mailer" generator to create Action Mailer related classes:
+You can user the "mailer" generator to create Mailer related classes:
 
 ```bash
 $ bin/rails generate mailer User
@@ -53,7 +53,7 @@ create    test/mailers/user_mailer_test.rb
 create    test/mailers/previews/user_mailer_preview.rb
 ```
 
-Like the `UserMailer` below, all mailer classes inherit from `ApplicationMailer`:
+Like the `UserMailer` below, all Mailer classes inherit from `ApplicationMailer`:
 
 ```ruby
 # app/mailers/user_mailer.rb
@@ -61,7 +61,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-The `ApplicationMailer` inherits from `ActionMailer::Base`, and can be used to store attributes common to all mailers:
+The `ApplicationMailer` class inherits from `ActionMailer::Base`, and can be used to define attributes common to all Mailers:
 
 ```ruby
 # app/mailers/application_mailer.rb
@@ -75,6 +75,7 @@ If you didn't want to use a generator, you can create your own file inside of
 `app/mailers` directory. Make sure that it inherits from `ActionMailer::Base`:
 
 ```ruby
+# app/mailers/my_mailer.rb
 class MyMailer < ActionMailer::Base
 end
 ```
@@ -82,17 +83,10 @@ end
 ### Edit the Mailer
 
 Mailers have methods called "actions" and they use views to structure their
-content. Where a controller generates content like HTML to send back to the
-client, a Mailer creates a message to be delivered via email.
+content, analogous to controllers. While a controller generates HTML content to
+send back to the client, a Mailer creates a message to be delivered via email.
 
-`app/mailers/user_mailer.rb` contains an empty mailer:
-
-```ruby
-class UserMailer < ApplicationMailer
-end
-```
-
-Let's add a method called `welcome_email`, that will send an email to the user's
+The file `app/mailers/user_mailer.rb` is initially empty. Let's add a method called `welcome_email`, that will send an email to the user's
 registered email address:
 
 ```ruby
@@ -107,9 +101,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Here is a quick explanation of the items presented in the preceding method. For
-a full list of all available options, please have a look further down at the
-Complete List of Action Mailer user-settable attributes section.
+Here is a quick explanation of the Mialer related methods used above:
 
 * The [`default`][] method sets default values for all emails sent from
   this mailer. In this case, we use it to set the `:from` header value for all
@@ -122,8 +114,8 @@ Complete List of Action Mailer user-settable attributes section.
 
 ### Create a Mailer View
 
-Create a file called `welcome_email.html.erb` in `app/views/user_mailer/`. This
-will be the template used for the email, formatted in HTML:
+For the `welcome_email` action, you'll need to create a matching view in a file called `welcome_email.html.erb` in the `app/views/user_mailer/` directory. This
+will be the HTML template used for the email:
 
 ```html+erb
 <!DOCTYPE html>
@@ -145,9 +137,8 @@ will be the template used for the email, formatted in HTML:
 </html>
 ```
 
-Let's also make a text part for this email. Not all clients prefer HTML emails,
-and so sending both is best practice. To do this, create a file called
-`welcome_email.text.erb` in `app/views/user_mailer/`:
+You can create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Not all clients prefer HTML emails,
+and so sending both is best practice. Here is a sample text email:
 
 ```erb
 Welcome to example.com, <%= @user.name %>
@@ -160,6 +151,8 @@ To login to the site, just follow this link: <%= @url %>.
 
 Thanks for joining and have a great day!
 ```
+
+Notice that in both HTMl and text email templates you can use the instance variables `@user` and `@url`.
 
 When you call the `mail` method now, Action Mailer will detect the two templates
 (text and HTML) and automatically generate a `multipart/alternative` email.
