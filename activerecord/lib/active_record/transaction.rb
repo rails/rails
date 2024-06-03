@@ -111,12 +111,12 @@ module ActiveRecord
     def open?
       true
     end
-    alias_method :blank?, :open?
 
     # Returns true if no transaction is currently active.
     def closed?
       false
     end
+    alias_method :blank?, :closed?
 
     # Returns a UUID for this transaction.
     def uuid
