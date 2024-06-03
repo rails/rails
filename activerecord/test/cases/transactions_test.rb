@@ -19,7 +19,14 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
-  def test_after_all_transactions_committ
+  def test_blank?
+    assert_predicate Topic.current_transaction, :blank?
+    Topic.transaction do
+      assert_not_predicate Topic.current_transaction, :blank?
+    end
+  end
+
+  def test_after_all_transactions_commit
     called = 0
     ActiveRecord.after_all_transactions_commit { called += 1 }
     assert_equal 1, called
