@@ -1,3 +1,9 @@
+*   Allow to configure `strict_loading_mode` globally or within a model.
+
+    Defaults to `:all`, can be changed to `:n_plus_one_only`.
+
+    *Garen Torikian*
+
 *   Add `ActiveRecord::Relation#readonly?`.
 
     Reflects if the relation has been marked as readonly.
