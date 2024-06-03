@@ -1072,7 +1072,7 @@ By explicitly declaring the `class_name` option, you can create associations acr
 
 ### Bi-directional Associations
 
-It's normal for associations to work in two directions, requiring declaration on two different models:
+In Rails, it's common for associations between models to be bi-directional, meaning they need to be declared in both related models. Consider the following example:
 
 ```ruby
 class Author < ApplicationRecord
@@ -1090,6 +1090,8 @@ allows Active Record to:
 
 * Prevent needless queries for already-loaded data:
 
+  Active Record avoids additional database queries for already-loaded data.
+
     ```irb
     irb> author = Author.first
     irb> author.books.all? do |book|
@@ -1098,8 +1100,9 @@ allows Active Record to:
     => true
     ```
 
-* Prevent inconsistent data (since there is only one copy of the `Author` object
-  loaded):
+* Prevent inconsistent data
+
+  Since only one copy of the `Author` object is loaded, it helpes to prevent inconsistencies.
 
     ```irb
     irb> author = Author.first
@@ -1111,7 +1114,7 @@ allows Active Record to:
     => true
     ```
 
-* Autosave associations in more cases:
+* Automatic Saving of Associations in more cases:
 
     ```irb
     irb> author = Author.new
@@ -1139,11 +1142,11 @@ allows Active Record to:
     => true
     ```
 
-Active Record supports automatic identification for most associations with standard names. However, bi-directional associations that contain the `:through` or `:foreign_key` options will not be automatically identified.
+Sometimes, you might need to customize the association with options like `:foreign_key` or `:class_name`. When you do this, Rails might not automatically recognize the bi-directional association involving `:through` or `:foreign_key` options.
 
-Custom scopes on the opposite association also prevent automatic identification, as do custom scopes on the association itself unless [`config.active_record.automatic_scope_inversing`][] is set to true (the default for new applications).
+Custom scopes on the opposite association also prevent automatic identification, as do custom scopes on the association itself unless [`config.active_record.automatic_scope_inversing`][] is set to true.
 
-For example, consider the following model declarations:
+For example, consider the following model declarations with a custom foreign key:
 
 ```ruby
 class Author < ApplicationRecord
@@ -1155,15 +1158,14 @@ class Book < ApplicationRecord
 end
 ```
 
-Because of the `:foreign_key` option, Active Record will no longer automatically
-recognize the bi-directional association. This can cause your application to:
+Due to the `:foreign_key` option, Active Record will not automatically recognize the bi-directional association, which can lead to several issues:
 
 * Execute needless queries for the same data (in this example causing N+1 queries):
 
     ```irb
     irb> author = Author.first
     irb> author.books.any? do |book|
-    irb>   book.author.equal?(author) # This executes an author query for every book
+    irb>   book.writer.equal?(author) # This executes a writer query for every book
     irb> end
     => false
     ```
@@ -1173,10 +1175,10 @@ recognize the bi-directional association. This can cause your application to:
     ```irb
     irb> author = Author.first
     irb> book = author.books.first
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => true
     irb> author.name = "Changed Name"
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => false
     ```
 
@@ -1203,7 +1205,7 @@ recognize the bi-directional association. This can cause your application to:
     => ["Author must exist"]
     ```
 
-Active Record provides the `:inverse_of` option so you can explicitly declare bi-directional associations:
+To resolve these issues, you can explicitly declare bi-directional associations using the `:inverse_of` option:
 
 ```ruby
 class Author < ApplicationRecord
@@ -1216,7 +1218,7 @@ end
 ```
 
 By including the `:inverse_of` option in the `has_many` association declaration,
-Active Record will now recognize the bi-directional association and behave as in
+Active Record will recognize the bi-directional association and behave as described in
 the initial examples above.
 
 [`config.active_record.automatic_scope_inversing`]: configuring.html#config-active-record-automatic-scope-inversing
