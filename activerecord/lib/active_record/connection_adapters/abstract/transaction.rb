@@ -109,6 +109,7 @@ module ActiveRecord
       def initialize; end
       def state; end
       def closed?; true; end
+      alias_method :blank?, :closed?
       def open?; false; end
       def joinable?; false; end
       def add_record(record, _ = true); end
@@ -272,8 +273,6 @@ module ActiveRecord
 
       def full_rollback?; true; end
       def joinable?; @joinable; end
-      def closed?; false; end
-      def open?; !closed?; end
 
       private
         def unique_records
