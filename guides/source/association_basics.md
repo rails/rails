@@ -852,7 +852,9 @@ author.books.size
 author.books.empty?
 ```
 
-But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call `reload` on the association:
+NOTE: When we use `author.books`, the data is not immediately loaded from the database. Instead, it sets up a query that will be executed when you actually try to use the data, for example, by calling methods that require data like each, size, empty?, etc. By calling `author.books.load`, you explicitly trigger the query to load the data from the database immediately. This is useful if you know you will need the data and want to avoid the potential performance overhead of multiple queries being triggered as you work with the association.
+
+But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call [`reload`](https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-reload) on the association:
 
 ```ruby
 # retrieves books from the database
@@ -867,15 +869,15 @@ author.books.reload.empty?
 
 ### Avoiding Name Collisions
 
-You are not free to use just any name for your associations. Because creating an association adds a method with that name to the model, it is a bad idea to give an association a name that is already used for an instance method of `ActiveRecord::Base`. The association method would override the base method and break things. For instance, `attributes` or `connection` are bad names for associations.
+When creating associations in Ruby on Rails models, it's important to avoid using names that are already used for instance methods of `ActiveRecord::Base`. This is because creating an association with a name that clashes with an existing method could lead to unintended consequences, such as overriding the base method and causing issues with functionality. For example, using names like `attributes` or `connection` for associations would be problematic.
 
 ### Updating the Schema
 
-Associations are extremely useful, but they are not magic. You are responsible for maintaining your database schema to match your associations. In practice, this means two things, depending on what sort of associations you are creating. For `belongs_to` associations you need to create foreign keys, and for `has_and_belongs_to_many` associations you need to create the appropriate join table.
+Associations are extremely useful, they are responsible for defining the relationships between models but they do not update your database schema. You are responsible for maintaining your database schema to match your associations. This usually involves two main tasks: creating foreign keys for [`belongs_to` associations](#belongs-to) and setting up the correct join table for [`has_many :through`](#has-many-through) and [`has_and_belongs_to_many`](#has-and-belongs-to-many) associations. You can read more about when to use a `has_many :through vs has_and_belongs_to_many` [here](#has-many-through-vs-has-and-belongs-to-many).
 
 #### Creating Foreign Keys for `belongs_to` Associations
 
-When you declare a `belongs_to` association, you need to create foreign keys as appropriate. For example, consider this model:
+When you declare a [`belongs_to` association](#belongs-to), you need to create foreign keys as appropriate. For example, consider this model:
 
 ```ruby
 class Book < ApplicationRecord
@@ -891,7 +893,7 @@ class CreateBooks < ActiveRecord::Migration[7.2]
     create_table :books do |t|
       t.datetime   :published_at
       t.string     :book_number
-      t.references :author
+      t.belongs_to :author
     end
   end
 end
@@ -909,14 +911,12 @@ end
 
 NOTE: If you wish to [enforce [referential
 integrity](https://en.wikipedia.org/wiki/Referential_integrity) at the database
-level][foreign_keys], add the `foreign_key: true` option to the ‘reference’
+level](active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’
 column declarations above.
-
-[foreign_keys]: active_record_migrations.html#foreign-keys
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
-If you create a `has_and_belongs_to_many` association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical order of the class names. So a join between author and book models will give the default join table name of "authors_books" because "a" outranks "b" in lexical ordering.
+If you create a `has_and_belongs_to_many` association, you need to explicitly create the join table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical order of the class names. So a join between author and book models will give the default join table name of "authors_books" because "a" outranks "b" in lexical ordering.
 
 WARNING: The precedence between model names is calculated using the `<=>` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '\_' is lexicographically _less_ than 's' in common encodings).
 
@@ -932,7 +932,13 @@ class Part < ApplicationRecord
 end
 ```
 
-These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
+These need to be backed up by a migration to create the `assemblies_parts` table.
+
+```bash
+$ bin/rails generate migration CreateAssembliesPartsJoinTable assemblies parts
+```
+
+You can then fill out the migration and ensure that the table is created without a primary key.
 
 ```ruby
 class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
@@ -948,7 +954,7 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
 end
 ```
 
-We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
+We pass `id: false` to `create_table` because the join table does not represent a model. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot to set `id: false` when creating your migration.
 
 For simplicity, you can also use the method `create_join_table`:
 
@@ -963,9 +969,26 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
 end
 ```
 
+#### Creating Join Tables for `has_many :through` Associations
+
+The main difference in schema implementation between creating a join table for `has_many :through` vs `has_and_belongs_to_many` is that the join table for a `has_many :through` requires an `id`.
+
+```ruby
+class CreateAppointments < ActiveRecord::Migration[7.2]
+  def change
+    create_table :appointments do |t|
+      t.belongs_to :physician
+      t.belongs_to :patient
+      t.datetime :appointment_date
+      t.timestamps
+    end
+  end
+end
+```
+
 ### Controlling Association Scope
 
-By default, associations look for objects only within the current module's scope. This can be important when you declare Active Record models within a module. For example:
+By default, associations look for objects only within the current module's scope. This feature is particularly useful when declaring Active Record models inside a module, as it keeps the associations scoped properly. For example:
 
 ```ruby
 module MyApplication
@@ -981,7 +1004,7 @@ module MyApplication
 end
 ```
 
-This will work fine, because both the `Supplier` and the `Account` class are defined within the same scope (`MyApplication::Business`). This organization allows structuring models into folders based on their scope, without having to explicitly add the scope to every association:
+In this example, both the `Supplier` and `Account` classes are defined within the same module (`MyApplication::Business`). This organization allows you to structure your models into folders based on their scope without needing to explicitly specify the scope in every association:
 
 ```ruby
 # app/models/my_application/business/supplier.rb
@@ -1005,9 +1028,9 @@ module MyApplication
 end
 ```
 
-It is crucial to note that this does not affect the naming of your tables. For instance, if there is a `MyApplication::Business::Supplier` model, there must also be a `my_application_business_suppliers` table.
+It is important to note that while model scoping helps organize your code, it does not change the naming convention for your database tables. For instance, if you have a `MyApplication::Business::Supplier` model, the corresponding database table should still follow the naming convention and be named `my_application_business_suppliers`.
 
-Note that the following will _not_ work, because `Supplier` and `Account` are defined in different scopes (`MyApplication::Business` and `MyApplication::Billing`):
+However, if the `Supplier` and `Account` models are defined in different scopes, the associations will not work by default:
 
 ```ruby
 module MyApplication
@@ -1044,6 +1067,8 @@ module MyApplication
   end
 end
 ```
+
+By explicitly declaring the `class_name` option, you can create associations across different namespaces, ensuring the correct models are linked regardless of their module scope.
 
 ### Bi-directional Associations
 
