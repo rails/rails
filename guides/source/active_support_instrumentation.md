@@ -420,6 +420,11 @@ This event is emmited for every transaction to the database.
 | `:outcome`           | `:commit`, `:rollback`, `:restart`, or `:incomplete` |
 | `:connection`        | Connection object                                    |
 
+Please note that at this point the transaction has been finished, and its state
+is in the `:outcome` key. In practice, you cannot do much with the transaction
+object, but it may still be helpful for tracing database activity. For example,
+by tracking `transaction.uuid`.
+
 ### Action Mailer
 
 #### `deliver.action_mailer`
