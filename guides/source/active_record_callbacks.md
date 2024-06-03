@@ -39,7 +39,7 @@ end
 ```
 
 ```irb
-irb> cake = BirthdayCake.create
+irb> BirthdayCake.create
 Congratulations, the callback has run!
 ```
 
