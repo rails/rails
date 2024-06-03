@@ -3,6 +3,46 @@
 require "active_support/core_ext/digest"
 
 module ActiveRecord
+  # This abstract class specifies the interface to interact with the current transaction state.
+  #
+  # Any other methods not specified here are considered to be private interfaces.
+  #
+  # == Callbacks
+  #
+  # After updating the database state, you may sometimes need to perform some extra work, or reflect these
+  # changes in a remote system like clearing or updating a cache:
+  #
+  # def publish_article(article)
+  #   article.update!(published: true)
+  #   NotificationService.article_published(article)
+  # end
+  #
+  # The above code works but has one important flaw, which is that it no longer works properly if called inside
+  # a transaction, as it will interact with the remote system before the changes are persisted:
+  #
+  # Article.transaction do
+  #   article = create_article(article)
+  #   publish_article(article)
+  # end
+  #
+  # The callbacks offered by ActiveRecord::Transaction allow to rewriting this method in a way that is compatible
+  # with transactions:
+  #
+  # def publish_article(article)
+  #   article.update!(published: true)
+  #   Article.current_transaction.after_commit do
+  #     NotificationService.article_published(article)
+  #   end
+  # end
+  #
+  # In the above example, if +publish_article+ is called inside a transaction, the callback will be invoked
+  # after the transaction is successfully committed, and if called outside a transaction, the callback will be invoked
+  # immediately.
+  #
+  # == Caveats
+  #
+  # When using after_commit callbacks, it is important to note that if the callback raises an error, the transaction
+  # won't be rolled back. Relying solely on these to synchronize state between multiple systems may lead to consistency issues.
   class Transaction
     class Callback # :nodoc:
       def initialize(event, callback)
@@ -35,6 +75,8 @@ module ActiveRecord
     # If the current transaction has a parent transaction, the callback is transferred to
     # the parent when the current transaction commits, or dropped when the current transaction
     # is rolled back. This operation is repeated until the outermost transaction is reached.
+    #
+    # If the callback raises an error, the transaction is rolled back.
     def before_commit(&block)
       (@callbacks ||= []) << Callback.new(:before_commit, block)
     end
@@ -46,6 +88,8 @@ module ActiveRecord
     # If the current transaction has a parent transaction, the callback is transferred to
     # the parent when the current transaction commits, or dropped when the current transaction
     # is rolled back. This operation is repeated until the outermost transaction is reached.
+    #
+    # If the callback raises an error, the transaction remains committed.
     def after_commit(&block)
       (@callbacks ||= []) << Callback.new(:after_commit, block)
     end
@@ -63,13 +107,24 @@ module ActiveRecord
       (@callbacks ||= []) << Callback.new(:after_rollback, block)
     end
 
+    # Returns true if a transaction was started.
+    def open?
+      true
+    end
+    alias_method :blank?, :open?
+
+    # Returns true if no transaction is currently active.
+    def closed?
+      false
+    end
+
     # Returns a UUID for this transaction.
     def uuid
       @uuid ||= Digest::UUID.uuid_v4
     end
 
     protected
-      def append_callbacks(callbacks)
+      def append_callbacks(callbacks) # :nodoc:
         (@callbacks ||= []).concat(callbacks)
       end
   end
