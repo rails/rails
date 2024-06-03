@@ -351,7 +351,7 @@ Update Cache
 #### Create Callbacks
 
 Create callbacks are triggered whenever the record is persisted (i.e. "saved")
-to the underlying database **for the first time**, in other words, when we're
+to the underlying database **for the first time** — in other words, when we're
 saving a new record, via the `create` or `save` methods. They are called before,
 after and around the object is created.
 
