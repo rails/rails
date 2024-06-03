@@ -315,14 +315,14 @@ called before, after, and around the object is saved.
 
 ```ruby
 class User < ApplicationRecord
-  before_save :encrypt_password
+  before_save :hash_password
   around_save :log_saving
   after_save :update_cache
 
   private
-    def encrypt_password
+    def hash_password
       self.password_digest = BCrypt::Password.create(password)
-      Rails.logger.info("Password encrypted for user with email: #{email}")
+      Rails.logger.info("Password hashed for user with email: #{email}")
     end
 
     def log_saving
