@@ -701,30 +701,31 @@ module ApplicationTests
       end
     end
 
-    def test_declarative_style_regexp_filter_with_minitest_spec
+    def test_declarative_style_regexp_filter_for_test_methods_with_spaces_in_name
       app_file "test/models/post_test.rb", <<~RUBY
         require "test_helper"
-        require "minitest/spec"
 
         class PostTest < ActiveSupport::TestCase
-          extend Minitest::Spec::DSL
+          def self.my_testing_alias(name, &)
+            define_method("test_\#{name}", &)
+          end
 
-          it "greets foo" do
+          my_testing_alias "greets foo" do
             puts "hello foo"
             assert true
           end
 
-          it "greets foo again" do
+          my_testing_alias "greets foo again" do
             puts "hello again foo"
             assert true
           end
 
-          it "greets +  + bar" do
+          my_testing_alias "greets +  + bar" do
             puts "hello bar"
             assert true
           end
 
-          it "greets no one" do
+          my_testing_alias "greets no one" do
             assert false
           end
         end
@@ -735,6 +736,32 @@ module ApplicationTests
         assert_match "hello again foo", output
         assert_match "hello bar", output
         assert_match "3 runs, 3 assertions, 0 failures", output
+      end
+    end
+
+    def test_declarative_style_line_number_filter_with_custom_test_method
+      app_file "test/models/post_test.rb", <<~RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          def self.my_testing_alias(name, &)
+            define_method("test_\#{name}", &)
+          end
+
+          my_testing_alias "greets foo" do
+            puts "hello foo"
+            assert true
+          end
+
+          my_testing_alias "greets no one" do
+            assert false
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb:8").tap do |output|
+        assert_match "hello foo", output
+        assert_match "1 runs, 1 assertions, 0 failures", output
       end
     end
 
