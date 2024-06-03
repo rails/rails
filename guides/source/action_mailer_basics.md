@@ -17,9 +17,9 @@ After reading this guide, you will know:
 What is Action Mailer?
 ----------------------
 
-Action Mailer allows you to send emails from your application. It's one of the two email related components in the Rails framework. While Action Mailer is for sending email, [Action Mailbox](action_mailbox_basics.html) is for receiving them.
+Action Mailer allows you to send emails from your Rails application. It's one of the two email related components in the Rails framework. Action Mailer, for sending email and [Action Mailbox](action_mailbox_basics.html), which deals with receiving emails.
 
-Action Mailer uses classes called "mailers" and views to create and configure the emails to send. Mailers are classes that inherit from [`ActionMailer::Base`][] and are analogous to controllers.
+Action Mailer uses classes called "mailers" and views to create and configure the emails to send. Mailers are classes that inherit from [`ActionMailer::Base`][] and are similar to controllers.
 
 Some similarities between controllers and mailers are listed below. Both have:
 
@@ -38,6 +38,8 @@ views.
 
 ### Generate the Mailer
 
+You can user the "mailer" generator to create Action Mailer related classes:
+
 ```bash
 $ bin/rails generate mailer User
 create  app/mailers/user_mailer.rb
@@ -51,6 +53,16 @@ create    test/mailers/user_mailer_test.rb
 create    test/mailers/previews/user_mailer_preview.rb
 ```
 
+Like the `UserMailer` below, all mailer classes inherit from `ApplicationMailer`:
+
+```ruby
+# app/mailers/user_mailer.rb
+class UserMailer < ApplicationMailer
+end
+```
+
+The `ApplicationMailer` inherits from `ActionMailer::Base`, and can be used to store attributes common to all mailers:
+
 ```ruby
 # app/mailers/application_mailer.rb
 class ApplicationMailer < ActionMailer::Base
@@ -59,17 +71,8 @@ class ApplicationMailer < ActionMailer::Base
 end
 ```
 
-```ruby
-# app/mailers/user_mailer.rb
-class UserMailer < ApplicationMailer
-end
-```
-
-As you can see, you can generate mailers just like you use other generators with
-Rails.
-
-If you didn't want to use a generator, you could create your own file inside of
-`app/mailers`, just make sure that it inherits from `ActionMailer::Base`:
+If you didn't want to use a generator, you can create your own file inside of
+`app/mailers` directory. Make sure that it inherits from `ActionMailer::Base`:
 
 ```ruby
 class MyMailer < ActionMailer::Base
@@ -78,9 +81,9 @@ end
 
 ### Edit the Mailer
 
-Mailers have methods called "actions" and they use views to structure their content.
-Where a controller generates content like HTML to send back to the client, a Mailer
-creates a message to be delivered via email.
+Mailers have methods called "actions" and they use views to structure their
+content. Where a controller generates content like HTML to send back to the
+client, a Mailer creates a message to be delivered via email.
 
 `app/mailers/user_mailer.rb` contains an empty mailer:
 
