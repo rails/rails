@@ -1130,7 +1130,7 @@ end
 ```
 
 NOTE: The `:on` option specifies when a callback will be fired. If you don't
-supply the `:on` option the callback will fire for every live cycle event. Read
+supply the `:on` option the callback will fire for every life cycle event. Read
 more about `:on` [here](#registering-callbacks-to-fire-on-lifecycle-events.
 
 WARNING. When a transaction completes, the `after_commit` or `after_rollback`
