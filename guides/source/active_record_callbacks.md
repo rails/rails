@@ -43,8 +43,8 @@ irb> BirthdayCake.create
 Congratulations, the callback has run!
 ```
 
-As you will see, there are many life cycle events and you can choose to hook
-into any of these either before, after, or even around them.
+As you will see, there are many life cycle events and multiple options to hook
+into these — either before, after, or even around them.
 
 Callback Registration
 ---------------------
