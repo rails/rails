@@ -54,8 +54,8 @@ Implementation can be done in a multitude of ways like using ordinary methods,
 blocks and procs, or defining custom callback objects using classes or modules.
 Let's go through each of these implementation techniques.
 
-You can implement the callbacks as a **macro-style method that calls an ordinary
-method** for registration.
+You can register the callbacks with a **macro-style class method that calls an ordinary
+method** for implementation.
 
 ```ruby
 class User < ApplicationRecord
