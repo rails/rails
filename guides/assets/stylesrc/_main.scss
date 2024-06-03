@@ -18,7 +18,7 @@ body.guide {
   -webkit-tap-highlight-color:rgba(38, 27, 35, 0);
 
 
-    // ----------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------
   // Typographic Baseline
   // ----------------------------------------------------------------------------
   
@@ -831,6 +831,11 @@ body.guide {
             background-color: $stop-bkgnd;
             opacity: 0;
             transition: opacity 0.2s ease-in-out;
+
+            :where(html[dir="rtl"]) & {
+              right: -3.5em;
+              left: unset;
+            }
           }
 
           a.active::after {
@@ -849,6 +854,11 @@ body.guide {
             background-color: $rf-brand;
             opacity: 0;
             transition: opacity 0.2s ease-in-out;
+
+            :where(html[dir="rtl"]) & {
+              right: -3em;
+              left: unset;
+            }
           }
 
           a.active::before {
