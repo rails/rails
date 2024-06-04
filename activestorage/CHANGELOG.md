@@ -7,6 +7,11 @@
 
     *Haroon Ahmed*
 
+## Rails 6.1.7.8 (June 04, 2024) ##
+
+*   No changes.
+
+
 ## Rails 6.1.7.7 (February 21, 2024) ##
 
 *   Disables the session in `ActiveStorage::Blobs::ProxyController`
