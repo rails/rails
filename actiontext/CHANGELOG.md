@@ -1,3 +1,9 @@
+## Rails 7.1.3.4 (June 04, 2024) ##
+
+*   Sanitize ActionText HTML ContentAttachment in Trix edit view
+    [CVE-2024-32464]
+
+
 ## Rails 7.1.3.3 (May 16, 2024) ##
 
 *   Upgrade Trix to 1.3.2 to fix [CVE-2024-34341](https://github.com/basecamp/trix/security/advisories/GHSA-qjqp-xr96-cj99).
