@@ -6,12 +6,6 @@ GIT
       pg (>= 0.17, < 2.0)
 
 GIT
-  remote: https://github.com/brianmario/mysql2.git
-  revision: 346b4a43a146aa2239b82a6bb1020c66f6e456a0
-  specs:
-    mysql2 (0.5.3)
-
-GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -339,6 +333,7 @@ GEM
     mustache (1.1.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
+    mysql2 (0.5.6)
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
     net-imap (0.2.3)
@@ -578,7 +573,7 @@ DEPENDENCIES
   minitest-bisect
   minitest-reporters
   minitest-retry
-  mysql2 (~> 0.5)!
+  mysql2 (~> 0.5)
   net-imap
   net-pop
   net-smtp
