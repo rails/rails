@@ -22,6 +22,7 @@ module ActionDispatch
     module Compatibility
       def initialize(app, options = {})
         options[:key] ||= "_session_id"
+        options[:lazy] = true unless options.key?(:lazy)
         super
       end
 
@@ -75,7 +76,9 @@ module ActionDispatch
       end
 
       def prepare_session(req)
-        Request::Session.create(self, req, @default_options)
+        Request::Session.create(self, req, @default_options).tap do |session|
+          session.send(:load!) unless @default_options[:lazy]
+        end
       end
 
       def loaded_session?(session)

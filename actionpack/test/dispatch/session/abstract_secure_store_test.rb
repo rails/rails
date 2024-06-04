@@ -16,7 +16,7 @@ module ActionDispatch
           end
         end
 
-        def initialize(app)
+        def initialize(app, options = {})
           @sessions = {}
           super
         end
@@ -34,6 +34,24 @@ module ActionDispatch
         def session_exists?(req)
           true
         end
+      end
+
+      def test_session_is_lazily_loaded_by_default
+        env = {}
+        as = MemoryStore.new app
+        as.call(env)
+
+        session = Request::Session.find ActionDispatch::Request.new @env
+        assert_not session.loaded?
+      end
+
+      def test_session_lazy_loading_can_be_disabled
+        env = {}
+        as = MemoryStore.new app, lazy: false
+        as.call(env)
+
+        session = Request::Session.find ActionDispatch::Request.new @env
+        assert session.loaded?
       end
 
       def test_session_is_set
