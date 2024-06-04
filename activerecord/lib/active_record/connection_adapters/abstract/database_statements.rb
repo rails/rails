@@ -356,7 +356,7 @@ module ActiveRecord
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
-          yield current_transaction
+          yield current_transaction.user_transaction
         else
           within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end

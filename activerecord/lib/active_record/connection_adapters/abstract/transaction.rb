@@ -106,10 +106,11 @@ module ActiveRecord
     end
 
     class NullTransaction # :nodoc:
-      def initialize; end
+      def initialize(committed)
+        @committed = committed
+      end
       def state; end
       def closed?; true; end
-      alias_method :blank?, :closed?
       def open?; false; end
       def joinable?; false; end
       def add_record(record, _ = true); end
@@ -119,22 +120,42 @@ module ActiveRecord
       def invalidated?; false; end
       def invalidate!; end
       def materialized?; false; end
-      def before_commit; yield; end
-      def after_commit; yield; end
-      def after_rollback; end # noop
-      def uuid; Digest::UUID.nil_uuid; end
+      def before_commit; yield if @committed; end
+      def after_commit; yield if @committed; end
+      def after_rollback; yield unless @committed; end
+      def user_transaction; ActiveRecord::Transaction::NULL_TRANSACTION; end
     end
 
-    class Transaction < ActiveRecord::Transaction # :nodoc:
+    class Transaction # :nodoc:
+      class Callback # :nodoc:
+        def initialize(event, callback)
+          @event = event
+          @callback = callback
+        end
+
+        def before_commit
+          @callback.call if @event == :before_commit
+        end
+
+        def after_commit
+          @callback.call if @event == :after_commit
+        end
+
+        def after_rollback
+          @callback.call if @event == :after_rollback
+        end
+      end
+
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written
 
-      delegate :invalidate!, :invalidated?, to: :@state
+      delegate :invalidate!, :invalidated?, :fully_committed?, :rolledback?, to: :@state
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         super()
         @connection = connection
         @state = TransactionState.new
+        @callbacks = nil
         @records = nil
         @isolation_level = isolation
         @materialized = false
@@ -142,7 +163,12 @@ module ActiveRecord
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
         @dirty = false
-        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: self)
+        @user_transaction = nil
+        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: user_transaction)
+      end
+
+      def user_transaction
+        @user_transaction ||= ActiveRecord::Transaction.new(self)
       end
 
       def dirty!
@@ -153,6 +179,14 @@ module ActiveRecord
         @dirty
       end
 
+      def open?
+        true
+      end
+
+      def closed?
+        false
+      end
+
       def add_record(record, ensure_finalize = true)
         @records ||= []
         if ensure_finalize
@@ -161,6 +195,45 @@ module ActiveRecord
           @lazy_enrollment_records ||= ObjectSpace::WeakMap.new
           @lazy_enrollment_records[record] = record
         end
+      end
+
+      # Registers a block to be called before the current transaction is fully committed.
+      #
+      # If there is no currently open transactions, the block is called immediately.
+      #
+      # If the current transaction has a parent transaction, the callback is transferred to
+      # the parent when the current transaction commits, or dropped when the current transaction
+      # is rolled back. This operation is repeated until the outermost transaction is reached.
+      #
+      # If the callback raises an error, the transaction is rolled back.
+      def before_commit(&block)
+        (@callbacks ||= []) << Callback.new(:before_commit, block)
+      end
+
+      # Registers a block to be called after the current transaction is fully committed.
+      #
+      # If there is no currently open transactions, the block is called immediately.
+      #
+      # If the current transaction has a parent transaction, the callback is transferred to
+      # the parent when the current transaction commits, or dropped when the current transaction
+      # is rolled back. This operation is repeated until the outermost transaction is reached.
+      #
+      # If the callback raises an error, the transaction remains committed.
+      def after_commit(&block)
+        (@callbacks ||= []) << Callback.new(:after_commit, block)
+      end
+
+      # Registers a block to be called after the current transaction is rolled back.
+      #
+      # If there is no currently open transactions, the block is never called.
+      #
+      # If the current transaction is successfully committed but has a parent
+      # transaction, the callback is automatically added to the parent transaction.
+      #
+      # If the entire chain of nested transactions are all successfully committed,
+      # the block is never called.
+      def after_rollback(&block)
+        (@callbacks ||= []) << Callback.new(:after_rollback, block)
       end
 
       def records
@@ -273,6 +346,11 @@ module ActiveRecord
 
       def full_rollback?; true; end
       def joinable?; @joinable; end
+
+      protected
+        def append_callbacks(callbacks) # :nodoc:
+          (@callbacks ||= []).concat(callbacks)
+        end
 
       private
         def unique_records
@@ -555,7 +633,7 @@ module ActiveRecord
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
           begin
-            yield transaction
+            yield transaction.user_transaction
           rescue Exception => error
             rollback_transaction
             after_failure_actions(transaction, error)
@@ -595,7 +673,7 @@ module ActiveRecord
       end
 
       private
-        NULL_TRANSACTION = NullTransaction.new.freeze
+        NULL_TRANSACTION = NullTransaction.new(true).freeze
 
         # Deallocate invalidated prepared statements outside of the transaction
         def after_failure_actions(transaction, error)

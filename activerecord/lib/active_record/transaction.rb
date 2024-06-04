@@ -44,88 +44,38 @@ module ActiveRecord
   # When using after_commit callbacks, it is important to note that if the callback raises an error, the transaction
   # won't be rolled back. Relying solely on these to synchronize state between multiple systems may lead to consistency issues.
   class Transaction
-    class Callback # :nodoc:
-      def initialize(event, callback)
-        @event = event
-        @callback = callback
-      end
+    COMMITTED_TRANSACTION = ActiveRecord::ConnectionAdapters::NullTransaction.new(true).freeze
+    ABORTED_TRANSACTION = ActiveRecord::ConnectionAdapters::NullTransaction.new(false).freeze
 
-      def before_commit
-        @callback.call if @event == :before_commit
-      end
-
-      def after_commit
-        @callback.call if @event == :after_commit
-      end
-
-      def after_rollback
-        @callback.call if @event == :after_rollback
-      end
-    end
-
-    def initialize # :nodoc:
-      @callbacks = nil
+    def initialize(internal_transaction) # :nodoc:
+      @internal_transaction = internal_transaction
       @uuid = nil
     end
 
-    # Registers a block to be called before the current transaction is fully committed.
-    #
-    # If there is no currently open transactions, the block is called immediately.
-    #
-    # If the current transaction has a parent transaction, the callback is transferred to
-    # the parent when the current transaction commits, or dropped when the current transaction
-    # is rolled back. This operation is repeated until the outermost transaction is reached.
-    #
-    # If the callback raises an error, the transaction is rolled back.
-    def before_commit(&block)
-      (@callbacks ||= []) << Callback.new(:before_commit, block)
-    end
+    NULL_TRANSACTION = new(nil).freeze
 
-    # Registers a block to be called after the current transaction is fully committed.
-    #
-    # If there is no currently open transactions, the block is called immediately.
-    #
-    # If the current transaction has a parent transaction, the callback is transferred to
-    # the parent when the current transaction commits, or dropped when the current transaction
-    # is rolled back. This operation is repeated until the outermost transaction is reached.
-    #
-    # If the callback raises an error, the transaction remains committed.
-    def after_commit(&block)
-      (@callbacks ||= []) << Callback.new(:after_commit, block)
-    end
+    delegate :open?, :closed?, :before_commit, :after_commit, :after_rollback, to: :target
 
-    # Registers a block to be called after the current transaction is rolled back.
-    #
-    # If there is no currently open transactions, the block is never called.
-    #
-    # If the current transaction is successfully committed but has a parent
-    # transaction, the callback is automatically added to the parent transaction.
-    #
-    # If the entire chain of nested transactions are all successfully committed,
-    # the block is never called.
-    def after_rollback(&block)
-      (@callbacks ||= []) << Callback.new(:after_rollback, block)
+    def blank?
+      @internal_transaction.nil?
     end
-
-    # Returns true if a transaction was started.
-    def open?
-      true
-    end
-
-    # Returns true if no transaction is currently active.
-    def closed?
-      false
-    end
-    alias_method :blank?, :closed?
 
     # Returns a UUID for this transaction.
     def uuid
-      @uuid ||= Digest::UUID.uuid_v4
+      if @internal_transaction
+        @uuid ||= Digest::UUID.uuid_v4
+      end
     end
 
-    protected
-      def append_callbacks(callbacks) # :nodoc:
-        (@callbacks ||= []).concat(callbacks)
+    private
+      def target
+        if @internal_transaction.nil? || @internal_transaction.fully_committed?
+          COMMITTED_TRANSACTION
+        elsif @internal_transaction.rolledback?
+          ABORTED_TRANSACTION
+        else
+          @internal_transaction
+        end
       end
   end
 end

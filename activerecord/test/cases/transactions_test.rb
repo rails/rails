@@ -1660,23 +1660,23 @@ end if Topic.lease_connection.supports_savepoints?
 class TransactionUUIDTest < ActiveRecord::TestCase
   def test_the_uuid_is_lazily_computed
     Topic.transaction do
-      transaction = Topic.connection.current_transaction
+      transaction = Topic.current_transaction
       assert_nil transaction.instance_variable_get(:@uuid)
     end
   end
 
   def test_the_uuid_for_regular_transactions_is_generated_and_memoized
     Topic.transaction do
-      transaction = Topic.connection.current_transaction
+      transaction = Topic.current_transaction
       uuid = transaction.uuid
       assert_match(/\A[[:xdigit:]]{8}-(?:[[:xdigit:]]{4}-){3}[[:xdigit:]]{12}\z/, uuid)
       assert_equal uuid, transaction.uuid
     end
   end
 
-  def test_the_uuid_for_null_transactions_is_the_nil_uuid
-    null_transaction = ActiveRecord::ConnectionAdapters::TransactionManager::NULL_TRANSACTION
-    assert_equal Digest::UUID.nil_uuid, null_transaction.uuid
+  def test_the_uuid_for_null_transactions_is_nil
+    null_transaction = ActiveRecord::Transaction::NULL_TRANSACTION
+    assert_nil null_transaction.uuid
   end
 end
 
