@@ -32,6 +32,12 @@
     *Jean Boussier*
 
 
+## Rails 7.1.3.4 (June 04, 2024) ##
+
+*   Include the HTTP Permissions-Policy on non-HTML Content-Types
+    [CVE-2024-28103]
+
+
 ## Rails 7.1.3.3 (May 16, 2024) ##
 
 *   No changes.
