@@ -1,3 +1,9 @@
+## Rails 7.2.0.beta2 (June 04, 2024) ##
+
+*   Include the HTTP Permissions-Policy on non-HTML Content-Types
+    [CVE-2024-28103]
+
+
 ## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Fix `Mime::Type.parse` handling type parameters for HTTP Accept headers.

@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta2 (June 04, 2024) ##
+
 *   The payload of `sql.active_record` Active Support notifications now has the current transaction in the `:transaction` key.
 
     *Xavier Noria*

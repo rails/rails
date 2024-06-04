@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta2 (June 04, 2024) ##
+
 *   Define `Digest::UUID.nil_uuid`, which returns the so-called nil UUID.
 
     *Xavier Noria*

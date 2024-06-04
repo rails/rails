@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta2 (June 04, 2024) ##
+
 *   Bring `ActionCable::Connection::TestCookieJar` in alignment with `ActionDispatch::Cookies::CookieJar` in regards to setting the cookie value.
 
     Before:

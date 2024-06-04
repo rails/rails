@@ -1,3 +1,9 @@
+## Rails 7.2.0.beta2 (June 04, 2024) ##
+
+*   Sanitize ActionText HTML ContentAttachment in Trix edit view
+    [CVE-2024-32464]
+
+
 ## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Use `includes` instead of `eager_load` for `with_all_rich_text`.
