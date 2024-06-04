@@ -847,6 +847,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.approved ], relation.pluck(:approved)
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
+    assert_equal(
+      [[Topic.minimum(:written_on), Topic.minimum(:replies_count)]],
+      relation.pluck("min(written_on)", "min(replies_count)")
+    )
   end
 
   def test_pluck_type_cast_with_conflict_column_names
