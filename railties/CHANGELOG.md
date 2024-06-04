@@ -269,10 +269,9 @@
 
 *   Enable YJIT by default on new applications running Ruby 3.3+.
 
-    Adds a `config/initializers/enable_yjit.rb` initializer that enables YJIT
-    when running on Ruby 3.3+.
+    This can be disabled by setting `Rails.application.config.yjit = false`
 
-    *Jean Boussier*
+    *Jean Boussier*, *Rafael Mendonça França*
 
 *   In Action Mailer previews, show date from message `Date` header if present.
 
