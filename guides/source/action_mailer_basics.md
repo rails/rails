@@ -159,12 +159,9 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 
 ### Call the Mailer
 
-Mailers are really just another way to render a view. Instead of rendering a
-view and sending it over the HTTP protocol, they are sending it out through
-the email protocols instead. Due to this, it makes sense to have your
-controller tell the Mailer to send an email when a user is successfully created.
+Mailers can be thought of as another way to render a view. Controller actions render a view to be sent over the HTTP protocol. Mailer actions render a view and send it through email protocols instead.
 
-Setting this up is simple.
+Let's see an example of using a Mailer to send an email when a user is successfully created:
 
 First, let's create a `User` scaffold:
 
@@ -173,20 +170,16 @@ $ bin/rails generate scaffold user name email login
 $ bin/rails db:migrate
 ```
 
-Now that we have a user model to play with, we will edit the
-`app/controllers/users_controller.rb` file, make it instruct the `UserMailer` to deliver
-an email to the newly created user by editing the create action and inserting a
-call to `UserMailer.with(user: @user).welcome_email` right after the user is successfully saved.
+Next, we edit the `create` action in the `UserController` to send a welcome email when a new user is created. We do this by inserting a call to `UserMailer.with(user:@user).welcome_email` right after the user is successfully saved.
 
-We will enqueue the email to be sent by using [`deliver_later`][], which is
-backed by Active Job. That way, the controller action can continue without
-waiting for the send to complete.
+Note that we use [`deliver_later`][] to enqueue the email to be sent later, This
+way, the controller action will continue without waiting for the email sending
+code to run. The `deliver_later` method is backed by [Active Job](active_job_basics.html#action-mailer).
 
 ```ruby
 class UsersController < ApplicationController
   # ...
 
-  # POST /users or /users.json
   def create
     @user = User.new(user_params)
 
@@ -209,15 +202,14 @@ end
 ```
 
 NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter.
-So, you can use `deliver_later` to send emails asynchronously.
-Active Job's default adapter runs jobs with an in-process thread pool.
-It's well-suited for the development/test environments, since it doesn't require
-any external infrastructure, but it's a poor fit for production since it drops
-pending jobs on restart.
-If you need a persistent backend, you will need to use an Active Job adapter
-that has a persistent backend (Sidekiq, Resque, etc).
+So, you can use `deliver_later` to send emails asynchronously. Active Job's
+default adapter runs jobs with an in-process thread pool. It's well-suited for
+the development/test environments, since it doesn't require any external
+infrastructure, but it's a poor fit for production since it drops pending jobs
+on restart. If you need a persistent backend, you will need to use an Active Job
+adapter that has a persistent backend (Sidekiq, Resque, etc).
 
-If you want to send emails right away (from a cronjob for example) just call
+If you want to send emails right away (from a cronjob for example) you can call
 [`deliver_now`][]:
 
 ```ruby
@@ -230,16 +222,15 @@ class SendWeeklySummary
 end
 ```
 
-Any key-value pair passed to [`with`][] just becomes the `params` for the mailer
+Any key-value pair passed to [`with`][] becomes the `params` for the Mailer
 action. So `with(user: @user, account: @user.account)` makes `params[:user]` and
-`params[:account]` available in the mailer action. Just like controllers have
-params.
+`params[:account]` available in the Mailer action.
 
-The method `weekly_summary` returns an [`ActionMailer::MessageDelivery`][] object which
-can then be told to `deliver_now` or `deliver_later` to send itself out. The
-`ActionMailer::MessageDelivery` object is a wrapper around a [`Mail::Message`][]. If
-you want to inspect, alter, or do anything else with the `Mail::Message` object you can
-access it with the [`message`][] method on the `ActionMailer::MessageDelivery` object.
+The method `weekly_summary` returns an [`ActionMailer::MessageDelivery`][]
+object which has the methods `deliver_now` or `deliver_later` to send itself now or later. The `ActionMailer::MessageDelivery` object is a wrapper around a
+[`Mail::Message`][]. If you want to inspect, alter, or do anything else with the
+`Mail::Message` object you can access it with the [`message`][] method on the
+`ActionMailer::MessageDelivery` object.
 
 [`ActionMailer::MessageDelivery`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html
 [`deliver_later`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html#method-i-deliver_later
