@@ -239,7 +239,7 @@ object which has the methods `deliver_now` or `deliver_later` to send itself now
 [`message`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html#method-i-message
 [`with`]: https://api.rubyonrails.org/classes/ActionMailer/Parameterized/ClassMethods.html#method-i-with
 
-Encoding and Attachments
+TODO - Encoding and Attachments
 ------------------------
 
 ### Auto Encoding Header Values
@@ -267,6 +267,9 @@ message:
 
 [`attachments`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments
 [`headers`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-headers
+
+Attachments
+-----------
 
 ### Adding Attachments
 
@@ -334,56 +337,6 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
 
     <%= image_tag attachments['image.jpg'].url, alt: 'My Photo', class: 'photos' %>
     ```
-
-### Sending Email to Multiple Recipients
-
-It is possible to send email to one or more recipients in one email (e.g.,
-informing all admins of a new signup) by setting the list of emails to the `:to`
-key. The list of emails can be an array of email addresses or a single string
-with the addresses separated by commas.
-
-```ruby
-class AdminMailer < ApplicationMailer
-  default to: -> { Admin.pluck(:email) },
-          from: 'notification@example.com'
-
-  def new_registration(user)
-    @user = user
-    mail(subject: "New User Signup: #{@user.email}")
-  end
-end
-```
-
-The same format can be used to set carbon copy (Cc:) and blind carbon copy
-(Bcc:) recipients, by using the `:cc` and `:bcc` keys respectively.
-
-### Sending Email with Name
-
-Sometimes you wish to show the name of the person instead of just their email
-address when they receive the email. You can use [`email_address_with_name`][] for
-that:
-
-```ruby
-def welcome_email
-  @user = params[:user]
-  mail(
-    to: email_address_with_name(@user.email, @user.name),
-    subject: 'Welcome to My Awesome Site'
-  )
-end
-```
-
-The same technique works to specify a sender name:
-
-```ruby
-class UserMailer < ApplicationMailer
-  default from: email_address_with_name('notification@example.com', 'Example Company Notifications')
-end
-```
-
-If the name is a blank string, it returns just the address.
-
-[`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
 
 Mailer Views
 ------------
@@ -629,6 +582,56 @@ Now you can display an image inside your email.
 
 Sending Email
 -------------
+
+### Sending Email to Multiple Recipients
+
+It is possible to send email to one or more recipients in one email (e.g.,
+informing all admins of a new signup) by setting the list of emails to the `:to`
+key. The list of emails can be an array of email addresses or a single string
+with the addresses separated by commas.
+
+```ruby
+class AdminMailer < ApplicationMailer
+  default to: -> { Admin.pluck(:email) },
+          from: 'notification@example.com'
+
+  def new_registration(user)
+    @user = user
+    mail(subject: "New User Signup: #{@user.email}")
+  end
+end
+```
+
+The same format can be used to set carbon copy (Cc:) and blind carbon copy
+(Bcc:) recipients, by using the `:cc` and `:bcc` keys respectively.
+
+### Sending Email with Name
+
+Sometimes you wish to show the name of the person instead of just their email
+address when they receive the email. You can use [`email_address_with_name`][] for
+that:
+
+```ruby
+def welcome_email
+  @user = params[:user]
+  mail(
+    to: email_address_with_name(@user.email, @user.name),
+    subject: 'Welcome to My Awesome Site'
+  )
+end
+```
+
+The same technique works to specify a sender name:
+
+```ruby
+class UserMailer < ApplicationMailer
+  default from: email_address_with_name('notification@example.com', 'Example Company Notifications')
+end
+```
+
+If the name is a blank string, it returns just the address.
+
+[`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
 
 ### Sending Multipart Emails
 
