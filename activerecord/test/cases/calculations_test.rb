@@ -848,7 +848,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
     assert_equal(
-      [[Topic.minimum(:written_on), Topic.minimum(:replies_count)]],
+      [[topic.written_on, topic.replies_count]],
       relation.pluck("min(written_on)", "min(replies_count)")
     )
   end
