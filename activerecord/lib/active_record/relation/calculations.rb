@@ -604,7 +604,7 @@ module ActiveRecord
               model.attribute_types.fetch(name = result.columns[i]) do
                 join_dependencies ||= build_join_dependencies
                 lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
-                  result.column_types[name] || Type.default_value
+                  result.column_types[i] || Type.default_value
               end
           end
         end
