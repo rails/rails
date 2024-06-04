@@ -1,3 +1,9 @@
+## Rails 6.1.7.8 (June 04, 2024) ##
+
+*   Include the HTTP Permissions-Policy on non-HTML Content-Types
+    [CVE-2024-28103]
+
+
 ## Rails 6.1.7.7 (February 21, 2024) ##
 
 *   No changes.
