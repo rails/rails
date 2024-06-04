@@ -1228,22 +1228,13 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_functions_without_alias
-    expected = if current_adapter?(:PostgreSQLAdapter)
-      # PostgreSQL returns the same name for each column in the given query, so each column is named "coalesce"
-      # As a result Rails cannot accurately type cast each value.
-      # To work around this, you should use aliases in your select statement (see test_pluck_functions_with_alias).
-      [
-        ["1", "The First Topic"], ["2", "The Second Topic of the day"],
-        ["3", "The Third Topic of the day"], ["4", "The Fourth Topic of the day"],
-        ["5", "The Fifth Topic of the day"]
-      ]
-    else
-      [
-        [1, "The First Topic"], [2, "The Second Topic of the day"],
-        [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
-        [5, "The Fifth Topic of the day"]
-      ]
-    end
+    expected = [
+      [1, "The First Topic"],
+      [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"],
+      [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ]
 
     assert_equal expected, Topic.order(:id).pluck(
       Arel.sql("COALESCE(id, 0)"),
