@@ -3,6 +3,8 @@
 *   Include the HTTP Permissions-Policy on non-HTML Content-Types
     [CVE-2024-28103]
 
+    *Aaron Patterson*, *Zack Deveau*
+
 
 ## Rails 7.2.0.beta1 (May 29, 2024) ##
 
