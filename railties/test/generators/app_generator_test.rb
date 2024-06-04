@@ -1265,8 +1265,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
         },
         "volumes" => ["../..:/workspaces:cached"],
         "command" => "sleep infinity",
-        "networks" => ["default"],
-        "ports" => ["45678:45678"],
         "depends_on" => ["selenium", "redis"]
       }
 
@@ -1275,7 +1273,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       expected_selenium_conifg = {
         "image" => "seleniarm/standalone-chromium",
         "restart" => "unless-stopped",
-        "networks" => ["default"]
       }
 
       assert_equal expected_selenium_conifg, compose_config["services"]["selenium"]
@@ -1283,7 +1280,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       expected_redis_config = {
         "image" => "redis:7.2",
         "restart" => "unless-stopped",
-        "networks" => ["default"],
         "volumes" => ["redis-data:/data"]
       }
 
