@@ -125,14 +125,37 @@ module ActiveRecord
       def uuid; Digest::UUID.nil_uuid; end
     end
 
-    class Transaction < ActiveRecord::Transaction # :nodoc:
+    class AbstractTransaction # :nodoc:
+    end
+
+    class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written
 
       delegate :invalidate!, :invalidated?, to: :@state
 
+      class Callback
+        def initialize(event, callback)
+          @event = event
+          @callback = callback
+        end
+
+        def before_commit
+          @callback.call if @event == :before_commit
+        end
+
+        def after_commit
+          @callback.call if @event == :after_commit
+        end
+
+        def after_rollback
+          @callback.call if @event == :after_rollback
+        end
+      end
+
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
-        super()
+        @callbacks = nil
+        @uuid = nil
         @connection = connection
         @state = TransactionState.new
         @records = nil
@@ -143,6 +166,31 @@ module ActiveRecord
         @lazy_enrollment_records = nil
         @dirty = false
         @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: self)
+      end
+
+      def before_commit(&block)
+        (@callbacks ||= []) << Callback.new(:before_commit, block)
+      end
+
+      def after_commit(&block)
+        (@callbacks ||= []) << Callback.new(:after_commit, block)
+      end
+
+      def after_rollback(&block)
+        (@callbacks ||= []) << Callback.new(:after_rollback, block)
+      end
+
+      def open?
+        true
+      end
+
+      def closed?
+        false
+      end
+      alias_method :blank?, :closed?
+
+      def uuid
+        @uuid ||= Digest::UUID.uuid_v4
       end
 
       def dirty!
@@ -273,6 +321,11 @@ module ActiveRecord
 
       def full_rollback?; true; end
       def joinable?; @joinable; end
+
+      protected
+        def append_callbacks(callbacks) # :nodoc:
+          (@callbacks ||= []).concat(callbacks)
+        end
 
       private
         def unique_records

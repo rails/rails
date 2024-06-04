@@ -3,9 +3,7 @@
 require "active_support/core_ext/digest"
 
 module ActiveRecord
-  # This abstract class specifies the interface to interact with the current transaction state.
-  #
-  # Any other methods not specified here are considered to be private interfaces.
+  # This class specifies the interface to interact with the current transaction state.
   #
   # == Callbacks
   #
@@ -43,29 +41,9 @@ module ActiveRecord
   #
   # When using after_commit callbacks, it is important to note that if the callback raises an error, the transaction
   # won't be rolled back. Relying solely on these to synchronize state between multiple systems may lead to consistency issues.
-  class Transaction
-    class Callback # :nodoc:
-      def initialize(event, callback)
-        @event = event
-        @callback = callback
-      end
-
-      def before_commit
-        @callback.call if @event == :before_commit
-      end
-
-      def after_commit
-        @callback.call if @event == :after_commit
-      end
-
-      def after_rollback
-        @callback.call if @event == :after_rollback
-      end
-    end
-
-    def initialize # :nodoc:
-      @callbacks = nil
-      @uuid = nil
+  class TransactionState
+    def initialize(pool) # :nodoc:
+      @pool = pool
     end
 
     # Registers a block to be called before the current transaction is fully committed.
@@ -78,7 +56,7 @@ module ActiveRecord
     #
     # If the callback raises an error, the transaction is rolled back.
     def before_commit(&block)
-      (@callbacks ||= []) << Callback.new(:before_commit, block)
+      current_transaction.after_commit(&block)
     end
 
     # Registers a block to be called after the current transaction is fully committed.
@@ -91,7 +69,7 @@ module ActiveRecord
     #
     # If the callback raises an error, the transaction remains committed.
     def after_commit(&block)
-      (@callbacks ||= []) << Callback.new(:after_commit, block)
+      current_transaction.after_commit(&block)
     end
 
     # Registers a block to be called after the current transaction is rolled back.
@@ -104,28 +82,28 @@ module ActiveRecord
     # If the entire chain of nested transactions are all successfully committed,
     # the block is never called.
     def after_rollback(&block)
-      (@callbacks ||= []) << Callback.new(:after_rollback, block)
+      current_transaction.after_rollback(&block)
     end
 
     # Returns true if a transaction was started.
     def open?
-      true
+      current_transaction.open?
     end
 
     # Returns true if no transaction is currently active.
     def closed?
-      false
+      current_transaction.closed?
     end
     alias_method :blank?, :closed?
 
     # Returns a UUID for this transaction.
     def uuid
-      @uuid ||= Digest::UUID.uuid_v4
+      current_transaction.uuid
     end
 
-    protected
-      def append_callbacks(callbacks) # :nodoc:
-        (@callbacks ||= []).concat(callbacks)
+    private
+      def current_transaction
+        @pool.active_connection&.current_transaction || ConnectionAdapters::TransactionManager::NULL_TRANSACTION
       end
   end
 end

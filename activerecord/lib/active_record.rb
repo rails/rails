@@ -86,7 +86,7 @@ module ActiveRecord
   autoload :Timestamp
   autoload :TokenFor
   autoload :TouchLater
-  autoload :Transaction
+  autoload :TransactionState
   autoload :Transactions
   autoload :Translation
   autoload :Validations
