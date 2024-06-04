@@ -11,6 +11,12 @@
     *Hartley McGuire*
 
 
+## Rails 7.0.8.4 (June 04, 2024) ##
+
+*   Include the HTTP Permissions-Policy on non-HTML Content-Types
+    [CVE-2024-28103]
+
+
 ## Rails 7.0.8.3 (May 17, 2024) ##
 
 *   No changes.

@@ -65,6 +65,11 @@
     *Felix Tscheulin*
 
 
+## Rails 7.0.8.4 (June 04, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.0.8.3 (May 17, 2024) ##
 
 *   No changes.
