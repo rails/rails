@@ -1201,15 +1201,31 @@ transaction.<br><br>
 
 ### Aliases for `after_commit`
 
-Since using the `after_commit` callback only on create, update, or delete is
-common, there are aliases for those operations:
+Using the `after_commit` callback only on create, update, or delete is
+common. Sometimes you may also want to use a single callback for both `create` and `update`. Here are some common aliases for these operations:
 
 * [`after_destroy_commit`][]
 * [`after_create_commit`][]
 * [`after_update_commit`][]
+* [`after_save_commit`][]
 
+Let's go through some examples:
 
-You can use the `after_destroy_commit` as follows:
+Instead of using `after_commit` with the `on` option for a destroy like below:
+
+```ruby
+class PictureFile < ApplicationRecord
+  after_commit :delete_picture_file_from_disk, on: :destroy
+
+  def delete_picture_file_from_disk
+    if File.exist?(filepath)
+      File.delete(filepath)
+    end
+  end
+end
+```
+
+You can instead use the `after_destroy_commit`.
 
 ```ruby
 class PictureFile < ApplicationRecord
@@ -1223,7 +1239,9 @@ class PictureFile < ApplicationRecord
 end
 ```
 
-If you use the `after_create_commit` and the `after_update_commit` callback with the same method
+The same applies for `after_create_commit` and `after_update_commit`.
+
+However, if you use the `after_create_commit` and the `after_update_commit` callback with the same method
 name, it will only allow the last callback defined to take effect, as they both
 internally alias to `after_commit` which overrides previously defined callbacks
 with the same method name.
@@ -1248,12 +1266,8 @@ irb> user.save # updating @user
 User was saved to database
 ```
 
-In this case, it's better to use `after_save_commit` instead.
-
-### `after_save_commit`
-
-There is an [`after_save_commit`][], which is an alias for using the
-`after_commit` callback for both create and update together:
+In this case, it's better to use `after_save_commit` instead which is an alias for using the
+`after_commit` callback for both create and update:
 
 ```ruby
 class User < ApplicationRecord
