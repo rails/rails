@@ -503,6 +503,8 @@ Notification sent to admin about critical info update for: john.doe.new@example.
 
 ### Destroying an Object
 
+Destroy callbacks are triggered whenever a record is destroyed, but ignored when a record is deleted. They are called before, after and around the object is destroyed.
+
 * [`before_destroy`][]
 * [`around_destroy`][]
 * [`after_destroy`][]
