@@ -568,6 +568,12 @@ module ActiveSupport
       tzinfo.periods_for_local(time)
     end
 
+    # Available so that TimeZone instances respond like +TZInfo::Timezone+
+    # instances.
+    def abbr(time)
+      tzinfo.abbr(time)
+    end
+
     def init_with(coder) # :nodoc:
       initialize(coder["name"])
     end

@@ -876,4 +876,14 @@ class TimeZoneTest < ActiveSupport::TestCase
     loaded = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal(ActiveSupport::TimeZone["Pacific/Honolulu"], loaded)
   end
+
+  def test_abbr
+    zone = ActiveSupport::TimeZone["America/Toronto"]
+    assert_equal "EST", zone.abbr(Time.utc(2000, 4, 2, 6))
+    assert_equal "EDT", zone.abbr(Time.utc(2000, 4, 2, 7))
+    assert_equal "EDT", zone.abbr(Time.utc(2000, 4, 2, 8))
+    assert_equal "EDT", zone.abbr(Time.utc(2000, 10, 29, 5))
+    assert_equal "EST", zone.abbr(Time.utc(2000, 10, 29, 6))
+    assert_equal "EST", zone.abbr(Time.utc(2000, 10, 29, 7))
+  end
 end
