@@ -1,3 +1,8 @@
+*   Fix an issue where the IDs reader method did not return expected results
+    for preloaded associations in models using composite primary keys.
+
+    *Jay Ang*
+
 *   PostgreSQL `Cidr#change?` detects the address prefix change.
 
     *Taketo Takashima*
