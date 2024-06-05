@@ -184,10 +184,12 @@ module ActiveRecord
     #   Entry#entryable_class # => +Message+ or +Comment+
     #   Entry#entryable_name  # => "message" or "comment"
     #   Entry.messages        # => Entry.where(entryable_type: "Message")
+    #   Entry.not_messages    # => Entry.where.not(entryable_type: "Message")
     #   Entry#message?        # => true when entryable_type == "Message"
     #   Entry#message         # => returns the message record, when entryable_type == "Message", otherwise nil
     #   Entry#message_id      # => returns entryable_id, when entryable_type == "Message", otherwise nil
     #   Entry.comments        # => Entry.where(entryable_type: "Comment")
+    #   Entry.not_comments    # => Entry.where.not(entryable_type: "Comment")
     #   Entry#comment?        # => true when entryable_type == "Comment"
     #   Entry#comment         # => returns the comment record, when entryable_type == "Comment", otherwise nil
     #   Entry#comment_id      # => returns entryable_id, when entryable_type == "Comment", otherwise nil
@@ -261,6 +263,7 @@ module ActiveRecord
           query      = "#{singular}?"
 
           scope scope_name, -> { where(role_type => type) }
+          scope "not_#{scope_name}", -> { where.not(role_type => type) }
 
           define_method query do
             public_send(role_type) == type

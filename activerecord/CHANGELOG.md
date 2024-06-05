@@ -1,3 +1,7 @@
+*   Add support for negative scopes on delegated types
+
+    *Nick Pezza*
+
 *   Allow to configure `strict_loading_mode` globally or within a model.
 
     Defaults to `:all`, can be changed to `:n_plus_one_only`.
