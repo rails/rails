@@ -1198,6 +1198,7 @@ class User < ApplicationRecord
 
   private
     def log_user_saved_to_db
+      # This only gets called once
       Rails.logger.info("User was saved to database")
     end
 end
