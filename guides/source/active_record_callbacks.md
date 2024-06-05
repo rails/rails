@@ -1220,11 +1220,10 @@ class PictureFile < ApplicationRecord
 end
 ```
 
-WARNING. Using both `after_create_commit` and `after_update_commit` with the
-same method name will only allow the last callback defined to take effect, as
-they both internally alias to `after_commit` which overrides previously defined
-callbacks with the same method name. In this case, it's better to use
-`after_save_commit` instead.
+Using both `after_create_commit` and `after_update_commit` with the same method
+name will only allow the last callback defined to take effect, as they both
+internally alias to `after_commit` which overrides previously defined callbacks
+with the same method name.
 
 ```ruby
 class User < ApplicationRecord
@@ -1244,6 +1243,19 @@ irb> user = User.create # prints nothing
 
 irb> user.save # updating @user
 User was saved to database
+```
+
+In this case, it's better to use `after_save_commit` instead.
+
+```ruby
+class User < ApplicationRecord
+  after_save_commit :log_user_saved_to_db
+
+  private
+    def log_user_saved_to_db
+      Rails.logger.info("User was saved to database")
+    end
+end
 ```
 
 ### `after_save_commit`
