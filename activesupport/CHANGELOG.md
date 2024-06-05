@@ -1,3 +1,7 @@
+*   Add `logger` as a dependency since it is a bundled gem candidate for Ruby 3.5
+
+    *Earlopain*
+
 ## Rails 7.2.0.beta2 (June 04, 2024) ##
 
 *   Define `Digest::UUID.nil_uuid`, which returns the so-called nil UUID.
