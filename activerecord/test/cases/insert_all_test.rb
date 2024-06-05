@@ -819,6 +819,7 @@ class InsertAllTest < ActiveRecord::TestCase
       assert_nothing_raised do
         Book.insert_all! [{ name: "Rework", author_id: 1 }]
       end
+    ensure
       Book.table_name = "books"
     end
   end
