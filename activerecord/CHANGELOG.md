@@ -1,3 +1,9 @@
+*   Fix an issue where the IDs reader method did not return expected results
+    for preloaded associations in models using composite primary keys.
+
+    *Jay Ang*
+
+
 ## Rails 7.2.0.beta2 (June 04, 2024) ##
 
 *   The payload of `sql.active_record` Active Support notifications now has the current transaction in the `:transaction` key.
@@ -11,6 +17,7 @@
 *   Define `ActiveRecord::Transaction#uuid`, which returns a UUID for the database transaction. This may be helpful when tracing database activity. These UUIDs are generated only on demand.
 
     *Xavier Noria*
+
 
 ## Rails 7.2.0.beta1 (May 29, 2024) ##
 
