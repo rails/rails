@@ -1136,7 +1136,7 @@ end
 
 NOTE: The `:on` option specifies when a callback will be fired. If you don't
 supply the `:on` option the callback will fire for every life cycle event. Read
-more about `:on` [here](#registering-callbacks-to-fire-on-lifecycle-events.
+more about `:on` [here](#registering-callbacks-to-fire-on-life-cycle-events).
 
 WARNING. When a transaction completes, the `after_commit` or `after_rollback`
 callbacks are called for all models created, updated, or destroyed within that
