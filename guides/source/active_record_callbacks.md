@@ -392,6 +392,9 @@ User welcome email sent to: john.doe@example.com
 
 ### Updating an Object
 
+Update callbacks are triggered whenever an **existing** record is persisted (i.e. "saved")
+to the underlying database. They are called before, after and around the object is updated.
+
 * [`before_validation`][]
 * [`after_validation`][]
 * [`before_save`][]
