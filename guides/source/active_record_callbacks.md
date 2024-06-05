@@ -861,22 +861,57 @@ execution. This queue will include all of your model's validations, the
 registered callbacks, and the database operation to be executed.
 
 The whole callback chain is wrapped in a transaction. If any callback raises an
-exception, the execution chain gets halted and a **rollback** is issued. To
-intentionally halt a chain use:
+exception, the execution chain gets halted and a **rollback** is issued, and the
+error will be re-raised.
 
 ```ruby
-throw :abort
+class Product < ActiveRecord::Base
+   before_validation do
+      raise "Price can't be negative" if total_price < 0
+   end
+end
+
+Product.create # raises "Price can't be negative"
 ```
 
-WARNING. Any exception that is not `ActiveRecord::Rollback` or
-`ActiveRecord::RecordInvalid` will be re-raised by Rails after the callback
-chain is halted. Additionally, it may break code that does not expect methods
-like `save` and `update` (which normally try to return `true` or `false`) to
-raise an exception.
+This unexpectedly breaks code that does not expect methods like `create` and
+`save` to raise exceptions.
 
-NOTE: If an `ActiveRecord::RecordNotDestroyed` is raised within `after_destroy`,
-`before_destroy` or `around_destroy` callback, it will not be re-raised and the
-`destroy` method will return `false`.
+Instead, you should use `throw :abort` to intentionally halt the chain. If any
+callback throws `:abort`, the process will be aborted and `create` will return
+false.
+
+```ruby
+class Product < ActiveRecord::Base
+   before_validation do
+      throw :abort if total_price < 0
+   end
+end
+
+Product.create # => false
+```
+
+WARNING: Any exception that is not `ActiveRecord::Rollback`,
+`ActiveRecord::RecordNotSaved` or `ActiveRecord::RecordInvalid` will be
+re-raised by Rails after the callback chain is halted.
+
+When `throw :abort` is called in destroy callbacks, `destroy` will return false:
+
+```ruby
+class User < ActiveRecord::Base
+   before_destroy do
+      throw :abort if still_active?
+   end
+end
+User.first.destroy # => false
+```
+
+Additionally, it will raise a `ActiveRecord::RecordNotDestroyed` when calling
+`destroy!`.
+
+```ruby
+User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
+```
 
 Relational Callbacks
 --------------------
