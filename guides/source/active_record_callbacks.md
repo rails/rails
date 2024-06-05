@@ -1173,31 +1173,81 @@ NOTE: The `:on` option specifies when a callback will be fired. If you don't
 supply the `:on` option the callback will fire for every life cycle event. Read
 more about `:on` [here](#registering-callbacks-to-fire-on-life-cycle-events).
 
-WARNING. When a transaction completes, the `after_commit` or `after_rollback`
+When a transaction completes, the `after_commit` or `after_rollback`
 callbacks are called for all models created, updated, or destroyed within that
 transaction. However, if an exception is raised within one of these callbacks,
 the exception will bubble up and any remaining `after_commit` or
-`after_rollback` methods will _not_ be executed. As such, if your callback code
-could raise an exception, you'll need to rescue it and handle it within the
-callback in order to allow other callbacks to run. <br><br> `after_commit` makes
+`after_rollback` methods will _not_ be executed.
+
+```ruby
+class User < ActiveRecord::Base
+  after_commit { raise }
+  after_commit { # this won't get called }
+end
+```
+
+WARNING. If your callback code raises an exception, you'll need to rescue it and handle it within the
+callback in order to allow other callbacks to run.
+
+`after_commit` makes
 very different guarantees than `after_save`, `after_update`, and
 `after_destroy`. For example, if an exception occurs in an `after_save` the
-transaction will be rolled back and the data will not be persisted. However,
-during `after_commit` the data was already persisted to the database, and thus
-any exception won't roll anything back anymore. Also note that the code executed
+transaction will be rolled back and the data will not be persisted.
+
+```ruby
+class User < ActiveRecord::Base
+  after_save do
+    # If this fails the user won't be saved.
+    EventLog.create!(event: "user_saved")
+  end
+end
+```
+
+However, during `after_commit` the data was already persisted to the database, and thus
+any exception won't roll anything back anymore.
+
+```ruby
+class User < ActiveRecord::Base
+  after_commit do
+    # If this fails the user was already saved.
+    EventLog.create!(event: "user_saved")
+  end
+end
+```
+
+The code executed
 within `after_commit` or `after_rollback` callbacks is itself not enclosed
-within a transaction. <br><br> In the context of a single transaction, if you
-interact with multiple loaded objects that represent the same record in the
+within a transaction.
+
+In the context of a single transaction, if you
+represent the same record in the
 database, there's a crucial behavior in the `after_commit` and `after_rollback`
 callbacks to note. These callbacks are triggered only for the first object of
 the specific record that changes within the transaction. Other loaded objects,
 despite representing the same database record, will not have their respective
-`after_commit` or `after_rollback` callbacks triggered. This nuanced behavior is
+`after_commit` or `after_rollback` callbacks triggered.
+
+```ruby
+class User < ApplicationRecord
+  after_commit :log_user_saved_to_db, on: :update
+  private
+    def log_user_saved_to_db
+       Rails.logger.info("User was saved to database")
+    end
+end
+```
+
+```ruby
+irb> user = User.create
+irb> User.transaction { user.save; user.save }
+# User was saved to database
+```
+WARNING: This nuanced behavior is
 particularly impactful in scenarios where you expect independent callback
 execution for each object associated with the same database record. It can
 influence the flow and predictability of callback sequences, leading to
 potential inconsistencies in application logic following the
-transaction.<br><br>
+transaction.
 
 ### Aliases for `after_commit`
 
