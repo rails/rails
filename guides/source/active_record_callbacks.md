@@ -881,7 +881,7 @@ NOTE: If an `ActiveRecord::RecordNotDestroyed` is raised within `after_destroy`,
 Relational Callbacks
 --------------------
 
-Callbacks work through model relationships, and can even be defined by them.
+Callbacks work through model relationships. Life cycle events can cascade on associations and fire callbacks.
 
 Suppose an example where a user has many articles. A user's articles should be
 destroyed if the user is destroyed. Let's add an `after_destroy` callback to the
