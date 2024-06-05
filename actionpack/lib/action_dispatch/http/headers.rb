@@ -117,6 +117,12 @@ module ActionDispatch
 
       def env; @req.env.dup; end
 
+      def http
+        filter_map do |k, v|
+          [ k.sub(/^HTTP_/, "").split("_").map(&:capitalize).join("-"), v ] if k.start_with?("HTTP_")
+        end
+      end
+
       private
         # Converts an HTTP header name to an environment variable name if it is not
         # contained within the headers hash.

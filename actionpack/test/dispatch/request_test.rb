@@ -1405,6 +1405,20 @@ class RequestFormData < BaseRequestTest
   end
 end
 
+class RequestHeadersTest < BaseRequestTest
+  test "#http returns only the HTTP headers without the env prefix" do
+    request = stub_request(
+      "REQUEST_METHOD" => "POST", "CONTENT_TYPE" => "application/json",
+      "HTTP_X_FORWARDED_PROTO" => "https", "HTTP_X_FORWARDED_HOST" => "example.com:443"
+    )
+
+    assert_equal [
+      ["X-Forwarded-Proto", "https"],
+      ["X-Forwarded-Host", "example.com:443"]
+    ], request.headers.http
+  end
+end
+
 class EarlyHintsRequestTest < BaseRequestTest
   def setup
     super

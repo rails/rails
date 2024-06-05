@@ -1,3 +1,17 @@
+*   Implement `Http::Headers#http` that returns the original HTTP headers
+
+    ```ruby
+    # Before
+    request.headers.env
+      .select { |key, _value| key.start_with?("HTTP_") }
+      .transform_keys { |key| key.sub(/^HTTP_/, "").split("_").map(&:capitalize).join("-") }
+
+    # After
+    request.headers.http
+    ```
+
+    *Matija Čupić*
+
 *   Add `:wasm_unsafe_eval` mapping for `content_security_policy`
 
     ```ruby
