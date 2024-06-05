@@ -705,6 +705,95 @@ NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated
 automatically for every attribute. Learn more about them in the [Dynamic finders
 section](active_record_querying.html#dynamic-finders).
 
+Conditional Callbacks
+---------------------
+
+As with [validations](active_record_validations.html), we can also make the
+calling of a callback method conditional on the satisfaction of a given
+predicate. We can do this using the `:if` and `:unless` options, which can take
+a symbol, a `Proc` or an `Array`.
+
+You may use the `:if` option when you want to specify under which conditions the
+callback **should** be called. If you want to specify the conditions under which
+the callback **should not** be called, then you may use the `:unless` option.
+
+### Using `:if` and `:unless` with a `Symbol`
+
+You can associate the `:if` and `:unless` options with a symbol corresponding to
+the name of a predicate method that will get called right before the callback.
+
+When using the `:if` option, the callback **won't** be executed if the predicate
+method returns **false**; when using the `:unless` option, the callback
+**won't** be executed if the predicate method returns **true**. This is the most
+common option.
+
+```ruby
+class Order < ApplicationRecord
+  before_save :normalize_card_number, if: :paid_with_card?
+end
+```
+
+Using this form of registration it is also possible to register several
+different predicates that should be called to check if the callback should be
+executed. We will cover this [below](#multiple-callback-conditions).
+
+### Using `:if` and `:unless` with a `Proc`
+
+It is possible to associate `:if` and `:unless` with a `Proc` object. This
+option is best suited when writing short validation methods, usually one-liners:
+
+```ruby
+class Order < ApplicationRecord
+  before_save :normalize_card_number,
+    if: ->(order) { order.paid_with_card? }
+end
+```
+
+Since the proc is evaluated in the context of the object, it is also possible to
+write this as:
+
+```ruby
+class Order < ApplicationRecord
+  before_save :normalize_card_number, if: -> { paid_with_card? }
+end
+```
+
+### Multiple Callback Conditions
+
+The `:if` and `:unless` options also accept an array of procs or method names as
+symbols:
+
+```ruby
+class Comment < ApplicationRecord
+  before_save :filter_content,
+    if: [:subject_to_parental_control?, :untrusted_author?]
+end
+```
+
+You can easily include a proc in the list of conditions:
+
+```ruby
+class Comment < ApplicationRecord
+  before_save :filter_content,
+    if: [:subject_to_parental_control?, -> { untrusted_author? }]
+end
+```
+
+### Using Both `:if` and `:unless`
+
+Callbacks can mix both `:if` and `:unless` in the same declaration:
+
+```ruby
+class Comment < ApplicationRecord
+  before_save :filter_content,
+    if: -> { forum.parental_control? },
+    unless: -> { author.trusted? }
+end
+```
+
+The callback only runs when all the `:if` conditions and none of the `:unless`
+conditions are evaluated to `true`.
+
 Skipping Callbacks
 ------------------
 
@@ -1025,95 +1114,6 @@ author.books = [book, book2]
 # Does not trigger the `before_add` callback
 book.update(author_id: 1)
 ```
-
-Conditional Callbacks
----------------------
-
-As with [validations](active_record_validations.html), we can also make the
-calling of a callback method conditional on the satisfaction of a given
-predicate. We can do this using the `:if` and `:unless` options, which can take
-a symbol, a `Proc` or an `Array`.
-
-You may use the `:if` option when you want to specify under which conditions the
-callback **should** be called. If you want to specify the conditions under which
-the callback **should not** be called, then you may use the `:unless` option.
-
-### Using `:if` and `:unless` with a `Symbol`
-
-You can associate the `:if` and `:unless` options with a symbol corresponding to
-the name of a predicate method that will get called right before the callback.
-
-When using the `:if` option, the callback **won't** be executed if the predicate
-method returns **false**; when using the `:unless` option, the callback
-**won't** be executed if the predicate method returns **true**. This is the most
-common option.
-
-```ruby
-class Order < ApplicationRecord
-  before_save :normalize_card_number, if: :paid_with_card?
-end
-```
-
-Using this form of registration it is also possible to register several
-different predicates that should be called to check if the callback should be
-executed. We will cover this [below](#multiple-callback-conditions).
-
-### Using `:if` and `:unless` with a `Proc`
-
-It is possible to associate `:if` and `:unless` with a `Proc` object. This
-option is best suited when writing short validation methods, usually one-liners:
-
-```ruby
-class Order < ApplicationRecord
-  before_save :normalize_card_number,
-    if: ->(order) { order.paid_with_card? }
-end
-```
-
-Since the proc is evaluated in the context of the object, it is also possible to
-write this as:
-
-```ruby
-class Order < ApplicationRecord
-  before_save :normalize_card_number, if: -> { paid_with_card? }
-end
-```
-
-### Multiple Callback Conditions
-
-The `:if` and `:unless` options also accept an array of procs or method names as
-symbols:
-
-```ruby
-class Comment < ApplicationRecord
-  before_save :filter_content,
-    if: [:subject_to_parental_control?, :untrusted_author?]
-end
-```
-
-You can easily include a proc in the list of conditions:
-
-```ruby
-class Comment < ApplicationRecord
-  before_save :filter_content,
-    if: [:subject_to_parental_control?, -> { untrusted_author? }]
-end
-```
-
-### Using Both `:if` and `:unless`
-
-Callbacks can mix both `:if` and `:unless` in the same declaration:
-
-```ruby
-class Comment < ApplicationRecord
-  before_save :filter_content,
-    if: -> { forum.parental_control? },
-    unless: -> { author.trusted? }
-end
-```
-
-The callback only runs when all the `:if` conditions and none of the `:unless`
-conditions are evaluated to `true`.
 
 Transaction Callbacks
 ---------------------
