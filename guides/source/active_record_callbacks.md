@@ -154,7 +154,7 @@ left public, they can be called from outside of the model and violate the
 principle of object encapsulation.
 
 WARNING. Refrain from using methods like `update`, `save`, or any other methods
-that cause side effects on the object within your callback functions. <br><br>
+that cause side effects on the object within your callback methods. <br><br>
 For instance, avoid calling `update(attribute: "value")` inside a callback. This
 practice can modify the model's state and potentially lead to unforeseen side
 effects during commit. <br><br> Instead, you can assign values directly (e.g.,
