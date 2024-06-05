@@ -216,6 +216,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     spawn_console("-e development", wait_for_prompt: false)
 
     assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
+    assert_output "Called via `AppTemplate::Application::MyConsole`", @primary, 30
     write_prompt "foo", "=> \"this is foo\""
   end
 
