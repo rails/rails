@@ -1204,9 +1204,12 @@ transaction.<br><br>
 Since using the `after_commit` callback only on create, update, or delete is
 common, there are aliases for those operations:
 
+* [`after_destroy_commit`][]
 * [`after_create_commit`][]
 * [`after_update_commit`][]
-* [`after_destroy_commit`][]
+
+
+You can use the `after_destroy_commit` as follows:
 
 ```ruby
 class PictureFile < ApplicationRecord
@@ -1220,8 +1223,8 @@ class PictureFile < ApplicationRecord
 end
 ```
 
-Using both `after_create_commit` and `after_update_commit` with the same method
-name will only allow the last callback defined to take effect, as they both
+If you use the `after_create_commit` and the `after_update_commit` callback with the same method
+name, it will only allow the last callback defined to take effect, as they both
 internally alias to `after_commit` which overrides previously defined callbacks
 with the same method name.
 
@@ -1247,20 +1250,9 @@ User was saved to database
 
 In this case, it's better to use `after_save_commit` instead.
 
-```ruby
-class User < ApplicationRecord
-  after_save_commit :log_user_saved_to_db
-
-  private
-    def log_user_saved_to_db
-      Rails.logger.info("User was saved to database")
-    end
-end
-```
-
 ### `after_save_commit`
 
-There is also [`after_save_commit`][], which is an alias for using the
+There is an [`after_save_commit`][], which is an alias for using the
 `after_commit` callback for both create and update together:
 
 ```ruby
