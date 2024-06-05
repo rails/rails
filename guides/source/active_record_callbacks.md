@@ -1245,7 +1245,7 @@ However, in prior versions of Rails, when defining multiple transactional
 `after_` callbacks (`after_commit`, `after_rollback`, etc), the order in which
 the callbacks were run was reversed.
 
-If for some reason, you'd still like them to run in reverse you can set the
+If for some reason you'd still like them to run in reverse, you can set the
 [following
 configuration](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
 to `false`. The callbacks will then run in the reverse order.
