@@ -3,7 +3,7 @@
 require "test_helper"
 require "stubs/test_server"
 
-class ActionCable::Server::Socket::CrossSiteForgeryTest < ActionCable::TestCase
+class ActionCable::Server::Base::CrossSiteForgeryTest < ActionCable::TestCase
   HOST = "rubyonrails.com"
 
   class Connection < ActionCable::Connection::Base

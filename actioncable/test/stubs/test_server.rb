@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-class TestServer
-  include ActionCable::Server::Connections
-  include ActionCable::Server::Broadcasting
-
-  attr_reader :logger, :config, :mutex
-
+class TestServer < ActionCable::Server::Base
   class FakeConfiguration < ActionCable::Server::Configuration
     attr_accessor :subscription_adapter, :log_tags, :filter_parameters, :connection_class
 
@@ -20,6 +15,8 @@ class TestServer
       @subscription_adapter
     end
   end
+
+  attr_reader :logger
 
   def initialize(subscription_adapter: SuccessAdapter)
     @logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(%w[1 t true].include?(ENV["LOG"]) ? STDOUT : StringIO.new))

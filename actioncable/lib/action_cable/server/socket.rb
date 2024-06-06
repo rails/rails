@@ -32,7 +32,7 @@ module ActionCable
       def process # :nodoc:
         logger.info started_request_message
 
-        if websocket.possible? && allow_request_origin?
+        if websocket.possible? && server.allow_request_origin?(env)
           respond_to_successful_request
         else
           respond_to_invalid_request
@@ -133,20 +133,6 @@ module ActionCable
 
           server.remove_connection(@connection)
           @connection.handle_close
-        end
-
-        def allow_request_origin?
-          return true if server.config.disable_request_forgery_protection
-
-          proto = request.ssl? ? "https" : "http"
-          if server.config.allow_same_origin_as_host && env["HTTP_ORIGIN"] == "#{proto}://#{request.host_with_port}"
-            true
-          elsif Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
-            true
-          else
-            logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
-            false
-          end
         end
 
         def respond_to_successful_request
