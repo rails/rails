@@ -277,24 +277,18 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
   end
 
   def test_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.offset(1).count }
     assert_equal 1, queries.length
     assert_match(/OFFSET/, queries.first)
   end
 
   def test_limit_with_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
@@ -844,11 +838,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_without_column_names
-    if current_adapter?(:OracleAdapter)
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil, "active"]], Company.order(:id).limit(1).pluck
-    else
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
-    end
+    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
   end
 
   def test_pluck_type_cast

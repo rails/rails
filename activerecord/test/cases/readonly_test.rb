@@ -130,14 +130,10 @@ class ReadOnlyTest < ActiveRecord::TestCase
       assert_not_predicate Post.readonly(false).find(1), :readonly?
     end
 
-    # Oracle barfs on this because the join includes unqualified and
-    # conflicting column names
-    unless current_adapter?(:OracleAdapter)
-      Post.joins(", developers").scoping do
-        assert_not_predicate Post.find(1), :readonly?
-        assert_predicate Post.readonly.find(1), :readonly?
-        assert_not_predicate Post.readonly(false).find(1), :readonly?
-      end
+    Post.joins(", developers").scoping do
+      assert_not_predicate Post.find(1), :readonly?
+      assert_predicate Post.readonly.find(1), :readonly?
+      assert_not_predicate Post.readonly(false).find(1), :readonly?
     end
 
     Post.readonly(true).scoping do

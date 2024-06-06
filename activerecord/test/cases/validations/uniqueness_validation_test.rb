@@ -442,7 +442,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = Event.create(title: "abcdefgh")
       assert_not e2.valid?, "Created an event whose title is not unique"
-    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
       assert_raise(ActiveRecord::ValueTooLong) do
         Event.create(title: "abcdefgh")
       end
@@ -461,7 +461,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = Event.create(title: "一二三四五六七八")
       assert_not e2.valid?, "Created an event whose title is not unique"
-    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
       assert_raise(ActiveRecord::ValueTooLong) do
         Event.create(title: "一二三四五六七八")
       end

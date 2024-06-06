@@ -56,7 +56,7 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 trilogy postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 trilogy postgresql sqlite3 sqlite3_mem ).each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]

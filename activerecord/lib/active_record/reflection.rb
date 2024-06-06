@@ -760,7 +760,7 @@ module ActiveRecord
                 plural_inverse_name = ActiveSupport::Inflector.pluralize(inverse_name)
                 reflection = klass._reflect_on_association(plural_inverse_name)
 
-                if reflection && !active_record.automatically_invert_plural_associations
+                if valid_inverse_reflection?(reflection) && !active_record.automatically_invert_plural_associations
                   ActiveRecord.deprecator.warn(
                     "The `#{active_record.name}##{name}` inverse association could have been automatically" \
                     " inferred as `#{klass.name}##{plural_inverse_name}` but wasn't because `automatically_invert_plural_associations`" \
