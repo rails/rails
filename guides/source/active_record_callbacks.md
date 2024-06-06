@@ -124,8 +124,7 @@ NOTE: A context is like a category or a scenario in which you want certain
 validations to apply. When you validate an ActiveRecord model, you can specify a
 context to group validations. This allows you to have different sets of
 validations that apply in different situations. In Rails, there are certain
-default contexts for validations like :create, :update, and :save. However, you
-can define [custom contexts](#custom-contexts) as well.
+default contexts for validations like :create, :update, and :save.
 
 ```ruby
 class User < ApplicationRecord
@@ -160,64 +159,6 @@ practice can modify the model's state and potentially lead to unforeseen side
 effects during commit. <br><br> Instead, you can assign values directly (e.g.,
 `self.attribute = "value"`) in `before_create`, `before_update`, or earlier
 callbacks for a safer approach.
-
-#### Custom Contexts
-
-You can define your own custom contexts for callbacks. This can be useful when
-you want to perform validations based on specific scenarios, or you want to
-group certain callbacks together and run them in a specific context. In these
-cases you may be tempted to [skip callbacks](#skipping-callbacks) altogether,
-but defining a custom context can sometimes be an alternative structured
-approach. You will need to combine a `context` with the `on` option to define a
-custom context for a callback.
-
-A common scenario for custom contexts is when you have a multi-step form where
-you want to perform validations per step. You can define custom context for each
-step of the form:
-
-```ruby
-class User < ApplicationRecord
-  validate :personal_information, on: :personal_info
-  validate :contact_information, on: :contact_info
-  validate :location_information, on: :location_info
-
-  private
-    def personal_information
-      errors.add(:base, "Name must be present") if first_name.blank?
-      errors.add(:base, "Age must be at least 18") if age && age < 18
-    end
-
-    def contact_information
-      errors.add(:base, "Email must be present") if email.blank?
-      errors.add(:base, "Phone number must be present") if phone.blank?
-    end
-
-    def location_information
-      errors.add(:base, "Address must be present") if address.blank?
-      errors.add(:base, "City must be present") if city.blank?
-    end
-end
-```
-
-Then, you can use this custom context to trigger the validations:
-
-```irb
-irb> user = User.new(name: "John Doe", age: 17, email: "jane@example.com", phone: "1234567890", address: "123 Main St")
-irb> user.valid?(:personal_info) # => false
-irb> user.valid?(:contact_info) # => true
-irb> user.valid?(:location_info) # => false
-```
-
-You can also use the custom contexts to trigger the validations on any method
-that supports callbacks. For example, you could use the custom context to
-trigger the validations on `save`:
-
-```irb
-irb> user = User.new(name: "John Doe", age: 17, email: "jane@example.com", phone: "1234567890", address: "123 Main St")
-irb> user.save(context: :personal_info) # => false
-irb> user.save(context: :contact_info) # => true
-irb> user.save(context: :location_info) # => false
-```
 
 Available Callbacks
 -------------------
