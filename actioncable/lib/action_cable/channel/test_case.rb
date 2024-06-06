@@ -172,7 +172,8 @@ module ActionCable
         included do
           class_attribute :_channel_class
 
-          attr_reader :subscription, :test_server
+          # Use testserver (not test_server) to silence "Test is missing assertions: `test_server`" warnings
+          attr_reader :subscription, :testserver
 
           ActiveSupport.run_load_hooks(:action_cable_channel_test_case, self)
         end
@@ -234,8 +235,8 @@ module ActionCable
         #     stub_connection(user: users[:john], token: 'my-secret-token')
         def stub_connection(**identifiers)
           @socket = Connection::TestSocket.new(Connection::TestSocket.build_request(ActionCable.server.config.mount_path || "/cable"))
-          @test_server = TestServer.new
-          @connection = self.class.connection_class.new(test_server, socket).tap do |conn|
+          @testserver = TestServer.new
+          @connection = self.class.connection_class.new(testserver, socket).tap do |conn|
             identifiers.each do |identifier, val|
               conn.public_send("#{identifier}=", val)
             end
@@ -289,7 +290,7 @@ module ActionCable
         #     end
         #
         def assert_no_streams
-          assert test_server.streams.empty?, "No streams started was expected, but #{test_server.streams.count} found"
+          assert testserver.streams.empty?, "No streams started was expected, but #{testserver.streams.count} found"
         end
 
         # Asserts that the specified stream has been started.
@@ -300,7 +301,7 @@ module ActionCable
         #     end
         #
         def assert_has_stream(stream)
-          assert test_server.streams.include?(stream), "Stream #{stream} has not been started"
+          assert testserver.streams.include?(stream), "Stream #{stream} has not been started"
         end
 
         # Asserts that the specified stream for a model has started.
@@ -322,7 +323,7 @@ module ActionCable
         #     end
         #
         def assert_has_no_stream(stream)
-          assert test_server.streams.exclude?(stream), "Stream #{stream} has been started"
+          assert testserver.streams.exclude?(stream), "Stream #{stream} has been started"
         end
 
         # Asserts that the specified stream for a model has not started.
