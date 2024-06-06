@@ -980,11 +980,12 @@ end
 Product.create # => false
 ```
 
-WARNING: Any exception that is not `ActiveRecord::Rollback`,
-`ActiveRecord::RecordNotSaved` or `ActiveRecord::RecordInvalid` will be
-re-raised by Rails after the callback chain is halted.
+WARNING: If an exception occurs during the callback chain, Rails will re-raise
+it unless it is an `ActiveRecord::Rollback`, `ActiveRecord::RecordNotSaved` or
+`ActiveRecord::RecordInvalid` exception.
 
-When `throw :abort` is called in destroy callbacks, `destroy` will return false:
+
+When `throw :abort` is called in any destroy callback, `destroy` will return false:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -992,15 +993,18 @@ class User < ActiveRecord::Base
       throw :abort if still_active?
    end
 end
+
 User.first.destroy # => false
 ```
 
-Additionally, it will raise a `ActiveRecord::RecordNotDestroyed` when calling
+However, it will raise an `ActiveRecord::RecordNotDestroyed` when calling
 `destroy!`.
 
 ```ruby
 User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
 ```
+
+In addition to the behaviors mentioned, it's important to note that when `throw :abort` is called in a `before_* callback` (such as `before_save`, `before_create`, or `before_update`), it will raise an `ActiveRecord::RecordNotSaved` exception. This exception indicates that the record was not saved due to the callback's interruption. Therefore, when using `throw :abort` in `before_*` callbacks, you should be prepared to handle the `ActiveRecord::RecordNotSaved` exception.
 
 Relational Callbacks
 --------------------
