@@ -947,42 +947,6 @@ User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
 
 In addition to the behaviors mentioned, it's important to note that when `throw :abort` is called in a `before_* callback` (such as `before_save`, `before_create`, or `before_update`), it will raise an `ActiveRecord::RecordNotSaved` exception. This exception indicates that the record was not saved due to the callback's interruption. Therefore, when using `throw :abort` in `before_*` callbacks, you should be prepared to handle the `ActiveRecord::RecordNotSaved` exception.
 
-Relational Callbacks
---------------------
-
-Callbacks work through model relationships. Life cycle events can cascade on associations and fire callbacks.
-
-Suppose an example where a user has many articles. A user's articles should be
-destroyed if the user is destroyed. Let's add an `after_destroy` callback to the
-`User` model by way of its relationship to the `Article` model:
-
-```ruby
-class User < ApplicationRecord
-  has_many :articles, dependent: :destroy
-end
-
-class Article < ApplicationRecord
-  after_destroy :log_destroy_action
-
-  def log_destroy_action
-    Rails.logger.info("Article destroyed")
-  end
-end
-```
-
-```irb
-irb> user = User.first
-=> #<User id: 1>
-irb> user.articles.create!
-=> #<Article id: 1, user_id: 1>
-irb> user.destroy
-Article destroyed
-=> #<User id: 1>
-```
-
-WARNING: When using a `before_destroy` callback, it should be placed before
-`dependent: :destroy` associations (or use the `prepend: true` option), to
-ensure they execute before the records are deleted by `dependent: :destroy`.
 
 Association Callbacks
 ---------------------
@@ -1059,6 +1023,43 @@ author.books = [book, book2]
 # Does not trigger the `before_add` callback
 book.update(author_id: 1)
 ```
+
+Cascading Association Callbacks
+--------------------
+
+Callbacks can be performed when asssociated objects are changed. They work through the model associations whereby life cycle events can cascade on associations and fire callbacks.
+
+Suppose an example where a user has many articles. A user's articles should be
+destroyed if the user is destroyed. Let's add an `after_destroy` callback to the
+`User` model by way of its association to the `Article` model:
+
+```ruby
+class User < ApplicationRecord
+  has_many :articles, dependent: :destroy
+end
+
+class Article < ApplicationRecord
+  after_destroy :log_destroy_action
+
+  def log_destroy_action
+    Rails.logger.info("Article destroyed")
+  end
+end
+```
+
+```irb
+irb> user = User.first
+=> #<User id: 1>
+irb> user.articles.create!
+=> #<Article id: 1, user_id: 1>
+irb> user.destroy
+Article destroyed
+=> #<User id: 1>
+```
+
+WARNING: When using a `before_destroy` callback, it should be placed before
+`dependent: :destroy` associations (or use the `prepend: true` option), to
+ensure they execute before the records are deleted by `dependent: :destroy`.
 
 Transaction Callbacks
 ---------------------
