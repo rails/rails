@@ -935,7 +935,7 @@ false:
 ```ruby
 class User < ActiveRecord::Base
   before_destroy do
-     throw :abort if still_active?
+    throw :abort if still_active?
   end
 end
 
@@ -1192,7 +1192,7 @@ class User < ApplicationRecord
 
   private
     def log_user_saved_to_db
-       Rails.logger.info("User was saved to database")
+      Rails.logger.info("User was saved to database")
     end
 end
 ```
