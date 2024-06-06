@@ -113,24 +113,18 @@ Here is a quick explanation of the Mailer related methods used above:
 For the `welcome_email` action, you'll need to create a matching view in a file called `welcome_email.html.erb` in the `app/views/user_mailer/` directory. Here is a sample HTML template that can be used the welcome email:
 
 ```html+erb
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
-  </head>
-  <body>
-    <h1>Welcome to example.com, <%= @user.name %></h1>
-    <p>
-      You have successfully signed up to example.com,
-      your username is: <%= @user.login %>.<br>
-    </p>
-    <p>
-      To login to the site, just follow this link: <%= @url %>.
-    </p>
-    <p>Thanks for joining and have a great day!</p>
-  </body>
-</html>
+<h1>Welcome to example.com, <%= @user.name %></h1>
+<p>
+  You have successfully signed up to example.com,
+  your username is: <%= @user.login %>.<br>
+</p>
+<p>
+  To login to the site, just follow this link: <%= @url %>.
+</p>
+<p>Thanks for joining and have a great day!</p>
 ```
+
+NOTE: the above is the content of the `<body>` tag. It will be embedded in the default mailer layout, which contains the `<html>` tag. See [Mailer layouts](#mailer-views) for more TODO. 
 
 You can also create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Not all clients prefer HTML emails,
 and so sending both is best practice. Here is a sample text email:
@@ -167,7 +161,7 @@ $ bin/rails db:migrate
 
 Next, we edit the `create` action in the `UserController` to send a welcome email when a new user is created. We do this by inserting a call to `UserMailer.with(user:@user).welcome_email` right after the user is successfully saved.
 
-Note that we use [`deliver_later`][] to enqueue the email to be sent later, This
+NOTE We use [`deliver_later`][] to enqueue the email to be sent later, This
 way, the controller action will continue without waiting for the email sending
 code to run. The `deliver_later` method is backed by [Active Job](active_job_basics.html#action-mailer).
 
@@ -225,14 +219,6 @@ Content-Type: text/html;
 
 ...
 ```
-
-NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter.
-So, you can use `deliver_later` to send emails asynchronously. Active Job's
-default adapter runs jobs with an in-process thread pool. It's well-suited for
-the development/test environments, since it doesn't require any external
-infrastructure, but it's a poor fit for production since it drops pending jobs
-on restart. If you need a persistent backend, you will need to use an Active Job
-adapter that has a persistent backend (Sidekiq, Resque, etc).
 
 If you want to send emails right away (from a cronjob for example) you can call
 [`deliver_now`][]:
