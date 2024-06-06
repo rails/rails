@@ -1696,7 +1696,7 @@ database adapter to work with UUIDs.
 
 4. Migration Changes
 
-    When generating migrations for your models, you'll notice that it secifies
+    When generating migrations for your models, you'll notice that it specifies
     the id to be of type uuid:
 
     ```bash
