@@ -54,8 +54,8 @@ Implementation can be done in a multitude of ways like using ordinary methods,
 blocks and procs, or defining custom callback objects using classes or modules.
 Let's go through each of these implementation techniques.
 
-You can register the callbacks with a **macro-style class method that calls an ordinary
-method** for implementation.
+You can register the callbacks with a **macro-style class method that calls an
+ordinary method** for implementation.
 
 ```ruby
 class User < ApplicationRecord
@@ -333,8 +333,9 @@ User welcome email sent to: john.doe@example.com
 
 ### Updating an Object
 
-Update callbacks are triggered whenever an **existing** record is persisted (i.e. "saved")
-to the underlying database. They are called before, after and around the object is updated.
+Update callbacks are triggered whenever an **existing** record is persisted
+(i.e. "saved") to the underlying database. They are called before, after and
+around the object is updated.
 
 * [`before_validation`][]
 * [`after_validation`][]
@@ -444,7 +445,9 @@ Notification sent to admin about critical info update for: john.doe.new@example.
 
 ### Destroying an Object
 
-Destroy callbacks are triggered whenever a record is destroyed, but ignored when a record is deleted. They are called before, after and around the object is destroyed.
+Destroy callbacks are triggered whenever a record is destroyed, but ignored when
+a record is deleted. They are called before, after and around the object is
+destroyed.
 
 * [`before_destroy`][]
 * [`around_destroy`][]
@@ -926,7 +929,8 @@ it unless it is an `ActiveRecord::Rollback`, `ActiveRecord::RecordNotSaved` or
 `ActiveRecord::RecordInvalid` exception.
 
 
-When `throw :abort` is called in any destroy callback, `destroy` will return false:
+When `throw :abort` is called in any destroy callback, `destroy` will return
+false:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -945,7 +949,13 @@ However, it will raise an `ActiveRecord::RecordNotDestroyed` when calling
 User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
 ```
 
-In addition to the behaviors mentioned, it's important to note that when `throw :abort` is called in a `before_* callback` (such as `before_save`, `before_create`, or `before_update`), it will raise an `ActiveRecord::RecordNotSaved` exception. This exception indicates that the record was not saved due to the callback's interruption. Therefore, when using `throw :abort` in `before_*` callbacks, you should be prepared to handle the `ActiveRecord::RecordNotSaved` exception.
+In addition to the behaviors mentioned, it's important to note that when `throw
+:abort` is called in a `before_* callback` (such as `before_save`,
+`before_create`, or `before_update`), it will raise an
+`ActiveRecord::RecordNotSaved` exception. This exception indicates that the
+record was not saved due to the callback's interruption. Therefore, when using
+`throw :abort` in `before_*` callbacks, you should be prepared to handle the
+`ActiveRecord::RecordNotSaved` exception.
 
 
 Association Callbacks
@@ -1027,7 +1037,9 @@ book.update(author_id: 1)
 Cascading Association Callbacks
 --------------------
 
-Callbacks can be performed when asssociated objects are changed. They work through the model associations whereby life cycle events can cascade on associations and fire callbacks.
+Callbacks can be performed when asssociated objects are changed. They work
+through the model associations whereby life cycle events can cascade on
+associations and fire callbacks.
 
 Suppose an example where a user has many articles. A user's articles should be
 destroyed if the user is destroyed. Let's add an `after_destroy` callback to the
@@ -1119,8 +1131,8 @@ NOTE: The `:on` option specifies when a callback will be fired. If you don't
 supply the `:on` option the callback will fire for every life cycle event. Read
 more about `:on` [here](#registering-callbacks-to-fire-on-life-cycle-events).
 
-When a transaction completes, the `after_commit` or `after_rollback`
-callbacks are called for all models created, updated, or destroyed within that
+When a transaction completes, the `after_commit` or `after_rollback` callbacks
+are called for all models created, updated, or destroyed within that
 transaction. However, if an exception is raised within one of these callbacks,
 the exception will bubble up and any remaining `after_commit` or
 `after_rollback` methods will _not_ be executed.
@@ -1132,13 +1144,13 @@ class User < ActiveRecord::Base
 end
 ```
 
-WARNING. If your callback code raises an exception, you'll need to rescue it and handle it within the
-callback in order to allow other callbacks to run.
+WARNING. If your callback code raises an exception, you'll need to rescue it and
+handle it within the callback in order to allow other callbacks to run.
 
-`after_commit` makes
-very different guarantees than `after_save`, `after_update`, and
-`after_destroy`. For example, if an exception occurs in an `after_save` the
-transaction will be rolled back and the data will not be persisted.
+`after_commit` makes very different guarantees than `after_save`,
+`after_update`, and `after_destroy`. For example, if an exception occurs in an
+`after_save` the transaction will be rolled back and the data will not be
+persisted.
 
 ```ruby
 class User < ActiveRecord::Base
@@ -1149,8 +1161,8 @@ class User < ActiveRecord::Base
 end
 ```
 
-However, during `after_commit` the data was already persisted to the database, and thus
-any exception won't roll anything back anymore.
+However, during `after_commit` the data was already persisted to the database,
+and thus any exception won't roll anything back anymore.
 
 ```ruby
 class User < ActiveRecord::Base
@@ -1161,12 +1173,10 @@ class User < ActiveRecord::Base
 end
 ```
 
-The code executed
-within `after_commit` or `after_rollback` callbacks is itself not enclosed
-within a transaction.
+The code executed within `after_commit` or `after_rollback` callbacks is itself
+not enclosed within a transaction.
 
-In the context of a single transaction, if you
-represent the same record in the
+In the context of a single transaction, if you represent the same record in the
 database, there's a crucial behavior in the `after_commit` and `after_rollback`
 callbacks to note. These callbacks are triggered only for the first object of
 the specific record that changes within the transaction. Other loaded objects,
@@ -1188,17 +1198,17 @@ irb> user = User.create
 irb> User.transaction { user.save; user.save }
 # User was saved to database
 ```
-WARNING: This nuanced behavior is
-particularly impactful in scenarios where you expect independent callback
-execution for each object associated with the same database record. It can
-influence the flow and predictability of callback sequences, leading to
-potential inconsistencies in application logic following the
-transaction.
+WARNING: This nuanced behavior is particularly impactful in scenarios where you
+expect independent callback execution for each object associated with the same
+database record. It can influence the flow and predictability of callback
+sequences, leading to potential inconsistencies in application logic following
+the transaction.
 
 ### Aliases for `after_commit`
 
-Using the `after_commit` callback only on create, update, or delete is
-common. Sometimes you may also want to use a single callback for both `create` and `update`. Here are some common aliases for these operations:
+Using the `after_commit` callback only on create, update, or delete is common.
+Sometimes you may also want to use a single callback for both `create` and
+`update`. Here are some common aliases for these operations:
 
 * [`after_destroy_commit`][]
 * [`after_create_commit`][]
@@ -1237,10 +1247,10 @@ end
 
 The same applies for `after_create_commit` and `after_update_commit`.
 
-However, if you use the `after_create_commit` and the `after_update_commit` callback with the same method
-name, it will only allow the last callback defined to take effect, as they both
-internally alias to `after_commit` which overrides previously defined callbacks
-with the same method name.
+However, if you use the `after_create_commit` and the `after_update_commit`
+callback with the same method name, it will only allow the last callback defined
+to take effect, as they both internally alias to `after_commit` which overrides
+previously defined callbacks with the same method name.
 
 ```ruby
 class User < ApplicationRecord
@@ -1262,8 +1272,8 @@ irb> user.save # updating @user
 User was saved to database
 ```
 
-In this case, it's better to use `after_save_commit` instead which is an alias for using the
-`after_commit` callback for both create and update:
+In this case, it's better to use `after_save_commit` instead which is an alias
+for using the `after_commit` callback for both create and update:
 
 ```ruby
 class User < ApplicationRecord
@@ -1328,11 +1338,11 @@ Sometimes the callback methods that you'll write will be useful enough to be
 reused by other models. Active Record makes it possible to create classes that
 encapsulate the callback methods, so they can be reused.
 
-Here's an example of an `after_commit` callback  class to
-deal with the cleanup of discarded files on the filesystem. This behavior may
-not be unique to our `PictureFile` model and we may want to share it, so it's a
-good idea to encapsulate this into a separate class. This will make testing that
-behavior and changing it much easier.
+Here's an example of an `after_commit` callback  class to deal with the cleanup
+of discarded files on the filesystem. This behavior may not be unique to our
+`PictureFile` model and we may want to share it, so it's a good idea to
+encapsulate this into a separate class. This will make testing that behavior and
+changing it much easier.
 
 ```ruby
 class FileDestroyerCallback
