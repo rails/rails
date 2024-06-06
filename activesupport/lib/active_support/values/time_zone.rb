@@ -574,6 +574,12 @@ module ActiveSupport
       tzinfo.abbr(time)
     end
 
+    # Available so that TimeZone instances respond like +TZInfo::Timezone+
+    # instances.
+    def dst?(time)
+      tzinfo.dst?(time)
+    end
+
     def init_with(coder) # :nodoc:
       initialize(coder["name"])
     end
