@@ -118,7 +118,8 @@ module ActiveSupport
 
         expressions.zip(exps, before) do |(code, diff), exp, before_value|
           actual = exp.call
-          error  = "#{code.inspect} didn't change by #{diff}, but by #{actual - before_value}"
+          code_string = code.respond_to?(:call) ? _callable_to_source_string(code) : code
+          error  = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}"
           error  = "#{message}.\n#{error}" if message
           assert_equal(before_value + diff, actual, error)
         end
@@ -202,7 +203,8 @@ module ActiveSupport
 
         after = exp.call
 
-        error = "#{expression.inspect} didn't change"
+        code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
+        error = "`#{code_string}` didn't change"
         error = "#{error}. It was already #{to.inspect}" if before == to
         error = "#{message}.\n#{error}" if message
         refute_equal before, after, error
@@ -249,7 +251,8 @@ module ActiveSupport
 
         after = exp.call
 
-        error = "#{expression.inspect} changed"
+        code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
+        error = "`#{code_string}` changed"
         error = "#{message}.\n#{error}" if message
 
         if before.nil?
@@ -275,6 +278,36 @@ module ActiveSupport
           end
 
           raise
+        end
+
+        def _callable_to_source_string(callable)
+          if defined?(RubyVM::AbstractSyntaxTree) && callable.is_a?(Proc)
+            ast = begin
+              RubyVM::AbstractSyntaxTree.of(callable, keep_script_lines: true)
+            rescue SystemCallError
+              # Failed to get the source somehow
+              return callable
+            end
+            return callable unless ast
+
+            source = ast.source
+            source.strip!
+
+            # We ignore procs defined with do/end as they are likely multi-line anyway.
+            if source.start_with?("{")
+              source.delete_suffix!("}")
+              source.delete_prefix!("{")
+              source.strip!
+              # It won't read nice if the callable contains multiple
+              # lines, and it should be a rare occurence anyway.
+              # Same if it takes arguments.
+              if !source.include?("\n") && !source.start_with?("|")
+                return source
+              end
+            end
+          end
+
+          callable
         end
     end
   end
