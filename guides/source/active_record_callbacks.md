@@ -899,9 +899,9 @@ error will be re-raised.
 
 ```ruby
 class Product < ActiveRecord::Base
-   before_validation do
-      raise "Price can't be negative" if total_price < 0
-   end
+  before_validation do
+    raise "Price can't be negative" if total_price < 0
+  end
 end
 
 Product.create # raises "Price can't be negative"
@@ -916,9 +916,9 @@ false.
 
 ```ruby
 class Product < ActiveRecord::Base
-   before_validation do
-      throw :abort if total_price < 0
-   end
+  before_validation do
+    throw :abort if total_price < 0
+  end
 end
 
 Product.create # => false
@@ -934,9 +934,9 @@ false:
 
 ```ruby
 class User < ActiveRecord::Base
-   before_destroy do
-      throw :abort if still_active?
-   end
+  before_destroy do
+     throw :abort if still_active?
+  end
 end
 
 User.first.destroy # => false
@@ -1139,8 +1139,11 @@ the exception will bubble up and any remaining `after_commit` or
 
 ```ruby
 class User < ActiveRecord::Base
-  after_commit { raise }
-  after_commit { # this won't get called }
+  after_commit { raise "Intentional Error" }
+  after_commit {
+    # This won't get called because the previous after_commit raises an exception
+    Rails.logger.info("This will not be logged")
+  }
 end
 ```
 
@@ -1186,6 +1189,7 @@ despite representing the same database record, will not have their respective
 ```ruby
 class User < ApplicationRecord
   after_commit :log_user_saved_to_db, on: :update
+
   private
     def log_user_saved_to_db
        Rails.logger.info("User was saved to database")
@@ -1193,7 +1197,7 @@ class User < ApplicationRecord
 end
 ```
 
-```ruby
+```irb
 irb> user = User.create
 irb> User.transaction { user.save; user.save }
 # User was saved to database
