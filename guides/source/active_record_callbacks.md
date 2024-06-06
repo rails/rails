@@ -1198,6 +1198,7 @@ irb> user = User.create
 irb> User.transaction { user.save; user.save }
 # User was saved to database
 ```
+
 WARNING: This nuanced behavior is particularly impactful in scenarios where you
 expect independent callback execution for each object associated with the same
 database record. It can influence the flow and predictability of callback
