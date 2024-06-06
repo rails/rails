@@ -38,16 +38,13 @@ views.
 
 ### Generate the Mailer
 
-You can user the "mailer" generator to create Mailer related classes:
+You can user the "mailer" generator to create the Mailer related classes:
 
 ```bash
 $ bin/rails generate mailer User
 create  app/mailers/user_mailer.rb
-create  app/mailers/application_mailer.rb
 invoke  erb
 create    app/views/user_mailer
-create    app/views/layouts/mailer.text.erb
-create    app/views/layouts/mailer.html.erb
 invoke  test_unit
 create    test/mailers/user_mailer_test.rb
 create    test/mailers/previews/user_mailer_preview.rb
@@ -71,12 +68,11 @@ class ApplicationMailer < ActionMailer::Base
 end
 ```
 
-If you didn't want to use a generator, you can create your own file inside of
-`app/mailers` directory. Make sure that it inherits from `ActionMailer::Base`:
+If you don't want to use a generator, you can manually add a file to the `app/mailers` directory. Make sure that your class inherits from `ApplicationMailer`:
 
 ```ruby
-# app/mailers/my_mailer.rb
-class MyMailer < ActionMailer::Base
+# app/mailers/custom_mailer.rb
+class CustomMailer < ApplicationMailer
 end
 ```
 
@@ -101,10 +97,10 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Here is a quick explanation of the Mialer related methods used above:
+Here is a quick explanation of the Mailer related methods used above:
 
 * The [`default`][] method sets default values for all emails sent from
-  this mailer. In this case, we use it to set the `:from` header value for all
+  _this_ mailer. In this case, we use it to set the `:from` header value for all
   messages in this class. This can be overridden on a per-email basis.
 * The [`mail`][] method creates the actual email message. We use it to specify
   the values of headers like `:to` and `:subject` per email.
@@ -114,8 +110,7 @@ Here is a quick explanation of the Mialer related methods used above:
 
 ### Create a Mailer View
 
-For the `welcome_email` action, you'll need to create a matching view in a file called `welcome_email.html.erb` in the `app/views/user_mailer/` directory. This
-will be the HTML template used for the email:
+For the `welcome_email` action, you'll need to create a matching view in a file called `welcome_email.html.erb` in the `app/views/user_mailer/` directory. Here is a sample HTML template that can be used the welcome email:
 
 ```html+erb
 <!DOCTYPE html>
@@ -137,7 +132,7 @@ will be the HTML template used for the email:
 </html>
 ```
 
-You can create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Not all clients prefer HTML emails,
+You can also create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Not all clients prefer HTML emails,
 and so sending both is best practice. Here is a sample text email:
 
 ```erb
@@ -159,7 +154,7 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 
 ### Call the Mailer
 
-Mailers can be thought of as another way to render a view. Controller actions render a view to be sent over the HTTP protocol. Mailer actions render a view and send it through email protocols instead.
+Mailers can be thought of as another way of rendering views. Controller actions render a view to be sent over the HTTP protocol. Mailer actions render a view and send it through email protocols instead.
 
 Let's see an example of using a Mailer to send an email when a user is successfully created:
 
@@ -188,10 +183,10 @@ class UsersController < ApplicationController
         # Tell the UserMailer to send a welcome email after save
         UserMailer.with(user: @user).welcome_email.deliver_later
 
-        format.html { redirect_to(@user, notice: 'User was successfully created.') }
-        format.json { render json: @user, status: :created, location: @user }
+        format.html { redirect_to user_url(@user), notice: "User was successfully created." }
+        format.json { render :show, status: :created, location: @user }
       else
-        format.html { render action: 'new' }
+        format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @user.errors, status: :unprocessable_entity }
       end
     end
@@ -199,6 +194,36 @@ class UsersController < ApplicationController
 
   # ...
 end
+```
+
+Any key-value pair passed to [`with`][] becomes the `params` for the Mailer
+action. For example, `with(user: @user, account: @user.account)` makes `params[:user]` and `params[:account]` available in the Mailer action.
+
+With the above Mailer and views set up, if you create a new `User`, you can examine the logs to see the welcome email being sent. The log file will show the text and HTML versions being sent, like this:
+
+```bash
+[ActiveJob] [ActionMailer::MailDeliveryJob] [ec4b3786-b9fc-4b5e-8153-9153095e1cbf] Delivered mail 6661f55087e34_1380c7eb86934d@Bhumis-MacBook-Pro.local.mail (19.9ms)
+[ActiveJob] [ActionMailer::MailDeliveryJob] [ec4b3786-b9fc-4b5e-8153-9153095e1cbf] Date: Thu, 06 Jun 2024 12:43:44 -0500
+From: notifications@example.com
+To: test@gmail.com
+Message-ID: <6661f55087e34_1380c7eb86934d@Bhumis-MacBook-Pro.local.mail>
+Subject: Welcome to My Awesome Site
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="--==_mimepart_6661f55086194_1380c7eb869259";
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+
+----==_mimepart_6661f55086194_1380c7eb869259
+Content-Type: text/plain;
+
+...
+
+----==_mimepart_6661f55086194_1380c7eb869259
+Content-Type: text/html;
+
+...
 ```
 
 NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter.
@@ -221,10 +246,6 @@ class SendWeeklySummary
   end
 end
 ```
-
-Any key-value pair passed to [`with`][] becomes the `params` for the Mailer
-action. So `with(user: @user, account: @user.account)` makes `params[:user]` and
-`params[:account]` available in the Mailer action.
 
 The method `weekly_summary` returns an [`ActionMailer::MessageDelivery`][]
 object which has the methods `deliver_now` or `deliver_later` to send itself now or later. The `ActionMailer::MessageDelivery` object is a wrapper around a
