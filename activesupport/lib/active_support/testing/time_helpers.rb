@@ -163,10 +163,10 @@ module ActiveSupport
           now = date_or_time.midnight.to_time
         elsif date_or_time.is_a?(String)
           now = Time.zone.parse(date_or_time)
-        elsif with_usec
-          now = date_or_time.to_time
         else
-          now = date_or_time.to_time.change(usec: 0)
+          now = date_or_time
+          now = now.to_time unless now.is_a?(Time)
+          now = now.change(usec: 0) unless with_usec
         end
 
         # +now+ must be in local system timezone, because +Time.at(now)+

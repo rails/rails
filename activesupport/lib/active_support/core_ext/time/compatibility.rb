@@ -13,4 +13,20 @@ class Time
   def to_time
     preserve_timezone ? self : getlocal
   end
+
+  def preserve_timezone # :nodoc:
+    active_support_local_zone == zone || super
+  end
+
+  private
+    @@active_support_local_tz = nil
+
+    def active_support_local_zone
+      @@active_support_local_zone = nil if @@active_support_local_tz != ENV["TZ"]
+      @@active_support_local_zone ||=
+        begin
+          @@active_support_local_tz = ENV["TZ"]
+          Time.new.zone
+        end
+    end
 end
