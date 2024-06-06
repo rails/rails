@@ -141,6 +141,21 @@ module ActionCable
         TaggedLoggerProxy.new logger,
           tags: config.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request ||= block.call) : tag.to_s.camelize }
       end
+
+      # Check if the request origin is allowed to connect to the Action Cable server.
+      def allow_request_origin?(env)
+        return true if config.disable_request_forgery_protection
+
+        proto = Rack::Request.new(env).ssl? ? "https" : "http"
+        if config.allow_same_origin_as_host && env["HTTP_ORIGIN"] == "#{proto}://#{env['HTTP_HOST']}"
+          true
+        elsif Array(config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
+          true
+        else
+          logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
+          false
+        end
+      end
     end
 
     ActiveSupport.run_load_hooks(:action_cable, Base.config)
