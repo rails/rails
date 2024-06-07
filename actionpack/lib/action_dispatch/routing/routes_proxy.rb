@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/array/extract_options"
 
 module ActionDispatch
@@ -46,10 +48,10 @@ module ActionDispatch
         end
       end
 
-      # Keeps the part of the script name provided by the global
-      # context via ENV["SCRIPT_NAME"], which `mount` doesn't know
-      # about since it depends on the specific request, but use our
-      # script name resolver for the mount point dependent part.
+      # Keeps the part of the script name provided by the global context via
+      # [ENV]("SCRIPT_NAME"), which `mount` doesn't know about since it depends on the
+      # specific request, but use our script name resolver for the mount point
+      # dependent part.
       def merge_script_names(previous_script_name, new_script_name)
         return new_script_name unless previous_script_name
 

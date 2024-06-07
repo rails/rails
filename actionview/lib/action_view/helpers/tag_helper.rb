@@ -420,6 +420,14 @@ module ActionView
       #   # A void element:
       #   tag.br  # => <br>
       #
+      # Note that when using the block form options should be wrapped in
+      # parenthesis.
+      #
+      #   <%= tag.a(href: "/about", class: "font-bold") do %>
+      #     About the author
+      #   <% end %>
+      #   # => <a href="/about" class="font-bold">About the author</a>
+      #
       # === Building HTML attributes
       #
       # Transforms a Hash into HTML attributes, ready to be interpolated into

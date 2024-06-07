@@ -1,13 +1,16 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
 	"name": "Rails project development",
-	"dockerComposeFile": "docker-compose.yml",
+	"dockerComposeFile": "compose.yaml",
 	"service": "rails",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers/features/github-cli:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
 			"version": "latest"
 		}
 	},

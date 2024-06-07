@@ -86,6 +86,7 @@ module ActiveRecord
   autoload :Timestamp
   autoload :TokenFor
   autoload :TouchLater
+  autoload :Transaction
   autoload :Transactions
   autoload :Translation
   autoload :Validations
@@ -183,8 +184,7 @@ module ActiveRecord
   ##
   # :singleton-method: lazily_load_schema_cache
   # Lazily load the schema cache. This option will load the schema cache
-  # when a connection is established rather than on boot. If set,
-  # +config.active_record.use_schema_cache_dump+ will be set to false.
+  # when a connection is established rather than on boot.
   singleton_class.attr_accessor :lazily_load_schema_cache
   self.lazily_load_schema_cache = false
 
@@ -195,6 +195,17 @@ module ActiveRecord
   # the schema cache will not dump tables named with an underscore.
   singleton_class.attr_accessor :schema_cache_ignored_tables
   self.schema_cache_ignored_tables = []
+
+  # Checks to see if the +table_name+ is ignored by checking
+  # against the +schema_cache_ignored_tables+ option.
+  #
+  #   ActiveRecord.schema_cache_ignored_table?(:developers)
+  #
+  def self.schema_cache_ignored_table?(table_name)
+    ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
+      ignored === table_name
+    end
+  end
 
   singleton_class.attr_reader :default_timezone
 
@@ -300,6 +311,17 @@ module ActiveRecord
     @global_executor_concurrency ||= nil
   end
 
+  @permanent_connection_checkout = true
+  singleton_class.attr_reader :permanent_connection_checkout
+
+  # Defines whether +ActiveRecord::Base.connection+ is allowed, deprecated, or entirely disallowed.
+  def self.permanent_connection_checkout=(value)
+    unless [true, :deprecated, :disallowed].include?(value)
+      raise ArgumentError, "permanent_connection_checkout must be one of: `true`, `:deprecated` or `:disallowed`"
+    end
+    @permanent_connection_checkout = value
+  end
+
   singleton_class.attr_accessor :index_nested_attribute_errors
   self.index_nested_attribute_errors = false
 
@@ -333,8 +355,19 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
-  singleton_class.attr_accessor :commit_transaction_on_non_local_return
-  self.commit_transaction_on_non_local_return = false
+  def self.commit_transaction_on_non_local_return
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
+
+  def self.commit_transaction_on_non_local_return=(value)
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
 
   ##
   # :singleton-method: warn_on_records_fetched_greater_than
@@ -381,6 +414,14 @@ module ActiveRecord
   self.timestamped_migrations = true
 
   ##
+  # :singleton-method: validate_migration_timestamps
+  # Specify whether or not to validate migration timestamps. When set, an error
+  # will be raised if a timestamp is more than a day ahead of the timestamp
+  # associated with the current time. +timestamped_migrations+ must be set to true.
+  singleton_class.attr_accessor :validate_migration_timestamps
+  self.validate_migration_timestamps = false
+
+  ##
   # :singleton-method: migration_strategy
   # Specify strategy to use for executing migrations.
   singleton_class.attr_accessor :migration_strategy
@@ -405,20 +446,6 @@ module ActiveRecord
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
 
-  def self.suppress_multiple_database_warning
-    ActiveRecord.deprecator.warn(<<-MSG.squish)
-      config.active_record.suppress_multiple_database_warning is deprecated and will be removed in Rails 7.2.
-      It no longer has any effect and should be removed from the configuration file.
-    MSG
-  end
-
-  def self.suppress_multiple_database_warning=(value)
-    ActiveRecord.deprecator.warn(<<-MSG.squish)
-      config.active_record.suppress_multiple_database_warning= is deprecated and will be removed in Rails 7.2.
-      It no longer has any effect and should be removed from the configuration file.
-    MSG
-  end
-
   ##
   # :singleton-method: verify_foreign_keys_for_fixtures
   # If true, Rails will verify all foreign keys in the database after loading fixtures.
@@ -428,12 +455,19 @@ module ActiveRecord
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
 
-  ##
-  # :singleton-method: allow_deprecated_singular_associations_name
-  # If true, Rails will continue allowing plural association names in where clauses on singular associations
-  # This behavior will be removed in Rails 7.2.
-  singleton_class.attr_accessor :allow_deprecated_singular_associations_name
-  self.allow_deprecated_singular_associations_name = true
+  def self.allow_deprecated_singular_associations_name
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
+
+  def self.allow_deprecated_singular_associations_name=(value)
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
 
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
@@ -516,6 +550,51 @@ module ActiveRecord
   # Explicitly closes all database connections in all pools.
   def self.disconnect_all!
     ConnectionAdapters::PoolConfig.disconnect_all!
+  end
+
+  # Registers a block to be called after all the current transactions have been
+  # committed.
+  #
+  # If there is no currently open transaction, the block is called immediately.
+  #
+  # If there are multiple nested transactions, the block is called after the outermost one
+  # has been committed,
+  #
+  # If any of the currently open transactions is rolled back, the block is never called.
+  #
+  # If multiple transactions are open across multiple databases, the block will be invoked
+  # if and once all of them have been committed. But note that nesting transactions across
+  # two distinct databases is a sharding anti-pattern that comes with a world of hurts.
+  def self.after_all_transactions_commit(&block)
+    open_transactions = all_open_transactions
+
+    if open_transactions.empty?
+      yield
+    elsif open_transactions.size == 1
+      open_transactions.first.after_commit(&block)
+    else
+      count = open_transactions.size
+      callback = -> do
+        count -= 1
+        block.call if count.zero?
+      end
+      open_transactions.each do |t|
+        t.after_commit(&callback)
+      end
+      open_transactions = nil # rubocop:disable Lint/UselessAssignment avoid holding it in the closure
+    end
+  end
+
+  def self.all_open_transactions # :nodoc:
+    open_transactions = []
+    Base.connection_handler.each_connection_pool do |pool|
+      if active_connection = pool.active_connection
+        if active_connection.current_transaction.open? && active_connection.current_transaction.joinable?
+          open_transactions << active_connection.current_transaction
+        end
+      end
+    end
+    open_transactions
   end
 end
 

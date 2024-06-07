@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/blank"
-require "logger"
 require "active_support/logger"
 
 module ActiveSupport
@@ -119,6 +118,10 @@ module ActiveSupport
 
       if logger.formatter
         logger.formatter = logger.formatter.clone
+
+        # Workaround for https://bugs.ruby-lang.org/issues/20250
+        # Can be removed when Ruby 3.4 is the least supported version.
+        logger.formatter.object_id if logger.formatter.is_a?(Proc)
       else
         # Ensure we set a default formatter so we aren't extending nil!
         logger.formatter = ActiveSupport::Logger::SimpleFormatter.new

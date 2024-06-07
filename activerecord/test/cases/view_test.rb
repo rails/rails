@@ -19,7 +19,7 @@ module ViewBehavior
 
   def setup
     super
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     create_view "ebooks'", <<~SQL
       SELECT id, name, cover, status FROM books WHERE format = 'ebook'
     SQL
@@ -85,7 +85,7 @@ module ViewBehavior
     end
 end
 
-if ActiveRecord::Base.connection.supports_views?
+if ActiveRecord::Base.lease_connection.supports_views?
   class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
     include ViewBehavior
 
@@ -101,12 +101,14 @@ if ActiveRecord::Base.connection.supports_views?
 
   class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
+
+    self.use_transactional_tests = false
     fixtures :books
 
     class Paperback < ActiveRecord::Base; end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.execute <<~SQL
         CREATE VIEW paperbacks
           AS SELECT name, status FROM books WHERE format = 'paperback'
@@ -158,7 +160,7 @@ if ActiveRecord::Base.connection.supports_views?
 
   class UpdateableViewTest < ActiveRecord::TestCase
     # SQLite does not support CREATE, INSERT, and DELETE for VIEW
-    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLServerAdapter, :PostgreSQLAdapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
       self.use_transactional_tests = false
       fixtures :books
 
@@ -167,7 +169,7 @@ if ActiveRecord::Base.connection.supports_views?
       end
 
       setup do
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         @connection.execute <<~SQL
           CREATE VIEW printed_books
             AS SELECT id, name, status, format FROM books WHERE format = 'paperback'
@@ -208,11 +210,11 @@ if ActiveRecord::Base.connection.supports_views?
           book.reload
         end
       end
-    end # end of `if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :SQLServerAdapter)`
+    end # end of `if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)`
   end
-end # end of `if ActiveRecord::Base.connection.supports_views?`
+end # end of `if ActiveRecord::Base.lease_connection.supports_views?`
 
-if ActiveRecord::Base.connection.supports_materialized_views?
+if ActiveRecord::Base.lease_connection.supports_materialized_views?
   class MaterializedViewTest < ActiveRecord::PostgreSQLTestCase
     include ViewBehavior
 

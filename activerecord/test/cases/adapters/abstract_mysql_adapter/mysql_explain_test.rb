@@ -66,6 +66,6 @@ class MySQLExplainTest < ActiveRecord::AbstractMysqlTestCase
     end
 
     def conn
-      ActiveRecord::Base.connection
+      ActiveRecord::Base.lease_connection
     end
 end

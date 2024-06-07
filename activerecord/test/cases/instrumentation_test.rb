@@ -2,11 +2,12 @@
 
 require "cases/helper"
 require "models/book"
+require "models/clothing_item"
 
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
     def setup
-      ActiveRecord::Base.connection.schema_cache.add(Book.table_name)
+      ActiveRecord::Base.schema_cache.add(Book.table_name)
     end
 
     def test_payload_name_on_load
@@ -142,13 +143,13 @@ module ActiveRecord
           assert_equal 10, payload[:row_count]
         end
       end
-      ActiveRecord::Base.connection.execute("SELECT * FROM books WHERE name='row count book 3';")
+      ActiveRecord::Base.lease_connection.execute("SELECT * FROM books WHERE name='row count book 3';")
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
 
     def test_payload_connection_with_query_cache_disabled
-      connection = Book.connection
+      connection = ClothingItem.lease_connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         assert_equal connection, payload[:connection]
       end
@@ -158,7 +159,7 @@ module ActiveRecord
     end
 
     def test_payload_connection_with_query_cache_enabled
-      connection = Book.connection
+      connection = ClothingItem.lease_connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         assert_equal connection, payload[:connection]
       end
@@ -169,5 +170,48 @@ module ActiveRecord
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
+  end
+end
+
+class ActiveRecord::TransactionInSqlActiveRecordPayloadTest < ActiveRecord::TestCase
+  # We need current_transaction to return the null transaction.
+  self.use_transactional_tests = false
+
+  def test_payload_without_an_open_transaction
+    asserted = false
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      if event.payload.fetch(:name) == "Book Count"
+        assert_nil event.payload.fetch(:transaction)
+        asserted = true
+      end
+    end
+
+    Book.count
+
+    assert asserted
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_payload_with_an_open_transaction
+    asserted = false
+    expected_transaction = nil
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      if event.payload.fetch(:name) == "Book Count"
+        assert_same expected_transaction, event.payload.fetch(:transaction)
+        asserted = true
+      end
+    end
+
+    Book.transaction do |transaction|
+      expected_transaction = transaction
+      Book.count
+    end
+
+    assert asserted
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
   end
 end

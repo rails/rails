@@ -39,7 +39,19 @@ module ActiveSupport
         location ||= caller_locations(1, 1).first
         file, line = location.path, location.lineno
 
-        receiver = to.to_s
+        receiver = if to.is_a?(Module)
+          if to.name.nil?
+            raise ArgumentError, "Can't delegate to anonymous class or module: #{to}"
+          end
+
+          unless Inflector.safe_constantize(to.name).equal?(to)
+            raise ArgumentError, "Can't delegate to detached class or module: #{to.name}"
+          end
+
+          "::#{to.name}"
+        else
+          to.to_s
+        end
         receiver = "self.#{receiver}" if RESERVED_METHOD_NAMES.include?(receiver)
 
         explicit_receiver = false

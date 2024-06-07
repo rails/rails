@@ -176,7 +176,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Make `locals` argument required on `ActionView::Template#initialize`.
 
-*   The `javascript_include_tag` and `stylesheet_link_tag` asset helpers generate a `Link` header that gives hints to modern browsers about preloading assets. This can be disabled by setting `config.action_view.preload_links_header` to `false`.
+*   The `javascript_include_tag` and `stylesheet_link_tag` asset helpers generate a `link` header that gives hints to modern browsers about preloading assets. This can be disabled by setting `config.action_view.preload_links_header` to `false`.
 
 Action Mailer
 -------------

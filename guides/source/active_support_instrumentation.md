@@ -213,7 +213,7 @@ Additional keys may be added by the caller.
 }
 ```
 
-### Action Controller — Caching
+### Action Controller: Caching
 
 #### `write_fragment.action_controller`
 
@@ -360,6 +360,7 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:sql`               | SQL statement                            |
 | `:name`              | Name of the operation                    |
 | `:connection`        | Connection object                        |
+| `:transaction`       | Current transaction, if any              |
 | `:binds`             | Bind parameters                          |
 | `:type_casted_binds` | Typecasted bind parameters               |
 | `:statement_name`    | SQL Statement name                       |
@@ -374,12 +375,15 @@ Adapters may add their own data as well.
   sql: "SELECT \"posts\".* FROM \"posts\" ",
   name: "Post Load",
   connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
+  transaction: <ActiveRecord::ConnectionAdapters::RealTransaction:0x0000000121b5d3e0>
   binds: [<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
   statement_name: nil,
   row_count: 5
 }
 ```
+
+If the query is not executed in the context of a transaction, `:transaction` is `nil`.
 
 #### `strict_loading_violation.active_record`
 
@@ -405,6 +409,21 @@ This event is only emitted when [`config.active_record.action_on_strict_loading_
   class_name: "User"
 }
 ```
+
+#### `transaction.active_record`
+
+This event is emmited for every transaction to the database.
+
+| Key                  | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| `:transaction`       | Transaction object                                   |
+| `:outcome`           | `:commit`, `:rollback`, `:restart`, or `:incomplete` |
+| `:connection`        | Connection object                                    |
+
+Please note that at this point the transaction has been finished, and its state
+is in the `:outcome` key. In practice, you cannot do much with the transaction
+object, but it may still be helpful for tracing database activity. For example,
+by tracking `transaction.uuid`.
 
 ### Action Mailer
 
@@ -452,7 +471,7 @@ This event is only emitted when [`config.active_record.action_on_strict_loading_
 }
 ```
 
-### Active Support — Caching
+### Active Support: Caching
 
 #### `cache_read.active_support`
 
@@ -662,7 +681,7 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#fetch_multi]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
 
-### Active Support — Messages
+### Active Support: Messages
 
 #### `message_serializer_fallback.active_support`
 
@@ -799,7 +818,7 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 | ------------ | ------------------------------ |
 | `:analyzer`  | Name of analyzer e.g., ffprobe |
 
-### Active Storage — Storage Service
+### Active Storage: Storage Service
 
 #### `service_upload.active_storage`
 
@@ -916,7 +935,7 @@ This event is only emitted when using the Google Cloud Storage service.
 Exceptions
 ----------
 
-If an exception happens during any instrumentation the payload will include
+If an exception happens during any instrumentation, the payload will include
 information about it.
 
 | Key                 | Value                                                          |

@@ -11,7 +11,7 @@ class MySQLEnumTest < ActiveRecord::AbstractMysqlTestCase
   class EnumTest < ActiveRecord::Base
     attribute :state, :integer
 
-    enum state: {
+    enum :state, {
       start: 0,
       middle: 1,
       finish: 2
@@ -19,7 +19,7 @@ class MySQLEnumTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def setup
-    EnumTest.connection.create_table :enum_tests, id: false, force: true do |t|
+    EnumTest.lease_connection.create_table :enum_tests, id: false, force: true do |t|
       t.column :enum_column, "enum('text','blob','tiny','medium','long','unsigned','bigint')"
       t.column :state, "TINYINT(1)"
     end

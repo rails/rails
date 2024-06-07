@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   # :stopdoc:
   module Journey
@@ -52,7 +54,7 @@ module ActionDispatch
 
       ##
       # +path+ is a path constraint.
-      # +constraints+ is a hash of constraints to be applied to this route.
+      # `constraints` is a hash of constraints to be applied to this route.
       def initialize(name:, app: nil, path:, constraints: {}, required_defaults: [], defaults: {}, request_method_match: nil, precedence: 0, scope_options: {}, internal: false, source_location: nil)
         @name        = name
         @app         = app
@@ -82,14 +84,14 @@ module ActionDispatch
         nil
       end
 
-      # Needed for `bin/rails routes`. Picks up succinctly defined requirements
-      # for a route, for example route
+      # Needed for `bin/rails routes`. Picks up succinctly defined requirements for a
+      # route, for example route
       #
-      #   get 'photo/:id', :controller => 'photos', :action => 'show',
-      #     :id => /[A-Z]\d{5}/
+      #     get 'photo/:id', :controller => 'photos', :action => 'show',
+      #       :id => /[A-Z]\d{5}/
       #
-      # will have {:controller=>"photos", :action=>"show", :id=>/[A-Z]\d{5}/}
-      # as requirements.
+      # will have {:controller=>"photos", :action=>"show", :[id=>/](A-Z){5}/} as
+      # requirements.
       def requirements
         @defaults.merge(path.requirements).delete_if { |_, v|
           /.+?/m == v

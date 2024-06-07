@@ -2,12 +2,12 @@
 
 require "cases/helper"
 
-if ActiveRecord::Base.connection.supports_foreign_keys?
+if ActiveRecord::Base.lease_connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyInCreateTest < ActiveRecord::TestCase
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table(:testing_parents, force: true)
         end
 
@@ -63,7 +63,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
                        fks.map { |fk| [fk.from_table, fk.to_table, fk.column] })
         end
 
-        if ActiveRecord::Base.connection.supports_deferrable_constraints?
+        if ActiveRecord::Base.lease_connection.supports_deferrable_constraints?
           test "deferrable: false option can be passed" do
             @connection.create_table :testings do |t|
               t.references :testing_parent, foreign_key: { deferrable: false }
@@ -112,7 +112,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
     class Migration
       class ReferencesForeignKeyTest < ActiveRecord::TestCase
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table(:testing_parents, force: true)
         end
 

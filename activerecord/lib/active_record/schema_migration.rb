@@ -9,29 +9,35 @@ module ActiveRecord
     class NullSchemaMigration # :nodoc:
     end
 
-    attr_reader :connection, :arel_table
+    attr_reader :arel_table
 
-    def initialize(connection)
-      @connection = connection
+    def initialize(pool)
+      @pool = pool
       @arel_table = Arel::Table.new(table_name)
     end
 
     def create_version(version)
       im = Arel::InsertManager.new(arel_table)
       im.insert(arel_table[primary_key] => version)
-      connection.insert(im, "#{self.class} Create", primary_key, version)
+      @pool.with_connection do |connection|
+        connection.insert(im, "#{self.class} Create", primary_key, version)
+      end
     end
 
     def delete_version(version)
       dm = Arel::DeleteManager.new(arel_table)
       dm.wheres = [arel_table[primary_key].eq(version)]
 
-      connection.delete(dm, "#{self.class} Destroy")
+      @pool.with_connection do |connection|
+        connection.delete(dm, "#{self.class} Destroy")
+      end
     end
 
     def delete_all_versions
-      versions.each do |version|
-        delete_version(version)
+      @pool.with_connection do |connection|
+        versions.each do |version|
+          delete_version(version)
+        end
       end
     end
 
@@ -44,15 +50,19 @@ module ActiveRecord
     end
 
     def create_table
-      unless connection.table_exists?(table_name)
-        connection.create_table(table_name, id: false) do |t|
-          t.string :version, **connection.internal_string_options_for_primary_key
+      @pool.with_connection do |connection|
+        unless connection.table_exists?(table_name)
+          connection.create_table(table_name, id: false) do |t|
+            t.string :version, **connection.internal_string_options_for_primary_key
+          end
         end
       end
     end
 
     def drop_table
-      connection.drop_table table_name, if_exists: true
+      @pool.with_connection do |connection|
+        connection.drop_table table_name, if_exists: true
+      end
     end
 
     def normalize_migration_number(number)
@@ -68,7 +78,9 @@ module ActiveRecord
       sm.project(arel_table[primary_key])
       sm.order(arel_table[primary_key].asc)
 
-      connection.select_values(sm, "#{self.class} Load")
+      @pool.with_connection do |connection|
+        connection.select_values(sm, "#{self.class} Load")
+      end
     end
 
     def integer_versions
@@ -79,11 +91,15 @@ module ActiveRecord
       sm = Arel::SelectManager.new(arel_table)
       sm.project(*Arel::Nodes::Count.new([Arel.star]))
 
-      connection.select_values(sm, "#{self.class} Count").first
+      @pool.with_connection do |connection|
+        connection.select_values(sm, "#{self.class} Count").first
+      end
     end
 
     def table_exists?
-      connection.data_source_exists?(table_name)
+      @pool.with_connection do |connection|
+        connection.data_source_exists?(table_name)
+      end
     end
   end
 end

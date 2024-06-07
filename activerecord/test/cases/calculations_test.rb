@@ -227,7 +227,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_not_use_alias_for_grouped_field
-    assert_queries_match(/GROUP BY #{Regexp.escape(Account.connection.quote_table_name("accounts.firm_id"))}/i) do
+    assert_queries_match(/GROUP BY #{Regexp.escape(Account.lease_connection.quote_table_name("accounts.firm_id"))}/i) do
       c = Account.group(:firm_id).order("accounts_firm_id").sum(:credit_limit)
       assert_equal [1, 2, 6, 9], c.keys.compact
     end
@@ -277,24 +277,18 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
   end
 
   def test_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.offset(1).count }
     assert_equal 1, queries.length
     assert_match(/OFFSET/, queries.first)
   end
 
   def test_limit_with_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
@@ -403,6 +397,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal(expected, Cpk::Book.where(author_id: book.author_id).group(:author_id).count)
   end
 
+  def test_count_for_a_composite_primary_key_model_with_includes_and_references
+    assert_equal Cpk::Book.count, Cpk::Book.includes(:chapters).references(:chapters).count
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]
@@ -468,7 +466,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_grouped_with_longer_field
-    field = "a" * Account.connection.max_identifier_length
+    field = "a" * Account.lease_connection.max_identifier_length
 
     Account.update_all("#{field} = credit_limit")
 
@@ -840,11 +838,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_without_column_names
-    if current_adapter?(:OracleAdapter)
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil, "active"]], Company.order(:id).limit(1).pluck
-    else
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
-    end
+    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
   end
 
   def test_pluck_type_cast
@@ -853,6 +847,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.approved ], relation.pluck(:approved)
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
+    assert_equal(
+      [[topic.written_on, topic.replies_count]],
+      relation.pluck("min(written_on)", "min(replies_count)")
+    )
   end
 
   def test_pluck_type_cast_with_conflict_column_names
@@ -950,6 +948,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
     assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
+  end
+
+  def test_pluck_with_hash_argument
+    expected = [
+      [1, "The First Topic"],
+      [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"]
+    ]
+    assert_equal expected, Topic.order(:id).limit(3).pluck(:id, topics: [:title])
+  end
+
+  def test_pluck_with_hash_argument_with_multiple_tables
+    expected = [
+      [1, 1, "Thank you for the welcome"],
+      [1, 2, "Thank you again for the welcome"],
+      [2, 3, "Don't think too hard"]
+    ]
+    assert_equal expected, Post.joins(:comments).order(posts: { id: :asc }, comments: { id: :asc }).limit(3).pluck(posts: [:id], comments: [:id, :body])
+  end
+
+  def test_pluck_with_hash_argument_containing_non_existent_field
+    assert_raises(ActiveRecord::StatementInvalid) do
+      Topic.pluck(topics: [:non_existent])
+    end
   end
 
   def test_ids
@@ -1130,7 +1152,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_group_by_with_quoted_count_and_order_by_alias
-    quoted_posts_id = Post.connection.quote_table_name("posts.id")
+    quoted_posts_id = Post.lease_connection.quote_table_name("posts.id")
     expected = { "SpecialPost" => 1, "StiPost" => 1, "Post" => 9 }
     actual = Post.group(:type).order("count_posts_id").count(quoted_posts_id)
     assert_equal expected, actual
@@ -1206,22 +1228,13 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_functions_without_alias
-    expected = if current_adapter?(:PostgreSQLAdapter)
-      # PostgreSQL returns the same name for each column in the given query, so each column is named "coalesce"
-      # As a result Rails cannot accurately type cast each value.
-      # To work around this, you should use aliases in your select statement (see test_pluck_functions_with_alias).
-      [
-        ["1", "The First Topic"], ["2", "The Second Topic of the day"],
-        ["3", "The Third Topic of the day"], ["4", "The Fourth Topic of the day"],
-        ["5", "The Fifth Topic of the day"]
-      ]
-    else
-      [
-        [1, "The First Topic"], [2, "The Second Topic of the day"],
-        [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
-        [5, "The Fifth Topic of the day"]
-      ]
-    end
+    expected = [
+      [1, "The First Topic"],
+      [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"],
+      [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ]
 
     assert_equal expected, Topic.order(:id).pluck(
       Arel.sql("COALESCE(id, 0)"),
@@ -1390,7 +1403,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_takes_attribute_type_precedence_over_database_type
     assert_called(
-      Account.connection, :select_all,
+      Account.lease_connection, :select_all,
       returns: ActiveRecord::Result.new(["count"], [["10"]])
     ) do
       result = Account.count
@@ -1401,7 +1414,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_sum_takes_attribute_type_precedence_over_database_type
     assert_called(
-      Account.connection, :select_all,
+      Account.lease_connection, :select_all,
       returns: ActiveRecord::Result.new(["sum"], [[10.to_d]])
     ) do
       result = Account.sum(:credit_limit)

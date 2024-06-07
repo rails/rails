@@ -37,30 +37,30 @@ module ActiveRecord
         # and won't be able to write to the second connection.
         SecondaryBase.connects_to database: { writing: { database: tf_writing.path, adapter: "sqlite3" }, secondary: { database: tf_reading.path, adapter: "sqlite3" } }
 
-        MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
-        MultiConnectionTestModel.connection.execute("INSERT INTO multi_connection_test_models VALUES ('writing')")
+        MultiConnectionTestModel.lease_connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
+        MultiConnectionTestModel.lease_connection.execute("INSERT INTO multi_connection_test_models VALUES ('writing')")
 
         ActiveRecord::Base.connected_to(role: :secondary) do
-          MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
-          MultiConnectionTestModel.connection.execute("INSERT INTO multi_connection_test_models VALUES ('reading')")
+          MultiConnectionTestModel.lease_connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
+          MultiConnectionTestModel.lease_connection.execute("INSERT INTO multi_connection_test_models VALUES ('reading')")
         end
 
         read_latch = Concurrent::CountDownLatch.new
         write_latch = Concurrent::CountDownLatch.new
 
-        MultiConnectionTestModel.connection
+        MultiConnectionTestModel.lease_connection
 
         thread = Thread.new do
-          MultiConnectionTestModel.connection
+          MultiConnectionTestModel.lease_connection
 
           write_latch.wait
-          assert_equal "writing", MultiConnectionTestModel.connection.select_value("SELECT connection_role from multi_connection_test_models")
+          assert_equal "writing", MultiConnectionTestModel.lease_connection.select_value("SELECT connection_role from multi_connection_test_models")
           read_latch.count_down
         end
 
         ActiveRecord::Base.connected_to(role: :secondary) do
           write_latch.count_down
-          assert_equal "reading", MultiConnectionTestModel.connection.select_value("SELECT connection_role from multi_connection_test_models")
+          assert_equal "reading", MultiConnectionTestModel.lease_connection.select_value("SELECT connection_role from multi_connection_test_models")
           read_latch.wait
         end
 
@@ -78,7 +78,7 @@ module ActiveRecord
         SecondaryBase.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" }, secondary: { database: ":memory:", adapter: "sqlite3" } }
 
         relation = ActiveRecord::Base.connected_to(role: :secondary) do
-          MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
+          MultiConnectionTestModel.lease_connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
           MultiConnectionTestModel.create!(connection_role: "reading")
           MultiConnectionTestModel.where(connection_role: "reading")
         end
@@ -130,14 +130,14 @@ module ActiveRecord
             assert_equal :reading, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :reading)
             assert_not ActiveRecord::Base.connected_to?(role: :writing)
-            assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :writing) do
             assert_equal :writing, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :writing)
             assert_not ActiveRecord::Base.connected_to?(role: :reading)
-            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -323,15 +323,7 @@ module ActiveRecord
         assert_equal([@rw_pool], @handler.connection_pool_list(:writing))
         assert_equal([@ro_pool], @handler.connection_pool_list(:reading))
 
-        assert_deprecated(ActiveRecord.deprecator) do
-          @handler.connection_pool_list
-        end
-      end
-
-      def test_all_connection_pools
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_equal([@rw_pool, @ro_pool], @handler.all_connection_pools)
-        end
+        assert_equal([@rw_pool, @ro_pool], @handler.connection_pool_list)
       end
 
       def test_retrieve_connection
@@ -340,22 +332,20 @@ module ActiveRecord
       end
 
       def test_active_connections?
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_not_predicate @handler, :active_connections?
-        end
+        assert_not_predicate @handler, :active_connections?
 
         assert @handler.retrieve_connection(@connection_name)
         assert @handler.retrieve_connection(@connection_name, role: :reading)
 
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_predicate @handler, :active_connections?
-        end
+        assert_predicate @handler, :active_connections?
+
+        @handler.clear_active_connections!(:writing)
+
+        assert_predicate @handler, :active_connections?
 
         @handler.clear_active_connections!(:all)
 
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_not_predicate @handler, :active_connections?
-        end
+        assert_not_predicate @handler, :active_connections?
       end
 
       def test_retrieve_connection_pool

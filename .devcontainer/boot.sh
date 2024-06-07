@@ -1,7 +1,7 @@
 bundle install
-yarn install
 
-sudo chown -R vscode:vscode /usr/local/bundle
+. ${NVM_DIR}/nvm.sh && nvm install --lts
+yarn install
 
 cd activerecord
 

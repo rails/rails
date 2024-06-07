@@ -8,7 +8,7 @@ class ActionMailbox::MigrationsTest < ActiveSupport::TestCase
     @original_verbose = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
 
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @original_options = Rails.configuration.generators.options.deep_dup
   end
 

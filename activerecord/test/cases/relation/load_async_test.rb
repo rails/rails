@@ -9,7 +9,7 @@ require "models/other_dog"
 module ActiveRecord
   module WaitForAsyncTestHelper
     private
-      def wait_for_async_query(connection = ActiveRecord::Base.connection, timeout: 5)
+      def wait_for_async_query(connection = ActiveRecord::Base.lease_connection, timeout: 5)
         return unless connection.async_enabled?
 
         executor = connection.pool.async_executor
@@ -124,9 +124,9 @@ module ActiveRecord
       wait_for_async_query
 
       assert_equal expected_records, deferred_posts.to_a
-      assert_equal Post.connection.supports_concurrent_connections?, status[:async]
+      assert_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
       assert_equal Thread.current.object_id, status[:thread_id]
-      if Post.connection.supports_concurrent_connections?
+      if Post.lease_connection.supports_concurrent_connections?
         assert_instance_of Float, status[:lock_wait]
       else
         assert_nil status[:lock_wait]
@@ -151,7 +151,7 @@ module ActiveRecord
       wait_for_async_query
 
       assert_equal expected_records, deferred_posts.to_a
-      assert_equal Post.connection.supports_concurrent_connections?, status[:async]
+      assert_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
@@ -199,7 +199,7 @@ module ActiveRecord
       assert_queries_count(0) do
         deferred_posts.each(&:comments)
       end
-      assert_equal Post.connection.supports_concurrent_connections?, status[:async]
+      assert_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
@@ -215,6 +215,11 @@ module ActiveRecord
     def test_pluck
       titles = Post.where(author_id: 1).pluck(:title)
       assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+    end
+
+    def test_count
+      count = Post.where(author_id: 1).count
+      assert_equal count, Post.where(author_id: 1).load_async.count
     end
 
     def test_size
@@ -233,10 +238,17 @@ module ActiveRecord
       assert_predicate deferred_posts, :loaded?
     end
 
-    def test_load_async_with_query_cache
+    def test_load_async_pluck_with_query_cache
       titles = Post.where(author_id: 1).pluck(:title)
       Post.cache do
         assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+      end
+    end
+
+    def test_load_async_count_with_query_cache
+      count = Post.where(author_id: 1).count
+      Post.cache do
+        assert_equal count, Post.where(author_id: 1).load_async.count
       end
     end
   end
@@ -286,7 +298,7 @@ module ActiveRecord
         deferred_posts = Post.where(author_id: 1).load_async
 
         assert_equal expected_records, deferred_posts.to_a
-        assert_not_equal Post.connection.supports_concurrent_connections?, status[:async]
+        assert_not_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
@@ -326,7 +338,7 @@ module ActiveRecord
           deferred_posts.each(&:comments)
         end
 
-        assert_predicate Post.connection, :supports_concurrent_connections?
+        assert_predicate Post.lease_connection, :supports_concurrent_connections?
         assert_not status[:async], "Expected status[:async] to be false with NullExecutor"
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
@@ -429,7 +441,7 @@ module ActiveRecord
         wait_for_async_query
 
         assert_equal expected_records, deferred_posts.to_a
-        assert_equal Post.connection.supports_concurrent_connections?, status[:async]
+        assert_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
@@ -468,7 +480,7 @@ module ActiveRecord
         assert_queries_count(0) do
           deferred_posts.each(&:comments)
         end
-        assert_equal Post.connection.supports_concurrent_connections?, status[:async]
+        assert_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
@@ -577,8 +589,8 @@ module ActiveRecord
         assert_equal expected_records, deferred_posts.to_a
         assert_equal expected_dogs, deferred_dogs.to_a
 
-        assert_equal Post.connection.async_enabled?, status[:async]
-        assert_equal OtherDog.connection.async_enabled?, dog_status[:async]
+        assert_equal Post.lease_connection.async_enabled?, status[:async]
+        assert_equal OtherDog.lease_connection.async_enabled?, dog_status[:async]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end

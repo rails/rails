@@ -12,12 +12,12 @@ module ActiveRecord
           result
         end
 
-        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
+        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 
-          result = raw_execute(sql, name, async: async)
+          result = raw_execute(sql, name, async: async, allow_retry: allow_retry)
           ActiveRecord::Result.new(result.fields, result.to_a)
         end
 
@@ -96,7 +96,7 @@ module ActiveRecord
 
               yield
             ensure
-              conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF)
+              conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF) if active?
             end
           end
       end

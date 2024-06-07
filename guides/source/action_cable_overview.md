@@ -762,9 +762,8 @@ production:
   adapter: redis
   url: rediss://10.10.3.153:tls_port
   channel_prefix: appname_production
-  ssl_params: {
+  ssl_params:
     ca_file: "/path/to/ca.crt"
-  }
 ```
 
 The options given to `ssl_params` are passed directly to the `OpenSSL::SSL::SSLContext#set_params` method and can be any valid attribute of the SSL context.
@@ -779,6 +778,8 @@ WARNING: It is not recommended to use `VERIFY_NONE` in production unless you abs
 The PostgreSQL adapter uses Active Record's connection pool, and thus the
 application's `config/database.yml` database configuration, for its connection.
 This may change in the future. [#27214](https://github.com/rails/rails/issues/27214)
+
+NOTE: PostgreSQL has a [8000 bytes limit](https://www.postgresql.org/docs/current/sql-notify.html) on `NOTIFY` (the command used under the hood for sending notifications) which might be a constraint when dealing with large payloads.
 
 ### Allowed Request Origins
 

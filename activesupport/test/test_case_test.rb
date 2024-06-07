@@ -416,8 +416,8 @@ class ExceptionsInsideAssertionsTest < ActiveSupport::TestCase
       Other block based assertions (e.g. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
     MSG
     assert_includes @out.string, expected
-    assert error.message.include?("ArgumentError: ArgumentError")
-    assert error.message.include?("in `block (2 levels) in run_test_that_should_fail_confusingly'")
+    assert_includes error.message, "ArgumentError: ArgumentError"
+    assert_includes error.message, "run_test_that_should_fail_confusingly"
   end
 
   private
@@ -580,13 +580,27 @@ class TestConstStubbing < ActiveSupport::TestCase
     assert_equal 1, ConstStubbable::CONSTANT
   end
 
-  test "trying to stub a constant that does not exist in the receiver raises NameError" do
+  test "stubbing a constant that does not exist in the receiver raises NameError" do
     assert_raises(NameError) do
       stub_const(ConstStubbable, :NOT_A_CONSTANT, 1) { }
     end
 
     assert_raises(NameError) do
       stub_const(SubclassOfConstStubbable, :CONSTANT, 1) { }
+    end
+  end
+
+  test "stubbing a constant that does not exist can be done with `exists: false`" do
+    stub_const(ConstStubbable, :NOT_A_CONSTANT, 1, exists: false) do
+      assert_equal 1, ConstStubbable::NOT_A_CONSTANT
+    end
+
+    assert_raises(NameError) do
+      ConstStubbable::NOT_A_CONSTANT
+    end
+
+    assert_raises(NameError) do
+      stub_const(Object, :ConstStubbable, 1, exists: false)
     end
   end
 end

@@ -213,14 +213,14 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
-  def test_enqueue_at_job_logging
-    events = subscribed { HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian" }
-    assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
-    assert_equal(1, events.count)
-    key, * = events.first
-    assert_equal("enqueue_at.active_job", key)
-  rescue NotImplementedError
-    skip
+  unless adapter_is?(:inline, :sneakers)
+    def test_enqueue_at_job_logging
+      events = subscribed { HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian" }
+      assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
+      assert_equal(1, events.count)
+      key, * = events.first
+      assert_equal("enqueue_at.active_job", key)
+    end
   end
 
   def test_enqueue_at_job_log_error_when_callback_chain_is_halted
@@ -244,14 +244,14 @@ class LoggingTest < ActiveSupport::TestCase
     assert_equal("enqueue_at.active_job", key)
   end
 
-  def test_enqueue_in_job_logging
-    events = subscribed { HelloJob.set(wait: 2.seconds).perform_later "Cristian" }
-    assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
-    assert_equal(1, events.count)
-    key, * = events.first
-    assert_equal("enqueue_at.active_job", key)
-  rescue NotImplementedError
-    skip
+  unless adapter_is?(:inline, :sneakers)
+    def test_enqueue_in_job_logging
+      events = subscribed { HelloJob.set(wait: 2.seconds).perform_later "Cristian" }
+      assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
+      assert_equal(1, events.count)
+      key, * = events.first
+      assert_equal("enqueue_at.active_job", key)
+    end
   end
 
   def test_enqueue_log_when_enqueue_error_is_set
@@ -270,7 +270,9 @@ class LoggingTest < ActiveSupport::TestCase
 
   def test_for_tagged_logger_support_is_consistent
     set_logger ::Logger.new(nil)
-    OverriddenLoggingJob.perform_later "Dummy"
+    assert_nothing_raised do
+      OverriddenLoggingJob.perform_later "Dummy"
+    end
   end
 
   def test_job_error_logging
@@ -278,20 +280,22 @@ class LoggingTest < ActiveSupport::TestCase
       RescueJob.perform_later "other"
     rescue RescueJob::OtherError
       assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
-      assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
+      assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in .*perform'/, @logger.messages)
     end
   end
 
   def test_job_no_error_logging_on_rescuable_job
     perform_enqueued_jobs { RescueJob.perform_later "david" }
     assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*david/, @logger.messages)
-    assert_no_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: ArgumentError \(Hair too good\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
+    assert_no_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: ArgumentError \(Hair too good\):\n.*\brescue_job\.rb:\d+:in .*perform'/, @logger.messages)
   end
 
-  def test_enqueue_retry_logging
-    perform_enqueued_jobs do
-      RetryJob.perform_later "DefaultsError", 2
-      assert_match(/Retrying RetryJob \(Job ID: .*?\) after \d+ attempts in 3 seconds, due to a DefaultsError.*\./, @logger.messages)
+  unless adapter_is?(:inline, :sneakers)
+    def test_enqueue_retry_logging
+      perform_enqueued_jobs do
+        RetryJob.perform_later "DefaultsError", 2
+        assert_match(/Retrying RetryJob \(Job ID: .*?\) after \d+ attempts in 3 seconds, due to a DefaultsError.*\./, @logger.messages)
+      end
     end
   end
 
@@ -300,18 +304,20 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Retrying RescueJob \(Job ID: .*?\) after \d+ attempts in 0 seconds\./, @logger.messages)
   end
 
-  def test_retry_stopped_logging
-    perform_enqueued_jobs do
-      RetryJob.perform_later "CustomCatchError", 6
+  unless adapter_is?(:inline, :sneakers)
+    def test_retry_stopped_logging
+      perform_enqueued_jobs do
+        RetryJob.perform_later "CustomCatchError", 6
+      end
+      assert_match(/Stopped retrying RetryJob \(Job ID: .*?\) due to a CustomCatchError.*, which reoccurred on \d+ attempts\./, @logger.messages)
     end
-    assert_match(/Stopped retrying RetryJob \(Job ID: .*?\) due to a CustomCatchError.*, which reoccurred on \d+ attempts\./, @logger.messages)
-  end
 
-  def test_retry_stopped_logging_without_block
-    perform_enqueued_jobs do
-      RetryJob.perform_later "DefaultsError", 6
-    rescue DefaultsError
-      assert_match(/Stopped retrying RetryJob \(Job ID: .*?\) due to a DefaultsError.*, which reoccurred on \d+ attempts\./, @logger.messages)
+    def test_retry_stopped_logging_without_block
+      perform_enqueued_jobs do
+        RetryJob.perform_later "DefaultsError", 6
+      rescue DefaultsError
+        assert_match(/Stopped retrying RetryJob \(Job ID: .*?\) due to a DefaultsError.*, which reoccurred on \d+ attempts\./, @logger.messages)
+      end
     end
   end
 

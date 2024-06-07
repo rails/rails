@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 
 class ExecutorTest < ActiveSupport::TestCase
   class MyBody < Array
@@ -117,6 +118,56 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_equal (requests_count * 2) - 1, total
     assert_equal requests_count, ran
     assert_equal requests_count - 1, completed
+  end
+
+  def test_error_reporting
+    raised_error = nil
+    error_report = assert_error_reported do
+      raised_error = assert_raises TypeError do
+        call_and_return_body { 1 + "1" }
+      end
+    end
+    assert_same raised_error, error_report.error
+  end
+
+  def test_error_reporting_with_show_exception
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { 1 + "1" }),
+          ->(_env) { [500, {}, ["Oops"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    error_report = assert_error_reported do
+      middleware.call(env)
+    end
+    assert_instance_of TypeError, error_report.error
+  end
+
+  class BusinessAsUsual < StandardError; end
+
+  def test_handled_error_is_not_reported
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { raise BusinessAsUsual }),
+          ->(env) { [418, {}, ["I'm a teapot"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    ActionDispatch::ExceptionWrapper.with(rescue_responses: { BusinessAsUsual.name => 418 }) do
+      assert_no_error_reported do
+        response = middleware.call(env)
+        assert_equal 418, response[0]
+      end
+    end
   end
 
   private

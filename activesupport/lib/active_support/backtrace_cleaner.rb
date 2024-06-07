@@ -34,6 +34,7 @@ module ActiveSupport
   class BacktraceCleaner
     def initialize
       @filters, @silencers = [], []
+      add_core_silencer
       add_gem_filter
       add_gem_silencer
       add_stdlib_silencer
@@ -109,6 +110,11 @@ module ActiveSupport
     private
       FORMATTED_GEMS_PATTERN = /\A[^\/]+ \([\w.]+\) /
 
+      def initialize_copy(_other)
+        @filters = @filters.dup
+        @silencers = @silencers.dup
+      end
+
       def add_gem_filter
         gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
         return if gems_paths.empty?
@@ -116,6 +122,10 @@ module ActiveSupport
         gems_regexp = %r{\A(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
         gems_result = '\3 (\4) \5'
         add_filter { |line| line.sub(gems_regexp, gems_result) }
+      end
+
+      def add_core_silencer
+        add_silencer { |line| line.include?("<internal:") }
       end
 
       def add_gem_silencer

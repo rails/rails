@@ -28,7 +28,7 @@ module ActiveRecord
       end
 
       def format(pairs)
-        pairs.sort_by!(&:first)
+        pairs.sort_by! { |pair| pair.first.to_s }
         super
       end
 

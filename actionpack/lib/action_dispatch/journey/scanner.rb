@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "strscan"
 
 module ActionDispatch
@@ -33,8 +35,8 @@ module ActionDispatch
       end
 
       private
-        # takes advantage of String @- deduping capabilities in Ruby 2.5 upwards
-        # see: https://bugs.ruby-lang.org/issues/13077
+        # takes advantage of String @- deduping capabilities in Ruby 2.5 upwards see:
+        # https://bugs.ruby-lang.org/issues/13077
         def dedup_scan(regex)
           r = @ss.scan(regex)
           r ? -r : nil

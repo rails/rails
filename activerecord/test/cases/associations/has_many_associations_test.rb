@@ -171,9 +171,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, counter
     post = posts.first
     assert_equal 0, counter
-    sql = capture_sql { post.comments.to_a }
+    queries = capture_sql_and_binds { post.comments.to_a }
     post.comments.reset
-    assert_not_equal sql, capture_sql { post.comments.to_a }
+    assert_not_equal queries, capture_sql_and_binds { post.comments.to_a }
   end
 
   def test_has_many_build_with_options
@@ -486,7 +486,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     self.table_name = "books"
 
     belongs_to :author
-    enum last_read: { unread: 0, reading: 2, read: 3, forgotten: nil }
+    enum :last_read, { unread: 0, reading: 2, read: 3, forgotten: nil }
   end
 
   def test_association_enum_works_properly
@@ -925,7 +925,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_reload_with_query_cache
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -943,11 +943,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 1, connection.query_cache.size
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_reloading_unloaded_associations_with_query_cache
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -963,7 +963,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [client.name], firm.clients.reload.map(&:name)
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_find_all_with_include_and_conditions
@@ -1315,7 +1315,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       blog_post.delete_comments.delete(comments_to_delete)
     end
 
-    c = Sharded::Comment.connection
+    c = Sharded::Comment.lease_connection
 
     blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
     id = Regexp.escape(c.quote_table_name("sharded_comments.id"))
@@ -3184,11 +3184,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_match(/Unknown key: :ensuring_owner_was/, error.message)
   end
 
-  def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async
-    Class.new(ActiveRecord::Base) do
-      self.destroy_association_async_job = Class.new
+  def test_invalid_key_raises_with_message_including_all_default_options
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_many :books, trough: :users
+      end
+    end
 
-      has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Unknown key: :trough. Valid keys are:
+      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent,
+      :validate, :inverse_of, :strict_loading, :query_constraints, :autosave, :before_add,
+      :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
+      :index_errors, :as, :through
+    MESSAGE
+  end
+
+  def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base) do
+        self.destroy_association_async_job = Class.new
+
+        has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+      end
     end
   end
 
@@ -3214,6 +3232,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Association Cpk::BrokenOrderWithNonCpkBooks#books primary key [\"shop_id\", \"status\"]
     doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
+  end
+
+  def test_ids_reader_on_preloaded_association_with_composite_primary_key
+    great_author = cpk_authors(:cpk_great_author)
+
+    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
   end
 
   private

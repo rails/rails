@@ -781,7 +781,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     To enable, set `prepared_statements: true` in `config/database.yml`.
     ([Pull Request](https://github.com/rails/rails/pull/23461))
 
-*   Added ability to call `ActionRecord::Relation#update` on relation objects
+*   Added ability to call `ActiveRecord::Relation#update` on relation objects
     which will run validations on callbacks on all objects in the relation.
     ([Pull Request](https://github.com/rails/rails/pull/11898))
 

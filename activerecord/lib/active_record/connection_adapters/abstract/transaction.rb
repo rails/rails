@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/digest"
+
 module ActiveRecord
   module ConnectionAdapters
     # = Active Record Connection Adapters Transaction State
@@ -107,6 +109,7 @@ module ActiveRecord
       def initialize; end
       def state; end
       def closed?; true; end
+      alias_method :blank?, :closed?
       def open?; false; end
       def joinable?; false; end
       def add_record(record, _ = true); end
@@ -116,15 +119,20 @@ module ActiveRecord
       def invalidated?; false; end
       def invalidate!; end
       def materialized?; false; end
+      def before_commit; yield; end
+      def after_commit; yield; end
+      def after_rollback; end # noop
+      def uuid; Digest::UUID.nil_uuid; end
     end
 
-    class Transaction # :nodoc:
+    class Transaction < ActiveRecord::Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written
 
       delegate :invalidate!, :invalidated?, to: :@state
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
+        super()
         @connection = connection
         @state = TransactionState.new
         @records = nil
@@ -134,7 +142,7 @@ module ActiveRecord
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
         @dirty = false
-        @instrumenter = TransactionInstrumenter.new(connection: connection)
+        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: self)
       end
 
       def dirty!
@@ -191,66 +199,80 @@ module ActiveRecord
       end
 
       def rollback_records
-        return unless records
+        if records
+          begin
+            ite = unique_records
 
-        ite = unique_records
+            instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
 
-        instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
-
-        run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
-          record.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: should_run_callbacks)
+            run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
+              record.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: should_run_callbacks)
+            end
+          ensure
+            ite&.each do |i|
+              i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
+            end
+          end
         end
-      ensure
-        ite&.each do |i|
-          i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
-        end
+
+        @callbacks&.each(&:after_rollback)
       end
 
       def before_commit_records
-        return unless records
-
         if @run_commit_callbacks
-          if ActiveRecord.before_committed_on_all_records
-            ite = unique_records
+          if records
+            if ActiveRecord.before_committed_on_all_records
+              ite = unique_records
 
-            instances_to_run_callbacks_on = records.each_with_object({}) do |record, candidates|
-              candidates[record] = record
-            end
+              instances_to_run_callbacks_on = records.each_with_object({}) do |record, candidates|
+                candidates[record] = record
+              end
 
-            run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
-              record.before_committed! if should_run_callbacks
+              run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
+                record.before_committed! if should_run_callbacks
+              end
+            else
+              records.uniq.each(&:before_committed!)
             end
-          else
-            records.uniq.each(&:before_committed!)
           end
+
+          @callbacks&.each(&:before_commit)
         end
+        # Note: When @run_commit_callbacks is false #commit_records takes care of appending
+        # remaining callbacks to the parent transaction
       end
 
       def commit_records
-        return unless records
+        if records
+          begin
+            ite = unique_records
 
-        ite = unique_records
+            if @run_commit_callbacks
+              instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
 
-        if @run_commit_callbacks
-          instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
-
-          run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
-            record.committed!(should_run_callbacks: should_run_callbacks)
-          end
-        else
-          while record = ite.shift
-            # if not running callbacks, only adds the record to the parent transaction
-            connection.add_transaction_record(record)
+              run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
+                record.committed!(should_run_callbacks: should_run_callbacks)
+              end
+            else
+              while record = ite.shift
+                # if not running callbacks, only adds the record to the parent transaction
+                connection.add_transaction_record(record)
+              end
+            end
+          ensure
+            ite&.each { |i| i.committed!(should_run_callbacks: false) }
           end
         end
-      ensure
-        ite&.each { |i| i.committed!(should_run_callbacks: false) }
+
+        if @run_commit_callbacks
+          @callbacks&.each(&:after_commit)
+        elsif @callbacks
+          connection.current_transaction.append_callbacks(@callbacks)
+        end
       end
 
       def full_rollback?; true; end
       def joinable?; @joinable; end
-      def closed?; false; end
-      def open?; !closed?; end
 
       private
         def unique_records
@@ -350,7 +372,7 @@ module ActiveRecord
 
       def rollback
         unless @state.invalidated?
-          connection.rollback_to_savepoint(savepoint_name) if materialized?
+          connection.rollback_to_savepoint(savepoint_name) if materialized? && connection.active?
         end
         @state.rollback!
         @instrumenter.finish(:rollback) if materialized?
@@ -533,9 +555,7 @@ module ActiveRecord
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
           begin
-            ret = yield
-            completed = true
-            ret
+            yield transaction
           rescue Exception => error
             rollback_transaction
             after_failure_actions(transaction, error)
@@ -543,23 +563,7 @@ module ActiveRecord
             raise
           ensure
             unless error
-              # In 7.1 we enforce timeout >= 0.4.0 which no longer use throw, so we can
-              # go back to the original behavior of committing on non-local return.
-              # If users are using throw, we assume it's not an error case.
-              completed = true if ActiveRecord.commit_transaction_on_non_local_return
-
               if Thread.current.status == "aborting"
-                rollback_transaction
-              elsif !completed && transaction.written
-                ActiveRecord.deprecator.warn(<<~EOW)
-                  A transaction is being rolled back because the transaction block was
-                  exited using `return`, `break` or `throw`.
-                  In Rails 7.2 this transaction will be committed instead.
-                  To opt-in to the new behavior now and suppress this warning
-                  you can set:
-
-                    Rails.application.config.active_record.commit_transaction_on_non_local_return = true
-                EOW
                 rollback_transaction
               else
                 begin
@@ -591,7 +595,7 @@ module ActiveRecord
       end
 
       private
-        NULL_TRANSACTION = NullTransaction.new
+        NULL_TRANSACTION = NullTransaction.new.freeze
 
         # Deallocate invalidated prepared statements outside of the transaction
         def after_failure_actions(transaction, error)

@@ -28,9 +28,9 @@ module ActiveRecord
     def self.references(attributes)
       attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
-          result << Arel.sql(key)
+          result << Arel.sql(key, retryable: true)
         elsif (idx = key.rindex("."))
-          result << Arel.sql(key[0, idx])
+          result << Arel.sql(key[0, idx], retryable: true)
         end
       end
     end
@@ -142,7 +142,7 @@ module ActiveRecord
           queries.first
         else
           queries.map! { |query| query.reduce(&:and) }
-          queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
+          queries = queries.reduce { |result, query| Arel::Nodes::Or.new([result, query]) }
           Arel::Nodes::Grouping.new(queries)
         end
       end

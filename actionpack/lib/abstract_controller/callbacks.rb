@@ -1,32 +1,32 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module AbstractController
-  # = Abstract Controller \Callbacks
+  # # Abstract Controller Callbacks
   #
-  # Abstract Controller provides hooks during the life cycle of a controller action.
-  # Callbacks allow you to trigger logic during this cycle. Available callbacks are:
+  # Abstract Controller provides hooks during the life cycle of a controller
+  # action. Callbacks allow you to trigger logic during this cycle. Available
+  # callbacks are:
   #
-  # * <tt>after_action</tt>
-  # * <tt>append_after_action</tt>
-  # * <tt>append_around_action</tt>
-  # * <tt>append_before_action</tt>
-  # * <tt>around_action</tt>
-  # * <tt>before_action</tt>
-  # * <tt>prepend_after_action</tt>
-  # * <tt>prepend_around_action</tt>
-  # * <tt>prepend_before_action</tt>
-  # * <tt>skip_after_action</tt>
-  # * <tt>skip_around_action</tt>
-  # * <tt>skip_before_action</tt>
-  #
-  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
-  #
+  # *   `after_action`
+  # *   `append_after_action`
+  # *   `append_around_action`
+  # *   `append_before_action`
+  # *   `around_action`
+  # *   `before_action`
+  # *   `prepend_after_action`
+  # *   `prepend_around_action`
+  # *   `prepend_before_action`
+  # *   `skip_after_action`
+  # *   `skip_around_action`
+  # *   `skip_before_action`
   module Callbacks
     extend ActiveSupport::Concern
 
-    # Uses ActiveSupport::Callbacks as the base functionality. For
-    # more details on the whole callback system, read the documentation
-    # for ActiveSupport::Callbacks.
+    # Uses ActiveSupport::Callbacks as the base functionality. For more details on
+    # the whole callback system, read the documentation for
+    # ActiveSupport::Callbacks.
     include ActiveSupport::Callbacks
 
     included do
@@ -72,25 +72,24 @@ module AbstractController
     end
 
     module ClassMethods
-      # If +:only+ or +:except+ are used, convert the options into the
-      # +:if+ and +:unless+ options of ActiveSupport::Callbacks.
+      # If `:only` or `:except` are used, convert the options into the `:if` and
+      # `:unless` options of ActiveSupport::Callbacks.
       #
-      # The basic idea is that <tt>:only => :index</tt> gets converted to
-      # <tt>:if => proc {|c| c.action_name == "index" }</tt>.
+      # The basic idea is that `:only => :index` gets converted to `:if => proc {|c|
+      # c.action_name == "index" }`.
       #
-      # Note that <tt>:only</tt> has priority over <tt>:if</tt> in case they
-      # are used together.
+      # Note that `:only` has priority over `:if` in case they are used together.
       #
-      #   only: :index, if: -> { true } # the :if option will be ignored.
+      #     only: :index, if: -> { true } # the :if option will be ignored.
       #
-      # Note that <tt>:if</tt> has priority over <tt>:except</tt> in case they
-      # are used together.
+      # Note that `:if` has priority over `:except` in case they are used together.
       #
-      #   except: :index, if: -> { true } # the :except option will be ignored.
+      #     except: :index, if: -> { true } # the :except option will be ignored.
       #
-      # ==== Options
-      # * <tt>only</tt>   - The callback should be run only for this action.
-      # * <tt>except</tt>  - The callback should be run for all actions except this action.
+      # #### Options
+      # *   `only`   - The callback should be run only for this action.
+      # *   `except`  - The callback should be run for all actions except this action.
+      #
       def _normalize_callback_options(options)
         _normalize_callback_option(options, :only, :if)
         _normalize_callback_option(options, :except, :unless)
@@ -104,18 +103,20 @@ module AbstractController
         end
       end
 
-      # Take callback names and an optional callback proc, normalize them,
-      # then call the block with each callback. This allows us to abstract
-      # the normalization across several methods that use it.
+      # Take callback names and an optional callback proc, normalize them, then call
+      # the block with each callback. This allows us to abstract the normalization
+      # across several methods that use it.
       #
-      # ==== Parameters
-      # * <tt>callbacks</tt> - An array of callbacks, with an optional
-      #   options hash as the last parameter.
-      # * <tt>block</tt>    - A proc that should be added to the callbacks.
+      # #### Parameters
+      # *   `callbacks` - An array of callbacks, with an optional options hash as the
+      #     last parameter.
+      # *   `block`    - A proc that should be added to the callbacks.
       #
-      # ==== Block Parameters
-      # * <tt>name</tt>     - The callback to be added.
-      # * <tt>options</tt>  - A hash of options to be used when adding the callback.
+      #
+      # #### Block Parameters
+      # *   `name`     - The callback to be added.
+      # *   `options`  - A hash of options to be used when adding the callback.
+      #
       def _insert_callbacks(callbacks, block = nil)
         options = callbacks.extract_options!
         callbacks.push(block) if block
@@ -134,20 +135,21 @@ module AbstractController
       #
       # Append a callback before actions. See _insert_callbacks for parameter details.
       #
-      # If the callback renders or redirects, the action will not run. If there
-      # are additional callbacks scheduled to run after that callback, they are
-      # also cancelled.
+      # If the callback renders or redirects, the action will not run. If there are
+      # additional callbacks scheduled to run after that callback, they are also
+      # cancelled.
 
       ##
       # :method: prepend_before_action
       #
       # :call-seq: prepend_before_action(names, block)
       #
-      # Prepend a callback before actions. See _insert_callbacks for parameter details.
+      # Prepend a callback before actions. See _insert_callbacks for parameter
+      # details.
       #
-      # If the callback renders or redirects, the action will not run. If there
-      # are additional callbacks scheduled to run after that callback, they are
-      # also cancelled.
+      # If the callback renders or redirects, the action will not run. If there are
+      # additional callbacks scheduled to run after that callback, they are also
+      # cancelled.
 
       ##
       # :method: skip_before_action
@@ -163,9 +165,9 @@ module AbstractController
       #
       # Append a callback before actions. See _insert_callbacks for parameter details.
       #
-      # If the callback renders or redirects, the action will not run. If there
-      # are additional callbacks scheduled to run after that callback, they are
-      # also cancelled.
+      # If the callback renders or redirects, the action will not run. If there are
+      # additional callbacks scheduled to run after that callback, they are also
+      # cancelled.
 
       ##
       # :method: after_action
@@ -207,7 +209,8 @@ module AbstractController
       #
       # :call-seq: prepend_around_action(names, block)
       #
-      # Prepend a callback around actions. See _insert_callbacks for parameter details.
+      # Prepend a callback around actions. See _insert_callbacks for parameter
+      # details.
 
       ##
       # :method: skip_around_action
@@ -222,9 +225,8 @@ module AbstractController
       # :call-seq: append_around_action(names, block)
       #
       # Append a callback around actions. See _insert_callbacks for parameter details.
-
-      # set up before_action, prepend_before_action, skip_before_action, etc.
-      # for each of before, after, and around.
+      # set up before_action, prepend_before_action, skip_before_action, etc. for each
+      # of before, after, and around.
       [:before, :after, :around].each do |callback|
         define_method "#{callback}_action" do |*names, &blk|
           _insert_callbacks(names, blk) do |name, options|
@@ -238,8 +240,8 @@ module AbstractController
           end
         end
 
-        # Skip a before, after or around callback. See _insert_callbacks
-        # for details on the allowed parameters.
+        # Skip a before, after or around callback. See _insert_callbacks for details on
+        # the allowed parameters.
         define_method "skip_#{callback}_action" do |*names|
           _insert_callbacks(names) do |name, options|
             skip_callback(:process_action, callback, name, options)
@@ -252,8 +254,8 @@ module AbstractController
     end
 
     private
-      # Override <tt>AbstractController::Base#process_action</tt> to run the
-      # <tt>process_action</tt> callbacks around the normal behavior.
+      # Override `AbstractController::Base#process_action` to run the `process_action`
+      # callbacks around the normal behavior.
       def process_action(...)
         run_callbacks(:process_action) do
           super

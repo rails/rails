@@ -36,6 +36,10 @@ module ActiveJob
 
   autoload :Base
   autoload :QueueAdapters
+  autoload :Arguments
+  autoload :DeserializationError, "active_job/arguments"
+  autoload :SerializationError, "active_job/arguments"
+  autoload :EnqueueAfterTransactionCommit
 
   eager_autoload do
     autoload :Serializers

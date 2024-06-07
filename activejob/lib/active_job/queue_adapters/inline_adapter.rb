@@ -10,7 +10,11 @@ module ActiveJob
     # To use the Inline set the queue_adapter config to +:inline+.
     #
     #   Rails.application.config.active_job.queue_adapter = :inline
-    class InlineAdapter
+    class InlineAdapter < AbstractAdapter
+      def enqueue_after_transaction_commit? # :nodoc:
+        false
+      end
+
       def enqueue(job) # :nodoc:
         Base.execute(job.serialize)
       end

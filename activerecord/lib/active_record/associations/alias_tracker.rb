@@ -6,21 +6,23 @@ module ActiveRecord
   module Associations
     # Keeps track of table aliases for ActiveRecord::Associations::JoinDependency
     class AliasTracker # :nodoc:
-      def self.create(connection, initial_table, joins, aliases = nil)
-        if joins.empty?
-          aliases ||= Hash.new(0)
-        elsif aliases
-          default_proc = aliases.default_proc || proc { 0 }
-          aliases.default_proc = proc { |h, k|
-            h[k] = initial_count_for(connection, k, joins) + default_proc.call(h, k)
-          }
-        else
-          aliases = Hash.new { |h, k|
-            h[k] = initial_count_for(connection, k, joins)
-          }
+      def self.create(pool, initial_table, joins, aliases = nil)
+        pool.with_connection do |connection|
+          if joins.empty?
+            aliases ||= Hash.new(0)
+          elsif aliases
+            default_proc = aliases.default_proc || proc { 0 }
+            aliases.default_proc = proc { |h, k|
+              h[k] = initial_count_for(connection, k, joins) + default_proc.call(h, k)
+            }
+          else
+            aliases = Hash.new { |h, k|
+              h[k] = initial_count_for(connection, k, joins)
+            }
+          end
+          aliases[initial_table] = 1
+          new(connection.table_alias_length, aliases)
         end
-        aliases[initial_table] = 1
-        new(connection, aliases)
       end
 
       def self.initial_count_for(connection, name, table_joins)
@@ -46,9 +48,9 @@ module ActiveRecord
       end
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(connection, aliases)
-        @aliases    = aliases
-        @connection = connection
+      def initialize(table_alias_length, aliases)
+        @aliases = aliases
+        @table_alias_length = table_alias_length
       end
 
       def aliased_table_for(arel_table, table_name = nil)
@@ -60,7 +62,7 @@ module ActiveRecord
           arel_table = arel_table.alias(table_name) if arel_table.name != table_name
         else
           # Otherwise, we need to use an alias
-          aliased_name = @connection.table_alias_for(yield)
+          aliased_name = table_alias_for(yield)
 
           # Update the count
           count = aliases[aliased_name] += 1
@@ -76,8 +78,12 @@ module ActiveRecord
       attr_reader :aliases
 
       private
+        def table_alias_for(table_name)
+          table_name[0...@table_alias_length].tr(".", "_")
+        end
+
         def truncate(name)
-          name.slice(0, @connection.table_alias_length - 2)
+          name.slice(0, @table_alias_length - 2)
         end
     end
   end

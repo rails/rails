@@ -141,17 +141,13 @@ All of the configured import maps should be attached in `<head>` element of your
 </script>
 ```
 
-- [`Es-module-shims`](https://github.com/guybedford/es-module-shims) acting as polyfill ensuring support for `import maps` on older browsers:
-
-```html
-<script src="/assets/es-module-shims.min" async="async" data-turbo-track="reload"></script>
-```
-
 - Entrypoint for loading JavaScript from `app/javascript/application.js`:
 
 ```html
 <script type="module">import "application"</script>
 ```
+
+NOTE: Before v2.0.0, `importmap-rails` put [`Es-module-shims`](https://github.com/guybedford/es-module-shims) in the output of `javascript_importmap_tags` as a polyfill to ensure support for import maps on older browsers. However, with the native support for import maps in all major browsers, v2.0.0 has dropped the bundled shim. If you want to support legacy browsers that lack support for import maps, manually insert `Es-module-shims` before `javascript_importmap_tags`. For more information, refer to [README for importmap-rails](https://github.com/rails/importmap-rails?tab=readme-ov-file#supporting-legacy-browsers-such-as-safari-on-ios-15).
 
 ### Using npm packages via JavaScript CDNs
 
@@ -244,10 +240,10 @@ pin "md5", to: "https://cdn.jsdelivr.net/npm/md5@2.3.0/md5.js"
 ```
 
 ```erb
-# app/views/layouts/application.html.erb
+<%# app/views/layouts/application.html.erb %>
 <%= javascript_importmap_tags %>
 
-# will include the following link before the importmap is setup:
+<%# will include the following link before the importmap is setup: %>
 <link rel="modulepreload" href="https://ga.jspm.io/npm:@github/hotkey@1.4.4/dist/index.js">
 ...
 ```

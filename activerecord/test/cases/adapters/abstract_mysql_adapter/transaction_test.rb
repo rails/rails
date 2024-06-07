@@ -15,7 +15,7 @@ module ActiveRecord
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
       Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
 
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.lease_connection
       connection.clear_cache!
 
       connection.transaction do
@@ -29,14 +29,14 @@ module ActiveRecord
     end
 
     teardown do
-      ActiveRecord::Base.connection.drop_table "samples", if_exists: true
+      ActiveRecord::Base.lease_connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
     end
 
     test "raises Deadlocked when a deadlock is encountered" do
-      connection = Sample.connection
+      connection = Sample.lease_connection
       assert_raises(ActiveRecord::Deadlocked) do
         barrier = Concurrent::CyclicBarrier.new(2)
 
@@ -81,11 +81,11 @@ module ActiveRecord
         begin
           Sample.transaction do
             latch1.wait
-            Sample.connection.execute("SET innodb_lock_wait_timeout = 1")
+            Sample.lease_connection.execute("SET innodb_lock_wait_timeout = 1")
             Sample.lock.find(s.id)
           end
         ensure
-          Sample.connection.execute("SET innodb_lock_wait_timeout = DEFAULT")
+          Sample.lease_connection.execute("SET innodb_lock_wait_timeout = DEFAULT")
           latch2.count_down
           thread.join
         end
@@ -93,7 +93,7 @@ module ActiveRecord
     end
 
     test "raises StatementTimeout when statement timeout exceeded" do
-      skip unless ActiveRecord::Base.connection.show_variable("max_execution_time")
+      skip unless ActiveRecord::Base.lease_connection.show_variable("max_execution_time")
       error = assert_raises(ActiveRecord::StatementTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
@@ -110,11 +110,11 @@ module ActiveRecord
         begin
           Sample.transaction do
             latch1.wait
-            Sample.connection.execute("SET max_execution_time = 1")
+            Sample.lease_connection.execute("SET max_execution_time = 1")
             Sample.lock.find(s.id)
           end
         ensure
-          Sample.connection.execute("SET max_execution_time = DEFAULT")
+          Sample.lease_connection.execute("SET max_execution_time = DEFAULT")
           latch2.count_down
           thread.join
         end
@@ -132,7 +132,7 @@ module ActiveRecord
             Sample.lock.find(s.id)
             latch.count_down
             sleep(0.5)
-            conn = Sample.connection
+            conn = Sample.lease_connection
             pid = conn.query_value("SELECT id FROM information_schema.processlist WHERE info LIKE '% FOR UPDATE'")
             conn.execute("KILL QUERY #{pid}")
           end

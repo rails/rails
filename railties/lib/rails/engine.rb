@@ -349,6 +349,7 @@ module Rails
   #   config.railties_order = [Blog::Engine, :main_app, :all]
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
+    autoload :RouteSet,      "rails/engine/route_set"
 
     class << self
       attr_accessor :called_from, :isolated
@@ -451,8 +452,7 @@ module Rails
     # Load console and invoke the registered hooks.
     # Check Rails::Railtie.console for more info.
     def load_console(app = self)
-      require "rails/console/app"
-      require "rails/console/helpers"
+      require "rails/console/methods"
       run_console_blocks(app)
       self
     end
@@ -544,7 +544,7 @@ module Rails
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
     def routes(&block)
-      @routes ||= ActionDispatch::Routing::RouteSet.new_with_config(config)
+      @routes ||= RouteSet.new_with_config(config)
       @routes.append(&block) if block_given?
       @routes
     end

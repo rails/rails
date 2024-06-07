@@ -4,7 +4,7 @@ require "cases/helper"
 require "active_record/explain_subscriber"
 require "active_record/explain_registry"
 
-if ActiveRecord::Base.connection.supports_explain?
+if ActiveRecord::Base.lease_connection.supports_explain?
   class ExplainSubscriberTest < ActiveRecord::TestCase
     SUBSCRIBER = ActiveRecord::ExplainSubscriber.new
 

@@ -394,6 +394,26 @@ module ActionView
       assert_match(/#{developer.name}/, rendered)
       assert_includes rendered, developer.name
     end
+
+    test "#rendered resets after each render" do
+      render "developers/developer", developer: DeveloperStruct.new("first")
+
+      assert_includes rendered, "first"
+      assert_not_includes rendered, "second"
+      assert_not_includes rendered, "third"
+
+      render "developers/developer", developer: DeveloperStruct.new("second")
+
+      assert_includes rendered, "first"
+      assert_includes rendered, "second"
+      assert_not_includes rendered, "third"
+
+      render "developers/developer", developer: DeveloperStruct.new("third")
+
+      assert_includes rendered, "first"
+      assert_includes rendered, "second"
+      assert_includes rendered, "third"
+    end
   end
 
   class HTMLParserTest < ActionView::TestCase

@@ -66,7 +66,7 @@ module ActiveRecord
           updates.merge!(touch_updates)
         end
 
-        unscoped.where(primary_key => object.id).update_all(updates) if updates.any?
+        unscoped.where(primary_key => [object.id]).update_all(updates) if updates.any?
 
         true
       end
@@ -113,6 +113,7 @@ module ActiveRecord
       #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
+        id = [id] if composite_primary_key? && id.is_a?(Array) && !id[0].is_a?(Array)
         unscoped.where!(primary_key => id).update_counters(counters)
       end
 
@@ -212,14 +213,18 @@ module ActiveRecord
         if affected_rows > 0
           counter_cached_association_names.each do |association_name|
             association = association(association_name)
-            foreign_key = association.reflection.foreign_key.to_sym
-            unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
+
+            unless destroyed_by_association && _foreign_keys_equal?(destroyed_by_association.foreign_key, association.reflection.foreign_key)
               association.decrement_counters
             end
           end
         end
 
         affected_rows
+      end
+
+      def _foreign_keys_equal?(fkey1, fkey2)
+        fkey1 == fkey2 || Array(fkey1).map(&:to_sym) == Array(fkey2).map(&:to_sym)
       end
   end
 end

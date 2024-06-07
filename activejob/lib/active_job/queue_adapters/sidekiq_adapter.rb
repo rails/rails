@@ -17,7 +17,7 @@ module ActiveJob
     # To use Sidekiq set the queue_adapter config to +:sidekiq+.
     #
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
-    class SidekiqAdapter
+    class SidekiqAdapter < AbstractAdapter
       def enqueue(job) # :nodoc:
         job.provider_job_id = JobWrapper.set(
           wrapped: job.class,

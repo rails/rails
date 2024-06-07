@@ -13,7 +13,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     enable_extension!("hstore", @connection)
 

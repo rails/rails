@@ -8,6 +8,13 @@ module Arel # :nodoc: all
       include Arel::AliasPredication
       include Arel::OrderPredications
 
+      attr_reader :retryable
+
+      def initialize(string, retryable: false)
+        @retryable = retryable
+        super(string)
+      end
+
       def encode_with(coder)
         coder.scalar = self.to_s
       end

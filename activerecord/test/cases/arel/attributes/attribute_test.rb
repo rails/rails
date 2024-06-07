@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "../helper"
-require "ostruct"
 
 module Arel
   module Attributes
@@ -804,7 +803,7 @@ module Arel
           node = attribute.not_between(1..3)
 
           _(node).must_equal Nodes::Grouping.new(
-            Nodes::Or.new(
+            Nodes::Or.new([
               Nodes::LessThan.new(
                 attribute,
                 Nodes::Casted.new(1, attribute)
@@ -813,7 +812,7 @@ module Arel
                 attribute,
                 Nodes::Casted.new(3, attribute)
               )
-            )
+            ])
           )
         end
 
@@ -930,7 +929,7 @@ module Arel
           node = attribute.not_between(0...3)
 
           _(node).must_equal Nodes::Grouping.new(
-            Nodes::Or.new(
+            Nodes::Or.new([
               Nodes::LessThan.new(
                 attribute,
                 Nodes::Casted.new(0, attribute)
@@ -939,7 +938,7 @@ module Arel
                 attribute,
                 Nodes::Casted.new(3, attribute)
               )
-            )
+            ])
           )
         end
       end
@@ -1161,10 +1160,10 @@ module Arel
 
       private
         def quoted_range(begin_val, end_val, exclude)
-          OpenStruct.new(
-            begin: Nodes::Quoted.new(begin_val),
-            end: Nodes::Quoted.new(end_val),
-            exclude_end?: exclude,
+          Struct.new(:begin, :end, :exclude_end?).new(
+            Nodes::Quoted.new(begin_val),
+            Nodes::Quoted.new(end_val),
+            exclude,
           )
         end
 

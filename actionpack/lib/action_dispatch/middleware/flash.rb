@@ -1,41 +1,48 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/hash/keys"
 
 module ActionDispatch
-  # = Action Dispatch \Flash
+  # # Action Dispatch Flash
   #
-  # The flash provides a way to pass temporary primitive-types (String, Array, Hash) between actions. Anything you place in the flash will be exposed
-  # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create
-  # action that sets <tt>flash[:notice] = "Post successfully created"</tt> before redirecting to a display action that can
-  # then expose the flash to its template. Actually, that exposure is automatically done.
+  # The flash provides a way to pass temporary primitive-types (String, Array,
+  # Hash) between actions. Anything you place in the flash will be exposed to the
+  # very next action and then cleared out. This is a great way of doing notices
+  # and alerts, such as a create action that sets `flash[:notice] = "Post
+  # successfully created"` before redirecting to a display action that can then
+  # expose the flash to its template. Actually, that exposure is automatically
+  # done.
   #
-  #   class PostsController < ActionController::Base
-  #     def create
-  #       # save post
-  #       flash[:notice] = "Post successfully created"
-  #       redirect_to @post
+  #     class PostsController < ActionController::Base
+  #       def create
+  #         # save post
+  #         flash[:notice] = "Post successfully created"
+  #         redirect_to @post
+  #       end
+  #
+  #       def show
+  #         # doesn't need to assign the flash notice to the template, that's done automatically
+  #       end
   #     end
   #
-  #     def show
-  #       # doesn't need to assign the flash notice to the template, that's done automatically
-  #     end
-  #   end
+  # Then in `show.html.erb`:
   #
-  # Then in +show.html.erb+:
+  #     <% if flash[:notice] %>
+  #       <div class="notice"><%= flash[:notice] %></div>
+  #     <% end %>
   #
-  #   <% if flash[:notice] %>
-  #     <div class="notice"><%= flash[:notice] %></div>
-  #   <% end %>
+  # Since the `notice` and `alert` keys are a common idiom, convenience accessors
+  # are available:
   #
-  # Since the +notice+ and +alert+ keys are a common idiom, convenience accessors are available:
+  #     flash.alert = "You must be logged in"
+  #     flash.notice = "Post successfully created"
   #
-  #   flash.alert = "You must be logged in"
-  #   flash.notice = "Post successfully created"
-  #
-  # This example places a string in the flash. And of course, you can put as many as you like at a time too. If you want to pass
-  # non-primitive types, you will have to handle that in your application. Example: To show messages with links, you will have to
-  # use sanitize helper.
+  # This example places a string in the flash. And of course, you can put as many
+  # as you like at a time too. If you want to pass non-primitive types, you will
+  # have to handle that in your application. Example: To show messages with links,
+  # you will have to use sanitize helper.
   #
   # Just remember: They'll be gone by the time the next action has been performed.
   #
@@ -98,12 +105,12 @@ module ActionDispatch
         @flash[k.to_s]
       end
 
-      # Convenience accessor for <tt>flash.now[:alert]=</tt>.
+      # Convenience accessor for `flash.now[:alert]=`.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for <tt>flash.now[:notice]=</tt>.
+      # Convenience accessor for `flash.now[:notice]=`.
       def notice=(message)
         self[:notice] = message
       end
@@ -131,8 +138,8 @@ module ActionDispatch
         end
       end
 
-      # Builds a hash containing the flashes to keep for the next request.
-      # If there are none to keep, returns +nil+.
+      # Builds a hash containing the flashes to keep for the next request. If there
+      # are none to keep, returns `nil`.
       def to_session_value # :nodoc:
         flashes_to_keep = @flashes.except(*@discard)
         return nil if flashes_to_keep.empty?
@@ -177,8 +184,8 @@ module ActionDispatch
         @flashes.key? name.to_s
       end
 
-      # Immediately deletes the single flash entry. Use this method when you
-      # want remove the message within the current action. See also #discard.
+      # Immediately deletes the single flash entry. Use this method when you want
+      # remove the message within the current action. See also #discard.
       def delete(key)
         key = key.to_s
         @discard.delete key
@@ -211,45 +218,49 @@ module ActionDispatch
         self
       end
 
-      # Sets a flash that will not be available to the next action, only to the current.
+      # Sets a flash that will not be available to the next action, only to the
+      # current.
       #
       #     flash.now[:message] = "Hello current action"
       #
-      # This method enables you to use the flash as a central messaging system in your app.
-      # When you need to pass an object to the next action, you use the standard flash assign (<tt>[]=</tt>).
-      # When you need to pass an object to the current action, you use <tt>now</tt>, and your object will
-      # vanish when the current action is done.
+      # This method enables you to use the flash as a central messaging system in your
+      # app. When you need to pass an object to the next action, you use the standard
+      # flash assign (`[]=`). When you need to pass an object to the current action,
+      # you use `now`, and your object will vanish when the current action is done.
       #
-      # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
+      # Entries set via `now` are accessed the same way as standard entries:
+      # `flash['my-key']`.
       #
       # Also, brings two convenience accessors:
       #
-      #   flash.now.alert = "Beware now!"
-      #   # Equivalent to flash.now[:alert] = "Beware now!"
+      #     flash.now.alert = "Beware now!"
+      #     # Equivalent to flash.now[:alert] = "Beware now!"
       #
-      #   flash.now.notice = "Good luck now!"
-      #   # Equivalent to flash.now[:notice] = "Good luck now!"
+      #     flash.now.notice = "Good luck now!"
+      #     # Equivalent to flash.now[:notice] = "Good luck now!"
       def now
         @now ||= FlashNow.new(self)
       end
 
-      # Keeps either the entire current flash or a specific flash entry available for the next action:
+      # Keeps either the entire current flash or a specific flash entry available for
+      # the next action:
       #
-      #    flash.keep            # keeps the entire flash
-      #    flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
+      #     flash.keep            # keeps the entire flash
+      #     flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k = nil)
         k = k.to_s if k
         @discard.subtract Array(k || keys)
         k ? self[k] : self
       end
 
-      # Marks the entire flash or a single flash entry to be discarded by the end of the current action:
+      # Marks the entire flash or a single flash entry to be discarded by the end of
+      # the current action:
       #
       #     flash.discard              # discard the entire flash at the end of the current action
       #     flash.discard(:warning)    # discard only the "warning" entry at the end of the current action
       #
-      # Use this method when you want to display the message in the current
-      # action but not in the next one. See also #delete.
+      # Use this method when you want to display the message in the current action but
+      # not in the next one. See also #delete.
       def discard(k = nil)
         k = k.to_s if k
         @discard.merge Array(k || keys)
@@ -258,28 +269,29 @@ module ActionDispatch
 
       # Mark for removal entries that were kept, and delete unkept ones.
       #
-      # This method is called automatically by filters, so you generally don't need to care about it.
+      # This method is called automatically by filters, so you generally don't need to
+      # care about it.
       def sweep # :nodoc:
         @discard.each { |k| @flashes.delete k }
         @discard.replace @flashes.keys
       end
 
-      # Convenience accessor for <tt>flash[:alert]</tt>.
+      # Convenience accessor for `flash[:alert]`.
       def alert
         self[:alert]
       end
 
-      # Convenience accessor for <tt>flash[:alert]=</tt>.
+      # Convenience accessor for `flash[:alert]=`.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for <tt>flash[:notice]</tt>.
+      # Convenience accessor for `flash[:notice]`.
       def notice
         self[:notice]
       end
 
-      # Convenience accessor for <tt>flash[:notice]=</tt>.
+      # Convenience accessor for `flash[:notice]=`.
       def notice=(message)
         self[:notice] = message
       end

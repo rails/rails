@@ -11,7 +11,14 @@ module ActiveRecord
       module ClassMethods # :nodoc:
         def log_process_action(payload)
           messages, db_runtime = super, payload[:db_runtime]
-          messages << ("ActiveRecord: %.1fms" % db_runtime.to_f) if db_runtime
+
+          if db_runtime
+            queries_count = payload[:queries_count] || 0
+            cached_queries_count = payload[:cached_queries_count] || 0
+            messages << ("ActiveRecord: %.1fms (%d %s, %d cached)" % [db_runtime.to_f, queries_count,
+                                                                      "query".pluralize(queries_count), cached_queries_count])
+          end
+
           messages
         end
       end
@@ -34,11 +41,11 @@ module ActiveRecord
 
         def cleanup_view_runtime
           if logger && logger.info?
-            db_rt_before_render = ActiveRecord::RuntimeRegistry.reset
+            db_rt_before_render = ActiveRecord::RuntimeRegistry.reset_runtimes
             self.db_runtime = (db_runtime || 0) + db_rt_before_render
             runtime = super
             queries_rt = ActiveRecord::RuntimeRegistry.sql_runtime - ActiveRecord::RuntimeRegistry.async_sql_runtime
-            db_rt_after_render = ActiveRecord::RuntimeRegistry.reset
+            db_rt_after_render = ActiveRecord::RuntimeRegistry.reset_runtimes
             self.db_runtime += db_rt_after_render
             runtime - queries_rt
           else
@@ -49,7 +56,9 @@ module ActiveRecord
         def append_info_to_payload(payload)
           super
 
-          payload[:db_runtime] = (db_runtime || 0) + ActiveRecord::RuntimeRegistry.reset
+          payload[:db_runtime] = (db_runtime || 0) + ActiveRecord::RuntimeRegistry.reset_runtimes
+          payload[:queries_count] = ActiveRecord::RuntimeRegistry.reset_queries_count
+          payload[:cached_queries_count] = ActiveRecord::RuntimeRegistry.reset_cached_queries_count
         end
     end
   end

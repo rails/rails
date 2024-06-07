@@ -1000,6 +1000,7 @@ class LiveHeadRenderTest < ActionController::TestCase
 
     @response.stream.on_error { flunk "action should not raise any errors" }
     sleep 0.2
+    pass
   end
 end
 

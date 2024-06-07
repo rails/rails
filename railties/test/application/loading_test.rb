@@ -310,6 +310,7 @@ class LoadingTest < ActiveSupport::TestCase
       Rails.configuration.after_routes_loaded do
         $counter *= 3
       end
+      Rails.application.reload_routes!
     RUBY
 
     app_file "app/models/user.rb", <<-MODEL
@@ -373,6 +374,7 @@ class LoadingTest < ActiveSupport::TestCase
       Rails.configuration.after_routes_loaded do
         $counter *= 3
       end
+      Rails.application.reload_routes!
     RUBY
 
     boot_app "development"
@@ -389,6 +391,7 @@ class LoadingTest < ActiveSupport::TestCase
   test "columns migrations also trigger reloading" do
     add_to_config <<-RUBY
       config.enable_reloading = true
+      config.active_record.timestamped_migrations = false
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
@@ -493,10 +496,10 @@ class LoadingTest < ActiveSupport::TestCase
         class OmgController < ActionController::Metal
           ActiveSupport.run_load_hooks(:action_controller, self)
           def show
-            if ActiveRecord::Base.connection.query_cache_enabled
+            if ActiveRecord::Base.lease_connection.query_cache_enabled
               self.response_body = ["Query cache is enabled."]
             else
-              self.response_body = ["Expected ActiveRecord::Base.connection.query_cache_enabled to be true"]
+              self.response_body = ["Expected ActiveRecord::Base.lease_connection.query_cache_enabled to be true"]
             end
           end
         end
@@ -526,10 +529,10 @@ class LoadingTest < ActiveSupport::TestCase
         class OmgController < ActionController::Metal
           ActiveSupport.run_load_hooks(:action_controller, self)
           def show
-            if ActiveRecord::Base.connection.query_cache_enabled
+            if ActiveRecord::Base.lease_connection.query_cache_enabled
               self.response_body = ["Query cache is enabled."]
             else
-              self.response_body = ["Expected ActiveRecord::Base.connection.query_cache_enabled to be true"]
+              self.response_body = ["Expected ActiveRecord::Base.lease_connection.query_cache_enabled to be true"]
             end
           end
         end

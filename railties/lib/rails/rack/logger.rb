@@ -20,22 +20,26 @@ module Rails
       def call(env)
         request = ActionDispatch::Request.new(env)
 
-        if logger.respond_to?(:tagged)
-          logger.tagged(*compute_tags(request)) { call_app(request, env) }
+        env["rails.rack_logger_tag_count"] = if logger.respond_to?(:push_tags)
+          logger.push_tags(*compute_tags(request)).size
         else
-          call_app(request, env)
+          0
         end
+
+        call_app(request, env)
       end
 
       private
         def call_app(request, env) # :doc:
+          logger_tag_pop_count = env["rails.rack_logger_tag_count"]
+
           instrumenter = ActiveSupport::Notifications.instrumenter
           handle = instrumenter.build_handle("request.action_dispatch", { request: request })
           handle.start
 
           logger.info { started_request_message(request) }
           status, headers, body = response = @app.call(env)
-          body = ::Rack::BodyProxy.new(body) { finish_request_instrumentation(handle) }
+          body = ::Rack::BodyProxy.new(body) { finish_request_instrumentation(handle, logger_tag_pop_count) }
 
           if response.frozen?
             [status, headers, body]
@@ -44,7 +48,7 @@ module Rails
             response
           end
         rescue Exception
-          finish_request_instrumentation(handle)
+          finish_request_instrumentation(handle, logger_tag_pop_count)
           raise
         end
 
@@ -74,8 +78,9 @@ module Rails
           Rails.logger
         end
 
-        def finish_request_instrumentation(handle)
+        def finish_request_instrumentation(handle, logger_tag_pop_count)
           handle.finish
+          logger.pop_tags(logger_tag_pop_count) if logger.respond_to?(:pop_tags) && logger_tag_pop_count > 0
           ActiveSupport::LogSubscriber.flush_all!
         end
     end

@@ -14,7 +14,7 @@ module ActiveRecord
     # == Usage
     #
     # Active Record supports optimistic locking if the +lock_version+ field is present. Each update to the
-    # record increments the +lock_version+ column and the locking facilities ensure that records instantiated twice
+    # record increments the integer column +lock_version+ and the locking facilities ensure that records instantiated twice
     # will let the last one saved raise a +StaleObjectError+ if the first was also updated. Example:
     #
     #   p1 = Person.find(1)

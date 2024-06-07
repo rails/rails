@@ -24,11 +24,11 @@ module ActionView # :nodoc:
       # the supplied separator, are HTML escaped unless they are HTML
       # safe, and the returned string is marked as HTML safe.
       #
-      #   safe_join([raw("<p>foo</p>"), "<p>bar</p>"], "<br />")
-      #   # => "<p>foo</p>&lt;br /&gt;&lt;p&gt;bar&lt;/p&gt;"
+      #   safe_join([tag.p("foo"), "<p>bar</p>"], "<br>")
+      #   # => "<p>foo</p>&lt;br&gt;&lt;p&gt;bar&lt;/p&gt;"
       #
-      #   safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />"))
-      #   # => "<p>foo</p><br /><p>bar</p>"
+      #   safe_join([tag.p("foo"), tag.p("bar")], tag.br)
+      #   # => "<p>foo</p><br><p>bar</p>"
       #
       def safe_join(array, sep = $,)
         sep = ERB::Util.unwrapped_html_escape(sep)

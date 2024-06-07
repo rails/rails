@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module SystemTesting
     class Browser # :nodoc:
@@ -35,8 +37,8 @@ module ActionDispatch
         yield options if block_given?
       end
 
-      # driver_path is lazily initialized by default. Eagerly set it to
-      # avoid race conditions when using parallel tests.
+      # driver_path is lazily initialized by default. Eagerly set it to avoid race
+      # conditions when using parallel tests.
       def preload
         case type
         when :chrome
@@ -70,7 +72,12 @@ module ActionDispatch
         end
 
         def resolve_driver_path(namespace)
-          namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.path(options, namespace::Service)
+          # The path method has been deprecated in 4.20.0
+          if Gem::Version.new(::Selenium::WebDriver::VERSION) >= Gem::Version.new("4.20.0")
+            namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.new(options, namespace::Service.new).driver_path
+          else
+            namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.path(options, namespace::Service)
+          end
         end
     end
   end

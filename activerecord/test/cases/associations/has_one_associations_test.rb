@@ -385,7 +385,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_reload_association_with_query_cache
     odegy_id = companies(:odegy).id
 
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -402,7 +402,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     # This query is not cached anymore, so it should make a real SQL query
     assert_queries_count(1) { Company.find(odegy_id) }
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_reset_association
@@ -493,8 +493,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_proxy_should_respond_to_private_methods_via_send
-    accounts(:signals37).send(:private_method)
-    companies(:first_firm).account.send(:private_method)
+    assert_nothing_raised do
+      accounts(:signals37).send(:private_method)
+      companies(:first_firm).account.send(:private_method)
+    end
   end
 
   def test_save_of_record_with_loaded_has_one
@@ -531,7 +533,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal "Account", new_account.firm_name
   end
 
-  def test_create_association_replaces_existing_without_dependent_option
+  def test_creation_failure_replaces_existing_without_dependent_option
     pirate = pirates(:blackbeard)
     orig_ship = pirate.ship
 
@@ -540,16 +542,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_not_equal ships(:black_pearl), new_ship
     assert_equal new_ship, pirate.ship
     assert_predicate new_ship, :new_record?
+    assert_predicate new_ship, :invalid?
     assert_nil orig_ship.pirate_id
     assert_not orig_ship.changed? # check it was saved
   end
 
-  def test_create_association_replaces_existing_with_dependent_option
+  def test_creation_failure_replaces_existing_with_dependent_option
     pirate = pirates(:blackbeard).becomes(DestructivePirate)
     orig_ship = pirate.dependent_ship
 
     new_ship = pirate.create_dependent_ship
     assert_predicate new_ship, :new_record?
+    assert_predicate new_ship, :invalid?
     assert_predicate orig_ship, :destroyed?
   end
 
@@ -807,7 +811,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     belongs_to :author, class_name: "SpecialAuthor"
     has_one :subscription, class_name: "SpecialSubscription", foreign_key: "subscriber_id"
 
-    enum status: [:proposed, :written, :published]
+    enum :status, [:proposed, :written, :published]
   end
 
   class SpecialAuthor < ActiveRecord::Base

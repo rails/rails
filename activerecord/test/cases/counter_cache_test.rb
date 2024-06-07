@@ -8,6 +8,7 @@ require "models/car"
 require "models/aircraft"
 require "models/wheel"
 require "models/engine"
+require "models/tyre"
 require "models/reply"
 require "models/category"
 require "models/categorization"
@@ -17,10 +18,12 @@ require "models/friendship"
 require "models/subscriber"
 require "models/subscription"
 require "models/book"
+require "models/cpk"
 require "active_support/core_ext/enumerable"
 
 class CounterCacheTest < ActiveRecord::TestCase
-  fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books
+  fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books,
+    :cpk_orders, :cpk_books
 
   class ::SpecialTopic < ::Topic
     has_many :special_replies, foreign_key: "parent_id"
@@ -42,8 +45,22 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   test "increment counter by specific amount" do
-    assert_difference "@topic.reload.replies_count", +2 do
+    assert_difference -> { @topic.reload.replies_count }, +2 do
       Topic.increment_counter(:replies_count, @topic.id, by: 2)
+    end
+  end
+
+  test "increment counter for cpk model" do
+    order = Cpk::Order.first
+    assert_difference -> { order.reload.books_count } do
+      Cpk::Order.increment_counter(:books_count, order.id)
+    end
+  end
+
+  test "increment counter for multiple cpk model records" do
+    order1, order2 = Cpk::Order.first(2)
+    assert_difference [-> { order1.reload.books_count }, -> { order2.reload.books_count }] do
+      Cpk::Order.increment_counter(:books_count, [order1.id, order2.id])
     end
   end
 
@@ -56,6 +73,13 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "decrement counter by specific amount" do
     assert_difference "@topic.reload.replies_count", -2 do
       Topic.decrement_counter(:replies_count, @topic.id, by: 2)
+    end
+  end
+
+  test "decrement counter for cpk model" do
+    order = Cpk::Order.first
+    assert_difference -> { order.reload.books_count }, -1 do
+      Cpk::Order.decrement_counter(:books_count, order.id)
     end
   end
 
@@ -148,6 +172,17 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "reset counters for cpk model" do
+    order = Cpk::Order.first
+    # throw the count off by 1
+    Cpk::Order.increment_counter(:books_count, order.id)
+
+    # check that it gets reset
+    assert_difference -> { order.reload.books_count }, -1 do
+      Cpk::Order.reset_counters(order.id, :books)
+    end
+  end
+
   test "update counter with initial null value" do
     category = categories(:general)
     assert_equal 2, category.categorizations.count
@@ -174,6 +209,13 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "update multiple counters" do
     assert_difference ["@topic.reload.replies_count", "@topic.reload.unique_replies_count"], 2 do
       Topic.update_counters @topic.id, replies_count: 2, unique_replies_count: 2
+    end
+  end
+
+  test "update counter for decrement for cpk model" do
+    order = Cpk::Order.first
+    assert_difference -> { order.reload.books_count }, -3 do
+      Cpk::Order.update_counters(order.id, books_count: -3)
     end
   end
 
@@ -400,6 +442,43 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "counter_cache_column?" do
     assert Person.counter_cache_column?("cars_count")
     assert_not Car.counter_cache_column?("cars_count")
+  end
+
+  test "inactive conter cache" do
+    car = Car.new
+    car.bulbs = [Bulb.new, Bulb.new]
+    car.save!
+
+    assert_equal 2, car.bulbs_count
+    car.reload
+
+    assert_queries_count(5) do
+      assert_equal 2, car.bulbs.size
+      assert_equal 2, car.bulbs.count
+      assert_not_predicate car.bulbs, :empty?
+      assert_predicate car.bulbs, :any?
+      assert_not_predicate car.bulbs, :none?
+    end
+  end
+
+  test "active conter cache" do
+    car = Car.new
+    car.tyres = [Tyre.new, Tyre.new]
+    car.save!
+
+    assert_equal 2, car.custom_tyres_count
+    car.reload
+
+    assert_no_queries do
+      assert_equal 2, car.tyres.size
+      assert_not_predicate car.tyres, :empty?
+      assert_predicate car.tyres, :any?
+      assert_not_predicate car.tyres, :none?
+    end
+
+    assert_queries_count(1) do
+      assert_equal 2, car.tyres.count
+    end
   end
 
   private

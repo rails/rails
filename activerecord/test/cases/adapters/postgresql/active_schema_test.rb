@@ -4,7 +4,7 @@ require "cases/helper"
 
 class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def setup
-    ActiveRecord::Base.connection.materialize_transactions
+    ActiveRecord::Base.lease_connection.materialize_transactions
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       def execute(sql, name = nil) sql end
@@ -112,6 +112,6 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
 
   private
     def method_missing(...)
-      ActiveRecord::Base.connection.public_send(...)
+      ActiveRecord::Base.lease_connection.public_send(...)
     end
 end

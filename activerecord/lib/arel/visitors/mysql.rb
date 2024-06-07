@@ -27,7 +27,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_SelectCore(o, collector)
-          o.froms ||= Arel.sql("DUAL")
+          o.froms ||= Arel.sql("DUAL", retryable: true)
           super
         end
 
@@ -103,7 +103,7 @@ module Arel # :nodoc: all
           Nodes::SelectStatement.new.tap do |stmt|
             core = stmt.cores.last
             core.froms = Nodes::Grouping.new(subselect).as("__active_record_temp")
-            core.projections = [Arel.sql(quote_column_name(key.name))]
+            core.projections = [Arel.sql(quote_column_name(key.name), retryable: true)]
           end
         end
     end

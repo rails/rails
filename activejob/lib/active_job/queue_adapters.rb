@@ -114,6 +114,7 @@ module ActiveJob
   module QueueAdapters
     extend ActiveSupport::Autoload
 
+    autoload :AbstractAdapter
     autoload :AsyncAdapter
     autoload :InlineAdapter
     autoload :BackburnerAdapter

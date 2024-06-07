@@ -53,14 +53,6 @@ module ActiveRecord
         end
 
         def add_foreign_key(from_table, to_table, **options)
-          if options[:deferrable] == true
-            ActiveRecord.deprecator.warn(<<~MSG)
-              `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and will be removed in Rails 7.2.
-            MSG
-
-            options[:deferrable] = :immediate
-          end
-
           assert_valid_deferrable(options[:deferrable])
 
           alter_table(from_table) do |definition|

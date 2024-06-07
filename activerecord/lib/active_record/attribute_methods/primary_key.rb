@@ -92,7 +92,7 @@ module ActiveRecord
           # Returns a quoted version of the primary key name, used to construct
           # SQL statements.
           def quoted_primary_key
-            @quoted_primary_key ||= connection.quote_column_name(primary_key)
+            @quoted_primary_key ||= adapter_class.quote_column_name(primary_key)
           end
 
           def reset_primary_key # :nodoc:
@@ -109,7 +109,7 @@ module ActiveRecord
             elsif base_name && primary_key_prefix_type == :table_name_with_underscore
               base_name.foreign_key
             elsif ActiveRecord::Base != self && table_exists?
-              connection.schema_cache.primary_keys(table_name)
+              schema_cache.primary_keys(table_name)
             else
               "id"
             end

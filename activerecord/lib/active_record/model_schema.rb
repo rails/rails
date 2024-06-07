@@ -146,6 +146,11 @@ module ActiveRecord
     # your own model for something else, you can set +inheritance_column+:
     #
     #     self.inheritance_column = 'zoink'
+    #
+    # If you wish to disable single-table inheritance altogether you can set
+    # +inheritance_column+ to +nil+
+    #
+    #     self.inheritance_column = nil
 
     ##
     # :singleton-method: inheritance_column=
@@ -279,7 +284,7 @@ module ActiveRecord
 
       # Returns a quoted version of the table name, used to construct SQL statements.
       def quoted_table_name
-        @quoted_table_name ||= connection.quote_table_name(table_name)
+        @quoted_table_name ||= adapter_class.quote_table_name(table_name)
       end
 
       # Computes the table name, (re)sets it internally, and returns it.
@@ -374,7 +379,7 @@ module ActiveRecord
 
       def reset_sequence_name # :nodoc:
         @explicit_sequence_name = false
-        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
+        @sequence_name          = with_connection { |c| c.default_sequence_name(table_name, primary_key) }
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -399,18 +404,18 @@ module ActiveRecord
       # Determines if the primary key values should be selected from their
       # corresponding sequence before the insert statement.
       def prefetch_primary_key?
-        connection.prefetch_primary_key?(table_name)
+        with_connection { |c| c.prefetch_primary_key?(table_name) }
       end
 
       # Returns the next value that will be used as the primary key on
       # an insert statement.
       def next_sequence_value
-        connection.next_sequence_value(sequence_name)
+        with_connection { |c| c.next_sequence_value(sequence_name) }
       end
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.schema_cache.data_source_exists?(table_name)
+        schema_cache.data_source_exists?(table_name)
       end
 
       def attributes_builder # :nodoc:
@@ -430,7 +435,7 @@ module ActiveRecord
         @columns ||= columns_hash.values.freeze
       end
 
-      def _returning_columns_for_insert # :nodoc:
+      def _returning_columns_for_insert(connection) # :nodoc:
         @_returning_columns_for_insert ||= begin
           auto_populated_columns = columns.filter_map do |c|
             c.name if connection.return_value_after_insert?(c)
@@ -498,7 +503,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, e.g.:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[7.2]
+      #  class CreateJobLevels < ActiveRecord::Migration[8.0]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -518,9 +523,9 @@ module ActiveRecord
       #    end
       #  end
       def reset_column_information
-        connection.clear_cache!
+        connection_pool.active_connection&.clear_cache!
         ([self] + descendants).each(&:undefine_attribute_methods)
-        connection.schema_cache.clear_data_source_cache!(table_name)
+        schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
         initialize_find_by_cache
@@ -584,7 +589,7 @@ module ActiveRecord
             raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
           end
 
-          columns_hash = connection.schema_cache.columns_hash(table_name)
+          columns_hash = schema_cache.columns_hash(table_name)
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
         end
@@ -612,7 +617,7 @@ module ActiveRecord
           end
         end
 
-        def type_for_column(column)
+        def type_for_column(connection, column)
           type = connection.lookup_cast_type_from_column(column)
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)

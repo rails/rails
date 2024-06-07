@@ -701,7 +701,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       # assert application trace refers to line that calls method_that_raises is first
       assert_select "#Application-Trace-0" do
-        assert_select "code a:first", %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
+        assert_select "code a:first", %r{test/dispatch/debug_exceptions_test\.rb:\d+:in .*call}
       end
 
       # assert framework trace that threw the error is first
@@ -747,19 +747,32 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         assert_select "pre .line.active", /raise "Third error"/
       end
 
-      # assert application trace refers to line that raises the last exception
-      assert_select "#Application-Trace-0" do
-        assert_select "code a:first", %r{in `rescue in rescue in raise_nested_exceptions'}
-      end
+      if RUBY_VERSION >= "3.4"
+        # Possible Ruby 3.4-dev bug: https://bugs.ruby-lang.org/issues/19117#note-45
+        # assert application trace refers to line that raises the last exception
+        assert_select "#Application-Trace-0" do
+          assert_select "code a:first", %r{in '.*raise_nested_exceptions'}
+        end
 
-      # assert the second application trace refers to the line that raises the second exception
-      assert_select "#Application-Trace-1" do
-        assert_select "code a:first", %r{in `rescue in raise_nested_exceptions'}
+        # assert the second application trace refers to the line that raises the second exception
+        assert_select "#Application-Trace-1" do
+          assert_select "code a:first", %r{in '.*raise_nested_exceptions'}
+        end
+      else
+        # assert application trace refers to line that raises the last exception
+        assert_select "#Application-Trace-0" do
+          assert_select "code a:first", %r{in [`']rescue in rescue in .*raise_nested_exceptions'}
+        end
+
+        # assert the second application trace refers to the line that raises the second exception
+        assert_select "#Application-Trace-1" do
+          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions'}
+        end
       end
 
       # assert the third application trace refers to the line that raises the first exception
       assert_select "#Application-Trace-2" do
-        assert_select "code a:first", %r{in `raise_nested_exceptions'}
+        assert_select "code a:first", %r{in [`'].*raise_nested_exceptions'}
       end
     end
   end
@@ -810,6 +823,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select "#container p", /Showing #{__FILE__} where line #\d+ raised/
-    assert_select "#container code", /undefined local variable or method `string”'/
+    assert_select "#container code", /undefined local variable or method ['`]string”'/
   end
 end

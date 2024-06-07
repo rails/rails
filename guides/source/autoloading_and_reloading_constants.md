@@ -368,7 +368,21 @@ That adds a module object to the ancestor chain of `ActiveRecord::Base`. Changes
 
 Corollary: Those classes or modules **cannot be reloadable**.
 
-The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it.
+An idiomatic way to organize these files is to put them in the `lib` directory and load them with `require` where needed. For example, if the application has custom middleware in `lib/middleware`, issue a regular `require` call before configuring it:
+
+```ruby
+require "middleware/my_middleware"
+config.middleware.use MyMiddleware
+```
+
+Additionally, if `lib` is in the autoload paths, configure the autoloader to ignore that subdirectory:
+
+```ruby
+# config/application.rb
+config.autoload_lib(ignore: %w(assets tasks ... middleware))
+```
+
+since you are loading those files yourself.
 
 As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](#config-autoload-once-paths) for details.
 

@@ -10,14 +10,14 @@ require "models/event"
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     def setup
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.materialize_transactions
     end
 
     ##
     # PostgreSQL does not support null bytes in strings
     unless current_adapter?(:PostgreSQLAdapter) ||
-        (current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.connection.prepared_statements)
+        (current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.lease_connection.prepared_statements)
       def test_update_prepared_statement
         b = Book.create(name: "my \x00 book")
         b.reload
@@ -92,6 +92,10 @@ module ActiveRecord
       @connection.remove_index(:accounts, name: idx_name) rescue nil
     end
 
+    def test_returns_empty_indexes_for_non_existing_table
+      assert_equal [], @connection.indexes("nonexistingtable")
+    end
+
     def test_remove_index_when_name_and_wrong_column_name_specified
       index_name = "accounts_idx"
 
@@ -117,6 +121,8 @@ module ActiveRecord
     def test_current_database
       if @connection.respond_to?(:current_database)
         assert_equal ARTest.test_configuration_hashes["arunit"]["database"], @connection.current_database
+      else
+        skip
       end
     end
 
@@ -148,7 +154,7 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(db_config.configuration_hash.except(:database))
 
           config = ARTest.test_configuration_hashes
-          ActiveRecord::Base.connection.execute(
+          ActiveRecord::Base.lease_connection.execute(
             "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
             "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
           )
@@ -158,17 +164,17 @@ module ActiveRecord
       end
     end
 
-    unless in_memory_db?
+    unless in_memory_db? || current_adapter?(:TrilogyAdapter)
       def test_disable_prepared_statements
         original_prepared_statements = ActiveRecord.disable_prepared_statements
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(prepared_statements: true))
 
-        assert_predicate ActiveRecord::Base.connection, :prepared_statements?
+        assert_predicate ActiveRecord::Base.lease_connection, :prepared_statements?
 
         ActiveRecord.disable_prepared_statements = true
         ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(prepared_statements: true))
-        assert_not_predicate ActiveRecord::Base.connection, :prepared_statements?
+        assert_not_predicate ActiveRecord::Base.lease_connection, :prepared_statements?
       ensure
         ActiveRecord.disable_prepared_statements = original_prepared_statements
         ActiveRecord::Base.establish_connection :arunit
@@ -220,7 +226,7 @@ module ActiveRecord
 
       def test_numeric_value_out_of_ranges_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::RangeError) do
-          Book.connection.create("INSERT INTO books(author_id) VALUES (9223372036854775808)")
+          Book.lease_connection.create("INSERT INTO books(author_id) VALUES (9223372036854775808)")
         end
 
         assert_not_nil error.cause
@@ -253,7 +259,7 @@ module ActiveRecord
       assert result.is_a?(ActiveRecord::Result)
     end
 
-    if ActiveRecord::Base.connection.prepared_statements
+    if ActiveRecord::Base.lease_connection.prepared_statements
       def test_select_all_insert_update_delete_with_casted_binds
         binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
@@ -325,7 +331,7 @@ module ActiveRecord
     fixtures :fk_test_has_pk
 
     def setup
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
     end
 
     def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
@@ -389,7 +395,7 @@ module ActiveRecord
     fixtures :posts, :authors, :author_addresses
 
     def setup
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
     end
 
     def test_create_with_query_cache
@@ -459,26 +465,20 @@ module ActiveRecord
       @connection.disable_query_cache!
     end
 
-    def test_all_foreign_keys_valid_is_deprecated
-      assert_deprecated(ActiveRecord.deprecator) do
-        @connection.all_foreign_keys_valid?
-      end
-    end
-
     # test resetting sequences in odd tables in PostgreSQL
-    if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
+    if ActiveRecord::Base.lease_connection.respond_to?(:reset_pk_sequence!)
       require "models/movie"
       require "models/subscriber"
 
       def test_reset_empty_table_with_custom_pk
         Movie.delete_all
-        Movie.connection.reset_pk_sequence! "movies"
+        Movie.lease_connection.reset_pk_sequence! "movies"
         assert_equal 1, Movie.create(name: "fight club").id
       end
 
       def test_reset_table_with_non_integer_pk
         Subscriber.delete_all
-        Subscriber.connection.reset_pk_sequence! "subscribers"
+        Subscriber.lease_connection.reset_pk_sequence! "subscribers"
         sub = Subscriber.new(name: "robert drake")
         sub.id = "bob drake"
         assert_nothing_raised { sub.save! }
@@ -502,7 +502,7 @@ module ActiveRecord
       fixtures :posts, :authors, :author_addresses
 
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         assert_predicate @connection, :active?
       end
 
@@ -622,7 +622,7 @@ module ActiveRecord
 
         # Quote string will not verify a broken connection (although it may
         # reconnect in some cases)
-        Post.connection.quote_string("")
+        Post.lease_connection.quote_string("")
 
         # Because the connection hasn't been verified since checkout,
         # and the query cannot safely be retried, the connection will be
@@ -632,18 +632,78 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "querying after a failed query restores and succeeds" do
+      test "querying after a failed non-retryable query restores and succeeds" do
         Post.first # Connection verified (and prepared statement pool populated if enabled)
 
         remote_disconnect @connection
 
         assert_raises(ActiveRecord::ConnectionFailed) do
-          Post.first # Connection no longer verified after failed query
+          @connection.execute("INSERT INTO posts(title, body) VALUES ('foo', 'bar')")
         end
 
         assert Post.first # Verifying the connection causes a reconnect and the query succeeds
-
         assert_predicate @connection, :active?
+      end
+
+      test "idempotent SELECT queries are retried and result in a reconnect" do
+        Post.first
+
+        remote_disconnect @connection
+
+        assert Post.first
+        assert_predicate @connection, :active?
+
+        remote_disconnect @connection
+
+        assert Post.where(id: [1, 2]).first
+        assert_predicate @connection, :active?
+      end
+
+      test "#find and #find_by queries with known attributes are retried and result in a reconnect" do
+        Post.first
+
+        remote_disconnect @connection
+
+        assert Post.find(1)
+        assert_predicate @connection, :active?
+
+        remote_disconnect @connection
+
+        assert Post.find_by(title: "Welcome to the weblog")
+        assert_predicate @connection, :active?
+      end
+
+      test "queries containing SQL fragments are not retried" do
+        Post.first
+
+        remote_disconnect @connection
+
+        assert_raises(ActiveRecord::ConnectionFailed) { Post.where("1 = 1").to_a }
+        assert_not_predicate @connection, :active?
+
+        remote_disconnect @connection
+
+        assert_raises(ActiveRecord::ConnectionFailed) { Post.select("title AS custom_title").first }
+        assert_not_predicate @connection, :active?
+
+        remote_disconnect @connection
+
+        assert_raises(ActiveRecord::ConnectionFailed) { Post.find_by("updated_at < ?", 2.weeks.ago) }
+        assert_not_predicate @connection, :active?
+      end
+
+      test "queries containing SQL functions are not retried" do
+        Post.first
+
+        remote_disconnect @connection
+
+        tags_count_attr = Post.arel_table[:tags_count]
+        abs_tags_count = Arel::Nodes::NamedFunction.new("ABS", [tags_count_attr])
+
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          Post.where(abs_tags_count.eq(2)).first
+        end
+        assert_not_predicate @connection, :active?
       end
 
       test "transaction restores after remote disconnection" do
@@ -736,7 +796,7 @@ module ActiveRecord
       end
 
       test "#execute is retryable" do
-        conn_id = case @connection.class::ADAPTER_NAME
+        conn_id = case @connection.adapter_name
                   when "Mysql2"
                     @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
                   when "Trilogy"
@@ -754,7 +814,7 @@ module ActiveRecord
 
       private
         def raw_transaction_open?(connection)
-          case connection.class::ADAPTER_NAME
+          case connection.adapter_name
           when "PostgreSQL"
             connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
           when "Mysql2", "Trilogy"
@@ -779,8 +839,10 @@ module ActiveRecord
         end
 
         def remote_disconnect(connection)
-          case connection.class::ADAPTER_NAME
+          case connection.adapter_name
           when "PostgreSQL"
+            # Connection was left in a bad state, need to reconnect to simulate fresh disconnect
+            connection.verify! if connection.instance_variable_get(:@raw_connection).status == ::PG::CONNECTION_BAD
             unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
               connection.instance_variable_get(:@raw_connection).async_exec("begin")
             end
@@ -796,7 +858,7 @@ module ActiveRecord
 
         def kill_connection_from_server(connection_id)
           conn = @connection.pool.checkout
-          case conn.class::ADAPTER_NAME
+          case conn.adapter_name
           when "Mysql2", "Trilogy"
             conn.execute("KILL #{connection_id}")
           when "PostgreSQL"
@@ -809,37 +871,83 @@ module ActiveRecord
         end
     end
   end
+
+  class AdapterThreadSafetyTest < ActiveRecord::TestCase
+    setup do
+      @threads = []
+      @connection = ActiveRecord::Base.connection_pool.checkout
+    end
+
+    teardown do
+      @threads.each(&:kill)
+    end
+
+    unless in_memory_db?
+      test "#active? is synchronized" do
+        threads(2, 25) { @connection.select_all("SELECT 1") }
+        threads(2, 25) { @connection.verify! }
+        threads(2, 25) { @connection.disconnect! }
+
+        join
+        pass
+      end
+
+      test "#verify! is synchronized" do
+        threads(2, 25) { @connection.verify! }
+        threads(2, 25) { @connection.disconnect! }
+
+        join
+        pass
+      end
+    end
+
+    private
+      def join
+        @threads.shuffle.each(&:join)
+      end
+
+      def threads(count, times)
+        @threads += count.times.map do
+          Thread.new do
+            times.times do
+              yield
+              Thread.pass
+            end
+          end
+        end
+      end
+  end
 end
 
-if ActiveRecord::Base.connection.supports_advisory_locks?
+if ActiveRecord::Base.lease_connection.supports_advisory_locks?
   class AdvisoryLocksEnabledTest < ActiveRecord::TestCase
     include ConnectionHelper
 
     def test_advisory_locks_enabled?
-      assert_predicate ActiveRecord::Base.connection, :advisory_locks_enabled?
+      assert_predicate ActiveRecord::Base.lease_connection, :advisory_locks_enabled?
 
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(
           orig_connection.merge(advisory_locks: false)
         )
 
-        assert_not ActiveRecord::Base.connection.advisory_locks_enabled?
+        assert_not ActiveRecord::Base.lease_connection.advisory_locks_enabled?
 
         ActiveRecord::Base.establish_connection(
           orig_connection.merge(advisory_locks: true)
         )
 
-        assert_predicate ActiveRecord::Base.connection, :advisory_locks_enabled?
+        assert_predicate ActiveRecord::Base.lease_connection, :advisory_locks_enabled?
       end
     end
   end
 end
 
-if ActiveRecord::Base.connection.savepoint_errors_invalidate_transactions?
+if ActiveRecord::Base.lease_connection.savepoint_errors_invalidate_transactions?
   class InvalidateTransactionTest < ActiveRecord::TestCase
     def test_invalidates_transaction_on_rollback_error
       @invalidated = false
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.lease_connection
 
       connection.transaction do
         connection.send(:with_raw_connection) do

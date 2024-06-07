@@ -31,7 +31,7 @@ environment ENV.fetch("RAILS_ENV") { "development" }
 if ENV["PIDFILE"]
   pidfile ENV["PIDFILE"]
 else
-  pidfile tmp/pids/server.pid" if ENV.fetch("RAILS_ENV", "development") == "development"
+  pidfile "tmp/pids/server.pid" if ENV.fetch("RAILS_ENV", "development") == "development"
 end
 
 # Allow puma to be restarted by `bin/rails restart` command.

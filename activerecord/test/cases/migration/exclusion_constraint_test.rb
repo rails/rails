@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if ActiveRecord::Base.connection.supports_exclusion_constraints?
+if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
   module ActiveRecord
     class Migration
       class ExclusionConstraintTest < ActiveRecord::TestCase
@@ -13,7 +13,7 @@ if ActiveRecord::Base.connection.supports_exclusion_constraints?
         end
 
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table "invoices", force: true do |t|
             t.date :start_date
             t.date :end_date
@@ -162,7 +162,7 @@ if ActiveRecord::Base.connection.supports_exclusion_constraints?
 
           assert_nothing_raised do
             Invoice.transaction(requires_new: true) do
-              Invoice.connection.set_constraints(:deferred, "invoices_date_overlap")
+              Invoice.lease_connection.set_constraints(:deferred, "invoices_date_overlap")
               Invoice.create!(start_date: "2020-12-31", end_date: "2021-01-01")
               invoice.update!(end_date: "2020-12-31")
 

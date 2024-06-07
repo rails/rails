@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "logger"
 
 class TestERBTemplate < ActiveSupport::TestCase
   ERBHandler = ActionView::Template::Handlers::ERB.new
@@ -121,6 +120,14 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "hellopartialhello", render
   end
 
+  def test_rendering_non_string
+    my_object = Object.new
+    eval_handler = ->(_template, source) { source }
+    @template = ActionView::Template.new("my_object", "__id__", eval_handler, virtual_path: "hello", locals: [:my_object])
+    result = render(my_object: my_object)
+    assert_same my_object, result
+  end
+
   def test_resulting_string_is_utf8
     @template = new_template
     assert_equal Encoding::UTF_8, render.encoding
@@ -221,7 +228,9 @@ class TestERBTemplate < ActiveSupport::TestCase
 
   def test_rails_injected_locals_does_not_raise_error_if_not_passed
     @template = new_template("<%# locals: (message:) -%>")
-    render(message: "Hi", message_counter: 1, message_iteration: 1, implicit_locals: %i[message_counter message_iteration])
+    assert_nothing_raised do
+      render(message: "Hi", message_counter: 1, message_iteration: 1, implicit_locals: %i[message_counter message_iteration])
+    end
   end
 
   def test_rails_injected_locals_can_be_specified

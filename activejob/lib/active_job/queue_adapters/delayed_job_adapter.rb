@@ -15,7 +15,15 @@ module ActiveJob
     # To use Delayed Job, set the queue_adapter config to +:delayed_job+.
     #
     #   Rails.application.config.active_job.queue_adapter = :delayed_job
-    class DelayedJobAdapter
+    class DelayedJobAdapter < AbstractAdapter
+      def initialize(enqueue_after_transaction_commit: false)
+        @enqueue_after_transaction_commit = enqueue_after_transaction_commit
+      end
+
+      def enqueue_after_transaction_commit? # :nodoc:
+        @enqueue_after_transaction_commit
+      end
+
       def enqueue(job) # :nodoc:
         delayed_job = Delayed::Job.enqueue(JobWrapper.new(job.serialize), queue: job.queue_name, priority: job.priority)
         job.provider_job_id = delayed_job.id

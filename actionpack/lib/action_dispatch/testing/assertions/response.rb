@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Assertions
-    # A small suite of assertions that test responses from \Rails applications.
+    # A small suite of assertions that test responses from Rails applications.
     module ResponseAssertions
       RESPONSE_PREDICATES = { # :nodoc:
         success:  :successful?,
@@ -13,20 +15,21 @@ module ActionDispatch
 
       # Asserts that the response is one of the following types:
       #
-      # * <tt>:success</tt>   - Status code was in the 200-299 range
-      # * <tt>:redirect</tt>  - Status code was in the 300-399 range
-      # * <tt>:missing</tt>   - Status code was 404
-      # * <tt>:error</tt>     - Status code was in the 500-599 range
+      # *   `:success`   - Status code was in the 200-299 range
+      # *   `:redirect`  - Status code was in the 300-399 range
+      # *   `:missing`   - Status code was 404
+      # *   `:error`     - Status code was in the 500-599 range
       #
-      # You can also pass an explicit status number like <tt>assert_response(501)</tt>
-      # or its symbolic equivalent <tt>assert_response(:not_implemented)</tt>.
-      # See +Rack::Utils::SYMBOL_TO_STATUS_CODE+ for a full list.
       #
-      #   # Asserts that the response was a redirection
-      #   assert_response :redirect
+      # You can also pass an explicit status number like `assert_response(501)` or its
+      # symbolic equivalent `assert_response(:not_implemented)`. See
+      # `Rack::Utils::SYMBOL_TO_STATUS_CODE` for a full list.
       #
-      #   # Asserts that the response code was status code 401 (unauthorized)
-      #   assert_response 401
+      #     # Asserts that the response was a redirection
+      #     assert_response :redirect
+      #
+      #     # Asserts that the response code was status code 401 (unauthorized)
+      #     assert_response 401
       def assert_response(type, message = nil)
         message ||= generate_response_message(type)
 
@@ -39,21 +42,21 @@ module ActionDispatch
 
       # Asserts that the response is a redirect to a URL matching the given options.
       #
-      #   # Asserts that the redirection was to the "index" action on the WeblogController
-      #   assert_redirected_to controller: "weblog", action: "index"
+      #     # Asserts that the redirection was to the "index" action on the WeblogController
+      #     assert_redirected_to controller: "weblog", action: "index"
       #
-      #   # Asserts that the redirection was to the named route login_url
-      #   assert_redirected_to login_url
+      #     # Asserts that the redirection was to the named route login_url
+      #     assert_redirected_to login_url
       #
-      #   # Asserts that the redirection was to the URL for @customer
-      #   assert_redirected_to @customer
+      #     # Asserts that the redirection was to the URL for @customer
+      #     assert_redirected_to @customer
       #
-      #   # Asserts that the redirection matches the regular expression
-      #   assert_redirected_to %r(\Ahttp://example.org)
+      #     # Asserts that the redirection matches the regular expression
+      #     assert_redirected_to %r(\Ahttp://example.org)
       #
-      #   # Asserts that the redirection has the HTTP status code 301 (Moved
-      #   # Permanently).
-      #   assert_redirected_to "/some/path", status: :moved_permanently
+      #     # Asserts that the redirection has the HTTP status code 301 (Moved
+      #     # Permanently).
+      #     assert_redirected_to "/some/path", status: :moved_permanently
       def assert_redirected_to(url_options = {}, options = {}, message = nil)
         options, message = {}, options unless options.is_a?(Hash)
 

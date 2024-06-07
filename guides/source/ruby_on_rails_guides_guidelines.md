@@ -103,7 +103,7 @@ API Documentation Guidelines
 The guides and the API should be coherent and consistent where appropriate. In particular, these sections of the [API Documentation Guidelines](api_documentation_guidelines.html) also apply to the guides:
 
 * [Wording](api_documentation_guidelines.html#wording)
-* [English](api_documentation_guidelines.html#english)
+* [English](api_documentation_guidelines.html#american-english)
 * [Example Code](api_documentation_guidelines.html#example-code)
 * [Filenames](api_documentation_guidelines.html#file-names)
 * [Fonts](api_documentation_guidelines.html#fonts)

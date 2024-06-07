@@ -64,7 +64,7 @@ $ bin/rails app:update
     conflict  config/application.rb
 Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
        force  config/application.rb
-      create  config/initializers/new_framework_defaults_7_2.rb
+      create  config/initializers/new_framework_defaults_8_0.rb
 ...
 ```
 
@@ -76,10 +76,26 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X.Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 7.2 to Rails 8.0
+-------------------------------------
+
+For more information on changes made to Rails 8.0 please see the [release notes](8_0_release_notes.html).
+
 Upgrading from Rails 7.1 to Rails 7.2
 -------------------------------------
 
 For more information on changes made to Rails 7.2 please see the [release notes](7_2_release_notes.html).
+
+### All tests now respect the `active_job.queue_adapter` config
+
+If you have set `config.active_job.queue_adapter` in your `config/application.rb` or `config/environments/test.rb` file,
+the adapter you selected was previously not used consistently across all tests. In some tests your adapter would be
+used, but other tests would use the `TestAdapter`.
+
+In Rails 7.2, all tests will respect the `queue_adapter` config if provided. This may cause test errors, if you had
+set the `queue_adapter` config to something other than `:test`, but written tests in a way that was dependent on the `TestAdapter`.
+
+If no config is provided, the `TestAdapter` will continue to be used.
 
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
@@ -283,30 +299,6 @@ const fileInputSelector = Rails.fileInputSelector
 Rails.fileInputSelector(...)
 ```
 
-### `ActionView::TestCase#rendered` no longer returns a `String`
-
-Starting from Rails 7.1, `ActionView::TestCase#rendered` returns an object that
-responds to various format methods (for example, `rendered.html` and
-`rendered.json`). To preserve backward compatibility, the object returned from
-`rendered` will delegate missing methods to the `String` rendered during the
-test. For example, the following [assert_match][] assertion will pass:
-
-```ruby
-assert_match(/some content/i, rendered)
-```
-
-However, if your tests rely on `ActionView::TestCase#rendered` returning an
-instance of `String`, they will fail. To restore the original behavior, you can
-override the `#rendered` method to read from the `@rendered` instance variable:
-
-```ruby
-# config/initializers/action_view.rb
-
-ActiveSupport.on_load :action_view_test_case do
-  attr_reader :rendered
-end
-```
-
 ### `Rails.logger` now returns an `ActiveSupport::BroadcastLogger` instance
 
 The `ActiveSupport::BroadcastLogger` class is a new logger that allows to broadcast logs to different sinks (STDOUT, a log file...) in an easy way.
@@ -476,6 +468,20 @@ to be an error condition in future versions of Rails.
 ```
 
 If you still get this warning in the logs, please check the section about autoloading when the application boots in the [autoloading guide](https://guides.rubyonrails.org/v7.0/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots). You'd get a `NameError` in Rails 7 otherwise.
+
+Constants managed by the `once` autoloader can be autoloaded during initialization, and they can be used normally, no need for a `to_prepare` block. However, the `once` autoloader is now set up earlier to support that. If the application has custom inflections, and the `once` autoloader should be aware of them, you need to move the code in `config/initializers/inflections.rb` to the body of the application class definition in `config/application.rb`:
+
+```ruby
+module MyApp
+  class Application < Rails::Application
+    # ...
+
+    ActiveSupport::Inflector.inflections(:en) do |inflect|
+      inflect.acronym "HTML"
+    end
+  end
+end
+```
 
 ### Ability to configure `config.autoload_once_paths`
 

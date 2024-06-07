@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module SystemTesting
     class Driver # :nodoc:
@@ -16,7 +18,7 @@ module ActionDispatch
           gem "selenium-webdriver", ">= 4.0.0"
           require "selenium/webdriver"
           @browser = Browser.new(options[:using])
-          @browser.preload
+          @browser.preload unless @options[:browser] == :remote
         else
           @browser = nil
         end

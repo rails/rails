@@ -72,19 +72,6 @@ module RenderERBUtils
   end
 end
 
-class RoutedRackApp
-  attr_reader :routes
-
-  def initialize(routes, &blk)
-    @routes = routes
-    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
-  end
-
-  def call(env)
-    @stack.call(env)
-  end
-end
-
 class BasicController
   attr_accessor :request, :response
 
@@ -102,30 +89,13 @@ class BasicController
 end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
-  def self.build_app(routes = nil)
-    routes ||= ActionDispatch::Routing::RouteSet.new.tap { |rs|
-      rs.draw { }
-    }
-    RoutedRackApp.new(routes) do |middleware|
-      middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
-      middleware.use ActionDispatch::DebugExceptions
-      middleware.use ActionDispatch::Callbacks
-      middleware.use ActionDispatch::Cookies
-      middleware.use ActionDispatch::Flash
-      middleware.use Rack::Head
-      yield(middleware) if block_given?
-    end
-  end
-
-  self.app = build_app
-
-  def with_routing(&block)
-    temporary_routes = ActionDispatch::Routing::RouteSet.new
-    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-
-    yield temporary_routes
-  ensure
-    self.class.app = old_app
+  self.app = ActionDispatch::MiddlewareStack.new do |middleware|
+    middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
+    middleware.use ActionDispatch::DebugExceptions
+    middleware.use ActionDispatch::Callbacks
+    middleware.use ActionDispatch::Cookies
+    middleware.use ActionDispatch::Flash
+    middleware.use Rack::Head
   end
 end
 
@@ -147,22 +117,12 @@ module ActionController
     include ActionDispatch::TestProcess
 
     def self.with_routes(&block)
-      routes = ActionDispatch::Routing::RouteSet.new
-      routes.draw(&block)
-      include Module.new {
-        define_method(:setup) do
-          super()
-          @routes = routes
-          @controller.singleton_class.include @routes.url_helpers if @controller
-        end
-      }
-      routes
-    end
+      setup do
+        @routes = ActionDispatch::Routing::RouteSet.new
+        @routes.draw(&block)
 
-    def with_routes(&block)
-      @routes = ActionDispatch::Routing::RouteSet.new
-      @routes.draw(&block)
-      @routes
+        @controller.singleton_class.include @routes.url_helpers if @controller
+      end
     end
   end
 end

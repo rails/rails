@@ -25,7 +25,7 @@ module RailInspector
       checker = Configuring.new(rails_path)
       checker.check
 
-      puts checker.errors unless checker.errors.empty?
+      puts checker.error_message if checker.errors.any?
       exit checker.errors.empty? unless options[:autocorrect]
 
       checker.write!

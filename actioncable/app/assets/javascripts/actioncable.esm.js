@@ -42,12 +42,11 @@ class ConnectionMonitor {
   isRunning() {
     return this.startedAt && !this.stoppedAt;
   }
-  recordPing() {
+  recordMessage() {
     this.pingedAt = now();
   }
   recordConnect() {
     this.reconnectAttempts = 0;
-    this.recordPing();
     delete this.disconnectedAt;
     logger.log("ConnectionMonitor recorded connect");
   }
@@ -244,6 +243,7 @@ Connection.prototype.events = {
       return;
     }
     const {identifier: identifier, message: message, reason: reason, reconnect: reconnect, type: type} = JSON.parse(event.data);
+    this.monitor.recordMessage();
     switch (type) {
      case message_types.welcome:
       if (this.triedToReconnect()) {
@@ -259,7 +259,7 @@ Connection.prototype.events = {
       });
 
      case message_types.ping:
-      return this.monitor.recordPing();
+      return null;
 
      case message_types.confirmation:
       this.subscriptions.confirmSubscription(identifier);

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators/app_base"
+require "rails/generators/rails/devcontainer/devcontainer_generator"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -266,6 +267,20 @@ module Rails
     def config_target_version
       @config_target_version || Rails::VERSION::STRING.to_f
     end
+
+    def devcontainer
+      devcontainer_options = {
+        database: options[:database],
+        redis: !(options[:skip_action_cable] && options[:skip_active_job]),
+        system_test: depends_on_system_test?,
+        active_storage: !options[:skip_active_storage],
+        dev: options[:dev],
+        node: using_node?,
+        app_name: app_name
+      }
+
+      Rails::Generators::DevcontainerGenerator.new([], devcontainer_options).invoke_all
+    end
   end
 
   module Generators
@@ -404,11 +419,6 @@ module Rails
         build(:credentials_diff_enroll)
       end
 
-      def display_upgrade_guide_info
-        say "\nAfter this, check Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
-      end
-      remove_task :display_upgrade_guide_info
-
       def create_boot_file
         template "config/boot.rb"
       end
@@ -452,7 +462,12 @@ module Rails
       end
 
       def create_storage_files
-        build(:storage)
+        build(:storage) unless skip_storage?
+      end
+
+      def create_devcontainer_files
+        return if skip_devcontainer? || options[:dummy_app]
+        build(:devcontainer)
       end
 
       def delete_app_assets_if_api_option
@@ -482,8 +497,8 @@ module Rails
       def delete_public_files_if_api_option
         if options[:api]
           remove_file "public/404.html"
+          remove_file "public/406-unsupported-browser.html"
           remove_file "public/422.html"
-          remove_file "public/426.html"
           remove_file "public/500.html"
           remove_file "public/icon.png"
           remove_file "public/icon.svg"
@@ -562,6 +577,7 @@ module Rails
       public_task :run_javascript
       public_task :run_hotwire
       public_task :run_css
+      public_task :run_kamal
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)

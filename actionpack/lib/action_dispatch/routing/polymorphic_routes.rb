@@ -1,104 +1,111 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Routing
-    # = Action Dispatch Routing \PolymorphicRoutes
+    # # Action Dispatch Routing PolymorphicRoutes
     #
-    # Polymorphic URL helpers are methods for smart resolution to a named route call when
-    # given an Active Record model instance. They are to be used in combination with
-    # ActionController::Resources.
+    # Polymorphic URL helpers are methods for smart resolution to a named route call
+    # when given an Active Record model instance. They are to be used in combination
+    # with ActionController::Resources.
     #
-    # These methods are useful when you want to generate the correct URL or path to a RESTful
-    # resource without having to know the exact type of the record in question.
+    # These methods are useful when you want to generate the correct URL or path to
+    # a RESTful resource without having to know the exact type of the record in
+    # question.
     #
-    # Nested resources and/or namespaces are also supported, as illustrated in the example:
+    # Nested resources and/or namespaces are also supported, as illustrated in the
+    # example:
     #
-    #   polymorphic_url([:admin, @article, @comment])
+    #     polymorphic_url([:admin, @article, @comment])
     #
     # results in:
     #
-    #   admin_article_comment_url(@article, @comment)
+    #     admin_article_comment_url(@article, @comment)
     #
-    # == Usage within the framework
+    # ## Usage within the framework
     #
-    # Polymorphic URL helpers are used in a number of places throughout the \Rails framework:
+    # Polymorphic URL helpers are used in a number of places throughout the Rails
+    # framework:
     #
-    # * <tt>url_for</tt>, so you can use it with a record as the argument, e.g.
-    #   <tt>url_for(@article)</tt>;
-    # * ActionView::Helpers::FormHelper uses <tt>polymorphic_path</tt>, so you can write
-    #   <tt>form_for(@article)</tt> without having to specify <tt>:url</tt> parameter for the form
-    #   action;
-    # * <tt>redirect_to</tt> (which, in fact, uses <tt>url_for</tt>) so you can write
-    #   <tt>redirect_to(post)</tt> in your controllers;
-    # * ActionView::Helpers::AtomFeedHelper, so you don't have to explicitly specify URLs
-    #   for feed entries.
+    # *   `url_for`, so you can use it with a record as the argument, e.g.
+    #     `url_for(@article)`;
+    # *   ActionView::Helpers::FormHelper uses `polymorphic_path`, so you can write
+    #     `form_for(@article)` without having to specify `:url` parameter for the
+    #     form action;
+    # *   `redirect_to` (which, in fact, uses `url_for`) so you can write
+    #     `redirect_to(post)` in your controllers;
+    # *   ActionView::Helpers::AtomFeedHelper, so you don't have to explicitly
+    #     specify URLs for feed entries.
     #
-    # == Prefixed polymorphic helpers
     #
-    # In addition to <tt>polymorphic_url</tt> and <tt>polymorphic_path</tt> methods, a
-    # number of prefixed helpers are available as a shorthand to <tt>action: "..."</tt>
-    # in options. Those are:
+    # ## Prefixed polymorphic helpers
     #
-    # * <tt>edit_polymorphic_url</tt>, <tt>edit_polymorphic_path</tt>
-    # * <tt>new_polymorphic_url</tt>, <tt>new_polymorphic_path</tt>
+    # In addition to `polymorphic_url` and `polymorphic_path` methods, a number of
+    # prefixed helpers are available as a shorthand to `action: "..."` in options.
+    # Those are:
+    #
+    # *   `edit_polymorphic_url`, `edit_polymorphic_path`
+    # *   `new_polymorphic_url`, `new_polymorphic_path`
+    #
     #
     # Example usage:
     #
-    #   edit_polymorphic_path(@post)           # => "/posts/1/edit"
-    #   polymorphic_path(@post, format: :pdf)  # => "/posts/1.pdf"
+    #     edit_polymorphic_path(@post)           # => "/posts/1/edit"
+    #     polymorphic_path(@post, format: :pdf)  # => "/posts/1.pdf"
     #
-    # == Usage with mounted engines
+    # ## Usage with mounted engines
     #
     # If you are using a mounted engine and you need to use a polymorphic_url
     # pointing at the engine's routes, pass in the engine's route proxy as the first
     # argument to the method. For example:
     #
-    #   polymorphic_url([blog, @post])  # calls blog.post_path(@post)
-    #   form_for([blog, @post])         # => "/blog/posts/1"
+    #     polymorphic_url([blog, @post])  # calls blog.post_path(@post)
+    #     form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
-      # Constructs a call to a named RESTful route for the given record and returns the
-      # resulting URL string. For example:
+      # Constructs a call to a named RESTful route for the given record and returns
+      # the resulting URL string. For example:
       #
-      #   # calls post_url(post)
-      #   polymorphic_url(post) # => "http://example.com/posts/1"
-      #   polymorphic_url([blog, post]) # => "http://example.com/blogs/1/posts/1"
-      #   polymorphic_url([:admin, blog, post]) # => "http://example.com/admin/blogs/1/posts/1"
-      #   polymorphic_url([user, :blog, post]) # => "http://example.com/users/1/blog/posts/1"
-      #   polymorphic_url(Comment) # => "http://example.com/comments"
+      #     # calls post_url(post)
+      #     polymorphic_url(post) # => "http://example.com/posts/1"
+      #     polymorphic_url([blog, post]) # => "http://example.com/blogs/1/posts/1"
+      #     polymorphic_url([:admin, blog, post]) # => "http://example.com/admin/blogs/1/posts/1"
+      #     polymorphic_url([user, :blog, post]) # => "http://example.com/users/1/blog/posts/1"
+      #     polymorphic_url(Comment) # => "http://example.com/comments"
       #
-      # ==== Options
+      # #### Options
       #
-      # * <tt>:action</tt> - Specifies the action prefix for the named route:
-      #   <tt>:new</tt> or <tt>:edit</tt>. Default is no prefix.
-      # * <tt>:routing_type</tt> - Allowed values are <tt>:path</tt> or <tt>:url</tt>.
-      #   Default is <tt>:url</tt>.
+      # *   `:action` - Specifies the action prefix for the named route: `:new` or
+      #     `:edit`. Default is no prefix.
+      # *   `:routing_type` - Allowed values are `:path` or `:url`. Default is `:url`.
       #
-      # Also includes all the options from <tt>url_for</tt>. These include such
-      # things as <tt>:anchor</tt> or <tt>:trailing_slash</tt>. Example usage
-      # is given below:
       #
-      #   polymorphic_url([blog, post], anchor: 'my_anchor')
-      #     # => "http://example.com/blogs/1/posts/1#my_anchor"
-      #   polymorphic_url([blog, post], anchor: 'my_anchor', script_name: "/my_app")
-      #     # => "http://example.com/my_app/blogs/1/posts/1#my_anchor"
+      # Also includes all the options from `url_for`. These include such things as
+      # `:anchor` or `:trailing_slash`. Example usage is given below:
       #
-      # For all of these options, see the documentation for {url_for}[rdoc-ref:ActionDispatch::Routing::UrlFor].
+      #     polymorphic_url([blog, post], anchor: 'my_anchor')
+      #       # => "http://example.com/blogs/1/posts/1#my_anchor"
+      #     polymorphic_url([blog, post], anchor: 'my_anchor', script_name: "/my_app")
+      #       # => "http://example.com/my_app/blogs/1/posts/1#my_anchor"
       #
-      # ==== Functionality
+      # For all of these options, see the documentation for
+      # [url_for](rdoc-ref:ActionDispatch::Routing::UrlFor).
       #
-      #   # an Article record
-      #   polymorphic_url(record)  # same as article_url(record)
+      # #### Functionality
       #
-      #   # a Comment record
-      #   polymorphic_url(record)  # same as comment_url(record)
+      #     # an Article record
+      #     polymorphic_url(record)  # same as article_url(record)
       #
-      #   # it recognizes new records and maps to the collection
-      #   record = Comment.new
-      #   polymorphic_url(record)  # same as comments_url()
+      #     # a Comment record
+      #     polymorphic_url(record)  # same as comment_url(record)
       #
-      #   # the class of a record will also map to the collection
-      #   polymorphic_url(Comment) # same as comments_url()
+      #     # it recognizes new records and maps to the collection
+      #     record = Comment.new
+      #     polymorphic_url(record)  # same as comments_url()
+      #
+      #     # the class of a record will also map to the collection
+      #     polymorphic_url(Comment) # same as comments_url()
       #
       def polymorphic_url(record_or_hash_or_array, options = {})
         if Hash === record_or_hash_or_array

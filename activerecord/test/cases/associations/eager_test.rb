@@ -497,7 +497,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
-    quoted_posts_id = Comment.connection.quote_table_name("posts") + "." + Comment.connection.quote_column_name("id")
+    quoted_posts_id = Comment.lease_connection.quote_table_name("posts") + "." + Comment.lease_connection.quote_column_name("id")
     assert_nothing_raised do
       Comment.includes(:post).references(:posts).where("#{quoted_posts_id} = ?", 4)
     end
@@ -510,7 +510,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
-    quoted_posts_id = Comment.connection.quote_table_name("posts") + "." + Comment.connection.quote_column_name("id")
+    quoted_posts_id = Comment.lease_connection.quote_table_name("posts") + "." + Comment.lease_connection.quote_column_name("id")
     assert_nothing_raised do
       Comment.includes(:post).references(:posts).order(quoted_posts_id)
     end
@@ -572,7 +572,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     Subscription.create!(subscriber_id: "PL", book_id: b.id)
     s.reload
-    s.book_ids = s.book_ids
+    assert_equal [b.id], s.book_ids
   end
 
   def test_eager_load_has_many_through_with_string_keys
@@ -816,7 +816,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_inheritance
-    SpecialPost.all.merge!(includes: [ :comments ]).to_a
+    posts = SpecialPost.all.merge!(includes: [ :comments ]).to_a
+    assert_equal 1, posts.size
   end
 
   def test_eager_has_one_with_association_inheritance
@@ -1556,10 +1557,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preload with invalid argument" do
-    exception = assert_raises(ActiveRecord::AssociationNotFoundError) do
+    exception = assert_raises(ArgumentError) do
       Author.preload(10).to_a
     end
-    assert_match(/Association named '10' was not found on Author; perhaps you misspelled it\?/, exception.message)
+    assert_match(/Association names must be Symbol or String, got: Integer/, exception.message)
+
+    exception = assert_raises(ActiveRecord::AssociationNotFoundError) do
+      Author.preload(:does_not_exists).to_a
+    end
+    assert_match(/Association named 'does_not_exists' was not found on Author; perhaps you misspelled it\?/, exception.message)
   end
 
   test "associations with extensions are not instance dependent" do
@@ -1697,7 +1703,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 3, comments_collection.size
     end.last
 
-    c = Sharded::BlogPost.connection
+    c = Sharded::BlogPost.lease_connection
     quoted_blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
     quoted_blog_post_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_post_id"))
     assert_match(/WHERE #{quoted_blog_id} IN \(.+\) AND #{quoted_blog_post_id} IN \(.+\)/, sql)

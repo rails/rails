@@ -1,291 +1,60 @@
-*   Add an option to `ActiveRecord::Encryption::Encryptor` to disable compression
+*   Fix an issue where the IDs reader method did not return expected results
+    for preloaded associations in models using composite primary keys.
 
-    Allow compression to be disabled by setting `compress: false`
+    *Jay Ang*
+
+*   Allow to configure `strict_loading_mode` globally or within a model.
+
+    Defaults to `:all`, can be changed to `:n_plus_one_only`.
+
+    *Garen Torikian*
+
+*   Add `ActiveRecord::Relation#readonly?`.
+
+    Reflects if the relation has been marked as readonly.
+
+    *Theodor Tonum*
+
+*   Improve `ActiveRecord::Store` to raise a descriptive exception if the column is not either
+    structured (e.g., PostgreSQL +hstore+/+json+, or MySQL +json+) or declared serializable via
+    `ActiveRecord.store`.
+
+    Previously, a `NoMethodError` would be raised when the accessor was read or written:
+
+        NoMethodError: undefined method `accessor' for an instance of ActiveRecord::Type::Text
+
+    Now, a descriptive `ConfigurationError` is raised:
+
+        ActiveRecord::ConfigurationError: the column 'metadata' has not been configured as a store.
+          Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your
+          database supports it, use a structured column type like hstore or json.
+
+    *Mike Dalessio*
+
+*   Fix inference of association model on nested models with the same demodularized name.
+
+    E.g. with the following setup:
 
     ```ruby
-      class User
-        encrypts :name, encryptor: ActiveRecord::Encryption::Encryptor.new(compress: false)
-      end
+    class Nested::Post < ApplicationRecord
+      has_one :post, through: :other
+    end
     ```
 
-    *Donal McBreen*
-
-*   Deprecate passing strings to `ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename`.
-
-    A `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object should be passed instead.
-
-    *Rafael Mendonça França*
-
-*   Add row_count field to sql.active_record notification
-
-    This field returns the amount of rows returned by the query that emitted the notification.
-
-    This metric is useful in cases where one wants to detect queries with big result sets.
-
-    *Marvin Bitterlich*
-
-*   Consistently raise an `ArgumentError` when passing an invalid argument to a nested attributes association writer.
-
-    Previously, this would only raise on collection associations and produce a generic error on singular associations.
-
-    Now, it will raise on both collection and singular associations.
+    Before, `#post` would infer the model as `Nested::Post`, but now it correctly infers `Post`.
 
     *Joshua Young*
 
-*   Fix single quote escapes on default generated MySQL columns
+*   Add public method for checking if a table is ignored by the schema cache.
 
-    MySQL 5.7.5+ supports generated columns, which can be used to create a column that is computed from an expression.
-
-    Previously, the schema dump would output a string with double escapes for generated columns with single quotes in the default expression.
-
-    This would result in issues when importing the schema on a fresh instance of a MySQL database.
-
-    Now, the string will not be escaped and will be valid Ruby upon importing of the schema.
-
-    *Yash Kapadia*
-
-*   Fix Migrations with versions older than 7.1 validating options given to
-    `add_reference` and `t.references`.
-
-    *Hartley McGuire*
-
-*   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be instrospected
-
-    *JP Rosevear*
-
-*   Make `schema_dump`, `query_cache`, `replica` and `database_tasks` configurable via `DATABASE_URL`
-
-    This wouldn't always work previously because boolean values would be interpreted as strings.
-
-    e.g. `DATABASE_URL=postgres://localhost/foo?schema_dump=false` now properly disable dumping the schema
-    cache.
-
-    *Mike Coutermarsh*, *Jean Boussier*
-
-*   Introduce `ActiveRecord::Transactions::ClassMethods#set_callback`
-
-     It is identical to `ActiveSupport::Callbacks::ClassMethods#set_callback`
-     but with support for `after_commit` and `after_rollback` callback options.
-
-    *Joshua Young*
-
-*   Make `ActiveRecord::Encryption::Encryptor` agnostic of the serialization format used for encrypted data.
-
-    Previously, the encryptor instance only allowed an encrypted value serialized as a `String` to be passed to the message serializer.
-
-    Now, the encryptor lets the configured `message_serializer` decide which types of serialized encrypted values are supported. A custom serialiser is therefore allowed to serialize `ActiveRecord::Encryption::Message` objects using a type other than `String`.
-
-    The default `ActiveRecord::Encryption::MessageSerializer` already ensures that only `String` objects are passed for deserialization.
-
-    *Maxime Réty*
-
-*   Fix `encrypted_attribute?` to take into account context properties passed to `encrypts`.
-
-    *Maxime Réty*
-
-*   The object returned by `explain` now responds to `pluck`, `first`,
-    `last`, `average`, `count`, `maximum`, `minimum`, and `sum`. Those
-    new methods run `EXPLAIN` on the corresponding queries:
+    Previously, an application would need to reimplement `ignored_table?` from the schema cache class to check if a table was set to be ignored. This adds a public method to support this and updates the schema cache to use that directly.
 
     ```ruby
-    User.all.explain.count
-    # EXPLAIN SELECT COUNT(*) FROM `users`
-    # ...
-
-    User.all.explain.maximum(:id)
-    # EXPLAIN SELECT MAX(`users`.`id`) FROM `users`
-    # ...
+    ActiveRecord.schema_cache_ignored_tables = ["developers"]
+    ActiveRecord.schema_cache_ignored_table?("developers")
+    => true
     ```
 
-    *Petrik de Heus*
+    *Eileen M. Uchitelle*
 
-*   Fixes an issue where `validates_associated` `:on`  option wasn't respected
-    when validating associated records.
-
-    *Austen Madden*, *Alex Ghiculescu*, *Rafał Brize*
-
-*   Allow overriding SQLite defaults from `database.yml`.
-
-    Any PRAGMA configuration set under the `pragmas` key in the configuration
-    file takes precedence over Rails' defaults, and additional PRAGMAs can be
-    set as well.
-
-    ```yaml
-    database: storage/development.sqlite3
-    timeout: 5000
-    pragmas:
-      journal_mode: off
-      temp_store: memory
-    ```
-
-    *Stephen Margheim*
-
-*   Remove warning message when running SQLite in production, but leave it unconfigured.
-
-    There are valid use cases for running SQLite in production. However, it must be done
-    with care, so instead of a warning most users won't see anyway, it's preferable to
-    leave the configuration commented out to force them to think about having the database
-    on a persistent volume etc.
-
-    *Jacopo Beschi*, *Jean Boussier*
-
-*   Add support for generated columns to the SQLite3 adapter.
-
-    Generated columns (both stored and dynamic) are supported since version 3.31.0 of SQLite.
-    This adds support for those to the SQLite3 adapter.
-
-    ```ruby
-    create_table :users do |t|
-      t.string :name
-      t.virtual :name_upper, type: :string, as: 'UPPER(name)'
-      t.virtual :name_lower, type: :string, as: 'LOWER(name)', stored: true
-    end
-    ```
-
-    *Stephen Margheim*
-
-*   TrilogyAdapter: ignore `host` if `socket` parameter is set.
-
-    This allows to configure a connection on a UNIX socket via `DATABASE_URL`:
-
-    ```
-    DATABASE_URL=trilogy://does-not-matter/my_db_production?socket=/var/run/mysql.sock
-    ```
-
-    *Jean Boussier*
-
-*   Make `assert_queries_count`, `assert_no_queries`, `assert_queries_match`, and
-    `assert_no_queries_match` assertions public.
-
-    To assert the expected number of queries are made, Rails internally uses `assert_queries_count` and
-    `assert_no_queries`. To assert that specific SQL queries are made, `assert_queries_match` and
-    `assert_no_queries_match` are used. These assertions can now be used in applications as well.
-
-    ```ruby
-    class ArticleTest < ActiveSupport::TestCase
-      test "queries are made" do
-        assert_queries_count(1) { Article.first }
-      end
-
-      test "creates a foreign key" do
-        assert_queries_match(/ADD FOREIGN KEY/i, include_schema: true) do
-          @connection.add_foreign_key(:comments, :posts)
-        end
-      end
-    end
-    ```
-
-    *Petrik de Heus*, *fatkodima*
-
-*   Fix `has_secure_token` calls the setter method on initialize.
-
-    *Abeid Ahmed*
-
-*   When using a `DATABASE_URL`, allow for a configuration to map the protocol in the URL to a specific database
-    adapter. This allows decoupling the adapter the application chooses to use from the database connection details
-    set in the deployment environment.
-
-    ```ruby
-    # ENV['DATABASE_URL'] = "mysql://localhost/example_database"
-    config.active_record.protocol_adapters.mysql = "trilogy"
-    # will connect to MySQL using the trilogy adapter
-    ```
-
-    *Jean Boussier*, *Kevin McPhillips*
-
-*   In cases where MySQL returns `warning_count` greater than zero, but returns no warnings when
-    the `SHOW WARNINGS` query is executed, `ActiveRecord.db_warnings_action` proc will still be
-    called with a generic warning message rather than silently ignoring the warning(s).
-
-    *Kevin McPhillips*
-
-*   `DatabaseConfigurations#configs_for` accepts a symbol in the `name` parameter.
-
-    *Andrew Novoselac*
-
-*   Fix `where(field: values)` queries when `field` is a serialized attribute
-    (for example, when `field` uses `ActiveRecord::Base.serialize` or is a JSON
-    column).
-
-    *João Alves*
-
-*   Make the output of `ActiveRecord::Core#inspect` configurable.
-
-    By default, calling `inspect` on a record will yield a formatted string including just the `id`.
-
-    ```ruby
-    Post.first.inspect #=> "#<Post id: 1>"
-    ```
-
-    The attributes to be included in the output of `inspect` can be configured with
-    `ActiveRecord::Core#attributes_for_inspect`.
-
-    ```ruby
-    Post.attributes_for_inspect = [:id, :title]
-    Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!">"
-    ```
-
-    With `attributes_for_inspect` set to `:all`, `inspect` will list all the record's attributes.
-
-    ```ruby
-    Post.attributes_for_inspect = :all
-    Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
-    ```
-
-    In `development` and `test` mode, `attributes_for_inspect` will be set to `:all` by default.
-
-    You can also call `full_inspect` to get an inspection with all the attributes.
-
-    The attributes in `attribute_for_inspect` will also be used for `pretty_print`.
-
-    *Andrew Novoselac*
-
-*   Don't mark attributes as changed when reassigned to `Float::INFINITY` or
-    `-Float::INFINITY`.
-
-    *Maicol Bentancor*
-
-*   Support the `RETURNING` clause for MariaDB.
-
-    *fatkodima*, *Nikolay Kondratyev*
-
-*   The SQLite3 adapter now implements the `supports_deferrable_constraints?` contract.
-
-    Allows foreign keys to be deferred by adding the `:deferrable` key to the `foreign_key` options.
-
-    ```ruby
-    add_reference :person, :alias, foreign_key: { deferrable: :deferred }
-    add_reference :alias, :person, foreign_key: { deferrable: :deferred }
-    ```
-
-    *Stephen Margheim*
-
-*   Add the `set_constraints` helper to PostgreSQL connections.
-
-    ```ruby
-    Post.create!(user_id: -1) # => ActiveRecord::InvalidForeignKey
-
-    Post.transaction do
-      Post.connection.set_constraints(:deferred)
-      p = Post.create!(user_id: -1)
-      u = User.create!
-      p.user = u
-      p.save!
-    end
-    ```
-
-    *Cody Cutrer*
-
-*   Include `ActiveModel::API` in `ActiveRecord::Base`.
-
-    *Sean Doyle*
-
-*   Ensure `#signed_id` outputs `url_safe` strings.
-
-    *Jason Meller*
-
-*   Add `nulls_last` and working `desc.nulls_first` for MySQL.
-
-    *Tristan Fellows*
-
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md) for previous changes.
+Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activerecord/CHANGELOG.md) for previous changes.

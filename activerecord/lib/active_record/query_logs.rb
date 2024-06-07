@@ -26,6 +26,7 @@ module ActiveRecord
   # * +socket+
   # * +db_host+
   # * +database+
+  # * +source_location+
   #
   # Action Controller adds default tags when loaded:
   #
@@ -106,6 +107,20 @@ module ActiveRecord
           else
             raise ArgumentError, "Formatter is unsupported: #{formatter}"
           end
+      end
+
+      if Thread.respond_to?(:each_caller_location)
+        def query_source_location # :nodoc:
+          Thread.each_caller_location do |location|
+            frame = LogSubscriber.backtrace_cleaner.clean_frame(location.path)
+            return frame if frame
+          end
+          nil
+        end
+      else
+        def query_source_location # :nodoc:
+          LogSubscriber.backtrace_cleaner.clean(caller_locations(1).each).first
+        end
       end
 
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }

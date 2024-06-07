@@ -782,8 +782,9 @@ module ApplicationTests
             assert false
           end
 
-          10.times do |n|
+          4.times do |n|
             define_method("test_verify_fail_fast_\#{n}") do
+              sleep 0.1
               assert true
             end
           end
@@ -898,7 +899,7 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_threads
-      exercise_parallelization_regardless_of_machine_core_count(with: :threads)
+      exercise_parallelization_regardless_of_machine_core_count(with: :threads, transactional_fixtures: false)
 
       file_name = create_parallel_threads_test_file
 
@@ -962,6 +963,14 @@ module ApplicationTests
     def test_raise_error_when_specified_file_does_not_exist
       error = capture(:stderr) { run_test_command("test/not_exists.rb", stderr: true) }
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
+    end
+
+    def test_did_you_mean_when_specified_file_name_is_close
+      create_test_file :models, "account"
+      output = run_test_command("test/models/accnt.rb")
+
+      assert_match(%r{Could not load test file.+test/models/accnt\.rb}, output)
+      assert_match(%r{Did you mean?.+test/models/account_test\.rb}, output)
     end
 
     def test_pass_TEST_env_on_rake_test
@@ -1223,6 +1232,12 @@ module ApplicationTests
       assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
+    def test_run_does_not_load_file_from_the_fixture_folder
+      create_test_file "fixtures", "smoke_foo"
+
+      assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", run_test_command("")
+    end
+
     def test_can_exclude_files_from_being_tested_via_default_rails_command_by_setting_DEFAULT_TEST_EXCLUDE_env_var
       create_test_file "smoke", "smoke_foo"
 
@@ -1390,7 +1405,7 @@ module ApplicationTests
         RUBY
       end
 
-      def exercise_parallelization_regardless_of_machine_core_count(with:, threshold: 0)
+      def exercise_parallelization_regardless_of_machine_core_count(with:, threshold: 0, transactional_fixtures: true)
         file_content = ERB.new(<<-ERB, trim_mode: "-").result_with_hash(with: with.to_s)
           ENV["RAILS_ENV"] ||= "test"
           require_relative "../config/environment"
@@ -1399,6 +1414,7 @@ module ApplicationTests
           class ActiveSupport::TestCase
             # Run tests in parallel with specified workers
             parallelize(workers: 2, with: :<%= with %>, threshold: #{threshold})
+            self.use_transactional_tests = #{transactional_fixtures}
 
             # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
             fixtures :all

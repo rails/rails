@@ -4,7 +4,6 @@ This is a collection of utilities used for Rails internal development.
 They aren't used by Rails apps directly.
 
   * `console` drops you in irb and loads local Rails repos
-  * `profile` profiles `Kernel#require` to help reduce startup time
   * `railspect` provides commands to run internal linters
   * `line_statistics` provides CodeTools module and LineStatistics class to count lines
   * `test` is loaded by every major component of Rails to simplify testing, for example:

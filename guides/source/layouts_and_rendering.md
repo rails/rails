@@ -465,14 +465,14 @@ def index
   request.variant = determine_variant
 end
 
-  private
-    def determine_variant
-      variant = nil
-      # some code to determine the variant(s) to use
-      variant = :mobile if session[:use_mobile]
+private
+  def determine_variant
+    variant = nil
+    # some code to determine the variant(s) to use
+    variant = :mobile if session[:use_mobile]
 
-      variant
-    end
+    variant
+  end
 ```
 
 #### Finding Layouts
@@ -714,7 +714,14 @@ Just like the `:status` option for `render`, `:status` for `redirect_to` accepts
 
 #### The Difference Between `render` and `redirect_to`
 
-Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request from the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
+Sometimes inexperienced developers think of `redirect_to` as a sort of `goto`
+command, moving execution from one place to another in your Rails code. This is
+_not_ correct.
+
+The current action will complete, returning a response to the browser. After
+this your code stops running and waits for a new request, it just happens that
+you've told the browser what request it should make next by sending back an
+HTTP 302 status code.
 
 Consider these actions to see the difference:
 
@@ -866,7 +873,7 @@ If you are using Rails with the [Asset Pipeline](asset_pipeline.html) enabled, t
 
 A JavaScript file within a Rails application or Rails engine goes in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`. These locations are explained in detail in the [Asset Organization section in the Asset Pipeline Guide](asset_pipeline.html#asset-organization).
 
-You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file that is inside a directory called `javascripts` inside of one of `app/assets`, `lib/assets` or `vendor/assets`, you would do this:
+You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file `main.js` that is inside one of `app/assets/javascripts`, `lib/assets/javascripts` or `vendor/assets/javascripts`, you would do this:
 
 ```erb
 <%= javascript_include_tag "main" %>
@@ -1356,7 +1363,7 @@ Rails also makes a counter variable available within a partial called by the col
 <%= product_counter %> # 0 for the first product, 1 for the second product...
 ```
 
-This also works when the partial name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
+This also works when the local variable name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
 
 #### Spacer Templates
 

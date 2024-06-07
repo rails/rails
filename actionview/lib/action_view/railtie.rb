@@ -116,7 +116,6 @@ module ActionView
         view_reloader = ActionView::CacheExpiry::ViewReloader.new(watcher: app.config.file_watcher)
 
         app.reloaders << view_reloader
-        view_reloader.execute
         app.reloader.to_run do
           require_unload_lock!
           view_reloader.execute

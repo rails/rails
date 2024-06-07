@@ -30,6 +30,19 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     assert_equal 145, image.height
   end
 
+  test "previewing a PDF-based Illustrator file" do
+    blob = create_file_blob(fixture: "report.pdf", filename: "file.ai", content_type: "application/illustrator")
+    preview = blob.preview(resize_to_limit: [640, 280]).processed
+
+    assert_predicate preview.image, :attached?
+    assert_equal "file.png", preview.image.filename.to_s
+    assert_equal "image/png", preview.image.content_type
+
+    image = read_image(preview.image)
+    assert_equal 612, image.width
+    assert_equal 792, image.height
+  end
+
   test "previewing an MP4 video" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
     preview = blob.preview(resize_to_limit: [640, 280]).processed

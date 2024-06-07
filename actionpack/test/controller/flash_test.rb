@@ -310,7 +310,9 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       env = { "action_dispatch.request.flash_hash" => ActionDispatch::Flash::FlashHash.new }
       get "/set_flash", env: env
-      get "/set_flash", env: env
+      assert_nothing_raised do
+        get "/set_flash", env: env
+      end
     end
   end
 
@@ -318,7 +320,9 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       env = { "action_dispatch.request.flash_hash" => ActionDispatch::Flash::FlashHash.new }
       get "/set_flash_now", env: env
-      get "/set_flash_now", env: env
+      assert_nothing_raised do
+        get "/set_flash_now", env: env
+      end
     end
   end
 

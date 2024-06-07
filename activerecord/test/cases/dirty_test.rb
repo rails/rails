@@ -608,14 +608,14 @@ class DirtyTest < ActiveRecord::TestCase
 
   class Testings < ActiveRecord::Base; end
   def test_field_named_field
-    ActiveRecord::Base.connection.create_table :testings do |t|
+    ActiveRecord::Base.lease_connection.create_table :testings do |t|
       t.string :field
     end
     assert_nothing_raised do
       Testings.new.attributes
     end
   ensure
-    ActiveRecord::Base.connection.drop_table :testings rescue nil
+    ActiveRecord::Base.lease_connection.drop_table :testings rescue nil
     ActiveRecord::Base.clear_cache!
   end
 
@@ -969,6 +969,20 @@ class DirtyTest < ActiveRecord::TestCase
 
       assert_equal "Boeing2", aircraft.name
       assert_equal manufactured_at.utc.strftime("%Y-%m-%d %H:%M:%S"), aircraft.manufactured_at.strftime("%Y-%m-%d %H:%M:%S")
+    end
+  end
+
+  if current_adapter?(:PostgreSQLAdapter) && supports_identity_columns?
+    test "partial insert off with changed composite identity primary key attribute" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "cpk_postgresql_identity_table"
+      end
+
+      with_partial_writes(klass, false) do
+        record = klass.create!(another_id: 10)
+        assert_equal 10, record.another_id
+        assert_not_nil record.id
+      end
     end
   end
 

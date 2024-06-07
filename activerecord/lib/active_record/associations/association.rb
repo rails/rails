@@ -63,7 +63,7 @@ module ActiveRecord
       # Reloads the \target and returns +self+ on success.
       # The QueryCache is cleared if +force+ is true.
       def reload(force = false)
-        klass.connection.clear_query_cache if force && klass
+        klass.connection_pool.clear_query_cache if force && klass
         reset
         reset_scope
         load_target
@@ -231,12 +231,14 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) do |record|
-            set_inverse_instance(record)
-            if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
-              record.strict_loading!
-            else
-              record.strict_loading!(false, mode: owner.strict_loading_mode)
+          klass.with_connection do |c|
+            sc.execute(binds, c) do |record|
+              set_inverse_instance(record)
+              if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
+                record.strict_loading!
+              else
+                record.strict_loading!(false, mode: owner.strict_loading_mode)
+              end
             end
           end
         end

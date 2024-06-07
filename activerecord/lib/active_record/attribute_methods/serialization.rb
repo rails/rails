@@ -180,29 +180,7 @@ module ActiveRecord
         #     serialize :preferences, coder: Rot13JSON
         #   end
         #
-        def serialize(attr_name, class_name_or_coder = nil, coder: nil, type: Object, yaml: {}, **options)
-          unless class_name_or_coder.nil?
-            if class_name_or_coder == ::JSON || [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
-              ActiveRecord.deprecator.warn(<<~MSG)
-                Passing the coder as positional argument is deprecated and will be removed in Rails 7.2.
-
-                Please pass the coder as a keyword argument:
-
-                  serialize #{attr_name.inspect}, coder: #{class_name_or_coder}
-              MSG
-              coder = class_name_or_coder
-            else
-              ActiveRecord.deprecator.warn(<<~MSG)
-                Passing the class as positional argument is deprecated and will be removed in Rails 7.2.
-
-                Please pass the class as a keyword argument:
-
-                  serialize #{attr_name.inspect}, type: #{class_name_or_coder.name}
-              MSG
-              type = class_name_or_coder
-            end
-          end
-
+        def serialize(attr_name, coder: nil, type: Object, yaml: {}, **options)
           coder ||= default_column_serializer
           unless coder
             raise ArgumentError, <<~MSG.squish

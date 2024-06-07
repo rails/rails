@@ -31,7 +31,7 @@ module ApplicationTests
       app_file "app/controllers/name_spaced/users_controller.rb", <<-RUBY
         class NameSpaced::UsersController < ApplicationController
           def index
-            render inline: ActiveRecord::QueryLogs.call("", ActiveRecord::Base.connection)
+            render inline: ActiveRecord::QueryLogs.call("", ActiveRecord::Base.lease_connection)
           end
         end
       RUBY
@@ -39,7 +39,7 @@ module ApplicationTests
       app_file "app/jobs/user_job.rb", <<-RUBY
         class UserJob < ActiveJob::Base
           def perform
-            ActiveRecord::QueryLogs.call("", ActiveRecord::Base.connection)
+            ActiveRecord::QueryLogs.call("", ActiveRecord::Base.lease_connection)
           end
 
           def dynamic_content
@@ -89,8 +89,8 @@ module ApplicationTests
     test "controller and job tags are defined by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       app_file "config/initializers/active_record.rb", <<-RUBY
-        raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.connection.prepared_statements
-        ActiveRecord::Base.connection.execute("SELECT 1")
+        raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.lease_connection.prepared_statements
+        ActiveRecord::Base.lease_connection.execute("SELECT 1")
       RUBY
 
       boot_app
@@ -147,6 +147,23 @@ module ApplicationTests
       comment = last_response.body.strip
 
       assert_equal("/*action='index',controller='users',database='storage%2Fproduction_animals.sqlite3'*/", comment)
+    end
+
+    test "source_location information is added if enabled" do
+      add_to_config <<~RUBY
+        config.active_record.query_log_tags_enabled = true
+        config.active_record.query_log_tags = [ :source_location ]
+
+        # Remove silencers, so we won't get all backtrace lines filtered.
+        Rails.backtrace_cleaner.remove_silencers!
+      RUBY
+
+      boot_app
+
+      get "/", {}, { "HTTPS" => "on" }
+      comment = last_response.body.strip
+
+      assert_match(/source_location='.*'/, comment)
     end
 
     test "controller tags are not doubled up if already configured" do

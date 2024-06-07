@@ -7,14 +7,6 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
-  # DEPRECATED: Previously raised when trying to use a feature in Active Record which
-  # requires Active Job but the gem is not present. Now raises a NameError.
-  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-  DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
-  deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
-    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead.",
-    deprecator: ActiveRecord.deprecator
-
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
   # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]
@@ -66,7 +58,7 @@ module ActiveRecord
   end
 
   # Raised when connection to the database could not been established (for example when
-  # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
+  # {ActiveRecord::Base.lease_connection=}[rdoc-ref:ConnectionHandling#lease_connection]
   # is given a +nil+ object).
   class ConnectionNotEstablished < AdapterError
     def initialize(message = nil, connection_pool: nil)
@@ -137,8 +129,10 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
-  # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
-  # methods when a record is invalid and cannot be saved.
+  # {ActiveRecord::Base.update_attribute!}[rdoc-ref:Persistence#update_attribute!]
+  # methods when a record is failed to validate or cannot be saved due to any of the
+  # <tt>before_*</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
@@ -582,5 +576,10 @@ module ActiveRecord
   # Again, such a workaround should *not* be used when passing user-provided
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
+  end
+
+  # DatabaseVersionError will be raised when the database version is not supported, or when
+  # the database version cannot be determined.
+  class DatabaseVersionError < ActiveRecordError
   end
 end

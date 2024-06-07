@@ -170,6 +170,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   private
     def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
       reflection = model.reflect_on_association(association_name)
+      assert_not_nil reflection
       assert_no_difference "callbacks_for_model(#{model.name}).length" do
         model.send(:add_autosave_association_callbacks, reflection)
       end
@@ -301,6 +302,13 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     eye.update(iris_attributes: { color: "blue" })
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
+  end
+
+  def test_foreign_key_attribute_is_not_set_unless_changed
+    eye = Eye.create!(iris_with_read_only_foreign_key_attributes: { color: "honey" })
+    assert_nothing_raised do
+      eye.update!(override_iris_with_read_only_foreign_key_color: true)
+    end
   end
 end
 
@@ -1311,7 +1319,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   end
 
   def test_should_save_new_record_that_has_same_value_as_existing_record_marked_for_destruction_on_field_that_has_unique_index
-    Bird.connection.add_index :birds, :name, unique: true
+    Bird.lease_connection.add_index :birds, :name, unique: true
 
     3.times { |i| @pirate.birds.create(name: "unique_birds_#{i}") }
 
@@ -1321,7 +1329,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
     assert_equal 3, @pirate.birds.reload.length
   ensure
-    Bird.connection.remove_index :birds, column: :name
+    Bird.lease_connection.remove_index :birds, column: :name
   end
 
   # Add and remove callbacks tests for association collections.
@@ -1371,7 +1379,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
     assert_empty @pirate.reload.parrots
 
-    join_records = Pirate.connection.select_all("SELECT * FROM parrots_pirates WHERE pirate_id = #{@pirate.id}")
+    join_records = Pirate.lease_connection.select_all("SELECT * FROM parrots_pirates WHERE pirate_id = #{@pirate.id}")
     assert_empty join_records
   end
 
@@ -1535,12 +1543,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.catchphrase = ""
     @pirate.ship.name = ""
     @pirate.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil], [@pirate.reload.catchphrase, @pirate.ship.name]
-    else
-      assert_equal ["", ""], [@pirate.reload.catchphrase, @pirate.ship.name]
-    end
+    assert_equal ["", ""], [@pirate.reload.catchphrase, @pirate.ship.name]
   end
 
   def test_should_allow_to_bypass_validations_on_associated_models_at_any_depth
@@ -1552,12 +1555,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.save(validate: false)
 
     values = [@pirate.reload.catchphrase, @pirate.ship.name, *@pirate.ship.parts.map(&:name)]
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil, nil, nil], values
-    else
-      assert_equal ["", "", "", ""], values
-    end
+    assert_equal ["", "", "", ""], values
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
@@ -1724,12 +1722,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     @ship.pirate.catchphrase = ""
     @ship.name = ""
     @ship.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil], [@ship.reload.name, @ship.pirate.catchphrase]
-    else
-      assert_equal ["", ""], [@ship.reload.name, @ship.pirate.catchphrase]
-    end
+    assert_equal ["", ""], [@ship.reload.name, @ship.pirate.catchphrase]
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
@@ -1861,20 +1854,11 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).each { |child| child.name = "" }
 
     assert @pirate.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil, nil], [
-        @pirate.reload.catchphrase,
-        @pirate.public_send(@association_name).first.name,
-        @pirate.public_send(@association_name).last.name
-      ]
-    else
-      assert_equal ["", "", ""], [
-        @pirate.reload.catchphrase,
-        @pirate.public_send(@association_name).first.name,
-        @pirate.public_send(@association_name).last.name
-      ]
-    end
+    assert_equal ["", "", ""], [
+      @pirate.reload.catchphrase,
+      @pirate.public_send(@association_name).first.name,
+      @pirate.public_send(@association_name).last.name
+    ]
   end
 
   def test_should_validation_the_associated_models_on_create

@@ -6,13 +6,17 @@ module Arel # :nodoc: all
       attr_reader :sql_with_placeholders, :positional_binds, :named_binds
 
       def initialize(sql_with_placeholders, positional_binds, named_binds)
-        if !positional_binds.empty? && !named_binds.empty?
-          raise BindError.new("cannot mix positional and named binds", sql_with_placeholders)
-        elsif !positional_binds.empty?
+        has_positional = !(positional_binds.nil? || positional_binds.empty?)
+        has_named = !(named_binds.nil? || named_binds.empty?)
+
+        if has_positional
+          if has_named
+            raise BindError.new("cannot mix positional and named binds", sql_with_placeholders)
+          end
           if positional_binds.size != (expected = sql_with_placeholders.count("?"))
             raise BindError.new("wrong number of bind variables (#{positional_binds.size} for #{expected})", sql_with_placeholders)
           end
-        elsif !named_binds.empty?
+        elsif has_named
           tokens_in_string = sql_with_placeholders.scan(/:(?<!::)([a-zA-Z]\w*)/).flatten.map(&:to_sym).uniq
           tokens_in_hash = named_binds.keys.map(&:to_sym).uniq
 
@@ -26,7 +30,7 @@ module Arel # :nodoc: all
         end
 
         @sql_with_placeholders = sql_with_placeholders
-        if !positional_binds.empty?
+        if has_positional
           @positional_binds = positional_binds
           @named_binds = nil
         else

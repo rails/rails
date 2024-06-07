@@ -29,7 +29,7 @@ module ActiveRecord
       mock.expect(:call, nil, [adapter: "mysql2", database: nil])
       mock.expect(:call, nil, [db_config])
 
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         ActiveRecord::Base.stub(:establish_connection, mock) do
           ActiveRecord::Tasks::DatabaseTasks.create(db_config)
         end
@@ -76,7 +76,7 @@ module ActiveRecord
 
     def test_create_when_database_exists_outputs_info_to_stderr
       with_stubbed_connection_establish_connection do
-        ActiveRecord::Base.connection.stub(
+        ActiveRecord::Base.lease_connection.stub(
           :create_database,
           proc { raise ActiveRecord::DatabaseAlreadyExists }
         ) do
@@ -90,7 +90,7 @@ module ActiveRecord
     private
       def with_stubbed_connection_establish_connection(&block)
         ActiveRecord::Base.stub(:establish_connection, nil) do
-          ActiveRecord::Base.stub(:connection, @connection, &block)
+          ActiveRecord::Base.stub(:lease_connection, @connection, &block)
         end
       end
   end
@@ -139,7 +139,7 @@ module ActiveRecord
     def test_establishes_connection_to_mysql_database
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called_with(
           ActiveRecord::Base,
           :establish_connection,
@@ -169,7 +169,7 @@ module ActiveRecord
     private
       def with_stubbed_connection_establish_connection(&block)
         ActiveRecord::Base.stub(:establish_connection, nil) do
-          ActiveRecord::Base.stub(:connection, @connection, &block)
+          ActiveRecord::Base.stub(:lease_connection, @connection, &block)
         end
       end
   end
@@ -186,7 +186,7 @@ module ActiveRecord
     def test_establishes_connection_without_database
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(ActiveRecord::Base, :establish_connection, times: 2) do
           ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
         end
@@ -217,7 +217,7 @@ module ActiveRecord
     private
       def with_stubbed_connection_establish_connection(&block)
         ActiveRecord::Base.stub(:establish_connection, nil) do
-          ActiveRecord::Base.stub(:connection, @connection, &block)
+          ActiveRecord::Base.stub(:lease_connection, @connection, &block)
         end
       end
   end
@@ -232,7 +232,7 @@ module ActiveRecord
     end
 
     def test_db_retrieves_charset
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(@connection, :charset) do
           ActiveRecord::Tasks::DatabaseTasks.charset @configuration
         end
@@ -250,7 +250,7 @@ module ActiveRecord
     end
 
     def test_db_retrieves_collation
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(@connection, :collation) do
           ActiveRecord::Tasks::DatabaseTasks.collation @configuration
         end
@@ -313,7 +313,7 @@ module ActiveRecord
 
     def test_structure_dump_with_ignore_tables
       filename = "awesome-file.sql"
-      ActiveRecord::Base.connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+      ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,

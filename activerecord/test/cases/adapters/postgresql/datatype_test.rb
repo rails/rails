@@ -17,7 +17,7 @@ end
 
 class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
@@ -75,7 +75,7 @@ class PostgresqlInternalDataTypeTest < ActiveRecord::PostgreSQLTestCase
   include DdlHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def test_name_column_type

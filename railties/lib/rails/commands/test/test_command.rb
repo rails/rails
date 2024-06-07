@@ -31,6 +31,8 @@ module Rails
         Rails::TestUnit::Runner.parse_options(args)
         run_prepare_task if self.args.none?(EXACT_TEST_ARGUMENT_PATTERN)
         Rails::TestUnit::Runner.run(args)
+      rescue Rails::TestUnit::InvalidTestError => error
+        say error.message
       end
 
       # Define Thor tasks to avoid going through Rake and booting twice when using bin/rails test:*

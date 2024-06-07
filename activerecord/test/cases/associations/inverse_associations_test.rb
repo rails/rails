@@ -201,6 +201,8 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
   end
 
   def test_belongs_to_should_find_inverse_has_many_automatically
+    assert_equal true, Subscription.automatically_invert_plural_associations
+
     book = Book.create!
     subscriber = book.subscribers.new nick: "Nickname"
 
@@ -224,6 +226,20 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     human_reflection = Human.reflect_on_association(:polymorphic_face_without_inverse)
 
     assert_predicate human_reflection, :has_inverse?
+  end
+
+  def test_has_many_inverse_of_derived_automatically_despite_of_composite_foreign_key
+    car_review_reflection = Cpk::Car.reflect_on_association(:car_reviews)
+
+    assert_predicate car_review_reflection, :has_inverse?
+    assert_equal Cpk::CarReview.reflect_on_association(:car), car_review_reflection.inverse_of
+  end
+
+  def test_belongs_to_inverse_of_derived_automatically_despite_of_composite_foreign_key
+    car_reflection = Cpk::CarReview.reflect_on_association(:car)
+
+    assert_predicate car_reflection, :has_inverse?
+    assert_equal Cpk::Car.reflect_on_association(:car_reviews), car_reflection.inverse_of
   end
 end
 

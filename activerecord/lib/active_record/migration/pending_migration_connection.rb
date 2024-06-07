@@ -2,10 +2,10 @@
 
 module ActiveRecord
   class PendingMigrationConnection # :nodoc:
-    def self.establish_temporary_connection(db_config, &block)
+    def self.with_temporary_pool(db_config, &block)
       pool = ActiveRecord::Base.connection_handler.establish_connection(db_config, owner_name: self)
 
-      yield pool.connection
+      yield pool
     ensure
       ActiveRecord::Base.connection_handler.remove_connection_pool(self.name)
     end

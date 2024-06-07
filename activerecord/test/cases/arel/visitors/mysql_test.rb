@@ -6,7 +6,7 @@ module Arel
   module Visitors
     class MysqlTest < Arel::Spec
       before do
-        @visitor = MySQL.new Table.engine.connection
+        @visitor = MySQL.new Table.engine.lease_connection
       end
 
       def compile(node)

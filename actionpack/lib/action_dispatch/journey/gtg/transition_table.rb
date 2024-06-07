@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/journey/nfa/dot"
 
 module ActionDispatch
@@ -55,8 +57,8 @@ module ActionDispatch
 
           t.each { |s, previous_start|
             if previous_start.nil?
-              # In the simple case of a "default" param regex do this fast-path
-              # and add all next states.
+              # In the simple case of a "default" param regex do this fast-path and add all
+              # next states.
               if token_matches_default_component && states = @stdparam_states[s]
                 states.each { |re, v| next_states << [v, nil].freeze if !v.nil? }
               end
@@ -67,10 +69,10 @@ module ActionDispatch
               end
             end
 
-            # For regexes that aren't the "default" style, they may potentially
-            # not be terminated by the first "token" [./?], so we need to continue
-            # to attempt to match this regexp as well as any successful paths that
-            # continue out of it. both paths could be valid.
+            # For regexes that aren't the "default" style, they may potentially not be
+            # terminated by the first "token" [./?], so we need to continue to attempt to
+            # match this regexp as well as any successful paths that continue out of it.
+            # both paths could be valid.
             if states = @regexp_states[s]
               slice_start = if previous_start.nil?
                 start_index
@@ -86,8 +88,8 @@ module ActionDispatch
                 next_states << [v, nil].freeze if !v.nil? && re.match?(curr_slice)
               }
 
-              # and regardless, we must continue accepting tokens and retrying this regexp.
-              # we need to remember where we started as well so we can take bigger slices.
+              # and regardless, we must continue accepting tokens and retrying this regexp. we
+              # need to remember where we started as well so we can take bigger slices.
               next_states << [s, slice_start].freeze
             end
           }

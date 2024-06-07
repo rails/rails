@@ -27,7 +27,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   class DefaultNumber < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :default_numbers do |t|
       t.integer :positive_integer, default: 7
       t.integer :negative_integer, default: -5
@@ -62,7 +62,7 @@ class DefaultStringsTest < ActiveRecord::TestCase
   class DefaultString < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :default_strings do |t|
       t.string :string_col, default: "Smith"
       t.string :string_col_with_quotes, default: "O'Connor"
@@ -88,7 +88,7 @@ class DefaultBinaryTest < ActiveRecord::TestCase
     class DefaultBinary < ActiveRecord::Base; end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table :default_binaries do |t|
         t.binary :varbinary_col, null: false, limit: 64, default: "varbinary_default"
         t.binary :varbinary_col_hex_looking, null: false, limit: 64, default: "0xDEADBEEF"
@@ -100,7 +100,7 @@ class DefaultBinaryTest < ActiveRecord::TestCase
       assert_equal "varbinary_default", DefaultBinary.new.varbinary_col
     end
 
-    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && !ActiveRecord::Base.connection.mariadb?
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && !ActiveRecord::Base.lease_connection.mariadb?
       def test_default_binary_string
         assert_equal "binary_default", DefaultBinary.new.binary_col
       end
@@ -121,7 +121,7 @@ class DefaultTextTest < ActiveRecord::TestCase
     class DefaultText < ActiveRecord::Base; end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table :default_texts do |t|
         t.text :text_col, default: "Smith"
         t.text :text_col_with_quotes, default: "O'Connor"
@@ -149,7 +149,7 @@ class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
 
     test "schema dump includes default expression" do
       output = dump_table_schema("defaults")
-      if ActiveRecord::Base.connection.database_version >= 100000
+      if ActiveRecord::Base.lease_connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
         assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
@@ -294,7 +294,7 @@ class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     def with_mysql_not_null_table
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = "test_mysql_not_null_defaults"
-      klass.connection.create_table klass.table_name do |t|
+      klass.lease_connection.create_table klass.table_name do |t|
         t.integer :non_null_integer, null: false
         t.string  :non_null_string,  null: false
         t.text    :non_null_text,    null: false
@@ -303,7 +303,7 @@ class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
 
       yield klass
     ensure
-      klass.connection.drop_table(klass.table_name) rescue nil
+      klass.lease_connection.drop_table(klass.table_name) rescue nil
     end
   end
 end

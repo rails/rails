@@ -163,6 +163,7 @@ ActiveRecord::Schema.define do
     t.string :format
     t.column :name, :string, default: "<untitled>"
     t.column :original_name, :string
+    t.column :logo, :binary
 
     t.datetime :created_at
     t.datetime :updated_at
@@ -197,6 +198,8 @@ ActiveRecord::Schema.define do
     t.integer :engines_count
     t.integer :wheels_count, default: 0, null: false
     t.datetime :wheels_owned_at
+    t.integer :bulbs_count
+    t.integer :custom_tyres_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end
@@ -285,6 +288,7 @@ ActiveRecord::Schema.define do
   create_table :cpk_orders, force: true do |t|
     t.integer :shop_id
     t.string :status
+    t.integer :books_count, default: 0
   end
 
   create_table :cpk_order_tags, primary_key: [:order_id, :tag_id], force: true do |t|
@@ -303,6 +307,18 @@ ActiveRecord::Schema.define do
     t.string :signature
 
     t.index :order_id
+  end
+
+  create_table :cpk_cars, force: true, primary_key: [:make, :model] do |t|
+    t.string :make, null: false
+    t.string :model, null: false
+  end
+
+  create_table :cpk_car_reviews, force: true do |t|
+    t.string :car_make, null: false
+    t.string :car_model, null: false
+    t.text :comment
+    t.integer :rating
   end
 
   create_table :paragraphs, force: true do |t|
@@ -366,13 +382,7 @@ ActiveRecord::Schema.define do
 
   create_table :comments, force: true do |t|
     t.integer :post_id, null: false
-    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
-    # Oracle SELECT WHERE clause which causes many unit test failures
-    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
-      t.string  :body, null: false, limit: 4000
-    else
-      t.text    :body, null: false
-    end
+    t.text    :body, null: false
     t.string  :type
     t.integer :label, default: 0
     t.integer :tags_count, default: 0
@@ -857,12 +867,7 @@ ActiveRecord::Schema.define do
     t.numeric :numeric_number
     t.float   :temperature
     t.decimal :decimal_number_big_precision, precision: 20
-    # Oracle/SQLServer supports precision up to 38
-    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter, :SQLServerAdapter)
-      t.decimal :atoms_in_universe, precision: 38, scale: 0
-    else
-      t.decimal :atoms_in_universe, precision: 55, scale: 0
-    end
+    t.decimal :atoms_in_universe, precision: 55, scale: 0
   end
 
   create_table :orders, force: true do |t|
@@ -996,13 +1001,7 @@ ActiveRecord::Schema.define do
   create_table :posts, force: true do |t|
     t.references :author
     t.string :title, null: false
-    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
-    # Oracle SELECT WHERE clause which causes many unit test failures
-    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
-      t.string  :body, null: false, limit: 4000
-    else
-      t.text    :body, null: false
-    end
+    t.text    :body, null: false
     t.string  :type
     t.integer :legacy_comments_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
@@ -1242,15 +1241,8 @@ ActiveRecord::Schema.define do
     end
     t.time     :bonus_time
     t.date     :last_read
-    # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
-    # Oracle SELECT WHERE clause which causes many unit test failures
-    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
-      t.string   :content, limit: 4000
-      t.string   :important, limit: 4000
-    else
-      t.text     :content
-      t.text     :important
-    end
+    t.text     :content
+    t.text     :important
     t.blob     :binary_content
     t.boolean  :approved, default: true
     t.integer  :replies_count, default: 0
@@ -1484,13 +1476,13 @@ ActiveRecord::Schema.define do
   end
 end
 
-if ActiveRecord::Base.connection.supports_insert_returning? && !ActiveRecord::TestCase.current_adapter?(:SQLite3Adapter)
-  ActiveRecord::Base.connection.create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
+if ActiveRecord::Base.lease_connection.supports_insert_returning? && !ActiveRecord::TestCase.current_adapter?(:SQLite3Adapter)
+  ActiveRecord::Base.lease_connection.create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
     t.integer :id, null: false
   end
 
   if ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter)
-    ActiveRecord::Base.connection.execute(
+    ActiveRecord::Base.lease_connection.execute(
       <<-SQL
         CREATE OR REPLACE FUNCTION populate_column()
         RETURNS TRIGGER AS $$
@@ -1510,7 +1502,7 @@ if ActiveRecord::Base.connection.supports_insert_returning? && !ActiveRecord::Te
       SQL
     )
   elsif ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-    ActiveRecord::Base.connection.execute(
+    ActiveRecord::Base.lease_connection.execute(
       <<-SQL
         CREATE TRIGGER before_insert_trigger
         BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
@@ -1521,22 +1513,22 @@ if ActiveRecord::Base.connection.supports_insert_returning? && !ActiveRecord::Te
   end
 end
 
-Course.connection.create_table :courses, force: true do |t|
+Course.lease_connection.create_table :courses, force: true do |t|
   t.column :name, :string, null: false
   t.column :college_id, :integer, index: true
 end
 
-College.connection.create_table :colleges, force: true do |t|
+College.lease_connection.create_table :colleges, force: true do |t|
   t.column :name, :string, null: false
 end
 
-Professor.connection.create_table :professors, force: true do |t|
+Professor.lease_connection.create_table :professors, force: true do |t|
   t.column :name, :string, null: false
 end
 
-Professor.connection.create_table :courses_professors, id: false, force: true do |t|
+Professor.lease_connection.create_table :courses_professors, id: false, force: true do |t|
   t.references :course
   t.references :professor
 end
 
-OtherDog.connection.create_table :dogs, force: true
+OtherDog.lease_connection.create_table :dogs, force: true

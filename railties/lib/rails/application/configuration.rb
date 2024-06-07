@@ -19,11 +19,11 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
-                    :read_encrypted_secrets, :content_security_policy_report_only,
+                    :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version
+                    :dom_testing_default_html_version, :yjit
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -67,8 +67,6 @@ module Rails
         @api_only                                = false
         @debug_exception_response_format         = nil
         @x                                       = Custom.new
-        @enable_dependency_loading               = false
-        @read_encrypted_secrets                  = false
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
@@ -83,6 +81,7 @@ module Rails
         @rake_eager_load                         = false
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
+        @yjit                                    = false
       end
 
       # Loads default configuration values for a target version. This includes
@@ -279,8 +278,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
-            active_record.commit_transaction_on_non_local_return = true
-            active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
             active_record.raise_on_assign_to_attr_readonly = true
@@ -312,17 +309,34 @@ module Rails
             active_support.raise_on_invalid_cache_expiration_time = true
           end
 
-          if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors
-            if respond_to?(:action_view)
-              action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
-            end
+          if respond_to?(:action_view)
+            require "action_view/helpers"
+            action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+          end
 
-            if respond_to?(:action_text)
-              action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
-            end
+          if respond_to?(:action_text)
+            require "action_view/helpers"
+            action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
         when "7.2"
           load_defaults "7.1"
+
+          self.yjit = true
+
+          if respond_to?(:active_job)
+            active_job.enqueue_after_transaction_commit = :default
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
+          end
+
+          if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_dates = true
+            active_record.validate_migration_timestamps = true
+          end
+        when "8.0"
+          load_defaults "7.2"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -342,20 +356,12 @@ module Rails
         self.cache_classes = !value
       end
 
-      ENABLE_DEPENDENCY_LOADING_WARNING = <<~MSG
-        This flag addressed a limitation of the `classic` autoloader and has no effect nowadays.
-        To fix this deprecation, please just delete the reference.
-      MSG
-      private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
-
-      def enable_dependency_loading
-        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
-        @enable_dependency_loading
+      def read_encrypted_secrets
+        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 7.3.")
       end
 
-      def enable_dependency_loading=(value)
-        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
-        @enable_dependency_loading = value
+      def read_encrypted_secrets=(value)
+        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 7.3.")
       end
 
       def encoding=(value)
@@ -390,7 +396,6 @@ module Rails
         @paths ||= begin
           paths = super
           paths.add "config/database",    with: "config/database.yml"
-          paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"

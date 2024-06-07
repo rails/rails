@@ -70,7 +70,8 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
     encryptor = ActiveRecord::Encryption::Encryptor.new
 
     key_provider.stub :decryption_keys, ->(message) { [key] } do
-      encryptor.decrypt encryptor.encrypt("some text", key_provider: key_provider), key_provider: key_provider
+      decrypted_text = encryptor.decrypt encryptor.encrypt("some text", key_provider: key_provider), key_provider: key_provider
+      assert decrypted_text
     end
   end
 

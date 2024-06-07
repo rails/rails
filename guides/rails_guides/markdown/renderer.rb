@@ -8,6 +8,10 @@ Rouge::Lexers::Shell::BUILTINS << "|bin/rails|brew|bundle|gem|git|node|rails|rak
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML  # :nodoc:
+      APPLICATION_FILEPATH_REGEXP = /(app|config|db|lib|test)\//
+      ERB_FILEPATH_REGEXP = /^<%# #{APPLICATION_FILEPATH_REGEXP}.* %>/o
+      RUBY_FILEPATH_REGEXP = /^# #{APPLICATION_FILEPATH_REGEXP}/o
+
       cattr_accessor :edge, :version
 
       def block_code(code, language)
@@ -15,7 +19,7 @@ module RailsGuides
         lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
         formatted_code = formatter.format(lexer.lex(code))
         <<~HTML
-          <div class="code_container">
+          <div class="interstitial code">
           <pre><code class="highlight #{lexer_language(language)}">#{formatted_code}</code></pre>
           <button class="clipboard-button" data-clipboard-text="#{clipboard_content(code, language)}">Copy</button>
           </div>
@@ -78,6 +82,7 @@ module RailsGuides
         end
 
         def clipboard_content(code, language)
+          # Remove prompt and results of commands.
           prompt_regexp =
             case language
             when "bash"
@@ -88,6 +93,19 @@ module RailsGuides
 
           if prompt_regexp
             code = code.lines.grep(prompt_regexp).join.gsub(prompt_regexp, "")
+          end
+
+          # Remove comments that reference an application file.
+          filepath_regexp =
+            case language
+            when "erb", "html+erb"
+              ERB_FILEPATH_REGEXP
+            when "ruby", "yaml", "yml"
+              RUBY_FILEPATH_REGEXP
+            end
+
+          if filepath_regexp
+            code = code.lines.grep_v(filepath_regexp).join
           end
 
           ERB::Util.html_escape(code)
@@ -112,7 +130,7 @@ module RailsGuides
               else
                 $1.downcase
               end
-            %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
+            %(<div class="interstitial #{css_class}"><p>#{$2.strip}</p></div>)
           end
         end
 

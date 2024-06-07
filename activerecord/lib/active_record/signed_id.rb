@@ -13,6 +13,16 @@ module ActiveRecord
       class_attribute :signed_id_verifier_secret, instance_writer: false
     end
 
+    module RelationMethods # :nodoc:
+      def find_signed(...)
+        scoping { model.find_signed(...) }
+      end
+
+      def find_signed!(...)
+        scoping { model.find_signed!(...) }
+      end
+    end
+
     module ClassMethods
       # Lets you find a record based on a signed id that's safe to put into the world without risk of tampering.
       # This is particularly useful for things like password reset or email verification, where you want

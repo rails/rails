@@ -1,19 +1,21 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
-  # = Action Dispatch \DebugLocks
+  # # Action Dispatch DebugLocks
   #
   # This middleware can be used to diagnose deadlocks in the autoload interlock.
   #
   # To use it, insert it near the top of the middleware stack, using
-  # <tt>config/application.rb</tt>:
+  # `config/application.rb`:
   #
   #     config.middleware.insert_before Rack::Sendfile, ActionDispatch::DebugLocks
   #
-  # After restarting the application and re-triggering the deadlock condition,
-  # the route <tt>/rails/locks</tt> will show a summary of all threads currently
-  # known to the interlock, which lock level they are holding or awaiting, and
-  # their current backtrace.
+  # After restarting the application and re-triggering the deadlock condition, the
+  # route `/rails/locks` will show a summary of all threads currently known to the
+  # interlock, which lock level they are holding or awaiting, and their current
+  # backtrace.
   #
   # Generally a deadlock will be caused by the interlock conflicting with some
   # other external lock or blocking I/O call. These cannot be automatically
@@ -46,14 +48,14 @@ module ActionDispatch
     private
       def render_details(req)
         threads = ActiveSupport::Dependencies.interlock.raw_state do |raw_threads|
-          # The Interlock itself comes to a complete halt as long as this block
-          # is executing. That gives us a more consistent picture of everything,
-          # but creates a pretty strong Observer Effect.
+          # The Interlock itself comes to a complete halt as long as this block is
+          # executing. That gives us a more consistent picture of everything, but creates
+          # a pretty strong Observer Effect.
           #
-          # Most directly, that means we need to do as little as possible in
-          # this block. More widely, it means this middleware should remain a
-          # strictly diagnostic tool (to be used when something has gone wrong),
-          # and not for any sort of general monitoring.
+          # Most directly, that means we need to do as little as possible in this block.
+          # More widely, it means this middleware should remain a strictly diagnostic tool
+          # (to be used when something has gone wrong), and not for any sort of general
+          # monitoring.
 
           raw_threads.each.with_index do |(thread, info), idx|
             info[:index] = idx

@@ -334,7 +334,9 @@ trix-editor .attachment__metadata {
     white-space: nowrap; }
 
 .trix-content {
-  line-height: 1.5; }
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word; }
   .trix-content * {
     box-sizing: border-box;
     margin: 0;

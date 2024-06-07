@@ -11,7 +11,7 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("unsigned_types", force: true) do |t|
       t.integer :unsigned_integer, unsigned: true
       t.bigint  :unsigned_bigint,  unsigned: true

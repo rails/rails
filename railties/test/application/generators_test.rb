@@ -263,7 +263,17 @@ module ApplicationTests
         end
 
         output = rails("generate", "model", "post", "title:string", "body:string")
-        assert_match(/3 files inspected, no offenses detected/, output)
+        assert_no_match(/3 files inspected, no offenses detected/, output)
+      end
+
+      test "generators with apply_rubocop_autocorrect_after_generate! and pretend" do
+        with_config do |c|
+          c.generators.apply_rubocop_autocorrect_after_generate!
+        end
+
+        assert_nothing_raised do
+          rails("generate", "model", "post", "title:string", "body:string", "--pretend")
+        end
       end
     end
   end

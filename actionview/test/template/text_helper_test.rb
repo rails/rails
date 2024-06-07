@@ -538,7 +538,9 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_reset_unknown_cycle
-    reset_cycle("colors")
+    assert_nothing_raised do
+      reset_cycle("colors")
+    end
   end
 
   def test_reset_named_cycle

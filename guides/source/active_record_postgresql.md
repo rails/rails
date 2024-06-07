@@ -170,7 +170,7 @@ irb> Event.where("payload->>'kind' = ?", "user_renamed")
 * [type definition](https://www.postgresql.org/docs/current/static/rangetypes.html)
 * [functions and operators](https://www.postgresql.org/docs/current/static/functions-range.html)
 
-This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-3.1.0/Range.html) objects.
+This type is mapped to Ruby [`Range`](https://docs.ruby-lang.org/en/master/Range.html) objects.
 
 ```ruby
 # db/migrate/20130923065404_create_events.rb
@@ -449,7 +449,7 @@ irb> user.save!
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
-[`IPAddr`](https://ruby-doc.org/stdlib-3.1.0/libdoc/ipaddr/rdoc/IPAddr.html)
+[`IPAddr`](https://docs.ruby-lang.org/en/master/IPAddr.html)
 objects. The `macaddr` type is mapped to normal text.
 
 ```ruby
@@ -615,7 +615,7 @@ Deferrable Foreign Keys
 
 * [foreign key table constraints](https://www.postgresql.org/docs/current/sql-set-constraints.html)
 
-By default, table constraints in PostgreSQL are checked immediately after each statement. It intentionally does not allow creating records where the referenced record is not yet in the referenced table. It is possible to run this integrity check later on when the transactions is committed by adding `DEFERRABLE` to the foreign key definition though. To defer all checks by default it can be set to `DEFERRABLE INITIALLY DEFERRED`. Rails exposes this PostgreSQL feature by adding the `:deferrable` key to the `foreign_key` options in the `add_reference` and `add_foreign_key` methods.
+By default, table constraints in PostgreSQL are checked immediately after each statement. It intentionally does not allow creating records where the referenced record is not yet in the referenced table. It is possible to run this integrity check later on when the transaction is committed by adding `DEFERRABLE` to the foreign key definition though. To defer all checks by default it can be set to `DEFERRABLE INITIALLY DEFERRED`. Rails exposes this PostgreSQL feature by adding the `:deferrable` key to the `foreign_key` options in the `add_reference` and `add_foreign_key` methods.
 
 One example of this is creating circular dependencies in a transaction even if you have created foreign keys:
 

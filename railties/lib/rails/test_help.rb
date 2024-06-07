@@ -7,9 +7,6 @@
 abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
 require "active_support/test_case"
-require "action_controller"
-require "action_controller/test_case"
-require "action_dispatch/testing/integration"
 require "rails/generators/test_case"
 require "active_support/testing/autorun"
 

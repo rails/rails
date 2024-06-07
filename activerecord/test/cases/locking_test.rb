@@ -293,7 +293,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_touch_existing_lock_without_default_should_work_with_null_in_the_database
-    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    ActiveRecord::Base.lease_connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
 
     assert_equal 0, t1.lock_version
@@ -322,7 +322,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_without_default_should_work_with_null_in_the_database
-    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    ActiveRecord::Base.lease_connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
     t2 = LockWithoutDefault.find(t1.id)
 
@@ -344,7 +344,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_update_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
-    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    ActiveRecord::Base.lease_connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
 
     assert_equal 0, t1.lock_version
@@ -361,7 +361,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_destroy_with_lock_version_without_default_should_work_on_dirty_value_before_type_cast
-    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    ActiveRecord::Base.lease_connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
 
     assert_equal 0, t1.lock_version
@@ -411,7 +411,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_lock_with_custom_column_without_default_should_work_with_null_in_the_database
-    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults_cust(title) VALUES('title1')")
+    ActiveRecord::Base.lease_connection.execute("INSERT INTO lock_without_defaults_cust(title) VALUES('title1')")
 
     t1 = LockWithCustomColumnWithoutDefault.last
     t2 = LockWithCustomColumnWithoutDefault.find(t1.id)
@@ -550,7 +550,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_not_empty p.treasures
     p.destroy
     assert_empty p.treasures
-    assert_empty RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1")
+    assert_empty RichPerson.lease_connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1")
   end
 
   def test_yaml_dumping_with_lock_column
@@ -613,7 +613,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   end
 
   def test_destroy_existing_object_with_locking_column_value_null_in_the_database
-    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    ActiveRecord::Base.lease_connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
 
     assert_equal 0, t1.lock_version
@@ -639,12 +639,12 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
   private
     def add_counter_column_to(model, col = "test_count")
-      model.connection.add_column model.table_name, col, :integer, null: false, default: 0
+      model.lease_connection.add_column model.table_name, col, :integer, null: false, default: 0
       model.reset_column_information
     end
 
     def remove_counter_column_from(model, col = :test_count)
-      model.connection.remove_column model.table_name, col
+      model.lease_connection.remove_column model.table_name, col
       model.reset_column_information
     end
 
@@ -747,10 +747,10 @@ class PessimisticLockingTest < ActiveRecord::TestCase
     def test_with_lock_configures_transaction
       person = Person.find 1
       Person.transaction do
-        outer_transaction = Person.connection.transaction_manager.current_transaction
+        outer_transaction = Person.lease_connection.transaction_manager.current_transaction
         assert_equal true, outer_transaction.joinable?
         person.with_lock(requires_new: true, joinable: false) do
-          current_transaction = Person.connection.transaction_manager.current_transaction
+          current_transaction = Person.lease_connection.transaction_manager.current_transaction
           assert_not_equal outer_transaction, current_transaction
           assert_equal false, current_transaction.joinable?
         end
@@ -770,7 +770,7 @@ class PessimisticLockingTest < ActiveRecord::TestCase
       def test_with_lock_sets_isolation
         person = Person.find 1
         person.with_lock(isolation: :read_uncommitted) do
-          current_transaction = Person.connection.transaction_manager.current_transaction
+          current_transaction = Person.lease_connection.transaction_manager.current_transaction
           assert_equal :read_uncommitted, current_transaction.isolation_level
         end
       end

@@ -52,7 +52,7 @@ module ActiveSupport
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
-    @format_version = 6.1
+    @format_version = 7.0
 
     class << self
       attr_accessor :format_version
@@ -200,24 +200,6 @@ module ActiveSupport
           def retrieve_pool_options(options)
             if options.key?(:pool)
               pool_options = options.delete(:pool)
-            elsif options.key?(:pool_size) || options.key?(:pool_timeout)
-              pool_options = {}
-
-              if options.key?(:pool_size)
-                ActiveSupport.deprecator.warn(<<~MSG)
-                  Using :pool_size is deprecated and will be removed in Rails 7.2.
-                  Use `pool: { size: #{options[:pool_size].inspect} }` instead.
-                MSG
-                pool_options[:size] = options.delete(:pool_size)
-              end
-
-              if options.key?(:pool_timeout)
-                ActiveSupport.deprecator.warn(<<~MSG)
-                  Using :pool_timeout is deprecated and will be removed in Rails 7.2.
-                  Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
-                MSG
-                pool_options[:timeout] = options.delete(:pool_timeout)
-              end
             else
               pool_options = true
             end
@@ -405,31 +387,47 @@ module ActiveSupport
       #   has elapsed.
       #
       #     # Set all values to expire after one minute.
-      #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.minute)
+      #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1)
       #
-      #     cache.write('foo', 'original value')
+      #     cache.write("foo", "original value")
       #     val_1 = nil
       #     val_2 = nil
-      #     sleep 60
+      #     p cache.read("foo") # => "original value"
       #
-      #     Thread.new do
-      #       val_1 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
+      #     sleep 1 # wait until the cache expires
+      #
+      #     t1 = Thread.new do
+      #       # fetch does the following:
+      #       # 1. gets an recent expired entry
+      #       # 2. extends the expiry by 2 seconds (race_condition_ttl)
+      #       # 3. regenerates the new value
+      #       val_1 = cache.fetch("foo", race_condition_ttl: 2) do
       #         sleep 1
-      #         'new value 1'
+      #         "new value 1"
       #       end
       #     end
       #
-      #     Thread.new do
-      #       val_2 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
-      #         'new value 2'
-      #       end
+      #     # Wait until t1 extends the expiry of the entry
+      #     # but before generating the new value
+      #     sleep 0.1
+      #
+      #     val_2 = cache.fetch("foo", race_condition_ttl: 2) do
+      #       # This block won't be executed because t1 extended the expiry
+      #       "new value 2"
       #     end
       #
-      #     cache.fetch('foo') # => "original value"
-      #     sleep 10 # First thread extended the life of cache by another 10 seconds
-      #     cache.fetch('foo') # => "new value 1"
-      #     val_1 # => "new value 1"
-      #     val_2 # => "original value"
+      #     t1.join
+      #
+      #     p val_1 # => "new value 1"
+      #     p val_2 # => "oritinal value"
+      #     p cache.fetch("foo") # => "new value 1"
+      #
+      #     # The entry requires 3 seconds to expire (expires_in + race_condition_ttl)
+      #     # We have waited 2 seconds already (sleep(1) + t1.join) thus we need to wait 1
+      #     # more second to see the entry expire.
+      #     sleep 1
+      #
+      #     p cache.fetch("foo") # => nil
       #
       # ==== Dynamic Options
       #
@@ -763,14 +761,6 @@ module ActiveSupport
       private
         def default_serializer
           case Cache.format_version
-          when 6.1
-            ActiveSupport.deprecator.warn <<~EOM
-              Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.
-
-              Check the Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
-              for more information on how to upgrade.
-            EOM
-            Cache::SerializerWithFallback[:marshal_6_1]
           when 7.0
             Cache::SerializerWithFallback[:marshal_7_0]
           when 7.1
@@ -1040,7 +1030,8 @@ module ActiveSupport
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now.to_f + race_ttl
-              write_entry(key, entry, expires_in: race_ttl * 2)
+              options[:expires_in] = race_ttl * 2
+              write_entry(key, entry, **options)
             else
               delete_entry(key, **options)
             end

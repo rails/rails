@@ -1,16 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionCable
   module SubscriptionAdapter
-    # == \Test adapter for Action Cable
+    # ## Test adapter for Action Cable
     #
     # The test adapter should be used only in testing. Along with
-    # ActionCable::TestHelper it makes a great tool to test your \Rails application.
+    # ActionCable::TestHelper it makes a great tool to test your Rails application.
     #
-    # To use the test adapter set +adapter+ value to +test+ in your +config/cable.yml+ file.
+    # To use the test adapter set `adapter` value to `test` in your
+    # `config/cable.yml` file.
     #
-    # NOTE: +Test+ adapter extends the +ActionCable::SubscriptionAdapter::Async+ adapter,
-    # so it could be used in system tests too.
+    # NOTE: `Test` adapter extends the `ActionCable::SubscriptionAdapter::Async`
+    # adapter, so it could be used in system tests too.
     class Test < Async
       def broadcast(channel, payload)
         broadcasts(channel) << payload

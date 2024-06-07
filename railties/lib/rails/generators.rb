@@ -23,6 +23,7 @@ module Rails
     autoload :NamedBase,       "rails/generators/named_base"
     autoload :ResourceHelpers, "rails/generators/resource_helpers"
     autoload :TestCase,        "rails/generators/test_case"
+    autoload :Devcontainer,    "rails/generators/devcontainer"
 
     mattr_accessor :namespace
 
@@ -202,7 +203,6 @@ module Rails
         rails.map! { |n| n.delete_prefix("rails:") }
         rails.delete("app")
         rails.delete("plugin")
-        rails.delete("encrypted_secrets")
         rails.delete("encrypted_file")
         rails.delete("encryption_key_file")
         rails.delete("master_key")

@@ -7,7 +7,7 @@ require "active_record/relation/merger"
 module ActiveRecord
   module SpawnMethods
     def spawn # :nodoc:
-      already_in_scope?(klass.scope_registry) ? klass.all : clone
+      already_in_scope?(model.scope_registry) ? model.all : clone
     end
 
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
@@ -41,26 +41,10 @@ module ActiveRecord
     end
 
     def merge!(other, *rest) # :nodoc:
-      options = rest.extract_options!
-
-      if options.key?(:rewhere)
-        if options[:rewhere]
-          ActiveRecord.deprecator.warn(<<-MSG.squish)
-            Specifying `Relation#merge(rewhere: true)` is deprecated, as that has now been
-            the default since Rails 7.0. Setting the rewhere option will error in Rails 7.2
-          MSG
-        else
-          ActiveRecord.deprecator.warn(<<-MSG.squish)
-            `Relation#merge(rewhere: false)` is deprecated without replacement,
-            and will be removed in Rails 7.2
-          MSG
-        end
-      end
-
       if other.is_a?(Hash)
-        Relation::HashMerger.new(self, other, options[:rewhere]).merge
+        Relation::HashMerger.new(self, other).merge
       elsif other.is_a?(Relation)
-        Relation::Merger.new(self, other, options[:rewhere]).merge
+        Relation::Merger.new(self, other).merge
       elsif other.respond_to?(:to_proc)
         instance_exec(&other)
       else

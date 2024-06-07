@@ -11,7 +11,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute("set lc_monetary = 'C'")
     @connection.create_table("postgresql_moneys", force: true) do |t|
       t.money "wealth"

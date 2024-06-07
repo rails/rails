@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/enumerable"
 require "active_support/subscriber"
 require "active_support/deprecation/proxy_wrappers"
 
@@ -61,10 +62,6 @@ module ActiveSupport
   # that all logs are flushed, and it is called in Rails::Rack::Logger after a
   # request finishes.
   class LogSubscriber < Subscriber
-    # Embed in a String to clear all previous ANSI sequences.
-    CLEAR = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[0m", "CLEAR is deprecated! Use MODES[:clear] instead.", ActiveSupport.deprecator)
-    BOLD  = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[1m", "BOLD is deprecated! Use MODES[:bold] instead.", ActiveSupport.deprecator)
-
     # ANSI sequence modes
     MODES = {
       clear:     0,
@@ -181,14 +178,6 @@ module ActiveSupport
     end
 
     def mode_from(options)
-      if options.is_a?(TrueClass) || options.is_a?(FalseClass)
-        ActiveSupport.deprecator.warn(<<~MSG.squish)
-          Bolding log text with a positional boolean is deprecated and will be removed
-          in Rails 7.2. Use an option hash instead (eg. `color("my text", :red, bold: true)`).
-        MSG
-        options = { bold: options }
-      end
-
       modes = MODES.values_at(*options.compact_blank.keys)
 
       "\e[#{modes.join(";")}m" if modes.any?

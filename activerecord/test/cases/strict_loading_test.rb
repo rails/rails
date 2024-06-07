@@ -86,6 +86,32 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_n_plus_one_only_mode_does_not_eager_load_child_associations
+    developer = Developer.first
+    developer.strict_loading!(mode: :n_plus_one_only)
+    developer.projects.first
+
+    assert_not_predicate developer.projects, :loaded?
+
+    assert_nothing_raised do
+      developer.projects.first.firm
+    end
+  end
+
+  def test_default_mode_is_all
+    developer = Developer.first
+    assert_predicate developer, :strict_loading_all?
+  end
+
+  def test_default_mode_can_be_changed_globally
+    developer = Class.new(ActiveRecord::Base) do
+      self.strict_loading_mode = :n_plus_one_only
+      self.table_name = "developers"
+    end.new
+
+    assert_predicate developer, :strict_loading_n_plus_one_only?
+  end
+
   def test_strict_loading
     Developer.all.each { |d| assert_not d.strict_loading? }
     Developer.strict_loading.each { |d| assert_predicate d, :strict_loading? }

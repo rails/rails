@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "models/comment"
 require "models/post"
 require "models/subscriber"
+require "models/developer"
 require "models/cpk"
 
 class EachTest < ActiveRecord::TestCase
-  fixtures :posts, :subscribers, :cpk_orders
+  fixtures :posts, :subscribers, :developers, :cpk_orders
 
   def setup
     @posts = Post.order("id asc")
@@ -151,7 +151,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_quote_batch_order
-    c = Post.connection
+    c = Post.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))}/i) do
       Post.find_in_batches(batch_size: 1) do |batch|
         assert_kind_of Array, batch
@@ -161,7 +161,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_quote_batch_order_with_desc_order
-    c = Post.connection
+    c = Post.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
       Post.find_in_batches(batch_size: 1, order: :desc) do |batch|
         assert_kind_of Array, batch
@@ -384,6 +384,22 @@ class EachTest < ActiveRecord::TestCase
     assert_equal 0, Post.where("1=0").in_batches(of: 2).update_all(title: "updated-title")
   end
 
+  def test_in_batches_touch_all_affect_all_records
+    time = Time.new(2000, 1, 1, 0, 0, 0)
+    assert_queries_count(6 + 6) do # 6 selects, 6 updates
+      Developer.in_batches(of: 2).touch_all(time: time)
+    end
+    assert_equal [time] * Developer.count, Developer.all.pluck(:updated_at)
+  end
+
+  def test_in_batches_touch_all_returns_rows_affected
+    assert_equal 11, Developer.in_batches(of: 2).touch_all
+  end
+
+  def test_in_batches_touch_all_returns_zero_when_no_batches
+    assert_equal 0, Developer.where("1=0").in_batches(of: 2).touch_all
+  end
+
   def test_in_batches_delete_all_should_not_delete_records_in_other_batches
     not_deleted_count = Post.where("id <= 2").count
     Post.where("id > 2").in_batches(of: 2).delete_all
@@ -397,6 +413,22 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_delete_all_returns_zero_when_no_batches
     assert_equal 0, Post.where("1=0").in_batches(of: 2).delete_all
+  end
+
+  def test_in_batches_destroy_all_should_not_destroy_records_in_other_batches
+    not_destroyed_count = Post.where("id <= 2").count
+    Post.where("id > 2").in_batches(of: 2).destroy_all
+    assert_equal 0, Post.where("id > 2").count
+    assert_equal not_destroyed_count, Post.count
+  end
+
+  def test_in_batches_destroy_all_returns_rows_affected
+    # 1 records is not destroyed because of the callback.
+    assert_equal 10, PostWithDestroyCallback.in_batches(of: 2).destroy_all
+  end
+
+  def test_in_batches_destroy_all_returns_zero_when_no_batches
+    assert_equal 0, Post.where("1=0").in_batches(of: 2).destroy_all
   end
 
   def test_in_batches_should_not_be_loaded
@@ -514,7 +546,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_executes_range_queries_when_unconstrained
-    c = Post.connection
+    c = Post.lease_connection
     quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
     assert_queries_match(/WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
       Post.in_batches(of: 2) { |relation| assert_kind_of Post, relation.first }
@@ -522,7 +554,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_executes_in_queries_when_unconstrained_and_opted_out_of_ranges
-    c = Post.connection
+    c = Post.lease_connection
     quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
     assert_queries_match(/#{quoted_posts_id} IN \(.+\)/i) do
       Post.in_batches(of: 2, use_ranges: false) { |relation| assert_kind_of Post, relation.first }
@@ -530,7 +562,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_executes_in_queries_when_constrained
-    c = Post.connection
+    c = Post.lease_connection
     quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
     assert_queries_match(/#{quoted_posts_id} IN \(.+\)/i) do
       Post.where("id < ?", 5).in_batches(of: 2) { |relation| assert_kind_of Post, relation.first }
@@ -538,7 +570,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_executes_range_queries_when_constrained_and_opted_in_into_ranges
-    c = Post.connection
+    c = Post.lease_connection
     quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
     assert_queries_match(/#{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
       Post.where("id < ?", 5).in_batches(of: 2, use_ranges: true) { |relation| assert_kind_of Post, relation.first }
@@ -546,7 +578,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_no_subqueries_for_whole_tables_batching
-    c = Post.connection
+    c = Post.lease_connection
     quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
     assert_queries_match(/DELETE FROM #{Regexp.escape(c.quote_table_name("posts"))} WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <=/i) do
       Post.in_batches(of: 2).delete_all
@@ -564,7 +596,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_quote_batch_order
-    c = Post.connection
+    c = Post.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name('posts'))}\.#{Regexp.escape(c.quote_column_name('id'))}/) do
       Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
@@ -574,7 +606,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_quote_batch_order_with_desc_order
-    c = Post.connection
+    c = Post.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
       Post.in_batches(of: 1, order: :desc) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
@@ -584,7 +616,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_enumerator_should_quote_batch_order_with_desc_order
-    c = Post.connection
+    c = Post.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
       relation = Post.in_batches(of: 1, order: :desc).first
       assert_kind_of ActiveRecord::Relation, relation
@@ -593,7 +625,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_enumerator_each_record_should_quote_batch_order_with_desc_order
-    c = Post.connection
+    c = Post.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
       Post.in_batches(of: 1, order: :desc).each_record do |record|
         assert_kind_of Post, record

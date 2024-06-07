@@ -3,6 +3,8 @@
 require "cases/helper"
 
 class PrimaryClassTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   def teardown
     clean_up_connection_handler
   end
@@ -106,7 +108,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
 
       assert_predicate ApplicationRecord, :primary_class?
       assert_predicate ApplicationRecord, :application_record_class?
-      assert_equal ActiveRecord::Base.connection, ApplicationRecord.connection
+      assert_equal ActiveRecord::Base.lease_connection, ApplicationRecord.lease_connection
     ensure
       ApplicationRecord.remove_connection
       ActiveRecord.application_record_class = nil
@@ -122,7 +124,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
       assert_predicate PrimaryClassTest::PrimaryAppRecord, :primary_class?
       assert_predicate PrimaryClassTest::PrimaryAppRecord, :application_record_class?
       assert_predicate PrimaryClassTest::PrimaryAppRecord, :abstract_class?
-      assert_equal ActiveRecord::Base.connection, PrimaryClassTest::PrimaryAppRecord.connection
+      assert_equal ActiveRecord::Base.lease_connection, PrimaryClassTest::PrimaryAppRecord.lease_connection
     ensure
       PrimaryClassTest::PrimaryAppRecord.remove_connection
       ActiveRecord.application_record_class = nil

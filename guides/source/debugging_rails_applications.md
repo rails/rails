@@ -378,7 +378,7 @@ Processing by PostsController#index as HTML
     10|   # GET /posts/1 or /posts/1.json
     11|   def show
 =>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
-  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-8.0.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
   # and 72 frames (use `bt' command for all frames)
 (rdbg)
 ```
@@ -445,13 +445,13 @@ When used without any options, `backtrace` lists all the frames on the stack:
 ```rb
 =>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
   #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-2.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
-  #2    AbstractController::Base#process_action(method_name="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/abstract_controller/base.rb:214
-  #3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/action_controller/metal/rendering.rb:53
-  #4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/abstract_controller/callbacks.rb:221
-  #5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.2.0.alpha/lib/active_support/callbacks.rb:118
-  #6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#<PostsController:0x0000000000af78>) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.2.0.alpha/lib/action_text/rendering.rb:20
-  #7    block {|controller=#<PostsController:0x0000000000af78>, action=#<Proc:0x00007fd91985f1c0 /Users/st0012/...|} in <class:Engine> (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.2.0.alpha/lib/action_text/engine.rb:69
-  #8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.2.0.alpha/lib/active_support/callbacks.rb:127
+  #2    AbstractController::Base#process_action(method_name="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-8.0.0.alpha/lib/abstract_controller/base.rb:214
+  #3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-8.0.0.alpha/lib/action_controller/metal/rendering.rb:53
+  #4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-8.0.0.alpha/lib/abstract_controller/callbacks.rb:221
+  #5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-8.0.0.alpha/lib/active_support/callbacks.rb:118
+  #6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#<PostsController:0x0000000000af78>) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-8.0.0.alpha/lib/action_text/rendering.rb:20
+  #7    block {|controller=#<PostsController:0x0000000000af78>, action=#<Proc:0x00007fd91985f1c0 /Users/st0012/...|} in <class:Engine> (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-8.0.0.alpha/lib/action_text/engine.rb:69
+  #8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-8.0.0.alpha/lib/active_support/callbacks.rb:127
   ..... and more
 ```
 
@@ -704,13 +704,13 @@ Stop by #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body = 
 In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflows. Currently, the debugger supports 4 options:
 
 - `do: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression and continue the program:
-  - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames
+  - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames.
 - `pre: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression before stopping:
   - `break Foo#bar pre: info` - when `Foo#bar` is called, print its surrounding variables before stopping.
 - `if: <expr>` - the breakpoint only stops if the result of `<expr`> is true:
-  - `break Post#save if: params[:debug]` - stops at `Post#save` if `params[:debug]` is also true
+  - `break Post#save if: params[:debug]` - stops at `Post#save` if `params[:debug]` is also true.
 - `path: <path_regexp>` - the breakpoint only stops if the event that triggers it (e.g. a method call) happens from the given path:
-  - `break Post#save if: app/services/a_service` - stops at `Post#save` if the method call happens at a method matches Ruby regexp `/app\/services\/a_service/`.
+  - `break Post#save path: app/services/a_service` - stops at `Post#save` if the method call happens at a path that includes `app/services/a_service`.
 
 Please also note that the first 3 options: `do:`, `pre:` and `if:` are also available for the debug statements we mentioned earlier. For example:
 

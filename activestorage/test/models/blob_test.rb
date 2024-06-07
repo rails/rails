@@ -42,23 +42,33 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   test "create_and_upload extracts content type from data" do
-    blob = create_file_blob content_type: "application/octet-stream"
+    blob = create_file_blob fixture: "racecar.jpg", content_type: "application/octet-stream", filename: "spoofed.txt"
     assert_equal "image/jpeg", blob.content_type
   end
 
+  test "create_and_upload prefers given content type over filename" do
+    blob = create_blob content_type: "specific/type", filename: "file.txt"
+    assert_equal "specific/type", blob.content_type
+  end
+
+  test "create_and_upload prefers filename over binary content type" do
+    blob = create_blob content_type: "application/octet-stream", filename: "file.txt"
+    assert_equal "text/plain", blob.content_type
+  end
+
   test "create_and_upload extracts content type from filename" do
-    blob = create_blob content_type: "application/octet-stream"
+    blob = create_blob content_type: nil, filename: "hello.txt"
     assert_equal "text/plain", blob.content_type
   end
 
-  test "create_and_upload extracts content_type from io when no content_type given and identify: false" do
-    blob = create_blob content_type: nil, identify: false
-    assert_equal "text/plain", blob.content_type
+  test "create_and_upload extracts content_type from io when missing and identify: false" do
+    blob = create_file_blob fixture: "racecar.jpg", content_type: nil, filename: "unknown", identify: false
+    assert_equal "image/jpeg", blob.content_type
   end
 
-  test "create_and_upload uses content_type when identify: false" do
-    blob = create_blob data: "Article,dates,analysis\n1, 2, 3", filename: "table.csv", content_type: "text/csv", identify: false
-    assert_equal "text/csv", blob.content_type
+  test "create_and_upload uses given content_type when identify: false" do
+    blob = create_file_blob fixture: "racecar.jpg", content_type: "given/type", filename: "unknown", identify: false
+    assert_equal "given/type", blob.content_type
   end
 
   test "create_and_upload generates a 28-character base36 key" do
@@ -123,6 +133,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       ActiveStorage::Blob.compose(blobs, filename: "all_numbers.txt")
     end
     assert_equal "All blobs must be persisted.", error.message
+  end
+
+  test "compose with custom key" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false) }
+    blob = ActiveStorage::Blob.compose(blobs, key: "custom_key", filename: "all_numbers.txt")
+
+    assert_equal "custom_key", blob.key
+    assert_equal "123123123", blob.download
   end
 
   test "image?" do

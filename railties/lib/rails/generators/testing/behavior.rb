@@ -111,9 +111,6 @@ module Rails
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
           end
       end
-
-      include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-      deprecate_constant "Behaviour", "Rails::Generators::Testing::Behavior", deprecator: Rails.deprecator
     end
   end
 end

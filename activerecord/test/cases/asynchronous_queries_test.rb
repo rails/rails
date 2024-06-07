@@ -99,7 +99,7 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
   include AsynchronousQueriesSharedTests
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def test_async_select_all
@@ -134,7 +134,7 @@ class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
   include AsynchronousQueriesSharedTests
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.materialize_transactions
   end
 end
