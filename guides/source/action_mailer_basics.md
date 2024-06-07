@@ -124,7 +124,7 @@ For the `welcome_email` action, you'll need to create a matching view in a file 
 <p>Thanks for joining and have a great day!</p>
 ```
 
-NOTE: the above is the content of the `<body>` tag. It will be embedded in the default mailer layout, which contains the `<html>` tag. See [Mailer layouts](#mailer-views) for more TODO. 
+NOTE: the above is the content of the `<body>` tag. It will be embedded in the default mailer layout, which contains the `<html>` tag. See [Mailer layouts](#mailer-views-and-layouts) for more TODO.
 
 You can also create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Not all clients prefer HTML emails,
 and so sending both is best practice. Here is a sample text email:
@@ -468,6 +468,7 @@ class UserMailer < ApplicationMailer
   layout 'awesome' # use awesome.(html|text).erb as the layout
 end
 ```
+
 To use a specific layout for a given email, you can pass in a `layout: 'layout_name'` option to the render call inside the format block:
 
 ```ruby
@@ -487,19 +488,17 @@ The above will render the HTML part using the `my_layout.html.erb` file and the 
 
 ### Generating URLs in Action Mailer Views
 
-Unlike controllers, the mailer instance doesn't have any context about the
-incoming request so you'll need to provide the `:host` parameter yourself.
+In order to add URLs to your mailer, you need set the `host` value to your application's domain first. This is because, unlike controllers, the mailer instance doesn't have any context about the incoming request.
 
-As the `:host` usually is consistent across the application you can configure it
-globally in `config/application.rb`:
+You can configure the default `host` across the application in `config/application.rb`:
 
 ```ruby
 config.action_mailer.default_url_options = { host: 'example.com' }
 ```
 
-Because of this behavior, you cannot use any of the `*_path` helpers inside of
-an email. Instead, you will need to use the associated `*_url` helper. For example
-instead of using
+Because of this behavior, you cannot use the `*_path` helpers inside of
+an email. Instead, use the associated `*_url` helper. For
+example, instead of this:
 
 ```html+erb
 <%= link_to 'welcome', welcome_path %>
@@ -511,7 +510,7 @@ You will need to use:
 <%= link_to 'welcome', welcome_url %>
 ```
 
-By using the full URL, your links will now work in your emails.
+By using the full URL, your links will work in your emails.
 
 #### Generating URLs with `url_for`
 
