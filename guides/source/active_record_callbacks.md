@@ -910,6 +910,8 @@ Product.create # raises "Price can't be negative"
 This unexpectedly breaks code that does not expect methods like `create` and
 `save` to raise exceptions.
 
+NOTE: If an exception occurs during the callback chain, Rails will re-raise
+it unless it is an `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` exception.
 Instead, you should use `throw :abort` to intentionally halt the chain. If any
 callback throws `:abort`, the process will be aborted and `create` will return
 false.
