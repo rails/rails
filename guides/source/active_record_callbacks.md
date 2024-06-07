@@ -955,15 +955,6 @@ However, it will raise an `ActiveRecord::RecordNotDestroyed` when calling
 User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
 ```
 
-In addition to the behaviors mentioned, it's important to note that when `throw
-:abort` is called in a `before_* callback` (such as `before_save`,
-`before_create`, or `before_update`), it will raise an
-`ActiveRecord::RecordNotSaved` exception. This exception indicates that the
-record was not saved due to the callback's interruption. Therefore, when using
-`throw :abort` in `before_*` callbacks, you should be prepared to handle the
-`ActiveRecord::RecordNotSaved` exception.
-
-
 Association Callbacks
 ---------------------
 
