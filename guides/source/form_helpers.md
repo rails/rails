@@ -1002,7 +1002,7 @@ This would result in `params[:person][:addresses]` being an array of hashes. Eac
 
 It's important to note that while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes. For example, instead of an array of model objects, you can have a hash of model objects keyed by their id or similar.
 
-WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If it is checked then both are submitted but the value submitted by the checkbox takes precedence.
+WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If it is checked then both are submitted but the value submitted by the checkbox takes precedence. There is a `include_hidden` option can be set to `false` if you want to omit this hidden field. By default, this option is `true`.
 
 ### The `fields_for` Helper `:index` Option
 
