@@ -82,4 +82,9 @@
 
     *Akhil G Krishnan*
 
+*   Uses environment variable to differentiate cache keys between multiple environments that use the
+    same database.
+
+    *Matt Lao*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionview/CHANGELOG.md) for previous changes.

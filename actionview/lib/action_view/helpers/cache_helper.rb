@@ -166,6 +166,8 @@ module ActionView
       # This will include both records as part of the cache key and updating either of them will
       # expire the cache.
       def cache(name = {}, options = {}, &block)
+        name = "#{name}_#{Rails.env}" if (name.class == String) && !name.ends_with?("_#{Rails.env}")
+
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           CachingRegistry.track_caching do
             name_options = options.slice(:skip_digest)
