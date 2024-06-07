@@ -683,7 +683,7 @@ DEPENDENCIES
   selenium-webdriver (>= 4.20.0)
   sidekiq
   sneakers
-  sprockets-rails (>= 2.0.0)
+  sprockets-rails (>= 2.0.0, < 3.5.0)
   sqlite3 (>= 1.6.6)
   stackprof
   stimulus-rails
