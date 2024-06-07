@@ -924,9 +924,13 @@ end
 Product.create # => false
 ```
 
-WARNING: If an exception occurs during the callback chain, Rails will re-raise
-it unless it is an `ActiveRecord::Rollback`, `ActiveRecord::RecordNotSaved` or
-`ActiveRecord::RecordInvalid` exception.
+However, it will raise an `ActiveRecord::RecordNotSaved` when calling
+`create!`. This exception indicates that the record was not saved due to
+the callback's interruption.
+
+```ruby
+User.create! # => raises an ActiveRecord::RecordNotSaved
+```
 
 
 When `throw :abort` is called in any destroy callback, `destroy` will return
