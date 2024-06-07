@@ -1734,23 +1734,32 @@ NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash i
 
 With `eager_load`, Active Record loads all specified associations using a `LEFT OUTER JOIN`.
 
-Revisiting the case where N + 1 was occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to authors:
+Consider in the previous case if we needed to find the total ratings for each book:
 
 ```ruby
-books = Book.eager_load(:author).limit(10)
+books = Book.limit(10)
 
 books.each do |book|
-  puts book.author.last_name
+  puts book.reviews.sum(&:rating)
+end
+```
+
+We can prevent the N + 1 queries problem here by using the `eager_load` method, we could rewrite `Book.limit(10)` to eager_load reviews:
+
+```ruby
+books = Book.eager_load(:reviews).limit(10)
+
+books.each do |book|
+  puts book.reviews.sum(&:rating)
 end
 ```
 
 The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT DISTINCT books.id FROM books LEFT OUTER JOIN authors ON authors.id = books.author_id LIMIT 10
-SELECT books.id AS t0_r0, books.last_name AS t0_r1, ...
-  FROM books LEFT OUTER JOIN authors ON authors.id = books.author_id
-  WHERE books.id IN (1,2,3,4,5,6,7,8,9,10)
+SELECT DISTINCT books.id FROM books LEFT OUTER JOIN LEFT OUTER JOIN reviews ON reviews.book_id = books.id LIMIT 10
+SELECT books.id AS t0_r0, books.title, ...
+  FROM books LEFT OUTER JOIN reviews ON reviews.book_id = books.id WHERE books.id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
 NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
