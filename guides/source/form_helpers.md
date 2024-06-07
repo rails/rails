@@ -30,7 +30,7 @@ The main form helper is [`form_with`](https://api.rubyonrails.org/classes/Action
 <% end %>
 ```
 
-When called without arguments, it creates an HTML `<form>` tag which, when submitted, will POST to the current page. For example, assuming the current page is a home page at `/home`, the generated HTML will look like this:
+When called without arguments, it creates an HTML `<form>` tag with the value of the `method` attribute set to `post` and the value of the `action` attribute set to the current page. For example, assuming the current page is a home page at `/home`, the generated HTML will look like this:
 
 ```html
 <form action="/home" accept-charset="UTF-8" method="post">
@@ -73,14 +73,14 @@ This will generate the following HTML:
 
 Notice that for the search form we are using the `url` option of `form_with`. Setting `url: "/search"` changes the form action value from the default current page path to `action="/search"`.
 
-In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Record objects to the form, as you will learn [below](#creating-forms-with-model-objects).
+In general, passing `url: my_path` to `form_with` tells the form where to send the request. The other option is to pass Active Record objects to the form, as you will learn [below](#creating-forms-with-model-objects).
 
 The search form example also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like`form.label` and `form.text_field` in the above example) in the next section.
 
 TIP: For every form `input` element, an `id` attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
 IMPORTANT: Use "GET" as the method for search forms. In general, Rails
-conventions encourage using the right HTTP verb for an action. Using "GET" for
+conventions encourage using the right HTTP verb for controller actions. Using "GET" for
 search allows users to bookmark a specific search.
 
 ### Helpers for Generating Form Elements
@@ -161,7 +161,7 @@ region, make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
-There are many other form controls for text, email, password, date, and time. Below examples show some more helpers and their generated HTML.
+There are many other form controls including text, email, password, date, and time. The below examples show some more helpers and their generated HTML.
 
 Date and time related helpers:
 
@@ -404,7 +404,7 @@ For more information on Rails' routing system and the associated conventions, pl
 
 ### Forms with PATCH, PUT, or DELETE Methods
 
-The Rails framework encourages RESTful design, which means forms in your application will make requests where the `method` is `PATCH`, `PUT`, or `DELETE` in addition to `GET` and `POST`. However, most browsers _don't support_ methods other than `GET` and `POST` when it comes to submitting forms.
+The Rails framework encourages RESTful design, which means forms in your application will make requests where the `method` is `PATCH`, `PUT`, or `DELETE` in addition to `GET` and `POST`. However, HTML forms _don't support_ methods other than `GET` and `POST` when it comes to submitting forms.
 
 Rails works around this limitation by emulating other methods over POST with a hidden input named `"_method"`. For example:
 
