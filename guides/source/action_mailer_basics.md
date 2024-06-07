@@ -345,16 +345,20 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
     <%= image_tag attachments['image.jpg'].url, alt: 'My Photo', class: 'photos' %>
     ```
 
-Mailer Views
-------------
+Mailer Views and Layouts
+------------------------
 
-Mailer views are located in the `app/views/name_of_mailer_class` directory. The
-specific mailer view is known to the class because its name is the same as the
-mailer method. In our example from above, our mailer view for the
-`welcome_email` method will be in `app/views/user_mailer/welcome_email.html.erb`
-for the HTML version and `welcome_email.text.erb` for the plain text version.
+Mailer views are located in the `app/views/name_of_mailer_class` directory by
+default. Similar to a controller view, the name of the file matches the name of
+the mailer method. In the `UserMailer` example above, the view for the
+`welcome_email` mailer action will be in
+`app/views/user_mailer/welcome_email.html.erb`.
 
-To change the default mailer view for your action you do something like:
+### Configuring Custom View Path
+
+It is possible to change the default mailer view for your action in various ways, as shown below.
+
+There is a `template_path` and `template_name` option to the `mail` method:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -371,12 +375,10 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-In this case, it will look for templates at `app/views/notifications` with name
-`another`.  You can also specify an array of paths for `template_path`, and they
-will be searched in order.
+The above configures the `mail` method to look for a template with the name `another` in the `app/views/notifications` directory.  You can also specify an array of paths for `template_path`, and they will be searched in order.
 
-If you want more flexibility you can also pass a block and render specific
-templates or even render inline or text without using a template file:
+If you need more flexibility, you can also pass a block and render a specific
+template or even render plain text inline without using a template file:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -395,11 +397,10 @@ end
 ```
 
 This will render the template 'another_template.html.erb' for the HTML part and
-use the rendered text for the text part. The render command is the same one used
-inside of Action Controller, so you can use all the same options, such as
-`:text`, `:inline`, etc.
+"Rendered text" for the text part. The [render](https://api.rubyonrails.org/classes/ActionController/Rendering.html#method-i-render) method is the same one used inside of Action Controller, so you can use all the same options, such as
+`:plain`, `:inline`, etc.
 
-If you would like to render a template located outside of the default `app/views/mailer_name/` directory, you can apply the [`prepend_view_path`][], like so:
+Lastly, if you need to render a template located outside of the default `app/views/mailer_name/` directory, you can apply the [`prepend_view_path`][], like so:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -412,7 +413,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-You can also consider using the [`append_view_path`][] method.
+There is also an [`append_view_path`][] method.
 
 [`append_view_path`]: https://api.rubyonrails.org/classes/ActionView/ViewPaths/ClassMethods.html#method-i-append_view_path
 [`prepend_view_path`]: https://api.rubyonrails.org/classes/ActionView/ViewPaths/ClassMethods.html#method-i-prepend_view_path
@@ -433,31 +434,41 @@ And to use this feature, you need to configure your application with this:
 config.action_mailer.perform_caching = true
 ```
 
-Fragment caching is also supported in multipart emails.
-Read more about caching in the [Rails caching guide](caching_with_rails.html).
+Fragment caching is also supported in multipart emails. Read more about caching in the [Rails caching guide](caching_with_rails.html).
 
 [`cache`]: https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache
 
 ### Action Mailer Layouts
 
-Just like controller views, you can also have mailer layouts. The layout name
-needs to be the same as your mailer, such as `user_mailer.html.erb` and
-`user_mailer.text.erb` to be automatically recognized by your mailer as a
-layout.
+Just like controller views, you can also have mailer layouts. Mailer layouts are located in `app/views/layouts`. Here is the default layout:
 
-To use a different file, call [`layout`][] in your mailer:
+```html
+# app/views/layouts/mailer.html.erb
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+      /* Email styles need to be inline */
+    </style>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+</html>
+```
+
+The above layout is in a file `mailer.html.erb`. The layout name is specified in the `ApplicationMailer`, as we saw earlier with the line `layout "mailer"`. Similar to controller layouts, you use `yield` to render the mailer view inside the layout.
+
+To use a different layout for a given mailer, call [`layout`][]:
 
 ```ruby
 class UserMailer < ApplicationMailer
   layout 'awesome' # use awesome.(html|text).erb as the layout
 end
 ```
-
-Just like with controller views, use `yield` to render the view inside the
-layout.
-
-You can also pass in a `layout: 'layout_name'` option to the render call inside
-the format block to specify different layouts for different formats:
+To use a specific layout for a given email, you can pass in a `layout: 'layout_name'` option to the render call inside the format block:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -470,43 +481,9 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Will render the HTML part using the `my_layout.html.erb` file and the text part
-with the usual `user_mailer.text.erb` file if it exists.
+The above will render the HTML part using the `my_layout.html.erb` file and the text part with the usual `user_mailer.text.erb` file if it exists.
 
 [`layout`]: https://api.rubyonrails.org/classes/ActionView/Layouts/ClassMethods.html#method-i-layout
-
-### Previewing Emails
-
-Action Mailer previews provide a way to see how emails look by visiting a
-special URL that renders them. In the above example, the preview class for
-`UserMailer` should be named `UserMailerPreview` and located in
-`test/mailers/previews/user_mailer_preview.rb`. To see the preview of
-`welcome_email`, implement a method that has the same name and call
-`UserMailer.welcome_email`:
-
-```ruby
-class UserMailerPreview < ActionMailer::Preview
-  def welcome_email
-    UserMailer.with(user: User.first).welcome_email
-  end
-end
-```
-
-Then the preview will be available in <http://localhost:3000/rails/mailers/user_mailer/welcome_email>.
-
-If you change something in `app/views/user_mailer/welcome_email.html.erb`
-or the mailer itself, it'll automatically reload and render it so you can
-visually see the new style instantly. A list of previews are also available
-in <http://localhost:3000/rails/mailers>.
-
-By default, these preview classes live in `test/mailers/previews`.
-This can be configured using the `preview_paths` option. For example, if you
-want to add `lib/mailer_previews` to it, you can configure it in
-`config/application.rb`:
-
-```ruby
-config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
-```
 
 ### Generating URLs in Action Mailer Views
 
@@ -902,11 +879,44 @@ NOTE: Google [blocks sign-ins](https://support.google.com/accounts/answer/601025
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
 then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password.
 
-Mailer Testing
---------------
+Previewing and Testing Mailers
+------------------------------
 
 You can find detailed instructions on how to test your mailers in the
 [testing guide](testing.html#testing-your-mailers).
+
+### Previewing Emails
+
+Action Mailer previews provide a way to see how emails look by visiting a
+special URL that renders them. In the above example, the preview class for
+`UserMailer` should be named `UserMailerPreview` and located in
+`test/mailers/previews/user_mailer_preview.rb`. To see the preview of
+`welcome_email`, implement a method that has the same name and call
+`UserMailer.welcome_email`:
+
+```ruby
+class UserMailerPreview < ActionMailer::Preview
+  def welcome_email
+    UserMailer.with(user: User.first).welcome_email
+  end
+end
+```
+
+Then the preview will be available in <http://localhost:3000/rails/mailers/user_mailer/welcome_email>.
+
+If you change something in `app/views/user_mailer/welcome_email.html.erb`
+or the mailer itself, it'll automatically reload and render it so you can
+visually see the new style instantly. A list of previews are also available
+in <http://localhost:3000/rails/mailers>.
+
+By default, these preview classes live in `test/mailers/previews`.
+This can be configured using the `preview_paths` option. For example, if you
+want to add `lib/mailer_previews` to it, you can configure it in
+`config/application.rb`:
+
+```ruby
+config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
+```
 
 Intercepting and Observing Emails
 ---------------------------------
