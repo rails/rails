@@ -73,7 +73,7 @@ This will generate the following HTML:
 
 Notice that for the search form we are using the `url` option of `form_with`. Setting `url: "/search"` changes the form action value from the default current page path to `action="/search"`.
 
-In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Record objects to the form, as you will learn [below](#creating-forms-with-model-objects).
+In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Record objects to the form, as you will learn [below](#creating-forms-with-model-objects). You can also use [URL helpers](routing.html#path-and-url-helpers).
 
 The search form example also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like`form.label` and `form.text_field` in the above example) in the next section.
 
@@ -101,7 +101,7 @@ When naming inputs, Rails uses certain conventions that make it possible to subm
 
 A Checkbox is a form control that allows for a single value to be selected or deselected. A group of Checkboxes is generally used to allow a user to choose one or more options from the group.
 
-For example, two checkboxes in a form:
+Here's an example with three checkboxes in a form:
 
 ```erb
 <%= form.check_box :biography %>
@@ -126,6 +126,8 @@ The above will generate the following:
 The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "Biography" checkbox only, the `params` hash would contain `params: {"biography"=>"1", "romance"=>"0", "mystery"=>"0"}`. You can use `params[:biography]` to check if that checkbox is selected by the user.
 
 The checkbox's values (the values that will appear in `params`) can optionally be specified using the `checked_value` and `unchecked_value` parameters. See the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-check_box) for more details.
+
+There is also a `collection_check_boxes`, which you can learn about in the [Collection Related Helpers section](#collection-related-helpers).
 
 #### Radio Buttons
 
@@ -234,7 +236,7 @@ Creating Forms with Model Objects
 
 The `form_with` helper has a `:model` option that allows you to bind the form builder object to a model object. This means that the form will be scoped to that model object, and the form's fields will be populated with values from that model object.
 
-For example, if we have an `@book` model object:
+For example, if we have a `@book` model object:
 
 ```ruby
 @book = Book.find(42)
@@ -274,7 +276,7 @@ It will generate this HTML:
 </form>
 ```
 
-Some important things to note when using `form_with` with a model object:
+Some important things to notice when using `form_with` with a model object:
 
 * The form `action` is automatically filled with an appropriate value, `action="/books"`. If you were updating a book, it would be `action="/books/42"`.
 * The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
@@ -306,7 +308,7 @@ Will generate this HTML output:
 
 ```html
 <form action="/books/2_25" method="post" accept-charset="UTF-8" >
-  <input name="authenticity_token" type="hidden" value="..." />
+  <input name="authenticity_token" type="hidden" value="ChwHeyegcpAFDdBvXvDuvbfW7yCA3e8gvhyieai7DhG28C3akh-dyuv-IBittsjPrIjETlQQvQJ91T77QQ8xWA" />
   <input type="text" name="book[title]" id="book_title" value="Some book" />
   <input type="submit" name="commit" value="Update Book" data-disable-with="Update Book">
 </form>
@@ -334,7 +336,7 @@ single form with inputs for both models like so:
 <% end %>
 ```
 
-The above will produces the following output:
+The above will produce the following output:
 
 ```html
 <form action="/people" accept-charset="UTF-8" method="post">
