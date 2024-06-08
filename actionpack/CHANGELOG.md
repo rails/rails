@@ -37,6 +37,7 @@
 *   Include the HTTP Permissions-Policy on non-HTML Content-Types
     [CVE-2024-28103]
 
+    *Aaron Patterson*
 
 ## Rails 7.1.3.3 (May 16, 2024) ##
 

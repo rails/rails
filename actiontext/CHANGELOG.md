@@ -3,6 +3,7 @@
 *   Sanitize ActionText HTML ContentAttachment in Trix edit view
     [CVE-2024-32464]
 
+    *Aaron Patterson*
 
 ## Rails 7.1.3.3 (May 16, 2024) ##
 
