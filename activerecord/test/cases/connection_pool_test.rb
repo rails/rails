@@ -321,6 +321,21 @@ module ActiveRecord
         assert_not_predicate @pool, :active_connection?
       end
 
+      def test_new_connection_error_in_check_version
+        connection_mock = AbstractAdapter.new(nil)
+        connection_mock.singleton_class.define_method(:check_version) do
+          raise "Oops"
+        end
+
+        Base.stub(@db_config.adapter_method, connection_mock) do
+          assert_called(connection_mock, :disconnect!) do
+            assert_raises RuntimeError, match: /Oops/ do
+              @pool.send(:new_connection)
+            end
+          end
+        end
+      end
+
       def test_checkout_behaviour
         pool = ConnectionPool.new(@pool_config)
         main_connection = pool.connection

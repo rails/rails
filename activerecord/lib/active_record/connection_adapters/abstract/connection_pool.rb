@@ -652,9 +652,14 @@ module ActiveRecord
         alias_method :release, :remove_connection_from_thread_cache
 
         def new_connection
-          Base.public_send(db_config.adapter_method, db_config.configuration_hash).tap do |conn|
+          conn = Base.public_send(db_config.adapter_method, db_config.configuration_hash)
+          begin
             conn.check_version
+          rescue
+            conn.disconnect!
+            raise
           end
+          conn
         end
 
         # If the pool is not at a <tt>@size</tt> limit, establish new connection. Connecting
