@@ -253,6 +253,7 @@ module ActiveRecord
 
         @available = ConnectionLeasingQueue.new self
         @pinned_connection = nil
+        @pinned_connections_depth = 0
 
         @async_executor = build_async_executor
 
@@ -311,9 +312,9 @@ module ActiveRecord
       end
 
       def pin_connection!(lock_thread) # :nodoc:
-        raise "There is already a pinned connection" if @pinned_connection
+        @pinned_connection ||= (connection_lease&.connection || checkout)
+        @pinned_connections_depth += 1
 
-        @pinned_connection = (connection_lease&.connection || checkout)
         # Any leased connection must be in @connections otherwise
         # some methods like #connected? won't behave correctly
         unless @connections.include?(@pinned_connection)
@@ -330,7 +331,10 @@ module ActiveRecord
 
         clean = true
         @pinned_connection.lock.synchronize do
-          connection, @pinned_connection = @pinned_connection, nil
+          @pinned_connections_depth -= 1
+          connection = @pinned_connection
+          @pinned_connection = nil if @pinned_connections_depth.zero?
+
           if connection.transaction_open?
             connection.rollback_transaction
           else
@@ -338,8 +342,11 @@ module ActiveRecord
             clean = false
             connection.reset!
           end
-          connection.lock_thread = nil
-          checkin(connection)
+
+          if @pinned_connection.nil?
+            connection.lock_thread = nil
+            checkin(connection)
+          end
         end
 
         clean
