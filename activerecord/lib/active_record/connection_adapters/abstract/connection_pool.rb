@@ -675,7 +675,14 @@ module ActiveRecord
         def new_connection
           connection = Base.public_send(db_config.adapter_method, db_config.configuration_hash)
           connection.pool = self
-          connection.check_version
+
+          begin
+            connection.check_version
+          rescue
+            connection.disconnect!
+            raise
+          end
+
           connection
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(self)
