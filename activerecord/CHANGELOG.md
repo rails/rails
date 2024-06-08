@@ -1,6 +1,6 @@
 *   Fix an issue that could cause database connection leaks
 
-    If Active Record successfully connected to teh database, but then failed
+    If Active Record successfully connected to the database, but then failed
     to read the server informations, the connection would be leaked until the
     Ruby garbage collector triggers.
 
