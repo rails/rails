@@ -3,15 +3,20 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "active_support/json"
-require "propshaft"
+require "sprockets"
 
 module ApplicationTests
-  class AssetsTest < ActiveSupport::TestCase
+  class SprocketsAssetsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
+    def tmp_path(*args)
+      @sprockets_tmp_path ||= File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
+      File.join(@sprockets_tmp_path, *args)
+    end
+
     def setup
-      build_app(initializers: true)
+      build_app(initializers: true, sprockets: true)
     end
 
     def teardown

@@ -41,6 +41,10 @@ module TestHelpers
       File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/app_template"
     end
 
+    def sprockets_app_template_path
+      File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/sprockets_app_template"
+    end
+
     def bootsnap_cache_path
       File.join RAILS_FRAMEWORK_ROOT, "tmp/templates/bootsnap"
     end
@@ -109,7 +113,12 @@ module TestHelpers
       ENV["RAILS_ENV"] = "development"
 
       FileUtils.rm_rf(app_path)
-      FileUtils.cp_r(app_template_path, app_path)
+
+      if options[:sprockets]
+        FileUtils.cp_r(sprockets_app_template_path, app_path)
+      else
+        FileUtils.cp_r(app_template_path, app_path)
+      end
 
       # Delete the initializers unless requested
       unless options[:initializers]
@@ -600,31 +609,45 @@ Module.new do
     raise "Command #{cmd.inspect} failed. Output:\n#{output}" unless $?.success?
   end
 
-  # Build a rails app
-  FileUtils.rm_rf(app_template_path)
-  FileUtils.mkdir_p(app_template_path)
+  def self.build_rails_app(asset_pipeline: :propshaft)
+    path = app_template_path
+    railtie = "#{asset_pipeline}/railtie"
 
-  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --asset-pipeline=sprockets --skip-bundle --no-rc --quiet"
-  File.open("#{app_template_path}/config/boot.rb", "w") do |f|
-    f.puts 'require "bootsnap/setup" if ENV["BOOTSNAP_CACHE_DIR"]'
-    f.puts 'require "rails/all"'
-  end
-
-  assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
-  unless Dir.exist?("#{assets_path}/node_modules")
-    Dir.chdir(assets_path) do
-      sh "yarn install"
+    if asset_pipeline == :sprockets
+      app_template_path = sprockets_app_template_path
+      asset_pipeline = "--asset-pipeline=sprockets"
+    else
+      app_template_path = path
     end
+
+    FileUtils.rm_rf(app_template_path)
+    FileUtils.mkdir_p(app_template_path)
+
+    sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} #{asset_pipeline} --skip-bundle --no-rc --quiet"
+    File.open("#{app_template_path}/config/boot.rb", "w") do |f|
+      f.puts 'require "bootsnap/setup" if ENV["BOOTSNAP_CACHE_DIR"]'
+      f.puts 'require "rails/all"'
+    end
+
+    assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
+    unless Dir.exist?("#{assets_path}/node_modules")
+      Dir.chdir(assets_path) do
+        sh "yarn install"
+      end
+    end
+
+    FileUtils.mkdir_p "#{app_template_path}/app/javascript"
+    File.write("#{app_template_path}/app/javascript/application.js", "\n")
+
+    # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
+    # app-specific one: we don't want to require every gem that lists.
+    contents = File.read("#{app_template_path}/config/application.rb")
+    contents.sub!(/^Bundler\.require.*/, "%w(#{railtie} importmap-rails).each { |r| require r }")
+    File.write("#{app_template_path}/config/application.rb", contents)
   end
 
-  FileUtils.mkdir_p "#{app_template_path}/app/javascript"
-  File.write("#{app_template_path}/app/javascript/application.js", "\n")
-
-  # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
-  # app-specific one: we don't want to require every gem that lists.
-  contents = File.read("#{app_template_path}/config/application.rb")
-  contents.sub!(/^Bundler\.require.*/, "%w(sprockets/railtie importmap-rails).each { |r| require r }")
-  File.write("#{app_template_path}/config/application.rb", contents)
+  build_rails_app
+  build_rails_app(asset_pipeline: :sprockets)
 
   require "rails"
 
@@ -638,8 +661,6 @@ Module.new do
   require "action_cable"
   require "action_mailbox"
   require "action_text"
-  require "sprockets"
-
   require "action_view/helpers"
   require "action_dispatch/routing/route_set"
 end unless defined?(RAILS_ISOLATED_ENGINE)
