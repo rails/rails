@@ -194,7 +194,7 @@ basis:
 
 ```ruby
 class NewTopicNotificationJob < ApplicationJob
-  self.enqueue_after_transaction_commit = false
+  self.enqueue_after_transaction_commit = :never
 end
 ```
 
