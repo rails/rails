@@ -1090,7 +1090,7 @@ s = "".html_safe
 s.html_safe? # => true
 ```
 
-It is important to understand that `html_safe` performs no escaping whatsoever, it is just an assertion:
+It is important to understand that `html_safe?` performs no escaping whatsoever, it is just an assertion:
 
 ```ruby
 s = "<script>...</script>".html_safe
