@@ -3234,6 +3234,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     MESSAGE
   end
 
+  def test_ids_reader_on_preloaded_association_with_composite_primary_key
+    great_author = cpk_authors(:cpk_great_author)
+
+    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target

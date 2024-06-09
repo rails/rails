@@ -114,6 +114,8 @@ module Rails
             action_controller.forgery_protection_origin_check = true
           end
 
+          ActiveSupport.to_time_preserves_timezone = true
+
           if respond_to?(:active_record)
             active_record.belongs_to_required_by_default = true
           end
@@ -308,12 +310,12 @@ module Rails
           end
 
           if respond_to?(:action_view)
-            require "rails-html-sanitizer"
+            require "action_view/helpers"
             action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
 
           if respond_to?(:action_text)
-            require "rails-html-sanitizer"
+            require "action_view/helpers"
             action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
         when "7.2"

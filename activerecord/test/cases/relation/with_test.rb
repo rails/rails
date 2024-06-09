@@ -114,6 +114,15 @@ module ActiveRecord
           Post.with(attributes_for_inspect: :id) { }
         end
       end
+
+      def test_unscoping
+        relation = Post.with(posts_with_comments: Post.where("legacy_comments_count > 0"))
+
+        assert_equal true, relation.values[:with].flat_map(&:keys).include?(:posts_with_comments)
+        relation = relation.unscope(:with)
+        assert_nil relation.values[:with]
+        assert_equal Post.count, relation.count
+      end
     else
       def test_common_table_expressions_are_unsupported
         assert_raises ActiveRecord::StatementInvalid do

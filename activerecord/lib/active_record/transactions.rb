@@ -188,6 +188,27 @@ module ActiveRecord
     # #after_commit is a good spot to put in a hook to clearing a cache since clearing it from
     # within a transaction could trigger the cache to be regenerated before the database is updated.
     #
+    # ==== NOTE: Callbacks are deduplicated per callback by filter.
+    #
+    # Trying to define multiple callbacks with the same filter will result in a single callback being run.
+    #
+    # For example:
+    #
+    #   after_commit :do_something
+    #   after_commit :do_something # only the last one will be called
+    #
+    # This applies to all variations of <tt>after_*_commit</tt> callbacks as well.
+    #
+    #   after_commit :do_something
+    #   after_create_commit :do_something
+    #   after_save_commit :do_something
+    #
+    # It is recommended to use the +on:+ option to specify when the callback should be run.
+    #
+    #   after_commit :do_something, on: [:create, :update]
+    #
+    # This is equivalent to using +after_create_commit+ and +after_update_commit+, but will not be deduplicated.
+    #
     # === Caveats
     #
     # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
@@ -214,7 +235,13 @@ module ActiveRecord
         end
       end
 
-      # Returns the current transaction. See ActiveRecord::Transactions API docs.
+      # Returns a representation of the current transaction state,
+      # which can be a top level transaction, a savepoint, or the absence of a transaction.
+      #
+      # An object is always returned, whether or not a transaction is currently active.
+      # To check if a transaction was opened, use <tt>current_transaction.open?</tt>.
+      #
+      # See the ActiveRecord::Transaction documentation for detailed behavior.
       def current_transaction
         connection_pool.active_connection&.current_transaction || ConnectionAdapters::TransactionManager::NULL_TRANSACTION
       end

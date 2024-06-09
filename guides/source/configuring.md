@@ -154,6 +154,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 5.0
 
+- [`ActiveSupport.to_time_preserves_timezone`](#activesupport-to-time-preserves-timezone): `true`
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
@@ -1284,6 +1285,12 @@ changed to `:log` to send violations to the logger instead of raising.
 Is a boolean value that either enables or disables strict_loading mode by
 default. Defaults to `false`.
 
+#### `config.active_record.strict_loading_mode`
+
+Sets the mode in which strict loading is reported. Defaults to `:all`. It can be
+changed to `:n_plus_one_only` to only report when loading associations that will
+lead to an N + 1 query.
+
 #### `config.active_record.warn_on_records_fetched_greater_than`
 
 Allows setting a warning threshold for query result size. If the number of
@@ -2219,7 +2226,7 @@ Determines whether to annotate rendered view with template file names. This defa
 
 #### `config.action_view.preload_links_header`
 
-Determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `Link` header that preload assets.
+Determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `link` header that preload assets.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2694,6 +2701,17 @@ Is set to `false` to disable the ability to silence logging in a block. The defa
 #### `ActiveSupport::Cache::Store.logger`
 
 Specifies the logger to use within cache store operations.
+
+#### `ActiveSupport.to_time_preserves_timezone`
+
+Specifies whether `to_time` methods preserve the UTC offset of their receivers. If `false`, `to_time` methods will convert to the local system UTC offset instead.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.0                   | `true`               |
 
 #### `ActiveSupport.utc_to_local_returns_utc_offset_times`
 
