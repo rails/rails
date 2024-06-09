@@ -214,14 +214,14 @@ module ApplicationTests
       assert_file_exists("#{app_path}/public/assets/another-*.js")
     end
 
-    test "asset pipeline should use a Sprockets::CachedEnvironment when config.assets.digest is true" do
+    test "asset pipeline should use a Propshaft::Assembly when config.assets.digest is true" do
       add_to_config "config.action_controller.perform_caching = false"
       add_to_env_config "production", "config.assets.compile = true"
 
       # Load app env
       app "production"
 
-      assert_equal Sprockets::CachedEnvironment, Rails.application.assets.class
+      assert_equal Propshaft::Assembly, Rails.application.assets.class
     end
 
     test "precompile creates a manifest file with all the assets listed" do
