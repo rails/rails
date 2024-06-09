@@ -219,6 +219,20 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "foo", "=> \"this is foo\""
   end
 
+  def test_rails_console_app_and_helpers_files_kept_with_deprecation_for_backward_compatibility
+    add_to_config <<-RUBY
+      console do
+        require "rails/console/app"
+        require "rails/console/helpers"
+      end
+    RUBY
+
+    spawn_console("-e development", wait_for_prompt: false)
+
+    assert_output "`rails/console/app` has been deprecated", @primary, 30
+    assert_output "`rails/console/helpers` has been deprecated", @primary, 30
+  end
+
   def test_rails_console_methods_patch_backward_compatibility_with_module_reopening
     add_to_config <<-RUBY
       console do

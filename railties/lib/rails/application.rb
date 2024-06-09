@@ -154,6 +154,10 @@ module Rails
       routes_reloader.reload!
     end
 
+    def reload_routes_unless_loaded # :nodoc:
+      initialized? && routes_reloader.execute_unless_loaded
+    end
+
     # Returns a key generator (ActiveSupport::CachingKeyGenerator) for a
     # specified +secret_key_base+. The return value is memoized, so additional
     # calls with the same +secret_key_base+ will return the same key generator

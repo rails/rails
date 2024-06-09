@@ -23,7 +23,7 @@ module Rails
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version
+                    :dom_testing_default_html_version, :yjit
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -81,6 +81,7 @@ module Rails
         @rake_eager_load                         = false
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
+        @yjit                                    = false
       end
 
       # Loads default configuration values for a target version. This includes
@@ -112,6 +113,8 @@ module Rails
             action_controller.per_form_csrf_tokens = true
             action_controller.forgery_protection_origin_check = true
           end
+
+          ActiveSupport.to_time_preserves_timezone = true
 
           if respond_to?(:active_record)
             active_record.belongs_to_required_by_default = true
@@ -307,16 +310,18 @@ module Rails
           end
 
           if respond_to?(:action_view)
-            require "rails-html-sanitizer"
+            require "action_view/helpers"
             action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
 
           if respond_to?(:action_text)
-            require "rails-html-sanitizer"
+            require "action_view/helpers"
             action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
         when "7.2"
           load_defaults "7.1"
+
+          self.yjit = true
 
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = :default
@@ -329,7 +334,6 @@ module Rails
           if respond_to?(:active_record)
             active_record.postgresql_adapter_decode_dates = true
             active_record.validate_migration_timestamps = true
-            active_record.automatically_invert_plural_associations = true
           end
         when "8.0"
           load_defaults "7.2"

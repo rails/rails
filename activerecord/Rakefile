@@ -23,6 +23,8 @@ task default: :test
 
 task :package
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 desc "Run mysql2, trilogy, sqlite, and postgresql tests"
 task :test do
   tasks = defined?(JRUBY_VERSION) ?

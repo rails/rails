@@ -29,7 +29,7 @@ module ApplicationTests
       end
 
       test "loads routes only once" do
-        assert_called(Rails.application.routes_reloader, :execute_unless_loaded, 1) do
+        assert_called(Rails.application, :reload_routes_unless_loaded, 1) do
           5.times { get "/test" }
         end
       end

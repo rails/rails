@@ -13,10 +13,11 @@
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
+    <% style_link_target = options[:asset_pipeline] == "propshaft" ? ":all" : "\"application\"" %>
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
-    <%%= stylesheet_link_tag "application" %>
+    <%%= stylesheet_link_tag <%= style_link_target %> %>
     <%- else -%>
-    <%%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%%= stylesheet_link_tag <%= style_link_target %>, "data-turbo-track": "reload" %>
     <%- end -%>
   </head>
 

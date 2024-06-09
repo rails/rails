@@ -5,9 +5,6 @@ require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
-  .devcontainer/Dockerfile
-  .devcontainer/compose.yaml
-  .devcontainer/devcontainer.json
   .dockerignore
   .git
   .gitattributes
@@ -20,7 +17,6 @@ DEFAULT_APP_FILES = %w(
   Gemfile
   README.md
   Rakefile
-  app/assets/config/manifest.js
   app/assets/images/.keep
   app/assets/stylesheets/application.css
   app/channels/application_cable/channel.rb
@@ -55,7 +51,6 @@ DEFAULT_APP_FILES = %w(
   config/environments/test.rb
   config/initializers/assets.rb
   config/initializers/content_security_policy.rb
-  config/initializers/enable_yjit.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
   config/initializers/permissions_policy.rb
@@ -173,19 +168,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{app_moved_root}/config/environment.rb", /Rails\.application\.initialize!/
   end
 
-  def test_new_application_load_defaults
+  def test_app_update
     run_generator
-    assert_file "config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
-  end
 
-  def test_app_update_create_new_framework_defaults
     defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
 
-    run_generator
     assert_no_file defaults_path
+    assert_no_file "config/initializers/cors.rb"
 
     run_app_update
+
     assert_file defaults_path
+    assert_no_file "config/initializers/cors.rb"
   end
 
   def test_app_update_supports_skip
@@ -216,13 +210,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_does_not_create_rack_cors
-    run_generator
-    run_app_update
-
-    assert_no_file "config/initializers/cors.rb"
-  end
-
   def test_app_update_does_not_remove_rack_cors_if_already_present
     run_generator
     FileUtils.touch("#{destination_root}/config/initializers/cors.rb")
@@ -231,19 +218,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/initializers/cors.rb"
   end
 
+  def test_app_update_generates_public_folders
+    run_generator
+
+    FileUtils.rm_rf("#{destination_root}/public/406-unsupported-browser.html")
+
+    run_app_update
+
+    assert_file "public/406-unsupported-browser.html"
+  end
+
   def test_app_update_does_not_generate_assets_initializer_when_sprockets_and_propshaft_are_not_used
     run_generator [destination_root, "-a", "none"]
     run_app_update
 
     assert_no_file "config/initializers/assets.rb"
-    assert_no_file "app/assets/config/manifest.js"
-  end
-
-  def test_app_update_does_not_generate_manifest_config_when_propshaft_is_used
-    run_generator [destination_root, "-a", "propshaft"]
-    run_app_update
-
-    assert_file "config/initializers/assets.rb"
     assert_no_file "app/assets/config/manifest.js"
   end
 
@@ -323,8 +312,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_preserves_propshaft
-    run_generator [destination_root, "-a", "propshaft"]
+  def test_app_update_preserves_sprockets
+    run_generator [destination_root, "-a", "sprockets"]
 
     FileUtils.cd(destination_root) do
       config = "config/environments/production.rb"
@@ -334,23 +323,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_gem_for_active_storage
-    run_generator
-    assert_file "Gemfile", /^# gem "image_processing"/
-  end
-
-  def test_gem_for_active_storage_when_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
-
-    assert_no_gem "image_processing"
-
-    assert_file "Dockerfile" do |content|
-      assert_no_match(/libvips/, content)
-    end
-  end
-
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
     run_generator [destination_root, "--skip-active-storage"]
+
     run_app_update
 
     assert_file "config/environments/development.rb" do |content|
@@ -392,28 +367,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
   end
 
-  def test_generator_skips_action_mailbox_when_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
-  end
-
-  def test_generator_skips_action_mailbox_when_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
-  end
-
   def test_generator_skips_action_text_when_skip_action_text_is_given
     run_generator [destination_root, "--skip-action-text"]
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
-  end
-
-  def test_generator_skips_action_text_when_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
-  end
-
-  def test_generator_skips_action_text_when_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
   end
 
@@ -587,7 +542,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+"application" %>/, contents)
+      assert_match(/stylesheet_link_tag\s+:all %>/, contents)
     end
   end
 
@@ -655,21 +610,30 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_inclusion_of_kamal_files
-    run_generator_and_bundler [destination_root]
+    generator [destination_root]
+    run_generator_instance
 
     assert_file "config/deploy.yml"
     assert_file ".env.erb"
   end
 
   def test_kamal_files_are_skipped_if_required
-    run_generator_and_bundler [destination_root, "--skip-kamal"]
+    generator [destination_root], ["--skip-kamal"]
+    run_generator_instance
+
+    assert_empty @bundle_commands.grep("binstubs kamal")
+    assert_empty @bundle_commands.grep("exec kamal init")
 
     assert_no_file "config/deploy.yml"
     assert_no_file ".env.erb"
   end
 
   def test_inclusion_of_kamal_storage_volume
-    run_generator_and_bundler [destination_root]
+    generator [destination_root]
+    run_generator_instance
+
+    assert_equal 1, @bundle_commands.count("binstubs kamal")
+    assert_equal 1, @bundle_commands.count("exec kamal init")
 
     assert_file "config/deploy.yml" do |content|
       assert_match(%r{storage:/rails/storage}, content)
@@ -677,7 +641,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_inclusion_of_kamal_storage_volume_if_only_skip_active_storage_is_given
-    run_generator_and_bundler [destination_root, "--skip-active-storage"]
+    generator [destination_root], ["--skip-active-storage"]
+    run_generator_instance
+
+    assert_equal 1, @bundle_commands.count("binstubs kamal")
+    assert_equal 1, @bundle_commands.count("exec kamal init")
 
     assert_file "config/deploy.yml" do |content|
       assert_match(%r{storage:/rails/storage}, content)
@@ -685,11 +653,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_kamal_storage_volume_is_skipped_if_required
-    run_generator_and_bundler [
-      destination_root,
-      "--skip-active-storage",
-      "--database=postgresql"
-    ]
+    generator [destination_root], ["--skip-active-storage", "--database=postgresql"]
+    run_generator_instance
+
+    assert_equal 1, @bundle_commands.count("binstubs kamal")
+    assert_equal 1, @bundle_commands.count("exec kamal init")
 
     assert_file "config/deploy.yml" do |content|
       assert_no_match(%r{storage:/rails/storage}, content)
@@ -788,14 +756,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal 1, @bundle_commands.count("binstubs bundler")
   end
 
-  def test_skip_active_record_option
-    run_generator [destination_root, "--skip-active-record"]
-
-    assert_file ".gitattributes" do |content|
-      assert_no_match(/schema.rb/, content)
-    end
-  end
-
   def test_skip_active_job_option
     run_generator [destination_root, "--skip-active-job"]
 
@@ -809,15 +769,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_javascript_option
     generator([destination_root], skip_javascript: true)
 
-    command_check = -> command, *_ do
-      if command == "importmap:install"
-        flunk "`importmap:install` expected to not be called."
-      end
-    end
+    run_generator_instance
 
-    generator.stub(:rails_command, command_check) do
-      run_generator_instance
-    end
+    assert_not_includes @rails_commands, "importmap:install", "`importmap:install` expected to not be called."
+    assert_not_includes @rails_commands, "turbo:install stimulus:install", "`turbo:install stimulus:install` expected to not be called."
 
     assert_no_gem "importmap-rails"
     assert_no_gem "jsbundling-rails"
@@ -835,19 +790,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_webpack_option
     generator([destination_root], javascript: "webpack")
 
-    webpack_called = 0
-    command_check = -> command, *_ do
-      case command
-      when "javascript:install:webpack"
-        webpack_called += 1
-      end
-    end
+    run_generator_instance
 
-    generator.stub(:rails_command, command_check) do
-      run_generator_instance
-    end
-
-    assert_equal 1, webpack_called, "`javascript:install:webpack` expected to be called once, but was called #{webpack_called} times."
+    assert_includes @rails_commands, "javascript:install:webpack", "`javascript:install:webpack` expected to be called, but wasn't."
     assert_gem "jsbundling-rails"
     assert_node_files
   end
@@ -855,19 +800,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_esbuild_option
     generator([destination_root], javascript: "esbuild")
 
-    esbuild_called = 0
-    command_check = -> command, *_ do
-      case command
-      when "javascript:install:esbuild"
-        esbuild_called += 1
-      end
-    end
+    run_generator_instance
 
-    generator.stub(:rails_command, command_check) do
-      run_generator_instance
-    end
-
-    assert_equal 1, esbuild_called, "`javascript:install:esbuild` expected to be called once, but was called #{esbuild_called} times."
+    assert_includes @rails_commands, "javascript:install:esbuild", "`javascript:install:esbuild` expected to be called, but wasn't."
     assert_gem "jsbundling-rails"
     assert_node_files
   end
@@ -890,19 +825,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_bun_option
     generator([destination_root], javascript: "bun")
 
-    bun_called = 0
-    command_check = -> command, *_ do
-      case command
-      when "javascript:install:bun"
-        bun_called += 1
-      end
-    end
+    run_generator_instance
 
-    generator.stub(:rails_command, command_check) do
-      run_generator_instance
-    end
-
-    assert_equal 1, bun_called, "`javascript:install:bun` expected to be called once, but was called #{bun_called} times."
+    assert_includes @rails_commands, "javascript:install:bun", "`javascript:install:bun` expected to be called, but wasn't."
     assert_gem "jsbundling-rails"
   end
 
@@ -943,20 +868,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_hotwire
-    run_generator_and_bundler [destination_root]
+    generator [destination_root]
+    run_generator_instance
+
+    assert_includes @rails_commands, "turbo:install stimulus:install", "`turbo:install stimulus:install` expected to be called, but wasn't."
     assert_gem "turbo-rails"
     assert_gem "stimulus-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/data-turbo-track/, content)
     end
-    assert_file "app/javascript/application.js" do |content|
-      assert_match(/turbo/, content)
-      assert_match(/controllers/, content)
-    end
   end
 
   def test_skip_hotwire
-    run_generator [destination_root, "--skip-hotwire"]
+    generator [destination_root], ["--skip-hotwire"]
+    run_generator_instance
 
     assert_no_gem "turbo-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
@@ -966,11 +891,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_tailwind
-    run_generator_and_bundler [destination_root, "--css=tailwind"]
+    generator [destination_root], ["--css=tailwind"]
+    run_generator_instance
+
+    assert_includes @rails_commands, "tailwindcss:install", "`tailwindcss:install` expected to be called, but wasn't."
     assert_gem "tailwindcss-rails"
-    assert_file "app/views/layouts/application.html.erb" do |content|
-      assert_match(/tailwind/, content)
-    end
     assert_no_node_files
   end
 
@@ -981,9 +906,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_sass
-    run_generator_and_bundler [destination_root, "--css=sass"]
+    generator [destination_root], ["--css=sass"]
+    run_generator_instance
+
+    assert_includes @rails_commands, "dartsass:install", "`dartsass:install` expected to be called, but wasn't."
     assert_gem "dartsass-rails"
-    assert_file "app/assets/stylesheets/application.scss"
     assert_no_node_files
   end
 
@@ -994,9 +921,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_cssbundling_gem
-    run_generator_and_bundler [destination_root, "--css=postcss"]
+    generator [destination_root], ["--css=postcss"]
+    run_generator_instance
+
+    assert_includes @rails_commands, "css:install:postcss", "`css:install:postcss` expected to be called, but wasn't."
     assert_gem "cssbundling-rails"
-    assert_file "app/assets/stylesheets/application.postcss.css"
     assert_node_files
   end
 
@@ -1004,6 +933,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--css=postcss"]
     assert_no_gem "jsbundling-rails"
     assert_gem "importmap-rails"
+  end
+
+  def test_default_generator_executes_all_rails_commands
+    generator [destination_root]
+    run_generator_instance
+
+    expected_commands = [
+      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install"
+    ]
+    assert_equal expected_commands, @rails_commands
   end
 
   def test_skip_dev_gems
@@ -1050,9 +989,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     ruby_version = "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"
 
-    assert_file ".devcontainer/Dockerfile" do |content|
-      assert_match(/ARG RUBY_VERSION=#{ruby_version}$/, content)
-    end
     assert_file "Dockerfile" do |content|
       assert_match(/ARG RUBY_VERSION=#{ruby_version}/, content)
     end
@@ -1275,7 +1211,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer
-    run_generator [destination_root, "--name=my-app"]
+    run_generator [destination_root, "--devcontainer", "--name=my-app"]
 
     assert_devcontainer_json_file do |content|
       assert_equal "my_app", content["name"]
@@ -1291,6 +1227,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file(".devcontainer/Dockerfile") do |content|
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
     end
+    assert_file("test/application_system_test_case.rb") do |content|
+      assert_match(/served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)
+    end
     assert_compose_file do |compose_config|
       assert_equal "my_app", compose_config["name"]
 
@@ -1301,8 +1240,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
         },
         "volumes" => ["../..:/workspaces:cached"],
         "command" => "sleep infinity",
-        "networks" => ["default"],
-        "ports" => ["45678:45678"],
         "depends_on" => ["selenium", "redis"]
       }
 
@@ -1311,7 +1248,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       expected_selenium_conifg = {
         "image" => "seleniarm/standalone-chromium",
         "restart" => "unless-stopped",
-        "networks" => ["default"]
       }
 
       assert_equal expected_selenium_conifg, compose_config["services"]["selenium"]
@@ -1319,7 +1255,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       expected_redis_config = {
         "image" => "redis:7.2",
         "restart" => "unless-stopped",
-        "networks" => ["default"],
         "volumes" => ["redis-data:/data"]
       }
 
@@ -1329,7 +1264,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_no_redis_skipping_action_cable_and_active_job
-    run_generator [ destination_root, "--skip-action-cable", "--skip-active-job" ]
+    run_generator [ destination_root, "--devcontainer", "--skip-action-cable", "--skip-active-job" ]
 
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
@@ -1343,7 +1278,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_postgresql
-    run_generator [ destination_root, "-d", "postgresql" ]
+    run_generator [ destination_root, "--devcontainer", "-d", "postgresql" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
@@ -1373,7 +1308,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_mysql
-    run_generator [ destination_root, "-d", "mysql" ]
+    run_generator [ destination_root, "--devcontainer", "-d", "mysql" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
@@ -1403,7 +1338,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_mariadb
-    run_generator [ destination_root, "-d", "trilogy" ]
+    run_generator [ destination_root, "--devcontainer", "-d", "trilogy" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"
@@ -1430,7 +1365,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_no_selenium_when_skipping_system_test
-    run_generator [ destination_root, "--skip-system-test" ]
+    run_generator [ destination_root, "--devcontainer", "--skip-system-test" ]
 
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "selenium"
@@ -1442,7 +1377,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_no_feature_when_skipping_active_storage
-    run_generator [ destination_root, "--skip-active-storage" ]
+    run_generator [ destination_root, "--devcontainer", "--skip-active-storage" ]
 
     assert_devcontainer_json_file do |content|
       assert_nil content["features"]["ghcr.io/rails/devcontainer/features/activestorage"]
@@ -1450,7 +1385,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_no_depends_on_when_no_dependencies
-    run_generator [ destination_root, "--minimal" ]
+    run_generator [ destination_root, "--devcontainer", "--minimal" ]
 
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"].keys, "depends_on"
@@ -1458,7 +1393,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_adds_node_tooling_when_required
-    run_generator [destination_root, "--javascript=esbuild"]
+    run_generator [destination_root, "--devcontainer", "--javascript=esbuild"]
 
     assert_devcontainer_json_file do |devcontainer_config|
       assert_includes devcontainer_config["features"].keys, "ghcr.io/devcontainers/features/node:1"
@@ -1466,7 +1401,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_does_not_add_node_tooling_when_not_required
-    run_generator [destination_root]
+    run_generator [destination_root, "--devcontainer"]
 
     assert_devcontainer_json_file do |devcontainer_config|
       assert_not_includes devcontainer_config["features"].keys, "ghcr.io/devcontainers/features/node:1"
@@ -1474,7 +1409,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_devcontainer_dev_flag_mounts_local_rails_repo
-    run_generator_using_prerelease [ destination_root, "--dev" ]
+    run_generator_using_prerelease [ destination_root, "--devcontainer", "--dev" ]
 
     assert_devcontainer_json_file do |devcontainer_config|
       rails_mount = devcontainer_config["mounts"].sole
@@ -1485,8 +1420,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_skip_devcontainer
-    run_generator [ destination_root, "--skip-devcontainer" ]
+  def test_no_devcontainer_by_default
+    run_generator [ destination_root ]
 
     assert_no_file(".devcontainer/devcontainer.json")
     assert_no_file(".devcontainer/Dockerfile")
@@ -1494,6 +1429,36 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
+    def assert_load_defaults
+      assert_file "config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
+    end
+
+    def assert_gem_for_active_storage
+      assert_file "Gemfile", /^# gem "image_processing"/
+    end
+
+    def assert_frameworks_are_not_required_when_active_storage_is_skipped
+      super
+      assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
+      assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_text\/engine["']/
+    end
+
+    def assert_dockerfile_when_active_storage_is_skipped
+      assert_file "Dockerfile" do |content|
+        assert_no_match(/libvips/, content)
+      end
+    end
+
+    def assert_gems_when_active_storage_is_skipped
+      assert_no_gem "image_processing"
+    end
+
+    def assert_gitattributes_does_not_have_schema_file
+      assert_file ".gitattributes" do |content|
+        assert_no_match(/schema.rb/, content)
+      end
+    end
+
     def assert_node_files
       assert_file ".node-version" do |content|
         assert_match %r/\d+\.\d+\.\d+/, content
@@ -1511,20 +1476,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_file "Dockerfile" do |content|
         assert_no_match "yarn", content
         assert_no_match "node-gyp", content
-      end
-    end
-
-    def run_generator_and_bundler(args)
-      option_args, positional_args = args.partition { |arg| arg.start_with?("--") }
-      option_args << "--no-skip-bundle"
-      generator(positional_args, option_args)
-
-      # Stub `rails_gemfile_entry` so that Bundler resolves `gem "rails"` to the
-      # current repository instead of searching for an invalid version number
-      # (for a version that hasn't been released yet).
-      rails_gemfile_entry = Rails::Generators::AppBase::GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
-      generator.stub(:rails_gemfile_entry, -> { rails_gemfile_entry }) do
-        quietly { run_generator_instance }
       end
     end
 

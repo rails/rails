@@ -972,6 +972,20 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:PostgreSQLAdapter) && supports_identity_columns?
+    test "partial insert off with changed composite identity primary key attribute" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "cpk_postgresql_identity_table"
+      end
+
+      with_partial_writes(klass, false) do
+        record = klass.create!(another_id: 10)
+        assert_equal 10, record.another_id
+        assert_not_nil record.id
+      end
+    end
+  end
+
   test "attribute_changed? properly type casts enum values" do
     parrot = LiveParrot.create!(name: "Scipio", breed: :african)
 

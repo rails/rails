@@ -19,7 +19,14 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
-  def test_after_all_transactions_committ
+  def test_blank?
+    assert_predicate Topic.current_transaction, :blank?
+    Topic.transaction do
+      assert_not_predicate Topic.current_transaction, :blank?
+    end
+  end
+
+  def test_after_all_transactions_commit
     called = 0
     ActiveRecord.after_all_transactions_commit { called += 1 }
     assert_equal 1, called
@@ -1649,6 +1656,29 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
     assert_not_predicate @first.reload, :approved?
   end
 end if Topic.lease_connection.supports_savepoints?
+
+class TransactionUUIDTest < ActiveRecord::TestCase
+  def test_the_uuid_is_lazily_computed
+    Topic.transaction do
+      transaction = Topic.connection.current_transaction
+      assert_nil transaction.instance_variable_get(:@uuid)
+    end
+  end
+
+  def test_the_uuid_for_regular_transactions_is_generated_and_memoized
+    Topic.transaction do
+      transaction = Topic.connection.current_transaction
+      uuid = transaction.uuid
+      assert_match(/\A[[:xdigit:]]{8}-(?:[[:xdigit:]]{4}-){3}[[:xdigit:]]{12}\z/, uuid)
+      assert_equal uuid, transaction.uuid
+    end
+  end
+
+  def test_the_uuid_for_null_transactions_is_the_nil_uuid
+    null_transaction = ActiveRecord::ConnectionAdapters::TransactionManager::NULL_TRANSACTION
+    assert_equal Digest::UUID.nil_uuid, null_transaction.uuid
+  end
+end
 
 class ConcurrentTransactionTest < ActiveRecord::TestCase
   if ActiveRecord::Base.lease_connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)

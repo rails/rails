@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/digest"
+
 module ActiveRecord
   module ConnectionAdapters
     # = Active Record Connection Adapters Transaction State
@@ -107,6 +109,7 @@ module ActiveRecord
       def initialize; end
       def state; end
       def closed?; true; end
+      alias_method :blank?, :closed?
       def open?; false; end
       def joinable?; false; end
       def add_record(record, _ = true); end
@@ -119,6 +122,7 @@ module ActiveRecord
       def before_commit; yield; end
       def after_commit; yield; end
       def after_rollback; end # noop
+      def uuid; Digest::UUID.nil_uuid; end
     end
 
     class Transaction < ActiveRecord::Transaction # :nodoc:
@@ -138,7 +142,7 @@ module ActiveRecord
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
         @dirty = false
-        @instrumenter = TransactionInstrumenter.new(connection: connection)
+        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: self)
       end
 
       def dirty!
@@ -269,8 +273,6 @@ module ActiveRecord
 
       def full_rollback?; true; end
       def joinable?; @joinable; end
-      def closed?; false; end
-      def open?; !closed?; end
 
       private
         def unique_records

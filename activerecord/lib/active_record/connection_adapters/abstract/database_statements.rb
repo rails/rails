@@ -358,7 +358,7 @@ module ActiveRecord
           end
           yield current_transaction
         else
-          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)
+          within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed

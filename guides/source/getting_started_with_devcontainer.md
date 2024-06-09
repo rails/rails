@@ -77,7 +77,7 @@ To use `rails-new` to generate your app, open a terminal, navigate to a director
 rights to create files, and run:
 
 ```bash
-$ rails-new blog
+$ rails-new blog --devcontainer
 ```
 
 This will create a Rails application called Blog in a `blog` directory.

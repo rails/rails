@@ -3,15 +3,14 @@
 module Rails
   module Rack
     class LoadRoutes
-      def initialize(app, routes_reloader)
+      def initialize(app)
         @app = app
         @called = false
-        @routes_reloader = routes_reloader
       end
 
       def call(env)
         @called ||= begin
-          @routes_reloader.execute_unless_loaded
+          Rails.application.reload_routes_unless_loaded
           true
         end
         @app.call(env)

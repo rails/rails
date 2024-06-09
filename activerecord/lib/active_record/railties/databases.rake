@@ -89,7 +89,7 @@ db_namespace = namespace :db do
   task migrate: :load_config do
     db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
 
-    if db_configs.size == 1
+    if db_configs.size == 1 && db_configs.first.primary?
       ActiveRecord::Tasks::DatabaseTasks.migrate
     else
       mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions

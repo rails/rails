@@ -7,7 +7,7 @@ require "active_record/relation/merger"
 module ActiveRecord
   module SpawnMethods
     def spawn # :nodoc:
-      already_in_scope?(klass.scope_registry) ? klass.all : clone
+      already_in_scope?(model.scope_registry) ? model.all : clone
     end
 
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.

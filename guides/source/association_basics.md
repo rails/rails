@@ -950,7 +950,7 @@ recognize the bi-directional association. This can cause your application to:
     ```irb
     irb> author = Author.first
     irb> author.books.any? do |book|
-    irb>   book.author.equal?(author) # This executes an author query for every book
+    irb>   book.writer.equal?(author) # This executes an author query for every book
     irb> end
     => false
     ```
@@ -960,10 +960,10 @@ recognize the bi-directional association. This can cause your application to:
     ```irb
     irb> author = Author.first
     irb> book = author.books.first
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => true
     irb> author.name = "Changed Name"
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => false
     ```
 
@@ -2827,6 +2827,12 @@ class Supplier < ApplicationRecord
 end
 ```
 
+Extensions can refer to the internals of the association proxy using these three attributes of the `proxy_association` accessor:
+
+* `proxy_association.owner` returns the object that the association is a part of.
+* `proxy_association.reflection` returns the reflection object that describes the association.
+* `proxy_association.target` returns the associated object for `belongs_to` or `has_one`, or the collection of associated objects for `has_many` or `has_and_belongs_to_many`.
+
 ### Association Scoping using the Association Owner
 
 The owner of the association can be passed as a single argument to the scope
@@ -2969,7 +2975,7 @@ Delegated types solves this problem, via `delegated_type`.
 
 In order to use delegated types, we have to model our data in a particular way. The requirements are as follows:
 
-* There is a superclass that stores shared attributes among all subclasses in it's table.
+* There is a superclass that stores shared attributes among all subclasses in its table.
 * Each subclass must inherit from the super class, and will have a separate table for any additional attributes specific to it.
 
 This eliminates the need to define attributes in a single table that are unintentionally shared among all subclasses.

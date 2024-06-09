@@ -10,6 +10,8 @@ task default: :test
 
 task :package
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 # Run the unit tests
 
 desc "Run all unit tests"
