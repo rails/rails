@@ -588,20 +588,21 @@ class FixturesTest < ActiveRecord::TestCase
   def test_fixtures_are_set_up_with_database_env_variable
     db_url_tmp = ENV["DATABASE_URL"]
     ENV["DATABASE_URL"] = "sqlite3::memory:"
-    ActiveRecord::Base.stub(:configurations, {}) do
-      test_case = Class.new(ActiveRecord::TestCase) do
-        fixtures :accounts
 
-        def test_fixtures
-          assert accounts(:signals37)
-        end
+    prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {}
+    test_case = Class.new(ActiveRecord::TestCase) do
+      fixtures :accounts
+
+      def test_fixtures
+        assert accounts(:signals37)
       end
-
-      result = test_case.new(:test_fixtures).run
-
-      assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
     end
+
+    result = test_case.new(:test_fixtures).run
+
+    assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
   ensure
+    ActiveRecord::Base.configurations = prev_configs
     ENV["DATABASE_URL"] = db_url_tmp
   end
 end
