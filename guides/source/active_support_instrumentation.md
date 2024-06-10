@@ -410,9 +410,56 @@ This event is only emitted when [`config.active_record.action_on_strict_loading_
 }
 ```
 
+#### `start_transaction.active_record`
+
+This event is emitted when a transaction has been started.
+
+| Key                  | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| `:transaction`       | Transaction object                                   |
+| `:connection`        | Connection object                                    |
+
+Please, note that Active Record does not create the actual database transaction
+until needed:
+
+```ruby
+ActiveRecord::Base.transaction do
+  # We are inside the block, but no event has been triggered yet.
+
+  # The following line makes Active Record start the transaction.
+  User.count # Event fired here.
+end
+```
+
+Remember that ordinary nested calls do not create new transactions:
+
+```ruby
+ActiveRecord::Base.transaction do |t1|
+  User.count # Fires an event for t1.
+  ActiveRecord::Base.transaction do |t2|
+    # The next line fires no event for t2, because the only
+    # real database transaction in this example is t1.
+    User.first.touch
+  end
+end
+```
+
+However, if `requires_new: true` is passed, you get an event for the nested
+transaction too. This might be a savepoint under the hood:
+
+```ruby
+ActiveRecord::Base.transaction do |t1|
+  User.count # Fires an event for t1.
+  ActiveRecord::Base.transaction(requires_new: true) do |t2|
+    User.first.touch # Fires an event for t2.
+  end
+end
+```
+
 #### `transaction.active_record`
 
-This event is emmited for every transaction to the database.
+This event is emitted when a database transaction finishes. The state of the
+transaction can be found in the `:outcome` key.
 
 | Key                  | Value                                                |
 | -------------------- | ---------------------------------------------------- |
@@ -420,10 +467,9 @@ This event is emmited for every transaction to the database.
 | `:outcome`           | `:commit`, `:rollback`, `:restart`, or `:incomplete` |
 | `:connection`        | Connection object                                    |
 
-Please note that at this point the transaction has been finished, and its state
-is in the `:outcome` key. In practice, you cannot do much with the transaction
-object, but it may still be helpful for tracing database activity. For example,
-by tracking `transaction.uuid`.
+In practice, you cannot do much with the transaction object, but it may still be
+helpful for tracing database activity. For example, by tracking
+`transaction.uuid`.
 
 ### Action Mailer
 

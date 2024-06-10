@@ -91,7 +91,9 @@ module ActiveRecord
         raise InstrumentationAlreadyStartedError.new("Called start on an already started transaction") if @started
         @started = true
 
-        @payload = @base_payload.dup
+        ActiveSupport::Notifications.instrument("start_transaction.active_record", @base_payload)
+
+        @payload = @base_payload.dup # We dup because the payload for a given event is mutated later to add the outcome.
         @handle = ActiveSupport::Notifications.instrumenter.build_handle("transaction.active_record", @payload)
         @handle.start
       end
