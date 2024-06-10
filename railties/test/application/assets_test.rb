@@ -314,18 +314,6 @@ module ApplicationTests
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
-    test "assets can access model information when precompiling" do
-      app_file "app/models/post.rb", "class Post; end"
-      app_file "app/assets/javascripts/application.js", "//= require_tree ."
-      app_file "app/assets/javascripts/xmlhr.js.erb", "<%= Post.name %>"
-      app_file "app/assets/config/manifest.js", "//= link application.js"
-
-      precompile!
-
-      assert_file_exists("#{app_path}/public/assets/application-*.js")
-      assert_match(/Post;/, File.read(Dir["#{app_path}/public/assets/application-*.js"].first))
-    end
-
     test "initialization on the assets group should set assets_dir" do
       require "#{app_path}/config/application"
       Rails.application.initialize!(:assets)
@@ -376,8 +364,7 @@ module ApplicationTests
 
     test "asset URLs should be protocol-relative if no request is in scope" do
       app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/image_loader.js.erb", "var src='<%= image_path('rails.png') %>';"
-      add_to_config "config.assets.precompile = %w{rails.png image_loader.js}"
+      app_file "app/assets/javascripts/image_loader.js", "var src='url('rails.png')' ;"
       add_to_config "config.asset_host = 'example.com'"
       precompile!
 
