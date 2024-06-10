@@ -51,7 +51,7 @@ module ApplicationTests
 
     test "assets routes have higher priority" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
-      app_file "app/assets/javascripts/demo.js", "a = url('rails.png') ;"
+      app_file "app/assets/javascripts/demo.js.erb", "a = <%= image_path('rails.png').inspect %>;"
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -157,17 +157,8 @@ module ApplicationTests
       assert_no_file_exists("#{app_path}/public/assets/something.else-*.css")
     end
 
-    test "precompile something.js for directory containing index file" do
-      add_to_config "config.assets.precompile = [ 'something.js' ]"
-      app_file "app/assets/javascripts/something/index.js.erb", "alert();"
-
-      precompile!
-
-      assert_file_exists("#{app_path}/public/assets/something-*.js")
-    end
-
     test "precompile use assets defined in app env config" do
-      add_to_env_config "production", 'config.assets.precompile = [ "something.js" ]'
+      add_to_env_config "production", 'config.assets.paths = [ "app/assets/javascripts" ]'
       app_file "app/assets/javascripts/something.js", "alert();"
 
       precompile! RAILS_ENV: "production"
@@ -268,7 +259,7 @@ module ApplicationTests
       assert_not defined?(Uglifier)
     end
 
-    test "precompile properly refers files referenced with asset_path" do
+    test "precompile properly refers files referenced with url" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
       remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css", "p { background-image: url('rails.png') }"
@@ -299,7 +290,7 @@ module ApplicationTests
       assert_not_equal asset_path, assets["application.css"]
     end
 
-    test "precompile appends the MD5 hash to files referenced with asset_path and run in production with digest true" do
+    test "precompile appends the MD5 hash to files referenced with url and run in production with digest true" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
       remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css", "p { background-image: url('rails.png') }"
@@ -359,8 +350,6 @@ module ApplicationTests
           get '/omg', :to => "omg#index"
         end
       RUBY
-
-      add_to_env_config "development", "config.assets.digest = false"
 
       # Load app env
       app "development"
@@ -463,8 +452,6 @@ module ApplicationTests
     test "asset URLs should use the request's protocol by default" do
       app_with_assets_in_view
       add_to_config "config.asset_host = 'example.com'"
-      add_to_env_config "development", "config.assets.digest = false"
-
       # Load app env
       app "development"
 
@@ -481,8 +468,6 @@ module ApplicationTests
       app_file "app/assets/javascripts/image_loader.js.erb", "var src='<%= image_path('rails.png') %>';"
       add_to_config "config.assets.precompile = %w{rails.png image_loader.js}"
       add_to_config "config.asset_host = 'example.com'"
-      add_to_env_config "development", "config.assets.digest = false"
-
       precompile!
 
       assert_match "src='//example.com/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/image_loader-*.js"].first)
@@ -491,7 +476,7 @@ module ApplicationTests
     test "asset paths should use RAILS_RELATIVE_URL_ROOT by default" do
       ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
       app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/app.js", "var src='url('rails.png')';"
+      app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
       add_to_config "config.assets.precompile = %w{rails.png app.js}"
       add_to_env_config "development", "config.assets.digest = false"
 
@@ -504,7 +489,7 @@ module ApplicationTests
       def app_with_assets_in_view
         app_file "app/assets/javascripts/application.js", "//= require_tree ."
         app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
-        app_file "app/views/posts/index.html", "<%= javascript_include_tag 'application' %>"
+        app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
         app_file "app/assets/config/manifest.js", <<~JS
           //= link_tree ../images
           //= link_directory ../stylesheets .css
