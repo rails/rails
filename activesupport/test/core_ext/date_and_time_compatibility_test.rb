@@ -280,8 +280,8 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
       ActiveSupport.to_time_preserves_timezone
     end
 
-    assert_not_deprecated(ActiveSupport.deprecator) do
-      ActiveSupport.to_time_preserves_timezone = true
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport.to_time_preserves_timezone = :offset
     end
 
     assert_deprecated(ActiveSupport.deprecator) do
@@ -300,6 +300,38 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
 
     assert_not_deprecated(ActiveSupport.deprecator) do
       ActiveSupport.to_time_preserves_timezone
+    end
+  ensure
+    ActiveSupport.deprecator.silence do
+      ActiveSupport.to_time_preserves_timezone = current_preserve_tz
+    end
+  end
+
+  def test_to_time_preserves_timezone_supports_new_values
+    current_preserve_tz = ActiveSupport.to_time_preserves_timezone
+
+    assert_not_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport.to_time_preserves_timezone
+    end
+
+    assert_not_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport.to_time_preserves_timezone = :zone
+    end
+
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport.to_time_preserves_timezone = :offset
+    end
+
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport.to_time_preserves_timezone = true
+    end
+
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport.to_time_preserves_timezone = "offset"
+    end
+
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport.to_time_preserves_timezone = :foo
     end
   ensure
     ActiveSupport.deprecator.silence do

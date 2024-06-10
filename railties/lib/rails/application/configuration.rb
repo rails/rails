@@ -114,7 +114,9 @@ module Rails
             action_controller.forgery_protection_origin_check = true
           end
 
-          ActiveSupport.to_time_preserves_timezone = true
+          if respond_to?(:active_support)
+            active_support.to_time_preserves_timezone = :offset
+          end
 
           if respond_to?(:active_record)
             active_record.belongs_to_required_by_default = true
@@ -337,6 +339,10 @@ module Rails
           end
         when "8.0"
           load_defaults "7.2"
+
+          if respond_to?(:active_support)
+            active_support.to_time_preserves_timezone = :zone
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
