@@ -622,6 +622,7 @@ The following methods trigger callbacks:
 * `toggle!`
 * `touch`
 * `update_attribute`
+* `update_attribute!`
 * `update`
 * `update!`
 * `valid?`
