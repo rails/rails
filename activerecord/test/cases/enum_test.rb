@@ -1138,4 +1138,19 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { instance.proposed? }
     assert_raises(NoMethodError) { instance.proposed! }
   end
+
+  test "without partial inserts and enum with database default not in the definition" do
+    old_inserts = ActiveRecord::Base.partial_inserts?
+    ActiveRecord::Base.partial_inserts = false
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, { proposed: 1, written: 2 }
+    end
+
+    instance = klass.create!
+    assert_equal 0, instance.reload.status
+  ensure
+    ActiveRecord::Base.partial_inserts = old_inserts
+  end
 end

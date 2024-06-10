@@ -188,7 +188,7 @@ module ActiveRecord
       end
 
       def deserialize(value)
-        mapping.key(subtype.deserialize(value))
+        mapping.key(subtype.deserialize(value)) || value
       end
 
       def serialize(value)
