@@ -1,3 +1,12 @@
+*   Define the new Active Support notification event `start_transaction.active_record`.
+
+    This event is fired when database transactions or savepoints start, and
+    complements `transaction.active_record`, which is emitted when they finish.
+
+    The payload has the transaction (`:transaction`) and the connection (`:connection`).
+
+    *Xavier Noria*
+
 *   Fix an issue where the IDs reader method did not return expected results
     for preloaded associations in models using composite primary keys.
 
