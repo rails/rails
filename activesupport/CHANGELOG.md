@@ -1,3 +1,7 @@
+*   `ActiveSupport::TimeWithZone#inspect` now uses ISO 8601 style time like `Time#inspect`
+
+    *John Hawthorn*
+
 *   `ActiveSupport::ErrorReporter#report` now assigns a backtrace to unraised exceptions.
 
     Previously reporting an un-raised exception would result in an error report without
