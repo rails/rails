@@ -128,7 +128,7 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "cable.yml" unless options[:update] || options[:skip_action_cable]
-        template "puma.rb"   unless options[:update]
+        template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
 
         directory "environments"
