@@ -919,7 +919,7 @@ module ApplicationTests
     end
 
 
-    test "secret_key_base is copied from config.secret_key_base when set" do
+    test "app.secret_key_base uses config.secret_key_base in development" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
       RUBY
@@ -928,12 +928,13 @@ module ApplicationTests
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
-    test "config.secret_key_base over-writes a blank app.secret_key_base" do
+    test "app.secret_key_base uses config.secret_key_base in production" do
+      remove_file "config/credentials.yml.enc"
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.config.secret_key_base = "iaminallyoursecretkeybase"
       RUBY
 
-      app "development"
+      app "production"
 
       assert_equal "iaminallyoursecretkeybase", app.secret_key_base
     end

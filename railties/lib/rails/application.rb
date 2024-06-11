@@ -462,13 +462,7 @@ module Rails
     # then +credentials.secret_key_base+. For most applications, the correct place to store it is in the
     # encrypted credentials file.
     def secret_key_base
-      if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
-        config.secret_key_base ||= generate_local_secret
-      else
-        validate_secret_key_base(
-          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base
-        )
-      end
+      config.secret_key_base
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
@@ -621,39 +615,12 @@ module Rails
       default_stack.build_stack
     end
 
-    def validate_secret_key_base(secret_key_base)
-      if secret_key_base.is_a?(String) && secret_key_base.present?
-        secret_key_base
-      elsif secret_key_base
-        raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
-      else
-        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
-      end
-    end
-
     def ensure_generator_templates_added
       configured_paths = config.generators.templates
       configured_paths.unshift(*(paths["lib/templates"].existent - configured_paths))
     end
 
     private
-      def generate_local_secret
-        if config.secret_key_base.nil?
-          key_file = Rails.root.join("tmp/local_secret.txt")
-
-          if File.exist?(key_file)
-            config.secret_key_base = File.binread(key_file)
-          else
-            random_key = SecureRandom.hex(64)
-            FileUtils.mkdir_p(key_file.dirname)
-            File.binwrite(key_file, random_key)
-            config.secret_key_base = File.binread(key_file)
-          end
-        end
-
-        config.secret_key_base
-      end
-
       def build_request(env)
         req = super
         env["ORIGINAL_FULLPATH"] = req.fullpath
