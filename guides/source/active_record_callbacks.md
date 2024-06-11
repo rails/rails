@@ -1035,7 +1035,7 @@ book.update(author_id: 1)
 Cascading Association Callbacks
 -------------------------------
 
-Callbacks can be performed when asssociated objects are changed. They work
+Callbacks can be performed when associated objects are changed. They work
 through the model associations whereby life cycle events can cascade on
 associations and fire callbacks.
 
