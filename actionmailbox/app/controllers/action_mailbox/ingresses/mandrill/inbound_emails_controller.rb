@@ -11,7 +11,7 @@ module ActionMailbox
   # - <tt>204 No Content</tt> if an inbound email is successfully recorded and enqueued for routing to the appropriate mailbox
   # - <tt>401 Unauthorized</tt> if the request's signature could not be validated
   # - <tt>404 Not Found</tt> if Action Mailbox is not configured to accept inbound emails from Mandrill
-  # - <tt>422 Unprocessable Entity</tt> if the request is missing required parameters
+  # - <tt>422 Unprocessable Content</tt> if the request is missing required parameters
   # - <tt>500 Server Error</tt> if the Mandrill API key is missing, or one of the Active Record database,
   #   the Active Storage service, or the Active Job backend is misconfigured or unavailable
   class Ingresses::Mandrill::InboundEmailsController < ActionMailbox::BaseController
@@ -22,7 +22,7 @@ module ActionMailbox
       head :ok
     rescue JSON::ParserError => error
       logger.error error.message
-      head :unprocessable_entity
+      head :unprocessable_content
     end
 
     def health_check

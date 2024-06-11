@@ -793,7 +793,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 end
@@ -807,7 +807,7 @@ The `create` action instantiates a new article with values for the title and
 body, and attempts to save it. If the article is saved successfully, the action
 redirects the browser to the article's page at `"http://localhost:3000/articles/#{@article.id}"`.
 Else, the action redisplays the form by rendering `app/views/articles/new.html.erb`
-with status code [422 Unprocessable Entity](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422).
+with status code [422 Unprocessable Content](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422).
 The title and body here are dummy values. After we create the form, we will come
 back and change these.
 
@@ -919,7 +919,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -1010,7 +1010,7 @@ To understand how all of this works together, let's take another look at the
     if @article.save
       redirect_to @article
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 ```
@@ -1083,7 +1083,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -1097,7 +1097,7 @@ class ArticlesController < ApplicationController
     if @article.update(article_params)
       redirect_to @article
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -1233,7 +1233,7 @@ class ArticlesController < ApplicationController
     if @article.save
       redirect_to @article
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -1247,7 +1247,7 @@ class ArticlesController < ApplicationController
     if @article.update(article_params)
       redirect_to @article
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

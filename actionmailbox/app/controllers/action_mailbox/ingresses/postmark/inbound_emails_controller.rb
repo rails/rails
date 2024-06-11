@@ -14,7 +14,7 @@ module ActionMailbox
   # - <tt>204 No Content</tt> if an inbound email is successfully recorded and enqueued for routing to the appropriate mailbox
   # - <tt>401 Unauthorized</tt> if the request's signature could not be validated
   # - <tt>404 Not Found</tt> if Action Mailbox is not configured to accept inbound emails from Postmark
-  # - <tt>422 Unprocessable Entity</tt> if the request is missing the required +RawEmail+ parameter
+  # - <tt>422 Unprocessable Content</tt> if the request is missing the required +RawEmail+ parameter
   # - <tt>500 Server Error</tt> if the ingress password is not configured, or if one of the Active Record database,
   #   the Active Storage service, or the Active Job backend is misconfigured or unavailable
   #
@@ -57,7 +57,7 @@ module ActionMailbox
         When configuring your Postmark inbound webhook, be sure to check the box
         labeled "Include raw email content in JSON payload".
       MESSAGE
-      head :unprocessable_entity
+      head :unprocessable_content
     end
   end
 end

@@ -1,3 +1,8 @@
+*   Change mapping 422 response status from "unprocessable_entity" to "unprocessable_content".
+    Fixes the deprecation warning in the rack gem.
+
+    *Wojciech Wnętrzak*
+
 *   Add `:wasm_unsafe_eval` mapping for `content_security_policy`
 
     ```ruby

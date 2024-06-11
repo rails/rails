@@ -23,8 +23,8 @@ module ActiveRecord
     config.action_dispatch.rescue_responses.merge!(
       "ActiveRecord::RecordNotFound"   => :not_found,
       "ActiveRecord::StaleObjectError" => :conflict,
-      "ActiveRecord::RecordInvalid"    => :unprocessable_entity,
-      "ActiveRecord::RecordNotSaved"   => :unprocessable_entity
+      "ActiveRecord::RecordInvalid"    => :unprocessable_content,
+      "ActiveRecord::RecordNotSaved"   => :unprocessable_content
     )
 
     config.active_record.use_schema_cache_dump = true

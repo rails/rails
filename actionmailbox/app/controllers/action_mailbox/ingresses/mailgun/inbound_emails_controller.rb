@@ -15,7 +15,7 @@ module ActionMailbox
   # - <tt>204 No Content</tt> if an inbound email is successfully recorded and enqueued for routing to the appropriate mailbox
   # - <tt>401 Unauthorized</tt> if the request's signature could not be validated, or if its timestamp is more than 2 minutes old
   # - <tt>404 Not Found</tt> if Action Mailbox is not configured to accept inbound emails from Mailgun
-  # - <tt>422 Unprocessable Entity</tt> if the request is missing required parameters
+  # - <tt>422 Unprocessable Content</tt> if the request is missing required parameters
   # - <tt>500 Server Error</tt> if the Mailgun Signing key is missing, or one of the Active Record database,
   #   the Active Storage service, or the Active Job backend is misconfigured or unavailable
   #

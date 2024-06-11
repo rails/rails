@@ -212,7 +212,7 @@ def create
     if @post.save
       format.turbo_stream
     else
-      format.html { render :new, status: :unprocessable_entity }
+      format.html { render :new, status: :unprocessable_content }
     end
   end
 end
@@ -230,7 +230,7 @@ def create
     if @post.save
       format.turbo_stream { render turbo_stream: turbo_stream.prepend('posts', partial: 'post') }
     else
-      format.html { render :new, status: :unprocessable_entity }
+      format.html { render :new, status: :unprocessable_content }
     end
   end
 end

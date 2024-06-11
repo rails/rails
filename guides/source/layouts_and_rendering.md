@@ -134,7 +134,7 @@ def update
   if @book.update(book_params)
     redirect_to(@book)
   else
-    render :edit, status: :unprocessable_entity
+    render :edit, status: :unprocessable_content
   end
 end
 ```
@@ -403,7 +403,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 416              | :range_not_satisfiable           |
 |                     | 417              | :expectation_failed              |
 |                     | 421              | :misdirected_request             |
-|                     | 422              | :unprocessable_entity            |
+|                     | 422              | :unprocessable_content            |
 |                     | 423              | :locked                          |
 |                     | 424              | :failed_dependency               |
 |                     | 426              | :upgrade_required                |
