@@ -347,7 +347,7 @@ module ActionView
         end
     end
 
-    def _normalize_options(options) # :nodoc:
+    def _process_render_template_options(options) # :nodoc:
       super
 
       if _include_layout?(options)
