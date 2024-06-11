@@ -2,6 +2,17 @@
 
 require "abstract_unit"
 
+class Rack::MockResponse
+  class << self; attr_accessor :streaming_response; end
+
+  self.streaming_response = false
+
+  def buffered_body!
+    return if self.class.streaming_response && @headers["transfer-encoding"] == "chunked"
+    super
+  end
+end
+
 module RenderStreaming
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new(
@@ -44,6 +55,16 @@ module RenderStreaming
   end
 
   class StreamingTest < Rack::TestCase
+    def setup
+      super
+      Rack::MockResponse.streaming_response = true
+    end
+
+    def teardown
+      Rack::MockResponse.streaming_response = false
+      super
+    end
+
     def get(path, headers: { "SERVER_PROTOCOL" => "HTTP/1.1", "HTTP_VERSION" => "HTTP/1.1" })
       super
     end
