@@ -433,6 +433,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal 86_400.0,  twz2 - twz1
   end
 
+  def test_minus_with_time_with_zone_without_preserve_configured
+    with_preserve_timezone(nil) do
+      twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
+      twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"])
+
+      difference = assert_not_deprecated(ActiveSupport.deprecator) { twz2 - twz1 }
+      assert_equal 86_400.0, difference
+    end
+  end
+
   def test_minus_with_time_with_zone_precision
     twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0, Rational(1, 1000)), ActiveSupport::TimeZone["UTC"])
     twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"])
