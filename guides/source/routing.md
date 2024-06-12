@@ -194,7 +194,7 @@ resource :geocoder
 resolve('Geocoder') { [:geocoder] }
 ```
 
-NOTE: The call to `resolve` is necessary for converting instances of the `Geocoder` to routes through [record identification](form_helpers.html#relying-on-record-identification).
+NOTE: The call to `resolve` is necessary for converting instances of the `Geocoder` to singular routes through [record identification](form_helpers.html#relying-on-record-identification).
 
 Here are all of the routes created for a singular resource:
 
@@ -340,7 +340,7 @@ resources :publishers do
 end
 ```
 
-Deeply nested resources can become cumbersome to maintain and reason about. In the above example, the application would recognize paths such as:
+However, deeply nested resources can become cumbersome to maintain and reason about. In the above example, the application would recognize paths such as:
 
 ```
 /publishers/1/magazines/2/photos/3
@@ -351,7 +351,7 @@ The corresponding route helper would be `publisher_magazine_photo_url`, requirin
 #### Shallow Nesting
 
 One way to avoid deep nesting (as recommended above) is to generate the
-collection actions scoped under the parent, so as to get a sense of the
+collection actions scoped under the parent - so as to get a sense of the
 hierarchy, but to not nest the member actions. In other words, to only build
 routes with the minimal amount of information to uniquely identify the resource,
 like this:
@@ -553,11 +553,11 @@ For other actions, you need to insert the action name as the first element of th
 
 This allows you to treat instances of your models as URLs, and is a key advantage to using the resourceful style.
 
-NOTE: In order to automatically derive paths and URLs from objects such as `[@magazine, @ad]`, Rails uses methods from `ActiveModel::Naming` and `ActiveModel::Conversion` modules. Specifically the `@magazine.model_name.route_key` returns `magazines` and `@magazine.to_param` returns a string representation of the model's `id`. So the generated path may be something like `/magazines/1/ads/42` for the objects `[@magazine, @ad]`.
+NOTE: In order to automatically derive paths and URLs from objects such as `[@magazine, @ad]`, Rails uses methods from `ActiveModel::Naming` and `ActiveModel::Conversion` modules. Specifically, the `@magazine.model_name.route_key` returns `magazines` and `@magazine.to_param` returns a string representation of the model's `id`. So the generated path may be something like `/magazines/1/ads/42` for the objects `[@magazine, @ad]`.
 
 [ActionView::RoutingUrlFor#url_for]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
 
-### Adding More RESTful Actions
+### Adding More RESTful Routes
 
 You are not limited to the seven routes that RESTful routing creates by default. You can add additional routes that apply to the collection or individual members of the collection.
 
@@ -575,10 +575,10 @@ resources :photos do
 end
 ```
 
-This will recognize URL `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
+An incoming GET request to `/photos/1/preview` will route to the `preview` action of `PhotosController`. The resource id value will be available in `params[:id]` . It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the `member` block, each route definition specifies the HTTP verb (`get`
-in the above example with `get 'preview`). In addition to [`get`][], you can use
+in the above example with `get 'preview'`). In addition to [`get`][], you can use
 [`patch`][], [`put`][], [`post`][], or [`delete`][].
 
 If you don't have multiple `member` routes, you can also
@@ -782,7 +782,9 @@ get '/:id', to: 'articles#show', constraints: { id: /\d.+/ }
 get '/:username', to: 'users#show'
 ```
 
-The above routes would allow for `articles` with `id` values like `1-hello-world` that always begin with a number and `users` with `username` values like `david` that never begin with a number to share the root namespace.
+The above routes would allow sharing the root namespace and:
+- route paths that always begin with a number, like `/1-hello-world`, to `articles` with `id` value.
+- route paths that never begin with a number, like `/david`, to `users` with `username` value.
 
 ### Request-Based Constraints
 
@@ -808,7 +810,9 @@ end
 
 Will match something like `https://admin.yourdomain.com/photos`.
 
-NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then comparing the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected. However, using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
+Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then comparing the return value with the hash value. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected. However, using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
+
+NOTE: Therefore, constraint values should match the corresponding Request object method return type.
 
 NOTE: There is an exception for the `format` constraint, while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the `format` constraint is only applied when enforced through a hash. For example, `get 'foo', constraints: { format: 'json' }` will match `GET  /foo` because the format is optional by default. However, you can [use a lambda](#advanced-constraints) like in `get 'foo', constraints: lambda { |req| req.format == :json }` and the route will only match explicit JSON requests.
 
