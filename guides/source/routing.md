@@ -814,7 +814,9 @@ Request constraints work by calling a method on the [Request object](action_cont
 
 NOTE: Therefore, constraint values should match the corresponding Request object method return type.
 
-NOTE: There is an exception for the `format` constraint, while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the `format` constraint is only applied when enforced through a hash. For example, `get 'foo', constraints: { format: 'json' }` will match `GET  /foo` because the format is optional by default. However, you can [use a lambda](#advanced-constraints) like in `get 'foo', constraints: lambda { |req| req.format == :json }` and the route will only match explicit JSON requests.
+There is an exception for the `format` constraint, while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the `format` constraint is only applied when enforced through a hash. For example, `get 'foo', constraints: { format: 'json' }` will match `GET  /foo` because the format is optional by default.
+
+NOTE: Therefore, [use a lambda](#advanced-constraints) like in `get 'foo', constraints: lambda { |req| req.format == :json }` to only match the route to explicit JSON requests.
 
 [`constraints`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-constraints
 
@@ -959,7 +961,7 @@ In all of these cases, if you don't provide the host (`http://www.example.com`),
 
 ### Routing to Rack Applications
 
-Instead of a String like `'articles#index'`, which corresponds to the `index` method in the `ArticlesController` class, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
+Instead of specifying `:to` as a String like `'articles#index'`, which corresponds to the `index` method in the `ArticlesController` class, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
 
 ```ruby
 match '/application.js', to: MyRackApp, via: :all
@@ -1102,7 +1104,7 @@ For namespaced controllers you can use the directory notation. For example:
 resources :user_permissions, controller: 'admin/user_permissions'
 ```
 
-This will route to the `Admin::UserPermissions` controller.
+This will route to the `Admin::UserPermissionsController` instance.
 
 NOTE: Only the directory notation is supported. Specifying the controller with
 Ruby constant notation (e.g. `controller: 'Admin::UserPermissions'`) is not supported.
@@ -1320,7 +1322,7 @@ video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
 
-Breaking Up Large a Route File With `draw`
+Breaking Up a Large Route File With `draw`
 -----------------------------------------
 
 In a large application with thousands of routes, a single `config/routes.rb` file can become cumbersome and hard to read. Rails offers a way to break up a single `routes.rb` file into multiple small ones using the [`draw`][] macro.
@@ -1437,7 +1439,7 @@ $ bin/rails routes -g POST
 $ bin/rails routes -g admin
 ```
 
-If you only want to see the routes that map to a specific controller, there's the `-c` option.
+If you only want to see the routes that map to a specific controller, there's the controller option: `-c`.
 
 ```bash
 $ bin/rails routes -c users
