@@ -158,6 +158,18 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     ActionText::ContentHelper.allowed_attributes = old_attrs
   end
 
+  test "sanitizes attachment markup for Trix" do
+    html = '<action-text-attachment content="<img src=\&quot;.\&quot; onerror=alert>"></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;content&quot;:&quot;<img src=\\&quot;\\\\%22.\\\\%22\\&quot;>&quot;}"></figure>'
+    assert_equal trix_html, content_from_html(html).to_trix_html.strip
+  end
+
+  test "does not add missing content attribute" do
+    html = '<action-text-attachment sgid="123"></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
+    assert_equal trix_html, content_from_html(html).to_trix_html.strip
+  end
+
   test "renders with layout when in a new thread" do
     html = "<h1>Hello world</h1>"
     rendered = nil

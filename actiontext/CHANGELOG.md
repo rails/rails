@@ -1,3 +1,8 @@
+*   Only sanitize `content` attribute when present in attachments.
+
+    *Petrik de Heus*
+
+
 ## Rails 7.1.3.4 (June 04, 2024) ##
 
 *   Sanitize ActionText HTML ContentAttachment in Trix edit view
