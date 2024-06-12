@@ -1006,17 +1006,17 @@ You typically put the `root` route at the top of the file so that it can be matc
 
 NOTE: The `root` route only routes `GET` requests to the action.
 
-You can also use root inside namespaces and scopes as well. For example:
+You can also use root inside namespaces and scopes as well:
 
 ```ruby
+root to: "home#index"
+
 namespace :admin do
   root to: "admin#index"
 end
-
-root to: "home#index"
 ```
 
-Will match `/admin` to the `index` action for the `AdminController` and match `/` to `index` action of the `HomeController`.
+The above will match `/admin` to the `index` action for the `AdminController` and match `/` to `index` action of the `HomeController`.
 
 [`root`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-root
 
