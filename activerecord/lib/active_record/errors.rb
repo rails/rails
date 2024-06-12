@@ -593,3 +593,5 @@ module ActiveRecord
   class DatabaseVersionError < ActiveRecordError
   end
 end
+
+require "active_record/associations/errors"
