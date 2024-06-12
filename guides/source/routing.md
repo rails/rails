@@ -18,16 +18,17 @@ After reading this guide, you will know:
 The Purpose of the Rails Router
 -------------------------------
 
-Rails routing is a very powerful and flexible feature. The Rails router
-dispatches incoming HTTP requests to specific controller actions in your Rails
-application based on the URL path. (It can also dispatch to a
+The Rails router
+matches incoming HTTP requests to specific controller actions in your Rails
+application based on the URL path. (It can also forward to a
 [Rack](rails_on_rack.html) application.) It also generates path and URL helpers
 that can be used in your application (instead of hard-coding strings) based on
 the resources configured in the router.
 
 ### Routing Incoming URLs to Code
 
-When your Rails application receives an incoming request for:
+When your Rails application receives an incoming request, it asks the router to match it to a controller action.
+For example, take the following incoming request:
 
 ```
 GET /users/17
@@ -47,11 +48,11 @@ Passing a `String` to `to:` will expect a `controller#action` format. When using
 get '/users/:id', action: :show, controller: 'users'
 ```
 
-NOTE: Rails uses snake_case for controller names, if you have a multiple word controller like `UserProfilesController`, you'd use `user_profiles#show` when specifying the route.
+NOTE: Rails uses snake_case for controller names when specifying routes. For example, if you have a controller named UserProfilesController, you would specify a route to the show action as user_profiles#show. 
 
 ### Generating Paths and URLs from Code
 
-The Router automatically generates paths and URLs that can be used throughout your application. Such as `user_path` and `user_url` in the below example.
+The Router automatically generates paths and URLs that can be used throughout your application, such as `user_path` and `user_url` in the example below.
 
 If the route above is modified to be:
 
@@ -73,11 +74,11 @@ and this in the corresponding view:
 
 then the router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views.
 
-There is also `user_url` which has a similar purpose. While `user_path` generates a relative url, `user_url` generates an absolute url (something like `https://yourdomain.com/users/17` in the above example).
+It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url, `user_url` generates an absolute url (something like `https://yourdomain.com/users/17` in the above example).
 
 ### Configuring the Rails Router
 
-Here is an example of what routes look like in a typical Rails application, which live in `config/routes.rb`. The sections that follow will explain the different route helpers used in this file:
+Routes live in `config/routes.rb`. Here is an example of what routes look like in a typical Rails application. The sections that follow will explain the different route helpers used in this file:
 
 ```ruby
 Rails.application.routes.draw do
@@ -91,7 +92,7 @@ Rails.application.routes.draw do
 end
 ```
 
-Since this is a regular Ruby source file you can use all of its features to help you define your routes. (Be careful with variable names as they can clash with the DSL methods of the router.)
+Since this is a regular Ruby source file you can use all of Ruby's features to help you define your routes. (Be careful with variable names as they can clash with the DSL methods of the router.)
 
 NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL and must not be deleted.
 
@@ -104,7 +105,7 @@ Resource routing allows you to quickly declare all of the common routes for a gi
 
 ### Resources on the Web
 
-Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as `GET`, `POST`, `PATCH`, `PUT`, and `DELETE`. Each method is a request to perform an operation on the resource. A resource route maps related requests to methods (aka actions) in a single controller.
+Browsers request pages from Rails by making a request for a URL using a specific HTTP verb, such as `GET`, `POST`, `PATCH`, `PUT`, and `DELETE`. Each HTTP verb is a request to perform an operation on the resource. A resource route maps related requests to methods (aka actions) in a single controller.
 
 When your Rails application receives an incoming request for:
 
