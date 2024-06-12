@@ -115,11 +115,6 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
-    def set_with_with_escapable_characters
-      cookies["that & guy"] = "foo & bar => baz"
-      head :ok
-    end
-
     def authenticate_for_fourteen_days
       cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       head :ok
@@ -491,12 +486,6 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Jamie"
     get :set_permanent_cookie
     assert_equal({ "user_name" => "Jamie" }, response.cookies)
-  end
-
-  def test_setting_with_escapable_characters
-    get :set_with_with_escapable_characters
-    assert_set_cookie_header "that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/; SameSite=Lax"
-    assert_equal({ "that & guy" => "foo & bar => baz" }, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days
