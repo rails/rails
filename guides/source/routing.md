@@ -1417,17 +1417,13 @@ Controller#Action | users#edit
 You can access route helpers using `Rails.application.routes.url_helpers` within the [Rails Console](command_line.html#bin-rails-console). For example:
 
 ```irb
-irb> helpers = Rails.application.routes.url_helpers
-=> #<Module:0x00007fc1dfc97f68>
-
-irb> helpers.users_path
+irb> app.users_path
 => "/users"
 
 irb> user = User.first
 => #<User:0x00007fc1eab81628
-irb> helpers.edit_user_path(user)
+irb> app.edit_user_path(user)
 => "/users/1/edit"
-```
 
 ### Searching Routes
 
