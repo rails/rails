@@ -198,7 +198,7 @@ module Enumerable
     if filter
       group_by(&key).values_at(*series).flatten(1).compact
     else
-      group_by(&key).values.flatten(1).sort_by { |v| series.index(v.public_send(key)) || series.size }.compact
+      sort_by { |v| series.index(v.public_send(key)) || series.size }.compact
     end
   end
 
