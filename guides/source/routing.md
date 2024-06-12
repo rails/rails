@@ -48,7 +48,7 @@ Passing a `String` to `to:` will expect a `controller#action` format. When using
 get '/users/:id', action: :show, controller: 'users'
 ```
 
-NOTE: Rails uses snake_case for controller names when specifying routes. For example, if you have a controller named UserProfilesController, you would specify a route to the show action as user_profiles#show. 
+NOTE: Rails uses snake_case for controller names when specifying routes. For example, if you have a controller named UserProfilesController, you would specify a route to the show action as user_profiles#show.
 
 ### Generating Paths and URLs from Code
 
@@ -783,6 +783,7 @@ get '/:username', to: 'users#show'
 ```
 
 The above routes would allow sharing the root namespace and:
+
 - route paths that always begin with a number, like `/1-hello-world`, to `articles` with `id` value.
 - route paths that never begin with a number, like `/david`, to `users` with `username` value.
 
@@ -1044,10 +1045,15 @@ The return value of the block must be a valid argument for the [`url_for`][] met
 direct :commentable do |model|
   [ model, anchor: model.dom_id ]
 end
+```
 
+```
 direct :main do
   { controller: 'pages', action: 'index', subdomain: 'www' }
 end
+
+# >> main_url
+# => "http://www.yourdomain.com/pages"
 ```
 
 [`direct`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/CustomUrls.html#method-i-direct
@@ -1360,8 +1366,8 @@ NOTE: You can use the normal routing DSL inside a secondary routing file such as
 NOTE: Don't use the `draw` feature unless you really need it. Having multiple routing files make it harder to discover routes in one place. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.
 
 
-Inspecting and Testing Routes
------------------------------
+Inspecting Routes
+-----------------
 
 Rails offers a few different ways of inspecting and testing your routes.
 
@@ -1424,6 +1430,7 @@ irb> user = User.first
 => #<User:0x00007fc1eab81628
 irb> app.edit_user_path(user)
 => "/users/1/edit"
+```
 
 ### Searching Routes
 
@@ -1465,7 +1472,8 @@ edit_person GET    /people/:id/edit(.:format) people#edit
             DELETE /people/:id(.:format)      people#destroy
 ```
 
-### Testing Routes
+Testing Routes
+--------------
 
 Routes should be included in your testing strategy (just like the rest of your application). Rails offers three built-in assertions designed to make testing routes simpler:
 
@@ -1477,7 +1485,7 @@ Routes should be included in your testing strategy (just like the rest of your a
 [`assert_recognizes`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes
 [`assert_routing`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_routing
 
-#### The `assert_generates` Assertion
+### The `assert_generates` Assertion
 
 [`assert_generates`][] asserts that a particular set of options generate a particular path and can be used with default routes or custom routes. For example:
 
@@ -1486,7 +1494,7 @@ assert_generates '/photos/1', { controller: 'photos', action: 'show', id: '1' }
 assert_generates '/about', controller: 'pages', action: 'about'
 ```
 
-#### The `assert_recognizes` Assertion
+### The `assert_recognizes` Assertion
 
 [`assert_recognizes`][] is the inverse of `assert_generates`. It asserts that a given path is recognized and routes it to a particular spot in your application. For example:
 
@@ -1500,7 +1508,7 @@ You can supply a `:method` argument to specify the HTTP verb:
 assert_recognizes({ controller: 'photos', action: 'create' }, { path: 'photos', method: :post })
 ```
 
-#### The `assert_routing` Assertion
+### The `assert_routing` Assertion
 
 The [`assert_routing`][] assertion checks the route both ways. It combines the functionality of both `assert_generates` and `assert_recognizes`. It tests that the path generates the options, and that the options generate the path:
 
