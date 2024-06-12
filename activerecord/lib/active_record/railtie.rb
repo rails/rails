@@ -241,8 +241,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       ActiveSupport.on_load(:active_record) do
-        # Configs used in other initializers
-        configs = configs.except(
+        configs_used_in_other_initializers = configs.except(
           :migration_error,
           :database_selector,
           :database_resolver,
@@ -259,7 +258,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :postgresql_adapter_decode_dates,
         )
 
-        configs.each do |k, v|
+        configs_used_in_other_initializers.each do |k, v|
           next if k == :encryption
           setter = "#{k}="
           # Some existing initializers might rely on Active Record configuration
