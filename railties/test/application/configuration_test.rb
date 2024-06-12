@@ -4482,6 +4482,20 @@ module ApplicationTests
       assert_equal true, ActiveRecord.run_after_transaction_callbacks_in_order_defined
     end
 
+    test "run_after_transaction_callbacks_in_order_defined can be set via framework defaults even if Active Record was previously loaded" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app_file "config/initializers/01_configure_database.rb", <<-RUBY
+        ActiveRecord::Base.connected?
+      RUBY
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveRecord.run_after_transaction_callbacks_in_order_defined
+    end
+
     test "raises if configuration tries to assign to an actual method" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults = "7.0"'
