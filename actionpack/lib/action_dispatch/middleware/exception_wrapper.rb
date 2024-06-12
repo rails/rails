@@ -9,6 +9,12 @@ require "rack/utils"
 
 module ActionDispatch
   class ExceptionWrapper
+    if Rack::Utils::SYMBOL_TO_STATUS_CODE[:unprocessable_content]
+      UNPROCESSABLE_CONTENT = :unprocessable_content
+    else
+      UNPROCESSABLE_CONTENT = :unprocessable_entity
+    end
+
     cattr_accessor :rescue_responses, default: Hash.new(:internal_server_error).merge!(
       "ActionController::RoutingError"                     => :not_found,
       "AbstractController::ActionNotFound"                 => :not_found,
@@ -18,8 +24,8 @@ module ActionDispatch
       "ActionController::UnknownFormat"                    => :not_acceptable,
       "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
       "ActionController::MissingExactTemplate"             => :not_acceptable,
-      "ActionController::InvalidAuthenticityToken"         => :unprocessable_entity,
-      "ActionController::InvalidCrossOriginRequest"        => :unprocessable_entity,
+      "ActionController::InvalidAuthenticityToken"         => UNPROCESSABLE_CONTENT,
+      "ActionController::InvalidCrossOriginRequest"        => UNPROCESSABLE_CONTENT,
       "ActionDispatch::Http::Parameters::ParseError"       => :bad_request,
       "ActionController::BadRequest"                       => :bad_request,
       "ActionController::ParameterMissing"                 => :bad_request,
