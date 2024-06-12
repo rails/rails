@@ -20,7 +20,7 @@ This guide describes how to build a test-driven plugin that will:
 * Add methods to `ApplicationRecord` in the tradition of the `acts_as` plugins.
 * Give you information about where to put generators in your plugin.
 
-For the purpose of this guide pretend for a moment that you are an avid bird watcher.
+For the purpose of this guide, pretend for a moment that you are an avid bird watcher.
 Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle
 goodness.
 
@@ -83,7 +83,7 @@ Extending Core Classes
 
 This section will explain how to add a method to String that will be available anywhere in your Rails application.
 
-In this example you will add a method to String named `to_squawk`. To begin, create a new test file with a few assertions:
+In this example, you will add a method to String named `to_squawk`. To begin, create a new test file with a few assertions:
 
 ```ruby
 # yaffle/test/core_ext_test.rb
@@ -459,7 +459,7 @@ $ bin/test
 6 runs, 6 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
+NOTE: The use of `write_attribute` to write to the field in the model is just one example of how a plugin can interact with the model and will not always be the right method to use. For example, you could also use:
 
 ```ruby
 send("#{self.class.yaffle_text_field}=", string.to_squawk)
@@ -512,7 +512,7 @@ The first step is to update the README file with detailed information about how 
 * Your name
 * How to install
 * How to add the functionality to the app (several examples of common use cases)
-* Warnings, gotchas or tips that might help users and save them time
+* Warnings, gotchas, or tips that might help users and save them time
 
 Once your README is solid, go through and add RDoc comments to all the methods that developers will use. It's also customary to add `# :nodoc:` comments to those parts of the code that are not included in the public API.
 
