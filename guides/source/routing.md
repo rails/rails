@@ -743,6 +743,8 @@ In general, you should use the [`get`][], [`post`][], [`put`][], [`patch`][], an
 match 'photos', to: 'photos#show', via: [:get, :post]
 ```
 
+The above route matches GET and POST requests to the `show` action of the `PhotosController`.
+
 You can match all verbs to a particular route using `via: :all`:
 
 ```ruby
@@ -1136,7 +1138,7 @@ constraints(id: /[A-Z][A-Z][0-9]+/) do
 end
 ```
 
-NOTE: You can use the more advanced constraints available in non-resourceful routes section in this context as well.
+NOTE: You can use the more [advanced constraints](#advanced-constraints) available in non-resourceful routes section in this context as well.
 
 TIP: By default the `:id` parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an `:id` add a constraint which overrides this - for example `id: /[^\/]+/` allows anything except a slash.
 
