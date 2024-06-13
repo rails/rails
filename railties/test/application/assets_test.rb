@@ -68,7 +68,6 @@ module ApplicationTests
     end
 
     test "precompile creates the file, gives it the original asset's content and run in production as default" do
-      app_file "app/assets/config/manifest.js", "//= link_tree ../javascripts"
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
 
@@ -83,7 +82,6 @@ module ApplicationTests
     end
 
     def test_precompile_does_not_hit_the_database
-      app_file "app/assets/config/manifest.js", "//= link_tree ../javascripts"
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/javascripts/foo/application.js", "alert();"
       app_file "app/controllers/users_controller.rb", <<-eoruby
@@ -103,58 +101,6 @@ module ApplicationTests
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
         assert_equal "alert();".strip, File.read(file).strip
       end
-    end
-
-    test "precompile application.js and application.css and all other non JS/CSS files if manifest requests" do
-      app_file "app/assets/javascripts/application.js", "alert();"
-      app_file "app/assets/stylesheets/application.css", "body{}"
-
-      app_file "app/assets/javascripts/someapplication.js", "alert();"
-      app_file "app/assets/stylesheets/someapplication.css", "body{}"
-
-      app_file "app/assets/javascripts/something.min.js", "alert();"
-      app_file "app/assets/stylesheets/something.min.css", "body{}"
-
-      app_file "app/assets/javascripts/something.else.js", "alert();"
-      app_file "app/assets/stylesheets/something.else.css.erb", "body{}"
-
-      app_file "app/assets/config/manifest.js", <<~JS
-        //= link_tree ../images
-        //= link_directory ../stylesheets .css
-        //= link_directory ../javascripts .js
-      JS
-
-      images_should_compile = ["a.png", "happyface.png", "happy_face.png", "happy.face.png",
-                               "happy-face.png", "happy.happy_face.png", "happy_happy.face.png",
-                               "happy.happy.face.png", "-happy.png", "-happy.face.png",
-                               "_happy.face.png", "_happy.png"]
-
-      images_should_compile.each do |filename|
-        app_file "app/assets/images/#{filename}", "happy"
-      end
-
-      precompile!
-
-      images_should_compile = ["a-*.png", "happyface-*.png", "happy_face-*.png", "happy.face-*.png",
-                               "happy-face-*.png", "happy.happy_face-*.png", "happy_happy.face-*.png",
-                               "happy.happy.face-*.png", "-happy-*.png", "-happy.face-*.png",
-                               "_happy.face-*.png", "_happy-*.png"]
-
-      images_should_compile.each do |filename|
-        assert_file_exists("#{app_path}/public/assets/#{filename}")
-      end
-
-      assert_file_exists("#{app_path}/public/assets/application-*.js")
-      assert_file_exists("#{app_path}/public/assets/application-*.css")
-
-      assert_no_file_exists("#{app_path}/public/assets/someapplication-*.js")
-      assert_no_file_exists("#{app_path}/public/assets/someapplication-*.css")
-
-      assert_no_file_exists("#{app_path}/public/assets/something.min-*.js")
-      assert_no_file_exists("#{app_path}/public/assets/something.min-*.css")
-
-      assert_no_file_exists("#{app_path}/public/assets/something.else-*.js")
-      assert_no_file_exists("#{app_path}/public/assets/something.else-*.css")
     end
 
     test "precompile use assets defined in app env config" do
@@ -187,29 +133,9 @@ module ApplicationTests
       assert_match(/production_assets\/rails-([0-z]+)\.png/, File.read(file))
     end
 
-    test "precompile use assets defined in app config and reassigned in app env config" do
-      add_to_config 'config.assets.precompile = [ "something_manifest.js" ]'
-      add_to_env_config "production", 'config.assets.precompile += [ "another_manifest.js" ]'
-
-      app_file "app/assets/config/something_manifest.js", "//= link something.js"
-      app_file "app/assets/config/another_manifest.js", "//= link another.js"
-
-      app_file "app/assets/javascripts/something.js", "alert();"
-      app_file "app/assets/javascripts/another.js", "alert();"
-
-      precompile! RAILS_ENV: "production"
-
-      assert_file_exists("#{app_path}/public/assets/something_manifest-*.js")
-      assert_file_exists("#{app_path}/public/assets/something-*.js")
-      assert_file_exists("#{app_path}/public/assets/another_manifest-*.js")
-      assert_file_exists("#{app_path}/public/assets/another-*.js")
-    end
-
-    test "asset pipeline should use a Propshaft::Assembly when config.assets.digest is true" do
+    test "asset pipeline should use a Propshaft::Assembly" do
       add_to_config "config.action_controller.perform_caching = false"
-      add_to_env_config "production", "config.assets.compile = true"
 
-      # Load app env
       app "production"
 
       assert_equal Propshaft::Assembly, Rails.application.assets.class
@@ -290,7 +216,7 @@ module ApplicationTests
       assert_not_equal asset_path, assets["application.css"]
     end
 
-    test "precompile appends the MD5 hash to files referenced with url and run in production with digest true" do
+    test "precompile appends the SHA1 hash to files referenced with url and run in production" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
       remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css", "p { background-image: url('rails.png') }"
@@ -304,16 +230,12 @@ module ApplicationTests
     test "precompile should handle utf8 filenames" do
       filename = "レイルズ.png"
       app_file "app/assets/images/#{filename}", "not an image really"
-      app_file "app/assets/config/manifest.js", "//= link_tree ../images"
 
       precompile!
 
       manifest = Dir["#{app_path}/public/assets/.manifest.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       assert asset_path = assets.find { |(k, _)| /.png/.match?(k) }[1]
-
-      # Load app env
-      app "development"
 
       get "/assets/#{URI::DEFAULT_PARSER.escape(asset_path)}"
       assert_match "not an image really", last_response.body
@@ -329,17 +251,6 @@ module ApplicationTests
 
       files = Dir["#{app_path}/public/assets/**/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
-    end
-
-    test "assets routes are not drawn when compilation is disabled" do
-      app_file "app/assets/javascripts/demo.js", "alert();"
-      add_to_config "config.assets.compile = false"
-
-      # Load app env
-      app "production"
-
-      get("/assets/demo.js", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
     end
 
     test "does not stream session cookies back" do
