@@ -6,5 +6,5 @@ class Entry < ActiveRecord::Base
 
   # alternate delegation for custom foreign_key/foreign_type
   delegated_type :thing, types: %w[ Post ],
-    foreign_key: :entryable_id, foreign_type: :entryable_type
+    foreign_key: :fooable_id, foreign_type: :fooable_type
 end

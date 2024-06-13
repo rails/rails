@@ -206,6 +206,8 @@ module ActiveRecord
     #
     # The +options+ are passed directly to the +belongs_to+ call, so this is where you declare +dependent+ etc.
     # The following options can be included to specialize the behavior of the delegated type convenience methods.
+    # The +types+ are passed to the +belongs_to+'s +:polymorphic+ option, adding an inclusion validator to the
+    # +:foreign_key+ field.
     #
     # [:foreign_key]
     #   Specify the foreign key used for the convenience methods. By default this is guessed to be the passed
@@ -229,7 +231,7 @@ module ActiveRecord
     #   Entry#message_uuid      # => returns entryable_uuid, when entryable_type == "Message", otherwise nil
     #   Entry#comment_uuid      # => returns entryable_uuid, when entryable_type == "Comment", otherwise nil
     def delegated_type(role, types:, **options)
-      belongs_to role, options.delete(:scope), **options.merge(polymorphic: true)
+      belongs_to role, options.delete(:scope), **options.merge(polymorphic: types)
       define_delegated_type_methods role, types: types, options: options
     end
 

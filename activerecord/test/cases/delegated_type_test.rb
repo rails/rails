@@ -34,9 +34,14 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   end
 
   test "delegated class with custom foreign_type" do
-    assert_equal Message, @entry_with_message.thing_class
-    assert_equal Comment, @entry_with_comment.thing_class
     assert_equal Post, @entry_with_post.thing_class
+  end
+
+  test "invalid delegated type class" do
+    @entry_with_message.entryable = posts(:welcome)
+
+    assert_not_predicate @entry_with_message, :valid?
+    assert_equal ["Entryable type is not included in the list"], @entry_with_message.errors.full_messages
   end
 
   test "delegated type name" do

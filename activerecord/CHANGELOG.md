@@ -1,3 +1,21 @@
+*   Validate the delegated type's foreign key by passing the `types` to the underlying polymorphic `belongs_to`
+    association.
+
+    Ex:
+    ```ruby
+    delegated_type :entryable, types: ["Message", "Comment"]
+    ```
+    previously called:
+    ```ruby
+    belongs_to :entryable, polymorphic: true
+    ```
+    and now calls:
+    ```ruby
+    belongs_to :entryable, polymorphic: ["Message", "Comment"]
+    ```
+
+    *Nate Matykiewicz*
+
 *   Added option to validate which models are allowed to be associated to a polymorphic `belongs_to`.
 
     Ex:
