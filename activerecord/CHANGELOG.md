@@ -1,3 +1,7 @@
+*   Fixed a memory performance issue in Active Record attribute methods definition.
+
+    *Jean Boussier*
+
 *   Define the new Active Support notification event `start_transaction.active_record`.
 
     This event is fired when database transactions or savepoints start, and
