@@ -500,7 +500,7 @@ resources :articles do
 end
 ```
 
-You can also use them anywhere by calling [`concerns`][]. For example, in a `scope` or `namespace` block:
+You can also call [`concerns`][] in a `scope` or `namespace` block to get the same result as above. For example:
 
 ```ruby
 namespace :articles do
@@ -527,7 +527,9 @@ When using `magazine_ad_path`, you can pass in instances of `Magazine` and `Ad` 
 <%= link_to 'Ad details', magazine_ad_path(@magazine, @ad) %>
 ```
 
-You can also use [`url_for`][ActionView::RoutingUrlFor#url_for] with a set of objects, and Rails will automatically determine which route you want:
+The generated path will be something like `/magazines/5/ads/42`.
+
+You can also use [`url_for`][ActionView::RoutingUrlFor#url_for] with an array of objects to get the above path, like this:
 
 ```erb
 <%= link_to 'Ad details', url_for([@magazine, @ad]) %>
