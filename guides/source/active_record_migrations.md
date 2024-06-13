@@ -32,7 +32,7 @@ mentioned here.
 
 You can think of each migration as being a new 'version' of the database. A
 schema starts off with nothing in it, and each migration modifies it to add or
-remove tables, columns, or entries. Active Record knows how to update your
+remove tables, columns, or indexes. Active Record knows how to update your
 schema along this timeline, bringing it from whatever point it is in the history
 to the latest version. Read more about how Rails knows which migration in the
 timeline to run [here](#rails-migration-version-control).
