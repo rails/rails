@@ -592,8 +592,10 @@ ActiveRecord::Schema.define do
   end
 
   create_table :entries, force: true do |t|
-    t.string   :entryable_type, null: false
-    t.integer  :entryable_id, null: false
+    t.string   :entryable_type
+    t.integer  :entryable_id
+    t.string   :fooable_type
+    t.integer  :fooable_id
     t.integer  :account_id, null: false
     t.datetime :updated_at
   end
