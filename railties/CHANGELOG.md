@@ -1,3 +1,7 @@
+*   Add internal page `/rails/info/notes`, that displays the same information as `bin/rails notes`.
+
+    *Deepak Mahakale*
+
 *   Defer route drawing to the first request, or when url_helpers are called
 
     Executes the first routes reload in middleware, or when a route set's
