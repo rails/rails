@@ -257,9 +257,6 @@ module ApplicationTests
         end
       RUBY
 
-      # Load app env
-      app "development"
-
       class ::OmgController < ActionController::Base
         def index
           flash[:cool_story] = true
@@ -329,8 +326,6 @@ module ApplicationTests
     test "asset URLs should use the request's protocol by default" do
       app_with_assets_in_view
       add_to_config "config.asset_host = 'example.com'"
-      # Load app env
-      app "development"
 
       class ::PostsController < ActionController::Base; end
 
