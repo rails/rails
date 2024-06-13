@@ -277,8 +277,10 @@ table, where `user_id` is a reference to the `id` column in the `users` table.
 It also creates an index for the `user_id` column. The schema looks as follows:
 
 ```ruby
-  t.uuid "user_id", null: false
-  t.index ["user_id"], name: "index_products_on_user_id"
+  create_table "users", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_products_on_user_id"
+  end
 ```
 
 `belongs_to` is an alias of `references`, so the above could be alternatively
