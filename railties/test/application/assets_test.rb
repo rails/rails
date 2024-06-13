@@ -50,21 +50,16 @@ module ApplicationTests
     end
 
     test "assets routes have higher priority" do
-      app_file "app/assets/images/rails.png", "notactuallyapng"
-      app_file "app/assets/javascripts/demo.js.erb", "a = <%= image_path('rails.png').inspect %>;"
-
+      app_file "app/assets/javascripts/demo-sha1_string.digested.js", "a = 1+1;"
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '*path', to: lambda { |env| [200, { "Content-Type" => "text/html" }, ["Not an asset"]] }
         end
       RUBY
 
-      add_to_env_config "development", "config.assets.digest = false"
+      get "/assets/demo-sha1_string.digested.js"
 
-      require "#{app_path}/config/environment"
-
-      get "/assets/demo.js"
-      assert_equal 'a = "/assets/rails.png";', last_response.body.strip
+      assert_equal "a = 1+1;", last_response.body.strip
     end
 
     test "precompile creates the file, gives it the original asset's content and run in production as default" do
@@ -254,7 +249,7 @@ module ApplicationTests
     end
 
     test "does not stream session cookies back" do
-      app_file "app/assets/javascripts/demo.js", "alert();"
+      app_file "app/assets/javascripts/demo-sha1_digest.digested.js", "alert();"
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -275,7 +270,7 @@ module ApplicationTests
       get "/omg"
       assert_equal "ok", last_response.body
 
-      get "/assets/demo.js"
+      get "/assets/demo-sha1_digest.digested.js"
       assert_match "alert()", last_response.body
       assert_nil last_response.headers["Set-Cookie"]
     end
@@ -340,9 +335,9 @@ module ApplicationTests
       class ::PostsController < ActionController::Base; end
 
       get "/posts", {}, { "HTTPS" => "off" }
-      assert_match('src="http://example.com/assets/application.js', last_response.body)
+      assert_match('src="http://example.com/assets/application-72d8340d.js', last_response.body)
       get "/posts", {}, { "HTTPS" => "on" }
-      assert_match('src="https://example.com/assets/application.js', last_response.body)
+      assert_match('src="https://example.com/assets/application-72d8340d.js', last_response.body)
     end
 
     test "asset URLs should be protocol-relative if no request is in scope" do
@@ -356,14 +351,8 @@ module ApplicationTests
 
     private
       def app_with_assets_in_view
-        app_file "app/assets/javascripts/application.js", "//= require_tree ."
-        app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
+        app_file "app/assets/javascripts/application.js", "function f1() { alert(); }"
         app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
-        app_file "app/assets/config/manifest.js", <<~JS
-          //= link_tree ../images
-          //= link_directory ../stylesheets .css
-          //= link_directory ../javascripts .js
-        JS
 
         app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
