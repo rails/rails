@@ -144,7 +144,7 @@ creates seven different routes in your application, all mapping to the `Photos` 
 | PATCH/PUT | /photos/:id      | photos#update     | update a specific photo                      |
 | DELETE    | /photos/:id      | photos#destroy    | delete a specific photo                      |
 
-Because the router uses the HTTP verb *and* path to match inbound requests, four URLs map to seven different controller actions. For example, the same `photos/` path matches to `photos#index` when the verb is `GET` and `photos#create` when the verb is `POST`.
+Since the router uses the HTTP verb *and* path to match inbound requests, four URLs can map to seven different controller actions. For example, the same `photos/` path matches to `photos#index` when the verb is `GET` and `photos#create` when the verb is `POST`.
 
 NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. Order matters in the `routes.rb` file. If you want the `photos/poll` route to match first, you'll need to move the `get` line **above** the `resources` line.
 
@@ -273,7 +273,7 @@ Another way to write the above:
 resources :articles, path: '/admin/articles'
 ```
 
-For both alternatives (without `/admin` in path and without `Admin::` in module prefix), the named route helpers remain the same as if you did not use `scope`.
+For these alternatives (without `/admin` in path and without `Admin::` in module prefix), the named route helpers remain the same as if you did not use `scope`.
 
 In the last case, the following paths map to `ArticlesController`:
 
@@ -340,15 +340,15 @@ resources :publishers do
 end
 ```
 
-However, deeply nested resources can become cumbersome to maintain and reason about. In the above example, the application would recognize paths such as:
+In the above example, the application would recognize paths such as:
 
 ```
 /publishers/1/magazines/2/photos/3
 ```
 
-The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. This can become confusing and overly complex.
+The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. As you can see, deeply nested resources can become overly complex and cumbersome to maintain.
 
-TIP: Therefore, the general rule of thumb is to only nest resources 1 level deep.
+TIP: The general rule of thumb is to only nest resources 1 level deep.
 
 #### Shallow Nesting
 
