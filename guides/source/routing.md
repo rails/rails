@@ -346,7 +346,9 @@ However, deeply nested resources can become cumbersome to maintain and reason ab
 /publishers/1/magazines/2/photos/3
 ```
 
-The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. This can become confusing and overly complex. Therefore, the general rule of thumb is to only nest resources 1 level deep.
+The corresponding route helper would be `publisher_magazine_photo_url`, requiring you to specify objects at all three levels. This can become confusing and overly complex.
+
+TIP: Therefore, the general rule of thumb is to only nest resources 1 level deep.
 
 #### Shallow Nesting
 
@@ -363,7 +365,7 @@ end
 resources :comments, only: [:show, :edit, :update, :destroy]
 ```
 
-This idea strikes a balance between descriptive routes and deep nesting. There exists shorthand syntax to achieve just that, via the `:shallow` option:
+This idea strikes a balance between descriptive routes and deep nesting. There is a shorthand syntax to achieve just that, via the `:shallow` option:
 
 ```ruby
 resources :articles do
