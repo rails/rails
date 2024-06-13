@@ -810,7 +810,7 @@ Keys](active_record_composite_primary_keys.html) guide to learn more.
 ### Execute Arbitrary SQL
 
 If the helpers provided by Active Record aren't enough, you can use the
-[`execute`][] method to execute arbitrary SQL. For example,
+[`execute`][] method to execute SQL commands. For example,
 
 ```ruby
 class UpdateProductPrices < ActiveRecord::Migration[8.0]
@@ -1417,8 +1417,8 @@ migration has already been run on production machines. Instead, you should write
 a new migration that performs the changes you require.
 
 However, editing a freshly generated migration that has not yet been committed
-to source control (or, more generally, which has not been propagated beyond your
-development machine) is relatively harmless.
+to source control (or, more generally, has not been propagated beyond your
+development machine) is common.
 
 The `revert` method can be helpful when writing a new migration to undo previous
 migrations in whole or in part (see [Reverting Previous Migrations][] above).
