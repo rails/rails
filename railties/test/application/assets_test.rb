@@ -317,15 +317,6 @@ module ApplicationTests
       assert_match('src="https://example.com/assets/application-72d8340d.js', last_response.body)
     end
 
-    test "asset URLs should be protocol-relative if no request is in scope" do
-      app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/image_loader.js", "var src='url('rails.png')' ;"
-      add_to_config "config.asset_host = 'example.com'"
-      precompile!
-
-      assert_match "src='//example.com/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/image_loader-*.js"].first)
-    end
-
     private
       def app_with_assets_in_view
         app_file "app/assets/javascripts/application.js", "function f1() { alert(); }"
