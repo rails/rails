@@ -82,10 +82,16 @@ module ActiveRecord
         end
       end
 
-      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+      def generate_alias_attribute_methods(code_generator, new_name, old_name) # :nodoc:
+        attribute_method_patterns.each do |pattern|
+          alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+        end
+        attribute_method_patterns_cache.clear
+      end
+
+      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:
         method_name = pattern.method_name(new_name).to_s
         target_name = pattern.method_name(old_name).to_s
-        parameters = pattern.parameters
         old_name = old_name.to_s
 
         method_defined = method_defined?(target_name) || private_method_defined?(target_name)
@@ -115,9 +121,7 @@ module ActiveRecord
           )
           super
         else
-          define_proxy_call(code_generator, method_name, pattern.proxy_target, parameters, old_name,
-            namespace: :proxy_alias_attribute
-          )
+          define_attribute_method_pattern(pattern, old_name, owner: code_generator, as: new_name)
         end
       end
 
