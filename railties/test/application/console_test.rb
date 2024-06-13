@@ -215,7 +215,16 @@ class FullStackConsoleTest < ActiveSupport::TestCase
 
     spawn_console("-e development", wait_for_prompt: false)
 
+    line_number = 0
+    app = File.readlines("#{app_path}/config/application.rb")
+    app.each_with_index do |line, index|
+      if line.include?("Rails::ConsoleMethods.include(MyConsole)")
+        line_number = index + 1
+      end
+    end
+
     assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
+    assert_output "(called from block in <class:Application> at #{app_path}/config/application.rb:#{line_number})", @primary, 30
     write_prompt "foo", "=> \"this is foo\""
   end
 
