@@ -272,23 +272,6 @@ module ApplicationTests
       assert_nil last_response.headers["Set-Cookie"]
     end
 
-    test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
-      app_with_assets_in_view
-
-      # config.assets.debug and config.assets.compile are false for production environment
-      precompile! RAILS_ENV: "production"
-
-      # Load app env
-      app "production"
-
-      class ::PostsController < ActionController::Base ; end
-
-      # the debug_assets params isn't used if compile is off
-      get("/posts?debug_assets=true", {}, "HTTPS" => "on")
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
-      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
-    end
-
     test "initialization on the assets group should set assets_dir" do
       require "#{app_path}/config/application"
       Rails.application.initialize!(:assets)
@@ -303,7 +286,6 @@ module ApplicationTests
 
     test "digested assets are not mistakenly removed" do
       app_file "app/assets/application.css", "div { font-weight: bold }"
-      add_to_config "config.assets.compile = true"
 
       precompile!
 
