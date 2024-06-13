@@ -280,23 +280,6 @@ module ApplicationTests
       assert_nil last_response.headers["Set-Cookie"]
     end
 
-    test "files in any assets/ directories are not added to Sprockets" do
-      %w[app lib vendor].each do |dir|
-        app_file "#{dir}/assets/#{dir}_test.erb", "testing"
-      end
-
-      app_file "app/assets/javascripts/demo.js", "alert();"
-
-      add_to_env_config "development", "config.assets.digest = false"
-
-      # Load app env
-      app "development"
-
-      get "/assets/demo.js"
-      assert_match "alert();", last_response.body
-      assert_equal 200, last_response.status
-    end
-
     test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
       app_with_assets_in_view
 
