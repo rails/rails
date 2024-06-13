@@ -629,13 +629,18 @@ Besides `change_column`, the [`change_column_null`][] and
 default values of a column.
 
 ```ruby
-change_column_null :products, :name, false
 change_column_default :products, :approved, from: true, to: false
 ```
 
-This sets `:name` field on products to a `NOT NULL` column and the default value
-of the `:approved` field from true to false. Both of these changes will only be
-applied to future records, any existing records do not change.
+This changes the default value of the `:approved` field from true to false.
+This change will only be applied to future records, any existing records do not change.
+Use [`change_column_default`][] to change a null constraint.
+
+```ruby
+change_column_null :products, :name, false
+```
+
+This sets `:name` field on products to a `NOT NULL` column. This change applies to existing records as well, so you need to make sure all existing records have a `:name` that is `NOT NULL`.
 
 Setting the null constraint to `true` implies that column will accept a null
 value, otherwise the `NOT NULL` constraint is applied and a value must be passed
