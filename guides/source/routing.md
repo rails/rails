@@ -1311,11 +1311,13 @@ edit_video GET  /videos/:identifier/edit(.:format) videos#edit
 ```
 
 ```ruby
-Video.find_by(identifier: params[:identifier])
+Video.find_by(id: params[:identifier])
+
+# Instead of
+Video.find_by(id: params[:id])
 ```
 
-You can override `ActiveRecord::Base#to_param` of the associated model to
-construct a URL:
+You can override [`ActiveRecord::Base#to_param`](https://api.rubyonrails.org/classes/ActiveRecord/Integration.html#method-i-to_param) of the associated model to construct a URL:
 
 ```ruby
 class Video < ApplicationRecord
@@ -1477,7 +1479,7 @@ edit_person GET    /people/:id/edit(.:format) people#edit
 Testing Routes
 --------------
 
-Routes should be included in your testing strategy (just like the rest of your application). Rails offers three built-in assertions designed to make testing routes simpler:
+Rails offers three built-in assertions designed to make testing routes simpler:
 
 * [`assert_generates`][]
 * [`assert_recognizes`][]
