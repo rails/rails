@@ -22,7 +22,7 @@ Migration Overview
 ------------------
 
 Migrations are a convenient way to [evolve your database schema over
-time](https://en.wikipedia.org/wiki/Schema_migration) in a consistent way. They
+time](https://en.wikipedia.org/wiki/Schema_migration) in a reproducible way. They
 use a Ruby [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) so that
 you don't have to write [SQL](https://en.wikipedia.org/wiki/SQL) by hand, allowing your schema and changes to be
 database independent. We recommend that you read the guides for [Active Record
