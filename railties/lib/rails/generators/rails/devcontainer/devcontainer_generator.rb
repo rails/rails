@@ -148,7 +148,7 @@ module Rails
         end
 
         def system_test_configuration
-          <<~RUBY
+          <<~'RUBY'
               if ENV["CAPYBARA_SERVER_PORT"]
                 served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
 
