@@ -243,7 +243,7 @@ module ActiveRecord
       #
       # See the ActiveRecord::Transaction documentation for detailed behavior.
       def current_transaction
-        connection_pool.active_connection&.current_transaction || ConnectionAdapters::TransactionManager::NULL_TRANSACTION
+        connection_pool.active_connection&.current_transaction&.user_transaction || Transaction::NULL_TRANSACTION
       end
 
       def before_commit(*args, &block) # :nodoc:
