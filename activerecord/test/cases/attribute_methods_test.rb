@@ -1213,8 +1213,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "aliases to the same attribute name do not conflict with each other" do
     first_model_object = ToBeLoadedFirst.new(author_name: "author 1")
     assert_equal("author 1", first_model_object.subject)
+    assert_equal([nil, "author 1"], first_model_object.subject_change)
     second_model_object = ToBeLoadedSecond.new(title: "foo")
     assert_equal("foo", second_model_object.subject)
+    assert_equal([nil, "foo"], second_model_object.subject_change)
   end
 
   ClassWithDeprecatedAliasAttributeBehavior = Class.new(ActiveRecord::Base) do

@@ -1,4 +1,11 @@
-*   Fix an issue that could cause database connection leaks
+*   Fix a memory perfomance regression in attribute methods.
+
+    Attribute methods used much more memory and were slower to define than
+    they should have been.
+
+    *Jean Boussier*
+
+*   Fix an issue that could cause database connection leaks.
 
     If Active Record successfully connected to the database, but then failed
     to read the server informations, the connection would be leaked until the
