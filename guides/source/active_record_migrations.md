@@ -389,7 +389,7 @@ make to your database schema.
 
 ### Creating a Table
 
-The [`create_table`][] method is one of the most fundamental, but most of the
+The [`create_table`][] method is one of the most fundamental migration type, but most of the
 time, will be generated for you from using a model, resource, or scaffold
 generator. A typical use would be
 
@@ -524,10 +524,10 @@ end
 
 You can pass the `:comment` option with any description for the table that will
 be stored in the database itself and can be viewed with database administration
-tools, such as MySQL Workbench or PgAdmin III. It's highly recommended to
-specify comments in migrations for applications with large databases as it helps
-people to understand the data model and generate documentation. Currently only
-the MySQL and PostgreSQL adapters support comments.
+tools, such as MySQL Workbench or PgAdmin III. Comments can help team members to
+better understand the data model and to generate documentation in applications
+with large databases. Currently only the MySQL and PostgreSQL adapters support
+comments.
 
 ```ruby
 class AddDetailsToProducts < ActiveRecord::Migration[8.0]
