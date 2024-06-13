@@ -810,7 +810,7 @@ If the helpers provided by Active Record aren't enough, you can use the
 ```ruby
 class UpdateProductPrices < ActiveRecord::Migration[8.0]
   def up
-    execute "UPDATE products SET price = 'free' WHERE 1=1;"
+    execute "UPDATE products SET price = 'free'"
   end
 
   def down
@@ -824,7 +824,7 @@ In this example, we're updating the `price` column of the products table to
 
 WARNING: Modifying data directly in migrations should be approached with
 caution. Consider if this is the best approach for your use case, and be aware
-of potential drawbacks such as increase complexity and maintenance overhead,
+of potential drawbacks such as increased complexity and maintenance overhead,
 risks to data integrity and database portability.
 
 For more details and examples of individual methods, check the API
