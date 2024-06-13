@@ -1276,11 +1276,11 @@ already been performed and if so, it will do nothing.
 If the version specified does not exist, Rails will throw an exception.
 
 ```bash
-$ bin/rails db:migrate VERSION=4010120906120000
+$ bin/rails db:migrate VERSION=00000000000000
 rails aborted!
 ActiveRecord::UnknownMigrationVersionError:
 
-No migration with version number zomg.
+No migration with version number 00000000000000.
 ```
 
 ### Running Migrations in Different Environments
