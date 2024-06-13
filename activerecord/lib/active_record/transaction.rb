@@ -94,12 +94,14 @@ module ActiveRecord
       @internal_transaction&.after_rollback(&block)
     end
 
+    # Returns true if the transaction exists and isn't finalized yet
     def open?
-      @internal_transaction&.open?
+      !closed?
     end
 
+    # Returns true if the transaction doesn't exists or is finalized (committed or rolled back)
     def closed?
-      !open?
+      @internal_transaction.nil? || @internal_transaction.state.finalized?
     end
 
     alias_method :blank?, :closed?

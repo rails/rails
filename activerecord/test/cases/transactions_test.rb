@@ -12,6 +12,29 @@ require "models/movie"
 require "models/cpk"
 
 module TransactionCallbacksTests
+  SomeError = Class.new(StandardError)
+
+  def test_transaction_open?
+    assert_predicate Topic.current_transaction, :closed?
+
+    committed_transaction = nil
+    Topic.transaction do
+      assert_predicate Topic.current_transaction, :open?
+      committed_transaction = Topic.current_transaction
+    end
+    assert_predicate committed_transaction, :closed?
+
+    rolledback_transaction = nil
+    assert_raises SomeError do
+      Topic.transaction do
+        assert_predicate Topic.current_transaction, :open?
+        rolledback_transaction = Topic.current_transaction
+        raise SomeError
+      end
+    end
+    assert_predicate rolledback_transaction, :closed?
+  end
+
   def test_after_all_transactions_commit
     called = 0
     ActiveRecord.after_all_transactions_commit { called += 1 }
