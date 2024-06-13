@@ -290,7 +290,7 @@ written as:
 $ bin/rails generate migration AddUserRefToProducts user:belongs_to
 ```
 
-generating a migration that looks like the same as above.
+generating a migration and schema that is the same as above.
 
 There is also a generator which will produce join tables if `JoinTable` is part
 of the name:
