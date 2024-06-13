@@ -33,7 +33,10 @@ module ActionDispatch
         when Array
           params.each { |element| check_param_encoding(element) }
         when Hash
-          params.each_value { |value| check_param_encoding(value) }
+          params.each do |key, value|
+            check_param_encoding(key)
+            check_param_encoding(value)
+          end
         when String
           unless params.valid_encoding?
             # Raise Rack::Utils::InvalidParameterError for consistency with Rack.
