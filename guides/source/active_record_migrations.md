@@ -272,7 +272,7 @@ class AddUserRefToProducts < ActiveRecord::Migration[8.0]
 end
 ```
 
-The above migration creates a foreign key called `user_id`in the `products`
+The above migration creates a foreign key called `user_id` in the `products`
 table, where `user_id` is a reference to the `id` column in the `users` table.
 It also creates an index for the `user_id` column. The schema looks as follows:
 
