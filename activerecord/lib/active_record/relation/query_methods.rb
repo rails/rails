@@ -2081,17 +2081,29 @@ module ActiveRecord
         order_args.flat_map do |arg|
           case arg
           when String, Symbol
-            arg
+            extract_table_name_from(arg)
           when Hash
-            arg.keys.select { |e| e.is_a?(String) || e.is_a?(Symbol) }
+            arg
+              .map do |key, value|
+                case value
+                when Hash
+                  key.to_s
+                else
+                  extract_table_name_from(key) if key.is_a?(String) || key.is_a?(Symbol)
+                end
+              end
+          when Arel::Attribute
+            arg.relation.name
+          when Arel::Nodes::Ordering
+            if arg.expr.is_a?(Arel::Attribute)
+              arg.expr.relation.name
+            end
           end
-        end.filter_map do |arg|
-          arg =~ /^\W?(\w+)\W?\./ && $1
-        end +
-        order_args
-          .select { |e| e.is_a?(Hash) }
-          .flat_map { |e| e.map { |k, v| k if v.is_a?(Hash) } }
-          .compact
+        end.compact
+      end
+
+      def extract_table_name_from(string)
+        string.match(/^\W?(\w+)\W?\./) && $1
       end
 
       def order_column(field)
