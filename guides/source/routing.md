@@ -669,7 +669,7 @@ You can set up as many dynamic segments within a regular route as you like. Any 
 get 'photos/:id/:user_id', to: 'photos#show'
 ```
 
-An incoming GET request to path `/photos/1/2` will be dispatched to the `show` action of the `PhotosController` where `params[:id]` will be `"1"` and `params[:user_id]` will be `"2"`.
+This route will respond to paths such as `/photos/1/2`. The `params` hash will be  { controller: 'photos', action: 'show', id: '1', user_id: '2' }.
 
 TIP: By default, dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
 
@@ -693,7 +693,7 @@ get 'photos/:id', to: 'photos#show'
 
 An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` action of the `PhotosController` class as usual and the `params` hash will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
 
-### Defining Defaults
+### Defining Default Parameters
 
 You can define defaults in a route by supplying a hash for the `:defaults` option. This even applies to parameters that you do not specify as dynamic segments. For example:
 
