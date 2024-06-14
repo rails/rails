@@ -1208,7 +1208,7 @@ migrate to.
 
 #### Transactions
 
-In databases that support transactions with statements that change the schema,
+In databases that support DDL transactions, changing the schema in a single transaction,
 each migration is wrapped in a transaction.
 
 INFO: A transaction ensures that if a migration fails partway through, any
