@@ -22,13 +22,13 @@ Migration Overview
 ------------------
 
 Migrations are a convenient way to [evolve your database schema over
-time](https://en.wikipedia.org/wiki/Schema_migration) in a reproducible way. They
-use a Ruby [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) so that
-you don't have to write [SQL](https://en.wikipedia.org/wiki/SQL) by hand, allowing your schema and changes to be
-database independent. We recommend that you read the guides for [Active Record
-Basics](active_record_basics.html) and the [Active Record
-Associations](association_basics.html) to learn more about some of the concepts
-mentioned here.
+time](https://en.wikipedia.org/wiki/Schema_migration) in a reproducible way.
+They use a Ruby [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) so
+that you don't have to write [SQL](https://en.wikipedia.org/wiki/SQL) by hand,
+allowing your schema and changes to be database independent. We recommend that
+you read the guides for [Active Record Basics](active_record_basics.html) and
+the [Active Record Associations](association_basics.html) to learn more about
+some of the concepts mentioned here.
 
 You can think of each migration as being a new 'version' of the database. A
 schema starts off with nothing in it, and each migration modifies it to add or
@@ -389,9 +389,9 @@ make to your database schema.
 
 ### Creating a Table
 
-The [`create_table`][] method is one of the most fundamental migration type, but most of the
-time, will be generated for you from using a model, resource, or scaffold
-generator. A typical use would be
+The [`create_table`][] method is one of the most fundamental migration type, but
+most of the time, will be generated for you from using a model, resource, or
+scaffold generator. A typical use would be
 
 ```ruby
 create_table :products do |t|
@@ -632,15 +632,17 @@ default values of a column.
 change_column_default :products, :approved, from: true, to: false
 ```
 
-This changes the default value of the `:approved` field from true to false.
-This change will only be applied to future records, any existing records do not change.
-Use [`change_column_default`][] to change a null constraint.
+This changes the default value of the `:approved` field from true to false. This
+change will only be applied to future records, any existing records do not
+change. Use [`change_column_default`][] to change a null constraint.
 
 ```ruby
 change_column_null :products, :name, false
 ```
 
-This sets `:name` field on products to a `NOT NULL` column. This change applies to existing records as well, so you need to make sure all existing records have a `:name` that is `NOT NULL`.
+This sets `:name` field on products to a `NOT NULL` column. This change applies
+to existing records as well, so you need to make sure all existing records have
+a `:name` that is `NOT NULL`.
 
 Setting the null constraint to `true` implies that column will accept a null
 value, otherwise the `NOT NULL` constraint is applied and a value must be passed
@@ -1208,8 +1210,8 @@ migrate to.
 
 #### Transactions
 
-In databases that support DDL transactions, changing the schema in a single transaction,
-each migration is wrapped in a transaction.
+In databases that support DDL transactions, changing the schema in a single
+transaction, each migration is wrapped in a transaction.
 
 INFO: A transaction ensures that if a migration fails partway through, any
 changes that were successfully applied are rolled back, maintaining database
@@ -1217,11 +1219,13 @@ consistency. This means that either all operations within the transaction are
 executed successfully, or none of them are, preventing the database from being
 left in an inconsistent state if an error occurs during the transaction.
 
-If the database does not support DDL transactions with statements that change the
-schema, then when a migration fails, the parts of it that have succeeded will
-not be rolled back. You will have to rollback the changes manually.
+If the database does not support DDL transactions with statements that change
+the schema, then when a migration fails, the parts of it that have succeeded
+will not be rolled back. You will have to rollback the changes manually.
 
-There are queries that you can’t execute inside a transaction though, and for these situations you can turn the automatic transactions off with `disable_ddl_transaction!`:
+There are queries that you can’t execute inside a transaction though, and for
+these situations you can turn the automatic transactions off with
+`disable_ddl_transaction!`:
 
 ```ruby
 class ChangeEnum < ActiveRecord::Migration[8.0]
@@ -1232,7 +1236,8 @@ class ChangeEnum < ActiveRecord::Migration[8.0]
   end
 end
 ```
-NOTE: Remember that you can still open your own transactions, even if you are in a Migration with self.disable_ddl_transaction!.
+NOTE: Remember that you can still open your own transactions, even if you are in
+a Migration with self.disable_ddl_transaction!.
 
 ### Setting Up the Database
 
@@ -1663,8 +1668,8 @@ database adapter to work with UUIDs.
 1. Database Configuration
 
     If you are using a version of PostgreSQL prior to 13, you may still need to
-    enable the pgcrypto extension to access the `gen_random_uuid()` function. For
-    PostgreSQL 13 and later, this is not necessary.
+    enable the pgcrypto extension to access the `gen_random_uuid()` function.
+    For PostgreSQL 13 and later, this is not necessary.
 
     For PostgreSQL versions prior to 13:
 
@@ -1739,7 +1744,8 @@ database adapter to work with UUIDs.
     end
     ```
 
-    In this migration, the `id` column is defined as a UUID primary key with a default value generated by the `gen_random_uuid()` function.
+    In this migration, the `id` column is defined as a UUID primary key with a
+    default value generated by the `gen_random_uuid()` function.
 
 UUIDs are guaranteed to be globally unique across different systems, making them
 suitable for distributed architectures. They also simplify integration with
