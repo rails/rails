@@ -1405,6 +1405,8 @@ For example, here's a small section of the `bin/rails routes` output for a RESTf
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
+The route name (`new_user` above for example) can be considered the base for deriving route helpers. For example to get the name of a route helper, add the suffix “_path” or “_url” to the route name(`new_user_path` for example).
+
 You can also use the `--expanded` option to turn on the expanded table formatting mode.
 
 ```bash
