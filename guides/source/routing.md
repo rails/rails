@@ -27,22 +27,21 @@ the resources configured in the router.
 
 ### Routing Incoming URLs to Code
 
-When your Rails application receives an incoming request, it asks the router to match it to a controller action.
-For example, take the following incoming request:
+When your Rails application receives an incoming request, it asks the router to match it to a controller action. For example, take the following incoming request:
 
 ```
 GET /users/17
 ```
 
-it asks the router to match it to a controller action. If the first matching route is:
+The Router's job is to match it to a controller action. If the first matching route is:
 
 ```ruby
 get '/users/:id', to: 'user#show'
 ```
 
-the request is dispatched to the `users` controller's `show` action with `{ id: '17' }` in `params`.
+The request is matched to the `UsersController` class's `show` action with `{ id: '17' }` in the `params` hash.
 
-Passing a `String` to `to:` will expect a `controller#action` format. When using a `Symbol`, the `to:` option should be replaced with `action:`. When using a `String` without a `#`, the `to:` option should be replaced with `controller:`:
+The `to:` option expects a `controller#action` format when passed a string. Alternatively, You can pass a symbol and use the `action:` option, instead of `to:`. You can also pass a string without a `#`, in which case the `controller:` option is used instead to `to:`. For example:
 
 ```ruby
 get '/users/:id', action: :show, controller: 'users'
