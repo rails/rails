@@ -1667,23 +1667,10 @@ Before using UUIDs in your Rails application, you'll need to ensure that your
 database supports storing them. Additionally, you may need to configure your
 database adapter to work with UUIDs.
 
-1. Database Configuration
+NOTE: If you are using a version of PostgreSQL prior to 13, you may still need
+to enable the pgcrypto extension to access the `gen_random_uuid()` function.
 
-    If you are using a version of PostgreSQL prior to 13, you may still need to
-    enable the pgcrypto extension to access the `gen_random_uuid()` function.
-    For PostgreSQL 13 and later, this is not necessary.
-
-    For PostgreSQL versions prior to 13:
-
-    ```ruby
-    class EnablePgcryptoExtension < ActiveRecord::Migration[8.0]
-      def change
-        enable_extension "pgcrypto"
-      end
-    end
-    ```
-
-2. Rails Configuration
+1. Rails Configuration
 
     In your Rails application configuration file (`config/application.rb`), add
     the following line to configure Rails to generate UUIDs as primary keys by
@@ -1698,7 +1685,7 @@ database adapter to work with UUIDs.
     This setting instructs Rails to use UUIDs as the default primary key type
     for ActiveRecord models.
 
-3. Adding References with UUIDs:
+2. Adding References with UUIDs:
 
     When creating associations between models using references, ensure that you
     specify the data type as :uuid to maintain consistency with the primary key
@@ -1718,7 +1705,7 @@ database adapter to work with UUIDs.
     key it references. Adjust the syntax accordingly for other associations and
     databases.
 
-4. Migration Changes
+3. Migration Changes
 
     When generating migrations for your models, you'll notice that it specifies
     the id to be of type `uuid:`
