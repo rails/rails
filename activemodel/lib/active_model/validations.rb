@@ -483,10 +483,6 @@ module ActiveModel
 
   class ValidationContext # :nodoc:
     attr_accessor :context
-
-    def initialize(context = nil)
-      @context = context
-    end
   end
 end
 
