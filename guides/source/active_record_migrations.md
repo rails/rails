@@ -1654,12 +1654,12 @@ special comment like this:
 
 ### Using UUIDs instead of IDs for Primary Keys
 
-By default, Rails uses auto-incrementing integers (often referred to as "IDs")
-as primary keys for database records. However, there are scenarios where using
-Universally Unique Identifiers (UUIDs) as primary keys can be advantageous,
-especially in distributed systems or when integration with external services is
-necessary. UUIDs provide a globally unique identifier without relying on a
-centralized authority for generating IDs.
+By default, Rails uses auto-incrementing integers as primary keys for database
+records. However, there are scenarios where using Universally Unique Identifiers
+(UUIDs) as primary keys can be advantageous, especially in distributed systems
+or when integration with external services is necessary. UUIDs provide a
+globally unique identifier without relying on a centralized authority for
+generating IDs.
 
 #### Enabling UUIDs in Rails
 
@@ -1756,19 +1756,31 @@ centralized ID generation, and unlike auto-incrementing integers, UUIDs don't
 expose information about the total number of records in a table, which can be
 beneficial for security purposes.
 
-However, UUIDs are also larger than integers which can lead to increased storage
-requirements, especially in large databases. They can also impact performance
-due to their size. Therefore, it's essential to evaluate the trade-offs and
-consider the specific requirements of your application before deciding to use
-UUIDs as primary keys.
+However, UUIDs can also impact performance due to their size and are harder to
+index. UUIDs will have worse performance for writes and reads compared with
+integer primary keys and foreign keys.
+
+NOTE: Therefore, it's essential to evaluate the trade-offs and consider the
+specific requirements of your application before deciding to use UUIDs as
+primary keys.
 
 ### Data Migrations
 
-Data migrations involve transforming or moving data within your database. In Rails, it is generally not advised to perform data migrations using migration files. Here’s why:
+Data migrations involve transforming or moving data within your database. In
+Rails, it is generally not advised to perform data migrations using migration
+files. Here’s why:
 
-- **Separation of Concerns**: Schema changes and data changes have different lifecycles and purposes. Schema changes alter the structure of your database, while data changes alter the content.
-- **Rollback Complexity**: Data migrations can be hard to rollback safely and predictably.
-- **Performance**: Data migrations can take a long time to run and may lock your tables, affecting application performance and availability.
+- **Separation of Concerns**: Schema changes and data changes have different
+  lifecycles and purposes. Schema changes alter the structure of your database,
+  while data changes alter the content.
+- **Rollback Complexity**: Data migrations can be hard to rollback safely and
+  predictably.
+- **Performance**: Data migrations can take a long time to run and may lock your
+  tables, affecting application performance and availability.
 
-Instead, consider using the [`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem. This gem provides a framework for creating and managing data migrations and other maintenance tasks in a way that is safe and easy to manage without interfering with schema migrations.
+Instead, consider using the
+[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem. This
+gem provides a framework for creating and managing data migrations and other
+maintenance tasks in a way that is safe and easy to manage without interfering
+with schema migrations.
 
