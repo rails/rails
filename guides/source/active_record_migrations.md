@@ -832,7 +832,8 @@ In this example, we're updating the `price` column of the products table to
 WARNING: Modifying data directly in migrations should be approached with
 caution. Consider if this is the best approach for your use case, and be aware
 of potential drawbacks such as increased complexity and maintenance overhead,
-risks to data integrity and database portability.
+risks to data integrity and database portability. You can read more about data
+migrations [here](#data-migrations).
 
 For more details and examples of individual methods, check the API
 documentation.
@@ -1759,3 +1760,14 @@ requirements, especially in large databases. They can also impact performance
 due to their size. Therefore, it's essential to evaluate the trade-offs and
 consider the specific requirements of your application before deciding to use
 UUIDs as primary keys.
+
+### Data Migrations
+
+Data migrations involve transforming or moving data within your database. In Rails, it is generally not advised to perform data migrations using migration files. Here’s why:
+
+- **Separation of Concerns**: Schema changes and data changes have different lifecycles and purposes. Schema changes alter the structure of your database, while data changes alter the content.
+- **Rollback Complexity**: Data migrations can be hard to rollback safely and predictably.
+- **Performance**: Data migrations can take a long time to run and may lock your tables, affecting application performance and availability.
+
+Instead, consider using the [`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem. This gem provides a framework for creating and managing data migrations and other maintenance tasks in a way that is safe and easy to manage without interfering with schema migrations.
+
