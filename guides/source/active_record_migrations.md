@@ -1221,10 +1221,18 @@ If the database does not support transactions with statements that change the
 schema, then when a migration fails, the parts of it that have succeeded will
 not be rolled back. You will have to rollback the changes manually.
 
-NOTE: There are certain queries that can't run inside a transaction. If your
-adapter supports DDL transactions you can use `disable_ddl_transaction!` method
-to disable transactions for a single migration, allowing these queries to be
-executed outside the transactional boundary.
+There are queries that you can’t execute inside a transaction though, and for these situations you can turn the automatic transactions off with `disable_ddl_transaction!`:
+
+```ruby
+class ChangeEnum < ActiveRecord::Migration[8.0]
+  disable_ddl_transaction!
+
+  def up
+    execute "ALTER TYPE model_size ADD VALUE 'new_value'"
+  end
+end
+```
+NOTE: Remember that you can still open your own transactions, even if you are in a Migration with self.disable_ddl_transaction!.
 
 ### Setting Up the Database
 
