@@ -356,8 +356,11 @@ TIP: The general rule of thumb is to only nest resources 1 level deep.
 One way to avoid deep nesting (as recommended above) is to generate the
 collection actions scoped under the parent - so as to get a sense of the
 hierarchy, but to not nest the member actions. In other words, to only build
-routes with the minimal amount of information to uniquely identify the resource,
-like this:
+routes with the minimal amount of information to uniquely identify the resource.
+
+NOTE: The "member" actions are the ones that apply to an individual resource and require an ID to identify the specific resource they are acting upon, such as `show`, `edit`, etc. The "collection" actions are the ones that act on the entire set of the resource, such as `index`.
+
+For example:
 
 ```ruby
 resources :articles do
