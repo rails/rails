@@ -1217,7 +1217,7 @@ consistency. This means that either all operations within the transaction are
 executed successfully, or none of them are, preventing the database from being
 left in an inconsistent state if an error occurs during the transaction.
 
-If the database does not support transactions with statements that change the
+If the database does not support DDL transactions with statements that change the
 schema, then when a migration fails, the parts of it that have succeeded will
 not be rolled back. You will have to rollback the changes manually.
 
