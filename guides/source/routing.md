@@ -369,7 +369,7 @@ end
 resources :comments, only: [:show, :edit, :update, :destroy]
 ```
 
-This idea strikes a balance between descriptive routes and deep nesting. There is a shorthand syntax to achieve just that, via the `:shallow` option:
+Above we use the `:only` option which tells Rails to create only the specified routes. This idea strikes a balance between descriptive routes and deep nesting. There is a shorthand syntax to achieve just that, via the `:shallow` option:
 
 ```ruby
 resources :articles do
@@ -567,7 +567,7 @@ NOTE: In order to automatically derive paths and URLs from objects such as `[@ma
 
 ### Adding More RESTful Routes
 
-You are not limited to the seven routes that RESTful routing creates by default. You can add additional routes that apply to the collection or individual members of the collection.
+You are not limited to the [seven routes](#crud-verbs-and-actions) that RESTful routing creates by default. You can add additional routes that apply to the collection or individual members of the collection.
 
 The below sections describe adding member routes and collection routes. The term `member` refers to routes acting on a single element, such as `show`, `update`, or `destroy`. The term `collection` refers to routes acting on multiple, or a collection of, elements, such as the `index` route.
 
