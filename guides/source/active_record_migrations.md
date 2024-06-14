@@ -86,8 +86,8 @@ essential to consider the reversibility of the migration. While Active Record
 can manage the forward progression of the migration, ensuring the creation of
 the table, the concept of reversibility becomes crucial. With reversible
 migrations, not only does the migration create the table when applied, but it
-also enables smooth rollback functionality. In case of reverting the migration,
-Active Record intelligently handles the removal of the table, maintaining
+also enables smooth rollback functionality. In case of reverting the migration
+above, Active Record intelligently handles the removal of the table, maintaining
 database consistency throughout the process. You can read more about reversing
 migrations [here](#using-reversible).
 
