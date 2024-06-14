@@ -252,6 +252,10 @@
       name: Composite Primary Keys
       url: active_record_composite_primary_keys.html
       description: This guide is an introduction to composite primary keys for database tables.
+    -
+      name: Tuning Performance for Deployment
+      url: tuning_performance_for_deployment.html
+      description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
 
 -
   name: Extending Rails
@@ -335,7 +339,6 @@
       name: Version 7.2 - ?
       url: 7_2_release_notes.html
       description: Release notes for Rails 7.2.
-      work_in_progress: true
     -
       name: Version 7.1 - October 2023
       url: 7_1_release_notes.html

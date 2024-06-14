@@ -41,7 +41,7 @@ module Rails
 
       def perform(*)
         boot_application!
-        Rails.application.routes_reloader.execute_unless_loaded
+        Rails.application.reload_routes_unless_loaded
         require "action_dispatch/routing/inspector"
 
         say(inspector.format(formatter, routes_filter))

@@ -33,6 +33,7 @@ module Rails
       def execute_unless_loaded
         unless @loaded
           execute
+          ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
           true
         end
       end

@@ -8,8 +8,9 @@ class Time
 
   silence_redefinition_of_method :to_time
 
-  # Returns +self+.
+  # Either return +self+ or the time in the local system timezone depending
+  # on the setting of +ActiveSupport.to_time_preserves_timezone+.
   def to_time
-    self
+    preserve_timezone ? self : getlocal
   end
 end

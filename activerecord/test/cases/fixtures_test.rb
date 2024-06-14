@@ -611,7 +611,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_fixture_method_and_private_alias
     assert_equal "The First Topic", topics(:first).title
     assert_equal "The First Topic", fixture(:topics, :first).title
-    assert_equal "The First Topic", _active_record_fixture(:topics, :first).title
+    assert_equal "The First Topic", active_record_fixture(:topics, :first).title
   end
 
   def test_fixture_method_does_not_clash_with_a_test_case_method

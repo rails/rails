@@ -327,8 +327,8 @@ module ActiveRecord
 
         if raise_error
           raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
-        elsif logger
-          logger.warn(ORDER_IGNORE_MESSAGE)
+        elsif model.logger
+          model.logger.warn(ORDER_IGNORE_MESSAGE)
         end
       end
 
@@ -367,7 +367,7 @@ module ActiveRecord
         relation = apply_limits(relation, start, finish, batch_orders)
         relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
         batch_relation = relation
-        empty_scope = to_sql == klass.unscoped.all.to_sql
+        empty_scope = to_sql == model.unscoped.all.to_sql
 
         loop do
           if load

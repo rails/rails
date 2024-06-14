@@ -30,6 +30,9 @@ require "models/recipe"
 require "models/user_with_invalid_relation"
 require "models/hardback"
 require "models/sharded/comment"
+require "models/admin"
+require "models/admin/user"
+require "models/user"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -179,6 +182,30 @@ class ReflectionTest < ActiveRecord::TestCase
       assert_match "not an ActiveRecord::Base subclass", error.message
       assert_match "UserWithInvalidRelation##{rel}", error.message
     end
+  end
+
+  def test_reflection_klass_with_same_demodularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_one,
+      :user,
+      nil,
+      {},
+      Admin::User
+    )
+
+    assert_equal User, reflection.klass
+  end
+
+  def test_reflection_klass_with_same_demodularized_different_modularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_one,
+      :user,
+      nil,
+      { class_name: "Nested::User" },
+      Admin::User
+    )
+
+    assert_equal Nested::User, reflection.klass
   end
 
   def test_aggregation_reflection
@@ -577,6 +604,18 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_reflect_on_association_accepts_strings
     assert_nothing_raised do
       assert_equal :departments, Hotel.reflect_on_association("departments").name
+    end
+  end
+
+  def test_reflect_on_missing_source_assocation
+    assert_nothing_raised do
+      assert_nil Hotel.reflect_on_association(:lost_items).source_reflection
+    end
+  end
+
+  def test_reflect_on_missing_source_assocation_raise_exception
+    assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
+      Hotel.reflect_on_association(:lost_items).check_validity!
     end
   end
 

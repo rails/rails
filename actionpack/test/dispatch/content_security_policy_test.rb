@@ -45,6 +45,9 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.script_src :unsafe_eval
     assert_equal "script-src 'unsafe-eval'", @policy.build
 
+    @policy.script_src :wasm_unsafe_eval
+    assert_equal "script-src 'wasm-unsafe-eval'", @policy.build
+
     @policy.script_src :none
     assert_equal "script-src 'none'", @policy.build
 

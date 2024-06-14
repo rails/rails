@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators/app_base"
+require "rails/generators/rails/devcontainer/devcontainer_generator"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -127,7 +128,7 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "cable.yml" unless options[:update] || options[:skip_action_cable]
-        template "puma.rb"   unless options[:update]
+        template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
 
         directory "environments"
@@ -268,11 +269,17 @@ module Rails
     end
 
     def devcontainer
-      empty_directory ".devcontainer"
+      devcontainer_options = {
+        database: options[:database],
+        redis: !(options[:skip_action_cable] && options[:skip_active_job]),
+        system_test: depends_on_system_test?,
+        active_storage: !options[:skip_active_storage],
+        dev: options[:dev],
+        node: using_node?,
+        app_name: app_name
+      }
 
-      template ".devcontainer/devcontainer.json"
-      template ".devcontainer/Dockerfile"
-      template ".devcontainer/compose.yaml"
+      Rails::Generators::DevcontainerGenerator.new([], devcontainer_options).invoke_all
     end
   end
 

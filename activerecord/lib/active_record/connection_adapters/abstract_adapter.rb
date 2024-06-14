@@ -134,7 +134,7 @@ module ActiveRecord
           @logger = ActiveRecord::Base.logger
 
           if deprecated_logger || deprecated_connection_options || deprecated_config
-            raise ArgumentError, "when initializing an ActiveRecord adapter with a config hash, that should be the only argument"
+            raise ArgumentError, "when initializing an Active Record adapter with a config hash, that should be the only argument"
           end
         else
           # Soft-deprecated for now; we'll probably warn in future.
@@ -1118,6 +1118,7 @@ module ActiveRecord
             statement_name:    statement_name,
             async:             async,
             connection:        self,
+            transaction:       current_transaction.user_transaction.presence,
             row_count:         0,
             &block
           )

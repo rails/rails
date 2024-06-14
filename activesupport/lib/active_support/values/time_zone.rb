@@ -208,9 +208,7 @@ module ActiveSupport
         TZInfo::Timezone.get(MAPPING[name] || name)
       end
 
-      # :stopdoc:
-      alias_method :create, :new
-      # :startdoc:
+      alias_method :create, :new # :nodoc:
 
       # Returns a TimeZone instance with the given name, or +nil+ if no
       # such TimeZone instance exists. (This exists to support the use of
@@ -554,20 +552,24 @@ module ActiveSupport
       tzinfo.local_to_utc(time, dst)
     end
 
-    # Available so that TimeZone instances respond like +TZInfo::Timezone+
-    # instances.
-    def period_for_utc(time)
+    def period_for_utc(time) # :nodoc:
       tzinfo.period_for_utc(time)
     end
 
-    # Available so that TimeZone instances respond like +TZInfo::Timezone+
-    # instances.
-    def period_for_local(time, dst = true)
+    def period_for_local(time, dst = true) # :nodoc:
       tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
     def periods_for_local(time) # :nodoc:
       tzinfo.periods_for_local(time)
+    end
+
+    def abbr(time) # :nodoc:
+      tzinfo.abbr(time)
+    end
+
+    def dst?(time) # :nodoc:
+      tzinfo.dst?(time)
     end
 
     def init_with(coder) # :nodoc:
