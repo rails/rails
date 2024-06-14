@@ -53,13 +53,15 @@ NOTE: Rails uses snake_case for controller names when specifying routes. For exa
 
 The Router automatically generates paths and URLs that can be used throughout your application, such as `user_path` and `user_url` in the example below.
 
-If the route above is modified to be:
+Given the route above is modified to be:
 
 ```ruby
 get '/users/:id', to: 'users#show', as: 'user'
 ```
 
-and your application contains this code in the controller:
+NOTE: The `as:` option is used to provide a custom name for a route, which is used when generating URL and path helpers.
+
+Assuming your application contains this code in the controller:
 
 ```ruby
 @user = User.find(params[:id])
