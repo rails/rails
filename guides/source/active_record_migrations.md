@@ -1237,6 +1237,7 @@ class ChangeEnum < ActiveRecord::Migration[8.0]
   end
 end
 ```
+
 NOTE: Remember that you can still open your own transactions, even if you are in
 a Migration with self.disable_ddl_transaction!.
 
