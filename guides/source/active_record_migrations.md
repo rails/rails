@@ -809,7 +809,7 @@ INFO: Tables with composite primary keys require passing array values rather
 than integer IDs to many methods. See also the [Active Record Composite Primary
 Keys](active_record_composite_primary_keys.html) guide to learn more.
 
-### Execute Arbitrary SQL
+### Execute SQL
 
 If the helpers provided by Active Record aren't enough, you can use the
 [`execute`][] method to execute SQL commands. For example,
