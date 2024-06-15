@@ -123,7 +123,17 @@ The above will generate the following:
 <label for="mystery">Mystery</label>
 ```
 
-The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "Biography" checkbox only, the `params` hash would contain `params: {"biography"=>"1", "romance"=>"0", "mystery"=>"0"}`. You can use `params[:biography]` to check if that checkbox is selected by the user.
+The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "Biography" checkbox only, the `params` hash would contain:
+
+```ruby
+{
+  "biography" => "1",
+  "romance" => "0",
+  "mystery" => "0"
+}
+```
+
+You can use `params[:biography]` to check if that checkbox is selected by the user.
 
 The checkbox's values (the values that will appear in `params`) can optionally be specified using the `checked_value` and `unchecked_value` parameters. See the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-check_box) for more details.
 
