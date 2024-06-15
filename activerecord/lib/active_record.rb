@@ -90,6 +90,7 @@ module ActiveRecord
   autoload :Transactions
   autoload :Translation
   autoload :Validations
+  autoload :ParallelQuery
 
   eager_autoload do
     autoload :Aggregations

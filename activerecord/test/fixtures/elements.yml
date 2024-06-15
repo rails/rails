@@ -1,0 +1,18 @@
+root:
+  id: 1
+  name: "Root Element"
+
+<% 1000.times do |i| %>
+parent_<%= i %>:
+  id: <%= i + 2 %>
+  name: "Parent <%= i %>"
+  parent_id: 1
+
+<% rand(50..200).times do |j| %>
+child_<%= i %>_<%= j %>:
+  id: <%= i * 1000 + j + 1015 %>
+  name: "Child <%= i * 1000 + j %>"
+  parent_id: <%= i + 2 %>
+<% end %>
+<% end %>
+
