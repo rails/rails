@@ -991,7 +991,11 @@ For example, if you want users to be able to input multiple phone numbers, you c
 <input name="person[phone_number][]" type="text"/>
 ```
 
-This would result in `params[:person][:phone_number]` being an array containing the submitted phone numbers.
+This would result in `params[:person][:phone_number]` being an array containing the submitted phone numbers:
+
+```ruby
+{ 'person' => { 'phone_number' => ['555-0123', '555-0124', '555-0125'] } }
+```
 
 ### Combining Arrays and Hashes
 
@@ -1008,7 +1012,23 @@ You also can have an array of hashes. For example, you can create any number of 
 <input name="person[addresses][][city]" type="text"/>
 ```
 
-This would result in `params[:person][:addresses]` being an array of hashes. Each hash in the array will have the keys `line1`, `line2`, and `city`.
+This would result in `params[:person][:addresses]` being an array of hashes. Each hash in the array will have the keys `line1`, `line2`, and `city`, something like this:
+
+```ruby
+{ 'person' =>
+  { 'addresses' => [
+    { 'line1' => '1000 Fifth Avenue',
+      'line2' => '',
+      'city' => 'New York'
+    },
+    { 'line1' => 'Calle de Ruiz de Alarcón',
+      'line2' => '',
+      'city' => 'Madrid'
+    }
+    ]
+  }
+}
+```
 
 It's important to note that while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes. For example, instead of an array of model objects, you can have a hash of model objects keyed by their id or similar.
 
