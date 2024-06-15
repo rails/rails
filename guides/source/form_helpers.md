@@ -1092,7 +1092,6 @@ You can even pass `nil`, which will produce an array parameter.
 
 To create more intricate nestings, you can specify the leading portion of the
 input name explicitly. For example, if we have a primary address:
-input name explicitly. For example:
 
 ```erb
 <%= fields_for 'person[address][primary]', address, index: address.id do |address_form| %>
