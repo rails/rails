@@ -135,7 +135,7 @@ resources :photos
 
 creates seven different routes in your application, all mapping to the `Photos` controller:
 
-| HTTP Verb | Path             | Controller#Action | Used for                                     |
+| HTTP Verb | Path             | Controller#Action | Used to                                     |
 | --------- | ---------------- | ----------------- | -------------------------------------------- |
 | GET       | /photos          | photos#index      | display a list of all photos                 |
 | GET       | /photos/new      | photos#new        | return an HTML form for creating a new photo |
@@ -199,7 +199,7 @@ NOTE: The call to `resolve` is necessary for converting instances of the `Geocod
 
 Here are all of the routes created for a singular resource:
 
-| HTTP Verb | Path           | Controller#Action | Used for                                      |
+| HTTP Verb | Path           | Controller#Action | Used to                                      |
 | --------- | -------------- | ----------------- | --------------------------------------------- |
 | GET       | /geocoder/new  | geocoders#new     | return an HTML form for creating the geocoder |
 | POST      | /geocoder      | geocoders#create  | create the new geocoder                       |
@@ -317,7 +317,7 @@ end
 
 In addition to the routes for magazines, this declaration will also route ads to an `AdsController`. Here are all of the routes for the nested `ads` resource:
 
-| HTTP Verb | Path                                 | Controller#Action | Used for                                                                   |
+| HTTP Verb | Path                                 | Controller#Action | Used to                                                                   |
 | --------- | ------------------------------------ | ----------------- | -------------------------------------------------------------------------- |
 | GET       | /magazines/:magazine_id/ads          | ads#index         | display a list of all ads for a specific magazine                          |
 | GET       | /magazines/:magazine_id/ads/new      | ads#new           | return an HTML form for creating a new ad belonging to a specific magazine |
