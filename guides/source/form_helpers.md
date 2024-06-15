@@ -17,7 +17,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide is not intended to be a complete list of all available form helpers. Please refer to [the Rails API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for an exhaustive list of form helpers and their arguments.
+This guide is not intended to be a complete list of all available form helpers. Please refer to [the Rails API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for an exhaustive list of form helpers and their arguments.
 
 Working with Basic Forms
 ------------------------
@@ -73,9 +73,9 @@ This will generate the following HTML:
 
 Notice that for the search form we are using the `url` option of `form_with`. Setting `url: "/search"` changes the form action value from the default current page path to `action="/search"`.
 
-In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Record objects to the form, as you will learn [below](#creating-forms-with-model-objects). You can also use [URL helpers](routing.html#path-and-url-helpers).
+In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Model objects to the form, as you will learn [below](#creating-forms-with-model-objects). You can also use [URL helpers](routing.html#path-and-url-helpers).
 
-The search form example also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like`form.label` and `form.text_field` in the above example) in the next section.
+The search form example above also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like`form.label` and `form.text_field`) in the next section.
 
 TIP: For every form `input` element, an `id` attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
@@ -87,7 +87,7 @@ search allows users to bookmark a specific search.
 
 The form builder object yielded by `form_with` provides many helper methods for generating common form elements such as text fields, checkboxes, and radio buttons.
 
-The first parameter to these methods is always the name of the input. This is
+The first argument to these methods is always the name of the input. This is
 useful to remember because when the form is submitted, that name will be passed
 to the controller along with the form data in the `params` hash. The name will be the key in the `params` for the value entered by the user for that field.
 
@@ -155,7 +155,7 @@ The above will generate the following HTML:
 <label for="flavor_hazelnut">Hazelnut</label>
 ```
 
-The second parameter to [`radio_button`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-radio_button) is the value of the input. Because these radio buttons share the same name (`flavor`), the user will only be able to select one of them, and `params[:flavor]` will contain either `"chocolate_chip"`, `"vanilla"`, or `hazelnut`.
+The second argument to [`radio_button`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-radio_button) is the value of the input. Because these radio buttons share the same name (`flavor`), the user will only be able to select one of them, and `params[:flavor]` will contain either `"chocolate_chip"`, `"vanilla"`, or `hazelnut`.
 
 NOTE: Always use labels for checkbox and radio buttons. They associate text with
 a specific option using the `for` attribute and, by expanding the clickable
@@ -806,7 +806,7 @@ A common task with forms is allowing users to upload a file. It could be an avat
 <% end %>
 ```
 
-The most important thing to remember with file uploads is that the rendered form's `enctype` attribute **must** be set to "multipart/form-data". This is done automatically if you use a `file_field` inside a `form_with`. You can also set the attribute manually:
+The most important thing to remember with file uploads is that the rendered form's `enctype` attribute **must** be set to `multipart/form-data`. This is done automatically if you use a `file_field` inside a `form_with`. You can also set the attribute manually:
 
 ```erb
 <%= form_with url: "/uploads", multipart: true do |form| %>
@@ -1002,7 +1002,7 @@ This would result in `params[:person][:addresses]` being an array of hashes. Eac
 
 It's important to note that while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes. For example, instead of an array of model objects, you can have a hash of model objects keyed by their id or similar.
 
-WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If it is checked then both are submitted but the value submitted by the checkbox takes precedence. There is a `include_hidden` option can be set to `false` if you want to omit this hidden field. By default, this option is `true`.
+WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If it is checked then both are submitted but the value submitted by the checkbox takes precedence. There is a `include_hidden` option that can be set to `false` if you want to omit this hidden field. By default, this option is `true`.
 
 ### The `fields_for` Helper `:index` Option
 
@@ -1255,7 +1255,7 @@ end
 ```
 
 If the hash of attributes for an object contains the key `_destroy` with a value
-that evaluates to `true` (e.g. 1, '1', true, or 'true') then the object will be
+that evaluates to `true` (e.g. `1`, `'1'`, `true`, or `'true'`) then the object will be
 destroyed. This form allows users to remove addresses:
 
 ```erb
