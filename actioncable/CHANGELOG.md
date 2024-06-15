@@ -1,2 +1,3 @@
+*   Reset reconnect_count when Redis reconnect_attempt limit is reached to avoid wedging.
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actioncable/CHANGELOG.md) for previous changes.
+    *Elijah Buck*

@@ -78,6 +78,7 @@ module ActionCable
             # Use the same config as used by Redis conn
             @reconnect_attempts = config_options.fetch(:reconnect_attempts, 1)
             @reconnect_attempts = Array.new(@reconnect_attempts, 0) if @reconnect_attempts.is_a?(Integer)
+            @reconnect_reset_delay = config_options.fetch(:reconnect_reset_delay, 3)
 
             @subscribed_client = nil
 
@@ -168,6 +169,10 @@ module ActionCable
                   reset
                   if retry_connecting?
                     when_connected { resubscribe }
+                    retry
+                  else
+                    @reconnect_attempt = 0
+                    sleep @reconnect_reset_delay
                     retry
                   end
                 end
