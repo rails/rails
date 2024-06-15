@@ -429,6 +429,12 @@ class MyTest < ActiveSupport::TestCase
 end
 ```
 
+If there are [multiple writing databases](active_record_multiple_databases.html)
+in place, tests are wrapped in as many respective transactions, and all of them
+are rolled back.
+
+#### Opting-out of Test Transactions
+
 Individual test cases can opt-out:
 
 ```ruby
