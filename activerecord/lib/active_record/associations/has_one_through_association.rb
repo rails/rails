@@ -6,7 +6,24 @@ module ActiveRecord
     class HasOneThroughAssociation < HasOneAssociation # :nodoc:
       include ThroughAssociation
 
+      def load_target
+        self.target = source_association_target if !loaded? && source_association_cached?
+        super
+      end
+
       private
+        def source_association_cached?
+          through_association.loaded? && through_association_target.present? && source_association.loaded?
+        end
+
+        def source_association
+          @source_association ||= through_association_target.association(source_reflection.name)
+        end
+
+        def source_association_target
+          @source_association_target ||= source_association.target
+        end
+
         def replace(record, save = true)
           create_through_record(record, save)
           self.target = record
@@ -19,6 +36,7 @@ module ActiveRecord
           through_record = through_proxy.load_target
 
           if through_record && !record
+            source_association.target = nil
             through_record.destroy
           elsif record
             attributes = construct_join_attributes(record)

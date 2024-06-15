@@ -1,3 +1,16 @@
+*   Allow a record to access its `has_one :through` associations without querying the database
+    if the association has already been loaded.
+
+    Before the change:
+
+    ```ruby
+    member = Member.includes(current_membership: :club).first
+    member.current_membership.club # => does not query the database
+    member.club # => queries the database
+    ```
+
+    *Jay Ang*
+
 *   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
     `DatabaseConfig`.
 
