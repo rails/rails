@@ -1,3 +1,7 @@
+*   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
+
+    *Hartley McGuire*
+
 *   Deprecate drawing routes with multiple paths to make routing faster.
     You may use `with_options` or a loop to make drawing multiple paths easier.
 
