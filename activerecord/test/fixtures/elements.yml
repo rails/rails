@@ -3,7 +3,7 @@ root:
   name: "Root Element"
 
 <% id_counter = 2 %>
-<% 200.times do |i| %>
+<% 180.times do |i| %>
 parent_<%= i %>:
   id: <%= id_counter %>
   name: "Parent <%= i %>"
@@ -14,7 +14,7 @@ parent_<%= i %>:
 <% 10.upto(330).each do |j| %>
 child_<%= i %>_<%= j %>:
   id: <%= id_counter %>
-  name: "Child <%= i * 200 + j %>"
+  name: "Child <%= i * 180 + j %>"
   parent_id: <%= parent_id %>
 <% id_counter += 1 %>
 <% end %>
