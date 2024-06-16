@@ -1474,6 +1474,12 @@ ActiveRecord::Schema.define do
     t.bigint :toooooooo_long_a_id, null: false
     t.bigint :toooooooo_long_b_id, null: false
   end
+
+  create_table :elements, force: true do |t|
+    t.string :name
+    t.references :parent, foreign_key: { to_table: :elements }
+    t.timestamps
+  end
 end
 
 if ActiveRecord::Base.lease_connection.supports_insert_returning? && !ActiveRecord::TestCase.current_adapter?(:SQLite3Adapter)
