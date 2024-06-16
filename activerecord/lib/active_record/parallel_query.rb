@@ -19,12 +19,10 @@ module ActiveRecord
 
       private
         def self.execute_with_parallel_postgresql(max_workers)
-          begin
-            set_postgresql_parallel_settings(max_workers)
-            yield
-          ensure
-            reset_postgresql_parallel_settings
-          end
+          set_postgresql_parallel_settings(max_workers)
+          yield
+        ensure
+          reset_postgresql_parallel_settings
         end
 
         # Sets PostgreSQL settings to enable and optimize parallel query execution.

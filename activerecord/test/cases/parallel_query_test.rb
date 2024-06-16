@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_record"
 require "models/element"
@@ -22,22 +24,32 @@ class ParallelQueryTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection.execute("
         EXPLAIN ANALYZE
         SELECT
-          parent.name AS parent_name,
-          COUNT(child.id) AS child_count,
-          AVG(child.id) AS avg_child_id,
-          MAX(child.id) AS max_child_id,
-          MIN(child.id) AS min_child_id,
-          SUM(child.id) AS sum_child_id,
-          COUNT(DISTINCT child.name) AS distinct_child_names,
-          COUNT(DISTINCT parent.name) AS distinct_parent_names
-        FROM elements AS parent
-        LEFT JOIN elements AS child ON parent.id = child.parent_id
-        WHERE child.created_at >= '2020-01-01' AND parent.created_at >= '2020-01-01'
-        GROUP BY parent.name
-        HAVING COUNT(child.id) > 100
-        ORDER BY child_count DESC, parent.name ASC
+              elements.name AS parent_name,
+        COUNT(child.id) AS child_count,
+        AVG(child.id) AS avg_child_id,
+        MAX(child.id) AS max_child_id,
+        MIN(child.id) AS min_child_id,
+        SUM(child.id) AS sum_child_id,
+        COUNT(DISTINCT child.name) AS distinct_child_names,
+        COUNT(DISTINCT elements.name) AS distinct_parent_names
+    FROM
+        elements
+    LEFT JOIN
+        elements AS child ON elements.id = child.parent_id
+    WHERE
+        child.created_at >= '2020-01-01'
+        AND elements.created_at >= '2020-01-01'
+    GROUP BY
+        elements.name
+    HAVING
+        COUNT(child.id) > 100
+    ORDER BY
+        child_count DESC,
+        elements.name ASC;
       ")
     end
+
+    # query modification
 
     explain_output.each do |line|
       puts line["QUERY PLAN"] # To see the output in test logs
@@ -97,14 +109,14 @@ class ParallelQueryTest < ActiveRecord::TestCase
       end
     end
 
-    result =  Element.parallel_query(max_workers: 4) do
+    result = Element.parallel_query(max_workers: 4) do
       Element.joins("LEFT JOIN elements AS child ON elements.id = child.parent_id")
       .group("elements.name")
       .select("elements.name AS parent_name, COUNT(child.id) AS child_count, AVG(child.id) AS avg_child_id, MAX(child.id) AS max_child_id, MIN(child.id) AS min_child_id, SUM(child.id) AS sum_child_id")
       .order("child_count DESC")
     end
 
-    assert result.any?, "Expected query to return results"
+    assert_predicate result, :any?, "Expected query to return results"
   end
 
   def test_query_execution_time_comparison
@@ -114,22 +126,22 @@ class ParallelQueryTest < ActiveRecord::TestCase
 
     baseline_time = Benchmark.realtime do
       Element.joins("LEFT JOIN elements AS child ON elements.id = child.parent_id")
-      .group('elements.name')
-      .select('elements.name AS parent_name, COUNT(child.id) AS child_count, AVG(child.id) AS avg_child_id, MAX(child.id) AS max_child_id, MIN(child.id) AS min_child_id, SUM(child.id) AS sum_child_id, COUNT(DISTINCT child.name) AS distinct_child_names, COUNT(DISTINCT elements.name) AS distinct_parent_names')
+      .group("elements.name")
+      .select("elements.name AS parent_name, COUNT(child.id) AS child_count, AVG(child.id) AS avg_child_id, MAX(child.id) AS max_child_id, MIN(child.id) AS min_child_id, SUM(child.id) AS sum_child_id, COUNT(DISTINCT child.name) AS distinct_child_names, COUNT(DISTINCT elements.name) AS distinct_parent_names")
       .where("child.created_at >= '2020-01-01' AND elements.created_at >= '2020-01-01'")
-      .having('COUNT(child.id) > 100')
-      .order('child_count DESC, elements.name ASC')
+      .having("COUNT(child.id) > 100")
+      .order("child_count DESC, elements.name ASC")
       .to_a
     end
 
     parallel_time = Benchmark.realtime do
       Element.parallel_query(max_workers: 4) do
         Element.joins("LEFT JOIN elements AS child ON elements.id = child.parent_id")
-        .group('elements.name')
-        .select('elements.name AS parent_name, COUNT(child.id) AS child_count, AVG(child.id) AS avg_child_id, MAX(child.id) AS max_child_id, MIN(child.id) AS min_child_id, SUM(child.id) AS sum_child_id, COUNT(DISTINCT child.name) AS distinct_child_names, COUNT(DISTINCT elements.name) AS distinct_parent_names')
+        .group("elements.name")
+        .select("elements.name AS parent_name, COUNT(child.id) AS child_count, AVG(child.id) AS avg_child_id, MAX(child.id) AS max_child_id, MIN(child.id) AS min_child_id, SUM(child.id) AS sum_child_id, COUNT(DISTINCT child.name) AS distinct_child_names, COUNT(DISTINCT elements.name) AS distinct_parent_names")
         .where("child.created_at >= '2020-01-01' AND elements.created_at >= '2020-01-01'")
-        .having('COUNT(child.id) > 100')
-        .order('child_count DESC, elements.name ASC')
+        .having("COUNT(child.id) > 100")
+        .order("child_count DESC, elements.name ASC")
         .to_a
       end
     end
