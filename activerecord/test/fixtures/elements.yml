@@ -3,7 +3,7 @@ root:
   name: "Root Element"
 
 <% id_counter = 2 %>
-<% 100.times do |i| %>
+<% 140.times do |i| %>
 parent_<%= i %>:
   id: <%= id_counter %>
   name: "Parent <%= i %>"
@@ -11,11 +11,16 @@ parent_<%= i %>:
 <% parent_id = id_counter %>
 <% id_counter += 1 %>
 
-<% 100.upto(200).each do |j| %>
+<% 140.upto(240).each do |j| %>
 child_<%= i %>_<%= j %>:
   id: <%= id_counter %>
-  name: "Child <%= i * 100 + j %>"
+  name: "Child <%= i * 140 + j %>"
   parent_id: <%= parent_id %>
 <% id_counter += 1 %>
 <% end %>
 <% end %>
+
+# Root Element: One root element with ID 1.
+# Parent Elements: 130 parent elements, each with a unique ID and referencing the root element.
+# Child Elements: Each parent element has between 140 and 240 child elements, each with a unique ID.
+# ID Management: The id_counter variable ensures each ID is unique by incrementing after every assignment.
