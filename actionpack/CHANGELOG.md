@@ -1,3 +1,7 @@
+*   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
+
+    *Hartley McGuire*
+
 *   Remove `racc` dependency by manually writing `ActionDispatch::Journey::Scanner`.
 
     *Gannon McGibbon*
