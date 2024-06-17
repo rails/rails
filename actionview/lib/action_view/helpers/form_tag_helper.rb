@@ -986,7 +986,7 @@ module ActionView
       #        </datalist>
       def datalist_tag(id, option_tags = nil, html_options = {})
         option_tags ||= ""
-        content_tag("datalist", options_for_select(option_tags), { id: }.merge(html_options))
+        content_tag("datalist", options_for_select(option_tags), { "id" => id }.update(html_options.stringify_keys))
       end
 
       # Creates the hidden UTF-8 enforcer tag. Override this method in a helper
