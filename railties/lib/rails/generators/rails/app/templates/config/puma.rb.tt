@@ -20,8 +20,8 @@ if rails_env == "production"
   # It defaults to 1 because it's impossible to reliably detect how many
   # CPU cores are available. Make sure to set the `WEB_CONCURRENCY` environment
   # variable to match the number of processors.
-  processors_count = Integer(ENV.fetch("WEB_CONCURRENCY") { 1 })
-  if processors_count > 1
+  worker_count = Integer(ENV.fetch("WEB_CONCURRENCY") { 1 })
+  if worker_count > 1
     workers worker_count
   else
     preload_app!
