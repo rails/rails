@@ -121,7 +121,7 @@ module ActiveRecord
           )
           super
         else
-          define_attribute_method_pattern(pattern, old_name, owner: code_generator, as: new_name)
+          define_attribute_method_pattern(pattern, old_name, owner: code_generator, as: new_name, override: true)
         end
       end
 
