@@ -91,7 +91,7 @@ module ActiveRecord
           raise ArgumentError, "#{self.name} model aliases `#{old_name}`, but `#{old_name}` is not an attribute. " \
             "Use `alias_method :#{new_name}, :#{old_name}` or define the method manually."
         else
-          define_attribute_method_pattern(pattern, old_name, owner: code_generator, as: new_name)
+          define_attribute_method_pattern(pattern, old_name, owner: code_generator, as: new_name, override: true)
         end
       end
 
