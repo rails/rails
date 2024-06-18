@@ -5,15 +5,28 @@ require "active_support/core_ext/digest"
 module ActiveRecord
   # Class specifies the interface to interact with the current transaction state.
   #
-  # It can either map to an actual transaction or represent the abscence of a transaction.
+  # It can either map to an actual transaction/savepoint, or represent the
+  # absence of a transaction.
   #
   # == State
   #
-  # You can check whether a transaction is open with the +open?+ or +closed?+ methods
+  # We say that a transaction is _finalized_ when it wraps a real transaction
+  # that has been either committed or rolled back.
+  #
+  # A transaction is _open_ if it wraps a real transaction that is not finalized.
+  #
+  # On the other hand, a transaction is _closed_ when it is not open. That is,
+  # when it represents absence of transaction, or it wraps a real but finalized
+  # one.
+  #
+  # You can check whether a transaction is open or closed with the +open?+ and
+  # +closed?+ predicates:
   #
   #  if Article.current_transaction.open?
-  #    # We are inside a transaction
+  #    # We are inside a real and not finalized transaction.
   #  end
+  #
+  # Closed transactions are `blank?` too.
   #
   # == Callbacks
   #
@@ -60,16 +73,15 @@ module ActiveRecord
 
     # Registers a block to be called after the transaction is fully committed.
     #
-    # If there is no currently open transactions, the block is called immediately.
+    # If there is no currently open transactions, the block is called
+    # immediately, unless the transaction is finalized, in which case attempting
+    # to register the callback raises ActiveRecord::ActiveRecordError.
     #
     # If the transaction has a parent transaction, the callback is transferred to
     # the parent when the current transaction commits, or dropped when the current transaction
     # is rolled back. This operation is repeated until the outermost transaction is reached.
     #
     # If the callback raises an error, the transaction remains committed.
-    #
-    # If the transaction is already finalized, attempting to register a callback
-    # will raise ActiveRecord::ActiveRecordError
     def after_commit(&block)
       if @internal_transaction.nil?
         yield
@@ -80,7 +92,9 @@ module ActiveRecord
 
     # Registers a block to be called after the transaction is rolled back.
     #
-    # If there is no currently open transactions, the block is never called.
+    # If there is no currently open transactions, the block is not called. But
+    # if the transaction is finalized, attempting to register the callback
+    # raises ActiveRecord::ActiveRecordError.
     #
     # If the transaction is successfully committed but has a parent
     # transaction, the callback is automatically added to the parent transaction.
@@ -89,17 +103,17 @@ module ActiveRecord
     # the block is never called.
     #
     # If the transaction is already finalized, attempting to register a callback
-    # will raise ActiveRecord::ActiveRecordError
+    # will raise ActiveRecord::ActiveRecordError.
     def after_rollback(&block)
       @internal_transaction&.after_rollback(&block)
     end
 
-    # Returns true if the transaction exists and isn't finalized yet
+    # Returns true if the transaction exists and isn't finalized yet.
     def open?
       !closed?
     end
 
-    # Returns true if the transaction doesn't exists or is finalized (committed or rolled back)
+    # Returns true if the transaction doesn't exists or is finalized.
     def closed?
       @internal_transaction.nil? || @internal_transaction.state.finalized?
     end

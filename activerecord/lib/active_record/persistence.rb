@@ -248,18 +248,16 @@ module ActiveRecord
 
         im = Arel::InsertManager.new(arel_table)
 
-        with_connection do |c|
-          if values.empty?
-            im.insert(connection.empty_insert_statement_value(primary_key))
-          else
-            im.insert(values.transform_keys { |name| arel_table[name] })
-          end
-
-          connection.insert(
-            im, "#{self} Create", primary_key || false, primary_key_value,
-            returning: returning
-          )
+        if values.empty?
+          im.insert(connection.empty_insert_statement_value(primary_key))
+        else
+          im.insert(values.transform_keys { |name| arel_table[name] })
         end
+
+        connection.insert(
+          im, "#{self} Create", primary_key || false, primary_key_value,
+          returning: returning
+        )
       end
 
       def _update_record(values, constraints) # :nodoc:

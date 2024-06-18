@@ -105,12 +105,13 @@ module ActiveRecord
       #   sanitize_sql_hash_for_assignment({ status: nil, group_id: 1 }, "posts")
       #   # => "`posts`.`status` = NULL, `posts`.`group_id` = 1"
       def sanitize_sql_hash_for_assignment(attrs, table)
-        c = connection
-        attrs.map do |attr, value|
-          type = type_for_attribute(attr)
-          value = type.serialize(type.cast(value))
-          "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
-        end.join(", ")
+        with_connection do |c|
+          attrs.map do |attr, value|
+            type = type_for_attribute(attr)
+            value = type.serialize(type.cast(value))
+            "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
+          end.join(", ")
+        end
       end
 
       # Sanitizes a +string+ so that it is safe to use within an SQL

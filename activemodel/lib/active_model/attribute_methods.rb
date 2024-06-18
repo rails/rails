@@ -312,26 +312,33 @@ module ActiveModel
         end
       end
 
-      def define_attribute_method_pattern(pattern, attr_name, owner:, as:) # :nodoc:
+      def define_attribute_method_pattern(pattern, attr_name, owner:, as:, override: false) # :nodoc:
         canonical_method_name = pattern.method_name(attr_name)
         public_method_name = pattern.method_name(as)
 
-        unless instance_method_already_implemented?(public_method_name)
-          generate_method = "define_method_#{pattern.proxy_target}"
+        # If defining a regular attribute method, we don't override methods that are explictly
+        # defined in parrent classes.
+        if instance_method_already_implemented?(public_method_name)
+          # However, for `alias_attribute`, we always define the method.
+          # We check for override second because `instance_method_already_implemented?`
+          # also check for dangerous methods.
+          return unless override
+        end
 
-          if respond_to?(generate_method, true)
-            send(generate_method, attr_name.to_s, owner: owner, as: as)
-          else
-            define_proxy_call(
-              owner,
-              canonical_method_name,
-              pattern.proxy_target,
-              pattern.parameters,
-              attr_name.to_s,
-              namespace: :active_model_proxy,
-              as: public_method_name
-            )
-          end
+        generate_method = "define_method_#{pattern.proxy_target}"
+
+        if respond_to?(generate_method, true)
+          send(generate_method, attr_name.to_s, owner: owner, as: as)
+        else
+          define_proxy_call(
+            owner,
+            canonical_method_name,
+            pattern.proxy_target,
+            pattern.parameters,
+            attr_name.to_s,
+            namespace: :active_model_proxy,
+            as: public_method_name
+          )
         end
       end
 

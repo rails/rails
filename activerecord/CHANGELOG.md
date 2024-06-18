@@ -1,3 +1,31 @@
+*   Add `.shard_keys`, `.sharded?`, & `.connected_to_all_shards` methods.
+
+    ```ruby
+    class ShardedBase < ActiveRecord::Base
+        self.abstract_class = true
+
+        connects_to shards: {
+          shard_one: { writing: :shard_one },
+          shard_two: { writing: :shard_two }
+        }
+    end
+
+    class ShardedModel < ShardedBase
+    end
+
+    ShardedModel.shard_keys => [:shard_one, :shard_two]
+    ShardedModel.sharded? => true
+    ShardedBase.connected_to_all_shards { ShardedModel.current_shard } => [:shard_one, :shard_two]
+    ```
+
+    *Nony Dutton*
+
+*   Optimize `Relation#exists?` when records are loaded and the relation has no conditions.
+
+    This can avoid queries in some cases.
+
+    *fatkodima*
+
 *   Add a `filter` option to `in_order_of` to prioritize certain values in the sorting without filtering the results
     by these values.
 
