@@ -26,7 +26,8 @@ require "models/cpk"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
-           :dashboards, :speedometers, :authors, :author_addresses, :posts, :comments, :categories, :essays, :owners
+           :dashboards, :speedometers, :authors, :author_addresses, :posts, :comments, :categories, :essays, :owners,
+           :categorizations
 
   def setup
     @member = members(:groucho)
@@ -366,6 +367,10 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal posts(:welcome).comments.order("id").first, authors(:david).comment_on_first_post
   end
 
+  def test_has_one_through_with_join_model_that_uses_a_scope_with_joins_and_no_where_clauses
+    assert_equal essays(:david_modest_proposal), categorizations(:david_welcome_general).general_essay
+  end
+
   def test_has_one_through_many_raises_exception
     assert_raise(ActiveRecord::HasOneThroughCantAssociateThroughCollection) do
       members(:groucho).club_through_many
@@ -427,7 +432,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_has_one_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
+  def test_has_one_through_do_not_cache_association_reader_if_the_through_method_has_default_scopes
     customer = Customer.create!
     carrier = Carrier.create!
     customer_carrier = CustomerCarrier.create!(
