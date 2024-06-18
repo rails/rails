@@ -6,7 +6,7 @@ module ActiveRecord
   # Class specifies the interface to interact with the current transaction state.
   #
   # It can either map to an actual transaction/savepoint, or represent the
-  # abscence of a transaction.
+  # absence of a transaction.
   #
   # == State
   #
