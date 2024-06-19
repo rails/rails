@@ -689,6 +689,15 @@ line in the partial.
 CAUTION: Only keyword arguments are supported. Defining positional or block
 arguments will raise an Action View Error at render-time.
 
+When using Strict Locals in a partial, `local_assigns` will become undefined. To access a local
+variable that is named the same as a reserved Ruby keyword, like `class` or `if`, those values
+can be accessed through `binding.local_variable_get`:
+
+```ruby
+<%# locals: (class:) -%>
+<div class="<%= binding.local_variable_get(:class) %>">...</div>
+```
+
 Layouts
 -------
 
