@@ -19,7 +19,7 @@ module ActiveSupport
       #
       #   assert_not foo, 'foo should be false'
       def assert_not(object, message = nil)
-        message ||= "Expected #{mu_pp(object)} to be nil or false"
+        message ||= -> { "Expected #{mu_pp(object)} to be nil or false" }
         assert !object, message
       end
 
@@ -118,10 +118,13 @@ module ActiveSupport
 
         expressions.zip(exps, before) do |(code, diff), exp, before_value|
           actual = exp.call
-          code_string = code.respond_to?(:call) ? _callable_to_source_string(code) : code
-          error  = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}"
-          error  = "#{message}.\n#{error}" if message
-          assert_equal(before_value + diff, actual, error)
+          rich_message = -> do
+            code_string = code.respond_to?(:call) ? _callable_to_source_string(code) : code
+            error = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert_equal(before_value + diff, actual, rich_message)
         end
 
         retval
@@ -196,23 +199,32 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_changes", &block)
 
         unless from == UNTRACKED
-          error = "Expected change from #{from.inspect}, got #{before.inspect}"
-          error = "#{message}.\n#{error}" if message
-          assert from === before, error
+          rich_message = -> do
+            error = "Expected change from #{from.inspect}, got #{before.inspect}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert from === before, rich_message
         end
 
         after = exp.call
 
-        code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
-        error = "`#{code_string}` didn't change"
-        error = "#{error}. It was already #{to.inspect}" if before == to
-        error = "#{message}.\n#{error}" if message
-        refute_equal before, after, error
+        rich_message = -> do
+          code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
+          error = "`#{code_string}` didn't change"
+          error = "#{error}. It was already #{to.inspect}" if before == to
+          error = "#{message}.\n#{error}" if message
+          error
+        end
+        refute_equal before, after, rich_message
 
         unless to == UNTRACKED
-          error = "Expected change to #{to.inspect}, got #{after.inspect}\n"
-          error = "#{message}.\n#{error}" if message
-          assert to === after, error
+          rich_message = -> do
+            error = "Expected change to #{to.inspect}, got #{after.inspect}\n"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert to === after, rich_message
         end
 
         retval
@@ -244,21 +256,27 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_no_changes", &block)
 
         unless from == UNTRACKED
-          error = "Expected initial value of #{from.inspect}, got #{before.inspect}"
-          error = "#{message}.\n#{error}" if message
-          assert from === before, error
+          rich_message = -> do
+            error = "Expected initial value of #{from.inspect}, got #{before.inspect}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert from === before, rich_message
         end
 
         after = exp.call
 
-        code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
-        error = "`#{code_string}` changed"
-        error = "#{message}.\n#{error}" if message
+        rich_message = -> do
+          code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
+          error = "`#{code_string}` changed"
+          error = "#{message}.\n#{error}" if message
+          error
+        end
 
         if before.nil?
-          assert_nil after, error
+          assert_nil after, rich_message
         else
-          assert_equal before, after, error
+          assert_equal before, after, rich_message
         end
 
         retval
