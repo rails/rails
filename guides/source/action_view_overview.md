@@ -689,6 +689,16 @@ line in the partial.
 CAUTION: Only keyword arguments are supported. Defining positional or block
 arguments will raise an Action View Error at render-time.
 
+The `local_assigns` method does not contain default values specified in the
+`local:` magic comment. To access a local variable with a default value that
+is named the same as a reserved Ruby keyword, like `class` or `if`, the values
+can be accessed through `binding.local_variable_get`:
+
+```erb
+<%# locals: (class: "message") %>
+<div class="<%= binding.local_variable_get(:class) %>">...</div>
+```
+
 Layouts
 -------
 
