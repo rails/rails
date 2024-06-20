@@ -433,7 +433,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::LogSubscriber.reset_runtime` method.
 
-*   Remove deprecated `ActiveRecord::Migration.check_pending` method.
+*   Remove deprecated `ActiveRecord::Migration.check_pending!` method.
 
 *   Remove deprecated support to passing `SchemaMigration` and `InternalMetadata` classes as arguments to
     `ActiveRecord::MigrationContext`.

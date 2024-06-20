@@ -427,7 +427,7 @@
 
     *Rafael Mendonça França*
 
-*   Remove deprecated `ActiveRecord::Migration.check_pending` method.
+*   Remove deprecated `ActiveRecord::Migration.check_pending!` method.
 
     *Rafael Mendonça França*
 
