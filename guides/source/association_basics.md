@@ -2975,8 +2975,8 @@ Delegated types solves this problem, via `delegated_type`.
 
 In order to use delegated types, we have to model our data in a particular way. The requirements are as follows:
 
-* There is a superclass that stores shared attributes among all subclasses in its table.
-* Each subclass must inherit from the super class, and will have a separate table for any additional attributes specific to it.
+* There is a "superclass" that stores shared attributes among all subclasses in its table.
+* Each "subclass" will have a separate table for any additional attributes specific to it. The model class does not inherit from the "superclass".
 
 This eliminates the need to define attributes in a single table that are unintentionally shared among all subclasses.
 
