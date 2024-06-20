@@ -37,7 +37,7 @@ module ActionView
             if options[:include_blank]
               content = (options[:include_blank] if options[:include_blank].is_a?(String))
               label = (" " unless content)
-              option_tags = tag_builder.content_tag_string("option", content, value: "", label: label) + "\n" + option_tags
+              option_tags = tag_builder.option(content, value: "", label: label) + "\n" + option_tags
             end
 
             if value.blank? && options[:prompt]
@@ -45,7 +45,7 @@ module ActionView
                 prompt_opts[:disabled] = true if options[:disabled] == ""
                 prompt_opts[:selected] = true if options[:selected] == ""
               end
-              option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), tag_options) + "\n" + option_tags
+              option_tags = tag_builder.option(prompt_text(options[:prompt]), **tag_options) + "\n" + option_tags
             end
 
             option_tags
