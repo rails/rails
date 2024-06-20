@@ -583,6 +583,30 @@ module Rails
         @after_bundle_callbacks.each(&:call)
       end
 
+      def show_next_steps_banner
+        return if options[:quiet]
+
+        puts <<~NEXTSTEP
+
+          Rails project created and dependencies installed.
+
+          Now switch to the directory where the Rails app was created:
+
+            $ cd #{app_path}
+
+          Then boot the development server:
+
+            $ bin/rails server
+
+          You can always get help by running:
+
+            $ bin/rails help
+
+          More help is available at https://guides.rubyonrails.org/
+
+        NEXTSTEP
+      end
+
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
