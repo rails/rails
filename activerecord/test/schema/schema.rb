@@ -483,6 +483,10 @@ ActiveRecord::Schema.define do
     t.references :carrier
   end
 
+  create_table :customers_categories, force: true do |t|
+    t.string :label
+  end
+
   create_table :dashboards, force: true, id: false do |t|
     t.string :dashboard_id
     t.string :name
