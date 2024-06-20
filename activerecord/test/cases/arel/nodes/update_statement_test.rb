@@ -22,6 +22,7 @@ describe Arel::Nodes::UpdateStatement do
     it "is equal with equal ivars" do
       statement1 = Arel::Nodes::UpdateStatement.new
       statement1.relation = "zomg"
+      statement1.from     = "foo"
       statement1.wheres   = 2
       statement1.values   = false
       statement1.orders   = %w[x y z]
@@ -31,6 +32,7 @@ describe Arel::Nodes::UpdateStatement do
       statement1.havings  = []
       statement2 = Arel::Nodes::UpdateStatement.new
       statement2.relation = "zomg"
+      statement2.from     = "foo"
       statement2.wheres   = 2
       statement2.values   = false
       statement2.orders   = %w[x y z]
