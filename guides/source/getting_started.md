@@ -152,20 +152,25 @@ To use this generator, open a terminal, navigate to a directory where you have
 rights to create files, and run:
 
 ```bash
-$ rails new blog
+$ rails new blog --skip-bundle
 ```
 
-This will create a Rails application called Blog in a `blog` directory and
-install the gem dependencies that are already mentioned in `Gemfile` using
-`bundle install`.
+This will create a Rails application called Blog in a `blog` directory. The `--skip-bundle` will prevent installing the gem dependencies that are already mentioned in `Gemfile`.
 
 TIP: You can see all of the command line options that the Rails application
 generator accepts by running `rails new --help`.
 
-After you create the blog application, switch to its folder:
+After you create the blog application, switch to its folder.
 
 ```bash
 $ cd blog
+```
+
+Then you can configure `bundle`, the gem package manager, to install dependencies in a local directory. And proceed to dependencies install.
+
+```bash
+$ bundle config set --local path 'vendor'
+$ bundle install
 ```
 
 The `blog` directory will have a number of generated files and folders that make
@@ -1299,6 +1304,13 @@ link to make a `DELETE` request instead of a `GET` request.
 `data-turbo-confirm="Are you sure?"` will cause a confirmation dialog to appear
 when the link is clicked. If the user cancels the dialog, the request will be
 aborted.
+
+To enable Turbo in this situation, we need to execute some install scripts.
+
+```bash
+rails importmap:install
+rails turbo:install stimulus:install
+```
 
 And that's it! We can now list, show, create, update, and delete articles!
 InCRUDable!
