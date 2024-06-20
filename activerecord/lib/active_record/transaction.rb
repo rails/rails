@@ -113,7 +113,7 @@ module ActiveRecord
       !closed?
     end
 
-    # Returns true if the transaction doesn't exists or is finalized.
+    # Returns true if the transaction doesn't exist or is finalized.
     def closed?
       @internal_transaction.nil? || @internal_transaction.state.finalized?
     end
