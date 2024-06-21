@@ -159,8 +159,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "test/controllers/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post users_url, params: \{ user: \{  \} \}/, content)
-      assert_match(/patch user_url\(@user\), params: \{ user: \{  \} \}/, content)
+      assert_match(/post users_url, params: \{ user: \{\} \}/, content)
+      assert_match(/patch user_url\(@user\), params: \{ user: \{\} \}/, content)
     end
   end
 
