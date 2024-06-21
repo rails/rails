@@ -117,7 +117,6 @@ gem "webmock"
 # Action View
 group :view do
   gem "blade", require: false, platforms: [:ruby]
-  gem "cookiejar", github: "yahonda/cookiejar", branch: "ruby33", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
 end
 
