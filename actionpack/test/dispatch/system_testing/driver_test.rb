@@ -107,13 +107,23 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = {
-      "moz:firefoxOptions" => {
-        "args" => ["--host=127.0.0.1"],
-        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
-      },
-      "browserName" => "firefox"
-    }
+    if RUBY_VERSION < "3"
+      expected = {
+        "moz:firefoxOptions" => {
+          "args" => ["--host=127.0.0.1"],
+          "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        },
+        "browserName" => "firefox"
+      }
+    else
+      expected = {
+        "moz:firefoxOptions" => {
+          "args" => ["--host=127.0.0.1"],
+          "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        },
+        "browserName" => "firefox"
+      }
+    end
     assert_driver_capabilities driver, expected
   end
 
@@ -124,13 +134,23 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = {
-      "moz:firefoxOptions" => {
-        "args" => ["-headless", "--host=127.0.0.1"],
-        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
-      },
-      "browserName" => "firefox"
-    }
+    if RUBY_VERSION < "3"
+      expected = {
+        "moz:firefoxOptions" => {
+          "args" => ["-headless", "--host=127.0.0.1"],
+          "prefs" => {  "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        },
+        "browserName" => "firefox"
+      }
+    else
+      expected = {
+        "moz:firefoxOptions" => {
+          "args" => ["-headless", "--host=127.0.0.1"],
+          "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        },
+        "browserName" => "firefox"
+      }
+    end
     assert_driver_capabilities driver, expected
   end
 
