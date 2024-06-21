@@ -1,3 +1,8 @@
+*   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
+    `DatabaseConfig`.
+
+    *Hartley McGuire*
+
 *   Add `.shard_keys`, `.sharded?`, & `.connected_to_all_shards` methods.
 
     ```ruby

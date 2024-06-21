@@ -172,6 +172,13 @@ module ActiveRecord
         @verified = false
       end
 
+      def inspect # :nodoc:
+        name_field = " name=#{pool.db_config.name.inspect}" unless pool.db_config.name == "primary"
+        shard_field = " shard=#{shard.inspect}" unless shard == :default
+
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} env_name=#{pool.db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
+      end
+
       def lock_thread=(lock_thread) # :nodoc:
         @lock =
         case lock_thread
