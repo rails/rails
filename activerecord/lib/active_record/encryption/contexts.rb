@@ -34,7 +34,7 @@ module ActiveRecord
           self.custom_contexts ||= []
           self.custom_contexts << default_context.dup
           properties.each do |key, value|
-            self.current_custom_context.send("#{key}=", value)
+            self.current_custom_context.public_send("#{key}=", value)
           end
 
           yield

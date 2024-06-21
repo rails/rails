@@ -96,9 +96,9 @@ module ActiveRecord
           inverse = source_reflection.inverse_of
           if inverse
             if inverse.collection?
-              record.send(inverse.name) << build_through_record(record)
+              record.public_send(inverse.name) << build_through_record(record)
             elsif inverse.has_one?
-              record.send("#{inverse.name}=", build_through_record(record))
+              record.public_send("#{inverse.name}=", build_through_record(record))
             end
           end
 
