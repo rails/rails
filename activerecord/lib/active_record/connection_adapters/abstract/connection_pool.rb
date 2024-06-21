@@ -263,6 +263,13 @@ module ActiveRecord
         @reaper.run
       end
 
+      def inspect # :nodoc:
+        name_field = " name=#{db_config.name.inspect}" unless db_config.name == "primary"
+        shard_field = " shard=#{@shard.inspect}" unless @shard == :default
+
+        "#<#{self.class.name} env_name=#{db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
+      end
+
       def schema_cache
         @schema_cache ||= BoundSchemaReflection.new(schema_reflection, self)
       end

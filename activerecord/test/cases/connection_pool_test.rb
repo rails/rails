@@ -984,6 +984,16 @@ module ActiveRecord
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
+      def test_inspect_does_not_show_secrets
+        assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:writing>/, @pool.inspect)
+
+        db_config = ActiveRecord::Base.connection_pool.db_config
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :reading, :shard_one)
+        pool = ConnectionPool.new(pool_config)
+
+        assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:reading shard=:shard_one>/, pool.inspect)
+      end
+
       private
         def active_connections(pool)
           pool.connections.find_all(&:in_use?)

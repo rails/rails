@@ -1,3 +1,8 @@
+*   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
+    `DatabaseConfig`.
+
+    *Hartley McGuire*
+
 *   Fixed a memory performance issue in Active Record attribute methods definition.
 
     *Jean Boussier*
