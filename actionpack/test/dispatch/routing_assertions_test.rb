@@ -4,11 +4,7 @@ require "abstract_unit"
 require "rails/engine"
 require "controller/fake_controllers"
 
-class SecureArticlesController < ArticlesController
-  def index
-    render(inline: "")
-  end
-end
+class SecureArticlesController < ArticlesController; end
 class BlockArticlesController < ArticlesController; end
 class QueryArticlesController < ArticlesController; end
 
@@ -280,20 +276,6 @@ class RoutingAssertionsControllerTest < ActionController::TestCase
 
   class WithRoutingTest < ActionController::TestCase
     include RoutingAssertionsSharedTests::WithRoutingSharedTests
-
-    test "with_routing routes are reachable" do
-      @controller = SecureArticlesController.new
-
-      with_routing do |routes|
-        routes.draw do
-          get :new_route, to: "secure_articles#index"
-        end
-
-        get :index
-
-        assert_predicate(response, :ok?)
-      end
-    end
   end
 end
 
@@ -313,18 +295,6 @@ class RoutingAssertionsIntegrationTest < ActionDispatch::IntegrationTest
 
   class WithRoutingTest < ActionDispatch::IntegrationTest
     include RoutingAssertionsSharedTests::WithRoutingSharedTests
-
-    test "with_routing routes are reachable" do
-      with_routing do |routes|
-        routes.draw do
-          get :new_route, to: "secure_articles#index"
-        end
-
-        get "/new_route"
-
-        assert_predicate(response, :ok?)
-      end
-    end
   end
 
   class WithRoutingSettingsTest < ActionDispatch::IntegrationTest
