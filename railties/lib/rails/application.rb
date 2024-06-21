@@ -9,7 +9,6 @@ require "active_support/deprecation"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
-require "active_support/parameter_filter"
 require "rails/engine"
 require "rails/autoloaders"
 
@@ -152,10 +151,6 @@ module Rails
     # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
-    end
-
-    def reload_routes_unless_loaded # :nodoc:
-      initialized? && routes_reloader.execute_unless_loaded
     end
 
     # Returns a key generator (ActiveSupport::CachingKeyGenerator) for a
