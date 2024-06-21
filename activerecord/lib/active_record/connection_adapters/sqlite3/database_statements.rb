@@ -63,7 +63,11 @@ module ActiveRecord
           internal_exec_query(sql, name, binds)
           @raw_connection.changes
         end
-        alias :exec_update :exec_delete
+
+        def exec_update(sql, name = "SQL", binds = []) # :nodoc:
+          internal_exec_query(sql, name, binds)
+          @raw_connection.changes
+        end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
           raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted

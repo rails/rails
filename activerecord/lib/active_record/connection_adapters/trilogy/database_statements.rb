@@ -31,17 +31,23 @@ module ActiveRecord
         end
 
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-          mark_transaction_written_if_write(sql)
-
-          result = raw_execute(to_sql(sql, binds), name)
-          result.affected_rows
+          transform_and_execute(sql, name, binds)
         end
 
-        alias :exec_update :exec_delete # :nodoc:
+        def exec_update(sql, name = nil, binds = []) # :nodoc:
+          transform_and_execute(sql, name, binds)
+        end
 
         private
+          def transform_and_execute(sql, name, binds)
+            sql = transform_query(sql)
+            check_if_write_query(sql)
+            mark_transaction_written_if_write(sql)
+
+            result = raw_execute(to_sql(sql, binds), name)
+            result.affected_rows
+          end
+
           def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
             log(sql, name, async: async) do |notification_payload|
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|

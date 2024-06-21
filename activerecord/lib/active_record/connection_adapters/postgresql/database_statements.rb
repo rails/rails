@@ -78,7 +78,10 @@ module ActiveRecord
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
           execute_and_clear(sql, name, binds) { |result| result.cmd_tuples }
         end
-        alias :exec_update :exec_delete
+
+        def exec_update(sql, name = nil, binds = []) # :nodoc:
+          execute_and_clear(sql, name, binds) { |result| result.cmd_tuples }
+        end
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           if use_insert_returning? || pk == false
