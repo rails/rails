@@ -20,4 +20,28 @@ class Rails::Command::DevcontainerTest < ActiveSupport::TestCase
     assert_match "system_test: true", output
     assert_match "node: false", output
   end
+
+  test "generates devcontainer for using mysql2 app" do
+    build_app
+
+    Dir.chdir(app_path) do
+      use_mysql2
+
+      output = rails "devcontainer"
+
+      assert_match "app_name: app_template", output
+      assert_match "database: mysql", output
+      assert_match "active_storage: true", output
+      assert_match "redis: true", output
+      assert_match "system_test: true", output
+      assert_match "node: false", output
+
+      assert_match "ghcr.io/rails/devcontainer/features/mysql-client", read_file(".devcontainer/devcontainer.json")
+    end
+  end
+
+  private
+    def read_file(relative)
+      File.read(app_path(relative))
+    end
 end

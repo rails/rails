@@ -22,12 +22,17 @@ module Rails
         def devcontainer_options
           @devcontainer_options ||= {
             app_name: Rails.application.railtie_name.chomp("_application"),
-            database: !!defined?(ActiveRecord) && ActiveRecord::Base.connection_db_config.adapter,
+            database: !!defined?(ActiveRecord) && database,
             active_storage: !!defined?(ActiveStorage),
             redis: !!(defined?(ActionCable) || defined?(ActiveJob)),
             system_test: File.exist?("test/application_system_test_case.rb"),
             node: File.exist?(".node-version"),
           }
+        end
+
+        def database
+          adapter = ActiveRecord::Base.connection_db_config.adapter
+          adapter == "mysql2" ? "mysql" : adapter
         end
     end
   end
