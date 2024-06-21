@@ -185,7 +185,7 @@ GEM
     coffee-script-source (1.12.2)
     concurrent-ruby (1.1.8)
     connection_pool (2.2.5)
-    cookiejar (0.3.3)
+    cookiejar (0.3.4)
     crack (0.4.5)
       rexml
     crass (1.0.6)
