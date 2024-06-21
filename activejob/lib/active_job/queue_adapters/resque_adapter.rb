@@ -43,6 +43,13 @@ module ActiveJob
 
       class JobWrapper # :nodoc:
         class << self
+          def on_failure_dirty_exit(exception, args)
+            return unless exception.is_a?(Resque::DirtyExit)
+            job = ActiveJob::Base.deserialize(args)
+            job.send(:deserialize_arguments_if_needed)
+            job.rescue_with_handler(exception) || job.run_after_discard_procs(exception)
+          end
+
           def perform(job_data)
             Base.execute job_data
           end
