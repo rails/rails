@@ -8,7 +8,7 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=<%= gem_ruby_version %>
-FROM docker.io/library/ruby:$RUBY_VERSION-slim as base
+FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 # Rails app lives here
 WORKDIR /rails
@@ -25,7 +25,7 @@ ENV RAILS_ENV="production" \
     BUNDLE_WITHOUT="development"
 
 # Throw-away build stage to reduce size of final image
-FROM base as build
+FROM base AS build
 
 # Install packages needed to build gems<%= using_node? ? " and node modules" : "" %>
 RUN apt-get update -qq && \
