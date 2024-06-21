@@ -116,7 +116,7 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
-        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
     }
@@ -133,7 +133,7 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["-headless", "--host=127.0.0.1"],
-        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
     }
