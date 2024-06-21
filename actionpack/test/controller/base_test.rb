@@ -350,3 +350,15 @@ class EmptyUrlOptionsTest < ActionController::TestCase
     end
   end
 end
+
+class BaseTest < ActiveSupport::TestCase
+  def test_included_modules_are_tracked
+    base_content = File.read("#{__dir__}/../../lib/action_controller/base.rb")
+    included_modules = base_content.scan(/(?<=include )[A-Z].*/)
+
+    assert_equal(
+      ActionController::Base::MODULES.map { |m| m.to_s.delete_prefix("ActionController::") },
+      included_modules
+    )
+  end
+end

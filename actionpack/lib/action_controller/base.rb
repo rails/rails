@@ -231,7 +231,6 @@ module ActionController
       AbstractController::Rendering,
       AbstractController::Translation,
       AbstractController::AssetPaths,
-
       Helpers,
       UrlFor,
       Redirecting,
@@ -261,26 +260,55 @@ module ActionController
       HttpAuthentication::Token::ControllerMethods,
       DefaultHeaders,
       Logging,
-
-      # Before callbacks should also be executed as early as possible, so also include
-      # them at the bottom.
       AbstractController::Callbacks,
-
-      # Append rescue at the bottom to wrap as much as possible.
       Rescue,
-
-      # Add instrumentations hooks at the bottom, to ensure they instrument all the
-      # methods properly.
       Instrumentation,
-
-      # Params wrapper should come before instrumentation so they are properly showed
-      # in logs
       ParamsWrapper
     ]
 
-    MODULES.each do |mod|
-      include mod
-    end
+    include AbstractController::Rendering
+    include AbstractController::Translation
+    include AbstractController::AssetPaths
+    include Helpers
+    include UrlFor
+    include Redirecting
+    include ActionView::Layouts
+    include Rendering
+    include Renderers::All
+    include ConditionalGet
+    include EtagWithTemplateDigest
+    include EtagWithFlash
+    include Caching
+    include MimeResponds
+    include ImplicitRender
+    include StrongParameters
+    include ParameterEncoding
+    include Cookies
+    include Flash
+    include FormBuilder
+    include RequestForgeryProtection
+    include ContentSecurityPolicy
+    include PermissionsPolicy
+    include RateLimiting
+    include AllowBrowser
+    include Streaming
+    include DataStreaming
+    include HttpAuthentication::Basic::ControllerMethods
+    include HttpAuthentication::Digest::ControllerMethods
+    include HttpAuthentication::Token::ControllerMethods
+    include DefaultHeaders
+    include Logging
+    # Before callbacks should also be executed as early as possible, so also include
+    # them at the bottom.
+    include AbstractController::Callbacks
+    # Append rescue at the bottom to wrap as much as possible.
+    include Rescue
+    # Add instrumentations hooks at the bottom, to ensure they instrument all the
+    # methods properly.
+    include Instrumentation
+    # Params wrapper should come before instrumentation so they are properly showed
+    # in logs
+    include ParamsWrapper
     setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
