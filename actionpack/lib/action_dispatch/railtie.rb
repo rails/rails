@@ -29,6 +29,7 @@ module ActionDispatch
     config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
     config.action_dispatch.log_rescued_responses = true
     config.action_dispatch.debug_exception_log_level = :fatal
+    config.action_dispatch.prefer_etag_over_last_modified = false
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -69,7 +70,13 @@ module ActionDispatch
 
       ActionDispatch::Routing::Mapper.route_source_locations = Rails.env.development?
 
-      ActionDispatch.test_app = app
+      ActionDispatch::Http::Cache::Request.prefer_etag_over_last_modified = app.config.action_dispatch.prefer_etag_over_last_modified
+
+      unless ActionDispatch::Http::Cache::Request.prefer_etag_over_last_modified
+        ActionDispatch.deprecator.warn(<<~MSG.squish)
+          `config.action_dispatch.prefer_etag_over_last_modified` with a value of `false` is deprecated and will be removed in Rails 8.0.
+        MSG
+      end
     end
   end
 end

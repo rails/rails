@@ -1,3 +1,7 @@
+*   Add `config.action_dispatch.prefer_etag_over_last_modified`. When set to `true`, the `ETag` header takes precedence over the `Last-Modified` header when both are present. Defaults to `false` to maintain compatibility with previous versions of Rails. But it is recommended to set it to `true` to better align with the HTTP specification.
+
+    *heka1024*
+
 *   Support `immutable` directive in Cache-Control
 
     ```ruby

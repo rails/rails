@@ -3358,6 +3358,23 @@ module ApplicationTests
       assert_equal 308, Rails.application.config.action_dispatch.ssl_default_redirect_status
     end
 
+    test "Rails.application.config.action_dispatch.prefer_etag_over_last_modified is false by default" do
+      app "development"
+
+      assert_equal false, Rails.application.config.action_dispatch.prefer_etag_over_last_modified
+    end
+
+    test "Rails.application.config.action_dispatch.prefer_etag_over_last_modified can be configured in an initializer" do
+      add_to_config <<-RUBY
+        config.action_dispatch.prefer_etag_over_last_modified = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionDispatch::Http::Cache::Request.prefer_etag_over_last_modified
+    end
+
+
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config <<-RUBY

@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "active_support/core_ext/integer/time"
 require "active_support/core_ext/numeric/time"
+require "support/etag_helper"
 
 class ConditionalGetApiController < ActionController::API
   before_action :handle_last_modified_and_etags, only: :two
@@ -24,6 +25,7 @@ class ConditionalGetApiController < ActionController::API
 end
 
 class ConditionalGetApiTest < ActionController::TestCase
+  include EtagHelper
   tests ConditionalGetApiController
 
   def setup
@@ -55,4 +57,54 @@ class ConditionalGetApiTest < ActionController::TestCase
     assert_predicate @response.body, :blank?
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
+
+  def test_if_none_match_is_asterisk
+    @request.if_none_match = "*"
+    get :one
+    assert_response :not_modified
+  end
+
+  def test_etag_matches
+    @request.if_none_match = weak_etag([:foo, 123])
+    get :one
+    assert_response :not_modified
+  end
+
+  def test_etag_precedence_over_last_modified
+    with_prefer_etag_over_last_modified(true) do
+      # Not modified because the etag matches
+      @request.if_modified_since = 5.years.ago.httpdate
+      @request.if_none_match = weak_etag([:foo, 123])
+
+      get :one
+      assert_response :not_modified
+
+      # stale because the etag doesn't match
+      @request.if_none_match = weak_etag([:bar, 124])
+      @request.if_modified_since = @last_modified
+
+      get :one
+      assert_response :success
+    end
+  end
+
+  def test_both_should_be_used_when_prefer_etag_over_last_modified_is_false
+    with_prefer_etag_over_last_modified(false) do
+      # stale because the etag match but the last modified doesn't
+      @request.if_modified_since = 5.years.ago.httpdate
+      @request.if_none_match = weak_etag([:foo, 123])
+
+      get :one
+      assert_response :ok
+    end
+  end
+
+  private
+    def with_prefer_etag_over_last_modified(value)
+      old_value = ActionDispatch::Http::Cache::Request.prefer_etag_over_last_modified
+      ActionDispatch::Http::Cache::Request.prefer_etag_over_last_modified = value
+      yield
+    ensure
+      ActionDispatch::Http::Cache::Request.prefer_etag_over_last_modified = old_value
+    end
 end
