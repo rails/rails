@@ -30,7 +30,7 @@ class MessagesController < ActionController::Base
     if @message.save
       redirect_to @message, notice: 'Message was successfully created.'
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -39,7 +39,7 @@ class MessagesController < ActionController::Base
     if @message.update(message_params)
       redirect_to @message, notice: 'Message was successfully updated.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

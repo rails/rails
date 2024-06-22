@@ -2034,8 +2034,8 @@ Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configura
   'ActionController::UnknownFormat' => :not_acceptable,
   'ActionDispatch::Http::MimeNegotiation::InvalidType' => :not_acceptable,
   'ActionController::MissingExactTemplate' => :not_acceptable,
-  'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
-  'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
+  'ActionController::InvalidAuthenticityToken' => :unprocessable_content,
+  'ActionController::InvalidCrossOriginRequest' => :unprocessable_content,
   'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
   'ActionController::BadRequest' => :bad_request,
   'ActionController::ParameterMissing' => :bad_request,
@@ -2043,8 +2043,8 @@ Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configura
   'Rack::QueryParser::InvalidParameterError' => :bad_request,
   'ActiveRecord::RecordNotFound' => :not_found,
   'ActiveRecord::StaleObjectError' => :conflict,
-  'ActiveRecord::RecordInvalid' => :unprocessable_entity,
-  'ActiveRecord::RecordNotSaved' => :unprocessable_entity
+  'ActiveRecord::RecordInvalid' => :unprocessable_content,
+  'ActiveRecord::RecordNotSaved' => :unprocessable_content
 }
 ```
 

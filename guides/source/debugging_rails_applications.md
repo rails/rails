@@ -170,7 +170,7 @@ class ArticlesController < ApplicationController
       logger.debug "The article was saved and now the user is going to be redirected..."
       redirect_to @article, notice: 'Article was successfully created.'
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -562,7 +562,7 @@ And to remove them, you can use:
     29|         format.html { redirect_to @post, notice: "Post was successfully created." }
     30|         format.json { render :show, status: :created, location: @post }
     31|       else
-    32|         format.html { render :new, status: :unprocessable_entity }
+    32|         format.html { render :new, status: :unprocessable_content }
 =>#0    block {|format=#<ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28
   #1    ActionController::MimeResponds#respond_to(mimes=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/mime_responds.rb:205
   # and 74 frames (use `bt' command for all frames)
