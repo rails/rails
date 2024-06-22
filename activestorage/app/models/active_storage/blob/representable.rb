@@ -35,7 +35,7 @@ module ActiveStorage::Blob::Representable
     if variable?
       variant_class.new(self, ActiveStorage::Variation.wrap(transformations).default_to(default_variant_transformations))
     else
-      raise ActiveStorage::InvariableError
+      raise ActiveStorage::InvariableError, "Can't transform blob with ID=#{id} and content_type=#{content_type}"
     end
   end
 
@@ -64,7 +64,7 @@ module ActiveStorage::Blob::Representable
     if previewable?
       ActiveStorage::Preview.new(self, transformations)
     else
-      raise ActiveStorage::UnpreviewableError
+      raise ActiveStorage::UnpreviewableError, "No previewer found for blob with ID=#{id} and content_type=#{content_type}"
     end
   end
 
@@ -89,7 +89,7 @@ module ActiveStorage::Blob::Representable
     when variable?
       variant transformations
     else
-      raise ActiveStorage::UnrepresentableError
+      raise ActiveStorage::UnrepresentableError, "No previewer found and can't transform blob with ID=#{id} and content_type=#{content_type}"
     end
   end
 
