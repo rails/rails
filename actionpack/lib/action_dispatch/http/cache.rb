@@ -171,6 +171,7 @@ module ActionDispatch
         PUBLIC                = "public"
         PRIVATE               = "private"
         MUST_REVALIDATE       = "must-revalidate"
+        IMMUTABLE             = "immutable"
 
         def handle_conditional_get!
           # Normally default cache control setting is handled by ETag middleware. But, if
@@ -221,6 +222,7 @@ module ActionDispatch
             options << MUST_REVALIDATE if control[:must_revalidate]
             options << "stale-while-revalidate=#{stale_while_revalidate.to_i}" if stale_while_revalidate
             options << "stale-if-error=#{stale_if_error.to_i}" if stale_if_error
+            options << IMMUTABLE if control[:immutable]
             options.concat(extras) if extras
           end
 
