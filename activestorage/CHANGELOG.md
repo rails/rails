@@ -1,3 +1,9 @@
+*   Improve InvariableError, UnpreviewableError and UnrepresentableError message.
+
+    Include Blob ID and content_type in the messages.
+
+    *Petrik de Heus*
+
 *   Mark proxied files as `immutable` in their Cache-Control header
 
     *Nate Matykiewicz*
