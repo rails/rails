@@ -343,6 +343,10 @@ module Rails
           if respond_to?(:active_support)
             active_support.to_time_preserves_timezone = :zone
           end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.strict_freshness = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
