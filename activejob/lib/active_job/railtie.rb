@@ -18,6 +18,10 @@ module ActiveJob
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
 
+    initializer "active_job.backtrace_cleaner" do
+      ActiveSupport.on_load(:active_job) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
+    end
+
     initializer "active_job.custom_serializers" do |app|
       config.after_initialize do
         custom_serializers = app.config.active_job.custom_serializers
