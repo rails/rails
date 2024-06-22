@@ -1170,7 +1170,7 @@ In addition to the standard testing helpers, inheriting from `ActionDispatch::In
 
 For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
 
-When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use.
+When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use. Responses will be instances of [`ActionDispatch::TestResponse`](https://api.rubyonrails.org/classes/ActionDispatch/TestResponse.html).
 
 If we need to upload files, take a look at [`ActionDispatch::TestProcess::FixtureFile`](https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html) to help.
 
@@ -1379,6 +1379,35 @@ If you're familiar with the HTTP protocol, you'll know that `get` is a type of r
 All of request types have equivalent methods that you can use. In a typical C.R.U.D. application you'll be using `get`, `post`, `put`, and `delete` more often.
 
 NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
+
+### Functional Tests with JSON
+
+When testing a request, Action Dispatch serializes the `:params` argument based on an optional `:as` argument that specifies the content type. For example, Action Dispatch encodes the `:params` argument into the request body as JSON. When asserting the response, the [`ActionDispatch::TestResponse#parsed_body`](https://api.rubyonrails.org/classes/ActionDispatch/TestResponse.html#method-i-parsed_body) method parses the response body into a [`HashWithIndifferentAccess`](https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html):
+
+```ruby
+class ArticlesControllerTest < ActionDispatch::IntegrationTest
+  test "should create an Article with JSON" do
+    post articles_path, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, as: :json
+
+    assert_equal "Rails is awesome!", response.parsed_body[:body]
+    assert_equal "Hello Rails", response.parsed_body[:title]
+  end
+end
+```
+
+Since `response.parsed_body` returns a `HashWithIndifferentAccess` for JSON responses, tests can combine Ruby [pattern matching](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html) with Minitest's [`assert_pattern`](https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern) assertion:
+
+```ruby
+class ArticlesControllerTest < ActionDispatch::IntegrationTest
+  test "should create an Article with JSON" do
+    post articles_path, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, as: :json
+
+    assert_pattern { response.parsed_body => { body: "Rails is awesome!", title: /hello rails/i } }
+  end
+end
+```
+
+Test request encoding and response parsing is configurable, and can be configuring with [`ActionDispatch::IntegrationTest.register_encoder`](https://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest/Behavior/ClassMethods.html#method-i-register_encoder). The `register_encoder` method accepts a two callable options. The `:param_encoder` option controls how the `:params` option is encoded into the request, and the `:response_parser` option controls how the body is parsed from the response.
 
 ### Testing XHR (Ajax) Requests
 
