@@ -730,7 +730,7 @@ Optionally, files can be proxied instead. This means that your application serve
 You can configure Active Storage to use proxying by default:
 
 ```ruby
-# config/initializers/active_storage.rb
+# config/environments/production.rb
 Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
 ```
 
