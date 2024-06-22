@@ -31,7 +31,7 @@ module ActiveRecord
     #   person.name_in_database        # => "Alice"
     #   person.saved_change_to_name?   # => true
     #   person.saved_change_to_name    # => ["Allison", "Alice"]
-    #   person.name_before_last_change # => "Allison"
+    #   person.name_before_last_save   # => "Allison"
     #
     # Similar to ActiveModel::Dirty, methods can be invoked as
     # +saved_change_to_name?+ or by passing an argument to the generic method
