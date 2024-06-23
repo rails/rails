@@ -5,6 +5,13 @@
   }
 }
 
+// Scroll-padding allows for anchors to not hug the top of the page. This aids
+// with the visual indicator on guides pages, and works on all pages for a bit
+// of breathing room.
+html {
+  scroll-padding-top: 20px;
+}
+
 body.guide {
   &::-webkit-scrollbar {
     width: 12px;
@@ -827,9 +834,9 @@ body.guide {
           right: 50px;
         max-height: calc(100vh - 200px);
         width: 400px;
-        
+
         :where(html[dir="rtl"]) & {
-          right: auto; 
+          right: auto;
           left: 50px;
         }
       }
@@ -842,7 +849,7 @@ body.guide {
         right: calc(30vw - 400px);
 
         :where(html[dir="rtl"]) & {
-          right: auto; 
+          right: auto;
           left: calc(30vw - 400px);
         }
       }
@@ -851,7 +858,7 @@ body.guide {
         right: calc(40vw - 400px);
 
         :where(html[dir="rtl"]) & {
-          right: auto; 
+          right: auto;
           left: calc(40vw - 400px);
         }
       }
@@ -921,71 +928,84 @@ body.guide {
             margin-bottom: 0.75em;
             padding-inline-start: 1em;
             padding-inline-end: 0.25em;
-            
+
             li {
               font-weight: 400;
 
-              a.active::after { // highlight
-                @include media('>desktop') {
-                  width: 328px;
-                }
-                left: -3em;
-              }
+              a[href]:not([href=""]) {
+                &::after { // highlight
+                  @include media('>desktop') {
+                    width: 328px;
+                  }
+                  left: -3em;
 
-              a.active::before { // red square
-                left: -2.5em;
-                top: 7px;
+                  :where(html[dir="rtl"]) & {
+                    right: -3em;
+                    left: unset;
+                  }
+                }
+
+                &::before { // red square
+                  left: -2.5em;
+                  top: 7px;
+
+                  :where(html[dir="rtl"]) & {
+                    right: -2.5em;
+                    left: unset;
+                  }
+                }
               }
             } // li
           } // ul
 
-          a::after { // highlight
-            content: '';
-            position: absolute;
-            display: block;
-            height: calc(100% + 10px);
-            @include media('>desktop') {
-              width: 352px;
+          a[href]:not([href=""]) {
+            &::before { // red square
+              @include media('>desktop') {
+                content: '';
+                display: block;
+              }
+              position: absolute;
+              height: 10px;
+              width: 10px;
+              top: 6px;
+              left: -3em;
+              border-radius: 3px;
+              background-color: $rf-brand;
+              opacity: 0;
+              transition: opacity 0.2s ease-in-out;
+
+              :where(html[dir="rtl"]) & {
+                right: -3em;
+                left: unset;
+              }
             }
-            top: 50%;
-            transform: translateY(-50%);
-            left: -3.5em;
-            border-radius: 8px;
-            background-color: $stop-bkgnd;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
 
-            :where(html[dir="rtl"]) & {
-              right: -3.5em;
-              left: unset;
+            &::after { // highlight
+              content: '';
+              position: absolute;
+              display: block;
+              height: calc(100% + 10px);
+              @include media('>desktop') {
+                width: 352px;
+              }
+              top: 50%;
+              transform: translateY(-50%);
+              left: -3.5em;
+              border-radius: 8px;
+              background-color: $stop-bkgnd;
+              opacity: 0;
+              transition: opacity 0.2s ease-in-out;
+
+              :where(html[dir="rtl"]) & {
+                right: -3.5em;
+                left: unset;
+              }
             }
-          }
 
-          a.active::after {
-            opacity: 1;
-          }
-
-          a::before { // red square
-            content: '';
-            display: block;
-            position: absolute;
-            height: 10px;
-            width: 10px;
-            top: 6px;
-            left: -3em;
-            border-radius: 3px;
-            background-color: $rf-brand;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-
-            :where(html[dir="rtl"]) & {
-              right: -3em;
-              left: unset;
+            &[aria-current]::before,
+            &[aria-current]::after {
+              opacity: 1;
             }
-          }
-
-          a.active::before {
-            opacity: 1;
           }
         } // li
 

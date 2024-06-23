@@ -151,8 +151,8 @@ module RailsGuides
           end.to_html
 
           @index = <<-INDEX.html_safe
-          <nav id="column-side" aria-label="Chapter" class="guide-index">
-            <a id="chapter-nav-skip-link" href="#article-body" class="skip-link" data-turbo="false">
+          <nav id="column-side" aria-label="Chapter" class="guide-index" data-turbo="false">
+            <a id="chapter-nav-skip-link" href="#article-body" class="skip-link">
               Skip to article body
             </a>
 
