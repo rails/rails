@@ -21,20 +21,11 @@ module ActiveRecord
       # either an Active Record model class or an Active Record model instance.
       class_attribute :logger, instance_writer: false
 
-      class_attribute :_destroy_association_async_job, instance_accessor: false, default: "ActiveRecord::DestroyAssociationAsyncJob"
-
-      # The job class used to destroy associations in the background.
-      def self.destroy_association_async_job
-        if _destroy_association_async_job.is_a?(String)
-          self._destroy_association_async_job = _destroy_association_async_job.constantize
-        end
-        _destroy_association_async_job
-      rescue NameError => error
-        raise NameError, "Unable to load destroy_association_async_job: #{error.message}"
-      end
-
-      singleton_class.alias_method :destroy_association_async_job=, :_destroy_association_async_job=
-      delegate :destroy_association_async_job, to: :class
+      ##
+      # :singleton-method:
+      #
+      class_attribute :destroy_association_async_job, instance_accessor: false,
+        constantize: true, default: "ActiveRecord::DestroyAssociationAsyncJob"
 
       ##
       # :singleton-method:

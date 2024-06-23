@@ -29,14 +29,14 @@ class DestroyAssociationAsyncJobTest < ActiveRecord::TestCase
     error = assert_raises NameError do
       UndefinedConstantAsync.belongs_to :essay_destroy_async, dependent: :destroy_async
     end
-    assert_match %r/destroy_association_async_job: uninitialized constant UndefinedConstantJob/, error.message
+    assert_match %r/uninitialized constant UndefinedConstantJob/, error.message
   end
 
   test "destroy_association_async_job error shows a missing parent job class, as if ActiveJob were missing" do
     error = assert_raises NameError do
       UnloadableBaseAsync.belongs_to :essay_destroy_async, dependent: :destroy_async
     end
-    assert_match %r/destroy_association_async_job: uninitialized constant PretendActiveJobIsNotPresent/, error.message
+    assert_match %r/uninitialized constant PretendActiveJobIsNotPresent/, error.message
   end
 
   test "belongs_to dependent destroy_async requires destroy_association_async_job" do
