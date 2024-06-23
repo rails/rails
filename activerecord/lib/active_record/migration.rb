@@ -1020,6 +1020,8 @@ module ActiveRecord
     # Outputs text along with how long it took to run its block.
     # If the block returns an integer it assumes it is the number of rows affected.
     def say_with_time(message)
+      raise ArgumentError, "Missing block" unless block_given?
+
       say(message)
       result = nil
       time = Benchmark.measure { result = yield }
