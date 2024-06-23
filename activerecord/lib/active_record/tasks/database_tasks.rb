@@ -390,7 +390,7 @@ module ActiveRecord
 
         with_temporary_pool(db_config, clobber: true) do
           if schema_up_to_date?(db_config, format, file)
-            truncate_tables(db_config)
+            truncate_tables(db_config) unless ENV["SKIP_TEST_DATABASE_TRUNCATE"]
           else
             purge(db_config)
             load_schema(db_config, format, file)

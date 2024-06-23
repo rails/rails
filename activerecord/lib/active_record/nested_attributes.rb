@@ -514,7 +514,7 @@ module ActiveRecord
           attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
         end
 
-        attributes_collection.each do |attributes|
+        records = attributes_collection.map do |attributes|
           if attributes.respond_to?(:permitted?)
             attributes = attributes.to_h
           end
@@ -537,11 +537,14 @@ module ActiveRecord
               end
 
               assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
+              existing_record
             end
           else
             raise_nested_attributes_record_not_found!(association_name, attributes["id"])
           end
         end
+
+        association.nested_attributes_target = records
       end
 
       # Takes in a limit and checks if the attributes_collection has too many

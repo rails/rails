@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/associations/nested_error"
+
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -315,7 +317,7 @@ module ActiveRecord
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        association_valid?(reflection, record) if record && (record.changed_for_autosave? || custom_validation_context?)
+        association_valid?(association, record) if record && (record.changed_for_autosave? || custom_validation_context?)
       end
 
       # Validate the associated records if <tt>:validate</tt> or
@@ -324,7 +326,7 @@ module ActiveRecord
       def validate_collection_association(reflection)
         if association = association_instance_get(reflection.name)
           if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave])
-            records.each_with_index { |record, index| association_valid?(reflection, record, index) }
+            records.each { |record| association_valid?(association, record) }
           end
         end
       end
@@ -332,38 +334,23 @@ module ActiveRecord
       # Returns whether or not the association is valid and applies any errors to
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
-      def association_valid?(reflection, record, index = nil)
-        return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
+      def association_valid?(association, record)
+        return true if record.destroyed? || (association.options[:autosave] && record.marked_for_destruction?)
 
         context = validation_context if custom_validation_context?
 
         unless valid = record.valid?(context)
-          if reflection.options[:autosave]
-            indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors)
-
-            record.errors.group_by_attribute.each { |attribute, errors|
-              attribute = normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
-
-              errors.each { |error|
-                self.errors.import(
-                  error,
-                  attribute: attribute
-                )
-              }
+          if association.options[:autosave]
+            record.errors.each { |error|
+              self.errors.objects.append(
+                Associations::NestedError.new(association, error)
+              )
             }
           else
-            errors.add(reflection.name)
+            errors.add(association.reflection.name)
           end
         end
         valid
-      end
-
-      def normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
-        if indexed_attribute
-          "#{reflection.name}[#{index}].#{attribute}"
-        else
-          "#{reflection.name}.#{attribute}"
-        end
       end
 
       # Is used as an around_save callback to check while saving a collection

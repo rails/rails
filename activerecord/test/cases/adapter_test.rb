@@ -121,6 +121,8 @@ module ActiveRecord
     def test_current_database
       if @connection.respond_to?(:current_database)
         assert_equal ARTest.test_configuration_hashes["arunit"]["database"], @connection.current_database
+      else
+        skip
       end
     end
 
@@ -320,6 +322,12 @@ module ActiveRecord
 
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
+    end
+
+    test "inspect does not show secrets" do
+      output = @connection.inspect
+
+      assert_match(/ActiveRecord::ConnectionAdapters::\w+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
     end
   end
 
@@ -887,6 +895,7 @@ module ActiveRecord
         threads(2, 25) { @connection.disconnect! }
 
         join
+        pass
       end
 
       test "#verify! is synchronized" do
@@ -894,6 +903,7 @@ module ActiveRecord
         threads(2, 25) { @connection.disconnect! }
 
         join
+        pass
       end
     end
 

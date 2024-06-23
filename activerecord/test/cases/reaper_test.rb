@@ -118,8 +118,10 @@ module ActiveRecord
         pool = ConnectionPool.new(pool_config)
 
         pool.discard!
-        pool.reap
-        pool.flush
+        assert_nothing_raised do
+          pool.reap
+          pool.flush
+        end
       end
 
       if Process.respond_to?(:fork)

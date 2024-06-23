@@ -30,9 +30,7 @@ module Rails
 
         Rails::TestUnit::Runner.parse_options(args)
         run_prepare_task if self.args.none?(EXACT_TEST_ARGUMENT_PATTERN)
-        with_actionable_errors_retried do
-          Rails::TestUnit::Runner.run(args)
-        end
+        Rails::TestUnit::Runner.run(args)
       rescue Rails::TestUnit::InvalidTestError => error
         say error.message
       end

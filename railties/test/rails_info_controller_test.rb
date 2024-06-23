@@ -19,6 +19,7 @@ class InfoControllerTest < ActionController::TestCase
       end
       get "/rails/info/properties" => "rails/info#properties"
       get "/rails/info/routes" => "rails/info#routes"
+      get "/rails/info/notes" => "rails/info#notes"
       post "/rails/:test/properties" => "rails/info#properties"
       put "/rails/:test/named_properties" => "rails/info#properties", as: "named_rails_info_properties"
     end
@@ -118,10 +119,11 @@ class InfoControllerTest < ActionController::TestCase
     assert exact_results.size == 0, "should not case-insensitive match HTTP Verb methods"
 
     get :routes, params: { query: "GET" }
-    assert exact_results.size == 3, "should match complete HTTP Verb methods"
+    assert exact_results.size == 4, "should match complete HTTP Verb methods"
     assert exact_results.include? "/test/nested_route(.:format)"
     assert exact_results.include? "/rails/info/properties(.:format)"
     assert exact_results.include? "/rails/info/routes(.:format)"
+    assert exact_results.include? "/rails/info/notes(.:format)"
   end
 
   test "info controller search returns exact matches for route Controller#Action(s)" do
@@ -140,9 +142,10 @@ class InfoControllerTest < ActionController::TestCase
     assert exact_results.size == 0, "should not match unnamed routes"
 
     get :routes, params: { query: "rails_info" }
-    assert fuzzy_results.size == 3, "should match incomplete route names"
+    assert fuzzy_results.size == 4, "should match incomplete route names"
     assert fuzzy_results.include? "/rails/info/properties(.:format)"
     assert fuzzy_results.include? "/rails/info/routes(.:format)"
+    assert fuzzy_results.include? "/rails/info/notes(.:format)"
     assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
 
     get :routes, params: { query: "/rails/info/routes" }

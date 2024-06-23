@@ -239,8 +239,10 @@ module ActiveRecord
 
       def _default_attributes # :nodoc:
         @default_attributes ||= begin
-          attributes_hash = columns_hash.transform_values do |column|
-            ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(column))
+          attributes_hash = with_connection do |connection|
+            columns_hash.transform_values do |column|
+              ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(connection, column))
+            end
           end
 
           attribute_set = ActiveModel::AttributeSet.new(attributes_hash)
@@ -295,7 +297,7 @@ module ActiveRecord
           Type.lookup(name, **options, adapter: Type.adapter_name_from(self))
         end
 
-        def type_for_column(column)
+        def type_for_column(connection, column)
           hook_attribute_type(column.name, super)
         end
     end

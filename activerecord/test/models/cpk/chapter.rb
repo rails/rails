@@ -7,6 +7,6 @@ module Cpk
     # to be shared between different databases
     self.primary_key = [:author_id, :id]
 
-    belongs_to :book, query_constraints: [:author_id, :book_id]
+    belongs_to :book, foreign_key: [:author_id, :book_id]
   end
 end

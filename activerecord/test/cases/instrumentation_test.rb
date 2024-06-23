@@ -171,4 +171,54 @@ module ActiveRecord
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
+
+  module TransactionInSqlActiveRecordPayloadTests
+    def test_payload_without_an_open_transaction
+      asserted = false
+
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        if event.payload.fetch(:name) == "Book Count"
+          assert_nil event.payload.fetch(:transaction)
+          asserted = true
+        end
+      end
+
+      Book.count
+
+      assert asserted
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+
+    def test_payload_with_an_open_transaction
+      asserted = false
+      expected_transaction = nil
+
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        if event.payload.fetch(:name) == "Book Count"
+          assert_same expected_transaction, event.payload.fetch(:transaction)
+          asserted = true
+        end
+      end
+
+      Book.transaction do |transaction|
+        expected_transaction = transaction
+        Book.count
+      end
+
+      assert asserted
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+  end
+
+  class TransactionInSqlActiveRecordPayloadTest < ActiveRecord::TestCase
+    include TransactionInSqlActiveRecordPayloadTests
+  end
+
+  class TransactionInSqlActiveRecordPayloadNonTransactionalTest < ActiveRecord::TestCase
+    include TransactionInSqlActiveRecordPayloadTests
+
+    self.use_transactional_tests = false
+  end
 end

@@ -220,7 +220,9 @@ module ActiveRecord
 
       def test_add_index
         connection.add_index("testings", "last_name")
+        assert connection.index_exists?("testings", "last_name")
         connection.remove_index("testings", "last_name")
+        assert_not connection.index_exists?("testings", "last_name")
 
         connection.add_index("testings", ["last_name", "first_name"])
         connection.remove_index("testings", column: ["last_name", "first_name"])

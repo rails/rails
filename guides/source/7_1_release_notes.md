@@ -5,6 +5,26 @@ Ruby on Rails 7.1 Release Notes
 
 Highlights in Rails 7.1:
 
+* Generate Dockerfiles for new Rails applications
+* Add `ActiveRecord::Base.normalizes`
+* Add `ActiveRecord::Base.generates_token_for`
+* Add `perform_all_later` to enqueue multiple jobs at once
+* Composite primary keys
+* Introduce adapter for `Trilogy`
+* Add `ActiveSupport::MessagePack`
+* Introducing `config.autoload_lib` and `config.autoload_lib_once` for Enhanced Autoloading
+* Active Record API for general async queries
+* Allow templates to set strict `locals`
+* Add `Rails.application.deprecators`
+* Support pattern matching for JSON `response.parsed_body`
+* Extend `response.parsed_body` to parse HTML with Nokogiri
+* Introduce `ActionView::TestCase.register_parser`
+
+These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the changelogs or check out the [list of
+commits](https://github.com/rails/rails/commits/7-1-stable) in the main Rails
+repository on GitHub.
+
 --------------------------------------------------------------------------------
 
 Upgrading to Rails 7.1

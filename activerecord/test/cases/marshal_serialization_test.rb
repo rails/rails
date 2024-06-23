@@ -33,7 +33,6 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     assert_equal "Have a nice day", topic.content
     assert_predicate topic.association(:replies), :loaded?
     assert_predicate topic.replies.first.association(:topic), :loaded?
-    assert_same topic, topic.replies.first.topic
   end
 
   def test_deserializing_rails_7_1_marshal_basic
@@ -79,6 +78,10 @@ class MarshalSerializationTest < ActiveRecord::TestCase
       assert_same topic, reply.topic
     end
 
+    topic.association(:open_replies)
+    assert_equal true, topic.association_cached?(:open_replies)
+    assert_not_predicate topic.association(:open_replies), :loaded?
+
     topic = Marshal.load(Marshal.dump(topic))
 
     assert_not_predicate topic, :new_record?
@@ -86,6 +89,8 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     assert_equal "The First Topic", topic.title
     assert_equal "Have a nice day", topic.content
     assert_predicate topic.association(:replies), :loaded?
+
+    assert_not_predicate topic.association(:open_replies), :loaded?
 
     assert_not_equal 0, topic.replies.size
     topic.replies.each do |reply|

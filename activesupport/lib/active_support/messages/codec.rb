@@ -28,7 +28,7 @@ module ActiveSupport
 
         def decode(encoded, url_safe: @url_safe)
           url_safe ? ::Base64.urlsafe_decode64(encoded) : ::Base64.strict_decode64(encoded)
-        rescue ArgumentError => error
+        rescue StandardError => error
           throw :invalid_message_format, error
         end
 

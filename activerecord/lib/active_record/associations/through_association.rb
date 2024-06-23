@@ -82,7 +82,7 @@ module ActiveRecord
         def stale_state
           if through_reflection.belongs_to?
             Array(through_reflection.foreign_key).filter_map do |foreign_key_column|
-              owner[foreign_key_column] && owner[foreign_key_column].to_s
+              owner[foreign_key_column]
             end.presence
           end
         end

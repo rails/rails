@@ -14,15 +14,12 @@ class Module
   #       Kernel.warn message
   #     end
   #   end
-  def deprecate(*method_names, deprecator: nil, **options)
+  def deprecate(*method_names, deprecator:, **options)
     if deprecator.is_a?(ActiveSupport::Deprecation)
       deprecator.deprecate_methods(self, *method_names, **options)
     elsif deprecator
       # we just need any instance to call deprecate_methods, but the deprecation will be emitted by deprecator
       ActiveSupport.deprecator.deprecate_methods(self, *method_names, **options, deprecator: deprecator)
-    else
-      ActiveSupport.deprecator.warn("Module.deprecate without a deprecator is deprecated")
-      ActiveSupport::Deprecation._instance.deprecate_methods(self, *method_names, **options)
     end
   end
 end

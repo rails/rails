@@ -143,6 +143,7 @@ module Rails
           app.routes.prepend do
             get "/rails/info/properties" => "rails/info#properties", internal: true
             get "/rails/info/routes"     => "rails/info#routes",     internal: true
+            get "/rails/info/notes"      => "rails/info#notes",      internal: true
             get "/rails/info"            => "rails/info#index",      internal: true
           end
 
@@ -225,6 +226,12 @@ module Rails
           end
         else
           ActiveSupport::DescendantsTracker.disable_clear!
+        end
+      end
+
+      initializer :enable_yjit do
+        if config.yjit && defined?(RubyVM::YJIT.enable)
+          RubyVM::YJIT.enable
         end
       end
     end

@@ -43,6 +43,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     blob.delete
 
     get blob.url
+    assert_response :not_found
   end
 
   test "showing blob with invalid key" do

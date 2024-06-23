@@ -55,6 +55,7 @@ module LocalCacheBehavior
     begin
       @cache.cleanup
     rescue NotImplementedError
+      pass
       return # Not implementing cleanup is valid
     end
 

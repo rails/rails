@@ -357,6 +357,10 @@ You can also pass a `:priority` option to `set`:
 MyJob.set(priority: 50).perform_later(record)
 ```
 
+NOTE: If a lower priority number performs before or after a higher priority number depends on the
+adapter implementation. Refer to documentation of your backend for more information.
+Adapter authors are encouraged to treat a lower number as more important.
+
 [`queue_with_priority`]: https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
 
 Callbacks

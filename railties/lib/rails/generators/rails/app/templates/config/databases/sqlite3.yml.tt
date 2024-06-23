@@ -21,6 +21,7 @@ test:
   database: storage/test.sqlite3
 
 
+<%- if options.skip_kamal? -%>
 # SQLite3 write its data on the local filesystem, as such it requires
 # persistent disks. If you are deploying to a managed service, you should
 # make sure it provides disk persistence, as many don't.
@@ -30,3 +31,10 @@ test:
 production:
   <<: *default
   # database: path/to/persistent/storage/production.sqlite3
+<%- else -%>
+# Store production database in the storage/ directory, which by default
+# is mounted as a persistent Docker volume in config/deploy.yml.
+production:
+  <<: *default
+  database: storage/production.sqlite3
+<%- end -%>

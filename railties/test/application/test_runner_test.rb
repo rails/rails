@@ -782,8 +782,9 @@ module ApplicationTests
             assert false
           end
 
-          10.times do |n|
+          4.times do |n|
             define_method("test_verify_fail_fast_\#{n}") do
+              sleep 0.1
               assert true
             end
           end

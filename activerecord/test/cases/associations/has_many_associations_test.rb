@@ -3201,10 +3201,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async
-    Class.new(ActiveRecord::Base) do
-      self.destroy_association_async_job = Class.new
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base) do
+        self.destroy_association_async_job = Class.new
 
-      has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+        has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+      end
     end
   end
 
@@ -3230,6 +3232,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Association Cpk::BrokenOrderWithNonCpkBooks#books primary key [\"shop_id\", \"status\"]
     doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
+  end
+
+  def test_ids_reader_on_preloaded_association_with_composite_primary_key
+    great_author = cpk_authors(:cpk_great_author)
+
+    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
   end
 
   private

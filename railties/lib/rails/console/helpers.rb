@@ -1,19 +1,8 @@
 # frozen_string_literal: true
 
-module Rails
-  module ConsoleMethods
-    # Gets the helper methods available to the controller.
-    #
-    # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
-    def helper
-      ApplicationController.helpers
-    end
+Rails.deprecator.warn(<<~MSG, caller_locations(0..1))
+`rails/console/helpers` has been deprecated and will be removed in Rails 8.0.
+Please require `rails/console/methods` instead.
+MSG
 
-    # Gets a new instance of a controller object.
-    #
-    # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
-    def controller
-      @controller ||= ApplicationController.new
-    end
-  end
-end
+require "rails/console/methods"

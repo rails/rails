@@ -811,6 +811,19 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_match "#{ActiveRecord::Base.lease_connection.class} does not support :unique_by", error.message
   end
 
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    def test_insert_all_when_table_name_contains_database
+      database_name = Book.connection_db_config.database
+      Book.table_name = "#{database_name}.books"
+
+      assert_nothing_raised do
+        Book.insert_all! [{ name: "Rework", author_id: 1 }]
+      end
+    ensure
+      Book.table_name = "books"
+    end
+  end
+
   private
     def capture_log_output
       output = StringIO.new

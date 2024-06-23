@@ -649,7 +649,34 @@ module ActiveRecord
         end
       end
 
+      def test_date_decoding_enabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        with_postgresql_apdater_decode_dates do
+          date = connection.select_value("select '2024-01-01'::date")
+          assert_equal Date.new(2024, 01, 01), date
+          assert_equal Date, date.class
+        end
+      end
+
+      def test_date_decoding_disabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        date = connection.select_value("select '2024-01-01'::date")
+        assert_equal "2024-01-01", date
+        assert_equal String, date.class
+      end
+
       private
+        def with_postgresql_apdater_decode_dates
+          PostgreSQLAdapter.decode_dates = true
+          yield
+        ensure
+          PostgreSQLAdapter.decode_dates = false
+        end
+
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
         end

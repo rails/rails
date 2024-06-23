@@ -129,8 +129,18 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
-  # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
-  # methods when a record is invalid and cannot be saved.
+  # {ActiveRecord::Base.update_attribute!}[rdoc-ref:Persistence#update_attribute!]
+  # methods when a record failed to validate or cannot be saved due to any of the
+  # <tt>before_*</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details.
+  #
+  #   class Product < ActiveRecord::Base
+  #     before_save do
+  #       throw :abort if price < 0
+  #     end
+  #   end
+  #
+  #   Product.create! # => raises an ActiveRecord::RecordNotSaved
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
@@ -141,15 +151,17 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#destroy!}[rdoc-ref:Persistence#destroy!]
-  # when a call to {#destroy}[rdoc-ref:Persistence#destroy]
-  # would return false.
+  # when a record cannot be destroyed due to any of the
+  # <tt>before_destroy</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details.
   #
-  #   begin
-  #     complex_operation_that_internally_calls_destroy!
-  #   rescue ActiveRecord::RecordNotDestroyed => invalid
-  #     puts invalid.record.errors
+  #   class User < ActiveRecord::Base
+  #     before_destroy do
+  #       throw :abort if still_active?
+  #     end
   #   end
   #
+  #   User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
   class RecordNotDestroyed < ActiveRecordError
     attr_reader :record
 
@@ -581,3 +593,5 @@ module ActiveRecord
   class DatabaseVersionError < ActiveRecordError
   end
 end
+
+require "active_record/associations/errors"

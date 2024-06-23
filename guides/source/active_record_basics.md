@@ -250,7 +250,7 @@ purposes.
 Active Record models are placed under the `app/models` directory by default. But
 you may want to organize your models by placing similar models under their own
 folder and namespace. For example, `order.rb` and `review.rb` under
-`app/models/books` with `Book::Order` and `Book::Review` class names,
+`app/models/book` with `Book::Order` and `Book::Review` class names,
 respectively. You can create namespaced models with Active Record.
 
 In the case where the `Book` module does not already exist, the `generate`
@@ -645,7 +645,7 @@ files which are executed against any database that Active Record supports.
 Here's a migration that creates a new table called `publications`:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[7.2]
+class CreatePublications < ActiveRecord::Migration[8.0]
   def change
     create_table :publications do |t|
       t.string :title

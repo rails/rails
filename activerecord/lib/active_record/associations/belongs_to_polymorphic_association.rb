@@ -41,8 +41,9 @@ module ActiveRecord
         end
 
         def stale_state
-          foreign_key = super
-          foreign_key && [foreign_key.to_s, owner[reflection.foreign_type].to_s]
+          if foreign_key = super
+            [foreign_key, owner[reflection.foreign_type]]
+          end
         end
     end
   end

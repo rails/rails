@@ -36,6 +36,59 @@ module ActiveRecord
   class Result
     include Enumerable
 
+    class IndexedRow
+      def initialize(column_indexes, row)
+        @column_indexes = column_indexes
+        @row = row
+      end
+
+      def size
+        @column_indexes.size
+      end
+      alias_method :length, :size
+
+      def each_key(&block)
+        @column_indexes.each_key(&block)
+      end
+
+      def keys
+        @column_indexes.keys
+      end
+
+      def ==(other)
+        if other.is_a?(Hash)
+          to_hash == other
+        else
+          super
+        end
+      end
+
+      def key?(column)
+        @column_indexes.key?(column)
+      end
+
+      def fetch(column)
+        if index = @column_indexes[column]
+          @row[index]
+        elsif block_given?
+          yield
+        else
+          raise KeyError, "key not found: #{column.inspect}"
+        end
+      end
+
+      def [](column)
+        if index = @column_indexes[column]
+          @row[index]
+        end
+      end
+
+      def to_h
+        @column_indexes.transform_values { |index| @row[index] }
+      end
+      alias_method :to_hash, :to_h
+    end
+
     attr_reader :columns, :rows, :column_types
 
     def self.empty(async: false) # :nodoc:
@@ -46,11 +99,14 @@ module ActiveRecord
       end
     end
 
-    def initialize(columns, rows, column_types = {})
-      @columns      = columns
+    def initialize(columns, rows, column_types = nil)
+      # We freeze the strings to prevent them getting duped when
+      # used as keys in ActiveRecord::Base's @attributes hash
+      @columns      = columns.each(&:-@).freeze
       @rows         = rows
       @hash_rows    = nil
-      @column_types = column_types
+      @column_types = column_types || EMPTY_HASH
+      @column_indexes = nil
     end
 
     # Returns true if this result set includes the column named +name+
@@ -64,14 +120,16 @@ module ActiveRecord
     end
 
     # Calls the given block once for each element in row collection, passing
-    # row as parameter.
+    # row as parameter. Each row is a Hash-like, read only object.
+    #
+    # To get real hashes, use +.to_a.each+.
     #
     # Returns an +Enumerator+ if no block is given.
     def each(&block)
       if block_given?
-        hash_rows.each(&block)
+        indexed_rows.each(&block)
       else
-        hash_rows.to_enum { @rows.size }
+        indexed_rows.to_enum { @rows.size }
       end
     end
 
@@ -131,15 +189,27 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @columns      = columns.dup
-      @rows         = rows.dup
+      @rows = rows.dup
       @column_types = column_types.dup
-      @hash_rows    = nil
     end
 
     def freeze # :nodoc:
       hash_rows.freeze
+      indexed_rows.freeze
       super
+    end
+
+    def column_indexes # :nodoc:
+      @column_indexes ||= begin
+        index = 0
+        hash = {}
+        length  = columns.length
+        while index < length
+          hash[columns[index]] = index
+          index += 1
+        end
+        hash.freeze
+      end
     end
 
     private
@@ -151,48 +221,26 @@ module ActiveRecord
         end
       end
 
-      def hash_rows
-        @hash_rows ||=
-          begin
-            # We freeze the strings to prevent them getting duped when
-            # used as keys in ActiveRecord::Base's @attributes hash
-            columns = @columns.map(&:-@)
-            length  = columns.length
-            template = nil
-
-            @rows.map { |row|
-              if template
-                # We use transform_values to build subsequent rows from the
-                # hash of the first row. This is faster because we avoid any
-                # reallocs and in Ruby 2.7+ avoid hashing entirely.
-                index = -1
-                template.transform_values do
-                  row[index += 1]
-                end
-              else
-                # In the past we used Hash[columns.zip(row)]
-                #  though elegant, the verbose way is much more efficient
-                #  both time and memory wise cause it avoids a big array allocation
-                #  this method is called a lot and needs to be micro optimised
-                hash = {}
-
-                index = 0
-                while index < length
-                  hash[columns[index]] = row[index]
-                  index += 1
-                end
-
-                # It's possible to select the same column twice, in which case
-                # we can't use a template
-                template = hash if hash.length == length
-
-                hash
-              end
-            }
-          end
+      def indexed_rows
+        @indexed_rows ||= begin
+          columns = column_indexes
+          @rows.map { |row| IndexedRow.new(columns, row) }.freeze
+        end
       end
 
-      EMPTY = new([].freeze, [].freeze, {}.freeze).freeze
+      def hash_rows
+        # We use transform_values to rows.
+        # This is faster because we avoid any reallocs and avoid hashing entirely.
+        @hash_rows ||= @rows.map do |row|
+          column_indexes.transform_values { |index| row[index] }
+        end
+      end
+
+      empty_array = [].freeze
+      EMPTY_HASH = {}.freeze
+      private_constant :EMPTY_HASH
+
+      EMPTY = new(empty_array, empty_array, EMPTY_HASH).freeze
       private_constant :EMPTY
 
       EMPTY_ASYNC = FutureResult.wrap(EMPTY).freeze

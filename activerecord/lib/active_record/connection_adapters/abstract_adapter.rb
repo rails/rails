@@ -134,7 +134,7 @@ module ActiveRecord
           @logger = ActiveRecord::Base.logger
 
           if deprecated_logger || deprecated_connection_options || deprecated_config
-            raise ArgumentError, "when initializing an ActiveRecord adapter with a config hash, that should be the only argument"
+            raise ArgumentError, "when initializing an Active Record adapter with a config hash, that should be the only argument"
           end
         else
           # Soft-deprecated for now; we'll probably warn in future.
@@ -170,6 +170,13 @@ module ActiveRecord
 
         @raw_connection_dirty = false
         @verified = false
+      end
+
+      def inspect # :nodoc:
+        name_field = " name=#{pool.db_config.name.inspect}" unless pool.db_config.name == "primary"
+        shard_field = " shard=#{shard.inspect}" unless shard == :default
+
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} env_name=#{pool.db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
       end
 
       def lock_thread=(lock_thread) # :nodoc:
@@ -1118,6 +1125,7 @@ module ActiveRecord
             statement_name:    statement_name,
             async:             async,
             connection:        self,
+            transaction:       current_transaction.user_transaction.presence,
             row_count:         0,
             &block
           )
@@ -1182,7 +1190,7 @@ module ActiveRecord
         #
         # This is an internal hook to make possible connection adapters to build
         # custom result objects with connection-specific data.
-        def build_result(columns:, rows:, column_types: {})
+        def build_result(columns:, rows:, column_types: nil)
           ActiveRecord::Result.new(columns, rows, column_types)
         end
 

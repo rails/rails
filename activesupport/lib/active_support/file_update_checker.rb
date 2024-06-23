@@ -104,7 +104,7 @@ module ActiveSupport
         @watched || begin
           all = @files.select { |f| File.exist?(f) }
           all.concat(Dir[@glob]) if @glob
-          all
+          all.tap(&:uniq!)
         end
       end
 

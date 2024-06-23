@@ -5,7 +5,6 @@ require "set"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
-require "rails/secrets"
 
 module Rails
   class Application
@@ -75,10 +74,6 @@ module Rails
         end
       end
 
-      initializer :configure_backtrace_cleaner, group: :all do
-        Rails.backtrace_cleaner.remove_silencers! if ENV["BACKTRACE"]
-      end
-
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, group: :all do
         cache_format_version = config.active_support.delete(:cache_format_version)
@@ -117,10 +112,6 @@ module Rails
 
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
-      end
-
-      initializer :set_secrets_root, group: :all do
-        Rails::Secrets.root = root
       end
     end
   end

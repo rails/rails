@@ -242,9 +242,13 @@ class SanitizeTest < ActiveRecord::TestCase
   private
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
-        ActiveRecord::Base.send(:replace_named_bind_variables, statement, vars.first)
+        ActiveRecord::Base.with_connection do |c|
+          ActiveRecord::Base.send(:replace_named_bind_variables, c, statement, vars.first)
+        end
       else
-        ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
+        ActiveRecord::Base.with_connection do |c|
+          ActiveRecord::Base.send(:replace_bind_variables, c, statement, vars)
+        end
       end
     end
 end

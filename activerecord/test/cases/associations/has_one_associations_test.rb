@@ -493,8 +493,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_proxy_should_respond_to_private_methods_via_send
-    accounts(:signals37).send(:private_method)
-    companies(:first_firm).account.send(:private_method)
+    assert_nothing_raised do
+      accounts(:signals37).send(:private_method)
+      companies(:first_firm).account.send(:private_method)
+    end
   end
 
   def test_save_of_record_with_loaded_has_one

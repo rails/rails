@@ -93,8 +93,8 @@ module ActiveRecord
             end
         end
 
-        def lease_connection(**)
-          connection = super
+        def checkout_and_verify(connection)
+          super
           connection.query_cache ||= query_cache
           connection
         end
@@ -147,17 +147,17 @@ module ActiveRecord
           end
         end
 
+        def query_cache
+          @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
+            Store.new(@query_cache_max_size)
+          end
+        end
+
         private
           def prune_thread_cache
             dead_threads = @thread_query_caches.keys.reject(&:alive?)
             dead_threads.each do |dead_thread|
               @thread_query_caches.delete(dead_thread)
-            end
-          end
-
-          def query_cache
-            @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
-              Store.new(@query_cache_max_size)
             end
           end
       end
@@ -277,6 +277,7 @@ module ActiveRecord
             type_casted_binds: -> { type_casted_binds(binds) },
             name: name,
             connection: self,
+            transaction: current_transaction.user_transaction.presence,
             cached: true
           }
         end

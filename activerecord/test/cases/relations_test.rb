@@ -57,7 +57,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_dynamic_finder
     x = Post.where("author_id = ?", 1)
-    assert_respond_to x.klass, :find_by_id
+    assert_respond_to x.model, :find_by_id
   end
 
   def test_multivalue_where
@@ -362,7 +362,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("author_name, title nulls last").reverse_order
     end
-  end if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_default_reverse_order_on_table_without_primary_key
     assert_raises(ActiveRecord::IrreversibleOrderError) do
@@ -1894,11 +1894,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["comments"], scope.references_values
 
     scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
-    if current_adapter?(:OracleAdapter)
-      assert_equal ["COMMENTS"], scope.references_values
-    else
-      assert_equal ["comments"], scope.references_values
-    end
+
+    assert_equal ["comments"], scope.references_values
 
     scope = Post.order("comments.body", "yaks.body")
     assert_equal ["comments", "yaks"], scope.references_values
@@ -1919,11 +1916,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal %w(comments), scope.references_values
 
     scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
-    if current_adapter?(:OracleAdapter)
-      assert_equal ["COMMENTS"], scope.references_values
-    else
-      assert_equal ["comments"], scope.references_values
-    end
+
+    assert_equal ["comments"], scope.references_values
 
     scope = Post.reorder("comments.body", "yaks.body")
     assert_equal %w(comments yaks), scope.references_values

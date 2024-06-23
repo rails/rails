@@ -170,6 +170,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   private
     def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
       reflection = model.reflect_on_association(association_name)
+      assert_not_nil reflection
       assert_no_difference "callbacks_for_model(#{model.name}).length" do
         model.send(:add_autosave_association_callbacks, reflection)
       end
@@ -1542,12 +1543,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.catchphrase = ""
     @pirate.ship.name = ""
     @pirate.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil], [@pirate.reload.catchphrase, @pirate.ship.name]
-    else
-      assert_equal ["", ""], [@pirate.reload.catchphrase, @pirate.ship.name]
-    end
+    assert_equal ["", ""], [@pirate.reload.catchphrase, @pirate.ship.name]
   end
 
   def test_should_allow_to_bypass_validations_on_associated_models_at_any_depth
@@ -1559,12 +1555,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.save(validate: false)
 
     values = [@pirate.reload.catchphrase, @pirate.ship.name, *@pirate.ship.parts.map(&:name)]
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil, nil, nil], values
-    else
-      assert_equal ["", "", "", ""], values
-    end
+    assert_equal ["", "", "", ""], values
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
@@ -1731,12 +1722,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     @ship.pirate.catchphrase = ""
     @ship.name = ""
     @ship.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil], [@ship.reload.name, @ship.pirate.catchphrase]
-    else
-      assert_equal ["", ""], [@ship.reload.name, @ship.pirate.catchphrase]
-    end
+    assert_equal ["", ""], [@ship.reload.name, @ship.pirate.catchphrase]
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
@@ -1868,20 +1854,11 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).each { |child| child.name = "" }
 
     assert @pirate.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil, nil], [
-        @pirate.reload.catchphrase,
-        @pirate.public_send(@association_name).first.name,
-        @pirate.public_send(@association_name).last.name
-      ]
-    else
-      assert_equal ["", "", ""], [
-        @pirate.reload.catchphrase,
-        @pirate.public_send(@association_name).first.name,
-        @pirate.public_send(@association_name).last.name
-      ]
-    end
+    assert_equal ["", "", ""], [
+      @pirate.reload.catchphrase,
+      @pirate.public_send(@association_name).first.name,
+      @pirate.public_send(@association_name).last.name
+    ]
   end
 
   def test_should_validation_the_associated_models_on_create

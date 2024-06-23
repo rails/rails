@@ -82,7 +82,8 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
     end
 
     def test_build_fixture_sql
-      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :virtual_columns)
+      fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :virtual_columns).first
+      assert_equal 2, fixtures.size
     end
   end
 end

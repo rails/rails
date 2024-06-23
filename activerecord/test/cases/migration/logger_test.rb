@@ -31,7 +31,9 @@ module ActiveRecord
         previous_logger = ActiveRecord::Base.logger
         ActiveRecord::Base.logger = nil
         migrations = [Migration.new("a", 1), Migration.new("b", 2), Migration.new("c", 3)]
-        ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata).migrate
+        assert_nothing_raised do
+          ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata).migrate
+        end
       ensure
         ActiveRecord::Base.logger = previous_logger
       end

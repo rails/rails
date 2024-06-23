@@ -319,11 +319,15 @@ else
         end
 
         def test_add_check_constraint_should_be_noop
-          @connection.add_check_constraint :products, "discounted_price > 0", name: "discounted_price_check"
+          assert_nothing_raised do
+            @connection.add_check_constraint :products, "discounted_price > 0", name: "discounted_price_check"
+          end
         end
 
         def test_remove_check_constraint_should_be_noop
-          @connection.remove_check_constraint :products, name: "price_check"
+          assert_nothing_raised do
+            @connection.remove_check_constraint :products, name: "price_check"
+          end
         end
 
         def test_check_constraints_should_raise_not_implemented

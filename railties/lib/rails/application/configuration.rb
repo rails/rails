@@ -15,15 +15,15 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
-                    :log_tags, :railties_order, :relative_url_root, :secret_key_base,
+                    :log_tags, :railties_order, :relative_url_root,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
-                    :read_encrypted_secrets, :content_security_policy_report_only,
+                    :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version
+                    :dom_testing_default_html_version, :yjit
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -67,8 +67,6 @@ module Rails
         @api_only                                = false
         @debug_exception_response_format         = nil
         @x                                       = Custom.new
-        @enable_dependency_loading               = false
-        @read_encrypted_secrets                  = false
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
@@ -83,6 +81,7 @@ module Rails
         @rake_eager_load                         = false
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
+        @yjit                                    = false
       end
 
       # Loads default configuration values for a target version. This includes
@@ -311,16 +310,18 @@ module Rails
           end
 
           if respond_to?(:action_view)
-            require "rails-html-sanitizer"
+            require "action_view/helpers"
             action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
 
           if respond_to?(:action_text)
-            require "rails-html-sanitizer"
+            require "action_view/helpers"
             action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
         when "7.2"
           load_defaults "7.1"
+
+          self.yjit = true
 
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = :default
@@ -331,9 +332,11 @@ module Rails
           end
 
           if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_dates = true
             active_record.validate_migration_timestamps = true
-            active_record.automatically_invert_plural_associations = true
           end
+        when "8.0"
+          load_defaults "7.2"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -353,20 +356,12 @@ module Rails
         self.cache_classes = !value
       end
 
-      ENABLE_DEPENDENCY_LOADING_WARNING = <<~MSG
-        This flag addressed a limitation of the `classic` autoloader and has no effect nowadays.
-        To fix this deprecation, please just delete the reference.
-      MSG
-      private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
-
-      def enable_dependency_loading
-        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
-        @enable_dependency_loading
+      def read_encrypted_secrets
+        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 7.3.")
       end
 
-      def enable_dependency_loading=(value)
-        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
-        @enable_dependency_loading = value
+      def read_encrypted_secrets=(value)
+        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 7.3.")
       end
 
       def encoding=(value)
@@ -401,7 +396,6 @@ module Rails
         @paths ||= begin
           paths = super
           paths.add "config/database",    with: "config/database.yml"
-          paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"
@@ -504,6 +498,26 @@ module Rails
       def colorize_logging=(val)
         ActiveSupport::LogSubscriber.colorize_logging = val
         generators.colorize_logging = val
+      end
+
+      def secret_key_base
+        @secret_key_base || begin
+          self.secret_key_base = if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
+            generate_local_secret
+          else
+            ENV["SECRET_KEY_BASE"] || Rails.application.credentials.secret_key_base
+          end
+        end
+      end
+
+      def secret_key_base=(new_secret_key_base)
+        if new_secret_key_base.is_a?(String) && new_secret_key_base.present?
+          @secret_key_base = new_secret_key_base
+        elsif new_secret_key_base
+          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
+        else
+          raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
+        end
       end
 
       # Specifies what class to use to store the session. Possible values
@@ -610,6 +624,18 @@ module Rails
           key_path = root.join("config/master.key") if !key_path.exist?
 
           { content_path: content_path, key_path: key_path }
+        end
+
+        def generate_local_secret
+          key_file = root.join("tmp/local_secret.txt")
+
+          unless File.exist?(key_file)
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key)
+          end
+
+          File.binread(key_file)
         end
     end
   end

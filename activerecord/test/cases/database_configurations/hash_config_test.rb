@@ -174,6 +174,11 @@ module ActiveRecord
           config.validate!
         end
       end
+
+      def test_inspect_does_not_show_secrets
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract", password: "hunter2" })
+        assert_equal "#<ActiveRecord::DatabaseConfigurations::HashConfig env_name=default_env name=primary adapter_class=ActiveRecord::ConnectionAdapters::AbstractAdapter>", config.inspect
+      end
     end
   end
 end

@@ -543,6 +543,21 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_to_time_without_preserve_timezone_configured
+    with_preserve_timezone(nil) do
+      with_env_tz "US/Eastern" do
+        time = assert_deprecated(ActiveSupport.deprecator) { @twz.to_time }
+
+        assert_equal Time, time.class
+        assert_equal time.object_id, @twz.to_time.object_id
+        assert_equal Time.local(1999, 12, 31, 19), time
+        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+
+        assert_equal false, ActiveSupport.to_time_preserves_timezone
+      end
+    end
+  end
+
   def test_to_date
     # 1 sec before midnight Jan 1 EST
     assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 4, 59, 59), ActiveSupport::TimeZone["Eastern Time (US & Canada)"]).to_date

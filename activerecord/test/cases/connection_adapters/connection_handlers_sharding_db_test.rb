@@ -285,8 +285,10 @@ module ActiveRecord
 
           ActiveRecord::Base.connects_to(shards: { default: { writing: :primary, reading: :primary_replica } })
 
-          ActiveRecord::Base.prohibit_shard_swapping do # no exception
-            ActiveRecord::Base.connected_to(role: :reading) do
+          assert_nothing_raised do
+            ActiveRecord::Base.prohibit_shard_swapping do # no exception
+              ActiveRecord::Base.connected_to(role: :reading) do
+              end
             end
           end
         ensure

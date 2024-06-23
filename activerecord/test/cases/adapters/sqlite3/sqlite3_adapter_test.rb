@@ -23,12 +23,14 @@ module ActiveRecord
         )
       end
 
-      def test_bad_connection
-        error = assert_raise ActiveRecord::NoDatabaseError do
-          connection = SQLite3Adapter.new(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
+      def test_database_should_get_created_when_missing_parent_directories_for_database_path
+        dir = Dir.mktmpdir
+        db_path = File.join(dir, "_not_exist/-cinco-dog.sqlite3")
+        assert_nothing_raised do
+          connection = SQLite3Adapter.new(adapter: "sqlite3", database: db_path)
           connection.drop_table "ex", if_exists: true
         end
-        assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
+        assert SQLite3Adapter.database_exists?(adapter: "sqlite3", database: db_path)
       end
 
       def test_database_exists_returns_false_when_the_database_does_not_exist
@@ -999,7 +1001,7 @@ module ActiveRecord
           error = assert_raises(StandardError) do
             conn.add_index :testings, :non_existent2
           end
-          assert_match(/no such column: non_existent2/, error.message)
+          assert_match(/no such column: "?non_existent2"?/, error.message)
           assert_equal conn.pool, error.connection_pool
         end
       end
@@ -1011,7 +1013,7 @@ module ActiveRecord
         error = assert_raises(StandardError) do
           conn.add_index :testings, :non_existent
         end
-        assert_match(/no such column: non_existent/, error.message)
+        assert_match(/no such column: "?non_existent"?/, error.message)
         assert_equal conn.pool, error.connection_pool
 
         with_strict_strings_by_default do
@@ -1021,7 +1023,7 @@ module ActiveRecord
           error = assert_raises(StandardError) do
             conn.add_index :testings, :non_existent2
           end
-          assert_match(/no such column: non_existent2/, error.message)
+          assert_match(/no such column: "?non_existent2"?/, error.message)
           assert_equal conn.pool, error.connection_pool
         end
       end

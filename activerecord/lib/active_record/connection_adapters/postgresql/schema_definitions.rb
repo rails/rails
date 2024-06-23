@@ -332,6 +332,26 @@ module ActiveRecord
         def remove_unique_constraint(*args)
           @base.remove_unique_constraint(name, *args)
         end
+
+        # Validates the given constraint on the table.
+        #
+        #  t.check_constraint("price > 0", name: "price_check", validate: false)
+        #  t.validate_constraint "price_check"
+        #
+        # See {connection.validate_constraint}[rdoc-ref:SchemaStatements#validate_constraint]
+        def validate_constraint(*args)
+          @base.validate_constraint(name, *args)
+        end
+
+        # Validates the given check constraint on the table
+        #
+        #  t.check_constraint("price > 0", name: "price_check", validate: false)
+        #  t.validate_check_constraint name: "price_check"
+        #
+        # See {connection.validate_check_constraint}[rdoc-ref:SchemaStatements#validate_check_constraint]
+        def validate_check_constraint(*args)
+          @base.validate_check_constraint(name, *args)
+        end
       end
 
       # = Active Record PostgreSQL Adapter Alter \Table
