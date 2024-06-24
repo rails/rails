@@ -274,7 +274,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
     def set_bar
       flash[:bar] = "for great justice"
-      head :ok
+      render inline: "<%= bar %>"
     end
 
     def set_flash_optionally
@@ -326,11 +326,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_added_flash_types_method
+  def test_add_flash_types_defines_helper_method
     with_test_route_set do
       get "/set_bar"
       assert_response :success
-      assert_equal "for great justice", @controller.bar
+      assert_equal "for great justice", response.body
     end
   end
 
@@ -354,21 +354,6 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
       assert_not_equal another_hello_flash_etag, goodbye_flash_etag
     end
-  end
-
-  def test_flash_usable_in_metal_without_helper
-    controller_class = nil
-
-    assert_nothing_raised do
-      controller_class = Class.new(ActionController::Metal) do
-        include ActionController::Flash
-      end
-    end
-
-    controller = controller_class.new
-
-    assert_respond_to controller, :alert
-    assert_respond_to controller, :notice
   end
 
   private
