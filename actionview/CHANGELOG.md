@@ -1,4 +1,4 @@
-*   Fix templates with strict locals to also include `local_assigns`
+*   Fix templates with strict locals to also include `local_assigns`.
 
     Previously templates defining strict locals wouldn't receive the `local_assigns`
     hash.
