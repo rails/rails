@@ -27,7 +27,11 @@ require "active_support"
 require "active_support/rails"
 require "zeitwerk"
 
+# We compute lib this way instead of using __dir__ because __dir__ gives a real
+# path, while __FILE__ honors symlinks. If the gem is stored under a symlinked
+# directory, this matters.
 lib = File.dirname(__FILE__)
+
 Zeitwerk::Loader.for_gem.tap do |loader|
   loader.ignore(
     "#{lib}/rails", # Contains generators, templates, docs, etc.
