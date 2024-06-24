@@ -11,7 +11,7 @@ gemfile(true) do
   # If you want to test against edge Rails replace the previous line with this:
   # gem "rails", github: "rails/rails", branch: "main"
 
-  gem "sqlite3"
+  gem "sqlite3", "~> 1.7.x"
 end
 
 require "active_record/railtie"
