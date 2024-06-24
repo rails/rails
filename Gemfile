@@ -41,7 +41,7 @@ gem "bcrypt", "~> 3.1.11", require: false
 gem "terser", ">= 1.1.4", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
-gem "json", ">= 2.0.0", "!=2.7.0"
+gem "json", ">= 2.0.0", "< 2.7"
 
 # Lock rack-test to v1 until #45467 is fixed
 gem "rack-test", "< 2"

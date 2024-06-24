@@ -608,7 +608,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   importmap-rails (>= 1.2.3)
   jsbundling-rails
-  json (>= 2.0.0, != 2.7.0)
+  json (>= 2.0.0, < 2.7)
   libxml-ruby
   listen (~> 3.3)
   minitest (>= 5.15.0, < 5.16.0)
