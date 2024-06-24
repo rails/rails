@@ -7,6 +7,8 @@ module ActiveRecord
       def reader
         ensure_klass_exists!
 
+        yield if block_given?
+
         if !loaded? || stale_target?
           reload
         end

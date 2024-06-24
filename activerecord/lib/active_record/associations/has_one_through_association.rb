@@ -6,14 +6,9 @@ module ActiveRecord
     class HasOneThroughAssociation < HasOneAssociation # :nodoc:
       include ThroughAssociation
 
-      def load_target
-        self.target = source_association_target if !loaded? && source_association_cached?
-        super
-      end
-
       private
-        def source_association_cached?
-          through_association.loaded? && through_association_target.present? && source_association.loaded?
+        def source_association_loaded?
+          source_association.loaded?
         end
 
         def source_association

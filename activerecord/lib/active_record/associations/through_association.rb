@@ -6,6 +6,12 @@ module ActiveRecord
     module ThroughAssociation # :nodoc:
       delegate :source_reflection, to: :reflection
 
+      def reader
+        super do
+          self.target = source_association_target if !loaded? && source_association_cached?
+        end
+      end
+
       private
         def transaction(&block)
           through_reflection.klass.transaction(&block)
@@ -29,6 +35,10 @@ module ActiveRecord
 
         def through_association_target
           @through_association_target ||= through_association.target
+        end
+
+        def source_association_cached?
+          through_association.loaded? && through_association_target.present? && source_association_loaded?
         end
 
         # We merge in these scopes for two reasons:

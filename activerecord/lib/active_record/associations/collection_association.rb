@@ -34,6 +34,8 @@ module ActiveRecord
       def reader
         ensure_klass_exists!
 
+        yield if block_given?
+
         if stale_target?
           reload
         end

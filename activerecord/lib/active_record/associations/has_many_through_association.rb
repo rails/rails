@@ -34,6 +34,28 @@ module ActiveRecord
       end
 
       private
+        def source_association_target
+          if through_association.is_a?(ActiveRecord::Associations::BelongsToAssociation)
+            through_association_target.association(source_reflection.name).target
+          else
+            through_association_target.map do |target|
+              target.association(source_reflection.name).target
+            end.flatten
+          end
+        end
+
+        def source_association_loaded?
+          if through_association.is_a?(ActiveRecord::Associations::BelongsToAssociation)
+            through_association_target.association(source_reflection.name).loaded?
+          else
+            return false unless through_association_target
+
+            through_association_target.all? do |target|
+              target.association(source_reflection.name).loaded?
+            end
+          end
+        end
+
         def concat_records(records)
           ensure_not_nested
 
