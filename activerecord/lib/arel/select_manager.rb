@@ -203,7 +203,7 @@ module Arel # :nodoc: all
         node_class = Nodes::Union
       end
 
-      node_class.new self.ast, other.ast
+      node_class.new self.ast, other.try(:ast) || other
     end
 
     def intersect(other)

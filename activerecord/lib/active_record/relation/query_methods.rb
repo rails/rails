@@ -1915,7 +1915,7 @@ module ActiveRecord
         when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
         when ActiveRecord::Relation then value.arel
         when Arel::SelectManager then value
-        when Array then value.map { |q| build_with_expression_from_value(q) }.reduce { |result, value| result.union(:all, value) }
+        when Array then value.map { |q| build_with_expression_from_value(q) }.reduce { |result, value| result.union(:all, value.try(:ast) || value) }
         else
           raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
         end

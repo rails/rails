@@ -111,11 +111,23 @@ module Arel # :nodoc: all
       end
     end
 
+    class UnionAll < Binary
+      def union(operation, other = nil)
+        if other
+          node_class = Nodes.const_get("Union#{operation.to_s.capitalize}")
+        else
+          other = operation
+          node_class = Nodes::Union
+        end
+
+        node_class.new self, other
+      end
+    end
+
     %w{
       Assignment
       Join
       Union
-      UnionAll
       Intersect
       Except
     }.each do |name|

@@ -72,6 +72,18 @@ module ActiveRecord
         assert_equal (POSTS_WITH_TAGS + POSTS_WITH_COMMENTS).sort, relation.order(:id).pluck(:id)
       end
 
+      def test_with_when_passing_3_arrays
+        relation = Post
+          .with(content_union: [
+            Comment.select(:body),
+            Post.select(:body),
+            Company.select("name as body")
+          ])
+          .from("content_union").select(:body)
+
+        assert_equal (Comment.pluck(:body) + Post.pluck(:body) + Company.pluck(:name)).sort, relation.pluck(:body).sort
+      end
+
       def test_with_recursive
         top_companies = Company.where(firm_id: nil).to_a
         child_companies = Company.where(firm_id: top_companies).to_a
