@@ -184,11 +184,7 @@ class StrictTransportSecurityTest < SSLTest
 end
 
 class SecureCookiesTest < SSLTest
-  DEFAULT = if Gem::Version.new(Rack::RELEASE) < Gem::Version.new("3")
-    %(id=1; path=/\ntoken=abc; path=/; secure; HttpOnly)
-  else
-    ["id=1; path=/", "token=abc; path=/; secure; HttpOnly"]
-  end
+  DEFAULT = ["id=1; path=/", "token=abc; path=/; secure; HttpOnly"]
 
   def test_flag_cookies_as_secure
     get headers: { Rack::SET_COOKIE => DEFAULT }
@@ -248,17 +244,14 @@ class SecureCookiesTest < SSLTest
     assert_equal "close", response.headers["connection"]
   end
 
-  # Array-based headers are only supported in Rack 3+
-  if Gem::Version.new(Rack::RELEASE) >= Gem::Version.new("3")
-    def test_flag_cookies_as_secure_with_single_cookie_in_array
-      get headers: { Rack::SET_COOKIE => ["id=1"] }
-      assert_cookies "id=1; secure"
-    end
+  def test_flag_cookies_as_secure_with_single_cookie_in_array
+    get headers: { Rack::SET_COOKIE => ["id=1"] }
+    assert_cookies "id=1; secure"
+  end
 
-    def test_flag_cookies_as_secure_with_multiple_cookies_in_array
-      get headers: { Rack::SET_COOKIE => ["id=1", "problem=def"] }
-      assert_cookies "id=1; secure", "problem=def; secure"
-    end
+  def test_flag_cookies_as_secure_with_multiple_cookies_in_array
+    get headers: { Rack::SET_COOKIE => ["id=1", "problem=def"] }
+    assert_cookies "id=1; secure", "problem=def; secure"
   end
 
   private
@@ -269,9 +262,6 @@ class SecureCookiesTest < SSLTest
 
     def assert_cookies(*expected)
       cookies = response.headers[Rack::SET_COOKIE]
-      if Gem::Version.new(Rack::RELEASE) < Gem::Version.new("3")
-        cookies = cookies.split("\n")
-      end
       assert_equal expected, cookies
     end
 end

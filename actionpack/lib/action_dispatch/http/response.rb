@@ -36,18 +36,8 @@ module ActionDispatch # :nodoc:
   #       end
   #     end
   class Response
-    begin
-      # For `Rack::Headers` (Rack 3+):
-      require "rack/headers"
-      Headers = ::Rack::Headers
-    rescue LoadError
-      # For `Rack::Utils::HeaderHash`:
-      require "rack/utils"
-      Headers = ::Rack::Utils::HeaderHash
-    end
-
-    # To be deprecated:
-    Header = Headers
+    require "rack/headers"
+    Headers = ::Rack::Headers
 
     # The request that the response is responding to.
     attr_accessor :request

@@ -648,35 +648,6 @@ class RequestParamsParsing < BaseRequestTest
   end
 end
 
-if Rack.release < "3"
-  class RequestRewind < BaseRequestTest
-    test "body should be rewound" do
-      data = "rewind"
-      env = {
-        :input => data,
-        "CONTENT_LENGTH" => data.length.to_s,
-        "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8"
-      }
-
-      # Read the request body by parsing params.
-      request = stub_request(env)
-      request.request_parameters
-
-      # Should have rewound the body.
-      assert_equal "rewind", request.body.read
-    end
-
-    test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
-      request = stub_request(
-        :input => "raw",
-        "CONTENT_LENGTH" => "3"
-      )
-      assert_equal "raw", request.raw_post
-      assert_equal "raw", request.env["rack.input"].read
-    end
-  end
-end
-
 class RequestProtocol < BaseRequestTest
   test "server software" do
     assert_equal "lighttpd", stub_request("SERVER_SOFTWARE" => "lighttpd/1.4.5").server_software
@@ -1113,23 +1084,6 @@ class RequestParameters < BaseRequestTest
       request.path_parameters = { foo: "frozen", bar: +"mutable", controller: "test_controller" }
       assert_equal Encoding::BINARY, request.params[:bar].encoding
       assert_equal Encoding::UTF_8, request.params[:foo].encoding
-    end
-  end
-
-  if Rack.release < "3"
-    test "parameters not accessible after rack parse error of invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo%81E=1")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
-
-    test "parameters containing an invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo=%81E")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
-
-    test "parameters containing a deeply nested invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
-      assert_raises(ActionController::BadRequest) { request.parameters }
     end
   end
 

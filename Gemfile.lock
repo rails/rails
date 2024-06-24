@@ -52,7 +52,7 @@ PATH
       activesupport (= 8.0.0.alpha)
       nokogiri (>= 1.8.5)
       racc
-      rack (>= 2.2.4)
+      rack (~> 3.0)
       rack-session (>= 1.0.1)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.2)
