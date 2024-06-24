@@ -55,14 +55,20 @@ module ActionCable
     end
 
     module TestConnection
-      attr_reader :logger, :request
+      attr_reader :logger, :request, :transmissions
 
       def initialize(request)
         inner_logger = ActiveSupport::Logger.new(StringIO.new)
         tagged_logging = ActiveSupport::TaggedLogging.new(inner_logger)
         @logger = ActionCable::Connection::TaggedLoggerProxy.new(tagged_logging, tags: [])
+        @transmissions = []
+        @subscriptions = ActionCable::Connection::Subscriptions.new(self)
         @request = request
         @env = request.env
+      end
+
+      def transmit(cable_message)
+        transmissions << cable_message.with_indifferent_access
       end
     end
 
@@ -196,7 +202,7 @@ module ActionCable
           path ||= DEFAULT_PATH
 
           connection = self.class.connection_class.allocate
-          connection.singleton_class.include(TestConnection)
+          connection.singleton_class.prepend(TestConnection)
           connection.send(:initialize, build_test_request(path, **request_params))
           connection.connect if connection.respond_to?(:connect)
 
@@ -214,6 +220,12 @@ module ActionCable
 
         def cookies
           @cookie_jar ||= TestCookieJar.new
+        end
+
+        def transmissions
+          raise "Must be connected!" if connection.nil?
+
+          connection.transmissions
         end
 
         private
