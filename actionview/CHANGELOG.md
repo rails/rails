@@ -1,9 +1,9 @@
-*  Fix templates with strict locals to also include `local_assigns`
+*   Fix templates with strict locals to also include `local_assigns`
 
-  Previously templates defining strict locals wouldn't receive the `local_assigns`
-  hash.
+    Previously templates defining strict locals wouldn't receive the `local_assigns`
+    hash.
 
-  *Jean Boussier*
+    *Jean Boussier*
 
 ## Rails 7.2.0.beta2 (June 04, 2024) ##
 
