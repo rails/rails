@@ -265,7 +265,7 @@ module ActionView # :nodoc:
 
       if has_strict_locals
         begin
-          public_send(method, buffer, **locals, &block)
+          public_send(method, locals, buffer, **locals, &block)
         rescue ArgumentError => argument_error
           raise(
             ArgumentError,
