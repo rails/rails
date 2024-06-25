@@ -34,8 +34,8 @@ You can think of each migration as being a new 'version' of the database. A
 schema starts off with nothing in it, and each migration modifies it to add or
 remove tables, columns, or indexes. Active Record knows how to update your
 schema along this timeline, bringing it from whatever point it is in the history
-to the latest version. Read more about how Rails knows which migration in the
-timeline to run [here](#rails-migration-version-control).
+to the latest version. Read more about [how Rails knows which migration in the
+timeline to run](#rails-migration-version-control).
 
 Active Record updates your `db/schema.rb` file to match the up-to-date structure
 of your database. Here's an example of a migration:
@@ -78,8 +78,8 @@ end
 We define the change that we want to happen moving forward in time. Before this
 migration is run, there will be no table. After it is run, the table will exist.
 Active Record knows how to reverse this migration as well; if we roll this
-migration back, it will remove the table. You can read more about rolling back
-migrations [here](#rolling-back).
+migration back, it will remove the table. Read more about rolling back
+migrations in the [Rolling Back section](#rolling-back).
 
 After defining the change that we want to occur moving forward in time, it's
 essential to consider the reversibility of the migration. While Active Record
@@ -88,8 +88,8 @@ the table, the concept of reversibility becomes crucial. With reversible
 migrations, not only does the migration create the table when applied, but it
 also enables smooth rollback functionality. In case of reverting the migration
 above, Active Record intelligently handles the removal of the table, maintaining
-database consistency throughout the process. You can read more about reversing
-migrations [here](#using-reversible).
+database consistency throughout the process. See the [Reversing
+Migrations section](#using-reversible) for more details.
 
 Generating Migration Files
 ----------------------
@@ -110,7 +110,7 @@ class `AddDetailsToProducts`. Rails uses this timestamp to determine which
 migration should be run and in what order, so if you're copying a migration from
 another application or generating a file yourself, be aware of its position in
 the order. You can read more about how the timestamps are used in the [Rails
-Migration Version Control](#rails-migration-version-control) section.
+Migration Version Control section](#rails-migration-version-control).
 
 When generating a migration, Active Record automatically prepends the current
 timestamp to the file name of the migration. For example, running the command
@@ -464,8 +464,7 @@ end
 ```
 
 You can also pass an array to `:primary_key` for a composite primary key. Read
-more about composite primary keys
-[here](active_record_composite_primary_keys.html).
+more about [composite primary keys](active_record_composite_primary_keys.html).
 
 ```ruby
 class CreateUsers < ActiveRecord::Migration[8.0]
@@ -621,8 +620,8 @@ This changes the column `part_number` on products table to be a `:text` field.
 
 NOTE: The `change_column` command is **irreversible**. To ensure your migration
 can be safely reverted, you will need to provide your own `reversible`
-migration. You can read more about reversible migrations
-[here](#using-reversible).
+migration. See the [Reversible Migrations section](#using-reversible) for more
+details.
 
 Besides `change_column`, the [`change_column_null`][] and
 [`change_column_default`][] methods are used to change a null constraint and
@@ -832,8 +831,8 @@ In this example, we're updating the `price` column of the products table to
 WARNING: Modifying data directly in migrations should be approached with
 caution. Consider if this is the best approach for your use case, and be aware
 of potential drawbacks such as increased complexity and maintenance overhead,
-risks to data integrity and database portability. You can read more about data
-migrations [here](#data-migrations).
+risks to data integrity and database portability. See the [Data Migrations
+documentation](#data-migrations) for more details.
 
 For more details and examples of individual methods, check the API
 documentation.
@@ -1256,8 +1255,8 @@ only perform the necessary tasks once.
   `bin/rails db:setup` does.
 * If the database exists but the tables have not been created, the command will
   load the schema, run any pending migrations, dump the updated schema, and
-  finally load the seed data. You can read more about seeding data
-  [here](#migrations-and-seed-data)
+  finally load the seed data. See the [Seeding Data
+  documentation](#migrations-and-seed-data) for more details.
 * If both the database and tables exist but the seed data has not been loaded,
   the command will only load the seed data.
 * If the database, tables, and seed data are all in place, the command will do
@@ -1624,7 +1623,7 @@ When you delete migration files in the `db/migrate/` directory, any environment
 where `bin/rails db:migrate` was run when those files still existed will hold a
 reference to the migration timestamp specific to them inside an internal Rails
 database table named `schema_migrations`. You can read more about this in the
-[Rails Migration Version Control](#rails-migration-version-control) section.
+[Rails Migration Version Control section](#rails-migration-version-control).
 
 If you run the `bin/rails db:migrate:status` command, which displays the status
 (up or down) of each migration, you should see `********** NO FILE **********`
