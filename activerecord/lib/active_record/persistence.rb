@@ -912,7 +912,7 @@ module ActiveRecord
 
       yield(self) if block_given?
 
-      affected_rows
+      attribute_names.empty? ? true : affected_rows == 1
     end
 
     # Creates a record with values matching those of the instance attributes
