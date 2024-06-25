@@ -7,16 +7,8 @@ module ActiveRecord
       include ThroughAssociation
 
       private
-        def source_association_loaded?
-          source_association.loaded?
-        end
-
         def source_association
           @source_association ||= through_association_target.association(source_reflection.name)
-        end
-
-        def source_association_target
-          @source_association_target ||= source_association.target
         end
 
         def replace(record, save = true)

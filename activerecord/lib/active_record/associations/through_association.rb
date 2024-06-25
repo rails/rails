@@ -37,6 +37,23 @@ module ActiveRecord
           @through_association_target ||= through_association.target
         end
 
+        def source_association_target
+          if through_association_target.is_a?(Array)
+            through_association_target.flat_map do |target|
+              target.association(source_reflection.name).target
+            end
+          else
+            through_association_target.association(source_reflection.name).target
+          end
+        end
+
+        def source_association_loaded?
+          targets = Array(through_association_target)
+          targets.all? do |target|
+            target.association(source_reflection.name).loaded?
+          end
+        end
+
         def source_association_cached?
           through_association.loaded? && through_association_target.present? && source_association_loaded?
         end
