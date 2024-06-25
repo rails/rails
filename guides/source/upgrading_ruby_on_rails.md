@@ -23,7 +23,7 @@ Rails generally stays close to the latest released Ruby version when it's releas
 * Rails 7.2 requires Ruby 3.1.0 or newer.
 * Rails 7.0 and 7.1 requires Ruby 2.7.0 or newer.
 * Rails 6 requires Ruby 2.5.0 or newer.
-* Rails 5 requires Ruby 2.2.2 or newer.
+* Rails 5 requires Ruby 2.2.2 through 2.6.10.
 
 It's a good idea to upgrade Ruby and Rails separately. Upgrade to the latest Ruby you can first, and then upgrade Rails.
 
