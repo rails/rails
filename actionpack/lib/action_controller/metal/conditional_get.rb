@@ -293,6 +293,7 @@ module ActionController
         must_revalidate: options.delete(:must_revalidate),
         stale_while_revalidate: options.delete(:stale_while_revalidate),
         stale_if_error: options.delete(:stale_if_error),
+        immutable: options.delete(:immutable),
       )
       options.delete(:private)
 

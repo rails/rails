@@ -1,3 +1,12 @@
+*   Support `immutable` directive in Cache-Control
+
+    ```ruby
+    expires_in 1.minute, public: true, immutable: true
+    # Cache-Control: public, max-age=60, immutable
+    ```
+
+    *heka1024*
+
 *   Add `:wasm_unsafe_eval` mapping for `content_security_policy`
 
     ```ruby

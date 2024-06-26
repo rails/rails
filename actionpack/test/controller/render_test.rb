@@ -179,6 +179,11 @@ class TestController < ActionController::Base
     render action: "hello_world"
   end
 
+  def conditional_hello_with_expires_in_with_immutable
+    expires_in 1.minute, public: true, immutable: true
+    render action: "hello_world"
+  end
+
   def conditional_hello_with_expires_in_with_public_with_more_keys
     expires_in 1.minute, :public => true, "s-maxage" => 5.hours
     render action: "hello_world"
@@ -440,6 +445,11 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_expires_in_header_with_stale_if_error
     get :conditional_hello_with_expires_in_with_stale_if_error
     assert_equal "max-age=60, public, stale-if-error=300", @response.headers["Cache-Control"]
+  end
+
+  def test_expires_in_header_with_immutable
+    get :conditional_hello_with_expires_in_with_immutable
+    assert_equal "max-age=60, public, immutable", @response.headers["Cache-Control"]
   end
 
   def test_expires_in_header_with_additional_headers
