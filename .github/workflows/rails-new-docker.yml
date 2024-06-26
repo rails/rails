@@ -20,7 +20,8 @@ jobs:
     - name: Set up Ruby 3.3
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 3.3
+        # No 3.3.3 because of https://bugs.ruby-lang.org/issues/20581
+        ruby-version: 3.3.2
         bundler-cache: true
     - name: Generate --dev app
       run: |
