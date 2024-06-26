@@ -8,7 +8,7 @@ module ActiveRecord
 
       private
         def source_association
-          @source_association ||= through_association_target.association(source_reflection.name)
+          @source_association ||= direct_through_association_target.association(source_reflection.name)
         end
 
         def replace(record, save = true)

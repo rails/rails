@@ -33,29 +33,37 @@ module ActiveRecord
           @through_association ||= owner.association(through_reflection.name)
         end
 
-        def through_association_target
-          @through_association_target ||= through_association.target
+        def direct_through_reflection
+          @direct_through_reflection ||= reflection.through_reflection
+        end
+
+        def direct_through_association
+          @direct_through_association ||= owner.association(direct_through_reflection.name)
+        end
+
+        def direct_through_association_target
+          @direct_through_association_target ||= direct_through_association.target
         end
 
         def source_association_target
-          if through_association_target.is_a?(Array)
-            through_association_target.flat_map do |target|
+          if direct_through_association_target.is_a?(Array)
+            direct_through_association_target.flat_map do |target|
               target.association(source_reflection.name).target
             end
           else
-            through_association_target.association(source_reflection.name).target
+            direct_through_association_target.association(source_reflection.name).target
           end
         end
 
         def source_association_loaded?
-          targets = Array(through_association_target)
+          targets = Array(direct_through_association_target)
           targets.all? do |target|
             target.association(source_reflection.name).loaded?
           end
         end
 
         def source_association_cached?
-          through_association.loaded? && through_association_target.present? && source_association_loaded?
+          direct_through_association.loaded? && direct_through_association_target.present? && source_association_loaded?
         end
 
         # We merge in these scopes for two reasons:
