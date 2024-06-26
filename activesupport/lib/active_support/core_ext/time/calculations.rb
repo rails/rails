@@ -319,7 +319,12 @@ class Time
     if other.class == Time
       compare_without_coercion(other)
     elsif other.is_a?(Time)
-      compare_without_coercion(other.to_time)
+      # also avoid ActiveSupport::TimeWithZone#to_time before Rails 8.0
+      if other.respond_to?(:comparable_time)
+        compare_without_coercion(other.comparable_time)
+      else
+        compare_without_coercion(other.to_time)
+      end
     else
       to_datetime <=> other
     end

@@ -332,7 +332,7 @@ module ActiveSupport
     #
     def -(other)
       if other.acts_like?(:time)
-        to_time - other.to_time
+        getutc - other.getutc
       elsif duration_of_variable_length?(other)
         method_missing(:-, other)
       else
