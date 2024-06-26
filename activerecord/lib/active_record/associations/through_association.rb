@@ -33,6 +33,13 @@ module ActiveRecord
           @through_association ||= owner.association(through_reflection.name)
         end
 
+        # The difference between through_reflection and direct_through_reflection is that
+        # through_reflection returns the deepest (last) through reflection in the chain,
+        # while direct_through_reflection returns the immediate through reflection directly
+        # on the association.
+        #
+        # In most cases, they will be the same. However, if the association has nested
+        # through associations, they will be different.
         def direct_through_reflection
           @direct_through_reflection ||= reflection.through_reflection
         end
