@@ -28,17 +28,19 @@ STATS_DIRECTORIES ||= [
   %w(System\ tests      test/system),
 ]
 
-desc "Report code statistics (KLOCs, etc) from the application or engine"
-task :stats do
-  require "rails/code_statistics"
-  stat_directories = STATS_DIRECTORIES.collect do |name, dir|
-    [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
-  end.select { |name, dir| File.directory?(dir) }
+module Rails
+  module Command
+    class StatsCommand < Base # :nodoc:
+      desc "stats", "Report code statistics (KLOCs, etc) from the application or engine"
+      def perform
+        require "rails/code_statistics"
 
-  $stderr.puts Rails.deprecator.warn(<<~MSG, caller_locations(0..1))
-  `bin/rails stats` as rake task has been deprecated and will be removed in Rails 8.0.
-  Please use `bin/rails stats` as Rails command instead.\n
-  MSG
+        stat_directories = STATS_DIRECTORIES.collect do |name, dir|
+          [name, Rails::Command.application_root.join(dir)]
+        end.select { |name, dir| File.directory?(dir) }
 
-  CodeStatistics.new(*stat_directories).to_s
+        CodeStatistics.new(*stat_directories).to_s
+      end
+    end
+  end
 end
