@@ -527,7 +527,34 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal time, Time.at(time)
   end
 
-  def test_to_time_with_preserve_timezone
+  def test_to_time_with_preserve_timezone_using_zone
+    with_preserve_timezone(:zone) do
+      time = @twz.to_time
+      local_time = with_env_tz("US/Eastern") { Time.local(1999, 12, 31, 19) }
+
+      assert_equal Time, time.class
+      assert_equal time.object_id, @twz.to_time.object_id
+      assert_equal local_time, time
+      assert_equal local_time.utc_offset, time.utc_offset
+      assert_equal @time_zone, time.zone
+    end
+  end
+
+  def test_to_time_with_preserve_timezone_using_offset
+    with_preserve_timezone(:offset) do
+      with_env_tz "US/Eastern" do
+        time = @twz.to_time
+
+        assert_equal Time, time.class
+        assert_equal time.object_id, @twz.to_time.object_id
+        assert_equal Time.local(1999, 12, 31, 19), time
+        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+        assert_nil time.zone
+      end
+    end
+  end
+
+  def test_to_time_with_preserve_timezone_using_true
     with_preserve_timezone(true) do
       with_env_tz "US/Eastern" do
         time = @twz.to_time
@@ -536,6 +563,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         assert_equal time.object_id, @twz.to_time.object_id
         assert_equal Time.local(1999, 12, 31, 19), time
         assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+        assert_nil time.zone
       end
     end
   end
@@ -549,6 +577,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         assert_equal time.object_id, @twz.to_time.object_id
         assert_equal Time.local(1999, 12, 31, 19), time
         assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+        assert_equal Time.local(1999, 12, 31, 19).zone, time.zone
       end
     end
   end
@@ -562,6 +591,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         assert_equal time.object_id, @twz.to_time.object_id
         assert_equal Time.local(1999, 12, 31, 19), time
         assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+        assert_equal Time.local(1999, 12, 31, 19).zone, time.zone
 
         assert_equal false, ActiveSupport.to_time_preserves_timezone
       end

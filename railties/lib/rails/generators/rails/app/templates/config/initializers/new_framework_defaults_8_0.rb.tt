@@ -8,3 +8,11 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+
+###
+# Specifies whether `to_time` methods preserve the UTC offset of their receivers or preserves the timezone.
+# If set to `:zone`, `to_time` methods will use the timezone of their receivers.
+# If set to `:offset`, `to_time` methods will use the UTC offset.
+# If `false`, `to_time` methods will convert to the local system UTC offset instead.
+#++
+# Rails.application.config.active_support.to_time_preserves_timezone = :zone
