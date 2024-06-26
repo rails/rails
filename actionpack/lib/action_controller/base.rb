@@ -266,6 +266,8 @@ module ActionController
       ParamsWrapper
     ]
 
+    # Note: Documenting these severely degrates the performance of rdoc
+    # :stopdoc:
     include AbstractController::Rendering
     include AbstractController::Translation
     include AbstractController::AssetPaths
@@ -309,6 +311,7 @@ module ActionController
     # Params wrapper should come before instrumentation so they are properly showed
     # in logs
     include ParamsWrapper
+    # :startdoc:
     setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
