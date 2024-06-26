@@ -37,6 +37,8 @@ Rails.application.configure do
 
   <%- end -%>
   <%- unless options.skip_action_mailer? -%>
+  # Disable caching for Action Mailer templates even if Action Controller
+  # caching is enabled.
   config.action_mailer.perform_caching = false
 
   # Tell Action Mailer not to deliver emails to the real world.
