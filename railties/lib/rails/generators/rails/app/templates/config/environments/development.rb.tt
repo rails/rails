@@ -66,8 +66,8 @@ Rails.application.configure do
   <%- unless skip_sprockets? -%>
   # Suppress logger output for asset requests.
   config.assets.quiet = true
-  <%- end -%>
 
+  <%- end -%>
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 
