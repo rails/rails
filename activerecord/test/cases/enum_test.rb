@@ -487,6 +487,15 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
+        enum status: { proposed: Object.new, active: :active }
+      end
+    end
+
+    assert_match(/must be only booleans, integers, symbols and strings\.$/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
         enum status: ["active", ""]
       end
     end
@@ -753,6 +762,12 @@ class EnumTest < ActiveRecord::TestCase
     book = klass.find(book.id)
     assert_predicate book, :proposed?
     assert_equal "proposed", book.aliased_status
+  end
+
+  test "enum with a hash with symbol values" do
+    book = Book.create!(symbol_status: :proposed)
+    assert_equal "proposed", book.symbol_status
+    assert_predicate book, :symbol_status_proposed?
   end
 
   test "query state by predicate with prefix" do
