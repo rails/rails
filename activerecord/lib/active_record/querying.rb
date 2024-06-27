@@ -77,6 +77,11 @@ module ActiveRecord
         column_types = column_types.reject { |k, _| attribute_types.key?(k) }
       end
 
+      duplicate_column_names = result_set.columns.tally.select { |_, v| v > 1 }.keys
+      if duplicate_column_names.any? && logger.present?
+        logger.warn "Duplicate column names: #{duplicate_column_names.join(', ')}"
+      end
+
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {
