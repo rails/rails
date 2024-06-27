@@ -1,3 +1,7 @@
+*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
+
+    *Steve Polito*
+
 *   Only include PermissionsPolicy::Middleware if policy is configured.
 
     *Petrik de Heus*
