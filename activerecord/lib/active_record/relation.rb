@@ -696,6 +696,19 @@ module ActiveRecord
     # <tt>:unique_by</tt> is recommended to be paired with
     # Active Record's schema_cache.
     #
+    # [:columns]
+    #   By default, insert_all! works with array of hashes where each key matches the attribute name.
+    #   By passing columns array, you can force it to work in columnary mode. This is useful
+    #   for performance-critical areas where you want to avoid the overhead looking up keys and attributes.
+    #   Note that using this option will not type cast the values which need to be handled manually.
+    #
+    #   Example:
+    #
+    #     Book.insert_all!([
+    #       [1, "Rework", "David"],
+    #       [2, "Eloquent Ruby", "Russ"]
+    #     ], columns: [:id, :title, :author])
+    #
     # ==== Example
     #
     #   # Insert records and skip inserting any duplicates.
@@ -713,8 +726,8 @@ module ActiveRecord
     #     { id: 1, title: "Rework" },
     #     { id: 2, title: "Eloquent Ruby" }
     #   ])
-    def insert_all(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
-      InsertAll.execute(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
+    def insert_all(attributes, returning: nil, unique_by: nil, record_timestamps: nil, columns: nil)
+      InsertAll.execute(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps, columns: columns)
     end
 
     # Inserts a single record into the database in a single SQL INSERT
@@ -766,6 +779,19 @@ module ActiveRecord
     #     record_timestamps: true  # Always set timestamps automatically
     #     record_timestamps: false # Never set timestamps automatically
     #
+    # [:columns]
+    #   By default, insert_all! works with array of hashes where each key matches the attribute name.
+    #   By passing columns array, you can force it to work in columnary mode. This is useful
+    #   for performance-critical areas where you want to avoid the overhead looking up keys and attributes.
+    #   Note that using this option will not type cast the values which need to be handled manually.
+    #
+    #   Example:
+    #
+    #     Book.insert_all!([
+    #       [1, "Rework", "David"],
+    #       [2, "Eloquent Ruby", "Russ"]
+    #     ], columns: [:id, :title, :author])
+    #
     # ==== Examples
     #
     #   # Insert multiple records
@@ -780,8 +806,8 @@ module ActiveRecord
     #     { id: 1, title: "Rework", author: "David" },
     #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
     #   ])
-    def insert_all!(attributes, returning: nil, record_timestamps: nil)
-      InsertAll.execute(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps)
+    def insert_all!(attributes, returning: nil, record_timestamps: nil, columns: nil)
+      InsertAll.execute(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps, columns: columns)
     end
 
     # Updates or inserts (upserts) a single record into the database in a
