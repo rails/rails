@@ -160,7 +160,7 @@ module ActiveRecord
           # first dump primary key column
           pk = @connection.primary_key(table)
 
-          tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
+          tbl.print "  create_table #{relation_name(remove_prefix_and_suffix(table)).inspect}"
 
           case pk
           when String
@@ -223,7 +223,7 @@ module ActiveRecord
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             table_name = remove_prefix_and_suffix(index.table).inspect
-            "  add_index #{([table_name] + index_parts(index)).join(', ')}"
+            "  add_index #{([relation_name(table_name)] + index_parts(index)).join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
@@ -294,8 +294,8 @@ module ActiveRecord
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
             parts = [
-              "add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}",
-              remove_prefix_and_suffix(foreign_key.to_table).inspect,
+              "add_foreign_key #{relation_name(remove_prefix_and_suffix(foreign_key.from_table)).inspect}",
+              relation_name(remove_prefix_and_suffix(foreign_key.to_table)).inspect,
             ]
 
             if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table, "id")
@@ -338,6 +338,10 @@ module ActiveRecord
         else
           options.inspect
         end
+      end
+
+      def relation_name(name)
+        name
       end
 
       def remove_prefix_and_suffix(table)
