@@ -57,6 +57,27 @@ class FormHelperActiveRecordTest < ActionView::TestCase
     assert_dom_equal expected, @rendered
   end
 
+  def test_nested_fields_for_with_existing_records_on_a_nested_association_with_public_id_column
+    project = @developer.projects.create!(name: "some-name")
+
+    refute_nil project.public_id
+    refute_equal project.public_id, project.public_id
+    assert_equal project.public_id, project.to_param
+
+    form_for(@developer) do |f|
+      concat f.fields_for(:projects_with_public_id_column, project) { |cf|
+        concat cf.text_field(:name)
+      }
+    end
+
+    expected = whole_form("/developers/123", "edit_developer_123", "edit_developer", method: "patch") do
+      '<input id="developer_projects_with_public_id_column_attributes_0_name" name="developer[projects_with_public_id_column_attributes][0][name]" type="text" value="some-name" />' \
+      %Q(<input id="developer_projects_with_public_id_column_attributes_0_id" name="developer[projects_with_public_id_column_attributes][0][id]" type="hidden" value="#{project.public_id}" autocomplete="off" />)
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
   private
     def hidden_fields(method = nil)
       txt = +%{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}

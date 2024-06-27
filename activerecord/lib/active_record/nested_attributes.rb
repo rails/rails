@@ -236,6 +236,8 @@ module ActiveRecord
     # of hashes can be used with hashes generated from HTTP/HTML parameters,
     # where there may be no natural way to submit an array of hashes.
     #
+    # You may also pass a +public_id_column+ argument if your nested model has a public ID column that is not the same as your primary key column. If provided then the value within this column will populate the fields_for form `[id]` field.
+    #
     # === Saving
     #
     # All changes to models, including the destruction of those marked for
@@ -244,7 +246,6 @@ module ActiveRecord
     # by the parent's save method. See ActiveRecord::AutosaveAssociation.
     #
     # === Validating the presence of a parent model
-    #
     # The +belongs_to+ association validates the presence of the parent model
     # by default. You can disable this behavior by specifying <code>optional: true</code>.
     # This can be used, for example, when conditionally validating the presence
@@ -351,7 +352,7 @@ module ActiveRecord
       def accepts_nested_attributes_for(*attr_names)
         options = { allow_destroy: false, update_only: false }
         options.update(attr_names.extract_options!)
-        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
+        options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only, :public_id_column)
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
@@ -433,9 +434,10 @@ module ActiveRecord
         attributes = attributes.with_indifferent_access
         existing_record = send(association_name)
 
-        if (options[:update_only] || !attributes["id"].blank?) && existing_record &&
-            (options[:update_only] || existing_record.id.to_s == attributes["id"].to_s)
-          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
+        if (options[:update_only] || !attributes["id"].blank?)
+          && existing_record
+          && (options[:update_only] || existing_record.send(options[:public_id_column] || :id).to_s == attributes["id"].to_s)
+        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
         elsif attributes["id"].present?
           raise_nested_attributes_record_not_found!(association_name, attributes["id"])
@@ -507,11 +509,13 @@ module ActiveRecord
 
         association = association(association_name)
 
+        public_id_column = options[:public_id_column] || association.klass.primary_key
+
         existing_records = if association.loaded?
           association.target
         else
           attribute_ids = attributes_collection.filter_map { |a| a["id"] || a[:id] }
-          attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
+          attribute_ids.empty? ? [] : association.scope.where(public_id_column => attribute_ids)
         end
 
         records = attributes_collection.map do |attributes|
@@ -524,12 +528,12 @@ module ActiveRecord
             unless reject_new_record?(association_name, attributes)
               association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
-          elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes["id"].to_s }
+          elsif existing_record = existing_records.detect { |record| record.send(public_id_column).to_s == attributes["id"].to_s }
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
               # Take into account that the proxy_target may have changed due to callbacks
-              target_record = association.target.detect { |record| record.id.to_s == attributes["id"].to_s }
+              target_record = association.target.detect { |record| record.send(public_id_column).to_s == attributes["id"].to_s }
               if target_record
                 existing_record = target_record
               else
@@ -617,8 +621,9 @@ module ActiveRecord
 
       def raise_nested_attributes_record_not_found!(association_name, record_id)
         model = self.class._reflect_on_association(association_name).klass.name
+        id_column = nested_attributes_options[association_name][:public_id_column] || "id"
         raise RecordNotFound.new("Couldn't find #{model} with ID=#{record_id} for #{self.class.name} with ID=#{id}",
-                                 model, "id", record_id)
+                                 model, id_column, record_id)
       end
   end
 end
