@@ -2444,6 +2444,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_match %r|data-remote="true"|, @rendered
   end
 
+  def test_form_with_nest_html_attributes_within
+    form_with(model: @post, html: { hx: { post: "/path", data: { open: false } } }) { }
+
+    assert_dom "form[hx-post=?][hx-data=?]", "/path", { open: false }.to_json
+  end
+
   def test_fields_returns_block_result
     output = fields(model: Post.new) { |f| "fields" }
     assert_equal "fields", output
