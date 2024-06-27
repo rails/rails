@@ -499,6 +499,11 @@ ActiveRecord::Schema.define do
     t.boolean :deleted
   end
 
+  create_table :devices, force: true do |t|
+    t.string :name
+    t.timestamps null: true
+  end
+
   create_table :discounts, force: true do |t|
     t.integer :amount
   end
@@ -1457,8 +1462,21 @@ ActiveRecord::Schema.define do
     t.timestamps null: true
   end
 
+  create_table :user_devices, force: true do |t|
+    t.references :user, null: false, index: true
+    t.string :token
+    t.string :locale
+    t.timestamps null: true
+  end
+
   create_table :user_comments_counts, force: true do |t|
     t.integer :comments_count, default: 0
+  end
+
+  create_table :user_favorites, force: true do |t|
+    t.references :user, null: false, index: true
+    t.references :favorable, polymorphic: true, null: false
+    t.timestamps null: true
   end
 
   create_table :test_with_keyword_column_name, force: true do |t|

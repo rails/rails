@@ -1,0 +1,5 @@
+johns_iphone:
+  id: 1
+  user_id: 1
+  token: "phony_push_notification_token_123"
+  locale: "hr"

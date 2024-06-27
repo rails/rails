@@ -1,0 +1,14 @@
+johns_washing_machine:
+  user_id: 1
+  favorable_id: 1
+  favorable_type: Device
+
+johns_vacuum_cleaner:
+  user_id: 1
+  favorable_id: 2
+  favorable_type: Device
+
+johns_iphone:
+  user_id: 1
+  favorable_id: 3
+  favorable_type: User::Device
