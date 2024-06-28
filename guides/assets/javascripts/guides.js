@@ -106,6 +106,8 @@
       typeof window.CSS.supports === "undefined" ||
       !CSS.supports("(animation-timeline: scroll())")
     ) {
+      var backToTop = document.querySelector('.back-to-top');
+
       var toggleBackToTop = function () {
         if (window.scrollY > 300) {
           backToTop.classList.add("show");

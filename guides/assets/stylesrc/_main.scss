@@ -404,7 +404,7 @@ body.guide {
   }
 
   // Screen reader utilities
-  .sr-only {
+  .visibly-hidden {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -416,7 +416,7 @@ body.guide {
     border-width: 0;
   }
 
-  .not-sr-only {
+  .not-visibly-hidden {
     position: static;
     width: auto;
     height: auto;
