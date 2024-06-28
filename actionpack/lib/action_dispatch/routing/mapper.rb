@@ -2027,6 +2027,11 @@ module ActionDispatch
             path = Mapping.normalize_path URI::DEFAULT_PARSER.escape(path), formatted
             ast = Journey::Parser.parse path
 
+            if action && @scope[:action]
+              _controller, _ = to.split("#")
+              to = "#{_controller}##{options[:action]}"
+            end
+
             mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
             @set.add_route(mapping, as)
           end
