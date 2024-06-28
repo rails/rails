@@ -111,7 +111,7 @@ module ActionView
         end
 
         unless entries_to_write.empty?
-          collection_cache.write_multi(entries_to_write)
+          collection_cache.write_multi(entries_to_write, @options.slice(:expires_in))
         end
 
         keyed_partials

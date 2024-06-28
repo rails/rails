@@ -132,6 +132,15 @@ do not overwrite each other:
            cached: ->(product) { [I18n.locale, product] } %>
 ```
 
+Additionally, you can configure `expires_in` to explicitly set the expiration.
+
+```html+erb
+<%= render partial: 'products/product',
+           collection: @products,
+           cached: true,
+           expires_in: 1.hour %>
+```
+
 ### Russian Doll Caching
 
 You may want to nest cached fragments inside other cached fragments. This is

@@ -936,6 +936,17 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
   end
 
+  test "template body written to cache with expiration when expires_in set" do
+    customer = Customer.new("jarrett", 2)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: true, expires_in: 1.hour)
+    assert_equal "Hello: jarrett", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
   test "collection caching does not cache by default" do
     customer = Customer.new("david", 1)
     key = cache_key(customer, "test/_customer")
