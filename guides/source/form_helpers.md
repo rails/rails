@@ -951,6 +951,8 @@ The `params` hash can contain arrays and arrays of hashes. Values can be at the 
 
 Note that HTML forms don't have an inherent structure to the user input data, all they generate is name-value string pairs. The arrays and hashes you see in your application are the result of parameter naming conventions that Rails uses.
 
+NOTE: The fields in the `params` hash need to be [permitted in the controller](#permitting-parameters-in-the-controller).
+
 ### Basic Structure
 
 The two basic structures for user input form data are arrays and hashes.
@@ -1034,7 +1036,7 @@ It's important to note that while hashes can be nested arbitrarily, only one lev
 
 WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If it is checked then both are submitted but the value submitted by the checkbox takes precedence. There is a `include_hidden` option that can be set to `false` if you want to omit this hidden field. By default, this option is `true`.
 
-### The `fields_for` Helper `:index` Option
+### Hashes with an Index
 
 Let's say you want to render a form with a set of fields for each of a person's
 addresses. The [`fields_for`][] helper with its `:index` option can assist:
@@ -1087,42 +1089,7 @@ rendered the `name` attribute of each city input as
 way you can tell which `Address` records should be modified when processing the
 `params` hash.
 
-You can pass other numbers or strings via the `:index` option.
-You can even pass `nil`, which will produce an array parameter.
-
-To create more intricate nestings, you can specify the leading portion of the
-input name explicitly. For example, if we have a primary address:
-
-```erb
-<%= fields_for 'person[address][primary]', address, index: address.id do |address_form| %>
-  <%= address_form.text_field :city %>
-<% end %>
-```
-
-The above will create inputs like:
-
-```html
-<input id="person_address_primary_23_city" name="person[address][primary][23][city]" type="text" value="Paris" />
-```
-
-You can also pass an `:index` option directly to helpers such as `text_field`,
-but it is usually less repetitive to specify this at the form builder level than
-on individual input fields.
-
-The final input name is generally a concatenation of the name given to
-`fields_for` / `form_with`, the `:index` option value, and the name of the
-attribute (`person_address_primary_23_city` in the above example).
-
-Lastly, instead of specifying an ID for `:index` (e.g. `index: address.id`), you
-can append `"[]"` to the given name, as a shorthand. For example:
-
-```erb
-<%= fields_for 'person[address][primary][]', address do |address_form| %>
-  <%= address_form.text_field :city %>
-<% end %>
-```
-
-This will produce exactly the same output as the original example.
+You can find more details about `fields_for` index option in the [API docs](https://api.rubyonrails.org/v7.1.3.4/classes/ActionView/Helpers/FormHelper.html#method-i-fields_for).
 
 Building Complex Forms
 ----------------------
