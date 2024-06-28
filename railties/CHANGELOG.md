@@ -1,3 +1,16 @@
+*   Deprecate `::STATS_DIRECTORIES`.
+
+    The global constant `STATS_DIRECTORIES` has been deprecated in favor of
+    `CodeStatistics.add_directory`.
+
+    Add extra directories with `CodeStatistics.add_directory(label, path)` instead:
+    ```ruby
+    require "rails/code_statistics"
+    CodeStatistics.add_directory('My Directory', 'path/to/dir')
+    ```
+
+    *Petrik de Heus*
+
 *   Add internal page `/rails/info/notes`, that displays the same information as `bin/rails notes`.
 
     *Deepak Mahakale*
