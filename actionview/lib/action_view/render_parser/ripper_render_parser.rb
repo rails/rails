@@ -66,7 +66,16 @@ module ActionView
 
         def to_string
           raise unless string?
-          self[0][0][0]
+
+          # s(:string_literal, s(:string_content, map))
+          self[0].map do |node|
+            case node.type
+            when :@tstring_content
+              node[0]
+            when :string_embexpr
+              "*"
+            end
+          end.join("")
         end
 
         def hash?

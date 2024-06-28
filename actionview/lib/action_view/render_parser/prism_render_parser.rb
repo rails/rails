@@ -97,9 +97,21 @@ module ActionView
         def render_call_template(node)
           object_template = false
           template =
-            if node.is_a?(Prism::StringNode)
+            case node.type
+            when :string_node
               path = node.unescaped
               path.include?("/") ? path : "#{directory}/#{path}"
+            when :interpolated_string_node
+              node.parts.map do |node|
+                case node.type
+                when :string_node
+                  node.unescaped
+                when :embedded_statements_node
+                  "*"
+                else
+                  return
+                end
+              end.join("")
             else
               dependency =
                 case node.type
