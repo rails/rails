@@ -189,15 +189,29 @@ module ActiveJob
       end
 
       def log_enqueue_source
-        source = extract_enqueue_source_location(caller)
+        source = enqueue_source_location
 
         if source
           logger.info("↳ #{source}")
         end
       end
 
-      def extract_enqueue_source_location(locations)
-        backtrace_cleaner.clean(locations.lazy).first
+      if Thread.respond_to?(:each_caller_location)
+        def enqueue_source_location
+          Thread.each_caller_location do |location|
+            frame = backtrace_cleaner.clean_frame(location)
+            return frame if frame
+          end
+          nil
+        end
+      else
+        def enqueue_source_location
+          caller_locations(2).each do |location|
+            frame = backtrace_cleaner.clean_frame(location)
+            return frame if frame
+          end
+          nil
+        end
       end
 
       def enqueued_jobs_message(adapter, enqueued_jobs)
