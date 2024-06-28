@@ -1,4 +1,4 @@
-*   Deprecate `bin/rake stats` in favor of `bin/rails stats`. #47713
+*   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
 
     *Juan Vásquez*
 
