@@ -1,3 +1,7 @@
+*   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
+
+    *Juan Vásquez*
+
 *   Add internal page `/rails/info/notes`, that displays the same information as `bin/rails notes`.
 
     *Deepak Mahakale*
