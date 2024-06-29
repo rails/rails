@@ -2017,7 +2017,7 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_difference("Post.count", -3) { david.posts.destroy_where(body: "hello") }
 
-    destroyed = Author.destroy_by(id: david.id)
+    destroyed = Author.destroy_where(id: david.id)
     assert_equal [david], destroyed
   end
 
