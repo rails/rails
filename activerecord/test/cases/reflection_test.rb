@@ -208,6 +208,18 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Nested::User, reflection.klass
   end
 
+  def test_reflection_klass_with_same_modularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_many,
+      :nested_users,
+      nil,
+      {},
+      Nested::NestedUser
+    )
+
+    assert_equal Nested::NestedUser, reflection.klass
+  end
+
   def test_aggregation_reflection
     reflection_for_address = AggregateReflection.new(
       :address, nil, { mapping: [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
