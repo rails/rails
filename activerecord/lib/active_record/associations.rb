@@ -379,21 +379,44 @@ module ActiveRecord
       #              after_add: :congratulate_client,
       #              after_remove: :log_after_remove
       #
-      #     def congratulate_client(record)
+      #     def congratulate_client(client)
       #       # ...
       #     end
       #
-      #     def log_after_remove(record)
+      #     def log_after_remove(client)
       #       # ...
       #     end
       #   end
       #
+      # Callbacks can be defined in three ways:
+      #
+      #   1. A symbol that references a method defined on the class *with* the
+      #   associated collection. For example, `after_add: :congratulate_client`
+      #   invokes `Firm#congratulate_client(client)`.
+      #
+      #   2. A callable with a signature that accepts both the record *with* the
+      #   associated collection and the record being added or removed. For
+      #   example, `after_add: ->(firm, client) { ... }`.
+      #
+      #   3. An object that responds to the callback name. For example, passing
+      #   `after_add: CallbackObject.new` invokes `CallbackObject#after_add(firm, client)`.
+      #
       # It's possible to stack callbacks by passing them as an array. Example:
+      #
+      #   class CallbackObject
+      #     def after_add(firm, client)
+      #       firm.log << "after_adding #{client.id}"
+      #     end
+      #   end
       #
       #   class Firm < ActiveRecord::Base
       #     has_many :clients,
       #              dependent: :destroy,
-      #              after_add: [:congratulate_client, -> (firm, record) { firm.log << "after_adding#{record.id}" }],
+      #              after_add: [
+      #                :congratulate_client,
+      #                -> (firm, client) { firm.log << "after_adding #{client.id}" },
+      #                CallbackObject.new
+      #              ],
       #              after_remove: :log_after_remove
       #   end
       #
@@ -1251,6 +1274,22 @@ module ActiveRecord
         #   persisted new records placed at the end.
         #   When set to +:nested_attributes_order+, the index is based on the record order received by
         #   nested attributes setter, when accepts_nested_attributes_for is used.
+        # [:before_add]
+        #   Defines a callback that gets triggered before an object is added to the association collection.
+        #
+        #   Read more about Associations::ClassMethods@Association+callbacks
+        # [:after_add]
+        #   Defines a callback that gets triggered after an object is added to the association collection.
+        #
+        #   Read more about Associations::ClassMethods@Association+callbacks
+        # [:before_remove]
+        #   Defines a callback that gets triggered before an object is removed from the association collection.
+        #
+        #   Read more about Associations::ClassMethods@Association+callbacks
+        # [:after_remove]
+        #   Defines a callback that gets triggered after an object is removed from the association collection.
+        #
+        #   Read more about Associations::ClassMethods@Association+callbacks
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
