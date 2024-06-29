@@ -20,7 +20,7 @@ Rails application in a container, without needing to install Rails or its depend
 directly on your machine. This is the fastest way to get your Rails application up and running.
 
 This is an alternative to installing Ruby and Rails directly on your machine, which is
-covered in the [Getting Started guides](getting_started.md#creating-a-new-rails-project).
+covered in the [Getting Started guides](getting_started.html#creating-a-new-rails-project).
 Once you have completed this guide, you can continue building your application by following
 the Getting Started guide.
 
@@ -94,7 +94,7 @@ $ cd blog
 The `blog` directory will have a number of generated files and folders that make
 up the structure of a Rails application. Most of the work in this tutorial will
 happen in the `app` folder. For a full rundown of everything in your application
-see the full [Getting Started guide](getting_started.md#creating-the-blog-application).
+see the full [Getting Started guide](getting_started.html#creating-the-blog-application).
 
 Opening the Blog Application in a Dev Container
 -----------------------------------------------
@@ -117,7 +117,7 @@ $ rails --version
 Rails 8.0.0
 ```
 
-You can now continue with the [Getting Started guide](getting_started.md#hello-rails) and
+You can now continue with the [Getting Started guide](getting_started.html#hello-rails) and
 begin building your Blog application. You will be working within VSCode, which serves as
 your entry point to your application's Dev Container, where you can run code, run tests and
 run your application.
