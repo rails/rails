@@ -115,6 +115,32 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal "Person", Person.model_name.human(default: :this_key_does_not_exist)
   end
 
+  def test_translated_model_with_count
+    I18n.backend.store_translations "en", activemodel: { models: { person: { one: "dude", other: "peeps" } } }
+
+    assert_equal "peeps", Person.model_name.human(count: 0)
+    assert_equal "dude", Person.model_name.human(count: 1)
+    assert_equal "peeps", Person.model_name.human(count: 2)
+  end
+
+  def test_translated_model_with_count_when_missing_translation
+    assert_equal "People", Person.model_name.human(count: 0)
+    assert_equal "Person", Person.model_name.human(count: 1)
+    assert_equal "People", Person.model_name.human(count: 2)
+  end
+
+  def test_translated_model_with_count_when_custom_plural_rule_and_missing_translation
+    I18n.backend = Class.new(I18n::Backend::Simple) do
+      include I18n::Backend::Pluralization
+    end.new
+
+    I18n.backend.store_translations "en", i18n: { plural: { keys: [:few], rule: -> (n) { :few } } }
+
+    assert_equal "People", Person.model_name.human(count: 0)
+    assert_equal "Person", Person.model_name.human(count: 1)
+    assert_equal "People", Person.model_name.human(count: 2)
+  end
+
   def test_human_does_not_modify_options
     options = { default: "person model" }
     Person.model_name.human(options)
