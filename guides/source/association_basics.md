@@ -33,8 +33,6 @@ Consider a simple Rails application with models for authors and books.
 **Without associations**, creating and deleting books for that author would
 require a tedious and manual process. Here's what that would look like:
 
-First, we set up the models. Notice how there is no association between an `author` and a `book`.
-
 ```ruby
 class Author < ApplicationRecord
 end
@@ -1236,9 +1234,7 @@ If the table of the other class contains the reference in a one-to-one relation,
 
 #### Methods Added by `belongs_to`
 
-When you declare a `belongs_to` association, the declaring class automatically gains 8 methods related to the association:
-
-* `association`
+When you declare a `belongs_to` association, the declaring class automatically gains numerous methods related to the association. Some of these includes:
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
@@ -1248,7 +1244,9 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `association_changed?`
 * `association_previously_changed?`
 
-In all of these methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
+We'll discuss some of the common methods, but you can find an exhaustive list [here](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to).
+
+In all of the above methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
 
 ```ruby
 class Book < ApplicationRecord
@@ -1256,7 +1254,7 @@ class Book < ApplicationRecord
 end
 ```
 
-Each instance of the `Book` model will have these methods:
+An instance of the `Book` model can have the following methods:
 
 * `author`
 * `author=`
@@ -1270,7 +1268,7 @@ Each instance of the `Book` model will have these methods:
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-##### `association`
+##### `association`, `reload_association`, and `reset_association`
 
 The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
@@ -1298,53 +1296,40 @@ The `association=` method assigns an associated object to this object. Behind th
 @book.author = @author
 ```
 
-##### `build_association(attributes = {})`
+##### `build_association(attributes = {})` and `create_association(attributes = {})`
 
 The `build_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
+
+The `create_association` method takes it a step further and also saves the associated object once it passes all of the validations specified on the associated model.
+
+Finally, `create_association!` does the same, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 ```ruby
 @author = @book.build_author(author_number: 123,
                              author_name: "John Doe")
 ```
 
-##### `create_association(attributes = {})`
-
-The `create_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through this object's foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
-
 ```ruby
 @author = @book.create_author(author_number: 123,
                               author_name: "John Doe")
 ```
 
-##### `create_association!(attributes = {})`
-
-Does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
-
-##### `association_changed?`
+##### `association_changed?` and `association_previously_changed?`
 
 The `association_changed?` method returns true if a new associated object has been assigned and the foreign key will be updated in the next save.
+
+The `association_previously_changed?` method returns true if the previous save updated the association to reference a new associate object.
 
 ```ruby
 @book.author # => #<Author author_number: 123, author_name: "John Doe">
 @book.author_changed? # => false
+@book.author_previously_changed? # => false
 
 @book.author = Author.second # => #<Author author_number: 456, author_name: "Jane Smith">
 @book.author_changed? # => true
 
 @book.save!
 @book.author_changed? # => false
-```
-
-##### `association_previously_changed?`
-
-The `association_previously_changed?` method returns true if the previous save updated the association to reference a new associate object.
-
-```ruby
-@book.author # => #<Author author_number: 123, author_name: "John Doe">
-@book.author_previously_changed? # => false
-
-@book.author = Author.second # => #<Author author_number: 456, author_name: "Jane Smith">
-@book.save!
 @book.author_previously_changed? # => true
 ```
 
@@ -1359,28 +1344,7 @@ class Book < ApplicationRecord
 end
 ```
 
-The [`belongs_to`][] association supports these options:
-
-* `:autosave`
-* `:class_name`
-* `:counter_cache`
-* `:default`
-* `:dependent`
-* `:ensuring_owner_was`
-* `:foreign_key`
-* `:foreign_type`
-* `:primary_key`
-* `:inverse_of`
-* `:optional`
-* `:polymorphic`
-* `:required`
-* `:strict_loading`
-* `:touch`
-* `:validate`
-
-##### `:autosave`
-
-If you set the `:autosave` option to `true`, Rails will save any loaded association members and destroy members that are marked for destruction whenever you save the parent object. Setting `:autosave` to `false` is not the same as not setting the `:autosave` option. If the `:autosave` option is not present, then new associated objects will be saved, but updated associated objects will not be saved.
+The [`belongs_to`][] association supports numerous options which you can read more about [here](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to). We'll discuss some of the common use cases below.
 
 ##### `:class_name`
 
@@ -1442,25 +1406,15 @@ end
 NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
 side of the association.
 
-Starting to use counter caches on existing large tables can be troublesome, because the column
-values must be backfilled separately of the column addition (to not lock the table for too long)
-and before the use of `:counter_cache` (otherwise methods like `size`/`any?`/etc, which use
-counter caches internally, can produce incorrect results). To safely backfill the values while
-keeping counter cache columns updated with the child records creation/removal and to avoid the
-mentioned methods use the possibly incorrect counter cache column values and always get the results
-from the database, use `counter_cache: { active: false }`. If you also need to specify a custom
-column name, use `counter_cache: { active: false, column: :my_custom_counter }`.
+Using counter caches on existing large tables can be troublesome. To avoid locking the table for too long, the column values must be backfilled separately from the column addition. This backfill must also happen before using `:counter_cache`; otherwise, methods like `size`, `any?`, etc., which rely on counter caches, may return incorrect results.
+
+To backfill values safely while keeping counter cache columns updated with child record creation/removal and ensuring methods always get results from the database (avoiding potentially incorrect counter cache values), use `counter_cache: { active: false }`. This setting ensures that methods always fetch results from the database, avoiding incorrect values from an uninitialized counter cache. If you need to specify a custom column name, use `counter_cache: { active: false, column: :my_custom_counter }`.
 
 If for some reason you change the value of an owner model's primary key, and do
 not also update the foreign keys of the counted models, then the counter cache
 may have stale data. In other words, any orphaned models will still count
-towards the counter. To fix a stale counter cache, use [`reset_counters`][].
+towards the counter. To fix a stale counter cache, use [`reset_counters`](https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-reset_counters).
 
-[`reset_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-reset_counters
-
-##### `:default`
-
-When set to `true`, the association will not have its presence validated.
 
 ##### `:dependent`
 
@@ -1476,11 +1430,7 @@ If you set the `:dependent` option to:
   constraints in your database. The foreign key constraint actions will occur inside the same
   transaction that deletes its owner.
 
-WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
-
-##### `:ensuring_owner_was`
-
-Specifies an instance method to be called on the owner. The method must return true in order for the associated records to be deleted in a background job.
+WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database because destroying the parent object may attempt to destroy its children, which in turn may attempt to destroy the parent again, causing inconsistencies.
 
 ##### `:foreign_key`
 
@@ -1493,36 +1443,32 @@ class Book < ApplicationRecord
 end
 ```
 
-TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
+NOTE: Rails does not create foreign key columns for you. You need to explicitly define them in your migrations.
 
-##### `:foreign_type`
-
-Specify the column used to store the associated object’s type, if this is a polymorphic association. By default this is guessed to be the name of the association with a “`_type`” suffix. So a class that defines a `belongs_to :taggable, polymorphic: true` association will use “`taggable_type`” as the default `:foreign_type`.
 
 ##### `:primary_key`
 
-By convention, Rails assumes that the `id` column is used to hold the primary key
-of its tables. The `:primary_key` option allows you to specify a different column.
+By default, Rails uses the `id` column as the primary key for its tables. The `:primary_key` option allows you to specify a different column as the primary key.
 
-For example, given we have a `users` table with `guid` as the primary key. If we want a separate `todos` table to hold the foreign key `user_id` in the `guid` column, then we can use `primary_key` to achieve this like so:
+For example, if the `users` table uses `guid` as the primary key instead of `id`, and you want the `todos` table to reference `guid` as a foreign key (`user_id`), you can configure it like this:
 
 ```ruby
 class User < ApplicationRecord
-  self.primary_key = 'guid' # primary key is guid and not id
+  self.primary_key = 'guid' # Sets the primary key to guid instead of id
 end
 
 class Todo < ApplicationRecord
-  belongs_to :user, primary_key: 'guid'
+  belongs_to :user, primary_key: 'guid' # References the guid column in users table
 end
 ```
 
-When we execute `@user.todos.create` then the `@todo` record will have its
-`user_id` value as the `guid` value of `@user`.
+When you execute `@user.todos.create`, the `@todo` record will have its `user_id` value set to the `guid` value of `@user`.
 
 ##### `:inverse_of`
 
-The `:inverse_of` option specifies the name of the `has_many` or `has_one` association that is the inverse of this association.
-See the [bi-directional association](#bi-directional-associations) section for more details.
+The `:inverse_of` option specifies the name of the corresponding `has_many` or `has_one` association that acts as the inverse of this association. This helps Rails maintain consistency between the two sides of the association.
+
+For example:
 
 ```ruby
 class Author < ApplicationRecord
@@ -1534,25 +1480,13 @@ class Book < ApplicationRecord
 end
 ```
 
+In this example, `Author` has many `books`, and each `Book` belongs to an `Author`. The `:inverse_of` option ensures that Rails correctly sets up the bidirectional association, allowing efficient and accurate access to related objects. For more details, see the [bi-directional association](#bi-directional-associations) section.
+
 ##### `:optional`
 
 If you set the `:optional` option to `true`, then the presence of the associated
 object won't be validated. By default, this option is set to `false`.
 
-##### `:polymorphic`
-
-Passing `true` to the `:polymorphic` option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
-
-
-##### `:required`
-
-When set to `true`, the association will also have its presence validated. This will validate the association itself, not the id. You can use `:inverse_of` to avoid an extra query during validation.
-
-NOTE: required is set to `true` by default and is deprecated. If you don’t want to have association presence validated, use `optional: true`.
-
-##### `:strict_loading`
-
-Enforces strict loading every time the associated record is loaded through this association.
 
 ##### `:touch`
 
@@ -1675,7 +1609,7 @@ The `has_one` association creates a one-to-one match with another model. In data
 
 #### Methods Added by `has_one`
 
-When you declare a `has_one` association, the declaring class automatically gains 6 methods related to the association:
+When you declare a `has_one` association, the declaring class automatically gains methods related to the association:
 
 * `association`
 * `association=(associate)`
