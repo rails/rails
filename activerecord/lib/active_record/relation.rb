@@ -1100,6 +1100,9 @@ module ActiveRecord
       where(*args).destroy_all
     end
 
+    # Alias for destroy_by to make it more intuitive
+    alias_method :destroy_where, :delete_by
+
     # Finds and deletes all records matching the specified conditions.
     # This is short-hand for <tt>relation.where(condition).delete_all</tt>.
     # Returns the number of rows affected.
@@ -1112,6 +1115,9 @@ module ActiveRecord
     def delete_by(*args)
       where(*args).delete_all
     end
+
+    # Alias for destroy_by to make it more intuitive
+    alias_method :delete_where, :delete_by
 
     # Schedule the query to be performed from a background thread pool.
     #

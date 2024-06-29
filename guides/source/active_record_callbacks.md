@@ -750,6 +750,7 @@ to skip callbacks by using the following methods:
 * [`delete`][]
 * [`delete_all`][]
 * [`delete_by`][]
+* [`delete_where`][]
 * [`increment!`][]
 * [`increment_counter`][]
 * [`insert`][]
