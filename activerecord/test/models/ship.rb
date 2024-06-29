@@ -40,3 +40,12 @@ class FamousShip < ActiveRecord::Base
   belongs_to :famous_pirate, foreign_key: :pirate_id
   validates_presence_of :name, on: :conference
 end
+
+class FamousShipNestedAttribute < ActiveRecord::Base
+  self.table_name = "ships"
+  belongs_to :famous_pirate_nested_attributes, foreign_key: :pirate_id
+
+  validates_presence_of :name
+
+  accepts_nested_attributes_for :famous_pirate_nested_attributes
+end
