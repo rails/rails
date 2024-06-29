@@ -1101,6 +1101,15 @@ module ActiveRecord
     end
 
     # Alias for destroy_by to make it more intuitive
+    # Finds and destroys all records matching the specified conditions.
+    # This is short-hand for <tt>relation.where(condition).destroy_all</tt>.
+    # Returns the collection of objects that were destroyed.
+    #
+    # If no record is found, returns empty array.
+    #
+    #   Person.destroy_where(id: 13)
+    #   Person.destroy_where(name: 'Spartacus', rating: 4)
+    #   Person.destroy_where("published_at < ?", 2.weeks.ago)
     def destroy_where(*args)
       destroy_by(*args)
     end
@@ -1119,6 +1128,15 @@ module ActiveRecord
     end
 
     # Alias for delete_by to make it more intuitive
+    # Finds and deletes all records matching the specified conditions.
+    # This is short-hand for <tt>relation.where(condition).delete_all</tt>.
+    # Returns the number of rows affected.
+
+    # If no record is found, returns <tt>0</tt> as zero rows were affected.
+
+    #   Person.delete_where(id: 13)
+    #   Person.delete_where(name: 'Spartacus', rating: 4)
+    #   Person.delete_where("published_at < ?", 2.weeks.ago)
     def delete_where(*args)
       delete_by(*args)
     end
