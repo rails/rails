@@ -289,7 +289,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.download_chunk key, range
   end
 
-  # Downloads the blob to a tempfile on disk. Yields the tempfile.
+  # Downloads the blob to a temporary file on disk. If a block is given, the file is automatically closed and unlinked
+  # after the block executed. Otherwise the file is returned and you are responsible for closing and unlinking.
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
   #
@@ -298,8 +299,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
   #   blob.open(tmpdir: "/path/to/tmp") do |file|
   #     # ...
   #   end
-  #
-  # The tempfile is automatically closed and unlinked after the given block is executed.
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tmpdir: nil, &block)

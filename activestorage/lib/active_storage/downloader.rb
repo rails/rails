@@ -9,26 +9,22 @@ module ActiveStorage
     end
 
     def open(key, checksum: nil, verify: true, name: "ActiveStorage-", tmpdir: nil)
-      open_tempfile(name, tmpdir) do |file|
-        download key, file
+      if block_given?
+        Tempfile.open(name, tmpdir, binmode: true) do |file|
+          download(key, file)
+          verify_integrity_of(file, checksum: checksum) if verify
+          yield file
+        end
+      else
+        file = Tempfile.new(name, tmpdir, binmode: true)
+        download(key, file)
         verify_integrity_of(file, checksum: checksum) if verify
-        yield file
+        file
       end
     end
 
     private
-      def open_tempfile(name, tmpdir = nil)
-        file = Tempfile.open(name, tmpdir)
-
-        begin
-          yield file
-        ensure
-          file.close!
-        end
-      end
-
       def download(key, file)
-        file.binmode
         service.download(key) { |chunk| file.write(chunk) }
         file.flush
         file.rewind
