@@ -13,7 +13,7 @@ class JsonAttributeTest < ActiveRecord::TestCase
     attribute :payload,  :json
     attribute :settings, :json
 
-    store_accessor :settings, :resolution
+    store_accessor :settings, :resolution, { country: :country_of_residence }
   end
 
   def setup
