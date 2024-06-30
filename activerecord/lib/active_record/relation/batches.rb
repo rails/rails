@@ -5,6 +5,19 @@ require "active_record/relation/batches/batch_enumerator"
 module ActiveRecord
   # = Active Record \Batches
   module Batches
+    class MissingBatchIterationCursorError < ActiveRecordError
+      attr_reader :record
+
+      def initialize(record = nil)
+        if record
+          @record = record
+          super("Can't perform batch iteration on a relation with a record that has no primary key value: #{record.inspect}")
+        else
+          super("Can't perform batch iteration on a relation with a record that has no primary key value")
+        end
+      end
+    end
+
     ORDER_IGNORE_MESSAGE = "Scoped order is ignored, it's forced to be batch order."
     DEFAULT_ORDER = :asc
 
@@ -338,6 +351,9 @@ module ActiveRecord
 
       def batch_on_loaded_relation(relation:, start:, finish:, order:, batch_limit:)
         records = relation.to_a
+        records.each do |record|
+          raise MissingBatchIterationCursorError.new(record) unless record.id
+        end
 
         if start || finish
           records = records.filter do |record|
