@@ -2,8 +2,6 @@
 
 require "base64"
 require "rake/testtask"
-require "pathname"
-require "open3"
 require "action_cable"
 
 task default: :test
@@ -28,8 +26,22 @@ namespace :test do
   end
 
   task :integration do
-    system(Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)], "yarn", "test")
-    exit($?.exitstatus) unless $?.success?
+    found_saucelabs_error = false
+
+    IO.popen(Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)], "yarn test") do |io|
+      io.each do |line|
+        puts line
+        if line.include?("The environment you requested was unavailable.")
+          found_saucelabs_error = true
+        end
+      end
+    end
+
+    if found_saucelabs_error
+      exit 3
+    end
+
+    exit $?.exitstatus unless $?.success?
   end
 end
 
