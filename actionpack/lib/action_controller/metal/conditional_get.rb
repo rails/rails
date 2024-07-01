@@ -260,6 +260,9 @@ module ActionController
     # `:stale_if_error`
     # :   Sets the value of the `stale-if-error` directive.
     #
+    # `:immutable`
+    # :   If true, adds the `immutable` directive.
+    #
     #
     # Any additional key-value pairs are concatenated as directives. For a list of
     # supported `Cache-Control` directives, see the [article on
