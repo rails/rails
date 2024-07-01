@@ -147,7 +147,7 @@ creates seven different routes in your application, all mapping to the `Photos` 
 
 Since the router uses the HTTP verb *and* path to match inbound requests, four URLs can map to seven different controller actions. For example, the same `photos/` path matches to `photos#index` when the verb is `GET` and `photos#create` when the verb is `POST`.
 
-NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. Order matters in the `routes.rb` file. If you want the `photos/poll` route to match first, you'll need to move the `get` line **above** the `resources` line.
+NOTE: Order matters in the `routes.rb` file. Rails routes are matched in the order they are specified. For example, if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. . If you want the `photos/poll` route to match first, you'll need to move the `get` line **above** the `resources` line.
 
 ### Path and URL Helpers
 
