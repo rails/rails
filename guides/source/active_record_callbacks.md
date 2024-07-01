@@ -95,8 +95,8 @@ class User < ApplicationRecord
 end
 ```
 
-Lastly, you can define **a custom callback object**, as shown below. We will
-cover these [later in more detail](#callback-objects).
+Lastly, you can define [**a custom callback object**](#callback-objects), as
+shown below. We will cover these later in more detail.
 
 ```ruby
 class User < ApplicationRecord
@@ -178,8 +178,9 @@ order in which they will get called** during the respective operations:
 * [`after_save`][]
 * [`after_commit`][] / [`after_rollback`][]
 
-`after_commit` / `after_rollback` examples can be found
-[here](active_record_callbacks.html#after-commit-and-after-rollback).
+See the [`after_commit` / `after_rollback`
+section](active_record_callbacks.html#after-commit-and-after-rollback) for
+examples using these two callbacks.
 
 [`after_create`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_create
@@ -363,8 +364,9 @@ create/update operations. It's important to note that save callbacks will always
 run before/around/after the more specific create/update callbacks.
 
 We've already covered [validation](#validation-callbacks) and
-[save](#save-callbacks) callbacks. `after_commit` / `after_rollback` examples
-can be found [here](#after-commit-and-after-rollback).
+[save](#save-callbacks) callbacks. See the [`after_commit` /
+`after_rollback` section](#after-commit-and-after-rollback) for examples using
+these two callbacks.
 
 #### Update Callbacks
 
@@ -461,8 +463,8 @@ destroyed.
 [`before_destroy`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_destroy
 
-`after_commit` / `after_rollback` examples can be found
-[here](#after-commit-and-after-rollback).
+Find [examples for using `after_commit` /
+`after_rollback`](#after-commit-and-after-rollback).
 
 #### Destroy Callbacks
 
@@ -550,8 +552,8 @@ You have initialized an object!
 ### `after_touch`
 
 The [`after_touch`][] callback will be called whenever an Active Record object
-is touched. You can read more about `touch`
-[here](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch).
+is touched. You can [read more about `touch` in the API
+docs](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch).
 
 ```ruby
 class User < ApplicationRecord
@@ -680,7 +682,8 @@ end
 
 Using this form of registration it is also possible to register several
 different predicates that should be called to check if the callback should be
-executed. We will cover this [below](#multiple-callback-conditions).
+executed. We will cover this in the [Multiple Callback Conditions
+section](#multiple-callback-conditions).
 
 ### Using `:if` and `:unless` with a `Proc`
 
@@ -1126,8 +1129,8 @@ end
 ```
 
 NOTE: The `:on` option specifies when a callback will be fired. If you don't
-supply the `:on` option the callback will fire for every life cycle event. Read
-more about `:on` [here](#registering-callbacks-to-fire-on-life-cycle-events).
+supply the `:on` option the callback will fire for every life cycle event. [Read
+more about `:on`](#registering-callbacks-to-fire-on-life-cycle-events).
 
 When a transaction completes, the `after_commit` or `after_rollback` callbacks
 are called for all models created, updated, or destroyed within that
@@ -1314,9 +1317,10 @@ However, in prior versions of Rails, when defining multiple transactional
 the callbacks were run was reversed.
 
 If for some reason you'd still like them to run in reverse, you can set the
-[following
-configuration](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
-to `false`. The callbacks will then run in the reverse order.
+following configuration to `false`. The callbacks will then run in the reverse
+order. See the [Active Record configuration
+options](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
+for more details.
 
 ```ruby
 config.active_record.run_after_transaction_callbacks_in_order_defined = false
