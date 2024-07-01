@@ -856,5 +856,5 @@ directory. For example, setting `I18n.locale = :de` and creating
 `public/500.de.html` and `public/404.de.html` would allow you to have localized
 rescue pages.
 
-You can read more about the Rails Internationalization (I18n) API
-[here](i18n.html).
+See the [Rails Internationalization (I18n) API documentation](i18n.html) for
+more details.
