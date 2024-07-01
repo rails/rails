@@ -58,8 +58,9 @@ database access code you have to write.
 
 NOTE: Basic knowledge of relational database management systems (RDBMS) and
 structured query language (SQL) is helpful in order to fully understand Active
-Record. Please refer to [this tutorial][sqlcourse] (or [this one][rdbmsinfo]) or
-study them by other means if you would like to learn more.
+Record. Please refer to [this SQL tutorial][sqlcourse] (or [this RDBMS
+tutorial][rdbmsinfo]) or study them by other means if you would like to learn
+more.
 
 ### Active Record as an ORM Framework
 
