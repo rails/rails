@@ -413,6 +413,11 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_equal json_bytes, EncryptedBookWithSerializedBinary.create!(logo: json_bytes).logo
   end
 
+  test "type method returns cast type" do
+    assert_equal :string, EncryptedBook.type_for_attribute(:name).type
+    assert_equal :text, EncryptedPost.type_for_attribute(:body).type
+  end
+
   private
     def build_derived_key_provider_with(hash_digest_class)
       ActiveRecord::Encryption.with_encryption_context(key_generator: ActiveRecord::Encryption::KeyGenerator.new(hash_digest_class: hash_digest_class)) do
