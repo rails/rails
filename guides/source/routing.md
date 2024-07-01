@@ -741,7 +741,7 @@ get ':username', to: 'users#show', as: :user
 resources :users
 ```
 
-This will define a `user_path` helper that will match a route such as `/jane`. Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user.
+This will define a `user_path` helper that will match `/:username` (e.g. `/jane`). Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user.
 
 ### HTTP Verb Constraints
 
