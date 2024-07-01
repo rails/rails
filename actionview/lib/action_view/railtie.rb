@@ -14,8 +14,14 @@ module ActionView
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
     config.action_view.prepend_content_exfiltration_prevention = false
+    config.action_view.rename_csp_helper_nonce_attribute = false
 
     config.eager_load_namespaces << ActionView
+
+    config.after_initialize do |app|
+      ActionView::Helpers::CspHelper.rename_csp_helper_nonce_attribute =
+        app.config.action_view.delete(:rename_csp_helper_nonce_attribute)
+    end
 
     config.after_initialize do |app|
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms =
