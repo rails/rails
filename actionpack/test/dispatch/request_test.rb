@@ -1133,6 +1133,11 @@ class RequestParameters < BaseRequestTest
     end
   end
 
+  test "parameters key containing an invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "%ADd=foo")
+    assert_raises(ActionController::BadRequest) { request.parameters }
+  end
+
   test "POST parameters containing invalid UTF8 character" do
     data = "foo=%81E"
     request = stub_request(
