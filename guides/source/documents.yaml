@@ -169,14 +169,6 @@
       url: testing.html
       description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to Integration Testing. Enjoy.
     -
-      name: Securing Rails Applications
-      url: security.html
-      description: This guide describes common security problems in web applications and how to avoid them with Rails.
-    -
-      name: Error Reporting in Rails Applications
-      url: error_reporting.html
-      description: This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
-    -
       name: Debugging Rails Applications
       url: debugging_rails_applications.html
       description: This guide describes how to debug Rails applications. It covers the different ways of achieving this and how to understand what is happening "behind the scenes" of your code.
@@ -218,10 +210,6 @@
       url: autoloading_and_reloading_constants.html
       description: This guide documents how autoloading and reloading constants work.
     -
-      name: "Caching with Rails: An Overview"
-      url: caching_with_rails.html
-      description: This guide is an introduction to speeding up your Rails application with caching.
-    -
       name: Active Support Instrumentation
       work_in_progress: true
       url: active_support_instrumentation.html
@@ -230,10 +218,26 @@
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
+
+-
+  name: Going to Production
+  documents:
     -
       name: Tuning Performance for Deployment
       url: tuning_performance_for_deployment.html
       description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
+    -
+      name: "Caching with Rails: An Overview"
+      url: caching_with_rails.html
+      description: This guide is an introduction to speeding up your Rails application with caching.
+    -
+      name: Securing Rails Applications
+      url: security.html
+      description: This guide describes common security problems in web applications and how to avoid them with Rails.
+    -
+      name: Error Reporting in Rails Applications
+      url: error_reporting.html
+      description: This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
 
 -
   name: Advanced Active Record
