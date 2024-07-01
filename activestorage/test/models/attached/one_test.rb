@@ -892,6 +892,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "transforms variants immediately on attach conditionally" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob ] do
+      assert_changes -> { @user.avatar_with_immediate.variant(:thumb)&.send(:processed?) }, from: nil, to: true do
+        @user.avatar_with_immediate.attach blob
+      end
+    end
+  end
+
   test "avoids enqueuing transform later job or preview image job when blob is not representable" do
     unrepresentable_blob = create_blob(filename: "hello.txt")
 

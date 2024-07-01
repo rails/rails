@@ -33,7 +33,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   delegate_missing_to :blob
   delegate :signed_id, to: :blob
 
-  after_create_commit :mirror_blob_later, :analyze_blob_later, :transform_variants_later
+  after_create_commit :mirror_blob_later, :analyze_blob_later, :transform_variants_later, :transform_variants_now
   after_destroy_commit :purge_dependent_blob_later
 
   ##
@@ -144,6 +144,22 @@ class ActiveStorage::Attachment < ActiveStorage::Record
         preprocessed_variations.each do |transformations|
           blob.preprocessed(transformations)
         end
+      end
+    end
+
+    def transform_variants_now
+      immediate_variations = named_variants.filter_map { |_name, named_variant|
+        if named_variant.immediate?(record)
+          named_variant.transformations
+        end
+      }
+
+      if blob.preview_image_needed_before_processing_variants? && immediate_variations.any?
+        blob.preview({}).processed
+      end
+
+      immediate_variations.each do |transformations|
+        blob.immediate(transformations)
       end
     end
 

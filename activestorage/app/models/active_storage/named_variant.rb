@@ -5,17 +5,27 @@ class ActiveStorage::NamedVariant # :nodoc:
 
   def initialize(transformations)
     @preprocessed = transformations[:preprocessed]
-    @transformations = transformations.except(:preprocessed)
+    @immediate = transformations[:immediate]
+    @transformations = transformations.except(:preprocessed, :immediate)
   end
 
   def preprocessed?(record)
-    case preprocessed
-    when Symbol
-      record.send(preprocessed)
-    when Proc
-      preprocessed.call(record)
-    else
-      preprocessed
-    end
+    option(preprocessed, record)
   end
+
+  def immediate?(record)
+    option(@immediate, record)
+  end
+
+  private
+    def option(value, record)
+      case value
+      when Symbol
+        record.send(value)
+      when Proc
+        value.call(record)
+      else
+        value
+      end
+    end
 end

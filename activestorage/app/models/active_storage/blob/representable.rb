@@ -110,6 +110,10 @@ module ActiveStorage::Blob::Representable
     ActiveStorage::TransformJob.perform_later(self, transformations) if representable?
   end
 
+  def immediate(transformations) # :nodoc:
+    ActiveStorage::TransformJob.perform_now(self, transformations) if representable?
+  end
+
   private
     def default_variant_transformations
       { format: default_variant_format }

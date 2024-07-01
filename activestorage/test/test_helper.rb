@@ -143,6 +143,11 @@ class User < ActiveRecord::Base
     attachable.variant :method, resize_to_limit: [3, 3],
       preprocessed: :should_preprocessed?
   end
+  has_one_attached :avatar_with_immediate do |attachable|
+    attachable.variant :thumb, resize_to_limit: [4, 4], immediate: true
+  end
+
+
   has_one_attached :intro_video
   has_one_attached :name_pronunciation_audio
 
@@ -159,6 +164,9 @@ class User < ActiveRecord::Base
       preprocessed: ->(user) { user.name == "transform via proc" }
     attachable.variant :method, resize_to_limit: [3, 3],
       preprocessed: :should_preprocessed?
+  end
+  has_many_attached :highlights_with_immediate do |attachable|
+    attachable.variant :thumb, resize_to_limit: [1, 1], immediate: true
   end
   has_one_attached :resume do |attachable|
     attachable.variant :preview, resize_to_fill: [400, 400]

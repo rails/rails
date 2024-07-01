@@ -952,6 +952,16 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "transforms variants immediately on attach" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob ] do
+      assert_changes -> { ActiveStorage::VariantRecord.count }, from: 0, to: 1 do
+        @user.highlights_with_immediate.attach blob
+        assert @user.highlights_with_immediate.last.variant(:thumb).send(:processed?)
+      end
+    end
+  end
+
   test "avoids enqueuing transform later and create preview job job when blob is not representable" do
     unrepresentable_blob = create_blob(filename: "hello.txt")
 
