@@ -433,6 +433,7 @@ module ActionController
         # requesting the client to send a Bearer token. For the authentication to be
         # considered successful, `login_procedure` should return a non-nil value.
         # Typically, the authenticated user is returned.
+        # If you return nil or false, then the authentication will be considered unsuccessful.
         #
         # See ActionController::HttpAuthentication::Token for example usage.
         def authenticate_or_request_with_http_token(realm = "Application", message = nil, &login_procedure)
