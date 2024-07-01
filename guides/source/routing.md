@@ -327,7 +327,7 @@ In addition to the routes for magazines, this declaration will also route ads to
 | PATCH/PUT | /magazines/:magazine_id/ads/:id      | ads#update        | update a specific ad belonging to a specific magazine                      |
 | DELETE    | /magazines/:magazine_id/ads/:id      | ads#destroy       | delete a specific ad belonging to a specific magazine                      |
 
-This will also create the usual path and url routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. Since the `ads` resource is nested below `magazines`, The ad URLs require a magazine. The helpers can take an instance of `Magazine` as the first parameter (`magazine_ads_url(@magazine)`).
+This will also create the usual path and url routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. Since the `ads` resource is nested below `magazines`, The ad URLs require a magazine. The helpers can take an instance of `Magazine` as the first parameter (`edit_magazine_ad_path(@magazine, @ad)`).
 
 #### Limits to Nesting
 
@@ -541,7 +541,7 @@ You can also use [`url_for`][ActionView::RoutingUrlFor#url_for] with an array of
 <%= link_to 'Ad details', url_for([@magazine, @ad]) %>
 ```
 
-In this case, Rails will see that `@magazine` is a `Magazine` and `@ad` is an `Ad` and will therefore use the `magazine_ad_path` helper. An even shorter way to write that `link_to` is to specify just the object instead of the full `url_for` call:
+In this case, Rails will see that `@magazine` is a `Magazine` and `@ad` is an `Ad` and will therefore use the `magazine_ad_path` helper. An even shorter way to write that [`link_to`](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to) is to specify just the object instead of the full [`url_for`](https://api.rubyonrails.org/classes/ActionDispatch/Routing/UrlFor.html) call:
 
 ```erb
 <%= link_to 'Ad details', [@magazine, @ad] %>
