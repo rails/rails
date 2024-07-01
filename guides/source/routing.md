@@ -75,7 +75,7 @@ and this in the corresponding view:
 
 then the router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views.
 
-It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url, `user_url` generates an absolute url (something like `https://yourdomain.com/users/17` in the above example).
+It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url like `/users/17`, `user_url` generates an absolute url something like `https://yourdomain.com/users/17` in the above example.
 
 ### Configuring the Rails Router
 
