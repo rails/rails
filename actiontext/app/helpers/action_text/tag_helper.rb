@@ -36,7 +36,11 @@ module ActionText
 
       options[:data] ||= {}
       options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url
-      options[:data][:blob_url_template] ||= main_app.rails_service_blob_url(":signed_id", ":filename")
+      options[:data][:blob_url_template] ||= if Rails.application.config.active_storage.resolve_model_to_route == :rails_storage_proxy
+        main_app.rails_service_blob_proxy_url(":signed_id", ":filename")
+      else
+        main_app.rails_service_blob_url(":signed_id", ":filename")
+      end
 
       editor_tag = content_tag("trix-editor", "", options)
       input_tag = hidden_field_tag(name, value.try(:to_trix_html) || value, id: options[:input], form: form)
