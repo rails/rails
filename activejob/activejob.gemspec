@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
-version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
+RAILS_VERSION_PATH = File.expand_path("../RAILS_VERSION", __dir__)
+GEM_AUTHOR = "David Heinemeier Hansson"
+GEM_EMAIL = "david@loudthinking.com"
+GEM_HOMEPAGE = "https://rubyonrails.org"
+
+version = File.read(RAILS_VERSION_PATH).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
@@ -13,9 +18,9 @@ Gem::Specification.new do |s|
 
   s.license = "MIT"
 
-  s.author   = "David Heinemeier Hansson"
-  s.email    = "david@loudthinking.com"
-  s.homepage = "https://rubyonrails.org"
+  s.author   = GEM_AUTHOR
+  s.email    = GEM_EMAIL
+  s.homepage = GEM_HOMEPAGE
 
   s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*"]
   s.require_path = "lib"
