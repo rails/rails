@@ -150,3 +150,41 @@ class RedisAdapterTest::SentinelConfigAsHash < ActionCable::TestCase
     end
   end
 end
+
+class RedisAdapterTest::ConnectionError < RedisAdapterTest
+  require "redis"
+  class FailingRedis < ::Redis
+    cattr_accessor :state
+    def subscribe(*channels, &block)
+      case FailingRedis.state
+      when :should_raise
+        FailingRedis.state = :raised
+        raise RedisClient::ConnectionError.new
+      when :raised
+        FailingRedis.state = :resubscribed
+      end
+      super
+    end
+  end
+
+  def test_reconnect_attempt_reset
+    ActionCable::SubscriptionAdapter::Redis.redis_connector = ->(config) do
+      FailingRedis.new(config.except(:adapter, :channel_prefix))
+    end
+    server = ActionCable::Server::Base.new
+    adapter = server.config.pubsub_adapter.new(server)
+
+    subscribe_as_queue("channel", adapter) do |queue|
+      adapter.send(:listener).instance_variable_set("@reconnect_attempt", 2)
+      adapter.send(:listener).instance_variable_set("@reconnect_reset_delay", 0)
+      FailingRedis.state = :should_raise
+      drop_pubsub_connections
+      10.times do
+        sleep 0.3
+        break if FailingRedis.state == :resubscribed
+      end
+      assert_equal :resubscribed, FailingRedis.state
+      assert_equal 0, adapter.send(:listener).instance_variable_get("@reconnect_attempt")
+    end
+  end
+end
