@@ -13,7 +13,13 @@ module ActionDispatch
       success: "2XX",
       missing: "404",
       redirect: "3XX",
-      error: "5XX"
+      error: "5XX",
+
+      # In Rack < 3.1, the status code is symbolically referred to as :unprocessable_entity
+      # In Rack >= 3.1, the status code is symbolically referred to as :unprocessable_content
+      # Once support for Rack < 3.1 is dropped, these lines can be removed
+      unprocessable_entity: 422,
+      unprocessable_content: 422,
     }
 
     # Accepts a specific response status code as an Integer (404) or String ('404')
