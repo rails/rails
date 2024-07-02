@@ -140,6 +140,7 @@ module ActiveRecord
     autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
       autoload :IndexDefinition
       autoload :ColumnDefinition
+      autoload :ColumnMethods
       autoload :ChangeColumnDefinition
       autoload :ChangeColumnDefaultDefinition
       autoload :ForeignKeyDefinition
