@@ -609,14 +609,24 @@ module ActiveRecord
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
     #
     # By default, the order is ascending. If you want descending order, you can
-    # map the column name symbol to +:desc+.
+    # map the column name symbol to +:desc+ (also accepted +"desc"+, +:DESC+, +"DESC"+).
     #
     #   User.order(email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
     #
+    # Ascending order can be specified in the map form as +:asc+ (also accepted +"asc"+, +:ASC+, +"ASC"+).
+    # This may be useful in some scenarios where you can't use the plain symbol form.
+    #
+    #   User.order(email: (params[:asc] ? :asc : :desc))
+    #   
     # Multiple columns can be passed this way, and they will be applied in the order specified.
     #
     #   User.order(:name, email: :desc)
+    #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+    #
+    # Same can be done by chaining multiple #order calls.
+    #
+    #   User.order(:name).order(email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     #
     # === strings
