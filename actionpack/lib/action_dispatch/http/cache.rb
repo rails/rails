@@ -9,6 +9,8 @@ module ActionDispatch
         HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE"
         HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH"
 
+        mattr_accessor :prefer_etag_over_last_modified, default: false
+
         def if_modified_since
           if since = get_header(HTTP_IF_MODIFIED_SINCE)
             Time.rfc2822(since) rescue nil
@@ -36,18 +38,36 @@ module ActionDispatch
 
         # Check response freshness (`Last-Modified` and ETag) against request
         # `If-Modified-Since` and `If-None-Match` conditions. If both headers are
-        # supplied, both must match, or the request is not considered fresh.
+        # supplied, based on configuration, either ETag is preferred over `Last-Modified`
+        # or both are considered equally. You can adjust the preference with
+        # `config.action_dispatch.prefer_etag_over_last_modified`.
+        # Reference: http://tools.ietf.org/html/rfc7232#section-6
         def fresh?(response)
           last_modified = if_modified_since
           etag          = if_none_match
 
           return false unless last_modified || etag
 
-          success = true
-          success &&= not_modified?(response.last_modified) if last_modified
-          success &&= etag_matches?(response.etag) if etag
-          success
+          if prefer_etag_over_last_modified?
+            if etag
+              etag_matches?(response.etag)
+            elsif last_modified
+              not_modified?(response.last_modified)
+            else
+              false
+            end
+          else
+            success = true
+            success &&= not_modified?(response.last_modified) if last_modified
+            success &&= etag_matches?(response.etag) if etag
+            success
+          end
         end
+
+        private
+          def prefer_etag_over_last_modified?
+            prefer_etag_over_last_modified
+          end
       end
 
       module Response

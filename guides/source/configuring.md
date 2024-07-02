@@ -2110,6 +2110,10 @@ Setting the value to `:none` configures Action Pack raise all exceptions.
 | (original)            | `true`                |
 | 7.1                   | `:all`                |
 
+### `config.action_dispatch.prefer_etag_over_last_modified`
+
+Configures whether the `ActionDispatch::ETag` middleware should prefer the `ETag` header over the `Last-Modified` header when both are present in the response. The default value is `false`. It is recommended to set this to `true` to align with the HTTP specification. It will be set to `true` by default later versions.
+
 #### `ActionDispatch::Callbacks.before`
 
 Takes a block of code to run before the request.
