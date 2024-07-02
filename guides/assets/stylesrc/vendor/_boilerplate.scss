@@ -16,28 +16,30 @@
     font-size: 1em;
     line-height: 1.4;
   }
-  
+
   /*
    * Remove text-shadow in selection highlight:
    * https://twitter.com/miketaylr/status/12228805301
    *
    * Customize the background color to match your design.
    */
-  
+
   ::-moz-selection {
-    background: #b3d4fc;
+    background: #C81418; // $rf-brand;
+    color: white;
     text-shadow: none;
   }
-  
+
   ::selection {
-    background: #b3d4fc;
+    background: #C81418; //$rf-brand;
+    color: white;
     text-shadow: none;
   }
-  
+
   /*
    * A better looking default horizontal rule
    */
-  
+
   hr {
     display: block;
     height: 1px;
@@ -46,13 +48,13 @@
     margin: 1em 0;
     padding: 0;
   }
-  
+
   /*
    * Remove the gap between audio, canvas, iframes,
    * images, videos and the bottom of their containers:
    * https://github.com/h5bp/html5-boilerplate/issues/440
    */
-  
+
   audio,
   canvas,
   iframe,
@@ -61,42 +63,42 @@
   video {
     vertical-align: middle;
   }
-  
+
   /*
    * Remove default fieldset styles.
    */
-  
+
   fieldset {
     border: 0;
     margin: 0;
     padding: 0;
   }
-  
+
   /*
    * Allow only vertical resizing of textareas.
    */
-  
+
   textarea {
     resize: vertical;
   }
-  
+
   /* ==========================================================================
      Author's custom styles
      ========================================================================== */
-  
+
   /* ==========================================================================
      Helper classes
      ========================================================================== */
-  
+
   /*
    * Hide visually and from screen readers
    */
-  
+
   .hidden,
   [hidden] {
     display: none !important;
   }
-  
+
   /*
    * Hide only visually, but have it available for screen readers:
    * https://snook.ca/archives/html_and_css/hiding-content-for-accessibility
@@ -105,7 +107,7 @@
    *    causes content to wrap 1 word per line:
    *    https://medium.com/@jessebeach/beware-smushed-off-screen-accessible-text-5952a4c2cbfe
    */
-  
+
   .visually-hidden {
     border: 0;
     clip: rect(0, 0, 0, 0);
@@ -118,13 +120,13 @@
     width: 1px;
     /* 1 */
   }
-  
+
   /*
    * Extends the .visually-hidden class to allow the element
    * to be focusable when navigated to via the keyboard:
    * https://www.drupal.org/node/897638
    */
-  
+
   .visually-hidden.focusable:active,
   .visually-hidden.focusable:focus {
     clip: auto;
@@ -135,46 +137,45 @@
     white-space: inherit;
     width: auto;
   }
-  
+
   /*
    * Hide visually and from screen readers, but maintain layout
    */
-  
+
   .invisible {
     visibility: hidden;
   }
-  
+
   /*
    * Clearfix: contain floats
    *
    * The use of `table` rather than `block` is only necessary if using
    * `::before` to contain the top-margins of child elements.
    */
-  
+
   .clearfix::before,
   .clearfix::after {
     content: "";
     display: table;
   }
-  
+
   .clearfix::after {
     clear: both;
   }
-  
+
   /* ==========================================================================
      EXAMPLE Media Queries for Responsive Design.
      These examples override the primary ('mobile first') styles.
      Modify as content requires.
      ========================================================================== */
-  
+
   @media only screen and (min-width: 35em) {
     /* Style adjustments for viewports that meet the condition */
   }
-  
+
   @media print,
     (-webkit-min-device-pixel-ratio: 1.25),
     (min-resolution: 1.25dppx),
     (min-resolution: 120dpi) {
     /* Style adjustments for high resolution devices */
   }
-  

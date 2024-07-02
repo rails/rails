@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------------
 // Rails Guides Redesign - Print Styles
-// 
+//
 // Created: 29 March 2024
 // Modified: 29 March 2024
 // ---------------------------------------------------------------------------- */
@@ -88,25 +88,25 @@
     page-break-after: avoid;
   }
 
-  body.guide, 
+  body.guide,
   .wrapper,
   header,
-  footer, 
-  main, 
-  #feature, 
-  #subCol {
+  footer,
+  main,
+  #feature,
+  #column-side {
     background: #fff;
     color: #000;
-    position: static; 
-    display: block; 
-    float: none; 
-    height: auto; 
-    min-height: 0; 
-    margin: 0; 
+    position: static;
+    display: block;
+    float: none;
+    height: auto;
+    min-height: 0;
+    margin: 0;
     padding: 0;
-    text-align: left; 
-    text-indent: 0; 
-    width: auto; 
+    text-align: left;
+    text-indent: 0;
+    width: auto;
   }
 
   body.guide {
@@ -126,7 +126,7 @@
     nav {
       display: none !important;
     }
-    
+
     #feature #subCol {
       display: block !important;
 
@@ -146,7 +146,7 @@
     }
 
     .interstitial {
-      
+
       background-repeat: no-repeat !important;
       background-size: 36px 36px !important;
       background-position: 10px 10px !important;
@@ -154,20 +154,20 @@
       &.note {
         background-image: url("../images/icon_task-list-pin.svg") !important;
       }
-    
+
       &.work-in-progress,
       &.todo {
         background-image: url("../images/icon_construction-sign.svg") !important;
       }
-    
+
       &.info {
         background-image: url("../images/icon_bulb-1.svg") !important;
       }
-    
+
       &.warning {
         background-image: url("../images/icon_hand-stop.svg") !important;
       }
-    
+
       &.question {
         background-image: url("../images/icon_question-bubble.svg") !important;
       }
@@ -181,7 +181,7 @@
         border: none;
         font-size: 9.5pt !important;
       }
-      
+
       button {
         display: none;
       }
@@ -198,4 +198,3 @@
 
   } // body.guide
 }
-
