@@ -1,3 +1,7 @@
+*   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
+
+    *Hartley McGuire*
+
 *   Support `immutable` directive in Cache-Control
 
     ```ruby
