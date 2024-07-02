@@ -55,6 +55,7 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
 require "bundler/setup" # Set up gems listed in the Gemfile.
+require "bootsnap/setup" # Speed up boot time by caching expensive operations.
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
