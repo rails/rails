@@ -47,6 +47,17 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_with_type_casting_and_serialize_is_consistent
+    skip unless supports_insert_returning?
+
+    book_name = ["Array"]
+    created_book_id = Book.create!(name: book_name).id
+    inserted_book_id = Book.insert!({ name: book_name }, returning: :id).first["id"]
+    raw_created_book_name = Book.connection.select_value(Book.select(:name).where(id: created_book_id))
+    raw_inserted_book_name = Book.connection.select_value(Book.select(:name).where(id: inserted_book_id))
+    assert_equal raw_created_book_name, raw_inserted_book_name
+  end
+
   def test_insert_all
     assert_difference "Book.count", +10 do
       Book.insert_all! [
