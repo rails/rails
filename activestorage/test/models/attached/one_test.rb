@@ -917,4 +917,57 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "invokes before and after attached callbacks on the record" do
+    before_attached_blobs = []
+    after_attached_blobs = []
+
+    # Define our callbacks method so active storage can invoke them
+    # We will track each blob that was invoked with it to test "integrity"
+    @user.class.define_method("before_avatar_attached") do |blob|
+      before_attached_blobs << blob
+    end
+
+    @user.class.define_method("after_avatar_attached") do |blob|
+      after_attached_blobs << blob
+    end
+
+    @user.avatar.attach fixture_file_upload("racecar.jpg")
+
+    filenames = before_attached_blobs.map(&:filename)
+    assert_includes filenames, "racecar.jpg"
+
+    filenames = after_attached_blobs.map(&:filename)
+    assert_includes filenames, "racecar.jpg"
+
+
+    @user.class.undef_method("before_avatar_attached")
+    @user.class.undef_method("after_avatar_attached")
+
+    original_blob = nil
+    variant_blob = nil
+
+    # Confirm that we can also handle variants
+    @user.class.define_method("after_avatar_with_variants_attached") do |blob|
+      original_blob = blob
+    end
+
+    @user.class.define_method("after_avatar_with_variants_variant_attached") do |blob|
+      variant_blob = blob
+    end
+
+    @user.avatar_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.avatar_with_variants.variant(:thumb).processed
+
+    assert_not_nil variant
+
+
+    assert_not_nil original_blob, "Original Blob should not be nil"
+    assert_not_nil variant_blob, "Variant Blob should not be nil"
+
+    assert_not_equal original_blob.id, variant_blob.id, "Blobs should be different"
+
+    @user.class.undef_method("after_avatar_with_variants_variant_attached")
+    @user.class.undef_method("after_avatar_with_variants_attached")
+  end
 end

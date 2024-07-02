@@ -270,7 +270,17 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def upload_without_unfurling(io) # :nodoc:
-    service.upload key, io, checksum: checksum, **service_metadata
+    self.attachments.each do |attachment|
+      attachment.run_before_attached_callback self
+    end
+
+    upload_result = service.upload key, io, checksum: checksum, **service_metadata
+
+    self.attachments.each do |attachment|
+      attachment.run_after_attached_callback self
+    end
+
+    upload_result
   end
 
   def compose(keys) # :nodoc:

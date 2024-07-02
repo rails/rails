@@ -553,6 +553,41 @@ end
 
 NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_many_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
 
+### Callbacks
+
+Active Storage provides callbacks for when attachments are successfully uploaded to the configured service.
+**Before** and **After** callbacks are available on both `has_one_attached` and `has_many_attached` associations.
+The method name will include the attachment name and the callback type.
+_For variants, the suffix `_variant_attached` will be used._
+
+```ruby
+class Message < ApplicationRecord
+  has_one_attached :image do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+
+  has_many_attached :images do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+
+  def before_image_attached(image_blob)
+    puts "#{image_blob.filename} is about to be attached with #{image_blob.byte_size} bytes"
+  end
+
+  def after_image_attached(image_blob)
+    puts "#{image_blob.filename} has been attached with #{image_blob.byte_size} bytes"
+  end
+
+  def before_images_variant_attached(image_thumb_blob)
+    puts "#{image_thumb_blob.filename} is about to be attached with #{image_thumb_blob.byte_size} bytes"
+  end
+
+  def after_images_variant_attached(image_thumb_blob)
+    puts "#{image_thumb_blob.filename} has been attached with #{image_thumb_blob.byte_size} bytes"
+  end
+end
+```
+
 ### Attaching File/IO Objects
 
 Sometimes you need to attach a file that doesn’t arrive via an HTTP request.

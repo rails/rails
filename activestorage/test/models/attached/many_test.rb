@@ -976,4 +976,47 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal 1, @user.highlights.count
     assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
   end
+
+  test "invokes before and after attached callbacks on the record" do
+    funky_io = { io: StringIO.new("FUNKY"), filename: "funky.jpg", content_type: "image/jpeg" }
+    racecar_io = { io: StringIO.new("RACECAR"), filename: "racecar.jpg", content_type: "image/jpeg" }
+    town_io = { io: StringIO.new("TOWN"), filename: "town.jpg", content_type: "image/jpeg" }
+
+    before_attached_blobs = []
+    after_attached_blobs = []
+
+    # Define our callbacks method so active storage can invoke them
+    # We will track each blob that was invoked with it to test "integrity"
+    @user.class.define_method("before_highlights_attached") do |blob|
+      before_attached_blobs << blob
+    end
+
+    @user.class.define_method("after_highlights_attached") do |blob|
+      after_attached_blobs << blob
+    end
+
+    @user.highlights.attach funky_io, town_io
+
+    # After attaching multiple io attachables, check the count and that the blob
+    # that were used to invoke the callbacks
+    assert_equal 2, before_attached_blobs.count
+
+    filenames = before_attached_blobs.map(&:filename)
+    assert_includes filenames, "funky.jpg"
+    assert_includes filenames, "town.jpg"
+
+    assert_equal 2, after_attached_blobs.count
+
+    filenames = after_attached_blobs.map(&:filename)
+    assert_includes filenames, "funky.jpg"
+    assert_includes filenames, "town.jpg"
+
+    @user.highlights.attach racecar_io
+
+    filenames = after_attached_blobs.map(&:filename)
+    assert_includes filenames, "racecar.jpg"
+
+    @user.class.undef_method("before_highlights_attached")
+    @user.class.undef_method("after_highlights_attached")
+  end
 end

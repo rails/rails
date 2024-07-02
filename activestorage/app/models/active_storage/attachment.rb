@@ -122,6 +122,42 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     blob.representation(transformations)
   end
 
+  def run_before_attached_callback(blob)
+    run_on_attached_callback(:before, blob)
+  end
+
+  def run_after_attached_callback(blob)
+    run_on_attached_callback(:after, blob)
+  end
+
+  protected
+    def run_on_attached_callback(type, blob, method_suffix = "attached")
+      callback_name = case type
+      when :before, :after
+        type.downcase
+      end
+
+      # generate method name like:
+      #   before_profile_attached, after_profile_attached
+      # unless we are processing a variant then the names will be:
+      #   before_profile_variant_attached, after_profile_variant_attached
+      if self.record_type == ActiveStorage::VariantRecord.name
+
+        # we use the record's blob because a Variant Record has an attachment named "image"
+        # instead of the parent's main attachment name.
+        # This extra query should be able to be removed if the VariantRecord `has_one_attached` would share the same name somehow.
+        self.record.blob.attachments.each do |attachment|
+          attachment.run_on_attached_callback(type, self.blob, "variant_attached")
+        end if self.record&.blob
+
+        return
+      end
+
+      method_name = "#{callback_name}_#{self.name}_#{method_suffix}"
+      record = self.record
+      record.send(method_name, blob) if record.respond_to?(method_name)
+    end
+
   private
     def analyze_blob_later
       blob.analyze_later unless blob.analyzed?
