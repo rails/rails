@@ -578,6 +578,7 @@ class InheritanceAttributeTest < ActiveRecord::TestCase
   end
 
   class Empire < Company
+    self.ignored_columns = [:description]
   end
 
   def test_inheritance_new_with_subclass_as_default
@@ -588,6 +589,13 @@ class InheritanceAttributeTest < ActiveRecord::TestCase
     empire = Company.new(type: "InheritanceAttributeTest::Empire") # without arguments
     assert_equal "InheritanceAttributeTest::Empire", empire.type
     assert_instance_of Empire, empire
+  end
+
+  def test_when_quering_from_base_class_instantiate_subclass_without_ignored_columns
+    empire = Empire.create!(name: "Empire")
+    empire_called_from_sti = Company.find(empire.id)
+    assert_not_includes(empire_called_from_sti.attributes.keys, "description")
+    assert_equal(empire_called_from_sti.attributes.keys.size, Empire.column_names.size)
   end
 end
 
