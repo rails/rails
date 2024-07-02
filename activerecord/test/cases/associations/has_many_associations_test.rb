@@ -2029,6 +2029,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
   end
 
+  def test_included_in_collection_for_composite_keys
+    great_author = cpk_authors(:cpk_great_author)
+    book = great_author.books.first
+
+    assert great_author.books.include?(book)
+  end
+
   def test_included_in_collection_for_new_records
     client = Client.create(name: "Persisted")
     assert_nil client.client_of
