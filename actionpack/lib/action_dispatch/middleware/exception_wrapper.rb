@@ -18,8 +18,11 @@ module ActionDispatch
       "ActionController::UnknownFormat"                    => :not_acceptable,
       "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
       "ActionController::MissingExactTemplate"             => :not_acceptable,
-      "ActionController::InvalidAuthenticityToken"         => :unprocessable_entity,
-      "ActionController::InvalidCrossOriginRequest"        => :unprocessable_entity,
+      # In Rack < 3.1, the status code is symbolically referred to as :unprocessable_entity
+      # In Rack >= 3.1, the status code is symbolically referred to as :unprocessable_content
+      # Once support for Rack < 3.1 is dropped, this can be replaced with :unprocessable_content if desired.
+      "ActionController::InvalidAuthenticityToken"         => 422,
+      "ActionController::InvalidCrossOriginRequest"        => 422,
       "ActionDispatch::Http::Parameters::ParseError"       => :bad_request,
       "ActionController::BadRequest"                       => :bad_request,
       "ActionController::ParameterMissing"                 => :bad_request,
