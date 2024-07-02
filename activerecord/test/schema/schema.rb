@@ -1101,6 +1101,8 @@ ActiveRecord::Schema.define do
   create_table :rooms, force: true do |t|
     t.references :user
     t.references :owner
+    t.references :landlord
+    t.references :tenant
   end
 
   disable_referential_integrity do

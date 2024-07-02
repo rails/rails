@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/matey"
 require "models/user"
+require "models/room"
 require "active_support/message_verifier"
 
 class TokenForTest < ActiveRecord::TestCase
