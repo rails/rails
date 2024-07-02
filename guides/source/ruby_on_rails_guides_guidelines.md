@@ -51,8 +51,36 @@ Use the same inline formatting as regular text:
 ##### The `:content_type` Option
 ```
 
-Linking to the API
-------------------
+Links
+-----
+
+Use descriptive links and avoid "here" and "more" links:
+
+```markdown
+# BAD
+You can read more about the Rails Internationalization (I18n) API [here](i18n.html).
+
+# GOOD
+See the [Rails Internationalization (I18n) API documentation](i18n.html) for
+more details.
+
+# BAD
+We will cover this [below](#multiple-callback-conditions).
+
+# GOOD
+We will cover this in the [multiple callback conditions
+section](#multiple-callback-conditions).
+
+# BAD
+You can define **a custom callback object**, as shown below.
+We will cover these [later in more detail](#callback-objects).
+
+# GOOD
+You can define [a custom callback object](#callback-objects), as
+shown below. We will cover these later in more detail.
+```
+
+### Linking to the API
 
 Links to the API (`api.rubyonrails.org`) are processed by the guides generator in the following manner:
 
