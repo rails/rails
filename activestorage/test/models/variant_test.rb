@@ -158,7 +158,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variation of invariable blob" do
-    assert_raises ActiveStorage::InvariableError do
+    assert_raises ActiveStorage::InvariableError, match: /blob with ID=\d+ and content_type=application\/pdf/ do
       create_file_blob(filename: "report.pdf", content_type: "application/pdf").variant(resize_to_limit: [100, 100])
     end
   end
