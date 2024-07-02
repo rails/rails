@@ -47,6 +47,7 @@ namespace :test do
 
     t.warning = true
     t.verbose = true
+    t.options = "--profile" if ENV["CI"]
   end
 end
 
@@ -71,6 +72,7 @@ end
       t.test_files = files
       t.warning = true
       t.verbose = true
+      t.options = "--profile" if ENV["CI"]
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -82,6 +84,7 @@ end
           t.test_files = FileList["test/activejob/*_test.rb"]
           t.warning = true
           t.verbose = true
+          t.options = "--profile" if ENV["CI"]
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
@@ -188,6 +191,7 @@ end
 
           t.warning = true
           t.verbose = true
+          t.options = "--profile" if ENV["CI"]
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
