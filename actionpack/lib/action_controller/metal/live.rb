@@ -172,7 +172,7 @@ module ActionController
       # ActionDispatch::Response::Buffer, defining #to_ary is an indicator that the
       # response body can be buffered and/or cached by Rack middlewares, this is not
       # the case for Live responses so we undefine it for this Buffer subclass.
-      undef_method :to_ary
+      # undef_method :to_ary
 
       def write(string)
         unless @response.committed?
