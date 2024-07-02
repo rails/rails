@@ -1,3 +1,23 @@
+*   `ActiveRecord::Encryption::Encryptor` now supports a `:compressor` option to customize the compression algorithm used.
+
+    ```ruby
+    module ZstdCompressor
+      def self.deflate(data)
+        Zstd.compress(data)
+      end
+
+      def self.inflate(data)
+        Zstd.decompress(data)
+      end
+    end
+
+    class User
+      encrypts :name, compressor: ZstdCompressor
+    end
+    ```
+
+    *heka1024*
+
 *   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
     `DatabaseConfig`.
 

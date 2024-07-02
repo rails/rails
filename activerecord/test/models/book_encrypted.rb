@@ -56,3 +56,19 @@ class EncryptedBookWithSerializedBinary < ActiveRecord::Base
   serialize :logo, coder: JSON
   encrypts :logo
 end
+
+class EncryptedBookWithCustomCompressor < ActiveRecord::Base
+  module CustomCompressor
+    def self.deflate(value)
+      "[compressed] #{value}"
+    end
+
+    def self.inflate(value)
+      value
+    end
+  end
+
+  self.table_name = "encrypted_books"
+
+  encrypts :name, compressor: CustomCompressor
+end
