@@ -475,4 +475,60 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate(book.association(:order_agreement), :stale_target?)
   end
+
+  def test_has_one_through_with_direct_assignment_does_not_trigger_query
+    member = Member.create!
+    club = Club.create!
+    CurrentMembership.create!(member: member, club: club)
+
+    assert_no_queries { member.club.id }
+    assert_equal member.club.object_id, member.current_membership.club.object_id
+  end
+
+  def test_has_one_through_with_eager_loading_does_not_trigger_query
+    member = Member.includes(current_membership: :club).first
+
+    assert_no_queries { member.club.id }
+    assert_equal member.club.object_id, member.current_membership.club.object_id
+  end
+
+  def test_nil_assignment_via_through_association
+    @member.current_membership.club = nil
+    @member.save
+
+    assert_nil @member.club
+    assert_nil @member.current_membership.club
+  end
+
+  def test_nil_assignment_via_source_association
+    @member.club = nil
+    @member.save
+
+    assert_nil @member.club
+    assert_nil @member.current_membership.club
+  end
+
+  def test_different_assignment_via_through_association
+    club = Club.create!
+    @member.current_membership.club = club
+    @member.save
+
+    assert_equal club.id, @member.club.id
+    assert_equal @member.club.id, @member.current_membership.club.id
+
+    assert_equal club.object_id, @member.club.object_id
+    assert_equal @member.club.object_id, @member.current_membership.club.object_id
+  end
+
+  def test_different_assignment_via_source_association
+    club = Club.create!
+    @member.club = club
+    @member.save
+
+    assert_equal club.id, @member.club.id
+    assert_equal @member.club.id, @member.current_membership.club.id
+
+    assert_equal club.object_id, @member.club.object_id
+    assert_equal @member.club.object_id, @member.current_membership.club.object_id
+  end
 end

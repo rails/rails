@@ -7,6 +7,10 @@ module ActiveRecord
       include ThroughAssociation
 
       private
+        def source_association
+          @source_association ||= direct_through_association_target.association(source_reflection.name)
+        end
+
         def replace(record, save = true)
           create_through_record(record, save)
           self.target = record
@@ -19,6 +23,7 @@ module ActiveRecord
           through_record = through_proxy.load_target
 
           if through_record && !record
+            source_association.target = nil
             through_record.destroy
           elsif record
             attributes = construct_join_attributes(record)

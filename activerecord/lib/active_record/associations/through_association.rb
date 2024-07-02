@@ -6,6 +6,12 @@ module ActiveRecord
     module ThroughAssociation # :nodoc:
       delegate :source_reflection, to: :reflection
 
+      def reader
+        super do
+          self.target = source_association_target if !loaded? && source_association_cached?
+        end
+      end
+
       private
         def transaction(&block)
           through_reflection.klass.transaction(&block)
@@ -25,6 +31,46 @@ module ActiveRecord
 
         def through_association
           @through_association ||= owner.association(through_reflection.name)
+        end
+
+        # The difference between through_reflection and direct_through_reflection is that
+        # through_reflection returns the deepest (last) through reflection in the chain,
+        # while direct_through_reflection returns the immediate through reflection directly
+        # on the association.
+        #
+        # In most cases, they will be the same. However, if the association has nested
+        # through associations, they will be different.
+        def direct_through_reflection
+          @direct_through_reflection ||= reflection.through_reflection
+        end
+
+        def direct_through_association
+          @direct_through_association ||= owner.association(direct_through_reflection.name)
+        end
+
+        def direct_through_association_target
+          @direct_through_association_target ||= direct_through_association.target
+        end
+
+        def source_association_target
+          if direct_through_association_target.is_a?(Array)
+            direct_through_association_target.flat_map do |target|
+              target.association(source_reflection.name).target
+            end
+          else
+            direct_through_association_target.association(source_reflection.name).target
+          end
+        end
+
+        def source_association_loaded?
+          targets = Array(direct_through_association_target)
+          targets.all? do |target|
+            target.association(source_reflection.name).loaded?
+          end
+        end
+
+        def source_association_cached?
+          direct_through_association.loaded? && direct_through_association_target.present? && source_association_loaded?
         end
 
         # We merge in these scopes for two reasons:
