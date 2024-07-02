@@ -394,9 +394,10 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(1999, 12, 31, 19, 0, 5), (twz + 5).time
   end
 
-  def test_plus_when_crossing_time_class_limit
-    twz = ActiveSupport::TimeWithZone.new(Time.utc(2038, 1, 19), @time_zone)
-    assert_equal [0, 0, 19, 19, 1, 2038], (twz + 86_400).to_a[0, 6]
+  def test_no_limit_on_times
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), @time_zone)
+    assert_equal [0, 0, 19, 31, 12, 11999], (twz + 10_000.years).to_a[0, 6]
+    assert_equal [0, 0, 19, 31, 12, -8001], (twz - 10_000.years).to_a[0, 6]
   end
 
   def test_plus_with_duration
