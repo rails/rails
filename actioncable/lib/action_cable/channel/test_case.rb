@@ -17,72 +17,45 @@ module ActionCable
       end
     end
 
-    # # Action Cable Channel Stub
+    # # Action Cable Channel extensions for testing
     #
-    # Stub `stream_from` to track streams for the channel. Add public aliases for
-    # `subscription_confirmation_sent?` and `subscription_rejected?`.
-    module ChannelStub
-      def confirmed?
-        subscription_confirmation_sent?
-      end
+    # Add public aliases for +subscription_confirmation_sent?+ and
+    # +subscription_rejected?+.
+    module ChannelExt
+      def confirmed? = subscription_confirmation_sent?
 
-      def rejected?
-        subscription_rejected?
-      end
-
-      def stream_from(broadcasting, *)
-        streams << broadcasting
-      end
-
-      def stop_all_streams
-        @_streams = []
-      end
-
-      def streams
-        @_streams ||= []
-      end
-
-      # Make periodic timers no-op
-      def start_periodic_timers; end
-      alias stop_periodic_timers start_periodic_timers
+      def rejected? = subscription_rejected?
     end
 
-    class ConnectionStub
-      attr_reader :server, :transmissions, :identifiers, :subscriptions, :logger
+    # TestServer provides test pub/sub and executor implementations
+    class TestServer
+      attr_reader :streams, :config
 
-      delegate :pubsub, :config, to: :server
-
-      def initialize(identifiers = {})
-        @server = ActionCable.server
-        @transmissions = []
-
-        identifiers.each do |identifier, val|
-          define_singleton_method(identifier) { val }
-        end
-
-        @subscriptions = ActionCable::Connection::Subscriptions.new(self)
-        @identifiers = identifiers.keys
-        @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
+      def initialize
+        @streams = Hash.new { |h, k| h[k] = [] }
+        @config = ActionCable.server.config
       end
 
-      def transmit(cable_message)
-        transmissions << cable_message.with_indifferent_access
+      alias_method :pubsub, :itself
+      alias_method :executor, :itself
+
+      #== Executor interface ==
+
+      # Inline async calls
+      def post(&work) = work.call
+      # We don't support timers in unit tests yet
+      def timer(_every) = nil
+
+      #== Pub/sub interface ==
+      def subscribe(stream, callback, success_callback = nil)
+        @streams[stream] << callback
+        success_callback&.call
       end
 
-      def connection_identifier
-        @connection_identifier ||= connection_gid(identifiers.filter_map { |id| send(id.to_sym) if id })
+      def unsubscribe(stream, callback)
+        @streams[stream].delete(callback)
+        @streams.delete(stream) if @streams[stream].empty?
       end
-
-      private
-        def connection_gid(ids)
-          ids.map do |o|
-            if o.respond_to?(:to_gid_param)
-              o.to_gid_param
-            else
-              o.to_s
-            end
-          end.sort.join(":")
-        end
     end
 
     # Superclass for Action Cable channel functional tests.
@@ -187,7 +160,7 @@ module ActionCable
     #         perform :speak, message: "Hello, Rails!"
     #       end
     #     end
-    class TestCase < ActiveSupport::TestCase
+    class TestCase < ActionCable::Connection::TestCase
       module Behavior
         extend ActiveSupport::Concern
 
@@ -199,7 +172,8 @@ module ActionCable
         included do
           class_attribute :_channel_class
 
-          attr_reader :connection, :subscription
+          # Use testserver (not test_server) to silence "Test is missing assertions: `test_server`" warnings
+          attr_reader :subscription, :testserver
 
           ActiveSupport.run_load_hooks(:action_cable_channel_test_case, self)
         end
@@ -224,6 +198,25 @@ module ActionCable
             end
           end
 
+          def tests_connection(connection)
+            case connection
+            when String, Symbol
+              self._connection_class = connection.to_s.camelize.constantize
+            when Module
+              self._connection_class = connection
+            else
+              raise Connection::NonInferrableConnectionError.new(connection)
+            end
+          end
+
+          def connection_class
+            if connection = self._connection_class
+              connection
+            else
+              tests_connection ActionCable.server.config.connection_class.call
+            end
+          end
+
           def determine_default_channel(name)
             channel = determine_constant_from_test_name(name) do |constant|
               Class === constant && constant < ActionCable::Channel::Base
@@ -240,8 +233,14 @@ module ActionCable
         #     end
         #
         #     stub_connection(user: users[:john], token: 'my-secret-token')
-        def stub_connection(identifiers = {})
-          @connection = ConnectionStub.new(identifiers)
+        def stub_connection(**identifiers)
+          @socket = Connection::TestSocket.new(Connection::TestSocket.build_request(ActionCable.server.config.mount_path || "/cable"))
+          @testserver = TestServer.new
+          @connection = self.class.connection_class.new(testserver, socket).tap do |conn|
+            identifiers.each do |identifier, val|
+              conn.public_send("#{identifier}=", val)
+            end
+          end
         end
 
         # Subscribe to the channel under test. Optionally pass subscription parameters
@@ -249,7 +248,7 @@ module ActionCable
         def subscribe(params = {})
           @connection ||= stub_connection
           @subscription = self.class.channel_class.new(connection, CHANNEL_IDENTIFIER, params.with_indifferent_access)
-          @subscription.singleton_class.include(ChannelStub)
+          @subscription.singleton_class.include(ChannelExt)
           @subscription.subscribe_to_channel
           @subscription
         end
@@ -271,7 +270,7 @@ module ActionCable
         # Returns messages transmitted into channel
         def transmissions
           # Return only directly sent message (via #transmit)
-          connection.transmissions.filter_map { |data| data["message"] }
+          socket.transmissions.filter_map { |data| data["message"] }
         end
 
         # Enhance TestHelper assertions to handle non-String broadcastings
@@ -291,7 +290,7 @@ module ActionCable
         #     end
         #
         def assert_no_streams
-          assert subscription.streams.empty?, "No streams started was expected, but #{subscription.streams.count} found"
+          assert testserver.streams.empty?, "No streams started was expected, but #{testserver.streams.count} found"
         end
 
         # Asserts that the specified stream has been started.
@@ -302,7 +301,7 @@ module ActionCable
         #     end
         #
         def assert_has_stream(stream)
-          assert subscription.streams.include?(stream), "Stream #{stream} has not been started"
+          assert testserver.streams.include?(stream), "Stream #{stream} has not been started"
         end
 
         # Asserts that the specified stream for a model has started.
@@ -324,7 +323,7 @@ module ActionCable
         #     end
         #
         def assert_has_no_stream(stream)
-          assert subscription.streams.exclude?(stream), "Stream #{stream} has been started"
+          assert testserver.streams.exclude?(stream), "Stream #{stream} has been started"
         end
 
         # Asserts that the specified stream for a model has not started.

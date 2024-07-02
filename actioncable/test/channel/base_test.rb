@@ -2,7 +2,7 @@
 
 require "test_helper"
 require "minitest/mock"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 
 class ActionCable::Channel::BaseTest < ActionCable::TestCase
@@ -87,7 +87,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
 
   setup do
     @user = User.new "lifo"
-    @connection = TestConnection.new(@user)
+    @connection = TestSocket.new(@user)
     @channel = ChatChannel.new @connection, "{id: 1}", id: 1
   end
 

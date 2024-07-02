@@ -50,19 +50,55 @@ module ActionCable
       end
     end
 
-    class TestRequest < ActionDispatch::TestRequest
-      attr_accessor :session, :cookie_jar
-    end
+    class TestSocket
+      # Make session and cookies available to the connection
+      class Request < ActionDispatch::TestRequest
+        attr_accessor :session, :cookie_jar
+      end
 
-    module TestConnection
-      attr_reader :logger, :request
+      attr_reader :logger, :request, :transmissions, :closed, :env
+
+      class << self
+        def build_request(path, params: nil, headers: {}, session: {}, env: {}, cookies: nil)
+          wrapped_headers = ActionDispatch::Http::Headers.from_hash(headers)
+
+          uri = URI.parse(path)
+
+          query_string = params.nil? ? uri.query : params.to_query
+
+          request_env = {
+            "QUERY_STRING" => query_string,
+            "PATH_INFO" => uri.path
+          }.merge(env)
+
+          if wrapped_headers.present?
+            ActionDispatch::Http::Headers.from_hash(request_env).merge!(wrapped_headers)
+          end
+
+          Request.create(request_env).tap do |request|
+            request.session = session.with_indifferent_access
+            request.cookie_jar = cookies
+          end
+        end
+      end
 
       def initialize(request)
         inner_logger = ActiveSupport::Logger.new(StringIO.new)
         tagged_logging = ActiveSupport::TaggedLogging.new(inner_logger)
-        @logger = ActionCable::Connection::TaggedLoggerProxy.new(tagged_logging, tags: [])
+        @logger = ActionCable::Server::TaggedLoggerProxy.new(tagged_logging, tags: [])
         @request = request
         @env = request.env
+        @connection = nil
+        @closed = false
+        @transmissions = []
+      end
+
+      def transmit(data)
+        @transmissions << data.with_indifferent_access
+      end
+
+      def close
+        @closed = true
       end
     end
 
@@ -150,7 +186,9 @@ module ActionCable
         included do
           class_attribute :_connection_class
 
-          attr_reader :connection
+          attr_reader :connection, :socket
+
+          delegate :transmissions, to: :socket, allow_nil: true
 
           ActiveSupport.run_load_hooks(:action_cable_connection_test_case, self)
         end
@@ -195,9 +233,8 @@ module ActionCable
         def connect(path = ActionCable.server.config.mount_path, **request_params)
           path ||= DEFAULT_PATH
 
-          connection = self.class.connection_class.allocate
-          connection.singleton_class.include(TestConnection)
-          connection.send(:initialize, build_test_request(path, **request_params))
+          @socket = TestSocket.new(TestSocket.build_request(path, **request_params, cookies: cookies))
+          connection = self.class.connection_class.new(ActionCable.server, socket)
           connection.connect if connection.respond_to?(:connect)
 
           # Only set instance variable if connected successfully
@@ -215,29 +252,6 @@ module ActionCable
         def cookies
           @cookie_jar ||= TestCookieJar.new
         end
-
-        private
-          def build_test_request(path, params: nil, headers: {}, session: {}, env: {})
-            wrapped_headers = ActionDispatch::Http::Headers.from_hash(headers)
-
-            uri = URI.parse(path)
-
-            query_string = params.nil? ? uri.query : params.to_query
-
-            request_env = {
-              "QUERY_STRING" => query_string,
-              "PATH_INFO" => uri.path
-            }.merge(env)
-
-            if wrapped_headers.present?
-              ActionDispatch::Http::Headers.from_hash(request_env).merge!(wrapped_headers)
-            end
-
-            TestRequest.create(request_env).tap do |request|
-              request.session = session.with_indifferent_access
-              request.cookie_jar = cookies
-            end
-          end
       end
 
       include Behavior
