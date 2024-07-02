@@ -92,10 +92,11 @@ module ActiveRecord
             @scope.joins!(association)
           end
 
+          association_conditions = Array(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
-            self.not(association => { reflection.association_primary_key => nil })
+            self.not(association => association_conditions)
           else
-            self.not(reflection.table_name => { reflection.association_primary_key => nil })
+            self.not(reflection.table_name => association_conditions)
           end
         end
 
@@ -124,10 +125,11 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
+          association_conditions = Array(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
-            @scope.where!(association => { reflection.association_primary_key => nil })
+            @scope.where!(association => association_conditions)
           else
-            @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
+            @scope.where!(reflection.table_name => association_conditions)
           end
         end
 
