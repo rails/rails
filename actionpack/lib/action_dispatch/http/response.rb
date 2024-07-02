@@ -105,10 +105,18 @@ module ActionDispatch # :nodoc:
         @str_body = nil
       end
 
+      BODY_METHODS = { to_ary: true }
+
+      def respond_to?(method, include_private = false)
+        if BODY_METHODS.key?(method)
+          @buf.respond_to?(method)
+        else
+          super
+        end
+      end
+
       def to_ary
-        @buf.respond_to?(:to_ary) ?
-          @buf.to_ary :
-          @buf.each
+        @buf.to_ary
       end
 
       def body
@@ -498,6 +506,8 @@ module ActionDispatch # :nodoc:
       def initialize(response)
         @response = response
       end
+
+      attr :response
 
       def close
         # Rack "close" maps to Response#abort, and **not** Response#close (which is used
