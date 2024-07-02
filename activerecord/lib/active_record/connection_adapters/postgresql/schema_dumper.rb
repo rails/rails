@@ -91,7 +91,7 @@ module ActiveRecord
               spec = { type: schema_type(column).inspect }.merge!(spec)
             end
 
-            spec[:enum_type] = "\"#{column.sql_type}\"" if column.enum?
+            spec[:enum_type] = column.sql_type.inspect if column.enum?
 
             spec
           end

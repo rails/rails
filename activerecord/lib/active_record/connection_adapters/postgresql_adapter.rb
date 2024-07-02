@@ -500,7 +500,7 @@ module ActiveRecord
       def enum_types
         query = <<~SQL
           SELECT
-            type.typname AS name,
+            quote_ident(type.typname) AS name,
             type.OID AS oid,
             n.nspname AS schema,
             string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
