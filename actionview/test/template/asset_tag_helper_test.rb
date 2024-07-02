@@ -383,7 +383,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(video_tag("//media.rubyonrails.org/video/rails_blog_2.mov")) => %(<video src="//media.rubyonrails.org/video/rails_blog_2.mov"></video>),
     %(video_tag("multiple.ogg", "multiple.avi")) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
     %(video_tag(["multiple.ogg", "multiple.avi"])) => %(<video><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
-    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>)
+    %(video_tag(["multiple.ogg", "multiple.avi"], :size => "160x120", :controls => true)) => %(<video controls="controls" height="120" width="160"><source src="/videos/multiple.ogg" /><source src="/videos/multiple.avi" /></video>),
+    %(video_tag("multiple.webm", "multiple.mp4")) => %(<video><source src="/videos/multiple.webm" type="video/webm" /><source src="/videos/multiple.mp4" type="video/mp4" /></video>),
   }
 
   AudioPathToTag = {
@@ -419,9 +420,9 @@ class AssetTagHelperTest < ActionView::TestCase
     %(audio_tag("rss.wav", :autoplay => true, :controls => true)) => %(<audio autoplay="autoplay" controls="controls" src="/audios/rss.wav"></audio>),
     %(audio_tag("http://media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="http://media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
     %(audio_tag("//media.rubyonrails.org/audio/rails_blog_2.mov")) => %(<audio src="//media.rubyonrails.org/audio/rails_blog_2.mov"></audio>),
-    %(audio_tag("audio.mp3", "audio.ogg")) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
-    %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
-    %(audio_tag(["audio.mp3", "audio.ogg"], :preload => 'none', :controls => true)) => %(<audio preload="none" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
+    %(audio_tag("audio.mp3", "audio.ogg")) => %(<audio><source src="/audios/audio.mp3" type="audio/mpeg" /><source src="/audios/audio.ogg" type="audio/ogg" /></audio>),
+    %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" type="audio/mpeg" /><source src="/audios/audio.ogg" type="audio/ogg" /></audio>),
+    %(audio_tag(["audio.mp3", "audio.ogg"], :preload => 'none', :controls => true)) => %(<audio preload="none" controls="controls"><source src="/audios/audio.mp3" type="audio/mpeg" /><source src="/audios/audio.ogg" type="audio/ogg" /></audio>)
   }
 
   FontPathToTag = {

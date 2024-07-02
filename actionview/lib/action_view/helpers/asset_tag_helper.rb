@@ -604,7 +604,14 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: resolve_asset_source(type, source, skip_pipeline)) }
+              tags = sources.map do |source|
+                tag_options = { src: resolve_asset_source(type, source, skip_pipeline) }
+                possible_type = Template::Types[File.extname(source)[1..]]&.to_s
+                tag_options[:type] = possible_type if possible_type&.start_with?(type) # Some mime type supports both audio and video, so we need to select the correct one
+
+                tag("source", tag_options)
+              end
+              safe_join(tags)
             end
           else
             options[:src] = resolve_asset_source(type, sources.first, skip_pipeline)
