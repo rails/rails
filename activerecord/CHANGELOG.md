@@ -1,3 +1,8 @@
+*   Fix `ActiveRecord::Encryption::EncryptedAttributeType#type` to return
+    actual cast type.
+
+    *Vasiliy Ermolovich*
+
 *   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
     `DatabaseConfig`.
 
