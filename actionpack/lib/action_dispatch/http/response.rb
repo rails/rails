@@ -105,11 +105,19 @@ module ActionDispatch # :nodoc:
         @str_body = nil
       end
 
-      # def to_ary
-      #   @buf.respond_to?(:to_ary) ?
-      #     @buf.to_ary :
-      #     @buf.each
-      # end
+      BODY_METHODS = { to_ary: true }
+
+      def respond_to?(method, include_private = false)
+        if BODY_METHODS.key?(method)
+          @buf.respond_to?(method)
+        else
+          super
+        end
+      end
+
+      def to_ary
+        @buf.to_ary
+      end
 
       def body
         @str_body ||= begin

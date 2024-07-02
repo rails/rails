@@ -89,7 +89,7 @@ module RenderStreaming
 
     test "skip rendering with streaming at render level" do
       env = Rack::MockRequest.env_for("/render_streaming/basic/skip")
-      status, headers, body = app.call(env)
+      status, _, body = app.call(env)
       assert_equal 200, status
       assert_chunks ["Hello world, I'm here!"], body
 
