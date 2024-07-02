@@ -531,6 +531,128 @@ module ActionController
 
     alias :required :require
 
+    # Mandate is similar to `permit(a).require(a)`. It filters the parameters by the
+    # given filters and returns the filtered parameters. If passed a hash, it
+    # returns `permit(filters).require(filters.keys)`, otherwise it returns
+    # `permit(filters).require(filters)`.
+    #
+    #     params = ActionController::Parameters.new(user: { name: "Martin", age: 40, role: "admin" })
+    #     # instead of this (not good)
+    #     permitted = params.require(:user).permit(:name, :age)
+    #     # or this (better)
+    #     permitted = params.permit(user: [:name, :age]).require(:user)
+    #     # do this (same as the previous one but simpler)
+    #     permitted = params.mandate(user: [:name, :age])
+    #
+    # The result is the similar in all the cases above, with the exception of the
+    # first. The first has a flaw which `mandate` aims to correct.. When using
+    # `require` first, calling `permit` will sometimes cause a NoMethodError.
+    #
+    #     params = ActionController::Parameters.new(user: "Hax0r")
+    #     params.require(:user).permit(:name, :age)
+    #     # undefined method `permit' for an instance of String (NoMethodError)
+    #     params.mandate(user: [:name, :age])
+    #     # ActionController::ParameterMissing: param is missing or the value is empty: user
+    #
+    # Like `permit`, `mandate` only allows permitted scalars to pass the filter.
+    # For example,
+    #
+    #     params.mandate(:name)
+    #
+    # `:name` passes if it is a key of `params` whose associated value is of type
+    # `String`, `Symbol`, `NilClass`, `Numeric`, `TrueClass`, `FalseClass`, `Date`,
+    # `Time`, `DateTime`, `StringIO`, `IO`, ActionDispatch::Http::UploadedFile or
+    # `Rack::Test::UploadedFile`. Otherwise, ActionController::ParameterMissing
+    # is raised. Note that `Hash` and `Array` are not permitted scalars.
+    #
+    # You can also use `permit` on nested parameters, like:
+    #
+    #     params = ActionController::Parameters.new({
+    #       person: {
+    #         name: "Francesco",
+    #         age:  22,
+    #         pets: [{
+    #           name: "Purplish",
+    #           category: "dogs"
+    #         }]
+    #       }
+    #     })
+    #
+    #     permitted = params.mandate(person: [ :name, { pets: :name } ])
+    #     permitted.permitted?           # => true
+    #     permitted[:name]               # => "Francesco"
+    #     permitted[:age]                # => nil
+    #     permitted[:pets][0][:name]     # => "Purplish"
+    #     permitted[:pets][0][:category] # => nil
+    #
+    # You may declare that the parameter should be an array of permitted scalars by
+    # mapping it to an empty array:
+    #
+    #     params = ActionController::Parameters.new(tags: ["rails", "parameters"])
+    #     permitted = params.mandate(tags: [])
+    #     permitted.permitted?      # => true
+    #     permitted.is_a?(Array)    # => true
+    #     permitted.size            # => 2
+    #
+    # Like `permit`, `mandate` can be used to permit nested parameters. For example:
+    #
+    #     params = ActionController::Parameters.new(user: { name: "Martin", age: 40 })
+    #     permitted = params.mandate(user: {})
+    #     permitted.permitted?      # => true
+    #     permitted.has_key?(:name) # => true
+    #     permitted.has_key?(:age)  # => true
+    #
+    # Be careful because this opens the door to arbitrary input. In this case,
+    # `permit` ensures values in the returned structure are permitted scalars and
+    # filters out anything else.
+    #
+    # Note that if you use `mandate` in a key that points to a hash, it won't allow
+    # all the hash. You also need to specify which attributes inside the hash should
+    # be permitted.
+    #
+    #     params = ActionController::Parameters.new({
+    #       person: {
+    #         contact: {
+    #           email: "none@test.com",
+    #           phone: "555-1234"
+    #         }
+    #       }
+    #     })
+    #
+    #     params.mandate(person: :contact)
+    #     # param is missing or the value is empty: person (ActionController::ParameterMissing)
+    #
+    #     params.mandate(person: { contact: :phone })
+    #     # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
+    #
+    #     params.mandate(person: { contact: [ :email, :phone ] })
+    #     # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
+    #
+    # You can use this to require multiple top level scalar parameters.
+    # However, you must pass the keys as an array, similar to `require`.
+    # This is different than `permit` which allows multiple keys to be passed
+    # as arguments.
+    #
+    #    params = ActionController::Parameters.new(name: "Martin", age: 40)
+    #    name, age = params.mandate([:name, :age])
+    #    name # => "Martin"
+    #    age  # => 40
+    #    # Note when using `mandate` with multiple keys, you must pass the keys as an array.
+    #    params.mandate(:name, :age) # => ArgumentError: wrong number of arguments (given 2, expected 1)
+    #
+    # If you do this with a hash, it will require all the keys in the hash and
+    # return each of them in the order they are given:
+    #
+    #    params = ActionController::Parameters.new(subject: { name: "Martin" }, object: { pie: "pumpkin" })
+    #    subject, object = params.mandate(subject: [:name], object: [:pie])
+    #    subject # => #<ActionController::Parameters {"name"=>"Martin"} permitted: true>
+    #    object  # => #<ActionController::Parameters {"pie"=>"pumpkin"} permitted: true>
+    #
+    def mandate(filters)
+      keys = filters.respond_to?(:keys) ? filters.keys : filters
+      permit(filters).require(keys)
+    end
+
     # Returns a new `ActionController::Parameters` instance that includes only the
     # given `filters` and sets the `permitted` attribute for the object to `true`.
     # This is useful for limiting which attributes should be allowed for mass
