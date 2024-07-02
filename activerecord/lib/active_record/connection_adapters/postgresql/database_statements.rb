@@ -24,8 +24,9 @@ module ActiveRecord
           end
         end
 
+        copy_to = /copy\s+.*\(?.*\)?\s+to\s+(stdout|program.*|('|").*('|"))/i
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :close, :declare, :fetch, :move, :set, :show
+          :close, copy_to, :declare, :fetch, :move, :set, :show
         ) # :nodoc:
         private_constant :READ_QUERY
 
