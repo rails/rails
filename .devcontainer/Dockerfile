@@ -1,7 +1,7 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/ruby/.devcontainer/base.Dockerfile
 
 # [Choice] Ruby version: 3, 3.3, 3.2, 3.1, 3.0, 2, 2.7, 2.6
-ARG VARIANT="3.3.2"
+ARG VARIANT="3.3.3"
 FROM ghcr.io/rails/devcontainer/images/ruby:${VARIANT}
 
 # [Optional] Uncomment this section to install additional OS packages.
@@ -10,7 +10,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         mariadb-client libmariadb-dev \
         postgresql-client postgresql-contrib libpq-dev \
         ffmpeg mupdf mupdf-tools libvips-dev poppler-utils \
-        libxml2-dev sqlite3 imagemagick
+        libxml2-dev sqlite3 imagemagick default-mysql-client
 
 # Add the Rails main Gemfile and install the gems. This means the gem install can be done
 # during build instead of on start. When a fork or branch has different gems, we still have an
