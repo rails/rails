@@ -36,7 +36,7 @@ task :stats do
   end.select { |name, dir| File.directory?(dir) }
 
   $stderr.puts Rails.deprecator.warn(<<~MSG, caller_locations(0..1))
-  `bin/rails stats` as rake task has been deprecated and will be removed in Rails 8.0.
+  `bin/rake stats` has been deprecated and will be removed in Rails 8.1.
   Please use `bin/rails stats` as Rails command instead.\n
   MSG
 
