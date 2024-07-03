@@ -1,3 +1,9 @@
+*   Do not allow empty passwords on SecurePassword.
+
+    Fixes #52264.
+
+    *ruyrocha*
+
 *   `ActiveRecord::Encryption::Encryptor` now supports a `:compressor` option to customize the compression algorithm used.
 
     ```ruby
