@@ -1712,6 +1712,12 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.active_record.encryption.compressor`
+
+Sets the compressor used by Active Record Encryption. The default value is `Zlib`.
+
+You can use your own compressor by setting this to a class that responds to `deflate` and `inflate`.
+
 #### `config.active_record.protocol_adapters`
 
 When using a URL to configure the database connection, this option provides a mapping from the protocol to the underlying

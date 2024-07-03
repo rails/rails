@@ -298,6 +298,42 @@ And you can disable this behavior and preserve the encoding in all cases with:
 config.active_record.encryption.forced_encoding_for_deterministic_encryption = nil
 ```
 
+### Compression
+
+The library compresses encrypted payloads by default. This can save up to 30% of the storage space for larger payloads. You can disable compression by setting `compress: false` for encrypted attributes:
+
+```ruby
+class Article < ApplicationRecord
+  encrypts :content, compress: false
+end
+```
+
+You can also configure the algorithm used for the compression. The default compressor is `Zlib`. You can implement your own compressor by creating a class or module that responds to `#deflate(data)` and `#inflate(data)`.
+
+```ruby
+require "zstd-ruby"
+
+module ZstdCompressor
+  def self.deflate(data)
+    Zstd.compress(data)
+  end
+
+  def self.inflate(data)
+    Zstd.decompress(data)
+  end
+end
+
+class User
+  encrypts :name, compressor: ZstdCompressor
+end
+```
+
+You can configure the compressor globally:
+
+```ruby
+config.active_record.encryption.compressor = ZstdCompressor
+```
+
 ## Key Management
 
 Key providers implement key management strategies. You can configure key providers globally, or on a per attribute basis.
@@ -496,6 +532,10 @@ The digest algorithm used to derive keys. `OpenSSL::Digest::SHA256` by default.
 
 Supports decrypting data encrypted non-deterministically with a digest class SHA1. Default is false, which
 means it will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
+
+#### `config.active_record.encryption.compressor`
+
+The compressor used to compress encrypted payloads. It should respond to `deflate` and `inflate`. Default is `Zlib`. You can find more information about compressors in the [Compression](#compression) section.
 
 ### Encryption Contexts
 
