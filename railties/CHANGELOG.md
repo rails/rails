@@ -1,3 +1,11 @@
+*   Introduce `mariadb-mysql` and `mariadb-trilogy` database options for `rails new`
+
+    When used with the `--devcontainer` flag, these options will use `mariadb` as the database for the
+    Dev Container. The original `mysql` and `trilogy` options will use `mysql`. Users who are not
+    generating a Dev Container do not need to use the new options.
+
+    *Andrew Novoselac*
+
 *   Deprecate `::STATS_DIRECTORIES`.
 
     The global constant `STATS_DIRECTORIES` has been deprecated in favor of

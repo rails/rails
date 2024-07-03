@@ -28,7 +28,7 @@ module Rails
             assert_match <<~MSG.squish, output
               Invalid value for --to option.
               Supported preconfigurations are:
-              mysql, trilogy, postgresql, sqlite3.
+              mysql, trilogy, postgresql, sqlite3, mariadb-mysql, mariadb-trilogy.
             MSG
           end
 
@@ -159,6 +159,10 @@ module Rails
               assert_match "curl libvips", content
               assert_no_match "default-libmysqlclient-dev", content
             end
+          end
+
+          test "change to mariadb" do
+            run_generator ["--to", "mariadb-mysql"]
 
             assert_devcontainer_json_file do |content|
               assert_match "mariadb", content["containerEnv"]["DB_HOST"]
