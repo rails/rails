@@ -34,6 +34,19 @@ module ActiveModel
     #   person.active = true
     #
     #   person.active # => "aye"
+    #
+    # The +limit+ option can be used to ensure the string is limited
+    # to the specified number of characters:
+    #
+    #   class Person
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :code, :immutable_string, limit: 3
+    #   end
+    #
+    #   person = Person.new
+    #   person.code = "foobar"
+    #   person.code # => "foo"
     class ImmutableString < Value
       def initialize(**args)
         @true  = -(args.delete(:true)&.to_s  || "t")
@@ -46,12 +59,7 @@ module ActiveModel
       end
 
       def serialize(value)
-        case value
-        when ::Numeric, ::Symbol, ActiveSupport::Duration then value.to_s
-        when true then @true
-        when false then @false
-        else super
-        end
+        limited_value(to_str(value))
       end
 
       def serialize_cast_value(value) # :nodoc:
@@ -59,11 +67,23 @@ module ActiveModel
       end
 
       private
-        def cast_value(value)
+        def to_str(value)
           case value
+          when ::Numeric, ::Symbol, ActiveSupport::Duration then value.to_s
           when true then @true
           when false then @false
-          else value.to_s.freeze
+          else value end
+        end
+
+        def cast_value(value)
+          limited_value(to_str(value))
+        end
+
+        def limited_value(value)
+          if @limit.present?
+            value[0, @limit]
+          else
+            value
           end
         end
     end

@@ -17,6 +17,20 @@ module ActiveModel
         assert_same s, type.cast(s)
         assert_same s, type.deserialize(s)
       end
+
+      test "immutable strings enforce the limit when cast" do
+        s = "foobar"
+        type = Type::ImmutableString.new(limit: 3)
+
+        assert_equal "foo", type.cast(s)
+      end
+
+      test "immutable strings enforce the limit when serialzied" do
+        s = "foobar"
+        type = Type::ImmutableString.new(limit: 3)
+
+        assert_equal "foo", type.serialize(s)
+      end
     end
   end
 end
