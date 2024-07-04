@@ -1,3 +1,9 @@
+*   Optimize load time for `Railtie#initialize_i18n`. Filter `I18n.load_path`s passed to the file watcher to only those
+    under `Rails.root`. Previously the watcher would grab all available locales, including those in gems
+    which do not require a watcher because they won't change.
+
+    *Nick Schwaderer*
+
 *   Add a `filter` option to `in_order_of` to prioritize certain values in the sorting without filtering the results
     by these values.
 
