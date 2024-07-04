@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/book"
 require "models/clothing_item"
 
@@ -167,6 +168,22 @@ module ActiveRecord
         Book.first
         Book.first
       end
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_no_instantiation_notification_when_no_records
+      author = Author.create!(name: "David")
+
+      called = false
+      subscriber = ActiveSupport::Notifications.subscribe("instantiation.active_record") do
+        called = true
+      end
+
+      Author.where(id: 0).to_a
+      author.books.to_a
+
+      assert_equal false, called
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
