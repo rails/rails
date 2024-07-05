@@ -137,24 +137,35 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
-      # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
-      # if a +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
-      # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
-      # any mass-assignment idiom like
+      # The HTML specification says when the +multiple+ attribute is specified on a select element and all options
+      # are deselected, web browsers do not send any value to the server. Unfortunately, this introduces a gotcha.
+      # For example, given a multiple select in a form that edits people associated with a post:
       #
-      #   @user.update(params[:user])
+      #   select :post, :person_ids, Person.all.collect { |p| [ p.name, p.id ] }, { multiple: true })
       #
-      # wouldn't update roles.
+      # would become:
+      #
+      #   <input name="post[person_ids][]" type="hidden" value="" autocomplete="off" />
+      #   <select name="post[person_ids][]" id="post_person_ids" multiple="true">
+      #     <option value="1">David</option>
+      #     <option value="2">Eileen</option>
+      #     <option value="3">Rafael</option>
+      #   </select>
+      #
+      # If no people are selected, no +person_ids+ parameter is sent. So, any mass-assignment idiom like
+      #
+      #   @post.update(params[:post])
+      #
+      # wouldn't update people associated with the post.
       #
       # To prevent this the helper generates an auxiliary hidden field before
-      # every multiple select. The hidden field has the same name as multiple select and blank value.
+      # every multiple select. The hidden field has the same name as the multiple select and a blank value.
       #
       # <b>Note:</b> The client either sends only the hidden field (representing
       # the deselected multiple select box), or both fields. This means that the resulting array
       # always contains a blank string.
       #
-      # In case if you don't want the helper to generate this hidden field you can specify
+      # To prevent the hidden field from being generated specify the
       # <tt>include_hidden: false</tt> option.
       def select(object, method, choices = nil, options = {}, html_options = {}, &block)
         Tags::Select.new(object, method, self, choices, options, html_options, &block).render
