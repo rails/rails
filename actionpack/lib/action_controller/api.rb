@@ -147,8 +147,8 @@ module ActionController
     MODULES.each do |mod|
       include mod
     end
-
-    ActiveSupport.run_load_hooks(:action_controller_api, self)
-    ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end
+
+ActiveSupport.run_load_hooks(:action_controller_api, ActionController::API)
+ActiveSupport.run_load_hooks(:action_controller, ActionController::API)

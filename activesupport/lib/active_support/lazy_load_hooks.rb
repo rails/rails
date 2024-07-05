@@ -72,6 +72,10 @@ module ActiveSupport
     #
     # In the case of the above example, it will execute all hooks registered
     # for +:active_record+ within the class +ActiveRecord::Base+.
+    #
+    # When using this method to allow the extension of autoloaded classes,
+    # run_load_hooks should be called at the end of the file, after the
+    # final +end+, to ensure that circular-loading problems do not occur.
     def run_load_hooks(name, base = Object)
       @loaded[name] << base
       @load_hooks[name].each do |hook, options|
