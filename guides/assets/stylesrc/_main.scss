@@ -144,6 +144,11 @@ body.guide {
     a:visited {
       color: $rf-brand;
     } // a, a:link, a:visited
+
+    code {
+      font-size: 2rem;
+      font-weight: 400;
+    }
   } // h2
 
   h3 {
