@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "support/etag_helper"
 
 class TestControllerWithExtraEtags < ActionController::Base
   self.view_paths = [ActionView::FixtureResolver.new(
@@ -666,6 +667,7 @@ end
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
   include TemplateModificationHelper
+  include EtagHelper
 
   def test_strong_etag
     @request.if_none_match = strong_etag(["strong", "ab", :cde, [:f]])
@@ -738,15 +740,6 @@ class EtagRenderTest < ActionController::TestCase
       assert_not_equal etag, @response.etag
     end
   end
-
-  private
-    def weak_etag(record)
-      "W/#{strong_etag record}"
-    end
-
-    def strong_etag(record)
-      %("#{ActiveSupport::Digest.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
-    end
 end
 
 class NamespacedEtagRenderTest < ActionController::TestCase

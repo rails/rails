@@ -1,3 +1,13 @@
+*   Add `config.action_dispatch.strict_freshness`.
+
+    When set to `true`, the `ETag` header takes precedence over the `Last-Modified` header when both are present,
+    as specificied by RFC 7232, Section 6.
+
+    Defaults to `false` to maintain compatibility with previous versions of Rails, but is enabled as part of
+    Rails 8.0 defaults.
+
+    *heka1024*
+
 *   Support `immutable` directive in Cache-Control
 
     ```ruby
