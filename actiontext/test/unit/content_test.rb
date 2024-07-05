@@ -164,6 +164,12 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_equal trix_html, content_from_html(html).to_trix_html.strip
   end
 
+  test "sanitizes attachment markup for Trix if content exists but is empty" do
+    html = '<action-text-attachment sgid="123" content=""></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
+    assert_equal trix_html, content_from_html(html).to_trix_html.strip
+  end
+
   test "does not add missing content attribute" do
     html = '<action-text-attachment sgid="123"></action-text-attachment>'
     trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
