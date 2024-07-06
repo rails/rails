@@ -33,6 +33,7 @@ module ActionDispatch
 
     config.action_dispatch.ignore_leading_brackets = nil
     config.action_dispatch.strict_query_string_separator = nil
+    config.action_dispatch.verbose_redirect_logs = false
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -58,6 +59,8 @@ module ActionDispatch
       ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
       ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
 
+      ActionDispatch.verbose_redirect_logs = app.config.action_dispatch.verbose_redirect_logs
+
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
         ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
@@ -74,7 +77,7 @@ module ActionDispatch
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
-      ActionDispatch::Routing::Mapper.route_source_locations = Rails.env.development?
+      ActionDispatch::Routing::Mapper.route_source_locations = Rails.env.development? || ActionDispatch.verbose_redirect_logs
 
       ActionDispatch::Http::Cache::Request.strict_freshness = app.config.action_dispatch.strict_freshness
       ActionDispatch.test_app = app

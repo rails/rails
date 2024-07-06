@@ -250,6 +250,23 @@ config.active_job.verbose_enqueue_logs = true
 
 As verbose query logs, it is not recommended for use in production environments.
 
+### Verbose redirect logs
+
+Similar to both 'verbose" log settings above, this logs the source location of a redirect.
+
+```
+Redirected to http://localhost:3000/posts/1
+↳ app/controllers/posts_controller.rb:32:in `block (2 levels) in create'
+```
+
+It is enabled by default in development. To enable in other environments, add in `application.rb` or any environment initializer:
+
+```rb
+config.action_dispatch.verbose_redirect_logs = true
+```
+
+As with other verbose loggers, it is not recommended to be used in production environments.
+
 SQL Query Comments
 ------------------
 
