@@ -2329,6 +2329,10 @@ If set to `true`, cookies will be written even if this criteria is not met.
 
 This defaults to `true` in `development`, and `false` in all other environments.
 
+#### `config.action_dispatch.verbose_redirect_logs`
+
+Specifies if source locations of redirects should be logged below relevant log lines. By default, the flag is `true` in development and `false` in all other environments.
+
 #### `ActionDispatch::Callbacks.before`
 
 Takes a block of code to run before the request.
