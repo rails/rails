@@ -320,7 +320,7 @@ module ActionController
     #     user's web browser. To allow proxies to cache the response, set `true` to
     #     indicate that they can serve the cached response to all users.
     def http_cache_forever(public: false)
-      expires_in 100.years, public: public
+      expires_in 100.years, public: public, immutable: true
 
       yield if stale?(etag: request.fullpath,
                       last_modified: Time.new(2011, 1, 1).utc,

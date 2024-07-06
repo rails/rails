@@ -1,3 +1,7 @@
+*   Make `http_cache_forever` use `immutable: true`
+
+    *Nate Matykiewicz*
+
 *   Add `config.action_dispatch.strict_freshness`.
 
     When set to `true`, the `ETag` header takes precedence over the `Last-Modified` header when both are present,
