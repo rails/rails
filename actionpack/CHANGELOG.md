@@ -1,3 +1,17 @@
+*   Add `action_dispatch.verbose_redirect_logs` setting that logs where redirects were called from.
+
+    Similar to `active_record.verbose_query_logs` and `active_job.verbose_enqueue_logs`, this adds a line in your logs that shows
+    where a redirect was called from.
+
+    Example:
+
+    ```
+    Redirected to http://localhost:3000/posts/1
+    ↳ app/controllers/posts_controller.rb:32:in `block (2 levels) in create'
+    ```
+
+    *Dennis Paagman*
+
 *   Add headers to engine routes inspection command
 
     *Petrik de Heus*
