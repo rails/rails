@@ -9,6 +9,14 @@ module ActionDispatch
 
       info { "Redirected to #{payload[:location]}" }
 
+      if ActionDispatch.verbose_redirect_logs
+        request = payload[:request]
+
+        request.routes.router.recognize(request) do |route|
+          info { "↳ #{route.source_location}" }
+        end
+      end
+
       info do
         status = payload[:status]
 
