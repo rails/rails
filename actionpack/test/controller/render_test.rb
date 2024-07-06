@@ -1021,7 +1021,7 @@ class HttpCacheForeverTest < ActionController::TestCase
   def test_cache_with_public
     get :cache_me_forever, params: { public: true }
     assert_response :ok
-    assert_equal "max-age=#{100.years}, public", @response.headers["Cache-Control"]
+    assert_equal "max-age=#{100.years}, public, immutable", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
     assert_predicate @response, :weak_etag?
   end
@@ -1029,7 +1029,7 @@ class HttpCacheForeverTest < ActionController::TestCase
   def test_cache_with_private
     get :cache_me_forever
     assert_response :ok
-    assert_equal "max-age=#{100.years}, private", @response.headers["Cache-Control"]
+    assert_equal "max-age=#{100.years}, private, immutable", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
     assert_predicate @response, :weak_etag?
   end
