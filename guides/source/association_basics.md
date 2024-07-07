@@ -3009,7 +3009,7 @@ car.honk
 # => 'Beep Beep'
 ```
 
-### Controller
+### Controllers
 
 Each model can have its own controller. For example, the `CarsController`:
 
@@ -3039,16 +3039,16 @@ class Car < Vehicle
 end
 
 Car.create
-# => #<Car kind: "Car">
+# => #<Car kind: "Car", color: "Red", price: 10000>
 ```
+In this setup, Rails will use the `kind` column to store the model type, allowing STI to function correctly with the custom column name.
 
 ### Disabling the inheritance column
 
 There may be cases (like when working with a legacy database) where you need to
-disable Single Table Inheritance altogether. Otherwise, you'll raise
-[`ActiveRecord::SubclassNotFound`][].
+disable Single Table Inheritance altogether. If you don't disable STI properly, you might encounter an [`ActiveRecord::SubclassNotFound`][] error.
 
-This can be achieved by setting the [inheritance_column][] to `nil`.
+To disable STI, you can set the [inheritance_column][] to `nil`.
 
 ```ruby
 # Schema: vehicles[ id, type, created_at, updated_at ]
@@ -3057,8 +3057,12 @@ class Vehicle < ApplicationRecord
 end
 
 Vehicle.create!(type: "Car")
-# => #<Vehicle type: "Car">
+# => #<Vehicle type: "Car", color: "Red", price: 10000>
 ```
+
+In this configuration, Rails will treat the type column as a normal attribute and will not use it for STI purposes. This is useful if you need to work with a legacy schema that does not follow the STI pattern.
+
+These adjustments provide flexibility when integrating Rails with existing databases or when specific customization is required for your models.
 
 [inheritance_column]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-inheritance_column
 [`ActiveRecord::SubclassNotFound`]: https://api.rubyonrails.org/classes/ActiveRecord/SubclassNotFound.html
