@@ -3070,11 +3070,11 @@ These adjustments provide flexibility when integrating Rails with existing datab
 Delegated Types
 ----------------
 
-[`Single Table Inheritance (STI)`](#single-table-inheritance-sti) works best when there is little difference between subclasses and their attributes, but includes all attributes of all subclasses you need to create a single table.
+[`Single Table Inheritance (STI)`](#single-table-inheritance-sti) works best when there is little difference between subclasses and their attributes, but it includes all attributes of all subclasses in a single table.
 
-The disadvantage of this approach is that it results in bloat to that table. Since it will even include attributes specific to a subclass that aren't used by anything else.
+The disadvantage of this approach is that it can result in table bloat, as the table will include attributes specific to each subclass, even if they aren't used by others.
 
-In the following example, there are two Active Record models that inherit from the same "Entry" class which includes the `subject` attribute.
+In the following example, there are two Active Record models that inherit from the same `Entry` class which includes the `subject` attribute.
 
 ```ruby
 # Schema: entries[ id, type, subject, created_at, updated_at]
@@ -3088,16 +3088,21 @@ class Message < Entry
 end
 ```
 
-Delegated types solves this problem, via `delegated_type`.
+Delegated types solves this problem, via `delegated_type`. This approach allows us to store shared attributes in a superclass table and have separate tables for subclass-specific attributes.
 
-In order to use delegated types, we have to model our data in a particular way. The requirements are as follows:
+### Setting up Delegated Types
 
-* There is a superclass that stores shared attributes among all subclasses in it's table.
+To use delegated types, we need to model our data as follows:
+
+* There is a superclass that stores shared attributes among all subclasses in its table.
 * Each subclass must inherit from the super class, and will have a separate table for any additional attributes specific to it.
 
 This eliminates the need to define attributes in a single table that are unintentionally shared among all subclasses.
 
+### Generating Models
+
 In order to apply this to our example above, we need to regenerate our models.
+
 First, let's generate the base `Entry` model which will act as our superclass:
 
 ```bash
@@ -3111,7 +3116,7 @@ $ bin/rails generate model message subject:string body:string
 $ bin/rails generate model comment content:string
 ```
 
-After running the generators, we should end up with models that look like this:
+After running the generators, our models should look like this:
 
 ```ruby
 # Schema: entries[ id, entryable_type, entryable_id, created_at, updated_at ]
@@ -3127,7 +3132,7 @@ class Comment < ApplicationRecord
 end
 ```
 
-### Declare `delegated_type`
+### Declaring `delegated_type`
 
 First, declare a `delegated_type` in the superclass `Entry`.
 
@@ -3137,12 +3142,11 @@ class Entry < ApplicationRecord
 end
 ```
 
-The `entryable` parameter specifies the field to use for delegation, and include the types `Message` and `Comment` as the delegate classes.
+The `entryable` parameter specifies the field to use for delegation, and include the types `Message` and `Comment` as the delegate classes. The `entryable_type` and `entryable_id` fields store the subclass name and the record ID of the delegatee subclass, respectively.
 
-The `Entry` class has `entryable_type` and `entryable_id` fields. This is the field with the `_type`, `_id` suffixes added to the name `entryable` in the `delegated_type` definition.
-`entryable_type` stores the subclass name of the delegatee, and `entryable_id` stores the record id of the delegatee subclass.
+### Defining the `Entryable` Module
 
-Next, we must define a module to implement those delegated types, by declaring the `as: :entryable` parameter to the `has_one` association.
+Next, define a module to implement those delegated types by declaring the `as: :entryable` parameter in the `has_one` association.
 
 ```ruby
 module Entryable
@@ -3154,7 +3158,7 @@ module Entryable
 end
 ```
 
-And then include the created module in your subclass.
+Include the created module in your subclass:
 
 ```ruby
 class Message < ApplicationRecord
@@ -3192,7 +3196,7 @@ Entry.create! entryable: Message.new(subject: "hello!")
 
 ### Adding further delegation
 
-We can expand our `Entry` delegator and enhance it further by defining `delegate` and using polymorphism on the subclasses.
+We can enhance our `Entry` delegator by defining `delegate` and using polymorphism on the subclasses.
 For example, to delegate the `title` method from `Entry` to it's subclasses:
 
 ```ruby
@@ -3217,3 +3221,5 @@ class Comment < ApplicationRecord
   end
 end
 ```
+
+This setup allows `Entry` to delegate the `title` method to its subclasses, where `Message` uses `subject` and `Comment` uses a truncated version of `content`.
