@@ -2839,7 +2839,7 @@ If you want to assign an object to a `has_and_belongs_to_many` association witho
 
 Normal callbacks hook into the life cycle of Active Record objects, allowing you to work with those objects at various points. For example, you can use a `:before_save` callback to cause something to happen just before an object is saved.
 
-Association callbacks are similar to normal callbacks, but they are triggered by events in the life cycle of a collection. There are four available association callbacks:
+Association callbacks are similar to normal callbacks, but they are triggered by events in the life cycle of a collection associated with an Active Record object. There are four available association callbacks:
 
 * `before_add`
 * `after_add`
@@ -2853,10 +2853,14 @@ class Author < ApplicationRecord
   has_many :books, before_add: :check_credit_limit
 
   def check_credit_limit(book)
-    # ...
+    throw(:abort) if limit_reached?
   end
 end
 ```
+
+In this example, the `Author` model has a `has_many` association with `books`. The `before_add` callback `check_credit_limit` is triggered before a book is added to the collection. If the `limit_reached?` method returns `true`, the book is not added to the collection.
+
+By using these association callbacks, you can customize the behavior of your associations, ensuring that specific actions are taken at key points in the life cycle of your collections.
 
 Read more about association callbacks in the [Active Record Callbacks Guide](active_record_callbacks.html#association-callbacks)
 
