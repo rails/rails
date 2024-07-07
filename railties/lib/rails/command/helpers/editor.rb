@@ -8,6 +8,8 @@ module Rails
     module Helpers
       module Editor
         private
+          EDITOR_DURATION_THRESHOLD = 1.second
+
           def editor
             ENV["VISUAL"].to_s.empty? ? ENV["EDITOR"] : ENV["VISUAL"]
           end
@@ -26,7 +28,15 @@ module Rails
           end
 
           def system_editor(file_path)
+            edit_start_time = Time.now.to_i
             system(*Shellwords.split(editor), file_path.to_s)
+            edit_end_time = Time.now.to_i
+            if edit_end_time - edit_start_time <= EDITOR_DURATION_THRESHOLD
+              say "It seems that the editor exited immediately. If this was unintentional, you"
+              say "may need to pass a wait flag to your editor command, so you have a chance"
+              say "to edit the file:"
+              say %(VISUAL="mate --wait" #{executable(current_subcommand)})
+            end
           end
 
           def using_system_editor
