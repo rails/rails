@@ -2866,7 +2866,9 @@ Read more about association callbacks in the [Active Record Callbacks Guide](act
 
 ### Association Extensions
 
-You're not limited to the functionality that Rails automatically builds into association proxy objects. You can also extend these objects through anonymous modules, adding new finders, creators, or other methods. For example:
+Rails allows you to extend the functionality of association proxy objects by adding new finders, creators, or other methods through anonymous modules. This gives you the flexibility to tailor associations to fit your application's needs.
+
+For example, you can extend a `has_many` association with custom methods:
 
 ```ruby
 class Author < ApplicationRecord
@@ -2878,7 +2880,9 @@ class Author < ApplicationRecord
 end
 ```
 
-If you have an extension that should be shared by many associations, you can use a named extension module. For example:
+In this example, the `find_by_book_prefix` method is added to the `books` association of the `Author` model, allowing you to find books based on a specific prefix.
+
+If you have an extension that should be shared by multiple associations, you can use a named extension module. For example:
 
 ```ruby
 module FindRecentExtension
@@ -2896,12 +2900,13 @@ class Supplier < ApplicationRecord
 end
 ```
 
+Here, the `FindRecentExtension` module is used to add a `find_recent` method to both the `books` association in the `Author` model and the `deliveries` association in the `Supplier` model.
+
 ### Association Scoping using the Association Owner
 
-The owner of the association can be passed as a single argument to the scope
-block in situations where you need even more control over the association
-scope. However, as a caveat, preloading the association will no longer be
-possible.
+You can pass the owner of the association as a single argument to the scope block for even more control over the association scope. However, be aware that doing this will make preloading the association impossible.
+
+For example:
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -2909,37 +2914,42 @@ class Supplier < ApplicationRecord
 end
 ```
 
+In this example, the `account` association of the `Supplier` model is scoped based on the `active` status of the supplier.
+
+By utilizing association extensions and scoping with the association owner, you can create more dynamic and context-aware associations in your Rails applications.
+
 Single Table Inheritance (STI)
 ------------------------------
 
-Sometimes, you may want to share fields and behavior between different models.
-Let's say we have Car, Motorcycle, and Bicycle models. We will want to share
-the `color` and `price` fields and some methods for all of them, but having some
-specific behavior for each, and separated controllers too.
+Single Table Inheritance (STI) is a pattern in Rails that allows multiple models to be stored in a single database table. This is useful when you have different types of entities that share common attributes and behavior but also have specific behaviors.
 
-First, let's generate the base Vehicle model:
+For example, suppose we have `Car`, `Motorcycle`, and `Bicycle` models. These models will share fields like `color` and `price`, but each will have unique behaviors. They will also each have their own controller.
+
+### Generating the Base Vehicle Model
+
+First, we generate the base `Vehicle` model with shared fields:
 
 ```bash
 $ bin/rails generate model vehicle type:string color:string price:decimal{10.2}
 ```
 
-Did you note we are adding a "type" field? Since all models will be saved in a
-single database table, Rails will save in this column the name of the model that
-is being saved. In our example, this can be "Car", "Motorcycle" or "Bicycle."
-STI won't work without a "type" field in the table.
+Here, the `type` field is crucial for STI as it stores the model name (`Car`, `Motorcycle`, or `Bicycle`). STI requires this field to differentiate between the different models stored in the same table.
 
-Next, we will generate the Car model that inherits from Vehicle. For this,
-we can use the `--parent=PARENT` option, which will generate a model that
-inherits from the specified parent and without equivalent migration (since the
-table already exists).
+### Generating Child Models
 
-For example, to generate the Car model:
+Next, we generate the `Car`, `Motorcycle`, and `Bicycle` models that inherit from Vehicle. These models won't have their own tables; instead, they will use the `vehicles` table.
+
+To generate the`Car` model:
 
 ```bash
 $ bin/rails generate model car --parent=Vehicle
 ```
 
-The generated model will look like this:
+For this, we can use the `--parent=PARENT` option, which will generate a model that
+inherits from the specified parent and without equivalent migration (since the
+table already exists).
+
+This generates a `Car` model that inherits from `Vehicle`:
 
 ```ruby
 class Car < Vehicle
@@ -2947,19 +2957,25 @@ end
 ```
 
 This means that all behavior added to Vehicle is available for Car too, as
-associations, public methods, etc.
+associations, public methods, etc. Creating a car will save it in the `vehicles` table with "Car" as the `type` field:
 
-Creating a car will save it in the `vehicles` table with "Car" as the `type` field:
+Repeat the same process for `Motorcycle` and `Bicycle`.
+
+### Creating Records
+
+Creating a record for `Car`:
 
 ```ruby
 Car.create(color: 'Red', price: 10000)
 ```
 
-will generate the following SQL:
+This will generate the following SQL:
 
 ```sql
 INSERT INTO "vehicles" ("type", "color", "price") VALUES ('Car', 'Red', 10000)
 ```
+
+### Querying Records
 
 Querying car records will search only for vehicles that are cars:
 
@@ -2971,6 +2987,40 @@ will run a query like:
 
 ```sql
 SELECT "vehicles".* FROM "vehicles" WHERE "vehicles"."type" IN ('Car')
+```
+
+### Adding Specific Behavior
+
+You can add specific behavior or methods to the child models. For example, adding a method to the `Car` model:
+
+```ruby
+class Car < Vehicle
+  def honk
+    'Beep Beep'
+  end
+end
+```
+
+Now you can call the `honk` method on a `Car` instance:
+
+```ruby
+car = Car.first
+car.honk
+# => 'Beep Beep'
+```
+
+### Controller
+
+Each model can have its own controller. For example, the `CarsController`:
+
+```ruby
+# app/controllers/cars_controller.rb
+
+class CarsController < ApplicationController
+  def index
+    @cars = Car.all
+  end
+end
 ```
 
 ### Overriding the inheritance column
