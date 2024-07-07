@@ -110,6 +110,10 @@ module ActiveRecord
         # :call-seq: macaddr(*names, **options)
 
         ##
+        # :method: macaddr8
+        # :call-seq: macaddr8(*names, **options)
+
+        ##
         # :method: money
         # :call-seq: money(*names, **options)
 
@@ -183,7 +187,7 @@ module ActiveRecord
 
         included do
           define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
-            :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
+            :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr, :macaddr8,
             :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
             :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz, :enum
         end

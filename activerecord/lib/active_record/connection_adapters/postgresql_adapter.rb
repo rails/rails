@@ -158,6 +158,7 @@ module ActiveRecord
         inet:        { name: "inet" },
         cidr:        { name: "cidr" },
         macaddr:     { name: "macaddr" },
+        macaddr8:    { name: "macaddr8" },
         uuid:        { name: "uuid" },
         json:        { name: "json" },
         jsonb:       { name: "jsonb" },
@@ -676,6 +677,7 @@ module ActiveRecord
           m.register_type "xml", OID::Xml.new
           m.register_type "tsvector", OID::SpecializedString.new(:tsvector)
           m.register_type "macaddr", OID::Macaddr.new
+          m.register_type "macaddr8", OID::Macaddr8.new
           m.register_type "citext", OID::SpecializedString.new(:citext)
           m.register_type "ltree", OID::SpecializedString.new(:ltree)
           m.register_type "line", OID::SpecializedString.new(:line)

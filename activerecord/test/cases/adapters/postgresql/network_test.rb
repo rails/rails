@@ -13,6 +13,7 @@ class PostgresqlNetworkTest < ActiveRecord::PostgreSQLTestCase
       t.inet "inet_address", default: "192.168.1.1"
       t.cidr "cidr_address", default: "192.168.1.0/24"
       t.macaddr "mac_address", default: "ff:ff:ff:ff:ff:ff"
+      t.macaddr8 "mac_address8", default: "ff:ff:ff:ff:ff:ff:ff:ff"
     end
   end
 
@@ -50,25 +51,39 @@ class PostgresqlNetworkTest < ActiveRecord::PostgreSQLTestCase
     assert_not_predicate type, :binary?
   end
 
+  def test_macaddr8_column
+    column = PostgresqlNetworkAddress.columns_hash["mac_address8"]
+    assert_equal :macaddr8, column.type
+    assert_equal "macaddr8", column.sql_type
+    assert_not_predicate column, :array?
+
+    type = PostgresqlNetworkAddress.type_for_attribute("mac_address8")
+    assert_not_predicate type, :binary?
+  end
+
   def test_network_types
     PostgresqlNetworkAddress.create(cidr_address: "192.168.0.0/24",
                                     inet_address: "172.16.1.254/32",
-                                    mac_address: "01:23:45:67:89:0a")
+                                    mac_address: "01:23:45:67:89:0a",
+                                    mac_address8: "01:23:45:67:89:0a:de:ff")
 
     address = PostgresqlNetworkAddress.first
     assert_equal IPAddr.new("192.168.0.0/24"), address.cidr_address
     assert_equal IPAddr.new("172.16.1.254"), address.inet_address
     assert_equal "01:23:45:67:89:0a", address.mac_address
+    assert_equal "01:23:45:67:89:0a:de:ff", address.mac_address8
 
     address.cidr_address = "10.1.2.3/32"
     address.inet_address = "10.0.0.0/8"
     address.mac_address = "bc:de:f0:12:34:56"
+    address.mac_address8 = "bc:de:f0:12:34:56:78:90"
 
     address.save!
     assert address.reload
     assert_equal IPAddr.new("10.1.2.3/32"), address.cidr_address
     assert_equal IPAddr.new("10.0.0.0/8"), address.inet_address
     assert_equal "bc:de:f0:12:34:56", address.mac_address
+    assert_equal "bc:de:f0:12:34:56:78:90", address.mac_address8
   end
 
   def test_invalid_network_address
@@ -92,6 +107,7 @@ class PostgresqlNetworkTest < ActiveRecord::PostgreSQLTestCase
     assert_match %r{t\.inet\s+"inet_address",\s+default: "192\.168\.1\.1"}, output
     assert_match %r{t\.cidr\s+"cidr_address",\s+default: "192\.168\.1\.0/24"}, output
     assert_match %r{t\.macaddr\s+"mac_address",\s+default: "ff:ff:ff:ff:ff:ff"}, output
+    assert_match %r{t\.macaddr8\s+"mac_address8",\s+default: "ff:ff:ff:ff:ff:ff:ff:ff"}, output
   end
 
   def test_cidr_change_prefix
@@ -107,8 +123,9 @@ class PostgresqlNetworkTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_mac_address_change_case_does_not_mark_dirty
-    model = PostgresqlNetworkAddress.create(mac_address: "Ab:Cd:Ef:01:02:03")
+    model = PostgresqlNetworkAddress.create(mac_address: "Ab:Cd:Ef:01:02:03", mac_address8: "Ab:Cd:Ef:01:02:03:04:05")
     model.mac_address = model.mac_address.swapcase
+    model.mac_address8 = model.mac_address8.swapcase
     assert_not_predicate model, :changed?
   end
 end
