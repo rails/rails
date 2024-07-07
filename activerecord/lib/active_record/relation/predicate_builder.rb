@@ -84,7 +84,9 @@ module ActiveRecord
             end
             grouping_queries(queries)
           elsif value.is_a?(Hash) && !table.has_column?(key)
-            table.associated_table(key, &block)
+            reflection = value.delete("!reflection")
+
+            table.associated_table(key, reflection.try(:name), &block)
               .predicate_builder.expand_from_hash(value.stringify_keys)
           elsif table.associated_with?(key)
             # Find the foreign key when using queries such as:
