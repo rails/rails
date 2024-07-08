@@ -312,6 +312,8 @@ create_table :books do |t|
 end
 ```
 
+This relation can be [bi-directional](#bi-directional-associations) when used in combination with `belongs_to` on the other model.
+
 ### `has_many :through`
 
 A [`has_many :through`][`has_many`] association is often used to set up a many-to-many connection with another model. This association indicates that the declaring model can be matched with zero or more instances of another model by proceeding _through_ a third model.
@@ -598,7 +600,7 @@ Remember that the foreign key goes on the table of the class declaring the belon
 
 Rails offers two different ways to declare a many-to-many relationship between models: `has_many :through` and `has_and_belongs_to_many`. Understanding the differences and use cases for each can help you choose the best approach for your application's needs.
 
-The `has_many :through` association sets up a many-to-many relationship through an intermediary model (also known as a join model). This approach is more flexible and allows you to add validations, callbacks, and extra attributes to the join model. The join table needs a `primary_key` (or a composite primary key).
+The `has_many :through` association sets up a many-to-many relationship through an intermediary model (also known as a join model). This approach is more flexible and allows you to add validations, callbacks, and extra attributes to the join model. The join table needs a `primary_key` (or a [composite primary key](active_record_composite_primary_keys.html)).
 
 ```ruby
 class Assembly < ApplicationRecord
