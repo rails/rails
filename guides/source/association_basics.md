@@ -383,7 +383,7 @@ physician.patients = patients
 
 Rails will automatically create new join models for any patients in the new list that were not previously associated with the physician. Additionally, if any patients that were previously associated with the physician are not included in the new list, their join records will be automatically deleted. This simplifies managing many-to-many relationships by handling the creation and deletion of the join models for you.
 
-WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered. You can read more about callbacks [here](active_record_callbacks.html).
+WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered. You can read more about callbacks in the [Active Record Callbacks Guide](active_record_callbacks.html).
 
 The `has_many :through` association is also useful for setting up "shortcuts" through nested `has_many` associations. This is particularly beneficial when you need to access a collection of related records through an intermediary association. For example, if a document has many sections, and each section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document without having to manually traverse through each section.
 
@@ -875,7 +875,7 @@ When creating associations in Ruby on Rails models, it's important to avoid usin
 
 ### Updating the Schema
 
-Associations are extremely useful, they are responsible for defining the relationships between models but they do not update your database schema. You are responsible for maintaining your database schema to match your associations. This usually involves two main tasks: creating foreign keys for [`belongs_to` associations](#belongs-to) and setting up the correct join table for [`has_many :through`](#has-many-through) and [`has_and_belongs_to_many`](#has-and-belongs-to-many) associations. You can read more about when to use a `has_many :through vs has_and_belongs_to_many` [here](#has-many-through-vs-has-and-belongs-to-many).
+Associations are extremely useful, they are responsible for defining the relationships between models but they do not update your database schema. You are responsible for maintaining your database schema to match your associations. This usually involves two main tasks: creating foreign keys for [`belongs_to` associations](#belongs-to) and setting up the correct join table for [`has_many :through`](#has-many-through) and [`has_and_belongs_to_many`](#has-and-belongs-to-many) associations. You can read more about when to use a `has_many :through vs has_and_belongs_to_many` [in the has many through vs has and belongs to many section](#has-many-through-vs-has-and-belongs-to-many).
 
 #### Creating Foreign Keys for `belongs_to` Associations
 
@@ -1249,7 +1249,7 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `association_changed?`
 * `association_previously_changed?`
 
-We'll discuss some of the common methods, but you can find an exhaustive list [here](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to).
+We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to).
 
 In all of the above methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
 
@@ -1369,7 +1369,7 @@ class Book < ApplicationRecord
 end
 ```
 
-The [`belongs_to`][] association supports numerous options which you can read more about [here](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to). We'll discuss some of the common use cases below.
+The [`belongs_to`][] association supports numerous options which you can read more about in [`Options` section of the ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to). We'll discuss some of the common use cases below.
 
 ##### `:class_name`
 
@@ -1682,7 +1682,7 @@ When you declare a `has_one` association,  the declaring class automatically gai
 * `reload_association`
 * `reset_association`
 
-We'll discuss some of the common methods, but you can find an exhaustive list [here](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one).
+We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one).
 
 Like with [the `belongs_to` reference](#belongs-to-association-reference), in all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
@@ -1780,7 +1780,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-The [`has`][] association supports numerous options which you can read more about [here](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one). We'll discuss some of the common use cases below.
+The [`has`][] association supports numerous options which you can read more about in the [`Options` section of the ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one). We'll discuss some of the common use cases below.
 
 ##### `:class_name`
 
@@ -2009,7 +2009,7 @@ When you declare a `has_many` association, the declaring class gains numerous me
 * [`collection.create!(attributes = {})`][`collection.create!`]
 * [`collection.reload`][]
 
-We'll discuss some of the common methods, but you can find an exhaustive list [here](https://edgeapi.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_many).
+We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_many).
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -2208,7 +2208,7 @@ class Author < ApplicationRecord
 end
 ```
 
-The `has_many` association supports numerous options which you can read more about in the [`Options` section of the ActiveRecord Associations API](https://edgeapi.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_many). We'll discuss some of the common use cases below.
+The `has_many` association supports numerous options which you can read more about in the [`Options` section of the ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_many). We'll discuss some of the common use cases below.
 
 ##### `:class_name`
 
@@ -2521,7 +2521,7 @@ When you declare a `has_and_belongs_to_many` association, the declaring class ga
 * [`collection.create!(attributes = {})`][`collection.create!`]
 * [`collection.reload`][]
 
-We'll discuss some of the common methods, but you can find an exhaustive list [here](https://edgeapi.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_and_belongs_to_many).
+We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_and_belongs_to_many).
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -2685,7 +2685,7 @@ class Parts < ApplicationRecord
 end
 ```
 
-The `has_and_belongs_to_many` association supports numerous options which you can read more about in the [`Options` section of the ActiveRecord Associations API](https://edgeapi.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_and_belongs_to_many). We'll discuss some of the common use cases below.
+The `has_and_belongs_to_many` association supports numerous options which you can read more about in the [`Options` section of the ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_and_belongs_to_many). We'll discuss some of the common use cases below.
 
 ##### `:association_foreign_key`
 
