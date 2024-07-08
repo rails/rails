@@ -304,6 +304,26 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
   end
 
+  def test_callbacks_on_child_when_parent_autosaves_child
+    eye = Eye.create(iris: Iris.new)
+    assert_equal 1, eye.iris.before_validation_callbacks_counter
+    assert_equal 1, eye.iris.before_create_callbacks_counter
+    assert_equal 1, eye.iris.before_save_callbacks_counter
+    assert_equal 1, eye.iris.after_validation_callbacks_counter
+    assert_equal 1, eye.iris.after_create_callbacks_counter
+    assert_equal 1, eye.iris.after_save_callbacks_counter
+  end
+
+  def test_callbacks_on_child_when_child_autosaves_parent
+    iris = Iris.create(eye: Eye.new)
+    assert_equal 1, iris.before_validation_callbacks_counter
+    assert_equal 1, iris.before_create_callbacks_counter
+    assert_equal 1, iris.before_save_callbacks_counter
+    assert_equal 1, iris.after_validation_callbacks_counter
+    assert_equal 1, iris.after_create_callbacks_counter
+    assert_equal 1, iris.after_save_callbacks_counter
+  end
+
   def test_foreign_key_attribute_is_not_set_unless_changed
     eye = Eye.create!(iris_with_read_only_foreign_key_attributes: { color: "honey" })
     assert_nothing_raised do

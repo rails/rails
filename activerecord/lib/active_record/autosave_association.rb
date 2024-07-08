@@ -317,7 +317,12 @@ module ActiveRecord
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        association_valid?(association, record) if record && (record.changed_for_autosave? || custom_validation_context?)
+        return unless record && (record.changed_for_autosave? || custom_validation_context?)
+
+        inverse_belongs_to_association = inverse_belongs_to_association_for(reflection, record)
+        return if inverse_belongs_to_association && inverse_belongs_to_association.updated?
+
+        association_valid?(association, record)
       end
 
       # Validate the associated records if <tt>:validate</tt> or
@@ -429,34 +434,42 @@ module ActiveRecord
       def save_has_one_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
+        return unless record && !record.destroyed?
 
-        if record && !record.destroyed?
-          autosave = reflection.options[:autosave]
+        inverse_belongs_to_association = inverse_belongs_to_association_for(reflection, record)
+        return if inverse_belongs_to_association && inverse_belongs_to_association.updated?
 
-          if autosave && record.marked_for_destruction?
-            record.destroy
-          elsif autosave != false
-            primary_key = Array(compute_primary_key(reflection, self)).map(&:to_s)
-            primary_key_value = primary_key.map { |key| _read_attribute(key) }
+        autosave = reflection.options[:autosave]
 
-            if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, primary_key_value)
-              unless reflection.through_reflection
-                foreign_key = Array(reflection.foreign_key)
-                primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+        if autosave && record.marked_for_destruction?
+          record.destroy
+        elsif autosave != false
+          primary_key = Array(compute_primary_key(reflection, self)).map(&:to_s)
+          primary_key_value = primary_key.map { |key| _read_attribute(key) }
 
-                primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
-                  association_id = _read_attribute(primary_key)
-                  record[foreign_key] = association_id unless record[foreign_key] == association_id
-                end
-                association.set_inverse_instance(record)
+          if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, primary_key_value)
+            unless reflection.through_reflection
+              foreign_key = Array(reflection.foreign_key)
+              primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+
+              primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
+                association_id = _read_attribute(primary_key)
+                record[foreign_key] = association_id unless record[foreign_key] == association_id
               end
-
-              saved = record.save(validate: !autosave)
-              raise ActiveRecord::Rollback if !saved && autosave
-              saved
+              association.set_inverse_instance(record)
             end
+
+            saved = record.save(validate: !autosave)
+            raise ActiveRecord::Rollback if !saved && autosave
+            saved
           end
         end
+      end
+
+      def inverse_belongs_to_association_for(reflection, record)
+        reflection.inverse_of &&
+          reflection.inverse_of.belongs_to? &&
+          record.association(reflection.inverse_of.name)
       end
 
       # If the record is new or it has changed, returns true.
@@ -480,7 +493,6 @@ module ActiveRecord
         return false unless reflection.inverse_of&.polymorphic?
 
         class_name = record._read_attribute(reflection.inverse_of.foreign_type)
-
         reflection.active_record != record.class.polymorphic_class_for(class_name)
       end
 

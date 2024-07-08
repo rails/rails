@@ -1,3 +1,12 @@
+*   Fix duplicate callback execution when child autosaves parent with `has_one` and `belongs_to`.
+
+    Before, persisting a new child record with a new associated parent record would run `before_validation`,
+    `after_validation`, `before_save` and `after_save` callbacks twice.
+
+    Now, these callbacks are only executed once as expected.
+
+    *Joshua Young*
+
 *   `ActiveRecord::Encryption::Encryptor` now supports a `:compressor` option to customize the compression algorithm used.
 
     ```ruby
