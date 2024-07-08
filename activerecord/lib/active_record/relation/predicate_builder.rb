@@ -8,6 +8,7 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/relation_handler"
     require "active_record/relation/predicate_builder/association_query_value"
     require "active_record/relation/predicate_builder/polymorphic_array_value"
+    require "active_record/relation/predicate_builder/reflection_hash"
 
     def initialize(table)
       @table = table
@@ -84,8 +85,13 @@ module ActiveRecord
             end
             grouping_queries(queries)
           elsif value.is_a?(Hash) && !table.has_column?(key)
-            table.associated_table(key, &block)
-              .predicate_builder.expand_from_hash(value.stringify_keys)
+            associated_table = if value.is_a?(ReflectionHash)
+              table.associated_table(key, value.reflection.name, &block)
+            else
+              table.associated_table(key, &block)
+            end
+
+            associated_table.predicate_builder.expand_from_hash(value.stringify_keys)
           elsif table.associated_with?(key)
             # Find the foreign key when using queries such as:
             # Post.where(author: author)

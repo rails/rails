@@ -63,12 +63,12 @@ module ActiveRecord
           primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
           primary_key_foreign_key_pairs.each do |join_key, foreign_key|
             value = transform_value(owner._read_attribute(foreign_key))
-            scope = apply_scope(scope, table, join_key, value)
+            scope = apply_scope(scope, reflection, table, join_key, value)
           end
 
           if reflection.type
             polymorphic_type = transform_value(owner.class.polymorphic_name)
-            scope = apply_scope(scope, table, reflection.type, polymorphic_type)
+            scope = apply_scope(scope, reflection, table, reflection.type, polymorphic_type)
           end
 
           scope
@@ -92,7 +92,7 @@ module ActiveRecord
 
           if reflection.type
             value = transform_value(next_reflection.klass.polymorphic_name)
-            scope = apply_scope(scope, table, reflection.type, value)
+            scope = apply_scope(scope, reflection, table, reflection.type, value)
           end
 
           scope.joins!(join(foreign_table, constraints))
@@ -158,11 +158,11 @@ module ActiveRecord
           scope
         end
 
-        def apply_scope(scope, table, key, value)
+        def apply_scope(scope, reflection, table, key, value)
           if scope.table == table
             scope.where!(key => value)
           else
-            scope.where!(table.name => { key => value })
+            scope.where!(table.name => PredicateBuilder::ReflectionHash.create(reflection, key => value))
           end
         end
 
