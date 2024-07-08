@@ -70,7 +70,25 @@ class ConditionalGetApiTest < ActionController::TestCase
     assert_response :not_modified
   end
 
-  def test_etag_precedence_over_last_modified
+  def test_strict_freshness_with_etag
+    with_strict_freshness(true) do
+      @request.if_none_match = weak_etag([:foo, 123])
+
+      get :one
+      assert_response :not_modified
+    end
+  end
+
+  def test_strict_freshness_with_last_modified
+    with_strict_freshness(true) do
+      @request.if_modified_since = @last_modified
+
+      get :one
+      assert_response :not_modified
+    end
+  end
+
+  def test_strict_freshness_etag_precedence_over_last_modified
     with_strict_freshness(true) do
       # Not modified because the etag matches
       @request.if_modified_since = 5.years.ago.httpdate

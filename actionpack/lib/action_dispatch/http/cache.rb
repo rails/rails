@@ -44,9 +44,9 @@ module ActionDispatch
         # Reference: http://tools.ietf.org/html/rfc7232#section-6
         def fresh?(response)
           if Request.strict_freshness
-            if if_modified_since
+            if if_none_match
               etag_matches?(response.etag)
-            elsif if_none_match
+            elsif if_modified_since
               not_modified?(response.last_modified)
             else
               false
