@@ -103,6 +103,7 @@ module ActionText
             node["content"] = sanitized_content
           else
             node.remove_attribute("content")
+          end
         end
         block.call(attachment_for_node(node, **options))
       end
