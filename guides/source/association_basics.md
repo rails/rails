@@ -7,10 +7,11 @@ This guide covers the association features of Active Record.
 
 After reading this guide, you will know how to:
 
+* Understand the various types of associations.
 * Declare associations between Active Record models.
-* Understand the various types of Active Record associations.
-* Use the methods added to your models by creating associations.
-
+* Choose the right association type for your models.
+* Use Single Table Inheritance.
+* Setting up and using Delegated Types.
 --------------------------------------------------------------------------------
 
 Associations Overview
@@ -30,7 +31,9 @@ useful methods to your models so you can work with related data more easily.
 
 Consider a simple Rails application with models for authors and books.
 
-**Without associations**, creating and deleting books for that author would
+### Without Associations
+
+Without associations, creating and deleting books for that author would
 require a tedious and manual process. Here's what that would look like:
 
 ```ruby
@@ -60,7 +63,9 @@ end
 @author.destroy
 ```
 
-However, **with associations**, we can streamline these operations, as
+### Using Associations
+
+However, with associations, we can streamline these operations, as
 well as others, by explicitly informing Rails about the connection between the
 two models. Here's the revised code for setting up authors and books using
 associations:
@@ -90,7 +95,9 @@ Deleting an author and all of its books is much easier:
 When you set up an association in Rails, you still need to create a
 [migration](active_record_migrations.html) to ensure that the database is
 properly configured to handle the association. This migration will need to add
-the necessary foreign key columns to your database tables. For example, if you
+the necessary foreign key columns to your database tables.
+
+For example, if you
 set up a `belongs_to :author` association in the `Book` model, you would create
 a migration to add the `author_id` column to the `books` table:
 
@@ -107,8 +114,8 @@ section of this guide. Following that, you'll find some tips and tricks for
 working with associations. Finally, there's a complete reference to the methods
 and options for associations in Rails.
 
-The Types of Associations
--------------------------
+Types of Associations
+---------------------
 
 Rails supports six types of associations, each with a particular use-case in mind.
 
@@ -231,8 +238,8 @@ Depending on the use case, you might also need to create a unique index and/or a
 foreign key constraint on the supplier column for the accounts table. The unique
 index ensures that each supplier is associated with only one account and allows
 you to query in a performant manner, while the foreign key constraint ensures
-that the supplier_id in the accounts table refers to a valid supplier in the
-suppliers table. This enforces the association at the database level.
+that the `supplier_id` in the `accounts` table refers to a valid `supplier` in the
+`suppliers` table. This enforces the association at the database level.
 
 ```ruby
 create_table :accounts do |t|
@@ -307,7 +314,9 @@ end
 
 ### `has_many :through`
 
-A [`has_many :through`][`has_many`] association is often used to set up a many-to-many connection with another model. This association indicates that the declaring model can be matched with zero or more instances of another model by proceeding _through_ a third model. For example, consider a medical practice where patients make appointments to see physicians. The relevant association declarations could look like this:
+A [`has_many :through`][`has_many`] association is often used to set up a many-to-many connection with another model. This association indicates that the declaring model can be matched with zero or more instances of another model by proceeding _through_ a third model.
+
+For example, consider a medical practice where patients make appointments to see physicians. The relevant association declarations could look like this:
 
 ```ruby
 class Physician < ApplicationRecord
@@ -385,7 +394,9 @@ Rails will automatically create new join models for any patients in the new list
 
 WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered. You can read more about callbacks in the [Active Record Callbacks Guide](active_record_callbacks.html).
 
-The `has_many :through` association is also useful for setting up "shortcuts" through nested `has_many` associations. This is particularly beneficial when you need to access a collection of related records through an intermediary association. For example, if a document has many sections, and each section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document without having to manually traverse through each section.
+The `has_many :through` association is also useful for setting up "shortcuts" through nested `has_many` associations. This is particularly beneficial when you need to access a collection of related records through an intermediary association.
+
+For example, if a document has many sections, and each section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document without having to manually traverse through each section.
 
 You can set this up with a `has_many :through` association as follows:
 
@@ -425,6 +436,7 @@ end
 
 A [`has_one :through`][`has_one`] association sets up a one-to-one connection with another model through an intermediary model. This association indicates
 that the declaring model can be matched with one instance of another model by proceeding _through_ a third model.
+
 For example, if each supplier has one account, and each account is associated with one account history, then the
 supplier model could look like this:
 
@@ -477,6 +489,7 @@ end
 
 A [`has_and_belongs_to_many`][] association creates a direct many-to-many connection with another model, with no intervening model.
 This association indicates that each instance of the declaring model refers to zero or more instances of another model.
+
 For example, consider an application with `Assembly` and `Part` models, where each assembly can contain many parts, and each part can be used in many assemblies. You can set up the models as follows:
 
 ```ruby
@@ -632,7 +645,9 @@ Other Associations
 
 ### Polymorphic Associations
 
-A slightly more advanced twist on associations is the _polymorphic association_. Polymorphic associations in Rails allow a model to belong to multiple other models through a single association. This can be particularly useful when you have a model that needs to be linked to different types of models. For instance, imagine you have a `Picture` model that can belong to **either** an `Employee` or a `Product`, because each of these can have a profile picture. Here's how this could be declared:
+A slightly more advanced twist on associations is the _polymorphic association_. Polymorphic associations in Rails allow a model to belong to multiple other models through a single association. This can be particularly useful when you have a model that needs to be linked to different types of models.
+
+For instance, imagine you have a `Picture` model that can belong to **either** an `Employee` or a `Product`, because each of these can have a profile picture. Here's how this could be declared:
 
 ```ruby
 class Picture < ApplicationRecord
@@ -789,8 +804,9 @@ class Employee < ApplicationRecord
 end
 ```
 
-- `has_many :subordinates` sets up a one-to-many relationship where an employee can have many subordinates. Here, we specify that the related model is also `Employee` (`class_name: "Employee"`) and the foreign key used to identify the manager is `manager_id`.
-- `belongs_to :manager` sets up a one-to-one relationship where an employee can belong to one manager. Again, we specify the related model as `Employee`.
+`has_many :subordinates` sets up a one-to-many relationship where an employee can have many subordinates. Here, we specify that the related model is also `Employee` (`class_name: "Employee"`) and the foreign key used to identify the manager is `manager_id`.
+
+`belongs_to :manager` sets up a one-to-one relationship where an employee can belong to one manager. Again, we specify the related model as `Employee`.
 
 To support this relationship, we need to add a `manager_id` column to the `employees` table. This column references the `id` of another employee (the manager).
 
@@ -1092,7 +1108,7 @@ allows Active Record to:
 
 * Prevent needless queries for already-loaded data:
 
-  Active Record avoids additional database queries for already-loaded data.
+    Active Record avoids additional database queries for already-loaded data.
 
     ```irb
     irb> author = Author.first
@@ -1104,7 +1120,7 @@ allows Active Record to:
 
 * Prevent inconsistent data
 
-  Since only one copy of the `Author` object is loaded, it helpes to prevent inconsistencies.
+    Since only one copy of the `Author` object is loaded, it helpes to prevent inconsistencies.
 
     ```irb
     irb> author = Author.first
