@@ -1,3 +1,11 @@
+*   Add exemption support to rate limiting
+
+    ```ruby
+    rate_limit to: 10, within: 1.hour, exempt: -> { request.remote_ip == '192.168.1.1' }
+    ```
+
+    *Federico Aldunate*
+
 *   Make `http_cache_forever` use `immutable: true`
 
     *Nate Matykiewicz*

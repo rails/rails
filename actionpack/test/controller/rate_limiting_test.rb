@@ -14,6 +14,11 @@ class RateLimitedController < ActionController::Base
   def limited_with
     head :ok
   end
+
+  rate_limit to: 2, within: 2.seconds, only: :limited_to_two_exempted, exempt: -> { params[:secret_token] == "token" }
+  def limited_to_two_exempted
+    head :ok
+  end
 end
 
 class RateLimitingTest < ActionController::TestCase
@@ -58,5 +63,18 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_with
     get :limited_with
     assert_response :forbidden
+  end
+
+  test "limited and exempted" do
+    get :limited_to_two_exempted, params: { secret_token: "token" }
+    get :limited_to_two_exempted, params: { secret_token: "token" }
+    get :limited_to_two_exempted, params: { secret_token: "token" }
+
+    assert_response :ok
+
+    get :limited_to_two_exempted
+    get :limited_to_two_exempted
+    get :limited_to_two_exempted
+    assert_response :too_many_requests
   end
 end

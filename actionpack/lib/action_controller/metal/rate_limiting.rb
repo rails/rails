@@ -23,6 +23,13 @@ module ActionController # :nodoc:
       # parameter. It's evaluated within the context of the controller processing the
       # request.
       #
+      # Exemptions from rate limiting can be specified using the `exempt:` parameter, which
+      # accepts a callable evaluated within the context of the controller. This allows for
+      # bypassing the rate limit under defined conditions, such as requests from specific IP
+      # addresses, certain user roles, or other criteria. For example, you can exempt requests
+      # from internal networks or trusted partners to ensure critical services remain
+      # uninterrupted.
+      #
       # Rate limiting relies on a backing `ActiveSupport::Cache` store and defaults to
       # `config.action_controller.cache_store`, which itself defaults to the global
       # `config.cache_store`. If you don't want to store rate limits in the same
@@ -44,13 +51,19 @@ module ActionController # :nodoc:
       #       RATE_LIMIT_STORE = ActiveSupport::Cache::RedisCacheStore.new(url: ENV["REDIS_URL"])
       #       rate_limit to: 10, within: 3.minutes, store: RATE_LIMIT_STORE
       #     end
-      def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, store: cache_store, **options)
-        before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store) }, **options
+      #
+      #     class APIController < ApplicationController
+      #       rate_limit to: 100, within: 1.hour, exempt: -> { request.remote_ip == '192.168.1.1' }
+      #     end
+      def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, exempt: -> { false }, store: cache_store, **options)
+        before_action -> { rate_limiting(to: to, within: within, by: by, with: with, exempt: exempt, store: store) }, **options
       end
     end
 
     private
-      def rate_limiting(to:, within:, by:, with:, store:)
+      def rate_limiting(to:, within:, by:, with:, exempt:, store:)
+        return if instance_exec(&exempt)
+
         count = store.increment("rate-limit:#{controller_path}:#{instance_exec(&by)}", 1, expires_in: within)
         if count && count > to
           ActiveSupport::Notifications.instrument("rate_limit.action_controller", request: request) do
