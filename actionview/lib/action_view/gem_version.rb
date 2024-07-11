@@ -10,7 +10,7 @@ module ActionView
     MAJOR = 7
     MINOR = 2
     TINY  = 0
-    PRE   = "beta2"
+    PRE   = "beta3"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

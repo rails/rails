@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta3 (July 11, 2024) ##
+
 *   Fix templates with strict locals to also include `local_assigns`.
 
     Previously templates defining strict locals wouldn't receive the `local_assigns`

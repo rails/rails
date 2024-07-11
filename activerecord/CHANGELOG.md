@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta3 (July 11, 2024) ##
+
 *   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
     `DatabaseConfig`.
 

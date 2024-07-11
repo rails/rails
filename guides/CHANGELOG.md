@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta3 (July 11, 2024) ##
+
 *   Testing guide: Added a section about the implicit database transaction that
     wraps tests by default.
 

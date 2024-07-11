@@ -1,3 +1,8 @@
+## Rails 7.2.0.beta3 (July 11, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.2.0.beta2 (June 04, 2024) ##
 
 *   Include the HTTP Permissions-Policy on non-HTML Content-Types

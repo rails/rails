@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta3 (July 11, 2024) ##
+
 *   Only sanitize `content` attribute when present in attachments.
 
     *Petrik de Heus*

@@ -1,3 +1,5 @@
+## Rails 7.2.0.beta3 (July 11, 2024) ##
+
 *   Add `logger` as a dependency since it is a bundled gem candidate for Ruby 3.5
 
     *Earlopain*
