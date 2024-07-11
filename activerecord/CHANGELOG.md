@@ -1,3 +1,24 @@
+*   Include schema name in `enable_extension` statements in `db/schema.rb`.
+
+    The schema dumper will now include the schema name in generated
+    `enable_extension` statements if they differ from the current schema.
+
+    For example, if you have a migration:
+
+    ```ruby
+    enable_extension "heroku_ext.pgcrypto"
+    enable_extension "pg_stat_statements"
+    ```
+
+    then the generated schema dump will also contain:
+
+    ```ruby
+    enable_extension "heroku_ext.pgcrypto"
+    enable_extension "pg_stat_statements"
+    ```
+
+    *Tony Novak*
+
 *   PostgreSQLAdapter: Allow `disable_extension` to be called with schema-qualified name.
 
     For parity with `enable_extension`, the `disable_extension` method can be called with a schema-qualified
