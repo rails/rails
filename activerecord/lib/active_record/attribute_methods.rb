@@ -66,7 +66,7 @@ module ActiveRecord
 
       def generate_alias_attributes # :nodoc:
         superclass.generate_alias_attributes unless superclass == Base
-        return if @alias_attributes_mass_generated
+        return false if @alias_attributes_mass_generated
 
         generated_attribute_methods.synchronize do
           return if @alias_attributes_mass_generated
@@ -80,6 +80,7 @@ module ActiveRecord
 
           @alias_attributes_mass_generated = true
         end
+        true
       end
 
       def generate_alias_attribute_methods(code_generator, new_name, old_name) # :nodoc:
@@ -137,6 +138,11 @@ module ActiveRecord
           super(attribute_names)
           @attribute_methods_generated = true
         end
+        true
+      end
+
+      def attribute_methods_generated? # :nodoc:
+        @attribute_methods_generated && @alias_attributes_mass_generated
       end
 
       def undefine_attribute_methods # :nodoc:
@@ -463,6 +469,36 @@ module ActiveRecord
     end
 
     private
+      def respond_to_missing?(name, include_private = false)
+        if self.class.define_attribute_methods
+          # Some methods weren't defined yet.
+          return true if self.class.method_defined?(name)
+          return true if include_private && self.class.private_method_defined?(name)
+        end
+
+        super
+      end
+
+      def method_missing(name, ...)
+        unless self.class.attribute_methods_generated?
+          if self.class.method_defined?(name)
+            # The method is explicitly defined in the model, but calls a generated
+            # method with super. So we must resume the call chain at the right setp.
+            last_method = method(name)
+            last_method = last_method.super_method while last_method.super_method
+            self.class.define_attribute_methods
+            if last_method.super_method
+              return last_method.super_method.call(...)
+            end
+          elsif self.class.define_attribute_methods | self.class.generate_alias_attributes
+            # Some attribute methods weren't generated yet, we retry the call
+            return public_send(name, ...)
+          end
+        end
+
+        super
+      end
+
       def attribute_method?(attr_name)
         # We check defined? because Syck calls respond_to? before actually calling initialize.
         defined?(@attributes) && @attributes.key?(attr_name)
