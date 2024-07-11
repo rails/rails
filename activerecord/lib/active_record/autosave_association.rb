@@ -467,7 +467,8 @@ module ActiveRecord
       end
 
       def inverse_belongs_to_association_for(reflection, record)
-        reflection.inverse_of &&
+        !reflection.belongs_to? &&
+          reflection.inverse_of &&
           reflection.inverse_of.belongs_to? &&
           record.association(reflection.inverse_of.name)
       end

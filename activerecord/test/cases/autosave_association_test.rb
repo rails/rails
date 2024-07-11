@@ -305,7 +305,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_callbacks_on_child_when_parent_autosaves_child
-    eye = Eye.create(iris: Iris.new)
+    eye = Eye.create!(iris: Iris.new)
     assert_equal 1, eye.iris.before_validation_callbacks_counter
     assert_equal 1, eye.iris.before_create_callbacks_counter
     assert_equal 1, eye.iris.before_save_callbacks_counter
@@ -314,14 +314,34 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_equal 1, eye.iris.after_save_callbacks_counter
   end
 
+  def test_callbacks_on_child_when_parent_autosaves_polymorphic_child_with_inverse_of
+    drink_designer = DrinkDesigner.create!(chef: ChefWithPolymorphicInverseOf.new)
+    assert_equal 1, drink_designer.chef.before_validation_callbacks_counter
+    assert_equal 1, drink_designer.chef.before_create_callbacks_counter
+    assert_equal 1, drink_designer.chef.before_save_callbacks_counter
+    assert_equal 1, drink_designer.chef.after_validation_callbacks_counter
+    assert_equal 1, drink_designer.chef.after_create_callbacks_counter
+    assert_equal 1, drink_designer.chef.after_save_callbacks_counter
+  end
+
   def test_callbacks_on_child_when_child_autosaves_parent
-    iris = Iris.create(eye: Eye.new)
+    iris = Iris.create!(eye: Eye.new)
     assert_equal 1, iris.before_validation_callbacks_counter
     assert_equal 1, iris.before_create_callbacks_counter
     assert_equal 1, iris.before_save_callbacks_counter
     assert_equal 1, iris.after_validation_callbacks_counter
     assert_equal 1, iris.after_create_callbacks_counter
     assert_equal 1, iris.after_save_callbacks_counter
+  end
+
+  def test_callbacks_on_child_when_polymorphic_child_with_inverse_of_autosaves_parent
+    chef = ChefWithPolymorphicInverseOf.create!(employable: DrinkDesigner.new)
+    assert_equal 1, chef.before_validation_callbacks_counter
+    assert_equal 1, chef.before_create_callbacks_counter
+    assert_equal 1, chef.before_save_callbacks_counter
+    assert_equal 1, chef.after_validation_callbacks_counter
+    assert_equal 1, chef.after_create_callbacks_counter
+    assert_equal 1, chef.after_save_callbacks_counter
   end
 
   def test_foreign_key_attribute_is_not_set_unless_changed
