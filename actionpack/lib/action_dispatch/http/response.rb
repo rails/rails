@@ -231,6 +231,18 @@ module ActionDispatch # :nodoc:
     def committed?; synchronize { @committed }; end
     def sent?;      synchronize { @sent };      end
 
+    ##
+    # :method: location
+    #
+    # Location of the response.
+
+    ##
+    # :method: location=
+    #
+    # :call-seq: location=(location)
+    #
+    # Sets the location of the response
+
     # Sets the HTTP status code.
     def status=(status)
       @status = Rack::Utils.status_code(status)
@@ -241,7 +253,7 @@ module ActionDispatch # :nodoc:
     #
     #     response.content_type = "text/plain"
     #
-    # If a character set has been defined for this response (see charset=) then the
+    # If a character set has been defined for this response (see #charset=) then the
     # character set information will also be included in the content type
     # information.
     def content_type=(content_type)
