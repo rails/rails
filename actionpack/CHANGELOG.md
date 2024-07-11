@@ -1,3 +1,23 @@
+*   Add support for different rate limiting strategies.
+
+    Support multiple strategies in RateLimiting feature.
+    Use a custom strategy or switch to `sliding_window` instead of the default `fixed_window`
+
+    Using a pre-defined strategy:
+    ```ruby
+        class LimitsController < ActionController::Base
+        rate_limit to: 10, within: 1.hour, strategy: :sliding_window
+        end
+    ```
+    Using a custom strategy
+    ```ruby
+        class LimitsController < ActionController::Base
+        rate_limit to: 10, within: 1.hour, strategy: ::LeakyBucketStrategy
+        end
+    ```
+
+    *Federico Aldunate*
+
 *   Make `http_cache_forever` use `immutable: true`
 
     *Nate Matykiewicz*

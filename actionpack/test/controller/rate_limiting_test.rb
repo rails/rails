@@ -14,6 +14,11 @@ class RateLimitedController < ActionController::Base
   def limited_with
     head :ok
   end
+
+  rate_limit to: 2, within: 2.seconds, only: :limited_with_sliding_window, strategy: :sliding_window
+  def limited_with_sliding_window
+    head :ok
+  end
 end
 
 class RateLimitingTest < ActionController::TestCase
@@ -58,5 +63,28 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_with
     get :limited_with
     assert_response :forbidden
+  end
+
+  test "limited with sliding window strategy" do
+    get :limited_with_sliding_window
+    assert_response :ok
+
+    travel_to Time.now + 1.second do
+      get :limited_with_sliding_window
+      assert_response :ok
+    end
+
+    travel_to Time.now + 2.second do
+      get :limited_with_sliding_window
+      assert_response :too_many_requests
+    end
+
+    travel_to Time.now + 3.seconds do
+      get :limited_with_sliding_window
+      assert_response :ok
+
+      get :limited_with_sliding_window
+      assert_response :too_many_requests
+    end
   end
 end
