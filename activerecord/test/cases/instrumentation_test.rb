@@ -173,7 +173,7 @@ module ActiveRecord
     end
 
     def test_no_instantiation_notification_when_no_records
-      author = Author.create!(name: "David")
+      author = Author.create!(id: 100, name: "David")
 
       called = false
       subscriber = ActiveSupport::Notifications.subscribe("instantiation.active_record") do
