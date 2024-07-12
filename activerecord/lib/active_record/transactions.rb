@@ -247,7 +247,7 @@ module ActiveRecord
       end
 
       def before_commit(*args, &block) # :nodoc:
-        set_options_for_callbacks!(args)
+        set_options_for_callbacks!(:before, args)
         set_callback(:before_commit, :before, *args, &block)
       end
 
@@ -264,31 +264,31 @@ module ActiveRecord
       #   after_commit :do_bar_baz, on: [:update, :destroy]
       #
       def after_commit(*args, &block)
-        set_options_for_callbacks!(args, prepend_option)
+        set_options_for_callbacks!(:after, args)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
       def after_save_commit(*args, &block)
-        set_options_for_callbacks!(args, on: [ :create, :update ], **prepend_option)
+        set_options_for_callbacks!(:after, args, on: [ :create, :update ])
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
       def after_create_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :create, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :create)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :update</tt>.
       def after_update_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :update, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :update)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
       def after_destroy_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :destroy, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :destroy)
         set_callback(:commit, :after, *args, &block)
       end
 
@@ -296,7 +296,7 @@ module ActiveRecord
       #
       # Please check the documentation of #after_commit for options.
       def after_rollback(*args, &block)
-        set_options_for_callbacks!(args, prepend_option)
+        set_options_for_callbacks!(:after, args)
         set_callback(:rollback, :after, *args, &block)
       end
 
@@ -320,16 +320,11 @@ module ActiveRecord
       end
 
       private
-        def prepend_option
-          if ActiveRecord.run_after_transaction_callbacks_in_order_defined
-            { prepend: true }
-          else
-            {}
-          end
-        end
+        def set_options_for_callbacks!(position, args, enforced_options = {})
+          options = args.extract_options!
+          enforced_options.merge!(enforced_prepend_option(position, options))
+          options.merge!(enforced_options)
 
-        def set_options_for_callbacks!(args, enforced_options = {})
-          options = args.extract_options!.merge!(enforced_options)
           args << options
 
           if options[:on]
@@ -339,6 +334,14 @@ module ActiveRecord
               -> { transaction_include_any_action?(fire_on) },
               *options[:if]
             ]
+          end
+        end
+
+        def enforced_prepend_option(position, options)
+          if position == :after && ActiveRecord.run_after_transaction_callbacks_in_order_defined
+            { prepend: !options[:prepend] }
+          else
+            {}
           end
         end
 
