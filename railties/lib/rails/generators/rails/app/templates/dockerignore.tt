@@ -54,3 +54,8 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+<% unless options.skip_test? -%>
+
+# Ignore test files.
+/test/
+<% end -%>
