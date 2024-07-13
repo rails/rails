@@ -1,3 +1,9 @@
+*   The constant `ActiveRecord::ImmutableRelation` has been deprecated because
+    we want to reserve that name for a stronger sense of "immutable relation".
+    Please use `ActiveRecord::UnmodifiableRelation` instead.
+
+    *Xavier Noria*
+
 ## Rails 7.2.0.beta3 (July 11, 2024) ##
 
 *   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
