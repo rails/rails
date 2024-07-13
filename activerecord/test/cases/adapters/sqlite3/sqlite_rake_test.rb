@@ -214,7 +214,7 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["sqlite3", "--noop", "db_create.sqlite3", ".schema"],
+        ["sqlite3", "--noop", "db_create.sqlite3", ".schema --nosys"],
         returns: nil,
         out: "awesome-file.sql"
       ) do
