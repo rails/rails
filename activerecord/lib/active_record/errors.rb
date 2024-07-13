@@ -484,11 +484,6 @@ module ActiveRecord
   #   relation.limit!(5)              # => ActiveRecord::UnmodifiableRelation
   class UnmodifiableRelation < ActiveRecordError
   end
-  deprecate_constant(
-    :ImmutableRelation,
-    "ActiveRecord::UnmodifiableRelation",
-    deprecator: ActiveRecord.deprecator
-  )
 
   # TransactionIsolationError will be raised under the following conditions:
   #

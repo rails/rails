@@ -16,11 +16,4 @@ class ErrorsTest < ActiveRecord::TestCase
       end
     end
   end
-
-  def test_active_record_immutable_relation_deprecation
-    expected_message = "ActiveRecord::ImmutableRelation is deprecated! Use ActiveRecord::UnmodifiableRelation instead"
-    assert_deprecated(expected_message, ActiveRecord.deprecator) do
-      assert_same ActiveRecord::UnmodifiableRelation, ActiveRecord::ImmutableRelation
-    end
-  end
 end

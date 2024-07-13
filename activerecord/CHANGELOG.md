@@ -1,3 +1,7 @@
+*   Delete the deprecated constant `ActiveRecord::ImmutableRelation`.
+
+    *Xavier Noria*
+
 *   Fix duplicate callback execution when child autosaves parent with `has_one` and `belongs_to`.
 
     Before, persisting a new child record with a new associated parent record would run `before_validation`,
