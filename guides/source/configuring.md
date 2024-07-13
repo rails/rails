@@ -2962,6 +2962,7 @@ For example, if you want to use `AVIF` variants in your application you can add
 `image/avif` to this array.
 
 The default value depends on the `config.load_defaults` target version:
+
 | Starting with version | The default value is                            |
 | --------------------- | ----------------------------------------------- |
 | (original)            | `%w(image/png image/jpeg image/gif)`            |
