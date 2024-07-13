@@ -1,3 +1,13 @@
+*   Support batching using custom columns.
+
+    ```ruby
+    Product.in_batches(cursor: [:shop_id, :id]) do |relation|
+      # do something with relation
+    end
+    ```
+
+    *fatkodima*
+
 *   Use SQLite `IMMEDIATE` transactions when possible.
 
     Transactions run against the SQLite3 adapter default to IMMEDIATE mode to improve concurrency support and avoid busy exceptions.
