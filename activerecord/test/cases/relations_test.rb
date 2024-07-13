@@ -2057,7 +2057,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.where! "foo"
     end
   end
@@ -2066,7 +2066,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.limit! 5
     end
   end
@@ -2075,7 +2075,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.merge! where: "foo"
     end
   end
@@ -2084,7 +2084,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.extending! Module.new
     end
   end
@@ -2093,8 +2093,8 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.arel
 
-    assert_raises(ActiveRecord::ImmutableRelation) { relation.limit!(5) }
-    assert_raises(ActiveRecord::ImmutableRelation) { relation.where!("1 = 2") }
+    assert_raises(ActiveRecord::UnmodifiableRelation) { relation.limit!(5) }
+    assert_raises(ActiveRecord::UnmodifiableRelation) { relation.where!("1 = 2") }
   end
 
   test "relations show the records in #inspect" do
