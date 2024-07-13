@@ -44,7 +44,8 @@ module ActiveSupport
           # The +deprecator+ keyword argument is the object that will print the
           # deprecation message, an instance of ActiveSupport::Deprecation.
           #
-          # With that in place, client code referencing <tt>A::B</tt> will see
+          # With that in place, references to <tt>A::B</tt> still work, they
+          # evaluate to <tt>C::D</tt> now, and trigger a deprecation warning:
           #
           #   DEPRECATION WARNING: A::B is deprecated! Use C::D instead.
           #   (called from ...)
