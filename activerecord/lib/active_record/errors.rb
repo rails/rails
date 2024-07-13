@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+require "active_support/deprecation"
+
 module ActiveRecord
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
   # = Active Record Errors
   #
   # Generic Active Record exception class.
@@ -476,10 +480,15 @@ module ActiveRecord
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.
-  #   relation.where!(title: 'TODO')  # => ActiveRecord::ImmutableRelation
-  #   relation.limit!(5)              # => ActiveRecord::ImmutableRelation
-  class ImmutableRelation < ActiveRecordError
+  #   relation.where!(title: 'TODO')  # => ActiveRecord::UnmodifiableRelation
+  #   relation.limit!(5)              # => ActiveRecord::UnmodifiableRelation
+  class UnmodifiableRelation < ActiveRecordError
   end
+  deprecate_constant(
+    :ImmutableRelation,
+    "ActiveRecord::UnmodifiableRelation",
+    deprecator: ActiveRecord.deprecator
+  )
 
   # TransactionIsolationError will be raised under the following conditions:
   #
