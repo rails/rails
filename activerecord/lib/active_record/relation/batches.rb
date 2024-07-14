@@ -341,7 +341,13 @@ module ActiveRecord
 
         if start || finish
           records = records.filter do |record|
-            (start.nil? || record.id >= start) && (finish.nil? || record.id <= finish)
+            id = record.id
+
+            if order == :asc
+              (start.nil? || id >= start) && (finish.nil? || id <= finish)
+            else
+              (start.nil? || id <= start) && (finish.nil? || id >= finish)
+            end
           end
         end
 
