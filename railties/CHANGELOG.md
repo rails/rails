@@ -1,3 +1,7 @@
+*   Add `models/current.rb` to Rails new generator
+
+    *Dino Maric*
+
 *   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
 
     *Juan Vásquez*

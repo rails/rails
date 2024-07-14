@@ -36,6 +36,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/app/mailers/application_mailer.rb
   test/dummy/app/models/application_record.rb
   test/dummy/app/models/concerns/.keep
+  test/dummy/app/models/current.rb
   test/dummy/app/views/layouts/application.html.erb
   test/dummy/app/views/layouts/mailer.html.erb
   test/dummy/app/views/layouts/mailer.text.erb

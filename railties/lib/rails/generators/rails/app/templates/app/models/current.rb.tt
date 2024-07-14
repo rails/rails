@@ -1,0 +1,3 @@
+class Current < ActiveSupport::CurrentAttributes
+  # Easy to access global, per-request attributes (https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)
+end

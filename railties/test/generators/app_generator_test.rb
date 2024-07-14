@@ -28,6 +28,7 @@ DEFAULT_APP_FILES = %w(
   app/mailers/application_mailer.rb
   app/models/application_record.rb
   app/models/concerns/.keep
+  app/models/current.rb
   app/views/layouts/application.html.erb
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
