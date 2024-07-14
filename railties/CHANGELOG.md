@@ -1,3 +1,25 @@
+*   Add not-null type modifier to migration attributes.
+
+
+    # Generating with...
+    bin/rails generate migration CreateUsers email_address:string!:uniq password_digest:string!
+
+    # Produces:
+    class CreateUsers < ActiveRecord::Migration[8.0]
+      def change
+        create_table :users do |t|
+          t.string :email_address, null: false
+          t.string :password_digest, null: false
+
+          t.timestamps
+        end
+        add_index :users, :email_address, unique: true
+      end
+    end
+
+
+    *DHH*
+
 *   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
 
     *Juan Vásquez*
