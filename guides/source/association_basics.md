@@ -522,7 +522,7 @@ end
 
 ![has_and_belongs_to_many Association Diagram](images/association_basics/habtm.png)
 
-Even though a `has_and_belongs_to_many` does not require an intervening model, it does require a separate table to establish the many-to-many relationship between the two models involved. This intervening table serves to store the related data, mapping the associations between instances of the two models. UIt does not necessarily need a primary key since its purpose is solely to manage the relationship between the associated records. The corresponding migration might look like this:
+Even though a `has_and_belongs_to_many` does not require an intervening model, it does require a separate table to establish the many-to-many relationship between the two models involved. This intervening table serves to store the related data, mapping the associations between instances of the two models. The table does not necessarily need a primary key since its purpose is solely to manage the relationship between the associated records. The corresponding migration might look like this:
 
 ```ruby
 class CreateAssembliesAndParts < ActiveRecord::Migration[7.2]
