@@ -1300,7 +1300,7 @@ class Author < ApplicationRecord
 end
 ```
 
-An instance of the `Book` model can have the following methods:
+An instance of the `Book` model will have the following methods:
 
 * `author`
 * `author=`
