@@ -1,3 +1,18 @@
+*   Add script folder and generator
+
+    Add a new script default folder to hold your one-off or general purpose
+    scripts, such as data migration scripts, cleanup scripts, etc.
+
+    A new script generator allows you to create such scripts:
+
+      `rails generate script my_script`
+
+    You can run the generated script using:
+
+      `ruby script/my_script.rb`
+
+    *Jerome Dalbert*, *Haroon Ahmed*
+
 *   Enable tracking route source locations only when using routes command. Previously,
     it was enabled in development mode, but is only needed for `bin/rails routes -E`.
 

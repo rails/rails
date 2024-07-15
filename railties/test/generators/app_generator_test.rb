@@ -70,6 +70,7 @@ DEFAULT_APP_FILES = %w(
   public/icon.png
   public/icon.svg
   public/robots.txt
+  script/.keep
   storage/.keep
   test/application_system_test_case.rb
   test/channels/application_cable/connection_test.rb
@@ -1048,6 +1049,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       lib/tasks
       lib/assets
       log
+      script
       test/fixtures/files
       test/controllers
       test/mailers
