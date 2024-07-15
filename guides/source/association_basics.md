@@ -64,7 +64,7 @@ To add a new book for an existing author, you'd need to provide the `author_id`
 value when creating the book.
 
 ```ruby
-@book = Book.create(published_at: Time.now, author_id: @author.id)
+@book = Book.create(author_id: @author.id, published_at: Time.now)
 ```
 
 To delete an author and ensure all their books are also deleted, you need to
