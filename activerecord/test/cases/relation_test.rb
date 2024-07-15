@@ -444,6 +444,14 @@ module ActiveRecord
       end
     end
 
+    test "updates cache after creating new record" do
+      posts = Post.where(title: "My Awesome Post That Exists", body: "post body")
+      posts.to_a
+      assert_not_predicate posts, :exists?
+      posts.create
+      assert_predicate posts, :exists?
+    end
+
     private
       def skip_if_sqlite3_version_includes_quoting_bug
         if sqlite3_version_includes_quoting_bug?

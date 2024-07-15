@@ -1315,7 +1315,7 @@ module ActiveRecord
 
     protected
       def load_records(records)
-        @records = records.freeze
+        @records = records
         @loaded = true
       end
 
@@ -1341,7 +1341,14 @@ module ActiveRecord
       end
 
       def _create(attributes, &block)
-        model.create(attributes, &block)
+        record = model.create(attributes, &block)
+        if loaded?
+          ## can we turn this into a helper like add_record_to_target
+          records = @records.dup
+          records << record
+          @records = records
+        end
+        record
       end
 
       def _create!(attributes, &block)
@@ -1417,12 +1424,12 @@ module ActiveRecord
 
         skip_query_cache_if_necessary do
           if where_clause.contradiction?
-            [].freeze
+            []
           elsif eager_loading?
             model.with_connection do |c|
               apply_join_dependency do |relation, join_dependency|
                 if relation.null_relation?
-                  [].freeze
+                  []
                 else
                   relation = join_dependency.apply_column_aliases(relation)
                   @_join_dependency = join_dependency
@@ -1439,13 +1446,13 @@ module ActiveRecord
       end
 
       def instantiate_records(rows, &block)
-        return [].freeze if rows.empty?
+        return [] if rows.empty?
         if eager_loading?
-          records = @_join_dependency.instantiate(rows, strict_loading_value, &block).freeze
+          records = @_join_dependency.instantiate(rows, strict_loading_value, &block)
           @_join_dependency = nil
           records
         else
-          model._load_from_sql(rows, &block).freeze
+          model._load_from_sql(rows, &block)
         end
       end
 
