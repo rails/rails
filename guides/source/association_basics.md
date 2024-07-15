@@ -20,7 +20,7 @@ Associations Overview
 _Associations_ in Rails are special macro style calls that make it easy to
 connect different models. You can use them to tell Rails how your models relate
 to each other, which helps you manage your data more effectively, and makes
-common operations simpler and easier in your code.
+common operations simpler and easier to read.
 
 When you set up an association, you instruct Rails to maintain the [Primary
 Key](https://en.wikipedia.org/wiki/Primary_key) and [Foreign
@@ -179,7 +179,7 @@ end
 When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
 To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model, in this case the Author model.
 
-If `optional` is set to true in the model, then `belongs_to` does not guarantee reference consistency. This means that the foreign key in one table might not reliably point to a valid primary key in the referenced table.
+NOTE: If `optional` is set to true in the model, then `belongs_to` does not guarantee reference consistency. This means that the foreign key in one table might not reliably point to a valid primary key in the referenced table.
 
 ```ruby
 class Book < ApplicationRecord
@@ -211,7 +211,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-The main difference from `belongs_to` is that the link column `supplier_id` is located in the other table, not the table where the `has_one` is declared.
+The main difference from `belongs_to` is that the link column (in this case `supplier_id`) is located in the other table, not the table where the `has_one` is declared.
 
 ![has_one Association Diagram](images/association_basics/has_one.png)
 
@@ -237,7 +237,7 @@ end
 Depending on the use case, you might also need to create a unique index and/or a
 foreign key constraint on the supplier column for the accounts table. The unique
 index ensures that each supplier is associated with only one account and allows
-you to query in a performant manner, while the foreign key constraint ensures
+you to query in an efficient manner, while the foreign key constraint ensures
 that the `supplier_id` in the `accounts` table refers to a valid `supplier` in the
 `suppliers` table. This enforces the association at the database level.
 
@@ -622,7 +622,7 @@ end
 You'd use `has_many :through` when:
 
 - You need to add extra attributes or methods to the join table.
-- You require validations or callbacks on the join model.
+- You require [validations](active_record_validations.html) or [callbacks](active_record_callbacks.html) on the join model.
 - The join table should be treated as an independent entity with its own behavior.
 
 The `has_and_belongs_to_many` association allows you to create a many-to-many relationship directly between two models without needing an intermediary model. This method is straightforward and is suitable for simple associations where no additional attributes or behaviors are required on the join table. For `has_and_belongs_to_many` associations, you'll need to create a join table without a primary key.
@@ -693,7 +693,7 @@ end
 
 In our example, `imageable_id` could be the ID of either an `Employee` or a `Product`, and `imageable_type` is the name of the associated model's class, so either `Employee` or `Product`.
 
-While craeting the polymorphic association manually is acceptable, it is instead recommeded to use `t.references`and specify `polymorphic: true` so that Rails knows that the association is polymorphic, and it automatically adds both the foreign key and type columns to the table.
+While creating the polymorphic association manually is acceptable, it is instead recommended to use `t.references`and specify `polymorphic: true` so that Rails knows that the association is polymorphic, and it automatically adds both the foreign key and type columns to the table.
 
 ```ruby
 class CreatePictures < ActiveRecord::Migration[7.2]
@@ -872,7 +872,7 @@ author.books.size
 author.books.empty?
 ```
 
-NOTE: When we use `author.books`, the data is not immediately loaded from the database. Instead, it sets up a query that will be executed when you actually try to use the data, for example, by calling methods that require data like each, size, empty?, etc. By calling `author.books.load`, you explicitly trigger the query to load the data from the database immediately. This is useful if you know you will need the data and want to avoid the potential performance overhead of multiple queries being triggered as you work with the association.
+NOTE: When we use `author.books`, the data is not immediately loaded from the database. Instead, it sets up a query that will be executed when you actually try to use the data, for example, by calling methods that require data like each, size, empty?, etc. By calling `author.books.load`, before calling other methods which use the data, you explicitly trigger the query to load the data from the database immediately. This is useful if you know you will need the data and want to avoid the potential performance overhead of multiple queries being triggered as you work with the association.
 
 But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call [`reload`](https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-reload) on the association:
 
@@ -929,7 +929,7 @@ class AddAuthorToBooks < ActiveRecord::Migration[7.2]
 end
 ```
 
-NOTE: If you wish to [enforce [referential
+NOTE: If you wish to enforce [referential
 integrity](https://en.wikipedia.org/wiki/Referential_integrity) at the database
 level](active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’
 column declarations above.
