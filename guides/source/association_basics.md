@@ -564,7 +564,7 @@ Choosing an Association
 
 ### `belongs_to` vs `has_one`
 
-If you want to set up a one-to-one relationship between two models, you'll need to add `belongs_to` to one, and `has_one` to the other. How do you know which is which?
+If you want to set up a one-to-one relationship between two models, you can choose between a `belongs_to` and a `has_one` association. How do you know which one to choose?
 
 
 The distinction lies in the placement of the foreign key, which goes on the table of the class declaring the `belongs_to` association. However, it’s essential to understand the semantics to determine the correct associations:
