@@ -170,7 +170,7 @@ NOTE: A `belongs_to` association _must_ use the singular term. If you use the
 plural form, like `belongs_to :authors` in the `Book` model, and try to create a
 book with `Book.create(authors: @author)`, Rails will give you an "uninitialized
 constant Book::Authors" error. This happens because Rails automatically infers
-the class name from the association name. If the association name is pluralized,
+the class name from the association name. If the association name is `:authors`,
 Rails will look for a class named `Authors` instead of `Author`.
 
 The corresponding migration might look like this:
