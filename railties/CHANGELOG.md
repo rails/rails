@@ -2,7 +2,7 @@
 
 
     # Generate with...
-    bin/rails sessions
+    bin/rails generate sessions
 
     # Generated files
     app/models/current.rb
