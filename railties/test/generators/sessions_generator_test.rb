@@ -42,7 +42,12 @@ class SessionsGeneratorTest < Rails::Generators::TestCase
       assert_match(/resource :session/, content)
     end
 
-    assert_migration "db/migrate/create_sessions.rb"
-    assert_migration "db/migrate/create_users.rb"
+    assert_migration "db/migrate/create_sessions.rb" do |content|
+      assert_match /t.references :user, null: false, foreign_key: true/, content
+    end
+
+    assert_migration "db/migrate/create_users.rb" do |content|
+      assert_match /t.string :password_digest, null: false/, content
+    end
   end
 end
