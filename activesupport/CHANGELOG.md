@@ -1,3 +1,7 @@
+*   Support rfc2822 format for Time#to_fs & Date#to_fs.
+
+    *Akshay Birajdar*
+
 *   Optimize load time for `Railtie#initialize_i18n`. Filter `I18n.load_path`s passed to the file watcher to only those
     under `Rails.root`. Previously the watcher would grab all available locales, including those in gems
     which do not require a watcher because they won't change.
