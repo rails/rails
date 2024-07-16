@@ -19,8 +19,6 @@ DEFAULT_APP_FILES = %w(
   Rakefile
   app/assets/images/.keep
   app/assets/stylesheets/application.css
-  app/channels/application_cable/channel.rb
-  app/channels/application_cable/connection.rb
   app/controllers/application_controller.rb
   app/controllers/concerns/.keep
   app/helpers/application_helper.rb

@@ -27,8 +27,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/Rakefile
   test/dummy/app/assets/images/.keep
   test/dummy/app/assets/stylesheets/application.css
-  test/dummy/app/channels/application_cable/channel.rb
-  test/dummy/app/channels/application_cable/connection.rb
   test/dummy/app/controllers/application_controller.rb
   test/dummy/app/controllers/concerns/.keep
   test/dummy/app/helpers/application_helper.rb
