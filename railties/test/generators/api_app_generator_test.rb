@@ -71,7 +71,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--api", "--skip-action-cable"]
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "config/cable.yml"
-    assert_no_file "app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/"redis"/, content)
     end
@@ -136,7 +135,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         Rakefile
         Dockerfile
         config.ru
-        app/channels
         app/controllers
         app/mailers
         app/models
