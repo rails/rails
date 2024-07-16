@@ -56,7 +56,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/initializers/content_security_policy.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
-  test/dummy/config/initializers/permissions_policy.rb
   test/dummy/config/locales/en.yml
   test/dummy/config/puma.rb
   test/dummy/config/routes.rb
