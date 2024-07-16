@@ -20,9 +20,12 @@ module Rails
       end
 
       def enable_bcrypt
-        # FIXME: Make more resilient in case the default comment has been removed
-        gsub_file "Gemfile", /# gem "bcrypt"/, 'gem "bcrypt"'
-        execute_command :bundle, ""
+        if File.read("Gemfile").include?('gem "bcrypt"')
+          uncomment_lines "Gemfile", /gem "bcrypt"/
+          Bundler.with_original_env { execute_command :bundle, "" }
+        else
+          Bundler.with_original_env { execute_command :bundle, "add bcrypt" }
+        end
       end
 
       def add_migrations
