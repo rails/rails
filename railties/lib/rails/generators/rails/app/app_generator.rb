@@ -145,7 +145,6 @@ module Rails
       asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
-      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -178,10 +177,6 @@ module Rails
       if options[:api]
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
-        end
-
-        unless permissions_policy_config_exist
-          remove_file "config/initializers/permissions_policy.rb"
         end
       end
     end
@@ -550,7 +545,6 @@ module Rails
       def delete_non_api_initializers_if_api_option
         if options[:api]
           remove_file "config/initializers/content_security_policy.rb"
-          remove_file "config/initializers/permissions_policy.rb"
         end
       end
 

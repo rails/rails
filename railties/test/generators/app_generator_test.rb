@@ -53,7 +53,6 @@ DEFAULT_APP_FILES = %w(
   config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
-  config/initializers/permissions_policy.rb
   config/locales/en.yml
   config/master.key
   config/puma.rb
