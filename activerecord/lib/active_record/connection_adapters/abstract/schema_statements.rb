@@ -1302,6 +1302,7 @@ module ActiveRecord
       # In that case, +expression+ will be used by #add_check_constraint.
       def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
         return unless supports_check_constraints?
+        options.delete(:validate)
 
         return if if_exists && !check_constraint_exists?(table_name, **options)
 

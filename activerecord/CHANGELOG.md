@@ -1,3 +1,7 @@
+*   Protect against invalid validate option on remove_check_constraint
+
+    *Shayon Mukherjee*
+
 *   Delete the deprecated constant `ActiveRecord::ImmutableRelation`.
 
     *Xavier Noria*

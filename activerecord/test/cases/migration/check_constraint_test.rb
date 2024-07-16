@@ -165,6 +165,27 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
           end
         end
 
+        def test_remove_check_constraint_with_validate_false
+          check_constraints = @connection.check_constraints("products")
+          assert_equal 1, check_constraints.size
+
+          constraint = check_constraints.first
+          assert_equal "products", constraint.table_name
+          assert_equal "products_price_check", constraint.name
+
+          if current_adapter?(:PostgreSQLAdapter)
+            begin
+              @connection.add_check_constraint(:trades,
+                "CASE WHEN price IS NOT NULL THEN true ELSE false END", name: "price_is_required")
+
+              constraint = @connection.check_constraints("trades").find { |c| c.name == "price_is_required" }
+              assert_includes constraint.expression, "WHEN price IS NOT NULL"
+            ensure
+              @connection.remove_check_constraint(:trades, name: "price_is_required", validate: false)
+            end
+          end
+        end
+
         if ActiveRecord::Base.lease_connection.supports_validate_constraints?
           def test_not_valid_check_constraint
             Trade.create(quantity: -1)
