@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/time"
+require "active_support/core_ext/string/starts_ends_with"
 
 module Rails
   module Generators
@@ -89,20 +90,24 @@ module Rails
           def parse_type_and_options(type)
             case type
             when /(text|binary)\{([a-z]+)\}/
-              return $1, size: $2.to_sym
+              parsed_type, parsed_options = $1, { size: $2.to_sym }
             when /(string|text|binary|integer)\{(\d+)\}/
-              return $1, limit: $2.to_i
+              parsed_type, parsed_options = $1, { limit: $2.to_i }
             when /decimal\{(\d+)[,.-](\d+)\}/
-              return :decimal, precision: $1.to_i, scale: $2.to_i
+              parsed_type, parsed_options = :decimal, { precision: $1.to_i, scale: $2.to_i }
             when /(references|belongs_to)\{(.+)\}/
-              type = $1
+              parsed_type = $1
               provided_options = $2.split(/[,.-]/)
-              options = Hash[provided_options.map { |opt| [opt.to_sym, true] }]
-
-              return type, options
+              parsed_options = Hash[provided_options.map { |opt| [opt.to_sym, true] }]
             else
-              return type, {}
+              parsed_type, parsed_options = type&.remove("!"), {}
             end
+
+            if type&.ends_with?("!")
+              parsed_options[:null] = false
+            end
+
+            return parsed_type, parsed_options
           end
       end
 
