@@ -103,7 +103,7 @@ module Rails
               parsed_type, parsed_options = type&.remove("!"), {}
             end
 
-            if type.ends_with?("!")
+            if type&.ends_with?("!")
               parsed_options[:null] = false
             end
 
