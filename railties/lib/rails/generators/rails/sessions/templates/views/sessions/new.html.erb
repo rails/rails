@@ -1,0 +1,15 @@
+<%% if alert = flash[:alert] %>
+  <div style="color:red"><%%= alert %></div>
+<%% end %>
+
+<%%= form_with url: session_url do |form| %>
+  <div>
+    <%%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %>
+  </div>
+
+  <div>
+    <%%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %>
+  </div>
+
+  <%%= form.submit "Sign in" %>
+<%% end %>

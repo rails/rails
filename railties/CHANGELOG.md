@@ -1,3 +1,22 @@
+*   Add sessions generator to give a basic start to an authentication system using database-tracked sessions.
+
+
+    # Generate with...
+    bin/rails sessions
+
+    # Generated files
+    app/models/current.rb
+    app/models/user.rb
+    app/models/session.rb
+    app/controllers/sessions_controller.rb
+    app/views/sessions/new.html.erb
+    db/migrate/xxxxxxx_create_users.rb
+    db/migrate/xxxxxxx_create_sessions.rb
+
+
+    *DHH*
+
+
 *   Add not-null type modifier to migration attributes.
 
 
