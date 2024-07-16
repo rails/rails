@@ -232,6 +232,10 @@ module Rails
       directory "public", "public", recursive: false
     end
 
+    def script
+      empty_directory_with_keep_file "script"
+    end
+
     def storage
       empty_directory_with_keep_file "storage"
       empty_directory_with_keep_file "tmp/storage"
@@ -443,6 +447,11 @@ module Rails
 
       def create_public_files
         build(:public_directory)
+      end
+
+      def create_script_folder
+        return if options[:dummy_app]
+        build(:script)
       end
 
       def create_tmp_files

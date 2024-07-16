@@ -1,0 +1,18 @@
+Description:
+    Generate a one-off or general purpose script, such as a data migration
+    script, cleanup script, etc.
+
+Example:
+    `bin/rails generate script my_script`
+
+    This will create:
+        script/my_script.rb
+
+    You can run the script using:
+        `ruby script/my_script.rb`
+
+    You can specify a folder:
+        `bin/rails generate script cleanup/my_script`
+
+    This will create:
+        script/cleanup/my_script.rb

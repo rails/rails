@@ -436,9 +436,6 @@ module ActiveRecord
         record      = association && association.load_target
         return unless record && !record.destroyed?
 
-        inverse_belongs_to_association = inverse_belongs_to_association_for(reflection, record)
-        return if inverse_belongs_to_association && inverse_belongs_to_association.updated?
-
         autosave = reflection.options[:autosave]
 
         if autosave && record.marked_for_destruction?
@@ -447,22 +444,27 @@ module ActiveRecord
           primary_key = Array(compute_primary_key(reflection, self)).map(&:to_s)
           primary_key_value = primary_key.map { |key| _read_attribute(key) }
 
-          if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, primary_key_value)
-            unless reflection.through_reflection
-              foreign_key = Array(reflection.foreign_key)
-              primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+          return unless (autosave && record.changed_for_autosave?) || (record_changed = _record_changed?(reflection, record, primary_key_value))
 
-              primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
-                association_id = _read_attribute(primary_key)
-                record[foreign_key] = association_id unless record[foreign_key] == association_id
-              end
-              association.set_inverse_instance(record)
-            end
-
-            saved = record.save(validate: !autosave)
-            raise ActiveRecord::Rollback if !saved && autosave
-            saved
+          unless record_changed
+            inverse_belongs_to_association = inverse_belongs_to_association_for(reflection, record)
+            return if inverse_belongs_to_association && inverse_belongs_to_association.updated?
           end
+
+          unless reflection.through_reflection
+            foreign_key = Array(reflection.foreign_key)
+            primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+
+            primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
+              association_id = _read_attribute(primary_key)
+              record[foreign_key] = association_id unless record[foreign_key] == association_id
+            end
+            association.set_inverse_instance(record)
+          end
+
+          saved = record.save(validate: !autosave)
+          raise ActiveRecord::Rollback if !saved && autosave
+          saved
         end
       end
 
