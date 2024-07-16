@@ -84,6 +84,19 @@ module ActiveRecord
   class ConnectionTimeoutError < ConnectionNotEstablished
   end
 
+  # Raised when a database connection pool is requested but
+  # has not been defined.
+  class ConnectionNotDefined < ConnectionNotEstablished
+    def initialize(message = nil, connection_name: nil, role: nil, shard: nil)
+      super(message)
+      @connection_name = connection_name
+      @role = role
+      @shard = shard
+    end
+
+    attr_reader :connection_name, :role, :shard
+  end
+
   # Raised when connection to the database could not been established because it was not
   # able to connect to the host or when the authorization failed.
   class DatabaseConnectionError < ConnectionNotEstablished

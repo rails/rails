@@ -1044,7 +1044,8 @@ module ActiveRecord
         end
 
         def retryable_connection_error?(exception)
-          exception.is_a?(ConnectionNotEstablished) || exception.is_a?(ConnectionFailed)
+          (exception.is_a?(ConnectionNotEstablished) && !exception.is_a?(ConnectionNotDefined)) ||
+            exception.is_a?(ConnectionFailed)
         end
 
         def invalidate_transaction(exception)

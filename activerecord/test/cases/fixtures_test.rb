@@ -1710,7 +1710,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
 
       setup_shared_connection_pool
 
-      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+      assert_raises(ActiveRecord::ConnectionNotDefined) do
         ActiveRecord::Base.connected_to(role: :reading, shard: :two) do
           ActiveRecord::Base.retrieve_connection
         end
@@ -1721,7 +1721,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       clean_up_connection_handler
       teardown_shared_connection_pool
 
-      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+      assert_raises(ActiveRecord::ConnectionNotDefined) do
         ActiveRecord::Base.connected_to(role: :reading) do
           ActiveRecord::Base.retrieve_connection
         end
