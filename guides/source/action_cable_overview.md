@@ -183,7 +183,7 @@ unsubscribing, or performing an action:
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
 typical MVC setup. By default, Rails creates a parent `ApplicationCable::Channel` class
-(which extends [`ActionCable::Channel::Base`][]) for encapsulating shared logic between your channels, 
+(which extends [`ActionCable::Channel::Base`][]) for encapsulating shared logic between your channels,
 when you use the channel generator for the first time.
 
 #### Parent Channel Setup
