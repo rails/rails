@@ -115,7 +115,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "config/initializers/assets.rb"
     assert_no_file "config/initializers/content_security_policy.rb"
-    assert_no_file "config/initializers/permissions_policy.rb"
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files
@@ -187,7 +186,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          bin/yarn
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
-         config/initializers/permissions_policy.rb
          lib/assets
          test/helpers
          public/404.html
