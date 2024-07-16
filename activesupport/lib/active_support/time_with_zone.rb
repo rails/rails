@@ -303,6 +303,13 @@ module ActiveSupport
         result = utc + other
         result.in_time_zone(time_zone)
       end
+    rescue TypeError
+      ActiveSupport.deprecator.warn(
+        "Do not add an instance of #{other.class} to an instance of #{utc.class}. This behaviour will raise " \
+        "in Rails 8.0."
+      )
+      result = utc.acts_like?(:date) ? utc.since(other) : utc + other rescue utc.since(other)
+      result.in_time_zone(time_zone)
     end
     alias_method :since, :+
     alias_method :in, :+
@@ -537,6 +544,7 @@ module ActiveSupport
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)
+      return false if sym.to_sym == :acts_like_date?
       time.respond_to?(sym, include_priv)
     end
 
