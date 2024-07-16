@@ -1,3 +1,9 @@
+*   Deprecate addition for `Time` instances with `ActiveSupport::TimeWithZone`.
+
+    Previously adding time instances together such as `10.days.ago + 10.days.ago` produced a nonsensical future date. This behavior is deprecated and will be removed in Rails 8.0.
+
+    *Nick Schwaderer*
+
 *   Optimize load time for `Railtie#initialize_i18n`. Filter `I18n.load_path`s passed to the file watcher to only those
     under `Rails.root`. Previously the watcher would grab all available locales, including those in gems
     which do not require a watcher because they won't change.
