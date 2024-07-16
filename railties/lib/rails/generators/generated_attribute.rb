@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/time"
+require "active_support/core_ext/string/starts_ends_with"
 
 module Rails
   module Generators
@@ -102,7 +103,7 @@ module Rails
               parsed_type, parsed_options = type&.remove("!"), {}
             end
 
-            if type =~ /!$/
+            if type.ends_with?("!")
               parsed_options[:null] = false
             end
 
