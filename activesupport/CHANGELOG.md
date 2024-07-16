@@ -1,3 +1,9 @@
+*   Deprecate addition for `Time` instances with `ActiveSupport::TimeWithZone`.
+
+    Previously adding time instances together such as `10.days.ago + 10.days.ago` produced a nonsensical future date. This behavior is deprecated and will be removed in Rails 8.0.
+
+    *Nick Schwaderer*
+
 *   Support rfc2822 format for Time#to_fs & Date#to_fs.
 
     *Akshay Birajdar*
