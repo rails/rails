@@ -586,11 +586,12 @@ unique, is not already in the database, follows a specific format, and many
 more.
 
 Methods like `save`, `create` and `update` validate a model before persisting it
-to the database. When a model is invalid these methods return `false` and no
-database operations are performed. All of these methods have a bang counterpart
-(that is, `save!`, `create!` and `update!`), which are stricter in that they
-raise an `ActiveRecord::RecordInvalid` exception when validation fails. A quick
-example to illustrate:
+to the database. If the model is invalid, no database operations are performed. In
+this case the `save` and `update` methods return `false`. The `create` method still
+returns the object, which can be checked for errors. All of these
+methods have a bang counterpart (that is, `save!`, `create!` and `update!`),
+which are stricter in that they raise an `ActiveRecord::RecordInvalid` exception
+when validation fails. A quick example to illustrate:
 
 ```ruby
 class User < ApplicationRecord
@@ -604,6 +605,16 @@ irb> user.save
 => false
 irb> user.save!
 ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+```
+
+The `create` method always returns the model, regardless of
+its validity. You can then inspect this model for any errors.
+
+```irb
+irb> user = User.create
+=> #<User:0x000000013e8b5008 id: nil, name: nil>
+irb> user.errors.full_messages
+=> ["Name can't be blank"]
 ```
 
 You can learn more about validations in the [Active Record Validations
