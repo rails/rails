@@ -1,3 +1,7 @@
+*   Fix non-GET requests not updating cookies in `ActionController::TestCase`.
+
+    *Jon Moss*, *Hartley McGuire*
+
 *   Update `ActionController::Live` to use a thread-pool to reuse threads across requests.
 
     *Adam Renberg Tamm*
