@@ -282,6 +282,12 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_since_with_instance_of_time_deprecated
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time.now.since(Time.now)
+    end
+  end
+
   def test_since
     assert_equal Time.local(2005, 2, 22, 10, 10, 11), Time.local(2005, 2, 22, 10, 10, 10).since(1)
     assert_equal Time.local(2005, 2, 22, 11, 10, 10), Time.local(2005, 2, 22, 10, 10, 10).since(3600)
