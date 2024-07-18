@@ -195,7 +195,7 @@ end
 When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
 To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model, in this case the Author model.
 
-NOTE: If `optional` is set to true in the model, then `belongs_to` does not guarantee reference consistency. This means that the foreign key in one table might not reliably point to a valid primary key in the referenced table.
+NOTE: By default `belongs_to` validates the presence of the association to guarantee reference consistency.<br/><br/>If `optional` is set to true in the model, then `belongs_to` does not guarantee reference consistency. This means that the foreign key in one table might not reliably point to a valid primary key in the referenced table.
 
 ```ruby
 class Book < ApplicationRecord
@@ -658,7 +658,7 @@ You'd use `has_and_belongs_to_many` when:
 - The association is simple and does not require additional attributes or behaviors on the join table.
 - You do not need validations, callbacks, or extra methods on the join table.
 
-Other Associations
+Advanced Associations
 -------------------------
 
 ### Polymorphic Associations
@@ -1521,30 +1521,6 @@ end
 ```
 
 When you execute `@user.todos.create`, the `@todo` record will have its `user_id` value set to the `guid` value of `@user`.
-
-##### `:inverse_of`
-
-The `:inverse_of` option specifies the name of the corresponding `has_many` or `has_one` association that acts as the inverse of this association. This helps Rails maintain consistency between the two sides of the association.
-
-For example:
-
-```ruby
-class Author < ApplicationRecord
-  has_many :books, inverse_of: :author
-end
-
-class Book < ApplicationRecord
-  belongs_to :author, inverse_of: :books
-end
-```
-
-In this example, `Author` has many `books`, and each `Book` belongs to an `Author`. The `:inverse_of` option ensures that Rails correctly sets up the bidirectional association, allowing efficient and accurate access to related objects. For more details, see the [bi-directional association](#bi-directional-associations) section.
-
-##### `:optional`
-
-If you set the `:optional` option to `true`, then the presence of the associated
-object won't be validated. By default, this option is set to `false`.
-
 
 ##### `:touch`
 
