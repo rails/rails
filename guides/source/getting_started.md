@@ -187,6 +187,7 @@ of the files and folders that Rails creates by default:
 |public/|Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
 |README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
+|script/|Contains one-off or general purpose [scripts](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/script/USAGE) and [benchmarks](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/benchmark/USAGE).|
 |storage/|Active Storage files for Disk Service. This is covered in [Active Storage Overview](active_storage_overview.html).|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
@@ -711,6 +712,7 @@ $ bin/rails routes
              POST   /articles(.:format)          articles#create
 edit_article GET    /articles/:id/edit(.:format) articles#edit
              PATCH  /articles/:id(.:format)      articles#update
+             PUT    /articles/:id(.:format)      articles#update
              DELETE /articles/:id(.:format)      articles#destroy
 ```
 

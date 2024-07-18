@@ -27,8 +27,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/Rakefile
   test/dummy/app/assets/images/.keep
   test/dummy/app/assets/stylesheets/application.css
-  test/dummy/app/channels/application_cable/channel.rb
-  test/dummy/app/channels/application_cable/connection.rb
   test/dummy/app/controllers/application_controller.rb
   test/dummy/app/controllers/concerns/.keep
   test/dummy/app/helpers/application_helper.rb
@@ -56,7 +54,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/initializers/content_security_policy.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
-  test/dummy/config/initializers/permissions_policy.rb
   test/dummy/config/locales/en.yml
   test/dummy/config/puma.rb
   test/dummy/config/routes.rb

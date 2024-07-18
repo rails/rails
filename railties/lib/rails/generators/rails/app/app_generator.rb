@@ -145,7 +145,6 @@ module Rails
       asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
-      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -178,10 +177,6 @@ module Rails
       if options[:api]
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
-        end
-
-        unless permissions_policy_config_exist
-          remove_file "config/initializers/permissions_policy.rb"
         end
       end
     end
@@ -232,6 +227,10 @@ module Rails
       directory "public", "public", recursive: false
     end
 
+    def script
+      empty_directory_with_keep_file "script"
+    end
+
     def storage
       empty_directory_with_keep_file "storage"
       empty_directory_with_keep_file "tmp/storage"
@@ -245,7 +244,6 @@ module Rails
       empty_directory_with_keep_file "test/helpers"
       empty_directory_with_keep_file "test/integration"
 
-      template "test/channels/application_cable/connection_test.rb"
       template "test/test_helper.rb"
     end
 
@@ -445,6 +443,11 @@ module Rails
         build(:public_directory)
       end
 
+      def create_script_folder
+        return if options[:dummy_app]
+        build(:script)
+      end
+
       def create_tmp_files
         build(:tmp)
       end
@@ -542,15 +545,12 @@ module Rails
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
           remove_dir "app/javascript/channels"
-          remove_dir "app/channels"
-          remove_dir "test/channels"
         end
       end
 
       def delete_non_api_initializers_if_api_option
         if options[:api]
           remove_file "config/initializers/content_security_policy.rb"
-          remove_file "config/initializers/permissions_policy.rb"
         end
       end
 

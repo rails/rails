@@ -19,8 +19,6 @@ DEFAULT_APP_FILES = %w(
   Rakefile
   app/assets/images/.keep
   app/assets/stylesheets/application.css
-  app/channels/application_cable/channel.rb
-  app/channels/application_cable/connection.rb
   app/controllers/application_controller.rb
   app/controllers/concerns/.keep
   app/helpers/application_helper.rb
@@ -53,7 +51,6 @@ DEFAULT_APP_FILES = %w(
   config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
-  config/initializers/permissions_policy.rb
   config/locales/en.yml
   config/master.key
   config/puma.rb
@@ -70,9 +67,9 @@ DEFAULT_APP_FILES = %w(
   public/icon.png
   public/icon.svg
   public/robots.txt
+  script/.keep
   storage/.keep
   test/application_system_test_case.rb
-  test/channels/application_cable/connection_test.rb
   test/controllers/.keep
   test/fixtures/files/.keep
   test/helpers/.keep
@@ -244,7 +241,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.action_cable/, content)
     end
-    assert_no_file "test/channels/application_cable/connection_test.rb"
   end
 
   def test_app_update_does_not_generate_bootsnap_contents_when_skip_bootsnap_is_given
@@ -1048,6 +1044,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       lib/tasks
       lib/assets
       log
+      script
       test/fixtures/files
       test/controllers
       test/mailers

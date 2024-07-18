@@ -210,18 +210,25 @@ module ActiveRecord
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
       def retrieve_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard, strict: false)
-        pool = get_pool_manager(connection_name)&.get_pool_config(role, shard)&.pool
+        pool_manager = get_pool_manager(connection_name)
+        pool = pool_manager&.get_pool_config(role, shard)&.pool
 
         if strict && !pool
-          if shard != ActiveRecord::Base.default_shard
-            message = "No connection pool for '#{connection_name}' found for the '#{shard}' shard."
-          elsif role != ActiveRecord::Base.default_role
-            message = "No connection pool for '#{connection_name}' found for the '#{role}' role."
-          else
-            message = "No connection pool for '#{connection_name}' found."
-          end
+          selector = [
+            ("'#{shard}' shard" unless shard == ActiveRecord::Base.default_shard),
+            ("'#{role}' role" unless role == ActiveRecord::Base.default_role),
+          ].compact.join(" and ")
 
-          raise ConnectionNotEstablished, message
+          selector = [
+            (connection_name unless connection_name == "ActiveRecord::Base"),
+            selector.presence,
+          ].compact.join(" with ")
+
+          selector = " for #{selector}" if selector.present?
+
+          message = "No database connection defined#{selector}."
+
+          raise ConnectionNotDefined.new(message, connection_name: connection_name, shard: shard, role: role)
         end
 
         pool

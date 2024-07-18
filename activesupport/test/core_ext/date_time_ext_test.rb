@@ -21,6 +21,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "21 Feb 14:30",                        datetime.to_fs(:short)
     assert_equal "February 21, 2005 14:30",             datetime.to_fs(:long)
     assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",     datetime.to_fs(:rfc822)
+    assert_equal "Mon, 21 Feb 2005 14:30:00 +0000",     datetime.to_fs(:rfc2822)
     assert_equal "February 21st, 2005 14:30",           datetime.to_fs(:long_ordinal)
     assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,    datetime.to_fs)
     assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/,    datetime.to_fs(:not_existent))
