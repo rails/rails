@@ -43,7 +43,7 @@ class CreateAuthors < ActiveRecord::Migration[7.2]
       t.string :name
       t.timestamps
     end
-    
+
     create_table :books do |t|
       t.belongs_to :author
       t.datetime :published_at
@@ -1704,7 +1704,7 @@ Assigning an object to a `belongs_to` association does _not_ automatically save 
 
 The `has_one` association creates a one-to-one match with another model. In database terms, this association says that the other class contains the foreign key. If this class contains the foreign key, then you should use `belongs_to` instead.
 
-#### Methods Added by `has_one`
+#### Methods Added by [`has_one`](#has-one)
 
 When you declare a `has_one` association,  the declaring class automatically gains numerous methods related to the association. Some of these include:
 
@@ -1814,7 +1814,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-The [`has`][] association supports numerous options which you can read more about in the [`Options` section of the ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one). We'll discuss some of the common use cases below.
+The [`has_one`](#has-one) association supports numerous options which you can read more about in the [`Options` section of the ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one). We'll discuss some of the common use cases below.
 
 ##### `:class_name`
 
@@ -1837,10 +1837,10 @@ Controls what happens to the associated object when its owner is destroyed:
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
 
-It's necessary not to set or leave `:nullify` option for those associations
-that have `NOT NULL` database constraints. If you don't set `dependent` to
-destroy such associations you won't be able to change the associated object
-because the initial associated object's foreign key will be set to `NULL` value.
+Ensure you do not set or leave the `:nullify` option for associations that have
+`NOT NULL` database constraints. Failing to set `dependent` to destroy these
+associations will prevent you from changing the associated object because the
+foreign key of the initial associated object will be set to `NULL`.
 
 ##### `:foreign_key`
 
@@ -2305,7 +2305,7 @@ record's `user_id` value will be the `guid` value of `@user`.
 
 ##### `:source_type`
 
-The `:source_type` option specifies the source association type for a `has_many :through` association that proceeds through a polymorphic association.
+The `:source_type` option specifies the source association type for a `has_many :through` association that proceeds through a [polymorphic association](#polymorphic-associations).
 
 ```ruby
 class Author < ApplicationRecord
@@ -2871,7 +2871,7 @@ If you want to assign an object to a `has_and_belongs_to_many` association witho
 
 ### Association Callbacks
 
-Normal callbacks hook into the life cycle of Active Record objects, allowing you to work with those objects at various points. For example, you can use a `:before_save` callback to cause something to happen just before an object is saved.
+[Normal callbacks](active_record_callbacks.html) hook into the life cycle of Active Record objects, allowing you to work with those objects at various points. For example, you can use a `:before_save` callback to cause something to happen just before an object is saved.
 
 Association callbacks are similar to normal callbacks, but they are triggered by events in the life cycle of a collection associated with an Active Record object. There are four available association callbacks:
 
@@ -2900,7 +2900,7 @@ Read more about association callbacks in the [Active Record Callbacks Guide](act
 
 ### Association Extensions
 
-Rails allows you to extend the functionality of association proxy objects by adding new finders, creators, or other methods through anonymous modules. This gives you the flexibility to tailor associations to fit your application's needs.
+Rails allows you to extend the functionality of the objects that manage associations (known as association proxy objects) by adding new finders, creators, or other methods through anonymous modules. This gives you the flexibility to tailor associations to fit your application's needs.
 
 For example, you can extend a `has_many` association with custom methods:
 
