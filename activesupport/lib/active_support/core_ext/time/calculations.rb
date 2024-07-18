@@ -217,7 +217,11 @@ class Time
   # Returns a new Time representing the time a number of seconds since the instance time
   def since(seconds)
     self + seconds
-  rescue
+  rescue TypeError
+    ActiveSupport.deprecator.warn(
+      "Passing an instance of #{seconds.class} to #{self.class}#since is deprecated. This behavior will raise " \
+      "a `TypeError` in Rails 8.1."
+    )
     to_datetime.since(seconds)
   end
   alias :in :since
