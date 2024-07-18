@@ -1,3 +1,11 @@
+*   Add support for SQLite3 full-text-search and other virtual tables.
+
+    Previously, adding sqlite3 virtual tables messed up `schema.rb`.
+
+    Now, virtual tables can safely be added using `create_virtual_table`.
+
+    *Zacharias Knudsen*
+
 *   Raise specific exception when a connection is not defined.
 
      The new `ConnectionNotDefined` exception provides connection name, shard and role accessors indicating the details of the connection that was requested.
