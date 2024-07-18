@@ -1676,6 +1676,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_initialize_by(name: "bob", color: "blue")
   end
 
+  def test_find_or_initialize_by_with_cpk_association
+    order1 = Cpk::Order.create!(id: [1, 1])
+    order2 = Cpk::Order.create!(id: [1, 2])
+    Cpk::Book.create!(id: [2, 1], order: order1)
+    book = Cpk::Book.find_or_initialize_by(order: order2)
+    assert_equal order2, book.order
+  end
+
   def test_explicit_create_with
     hens = Bird.where(name: "hen")
     assert_equal "hen", hens.new.name
