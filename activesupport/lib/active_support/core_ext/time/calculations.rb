@@ -218,11 +218,12 @@ class Time
   def since(seconds)
     self + seconds
   rescue TypeError
+    result = to_datetime.since(seconds)
     ActiveSupport.deprecator.warn(
       "Passing an instance of #{seconds.class} to #{self.class}#since is deprecated. This behavior will raise " \
       "a `TypeError` in Rails 8.1."
     )
-    to_datetime.since(seconds)
+    result
   end
   alias :in :since
 
