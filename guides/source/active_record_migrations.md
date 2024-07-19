@@ -150,7 +150,7 @@ $ bin/rails generate migration CreateProducts name:string part_number:string
 generates
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.0]
+class CreateProducts < ActiveRecord::Migration[7.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -441,7 +441,7 @@ you. You can change the name of the column with the `:primary_key` option, like
 below:
 
 ```ruby
-class CreateUsers < ActiveRecord::Migration[8.0]
+class CreateUsers < ActiveRecord::Migration[7.2]
   def change
     create_table :users, primary_key: "user_id" do |t|
       t.string :username
@@ -467,7 +467,7 @@ You can also pass an array to `:primary_key` for a composite primary key. Read
 more about [composite primary keys](active_record_composite_primary_keys.html).
 
 ```ruby
-class CreateUsers < ActiveRecord::Migration[8.0]
+class CreateUsers < ActiveRecord::Migration[7.2]
   def change
     create_table :users, primary_key: [:id, :name] do |t|
       t.string :name
@@ -481,7 +481,7 @@ end
 If you don't want a primary key at all, you can pass the option `id: false`.
 
 ```ruby
-class CreateUsers < ActiveRecord::Migration[8.0]
+class CreateUsers < ActiveRecord::Migration[7.2]
   def change
     create_table :users, id: false do |t|
       t.string :username
@@ -529,7 +529,7 @@ with large databases. Currently only the MySQL and PostgreSQL adapters support
 comments.
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[8.0]
+class AddDetailsToProducts < ActiveRecord::Migration[7.2]
   def change
     add_column :products, :price, :decimal, precision: 8, scale: 2, comment: "The price of the product in USD"
     add_column :products, :stock_quantity, :integer, comment: "The current stock quantity of the product"
@@ -814,7 +814,7 @@ If the helpers provided by Active Record aren't enough, you can use the
 [`execute`][] method to execute SQL commands. For example,
 
 ```ruby
-class UpdateProductPrices < ActiveRecord::Migration[8.0]
+class UpdateProductPrices < ActiveRecord::Migration[7.2]
   def up
     execute "UPDATE products SET price = 'free'"
   end
@@ -935,7 +935,7 @@ how to reverse, then you can use `reversible` to specify what to do when running
 a migration and what else to do when reverting it.
 
 ```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[8.0]
+class ChangeProductsPrice < ActiveRecord::Migration[7.2]
   def change
     reversible do |direction|
       change_table :products do |t|
@@ -954,7 +954,7 @@ to an integer when the migration is reverted. Notice the block being passed to
 Alternatively, you can use `up` and `down` instead of `change`:
 
 ```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[8.0]
+class ChangeProductsPrice < ActiveRecord::Migration[7.2]
   def up
     change_table :products do |t|
       t.change :price, :string
@@ -1063,7 +1063,7 @@ In such cases, you can raise `ActiveRecord::IrreversibleMigration` in your
 `down` block.
 
 ```ruby
-class IrreversibleMigrationExample < ActiveRecord::Migration[8.0]
+class IrreversibleMigrationExample < ActiveRecord::Migration[7.2]
   def up
     drop_table :example_table
   end
@@ -1228,7 +1228,7 @@ these situations you can turn the automatic transactions off with
 `disable_ddl_transaction!`:
 
 ```ruby
-class ChangeEnum < ActiveRecord::Migration[8.0]
+class ChangeEnum < ActiveRecord::Migration[7.2]
   disable_ddl_transaction!
 
   def up
@@ -1714,7 +1714,7 @@ to enable the pgcrypto extension to access the `gen_random_uuid()` function.
     ```
 
     ```ruby
-    class CreateAuthors < ActiveRecord::Migration[8.0]
+    class CreateAuthors < ActiveRecord::Migration[7.2]
       def change
         create_table :authors, id: :uuid do |t|
           t.timestamps
