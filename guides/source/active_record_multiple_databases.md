@@ -392,7 +392,7 @@ If building multiple relations within the block, you may be surprised to see tha
 against the expected role.
 
 ```ruby
-ApplicationRecord.connected_to(role: :reading) do
+ActiveRecord::Base.connected_to(role: :reading) do
   @people = Person.all # Reads from writing role.
   @dogs = Dog.all # Reads from reading role.
 end
