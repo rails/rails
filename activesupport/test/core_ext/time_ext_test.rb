@@ -519,6 +519,16 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_change_preserves_fractional_seconds_on_zoned_time
+    with_tz_default "US/Eastern" do
+      time = Time.new(2005, 10, 30, 00, 00, 0.99r, Time.zone) + 0
+      time2 = time.change(month: 1)
+
+      assert_equal "2005-10-30 00:00:00.99 -0400", time.inspect
+      assert_equal "2005-01-30 00:00:00.99 -0500", time2.inspect
+    end
+  end
+
   def test_change_preserves_fractional_hour_offset_for_local_times_around_end_of_dst
     with_env_tz "Australia/Lord_Howe" do
       # DST ended just before 2005-03-27 2:00:00 AM in Australia/Lord_Howe, and

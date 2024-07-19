@@ -147,6 +147,13 @@ class Time
     elsif zone.respond_to?(:utc_to_local)
       new_time = ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, zone)
 
+      # Some versions of Ruby have a bug where Time.new with a zone object and
+      # fractional seconds will end up with a broken utc_offset.
+      # This is fixed in Ruby 3.3.1 and 3.2.4
+      unless new_time.utc_offset.integer?
+        new_time += 0
+      end
+
       # When there are two occurrences of a nominal time due to DST ending,
       # `Time.new` chooses the first chronological occurrence (the one with a
       # larger UTC offset). However, for `change`, we want to choose the
