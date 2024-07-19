@@ -400,6 +400,22 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal [0, 0, 19, 31, 12, -8001], (twz - 10_000.years).to_a[0, 6]
   end
 
+  def test_plus_two_time_instances_raises_deprecation_warning
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), @time_zone)
+    assert_deprecated(ActiveSupport.deprecator) do
+      twz + 10.days.ago
+    end
+  end
+
+  def test_plus_with_invalid_argument
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), @time_zone)
+    assert_not_deprecated(ActiveSupport.deprecator) do
+      assert_raises TypeError do
+        twz + Object.new
+      end
+    end
+  end
+
   def test_plus_with_duration
     assert_equal Time.utc(2000, 1, 5, 19, 0, 0), (@twz + 5.days).time
   end
