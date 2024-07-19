@@ -37,7 +37,7 @@ module Authentication
 
     def request_authentication
       session[:return_to_after_authenticating] = request.url
-      redirect_to new_session_url
+      redirect_to new_session_url, alert: "Please log in to continue."
     end
 
     def after_authentication_url
