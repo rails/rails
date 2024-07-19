@@ -387,6 +387,19 @@ The "role" in the `connected_to` call looks up the connections that are connecte
 connection handler (or role). The `reading` connection handler will hold all the connections
 that were connected via `connects_to` with the role name of `reading`.
 
+Note that when a `connected_to` block returns a relation, the query will be executed by calling `return_value.load`.
+If building multiple relations within the block, you may be surprised to see that only the last relationship is executed
+against the expected role.
+
+```ruby
+ApplicationRecord.connected_to(role: :reading) do
+  @people = Person.all # Reads from writing role.
+  @dogs = Dog.all # Reads from reading role.
+end
+```
+
+Explicitly calling `Person.all.load` would execute the query against the expected role, however.
+
 Note that `connected_to` with a role will look up an existing connection and switch
 using the connection specification name. This means that if you pass an unknown role
 like `connected_to(role: :nonexistent)` you will get an error that says
