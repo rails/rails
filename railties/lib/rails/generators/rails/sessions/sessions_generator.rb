@@ -16,7 +16,7 @@ module Rails
 
       def configure_application
         gsub_file "app/controllers/application_controller.rb", /(class ApplicationController < ActionController::Base)/, "\\1\n  include Authentication"
-        route "resource :session"
+        route "resource :session, only: %i[new create destroy]"
       end
 
       def enable_bcrypt
