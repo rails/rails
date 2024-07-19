@@ -133,6 +133,17 @@ module ActiveRecord
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
     #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
+    #
+    # Note that when a `connected_to` block returns a relation, the query will be executed by calling `return_value.load`.
+    # If building multiple relations within the block, you may be surprised to see that only the last relationship is executed
+    # against the expected role.
+    #
+    #   ApplicationRecord.connected_to(role: :reading) do
+    #     @people = Person.all # Reads from writing role.
+    #     @dogs = Dog.all # Reads from reading role.
+    #   end
+    #
+    # Explicitly calling `Person.all.load` would execute the query against the expected role, however.
     def connected_to(role: nil, shard: nil, prevent_writes: false, &blk)
       if self != Base && !abstract_class
         raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
