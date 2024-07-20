@@ -1023,6 +1023,7 @@ class HashToXmlTest < ActiveSupport::TestCase
     expected =
       case ActiveSupport::XmlMini.backend.name
       when "ActiveSupport::XmlMini_REXML";        RuntimeError
+      when "ActiveSupport::XmlMini_REXMLSAX";     RuntimeError
       when "ActiveSupport::XmlMini_Nokogiri";     Nokogiri::XML::SyntaxError
       when "ActiveSupport::XmlMini_NokogiriSAX";  RuntimeError
       when "ActiveSupport::XmlMini_LibXML";       LibXML::XML::Error

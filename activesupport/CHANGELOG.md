@@ -1,3 +1,7 @@
+*   Support `REXMLSAX` backend in `ActiveSupport::XmlMini`.
+
+    *NAITOH Jun*
+
 *   Deprecate addition and since between two `Time` and `ActiveSupport::TimeWithZone`.
 
     Previously adding time instances together such as `10.days.ago + 10.days.ago` or `10.days.ago.since(10.days.ago)` produced a nonsensical future date. This behavior is deprecated and will be removed in Rails 8.1.
