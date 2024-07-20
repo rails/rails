@@ -2,8 +2,9 @@ class SessionsController < ApplicationController
   allow_unauthenticated_access
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_url, alert: "Try again later." }
 
+  before_action :redirect_on_resumable_session, only: %i[ new create ]
+
   def new
-    redirect_to root_url if authenticated?
   end
 
   def create
@@ -19,4 +20,9 @@ class SessionsController < ApplicationController
     terminate_session
     redirect_to new_session_url
   end
+
+  private
+    def redirect_on_resumable_session
+      redirect_to root_url if resume_session
+    end
 end
