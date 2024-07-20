@@ -11,8 +11,7 @@ require "active_job/exceptions"
 require "active_job/log_subscriber"
 require "active_job/logging"
 require "active_job/instrumentation"
-require "active_job/timezones"
-require "active_job/translation"
+require "active_job/timezones_and_translation"
 
 module ActiveJob # :nodoc:
   # = Active Job \Base
@@ -71,8 +70,7 @@ module ActiveJob # :nodoc:
     include Exceptions
     include Instrumentation
     include Logging
-    include Timezones
-    include Translation
+    include TimezonesAndTranslation
 
     ActiveSupport.run_load_hooks(:active_job, self)
   end
