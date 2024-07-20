@@ -5,6 +5,8 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+    environment:
+      WEB_CONSOLE_ALLOWED_IPS: "172.16.0.0/12,192.168.0.0/16"
 
     volumes:
     - ../..:/workspaces:cached
