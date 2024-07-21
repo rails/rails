@@ -1595,6 +1595,12 @@ module ActionView
           html_options = options.slice(:id, :class, :multipart, :method, :data, :authenticity_token).merge!(html)
           html_options[:remote] = html.delete(:remote) || !local
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
+
+          if namespace = options[:namespace]
+            html_options[:id] = [namespace, html_options[:id]].compact.join("_")
+            html_options[:class] = [namespace, html_options[:class]].compact.join("_")
+          end
+          
           if skip_enforcing_utf8.nil?
             if options.key?(:enforce_utf8)
               html_options[:enforce_utf8] = options[:enforce_utf8]
