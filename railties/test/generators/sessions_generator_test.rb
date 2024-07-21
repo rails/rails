@@ -27,8 +27,10 @@ class SessionsGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/current.rb"
     assert_file "app/models/session.rb"
     assert_file "app/controllers/sessions_controller.rb"
+    assert_file "app/controllers/registrations_controller.rb"
     assert_file "app/controllers/concerns/authentication.rb"
     assert_file "app/views/sessions/new.html.erb"
+    assert_file "app/views/registrations/new.html.erb"
 
     assert_file "app/controllers/application_controller.rb" do |content|
       assert_match(/include Authentication/, content)
@@ -40,6 +42,7 @@ class SessionsGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/routes.rb" do |content|
       assert_match(/resource :session/, content)
+      assert_match(/resource :registration, only: %i\[ new create \]/, content)
     end
 
     assert_migration "db/migrate/create_sessions.rb" do |content|

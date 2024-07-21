@@ -12,11 +12,13 @@ module Rails
         template "controllers/concerns/authentication.rb", File.join("app/controllers/concerns/authentication.rb")
 
         template "views/sessions/new.html.erb", File.join("app/views/sessions/new.html.erb")
+        template "views/registrations/new.html.erb", File.join("app/views/registrations/new.html.erb")
       end
 
       def configure_application
         gsub_file "app/controllers/application_controller.rb", /(class ApplicationController < ActionController::Base)/, "\\1\n  include Authentication"
         route "resource :session"
+        route "resource :registration, only: %i[ new create ]"
       end
 
       def enable_bcrypt
