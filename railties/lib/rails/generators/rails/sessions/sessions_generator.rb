@@ -9,6 +9,7 @@ module Rails
         template "models/current.rb", File.join("app/models/current.rb")
 
         template "controllers/sessions_controller.rb", File.join("app/controllers/sessions_controller.rb")
+        template "controllers/registrations_controller.rb", File.join("app/controllers/registrations_controller.rb")
         template "controllers/concerns/authentication.rb", File.join("app/controllers/concerns/authentication.rb")
 
         template "views/sessions/new.html.erb", File.join("app/views/sessions/new.html.erb")
