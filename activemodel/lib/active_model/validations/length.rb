@@ -10,7 +10,12 @@ module ActiveModel
       MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long }.freeze
       CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
 
-      RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long]
+      RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long, :wrong_length]
+
+      VALID_OPTIONS = CHECKS.keys +
+                      RESERVED_OPTIONS +
+                      ActiveModel::Error::CALLBACKS_OPTIONS +
+                      ActiveModel::Error::MESSAGE_OPTIONS
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
@@ -27,15 +32,16 @@ module ActiveModel
       end
 
       def check_validity!
-        keys = CHECKS.keys & options.keys
+        keys = options.keys
+        unexpected_keys = keys - VALID_OPTIONS
 
-        if keys.empty?
+        length_keys = CHECKS.keys & keys
+        if length_keys.empty? || !unexpected_keys.empty?
           raise ArgumentError, "Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option."
         end
 
-        keys.each do |key|
+        length_keys.each do |key|
           value = options[key]
-
           unless (value.is_a?(Integer) && value >= 0) ||
                   value == Float::INFINITY || value == -Float::INFINITY ||
                   value.is_a?(Symbol) || value.is_a?(Proc)

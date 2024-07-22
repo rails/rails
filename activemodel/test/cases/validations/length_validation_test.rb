@@ -496,4 +496,9 @@ class LengthValidationTest < ActiveModel::TestCase
     t.title = ""
     assert_predicate t, :valid?
   end
+  def test_typo_in_length_options_raises_error
+    assert_raise(ArgumentError) { Topic.validates_length_of :title, minium: 5, maximum: 10 }
+    assert_raise(ArgumentError) { Topic.validates_length_of :title, mimum: 5, maximum: 10 }
+    assert_raise(ArgumentError) { Topic.validates_length_of :title, mimum: 5, maxium: 10 }
+  end
 end
