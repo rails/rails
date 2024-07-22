@@ -944,6 +944,31 @@ message.images.with_all_variant_records.each do |file|
 end
 ```
 
+#### Preprocessing variants
+
+Recall that you can define specific variants for an attachment:
+
+```ruby
+class Message < ApplicationRecord
+  has_many_attached :images do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+end
+```
+
+If you know that a variant will get used, you can preprocess it:
+
+```ruby
+class Message < ApplicationRecord
+  has_many_attached :images do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+  end
+end
+```
+
+When the file is uploaded, a `thumb` variant will be generated as a background job.
+Thus, the first time the variant is accessed via an `image_tag`, it should already be available.
+
 [`config.active_storage.track_variants`]: configuring.html#config-active-storage-track-variants
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
 [`ActiveStorage::Attachment`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html
