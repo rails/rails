@@ -1068,7 +1068,7 @@ directly from the client to the cloud.
 
 To make direct uploads to a third-party service work, you’ll need to configure the service to allow cross-origin requests from your app. Consult the CORS documentation for your service:
 
-* [S3](https://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html#how-do-i-enable-cors)
+* [S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/enabling-cors-examples.html)
 * [Google Cloud Storage](https://cloud.google.com/storage/docs/configuring-cors)
 * [Azure Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services)
 
