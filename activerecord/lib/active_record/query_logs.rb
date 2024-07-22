@@ -72,14 +72,70 @@ module ActiveRecord
   #
   #    config.active_record.cache_query_log_tags = true
   module QueryLogs
-    mattr_accessor :taggings, instance_accessor: false, default: {}
-    mattr_accessor :tags, instance_accessor: false, default: [ :application ]
-    mattr_accessor :prepend_comment, instance_accessor: false, default: false
-    mattr_accessor :cache_query_log_tags, instance_accessor: false, default: false
-    mattr_accessor :tags_formatter, instance_accessor: false
+    class GetKeyHandler # :nodoc:
+      def initialize(name)
+        @name = name
+      end
+
+      def call(context)
+        context[@name]
+      end
+    end
+
+    class IdentityHandler # :nodoc:
+      def initialize(value)
+        @value = value
+      end
+
+      def call(_context)
+        @value
+      end
+    end
+
+    class ZeroArityHandler # :nodoc:
+      def initialize(proc)
+        @proc = proc
+      end
+
+      def call(_context)
+        @proc.call
+      end
+    end
+
+    @taggings = {}
+    @tags = [ :application ]
+    @prepend_comment = false
+    @cache_query_log_tags = false
+    @tags_formatter = false
+
     thread_mattr_accessor :cached_comment, instance_accessor: false
 
     class << self
+      attr_reader :tags, :taggings, :tags_formatter # :nodoc:
+      attr_accessor :prepend_comment, :cache_query_log_tags # :nodoc:
+
+      def taggings=(taggings) # :nodoc:
+        @taggings = taggings
+        @handlers = rebuild_handlers
+      end
+
+      def tags=(tags) # :nodoc:
+        @tags = tags
+        @handlers = rebuild_handlers
+      end
+
+      def tags_formatter=(format) # :nodoc:
+        @tags_formatter = format
+        @formatter = case format
+        when :legacy
+          LegacyFormatter
+        when :sqlcommenter
+          SQLCommenter
+        else
+          raise ArgumentError, "Formatter is unsupported: #{format}"
+        end
+      end
+
       def call(sql, connection) # :nodoc:
         comment = self.comment(connection)
 
@@ -94,19 +150,6 @@ module ActiveRecord
 
       def clear_cache # :nodoc:
         self.cached_comment = nil
-      end
-
-      # Updates the formatter to be what the passed in format is.
-      def update_formatter(format)
-        self.tags_formatter =
-          case format
-          when :legacy
-            LegacyFormatter.new
-          when :sqlcommenter
-            SQLCommenter.new
-          else
-            raise ArgumentError, "Formatter is unsupported: #{formatter}"
-          end
       end
 
       if Thread.respond_to?(:each_caller_location)
@@ -126,6 +169,36 @@ module ActiveRecord
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
 
       private
+        def rebuild_handlers
+          handlers = []
+          @tags.each do |i|
+            if i.is_a?(Hash)
+              i.each do |k, v|
+                handlers << [k, build_handler(k, v)]
+              end
+            else
+              handlers << [i, build_handler(i)]
+            end
+          end
+          handlers.sort_by! { |(key, _)| key.to_s }
+          handlers
+        end
+
+        def build_handler(name, handler = nil)
+          handler ||= @taggings[name]
+          if handler.nil?
+            GetKeyHandler.new(name)
+          elsif handler.respond_to?(:call)
+            if handler.arity == 0
+              ZeroArityHandler.new(handler)
+            else
+              handler
+            end
+          else
+            IdentityHandler.new(handler)
+          end
+        end
+
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
         def comment(connection)
@@ -134,10 +207,6 @@ module ActiveRecord
           else
             uncached_comment(connection)
           end
-        end
-
-        def formatter
-          self.tags_formatter || self.update_formatter(:legacy)
         end
 
         def uncached_comment(connection)
@@ -165,25 +234,15 @@ module ActiveRecord
           context = ActiveSupport::ExecutionContext.to_h
           context[:connection] ||= connection
 
-          pairs = tags.flat_map { |i| [*i] }.filter_map do |tag|
-            key, handler = tag
-            handler ||= taggings[key]
-
-            val = if handler.nil?
-              context[key]
-            elsif handler.respond_to?(:call)
-              if handler.arity == 0
-                handler.call
-              else
-                handler.call(context)
-              end
-            else
-              handler
-            end
-            [key, val] unless val.nil?
+          pairs = @handlers.filter_map do |(key, handler)|
+            val = handler.call(context)
+            @formatter.format(key, val) unless val.nil?
           end
-          self.formatter.format(pairs)
+          @formatter.join(pairs)
         end
     end
+
+    @handlers = rebuild_handlers
+    self.tags_formatter = :legacy
   end
 end

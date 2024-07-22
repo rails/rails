@@ -33,7 +33,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
     ActiveRecord::QueryLogs.clear_cache
-    ActiveRecord::QueryLogs.update_formatter(:legacy)
+    ActiveRecord::QueryLogs.tags_formatter = :legacy
 
     # ActiveSupport::ExecutionContext context is automatically reset in Rails app via an executor hooks set in railtie
     # But not in Active Record's own test suite.
@@ -45,7 +45,8 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   def test_escaping_good_comment_with_custom_separator
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
+
     assert_equal "app='foo'", ActiveRecord::QueryLogs.send(:escape_sql_comment, "app='foo'")
   end
 
@@ -183,7 +184,8 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   def test_sql_commenter_format
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
+
     assert_queries_match(%r{/\*application='active_record'\*/}) do
       Dashboard.first
     end
@@ -211,13 +213,13 @@ class QueryLogsTest < ActiveRecord::TestCase
       { custom_proc: -> { "test content" }, another_proc: -> { "more test content" } },
     ]
 
-    assert_queries_match(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/}) do
+    assert_queries_match(%r{/\*another_proc:more test content,application:active_record,custom_proc:test content\*/}) do
       Dashboard.first
     end
   end
 
   def test_sqlcommenter_format_value
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
 
     ActiveRecord::QueryLogs.tags = [
       :application,
@@ -230,7 +232,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   def test_sqlcommenter_format_allows_string_keys
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
 
     ActiveRecord::QueryLogs.tags = [
       :application,
@@ -247,7 +249,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   def test_sqlcommenter_format_value_string_coercible
-    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
 
     ActiveRecord::QueryLogs.tags = [
       :application,
