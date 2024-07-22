@@ -1405,14 +1405,14 @@ module ActionDispatch
         #
         #         resources :posts, path_names: { new: "brand_new" }
         #
-        #     The above example will now change /posts/new to /posts/brand_new.
+        # :   The above example will now change /posts/new to /posts/brand_new.
         #
         # :path
         # :   Allows you to change the path prefix for the resource.
         #
         #         resources :posts, path: 'postings'
         #
-        #     The resource and all segments will now route to /postings instead of
+        # :   The resource and all segments will now route to /postings instead of
         #     /posts.
         #
         # :only
@@ -1435,14 +1435,14 @@ module ActionDispatch
         #           resources :comments
         #         end
         #
-        #     Is the same as:
+        # :   Is the same as:
         #
         #         resources :posts do
         #           resources :comments, except: [:show, :edit, :update, :destroy]
         #         end
         #         resources :comments, only: [:show, :edit, :update, :destroy]
         #
-        #     This allows URLs for resources that otherwise would be deeply nested such
+        # :   This allows URLs for resources that otherwise would be deeply nested such
         #     as a comment on a blog post like `/posts/a-long-permalink/comments/1234`
         #     to be shortened to just `/comments/1234`.
         #
@@ -1458,7 +1458,7 @@ module ActionDispatch
         #           end
         #         end
         #
-        #     The `comments` resource here will have the following routes generated for
+        # :   The `comments` resource here will have the following routes generated for
         #     it:
         #
         #         post_comments    GET       /posts/:post_id/comments(.:format)
@@ -1478,7 +1478,7 @@ module ActionDispatch
         #           end
         #         end
         #
-        #     The `comments` resource here will have the following routes generated for
+        # :   The `comments` resource here will have the following routes generated for
         #     it:
         #
         #         post_comments           GET       /posts/:post_id/comments(.:format)
@@ -1499,7 +1499,7 @@ module ActionDispatch
         #
         # ### Examples
         #
-        #     # routes call +Admin::PostsController+
+        #     # routes call Admin::PostsController
         #     resources :posts, module: "admin"
         #
         #     # resource actions are at /admin/posts.
