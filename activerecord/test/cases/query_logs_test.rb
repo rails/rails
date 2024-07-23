@@ -185,6 +185,7 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_sql_commenter_format
     ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
+    ActiveRecord::QueryLogs.tags = [:application, {}]
 
     assert_queries_match(%r{/\*application='active_record'\*/}) do
       Dashboard.first
