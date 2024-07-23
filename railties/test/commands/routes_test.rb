@@ -403,12 +403,6 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
     assert_includes(output, "No unused routes found.")
   end
 
-  test "route source locations aren't included when booted normally" do
-    output = rails "runner", "print !!ActionDispatch::Routing::Mapper.route_source_locations"
-
-    assert_equal("false", output)
-  end
-
   private
     def run_routes_command(args = [])
       rails "routes", args

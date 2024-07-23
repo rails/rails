@@ -54,11 +54,6 @@
 
     *Jerome Dalbert*, *Haroon Ahmed*
 
-*   Enable tracking route source locations only when using routes command. Previously,
-    it was enabled in development mode, but is only needed for `bin/rails routes -E`.
-
-    *Gannon McGibbon*
-
 *   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
 
     *Juan Vásquez*
