@@ -88,7 +88,7 @@ module Rails
       # defaults for versions prior to the target version. See the
       # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
       # for the default values associated with a particular version.
-      def load_defaults(target_version)
+      def load_defaults(target_version, warning: true)
         # To introduce a change in behavior, follow these steps:
         # 1. Add an accessor on the target object (e.g. the ActiveJob class for
         #    global Active Job config).
@@ -349,6 +349,10 @@ module Rails
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
+        end
+
+        if target_version.to_f != Rails::VERSION::STRING.to_f && warning
+          warn "config.load_defaults #{target_version} was called, but the current version is #{Rails::VERSION::STRING}. "
         end
 
         @loaded_config_version = target_version
