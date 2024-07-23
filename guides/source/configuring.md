@@ -2130,6 +2130,13 @@ If set to `false`, when both headers are present, both headers are checked and b
 | (original)            | `false`               |
 | 8.0                   | `true`                |
 
+#### `config.action_dispatch.always_write_cookie`
+
+Cookies will be written at the end of a request if they marked as insecure, if the request is made over SSL, or if the request is made to an onion service.
+
+If set to `true`, cookies will be written even if this criteria is not met.
+
+This defaults to `true` in `development`, and `false` in all other environments.
 
 #### `ActionDispatch::Callbacks.before`
 
