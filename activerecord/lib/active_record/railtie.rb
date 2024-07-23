@@ -400,7 +400,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           end
 
           if app.config.active_record.query_log_tags_format
-            ActiveRecord::QueryLogs.update_formatter(app.config.active_record.query_log_tags_format)
+            ActiveRecord::QueryLogs.tags_formatter = app.config.active_record.query_log_tags_format
           end
 
           if app.config.active_record.cache_query_log_tags
