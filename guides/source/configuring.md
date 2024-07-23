@@ -2042,6 +2042,14 @@ Setting the value to `:none` configures Action Pack raise all exceptions.
 | (original)            | `true`                |
 | 7.1                   | `:all`                |
 
+#### `config.action_dispatch.always_write_cookie`
+
+Cookies will be written at the end of a request if they marked as insecure, if the request is made over SSL, or if the request is made to an onion service.
+
+If set to `true`, cookies will be written even if this criteria is not met.
+
+This defaults to `true` in `development`, and `false` in all other environments.
+
 #### `ActionDispatch::Callbacks.before`
 
 Takes a block of code to run before the request.
