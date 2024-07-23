@@ -56,7 +56,6 @@ module Rails
           def lookup!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
-                path = path.delete_prefix("#{base}/")
                 require path
               rescue Exception
                 # No problem
