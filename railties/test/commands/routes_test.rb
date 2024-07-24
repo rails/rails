@@ -292,49 +292,49 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#index
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:19
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:21
       --[ Route 9 ]--------------
       Prefix            |#{" "}
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:19
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:21
       --[ Route 10 ]-------------
       Prefix            | new_rails_conductor_inbound_email
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/new(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#new
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:19
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:21
       --[ Route 11 ]-------------
       Prefix            | rails_conductor_inbound_email
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#show
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:19
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:21
       --[ Route 12 ]-------------
       Prefix            | new_rails_conductor_inbound_email_source
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#new
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:20
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:22
       --[ Route 13 ]-------------
       Prefix            | rails_conductor_inbound_email_sources
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/inbound_emails/sources(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:21
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:23
       --[ Route 14 ]-------------
       Prefix            | rails_conductor_inbound_email_reroute
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)
       Controller#Action | rails/conductor/action_mailbox/reroutes#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:23
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:25
       --[ Route 15 ]-------------
       Prefix            | rails_conductor_inbound_email_incinerate
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/:inbound_email_id/incinerate(.:format)
       Controller#Action | rails/conductor/action_mailbox/incinerates#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:24
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:26
       --[ Route 16 ]-------------
       Prefix            | rails_service_blob
       Verb              | GET
