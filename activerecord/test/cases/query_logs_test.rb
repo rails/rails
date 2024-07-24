@@ -20,8 +20,8 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
     ActiveRecord::QueryLogs.cached_comment = nil
-    ActiveRecord::QueryLogs.taggings[:application] = -> {
-      "active_record"
+    ActiveRecord::QueryLogs.taggings = {
+      application: -> { "active_record" }
     }
   end
 
@@ -185,7 +185,7 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_sql_commenter_format
     ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
-    ActiveRecord::QueryLogs.tags = [:application, {}]
+    ActiveRecord::QueryLogs.tags = [:application]
 
     assert_queries_match(%r{/\*application='active_record'\*/}) do
       Dashboard.first
