@@ -1,11 +1,10 @@
 class SubscriptionObserver {
   #value = {};
   #subscribers = new Set();
-  #parser = String;
   
   constructor(subscription, initial = {}, parser = String) {
     this.#value = initial;
-    this.#parser = parser;
+    this.parser = parser;
     this.subscription = subscription;
     this.subscription.received = (data) => {
       this.value = data;
@@ -20,7 +19,7 @@ class SubscriptionObserver {
   }
   
   get value() {
-    return this.#parser(this.#value)
+    return this.parser(this.#value)
   }
     
   subscribe(callback) {
