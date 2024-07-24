@@ -450,7 +450,7 @@ irb> user.save!
 
 The types `inet` and `cidr` are mapped to Ruby
 [`IPAddr`](https://docs.ruby-lang.org/en/master/IPAddr.html)
-objects. The `macaddr` type is mapped to normal text.
+objects. The `macaddr` and `macaddr8` types are mapped to normal text.
 
 ```ruby
 # db/migrate/20140508144913_create_devices.rb
