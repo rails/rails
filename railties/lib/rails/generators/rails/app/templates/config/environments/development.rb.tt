@@ -19,7 +19,9 @@ Rails.application.configure do
   # common ranges include "172.16.0.0/12", "192.168.0.0/16", but there may be
   # custom ranges defined by different Docker engines and by developers at the
   # application level.
-  config.web_console.allowed_ips = ENV.fetch("WEB_CONSOLE_ALLOWED_IPS") { "172.16.0.0/12,192.168.0.0/16" }.split(",")
+  if ENV["WEB_CONSOLE_ALLOWED_IPS"]
+    config.web_console.allowed_ips = ENV["WEB_CONSOLE_ALLOWED_IPS"].split(",")
+  end
   <%- end -%>
 
   # Enable server timing.
