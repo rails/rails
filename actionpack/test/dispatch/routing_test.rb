@@ -763,7 +763,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
           member do
             put  :accessible_projects
-            post :resend, :generate_new_password
+            post :resend
+            post :generate_new_password
           end
         end
       end
@@ -812,7 +813,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       resources :projects do
         resources :posts do
-          get  :archive, :toggle_view, on: :collection
+          get :archive, on: :collection
+          get :toggle_view, on: :collection
           post :preview, on: :member
 
           resource :subscription
@@ -1533,8 +1535,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_with_many_paths_containing_a_slash
-    draw do
-      get "get/first", "get/second", "get/third", to: "get#show"
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        get "get/first", "get/second", "get/third", to: "get#show"
+      end
     end
 
     get "/get/first"
@@ -1570,9 +1574,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_shorthand_with_multiple_paths_inside_namespace
-    draw do
-      namespace :proposals do
-        put "activate", "inactivate"
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :proposals do
+          put "activate", "inactivate"
+        end
       end
     end
 

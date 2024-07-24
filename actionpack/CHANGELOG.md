@@ -1,3 +1,17 @@
+*   Deprecate drawing routes with multiple paths to make routing faster.
+    You may use `with_options` or a loop to make drawing multiple paths easier.
+
+    ```ruby
+    # Before
+    get "/users", "/other_path", to: "users#index"
+
+    # After
+    get "/users", to: "users#index"
+    get "/other_path", to: "users#index"
+    ```
+
+    *Gannon McGibbon*
+
 *   Make `http_cache_forever` use `immutable: true`
 
     *Nate Matykiewicz*
