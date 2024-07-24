@@ -93,7 +93,9 @@ module ActiveJob
         app.config.active_record.query_log_tags |= [:job]
 
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name if context[:job] }
+          ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
+            job: ->(context) { context[:job].class.name if context[:job] }
+          )
         end
       end
     end

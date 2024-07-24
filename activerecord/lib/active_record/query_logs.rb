@@ -102,8 +102,8 @@ module ActiveRecord
       end
     end
 
-    @taggings = {}
-    @tags = [ :application ]
+    @taggings = {}.freeze
+    @tags = [ :application ].freeze
     @prepend_comment = false
     @cache_query_log_tags = false
     @tags_formatter = false
@@ -115,17 +115,16 @@ module ActiveRecord
       attr_accessor :prepend_comment, :cache_query_log_tags # :nodoc:
 
       def taggings=(taggings) # :nodoc:
-        @taggings = taggings
+        @taggings = taggings.freeze
         @handlers = rebuild_handlers
       end
 
       def tags=(tags) # :nodoc:
-        @tags = tags
+        @tags = tags.freeze
         @handlers = rebuild_handlers
       end
 
       def tags_formatter=(format) # :nodoc:
-        @tags_formatter = format
         @formatter = case format
         when :legacy
           LegacyFormatter
@@ -134,6 +133,7 @@ module ActiveRecord
         else
           raise ArgumentError, "Formatter is unsupported: #{format}"
         end
+        @tags_formatter = format
       end
 
       def call(sql, connection) # :nodoc:
