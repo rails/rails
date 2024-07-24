@@ -1574,6 +1574,14 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal "The Vile Serpent", @pirate.reload.ship.name
   end
 
+  def test_should_automatically_save_bang_the_associated_model_if_it_sets_the_inverse_record
+    pirate = Pirate.new(catchphrase: "Savvy?")
+    ship = Ship.new(name: "Black Pearl")
+    ship.pirate = pirate
+    pirate.save!
+    assert_equal "Black Pearl", pirate.reload.ship.name
+  end
+
   def test_should_automatically_validate_the_associated_model
     @pirate.ship.name = ""
     assert_predicate @pirate, :invalid?
