@@ -6,16 +6,11 @@ module ActiveRecord
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
         def select_all(*, **) # :nodoc:
-          result = nil
-          with_raw_connection do |conn|
-            result = if ExplainRegistry.collect? && prepared_statements
-              unprepared_statement { super }
-            else
-              super
-            end
-            conn.abandon_results!
+          if ExplainRegistry.collect? && prepared_statements
+            unprepared_statement { super }
+          else
+            super
           end
-          result
         end
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
@@ -60,7 +55,6 @@ module ActiveRecord
             combine_multi_statements(statements).each do |statement|
               with_raw_connection do |conn|
                 raw_execute(statement, name)
-                conn.abandon_results!
               end
             end
           end
@@ -102,6 +96,7 @@ module ActiveRecord
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
                 result = conn.query(sql)
+                conn.abandon_results!
                 verified!
                 handle_warnings(sql)
                 notification_payload[:row_count] = result&.size || 0

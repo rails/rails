@@ -4,14 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module Trilogy
       module DatabaseStatements
-        def select_all(*, **) # :nodoc:
-          result = super
-          with_raw_connection do |conn|
-            conn.next_result while conn.more_results_exist?
-          end
-          result
-        end
-
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
@@ -47,6 +39,9 @@ module ActiveRecord
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
                 result = conn.query(sql)
+                while conn.more_results_exist?
+                  conn.next_result
+                end
                 verified!
                 handle_warnings(sql)
                 notification_payload[:row_count] = result.count
@@ -77,7 +72,6 @@ module ActiveRecord
             combine_multi_statements(statements).each do |statement|
               with_raw_connection do |conn|
                 raw_execute(statement, name)
-                conn.next_result while conn.more_results_exist?
               end
             end
           end
