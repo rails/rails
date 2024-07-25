@@ -30,6 +30,7 @@ module ActionDispatch
     config.action_dispatch.log_rescued_responses = true
     config.action_dispatch.debug_exception_log_level = :fatal
     config.action_dispatch.strict_freshness = false
+    config.action_dispatch.verbose_redirect_logs = false
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -51,6 +52,8 @@ module ActionDispatch
     initializer "action_dispatch.configure" do |app|
       ActionDispatch::Http::URL.secure_protocol = app.config.force_ssl
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
+
+      ActionDispatch.verbose_redirect_logs = app.config.action_dispatch.verbose_redirect_logs
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header

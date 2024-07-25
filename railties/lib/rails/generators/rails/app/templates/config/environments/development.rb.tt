@@ -65,6 +65,9 @@ Rails.application.configure do
   config.active_job.verbose_enqueue_logs = true
 
   <%- end -%>
+  # Highlight code that triggers redirects in logs.
+  config.action_dispatch.verbose_redirect_logs = true
+
   <%- unless skip_sprockets? -%>
   # Suppress logger output for asset requests.
   config.assets.quiet = true

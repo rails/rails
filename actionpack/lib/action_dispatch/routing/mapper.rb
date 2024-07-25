@@ -377,7 +377,7 @@ module ActionDispatch
 
           if Thread.respond_to?(:each_caller_location)
             def route_source_location
-              if Mapper.route_source_locations
+              if Mapper.route_source_locations || ActionDispatch.verbose_redirect_logs
                 action_dispatch_dir = File.expand_path("..", __dir__)
                 Thread.each_caller_location do |location|
                   next if location.path.start_with?(action_dispatch_dir)
@@ -392,7 +392,7 @@ module ActionDispatch
             end
           else
             def route_source_location
-              if Mapper.route_source_locations
+              if Mapper.route_source_locations || ActionDispatch.verbose_redirect_logs
                 action_dispatch_dir = File.expand_path("..", __dir__)
                 caller_locations.each do |location|
                   next if location.path.start_with?(action_dispatch_dir)

@@ -25,6 +25,24 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
     assert_match(/Completed 301/, logs.last)
   end
 
+  test "verbose redirect logs" do
+    ActionDispatch.verbose_redirect_logs = true
+
+    draw do
+      get "redirect", to: redirect("/login")
+    end
+
+    get "/redirect"
+    wait
+
+    puts logs
+
+    assert_equal 3, logs.size
+    assert_match(/↳/, logs[1])
+  ensure
+    ActionDispatch.verbose_redirect_logs = false
+  end
+
   private
     def draw(&block)
       self.class.stub_controllers do |routes|
