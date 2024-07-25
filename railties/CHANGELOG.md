@@ -1,3 +1,8 @@
+*   For applications using Spring, configure the Spring file watcher to watch initializers in engines defined
+    within the application.
+
+    *Andrew Novoselac* & *Gannon McGibbon*
+
 *   Add sessions generator to give a basic start to an authentication system using database-tracked sessions.
 
 

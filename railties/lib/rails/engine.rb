@@ -649,6 +649,14 @@ module Rails
       end
     end
 
+    initializer :spring_booted do |app|
+      if config.root.to_s.start_with?(app.root.to_s)
+        ActiveSupport.on_load(:spring_booted) do
+          watcher.add config.paths["config/initializers"]
+        end
+      end
+    end
+
     initializer :engines_blank_point do
       # We need this initializer so all extra initializers added in engines are
       # consistently executed after all the initializers above across all engines.
