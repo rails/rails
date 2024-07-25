@@ -58,15 +58,20 @@ module Rails
           patterns = extract_filters(argv)
           tests = list_tests(patterns)
           tests.to_a.each do |path|
-            require File.expand_path(path)
+            abs_path = File.expand_path(path)
+            require abs_path
           rescue LoadError => exception
-            all_tests = list_tests([default_test_glob])
-            corrections = DidYouMean::SpellChecker.new(dictionary: all_tests).correct(path)
+            if exception.path == abs_path
+              all_tests = list_tests([default_test_glob])
+              corrections = DidYouMean::SpellChecker.new(dictionary: all_tests).correct(path)
 
-            if corrections.empty?
-              raise exception
+              if corrections.empty?
+                raise exception
+              end
+              raise InvalidTestError.new(path, DidYouMean::Formatter.message_for(corrections))
+            else
+              raise
             end
-            raise InvalidTestError.new(path, DidYouMean::Formatter.message_for(corrections))
           end
         end
 
