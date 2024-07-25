@@ -62,9 +62,9 @@ module RoutingAssertionsSharedTests
         resources :articles, controller: "query_articles"
       end
 
-      mount engine => "/shelf"
+      mount engine, at: "/shelf"
 
-      mount root_engine => "/"
+      mount root_engine, at: "/"
 
       get "/shelf/foo", controller: "query_articles", action: "index"
     end

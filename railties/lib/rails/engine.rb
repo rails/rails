@@ -128,7 +128,7 @@ module Rails
   # Now you can mount your engine in application's routes:
   #
   #   Rails.application.routes.draw do
-  #     mount MyEngine::Engine => "/engine"
+  #     mount MyEngine::Engine, at: "/engine"
   #   end
   #
   # == Middleware stack
@@ -149,7 +149,7 @@ module Rails
   #
   #   # ENGINE/config/routes.rb
   #   MyEngine::Engine.routes.draw do
-  #     get "/" => "posts#index"
+  #     get "/", to: "posts#index"
   #   end
   #
   # == Mount priority
@@ -158,8 +158,8 @@ module Rails
   # passing requests through many routers. Consider this situation:
   #
   #   Rails.application.routes.draw do
-  #     mount MyEngine::Engine => "/blog"
-  #     get "/blog/omg" => "main#omg"
+  #     mount MyEngine::Engine, at: "/blog"
+  #     get "/blog/omg", to: "main#omg"
   #   end
   #
   # +MyEngine+ is mounted at <tt>/blog</tt>, and <tt>/blog/omg</tt> points to application's
@@ -168,8 +168,8 @@ module Rails
   # It's much better to swap that:
   #
   #   Rails.application.routes.draw do
-  #     get "/blog/omg" => "main#omg"
-  #     mount MyEngine::Engine => "/blog"
+  #     get "/blog/omg", to: "main#omg"
+  #     mount MyEngine::Engine, at: "/blog"
   #   end
   #
   # Now, +Engine+ will get only requests that were not handled by +Application+.
@@ -178,7 +178,7 @@ module Rails
   #
   # There are some places where an Engine's name is used:
   #
-  # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
+  # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine, at: '/my_engine')</tt>,
   #   it's used as default <tt>:as</tt> option
   # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
   #
@@ -264,8 +264,8 @@ module Rails
   #
   #   # config/routes.rb
   #   Rails.application.routes.draw do
-  #     mount MyEngine::Engine => "/my_engine", as: "my_engine"
-  #     get "/foo" => "foo#index"
+  #     mount MyEngine::Engine, at: "/my_engine", as: "my_engine"
+  #     get "/foo", to: "foo#index"
   #   end
   #
   # Now, you can use the <tt>my_engine</tt> helper inside your application:

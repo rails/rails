@@ -20,14 +20,14 @@ module ActionPack
         root to: "users#index"
       end
 
-      get "/blog(/:year(/:month(/:day)))" => "posts#show_date",
-        :constraints => {
+      get "/blog(/:year(/:month(/:day)))", to: "posts#show_date",
+        constraints: {
           year: /(19|20)\d\d/,
           month: /[01]?\d/,
           day: /[0-3]?\d/
         },
-        :day => nil,
-        :month => nil
+        day: nil,
+        month: nil
 
       get "archive/:year", controller: "archive", action: "index",
         defaults: { year: nil },
@@ -37,26 +37,26 @@ module ActionPack
       resources :people
 
       get "symbols", controller: :symbols, action: :show, name: :as_symbol
-      get "id_default(/:id)" => "foo#id_default", :id => 1
-      match "get_or_post" => "foo#get_or_post", :via => [:get, :post]
-      get "optional/:optional" => "posts#index"
-      get "projects/:project_id" => "project#index", :as => "project"
-      get "clients" => "projects#index"
+      get "id_default(/:id)", to: "foo#id_default", id: 1
+      match "get_or_post", to: "foo#get_or_post", via: [:get, :post]
+      get "optional/:optional", to: "posts#index"
+      get "projects/:project_id", to: "project#index", as: "project"
+      get "clients", to: "projects#index"
 
-      get "ignorecase/geocode/:postalcode" => "geocode#show", :postalcode => /hx\d\d-\d[a-z]{2}/i
-      get "extended/geocode/:postalcode" => "geocode#show", :constraints => {
+      get "ignorecase/geocode/:postalcode", to: "geocode#show", postalcode: /hx\d\d-\d[a-z]{2}/i
+      get "extended/geocode/:postalcode", to: "geocode#show", constraints: {
         postalcode: /# Postcode format
         \d{5} #Prefix
         (-\d{4})? #Suffix
         /x
-      }, :as => "geocode"
+      }, as: "geocode"
 
-      get "news(.:format)" => "news#index"
+      get "news(.:format)", to: "news#index"
 
       ActionDispatch.deprecator.silence {
-        get "comment/:id(/:action)" => "comments#show"
+        get "comment/:id(/:action)", to: "comments#show"
         get "ws/:controller(/:action(/:id))", ws: true
-        get "account(/:action)" => "account#subscription"
+        get "account(/:action)", to: "account#subscription"
         get "pages/:page_id/:controller(/:action(/:id))"
         get ":controller/ping", action: "ping"
         get ":controller(/:action(/:id))(.:format)"

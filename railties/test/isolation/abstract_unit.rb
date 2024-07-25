@@ -270,7 +270,7 @@ module TestHelpers
       @app.initialize!
 
       @app.routes.draw do
-        get "/" => "omg#index"
+        get "/", to: "omg#index"
       end
 
       require "rack/test"
