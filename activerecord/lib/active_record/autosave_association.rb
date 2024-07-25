@@ -221,8 +221,10 @@ module ActiveRecord
           if reflection.validate? && !method_defined?(validation_method)
             if reflection.collection?
               method = :validate_collection_association
+            elsif reflection.has_one?
+              method = :validate_has_one_association
             else
-              method = :validate_single_association
+              method = :validate_belongs_to_association
             end
 
             define_non_cyclic_method(validation_method) { send(method, reflection) }
@@ -274,6 +276,16 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
+    def validating_belongs_to_for?(association)
+      @validating_belongs_to_for ||= {}
+      @validating_belongs_to_for[association]
+    end
+
+    def autosaving_belongs_to_for?(association)
+      @autosaving_belongs_to_for ||= {}
+      @autosaving_belongs_to_for[association]
+    end
+
     private
       def init_internals
         super
@@ -313,16 +325,33 @@ module ActiveRecord
       end
 
       # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
-      # turned on for the association.
-      def validate_single_association(reflection)
+      # turned on for the has_one association.
+      def validate_has_one_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
         return unless record && (record.changed_for_autosave? || custom_validation_context?)
 
-        inverse_belongs_to_association = inverse_belongs_to_association_for(reflection, record)
-        return if inverse_belongs_to_association && inverse_belongs_to_association.updated?
+        inverse_association = reflection.inverse_of && record.association(reflection.inverse_of.name)
+        return if inverse_association && (record.validating_belongs_to_for?(inverse_association) ||
+          record.autosaving_belongs_to_for?(inverse_association))
 
         association_valid?(association, record)
+      end
+
+      # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
+      # turned on for the belongs_to association.
+      def validate_belongs_to_association(reflection)
+        association = association_instance_get(reflection.name)
+        record      = association && association.reader
+        return unless record && (record.changed_for_autosave? || custom_validation_context?)
+
+        begin
+          @validating_belongs_to_for ||= {}
+          @validating_belongs_to_for[association] = true
+          association_valid?(association, record)
+        ensure
+          @validating_belongs_to_for[association] = false
+        end
       end
 
       # Validate the associated records if <tt>:validate</tt> or
@@ -443,13 +472,7 @@ module ActiveRecord
         elsif autosave != false
           primary_key = Array(compute_primary_key(reflection, self)).map(&:to_s)
           primary_key_value = primary_key.map { |key| _read_attribute(key) }
-
-          return unless (autosave && record.changed_for_autosave?) || (record_changed = _record_changed?(reflection, record, primary_key_value))
-
-          unless record_changed
-            inverse_belongs_to_association = inverse_belongs_to_association_for(reflection, record)
-            return if inverse_belongs_to_association && inverse_belongs_to_association.updated?
-          end
+          return unless (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, primary_key_value)
 
           unless reflection.through_reflection
             foreign_key = Array(reflection.foreign_key)
@@ -462,17 +485,13 @@ module ActiveRecord
             association.set_inverse_instance(record)
           end
 
+          inverse_association = reflection.inverse_of && record.association(reflection.inverse_of.name)
+          return if inverse_association && record.autosaving_belongs_to_for?(inverse_association)
+
           saved = record.save(validate: !autosave)
           raise ActiveRecord::Rollback if !saved && autosave
           saved
         end
-      end
-
-      def inverse_belongs_to_association_for(reflection, record)
-        !reflection.belongs_to? &&
-          reflection.inverse_of &&
-          reflection.inverse_of.belongs_to? &&
-          record.association(reflection.inverse_of.name)
       end
 
       # If the record is new or it has changed, returns true.
@@ -515,7 +534,15 @@ module ActiveRecord
             foreign_key.each { |key| self[key] = nil }
             record.destroy
           elsif autosave != false
-            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
+            saved = if record.new_record? || (autosave && record.changed_for_autosave?)
+              begin
+                @autosaving_belongs_to_for ||= {}
+                @autosaving_belongs_to_for[association] = true
+                record.save(validate: !autosave)
+              ensure
+                @autosaving_belongs_to_for[association] = false
+              end
+            end
 
             if association.updated?
               primary_key = Array(compute_primary_key(reflection, record)).map(&:to_s)
