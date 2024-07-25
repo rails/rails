@@ -210,6 +210,12 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
+      # Whether the association represent a single record
+      # or a collection of records.
+      def collection?
+        false
+      end
+
       private
         # Reader and writer methods call this so that consistent errors are presented
         # when the association target class does not exist.
