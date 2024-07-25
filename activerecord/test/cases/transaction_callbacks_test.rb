@@ -31,6 +31,23 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
   end
 
+  class BasicTopic < ActiveRecord::Base
+    self.table_name = :topics
+
+    has_many :replies, class_name: "ReplyWithAfterRollback", foreign_key: "parent_id"
+  end
+
+  class ReplyWithAfterRollback < ActiveRecord::Base
+    self.table_name = :topics
+
+    belongs_to :topic, foreign_key: "parent_id"
+    validates_presence_of :content
+
+    attr_reader :rollback_called
+
+    after_rollback { @rollback_called = true }
+  end
+
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
 
@@ -94,6 +111,15 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def setup
     @first = TopicWithCallbacks.find(1)
+  end
+
+  def test_after_rollback_called
+    topic = BasicTopic.create!
+
+    reply = topic.replies.new
+
+    assert_not reply.save
+    assert reply.rollback_called
   end
 
   # FIXME: Test behavior, not implementation.
