@@ -6,29 +6,40 @@ require 'rake/rdoctask'
 require 'date'
 
 PACKAGE_NAME    = "rails"
-PACKAGE_VERSION = "0.5.0"
+PACKAGE_VERSION = "0.5.5"
 
 desc "Default Task"
 task :default => [ :fresh_rails ]
 
 task :fresh_rails => [
   :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
-  :setup_tests, :copy_vendor_libraries, :copy_rootfiles, :setup_public,
-  :generate_rails_framework_doc, :generate_app_doc, :link_framework_doc, :link_docs_in_public
+  :make_test_dirs, :copy_test_helpers, :copy_vendor_libraries, :copy_rootfiles, :make_public_dirs, :copy_ties,
+  :generate_rails_framework_doc, :generate_app_doc, :copy_docs_in_public
 ]
 
 task :fresh_rails_without_docs => [
   :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
-  :setup_tests, :copy_vendor_libraries, :copy_rootfiles, :setup_public
+  :make_test_dirs, :copy_test_helpers, :copy_vendor_libraries, :copy_rootfiles, :make_public_dirs, :copy_ties
+]
+
+task :fresh_rails_with_symlinks => [
+  :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
+  :make_test_dirs, :link_test_helpers, :copy_vendor_libraries, :copy_rootfiles, :make_public_dirs, :link_ties,
+  :generate_rails_framework_doc, :generate_app_doc, :link_framework_doc, :link_docs_in_public
 ]
 
 task :linked_rails => [
   :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
-  :setup_tests, :link_vendor_libraries, :copy_rootfiles, :setup_public
+  :make_test_dirs, :link_test_helpers, :link_vendor_libraries, :copy_rootfiles, :make_public_dirs, :link_ties
 ]
 
 task :package => [ :clean, :fresh_rails ] do
-  system  %{cd ..; tar -czvf #{PACKAGE_NAME}-#{PACKAGE_VERSION}.tgz #{PACKAGE_NAME}}
+  system %{cd ..; tar -czvf #{PACKAGE_NAME}-#{PACKAGE_VERSION}.tgz #{PACKAGE_NAME}}
+  system %{cd ..; zip -r #{PACKAGE_NAME}-#{PACKAGE_VERSION}.zip #{PACKAGE_NAME}}
+end
+
+task :package_with_symlinks => [ :clean, :fresh_rails_with_symlinks ] do
+  system  %{cd ..; tar -czvf #{PACKAGE_NAME}-#{PACKAGE_VERSION}-with-symlinks.tgz #{PACKAGE_NAME}}
 end
 
 task :make_base_dirs do
@@ -49,14 +60,11 @@ task :make_app_dirs do
   File.mkdir "../#{PACKAGE_NAME}/app/controllers"
   File.mkdir "../#{PACKAGE_NAME}/app/helpers"
   File.mkdir "../#{PACKAGE_NAME}/app/views"
-  File.mkdir "../#{PACKAGE_NAME}/app/views/_images"
-  File.mkdir "../#{PACKAGE_NAME}/app/views/_javascripts"
-  File.mkdir "../#{PACKAGE_NAME}/app/views/_stylesheets"
 end
 
 task :copy_default_config do
   File.cp "configs/database.yml", "../#{PACKAGE_NAME}/config/database.yml"
-  File.cp "configs/apache.conf", "../#{PACKAGE_NAME}/config/apache.conf"
+  File.cp "configs/apache.conf", "../#{PACKAGE_NAME}/public/.htaccess"
 end
 
 task :initialize_log_files do
@@ -70,8 +78,6 @@ task :initialize_log_files do
 end
 
 
-task :setup_tests => [ :make_test_dirs, :link_test_helpers ]
-
 task :make_test_dirs do
   File.mkdir "../#{PACKAGE_NAME}/test/fixtures"
   File.mkdir "../#{PACKAGE_NAME}/test/unit"
@@ -83,6 +89,11 @@ task :link_test_helpers do
   ln_s "../vendor/railties/helpers/functional_test_helper.rb", "functional_test_helper.rb"
   ln_s "../vendor/railties/helpers/unit_test_helper.rb", "unit_test_helper.rb"
   cd "../../railties"
+end
+
+task :copy_test_helpers do
+  File.cp "helpers/functional_test_helper.rb", "../#{PACKAGE_NAME}/test/functional_test_helper.rb"
+  File.cp "helpers/unit_test_helper.rb", "../#{PACKAGE_NAME}/test/unit_test_helper.rb"
 end
 
 
@@ -123,14 +134,10 @@ end
 
 
 
-task :setup_public => [ :make_public_dirs, :link_ties ]
-
 task :make_public_dirs do
-  cd "../#{PACKAGE_NAME}/public"
-  ln_s "../app/views/_images", "images"
-  ln_s "../app/views/_javascripts", "javascripts"
-  ln_s "../app/views/_stylesheets", "stylesheets"
-  cd "../../railties"
+  mkdir "../#{PACKAGE_NAME}/public/images"
+  mkdir "../#{PACKAGE_NAME}/public/javascripts"
+  mkdir "../#{PACKAGE_NAME}/public/stylesheets"
 end
 
 task :link_ties do
@@ -142,8 +149,10 @@ task :link_ties do
   chmod 0755, "dispatch.fcgi"
 
   ln_s "../vendor/railties/dispatch.rb", "dispatch.rb"
+  ln_s "../vendor/railties/dispatch.servlet", "dispatch.servlet"
 
   ln_s "../vendor/railties/html/404.html", "404.html"
+  ln_s "../vendor/railties/html/500.html", "500.html"
   ln_s "../vendor/railties/html/index.html", "index.html"
   
   ln_s "../config/apache.conf", ".htaccess"
@@ -156,6 +165,30 @@ task :link_ties do
   chmod 0755, "new_model"
 
   cd "../../railties"
+end
+
+task :copy_ties do
+  File.cp "dispatch.rb", "../#{PACKAGE_NAME}/public/dispatch.rb"
+  chmod 0755, "../#{PACKAGE_NAME}/public/dispatch.rb"
+
+  File.cp "dispatch.rb", "../#{PACKAGE_NAME}/public/dispatch.cgi"
+  chmod 0755, "../#{PACKAGE_NAME}/public/dispatch.cgi"
+
+  File.cp "dispatch.fcgi", "../#{PACKAGE_NAME}/public/dispatch.fcgi"
+  chmod 0755, "../#{PACKAGE_NAME}/public/dispatch.fcgi"
+
+  File.cp "dispatch.servlet", "../#{PACKAGE_NAME}/public/dispatch.servlet"
+
+  File.cp "html/404.html", "../#{PACKAGE_NAME}/public/404.html"
+  File.cp "html/500.html", "../#{PACKAGE_NAME}/public/500.html"
+  File.cp "html/index.html", "../#{PACKAGE_NAME}/public/index.html"
+
+  ln_s "../#{PACKAGE_NAME}/public/.htaccess", "../#{PACKAGE_NAME}/config/apache.conf"
+
+  File.cp "generators/new_controller.rb", "../#{PACKAGE_NAME}/script/new_controller"
+  File.cp "generators/new_model.rb", "../#{PACKAGE_NAME}/script/new_model"
+  chmod 0755, "../#{PACKAGE_NAME}/script/new_controller"
+  chmod 0755, "../#{PACKAGE_NAME}/script/new_model"
 end
 
 
@@ -191,6 +224,12 @@ task :link_docs_in_public do
   ln_s "../../doc/app", "app"
 
   cd "../../../railties"
+end
+
+task :copy_docs_in_public do
+  mkdir "../#{PACKAGE_NAME}/public/_doc"
+  File.cp "doc/index.html", "../#{PACKAGE_NAME}/public/_doc/index.html"
+  # File.cp "doc/apache_protection", "../#{PACKAGE_NAME}/public/_doc/.htaccess"
 end
 
 task :clean do

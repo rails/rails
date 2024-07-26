@@ -49,8 +49,8 @@ module ActionController
       
       def rewrite_path_params(path, options)
         options[:path_params].inject(path) do |path, pair|
-          if @params[pair.first]
-            path.sub(@params[pair.first], pair.last)
+          if options[:action].nil? && @params[pair.first]
+            path.sub(/\b#{@params[pair.first]}\b/, pair.last.to_s)
           else
             path += "/#{pair.last}"
           end
@@ -66,7 +66,7 @@ module ActionController
         elsif @action == "index"
           path = path.sub(/#{@controller}\//, @controller + "/" + action_name(options))
         else
-          path = path.sub((action_prefix || "") + @action + (action_suffix || ""), action_name(options, action_prefix, action_suffix))
+          path = path.sub((action_prefix || "") + @action + (action_suffix || ""), action_name(options, action_prefix))
         end
 
         if options[:controller_prefix] && !options[:controller]
@@ -81,7 +81,8 @@ module ActionController
         all, controller_prefix = /^\/(.*)#{@controller}/.match(path).to_a
         path = "/"
         path << controller_name(options, controller_prefix)
-        path << action_name(options) unless options[:action].nil?
+        path << action_name(options) if options[:action]
+        path << path_params_in_list(options) if options[:path_params]
         return path
       end
 
@@ -100,6 +101,10 @@ module ActionController
         ensure_slash_suffix(options, :controller_prefix)
         prefix = options[:controller_prefix] || controller_prefix || ""
         prefix + options[:controller] + "/"
+      end
+      
+      def path_params_in_list(options)
+        options[:path_params].inject("") { |path, pair| path += "/#{pair.last}" }
       end
 
       def ensure_slash_suffix(options, key)

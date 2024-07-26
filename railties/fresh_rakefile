@@ -45,10 +45,14 @@ Rake::RDocTask.new("apidoc") { |rdoc|
   rdoc.title    = "Rails Framework Documentation"
   rdoc.options << '--line-numbers --inline-source'
   rdoc.rdoc_files.include('README')
+  rdoc.rdoc_files.include('vendor/railties/CHANGELOG')
+  rdoc.rdoc_files.include('vendor/railties/MIT-LICENSE')
   rdoc.rdoc_files.include('vendor/activerecord/README')
+  rdoc.rdoc_files.include('vendor/activerecord/CHANGELOG')
   rdoc.rdoc_files.include('vendor/activerecord/lib/active_record/**/*.rb')
   rdoc.rdoc_files.exclude('vendor/activerecord/lib/active_record/vendor/*')
   rdoc.rdoc_files.include('vendor/actionpack/README')
+  rdoc.rdoc_files.include('vendor/actionpack/CHANGELOG')
   rdoc.rdoc_files.include('vendor/actionpack/lib/action_controller/**/*.rb')
   rdoc.rdoc_files.include('vendor/actionpack/lib/action_view/**/*.rb')
 }

@@ -176,6 +176,12 @@ module ActionController #:nodoc:
     @@view_controller_internals = true
     cattr_accessor :view_controller_internals
 
+    # All requests are considered local by default, so everyone will be exposed to detailed debugging screens on errors.
+    # When the application is ready to go public, this should be set to false, and the protected method <tt>local_request?</tt>
+    # should instead be implemented in the controller to determine when debugging screens should be shown.
+    @@consider_all_requests_local = true
+    cattr_accessor :consider_all_requests_local
+
     # Template root determines the base from which template references will be made. So a call to render("test/template")
     # will be converted to "#{template_root}/test/template.rhtml".
     cattr_accessor :template_root
@@ -405,7 +411,7 @@ module ActionController #:nodoc:
       def initialize_current_url
         if @request.respond_to?("env") && @request.env["SERVER_PORT"]
           @url = UrlRewriter.new(
-            @request.env["SERVER_PORT"] == 443 ? "https://" : "http://", @request.host, @request.env["SERVER_PORT"],
+            @request.env["SERVER_PORT"] == 443 ? "https://" : "http://", @request.host.split(":").first, @request.env["SERVER_PORT"],
             @request.request_uri.split("?").first, controller_name, action_name, @params
           )
         else

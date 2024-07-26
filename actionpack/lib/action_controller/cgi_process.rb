@@ -1,12 +1,15 @@
 require 'action_controller/cgi_ext/cgi_ext'
-require 'action_controller/cgi_ext/drb_database_manager'
+require 'action_controller/session/drb_store'
+require 'action_controller/session/active_record_store'
 
 module ActionController #:nodoc:
   class Base
     # Process a request extracted from an CGI object and return a response. Pass false as <tt>session_options</tt> to disable
     # sessions (large performance increase if sessions are not needed). The <tt>session_options</tt> are the same as for CGI::Session:
     #
-    # * <tt>:database_manager</tt> - options are CGI::Session::FileStore, CGI::Session::MemoryStore, and CGI::Session::PStore (default)
+    # * <tt>:database_manager</tt> - standard options are CGI::Session::FileStore, CGI::Session::MemoryStore, and CGI::Session::PStore
+    #   (default). Additionally, there is CGI::Session::DRbStore and CGI::Session::ActiveRecordStore. Read more about these in 
+    #   lib/action_controller/session.
     # * <tt>:session_key</tt> - the parameter name used for the session id. Defaults to '_session_id'.
     # * <tt>:session_id</tt> - the session id to use.  If not provided, then it is retrieved from the +session_key+ parameter
     #   of the request, or automatically generated for a new session.

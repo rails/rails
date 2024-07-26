@@ -29,6 +29,20 @@
   <i>You've succesfully configured your web-server to point at this Rails application.</i>
 </p>
 
+<p>Before you move on, verify that the following conditions have been meet:</p>
+
+<ol>
+  <li>The log directory and the empty log files must be writteable to the web server (<code>chmod -R 777 log</code>).
+  <li>
+    The shebang line in the public/dispatch* files must reference your Ruby installation. <br/>
+    You might need to change it to <code>#!/usr/bin/env ruby</code> or point directly at the installation.
+  </li>
+  <li>
+    Rails on Apache needs to have the cgi handler enabled.  <br/>
+    Somewhere in your httpd.conf, you should have <code>AddHandler cgi-script .cgi</code>
+  </li>
+</ol>
+
 <p>Take the following steps to get started:</p>
 
 <ol>
@@ -41,14 +55,10 @@
   <li>Setup FastCGI or mod_ruby to get production-level performance
 </ol>
 
-<div style="float: left; margin-right: 20px">
-  <h2>Local Documentation</h2>
-
-  <ul>
-    <li><a href="/_doc/api/">Rails API documentation</a></li>
-    <li><a href="/_doc/app/">Application API documentation</a><br/> (run <code>rake appdoc</code> to generate)</li>
-  </ul>
-</div>
+<p>
+  Having problems getting up and running? First try debugging it yourself by looking at the log files. <br/> Then try the friendly Rails 
+  community on IRC  (<a href="http://www.rubyonrails.org/show/IRC">howto IRC</a>). It's on FreeNET in channel #rubyonrails. 
+</p>
 
 <div style="float: left; margin-right: 20px">
   <h2>Rails Online</h2>

@@ -208,8 +208,8 @@ A short rundown of the major features:
 * Scaffolding for Action Record model objects
 
     require 'account' # must be an Active Record class
-    class AccountController < AccountController::Base
-      scaffolding :account
+    class AccountController < ActionController::Base
+      scaffold :account
     end
     
     The AccountController now has the full CRUD range of actions and default

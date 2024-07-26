@@ -28,7 +28,7 @@ module ActionController #:nodoc:
         perform_action_without_benchmark
       else
         runtime = Benchmark::measure{ perform_action_without_benchmark }.real
-        log_message  = "Completed in #{sprintf("%4f", runtime)} (#{(1 / runtime).floor} reqs/sec)"
+        log_message  = "Completed in #{sprintf("%4f", runtime)} (#{(1 / [runtime, 0.0001].max).floor} reqs/sec)"
         log_message << rendering_runtime(runtime) if @rendering_runtime
         log_message << active_record_runtime(runtime) if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
         logger.info(log_message)

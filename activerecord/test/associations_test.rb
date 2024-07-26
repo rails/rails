@@ -289,6 +289,30 @@ class AssociationsTest < Test::Unit::TestCase
     natural = Client.new("name" => "Natural Company")
     apple.clients << natural
     assert_equal apple.id, natural.firm_id
-    assert_equal Client.find(natural.id), Firm.find_first("name = 'Apple'").clients.find { |c| c.name == "Natural Company" }
+    assert_equal Client.find(natural.id), Firm.find(apple.id).clients.find { |c| c.id == natural.id }
+    apple.clients.delete natural
+    assert_nil Firm.find(apple.id).clients.find { |c| c.id == natural.id }
+  end
+
+   
+  def test_natural_adding_of_has_and_belongs_to_many
+    rails = Project.create("name" => "Rails")
+    ap = Project.create("name" => "Action Pack")
+    john = Developer.create("name" => "John")
+    mike = Developer.create("name" => "Mike")
+ 		rails.developers << john
+ 		rails.developers << mike
+ 		
+    assert_equal Developer.find(john.id), Project.find(rails.id).developers.find { |d| d.id == john.id }
+    assert_equal Developer.find(mike.id), Project.find(rails.id).developers.find { |d| d.id == mike.id }
+    assert_equal Project.find(rails.id), Developer.find(mike.id).projects.find { |p| p.id == rails.id }
+    assert_equal Project.find(rails.id), Developer.find(john.id).projects.find { |p| p.id == rails.id }
+    ap.developers << john
+    assert_equal Developer.find(john.id), Project.find(ap.id).developers.find { |d| d.id == john.id }
+    assert_equal Project.find(ap.id), Developer.find(john.id).projects.find { |p| p.id == ap.id }
+    
+    ap.developers.delete john
+    assert_nil Project.find(ap.id).developers.find { |d| d.id == john.id }
+		assert_nil Developer.find(john.id).projects.find { |p| p.id == ap.id }
   end
 end

@@ -1,3 +1,51 @@
+*0.9.1*
+
+* Added MIT license
+
+* Added natural object-style assignment for has_and_belongs_to_many associations. Consider the following model:
+
+    class Event < ActiveRecord::Base
+      has_one_and_belongs_to_many :sponsors
+    end
+    
+    class Sponsor < ActiveRecord::Base
+      has_one_and_belongs_to_many :sponsors
+    end
+
+  Earlier, you'd have to use synthetic methods for creating associations between two objects of the above class:
+  
+    roskilde_festival.add_to_sponsors(carlsberg)
+    roskilde_festival.remove_from_sponsors(carlsberg)
+
+    nike.add_to_events(world_cup)
+    nike.remove_from_events(world_cup)
+    
+  Now you can use regular array-styled methods:
+  
+    roskilde_festival.sponsors << carlsberg
+    roskilde_festival.sponsors.delete(carlsberg)
+
+    nike.events << world_cup
+    nike.events.delete(world_cup)
+
+* Added delete method for has_many associations. Using this will nullify an association between the has_many and the belonging
+  object by setting the foreign key to null. Consider this model:
+  
+    class Post < ActiveRecord::Base
+      has_many :comments
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post
+    end
+
+  You could do something like:
+
+    funny_comment.has_post? # => true
+    announcement.comments.delete(funny_comment)
+    funny_comment.has_post? # => false
+
+
 *0.9.0*
 
 * Active Record is now thread safe! (So you can use it with Cerise and WEBrick applications)

@@ -105,6 +105,8 @@ module ActionView
   end
 
   class ERbTemplate#:nodoc:
+    include ERB::Util
+
     attr_reader :first_render
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller

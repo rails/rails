@@ -26,6 +26,10 @@ class UrlTest < Test::Unit::TestCase
     @clean_url_with_id = ActionController::UrlRewriter.new(
       "http://", "www.singlefile.com", 80, "/identity/show/5", "identity", "show", { "id" => "5" }
     )
+
+    @clean_url_with_id_as_char = ActionController::UrlRewriter.new(
+      "http://", "www.singlefile.com", 80, "/teachers/show/t", "teachers", "show", { "id" => "t" }
+    )
   end
 
   def test_clean_action
@@ -118,6 +122,16 @@ class UrlTest < Test::Unit::TestCase
       )
     )
   end
+  
+  def test_action_with_id
+   assert_equal(
+      "http://www.singlefile.com/identity/show/7", 
+      @clean_url_with_id.rewrite(
+        :action => "show", 
+        :id => 7
+      )
+    )
+  end
 
   def test_parameters_with_id_and_away
     assert_equal(
@@ -129,10 +143,31 @@ class UrlTest < Test::Unit::TestCase
     )
   end
 
+  def test_action_going_away_from_id
+    assert_equal(
+      "http://www.singlefile.com/identity/list", 
+      @clean_url_with_id.rewrite(
+        :action => "list"
+      )
+    )
+  end
+
   def test_parameters_with_direct_id_and_away
     assert_equal(
       "http://www.singlefile.com/identity/show/25?name=David", 
       @clean_url_with_id.rewrite(
+        :id => "25",
+        :params => { "name" => "David"}
+      )
+    )
+  end
+
+  def test_parameters_with_direct_id_and_away
+    assert_equal(
+      "http://www.singlefile.com/store/open/25?name=David", 
+      @clean_url_with_id.rewrite(
+        :controller => "store",
+        :action => "open",
         :id => "25",
         :params => { "name" => "David"}
       )
@@ -159,6 +194,16 @@ class UrlTest < Test::Unit::TestCase
     )
   end
   
+  def test_id_as_char_and_part_of_controller
+    assert_equal(
+      "http://www.singlefile.com/teachers/skill/5", 
+      @clean_url_with_id_as_char.rewrite(
+        :action => "skill",
+        :id => 5
+      )
+    )
+  end
+
   def test_from_clean_to_libray
     assert_equal(
       "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&delete=1", 

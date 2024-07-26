@@ -1,3 +1,26 @@
+#--
+# Copyright (c) 2004 David Heinemeier Hansson
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#++
+
 require 'active_record'
 require 'action_controller'
 require 'logger'
@@ -10,13 +33,13 @@ class Dispatcher
 
   DEFAULT_SESSION_OPTIONS = { "database_manager" => CGI::Session::PStore, "prefix" => "ruby_sess.", "session_path" => "/" }
 
-  def initialize(rails_root, application_log_path = nil, template_root = nil, database_config_path = nil)
-    rescue_errors { configure(rails_root, application_log_path, template_root, database_config_path) }
+  def initialize(rails_root, options = {})
+    rescue_errors { configure(rails_root, options) }
   end
 
   def dispatch(cgi = CGI.new)
     rescue_errors do
-      request  = ActionController::CgiRequest.new(cgi, DEFAULT_SESSION_OPTIONS)
+      request  = ActionController::CgiRequest.new(cgi, session_options)
       response = ActionController::CgiResponse.new(cgi)
 
       require "#{request.parameters["controller"]}_controller"
@@ -29,16 +52,28 @@ class Dispatcher
       begin
         yield
       rescue Exception => e
-        ActionController::Base.logger.info "\n\nController Failed to Load: #{e.message}\n#{e.backtrace.join("\n")}"
-        raise e
+        if ActionController::Base.logger
+          ActionController::Base.logger.info "\n\nController Failed to Load: #{e.message}\n#{e.backtrace.join("\n")}"
+          raise e
+        else
+          CGI.new.out { 
+            "<html><body>" +
+            "<h1>Dispatcher Failed to Configure</h1>" +
+            "<p>#{e.message}</p><blockquote>#{e.backtrace.join("\n")}</blockquote>" +
+            "</body></html>"
+          }
+          
+          exit
+        end
       end
     end
   
-    def configure(rails_root, application_log_path = nil, template_root = nil, database_config_path = nil)
-      @rails_root = rails_root
-      configure_logging(application_log_path  || DEFAULT_APPLICATION_LOG_PATH)
-      configure_template_root(template_root   || DEFAULT_TEMPLATE_ROOT)
-      configure_database(database_config_path || DEFAULT_DATABASE_CONFIG_PATH)
+    def configure(rails_root, options = {})
+      @rails_root, @options = rails_root, options
+      
+      configure_logging(@options[:application_log_path]  || DEFAULT_APPLICATION_LOG_PATH)
+      configure_template_root(@options[:template_root]   || DEFAULT_TEMPLATE_ROOT)
+      configure_database(@options[:database_config_path] || DEFAULT_DATABASE_CONFIG_PATH)
     end
     
     def configure_logging(application_log_path)
@@ -54,5 +89,9 @@ class Dispatcher
     def configure_database(database_config_path)
       db_conf = YAML::load(File.open("#{@rails_root}/#{database_config_path}"))
       ActiveRecord::Base.establish_connection(db_conf["production"])
+    end
+    
+    def session_options
+      @options[:session_options].nil? ? DEFAULT_SESSION_OPTIONS : @options[:session_options]
     end
 end

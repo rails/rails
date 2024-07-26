@@ -14,43 +14,59 @@ module ActionController #:nodoc:
       }
     end
 
-    def perform_action_with_rescue #:nodoc:
-      begin
-        perform_action_without_rescue
-      rescue Exception => exception
-        rescue_action(exception)
-      ensure
-        close_session
+    protected
+      # Exception handler called when the performance of an action raises an exception.
+      def rescue_action(exception)
+        log_error(exception) unless logger.nil?
+
+        if consider_all_requests_local || local_request?
+          rescue_action_locally(exception)
+        else
+          rescue_action_in_public(exception)
+        end
       end
-    end
 
-    # Exception handler called when the performance of an action raises an exception.
-    def rescue_action(exception) #:nodoc:
-      local_request? ? rescue_action_locally(exception) : rescue_action_in_public(exception)
-    end
+      # Overwrite to implement custom logging of errors. By default logs as fatal.
+      def log_error(exception) #:doc:
+        logger.fatal(
+          "  #{exception.class} (#{exception.message}):\n    " + 
+          clean_backtrace(exception).join("\n    ") + 
+          "\n"
+        )
+      end
 
-    # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).
-    def rescue_action_in_public(exception)
-      render_text "<html><body><h1>Application error</h1></body></html>"
-    end
+      # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).
+      def rescue_action_in_public(exception) #:doc:
+        render_text "<html><body><h1>Application error (Rails)</h1></body></html>"
+      end
 
-    # Overwrite to expand the meaning of a local request in order to show local rescues on other occurances than
-    # the remote IP beging 127.0.0.1. For example, this include the IP of the developer machine when debugging
-    # remotely.
-    def local_request? #:doc:
-      @request.remote_addr == "127.0.0.1"
-    end
+      # Overwrite to expand the meaning of a local request in order to show local rescues on other occurances than
+      # the remote IP being 127.0.0.1. For example, this include the IP of the developer machine when debugging
+      # remotely.
+      def local_request? #:doc:
+        @request.remote_addr == "127.0.0.1"
+      end
 
-    # Renders a detailed diagnostics screen on action exceptions. 
-    def rescue_action_locally(exception) #:nodoc:
-      @exception = exception
-      add_variables_to_assigns
-      @contents = @template.render_file(template_path_for_local_rescue(exception), false)
-      
-      render_file(rescues_path("layout"), "500 Internal Error")
-    end
+      # Renders a detailed diagnostics screen on action exceptions. 
+      def rescue_action_locally(exception)
+        @exception = exception
+        add_variables_to_assigns
+        @contents = @template.render_file(template_path_for_local_rescue(exception), false)
+    
+        render_file(rescues_path("layout"), "500 Internal Error")
+      end
     
     private
+      def perform_action_with_rescue #:nodoc:
+        begin
+          perform_action_without_rescue
+        rescue Exception => exception
+          rescue_action(exception)
+        ensure
+          close_session
+        end
+      end
+
       def rescues_path(template_name)
         File.dirname(__FILE__) + "/templates/rescues/#{template_name}.rhtml"
       end
@@ -64,6 +80,11 @@ module ActionController #:nodoc:
             else "diagnostics"
           end
         )
+      end
+      
+      def clean_backtrace(exception)
+        base_dir = File.expand_path(File.dirname(__FILE__) + "/../../../../")
+        exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/public/../vendor/railties/../../", "") }
       end
   end
 end

@@ -1,0 +1,15 @@
+*0.5.1*
+
+* Works on Windows out of the box! (Dropped symlinks)
+
+* Added webrick dispatcher: Try "ruby public/dispatch.servlet --help" [Florian Gross]
+
+* Report errors about initialization to browser (instead of attempting to use uninitialized logger)
+
+* Upgraded to Action Pack 0.7.6
+
+* Upgraded to Active Record 0.9.1
+
+* Added distinct 500.html instead of reusing 404.html
+
+* Added MIT license

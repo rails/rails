@@ -22,10 +22,11 @@ module ActiveRecord
     #   <tt>Project#build_portfolio, Project#create_portfolio</tt>
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#has_project_manger?,</tt>
     #   <tt>Project#project_manager?(project_manager), Project#build_project_manager, Project#create_project_manager</tt>
-    # * <tt>Project#has_milestones?, Project#milestones_count, Project#milestones, Project#milestones<<(milestone),
-    #   Project#find_in_milestones(milestone_id), Project#build_to_milestones, Project#create_in_milestones<</tt>
+    # * <tt>Project#has_milestones?, Project#milestones_count, Project#milestones, Project#milestones<<(milestone),</tt>
+    #   <tt>Project#milestones.delete(milestone), Project#find_in_milestones(milestone_id), Project#build_to_milestones,</tt>
+    #   <tt>Project#create_in_milestones<</tt>
     # * <tt>Project#has_categories?, Project#categories_count, Project#categories, Project#add_categories(category1, category2), </tt>
-    #   <tt>Project#remove_categories(category1)</tt>
+    #   <tt>Project#remove_categories(category1, category2), Project#categories<<(category1), Project#categories.delete(category1)</tt>
     #
     # == Caching
     #
@@ -79,6 +80,7 @@ module ActiveRecord
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
       #   An empty array is returned if none is found.
       # * <tt>collection<<(object)</tt> - adds the object to the collection (by setting the foreign key on it) and saves it.
+      # * <tt>collection.delete(object)</tt> - removes the association by setting the foreign key to null on the associated object.
       # * <tt>has_collection?(force_reload = false)</tt> - returns true if there's any associated objects.
       # * <tt>collection_count(force_reload = false)</tt> - returns the number of associated objects.
       # * <tt>find_in_collection(id)</tt> - finds an associated object responding to the +id+ and that
@@ -90,6 +92,8 @@ module ActiveRecord
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.find_all "firm_id = #{id}"</tt>)
+      # * <tt>Firm#clients<<</tt>
+      # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#has_clients?</tt> (similar to <tt>firm.clients.length > 0</tt>)
       # * <tt>Firm#clients_count</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
       # * <tt>Firm#find_in_clients</tt> (similar to <tt>Client.find_on_conditions(id, "firm_id = #{id}"</tt>)
@@ -145,7 +149,7 @@ module ActiveRecord
 	
         has_collection_method(collection_name)
         collection_count_method(collection_name, collection_counter)
-        collection_accessor_method(collection_name, collection_finder, class_primary_key_name)
+        collection_accessor_method_for_has_many(collection_name, collection_finder, class_primary_key_name)
 				
         build_method("build_to_", collection_name, collection_class_name, class_primary_key_name)
         create_method("create_in_", collection_name, collection_class_name, class_primary_key_name)
@@ -300,15 +304,21 @@ module ActiveRecord
       # * <tt>collection_count(force_reload = false)</tt> - returns the number of associated objects.
       # * <tt>add_collection(object1, object2)</tt> - adds an association between this object and the objects given as arguments.
       #   The object arguments can either be given one by one or in an array.
+      # * <tt>collection<<(object)</tt> - adds an association between this object and the object given as argument. Multiple associations
+      #   can be created by passing an array of objects instead.
       # * <tt>remove_collection(object1, object2)</tt> - removes the association between this object and the objects given as 
       #   arguments. The object arguments can either be given one by one or in an array.
+      # * <tt>collection.delete(object)</tt> - removes the association between this object and the object given as 
+      #   argument. Multiple associations can be removed by passing an array of objects instead.
       #
       # Example: An Developer class declares <tt>has_and_belongs_to_many :projects</tt>, which will add:
       # * <tt>Developer#projects</tt>
       # * <tt>Developer#has_projects?</tt>
       # * <tt>Developer#projects_count</tt>
       # * <tt>Developer#add_projects</tt>
+      # * <tt>Developer#projects<<</tt>
       # * <tt>Developer#remove_projects</tt>
+      # * <tt>Developer#projects.delete</tt>
       # The declaration can also include an options hash to specialize the generated methods.
       # 
       # Options are:
@@ -353,7 +363,7 @@ module ActiveRecord
           "WHERE t.id = j.#{association_foreign_key} AND j.#{class_primary_key_name} = '\#{id}' ORDER BY t.id"
 
         has_collection_method(association_name)
-        collection_reader_method(association_name, "#{association_class_name}.find_by_sql(\"#{finder_sql}\")")
+        collection_accessor_method_for_has_and_belongs_to_many(association_name, "#{association_class_name}.find_by_sql(\"#{finder_sql}\")")
         collection_count_method(association_name, "#{association_name}.length")
 
         add_association_relation(
@@ -415,7 +425,7 @@ module ActiveRecord
           end_eval
         end
 				
-        def collection_accessor_method(collection_name, collection_finder, class_primary_key_name)
+        def collection_accessor_method_for_has_many(collection_name, collection_finder, class_primary_key_name)
           module_eval <<-"end_eval", __FILE__, __LINE__
             def #{collection_name}(force_reload = false)
               if @#{collection_name}.nil? || force_reload
@@ -426,15 +436,49 @@ module ActiveRecord
                 end
               end
               
-              def @#{collection_name}.owner; @owner; end
               def @#{collection_name}.owner=(owner); @owner = owner; end
               @#{collection_name}.owner = self
               def @#{collection_name}.<<(association)
-                association.#{class_primary_key_name} = owner.id
+                association.#{class_primary_key_name} = @owner.id
                 association.save(false)
                 super association
               end
 
+              def @#{collection_name}.delete(association)
+                association.#{class_primary_key_name} = nil
+                association.save(false)
+                super association
+              end
+            
+              return @#{collection_name}
+            end
+          end_eval
+        end
+
+        def collection_accessor_method_for_has_and_belongs_to_many(collection_name, collection_finder)
+          module_eval <<-"end_eval", __FILE__, __LINE__
+            def #{collection_name}(force_reload = false)
+              if @#{collection_name}.nil? || force_reload
+                begin
+                  @#{collection_name} = #{collection_finder}
+                rescue ActiveRecord::StatementInvalid, ActiveRecord::RecordNotFound
+                  @#{collection_name} = []
+                end
+              end
+              
+              def @#{collection_name}.owner=(owner); @owner = owner; end
+              @#{collection_name}.owner = self
+              
+              def @#{collection_name}.<<(association)
+                @owner.add_#{collection_name}(association)
+                super association
+              end
+              
+              def @#{collection_name}.delete(association)
+                @owner.remove_#{collection_name}(association)
+                super association
+              end
+              
               return @#{collection_name}
             end
           end_eval
@@ -558,6 +602,7 @@ module ActiveRecord
             def remove_#{association_name}(*items)
               if items.flatten.length < 1
                 connection.delete "#{delete_sql}"
+                puts "asd!!"
               else
                 ids = items.flatten.map { |item| "'" + item.id.to_s + "'" }.join(',')
                 connection.delete "#{delete_sql} AND #{foreign_key} in (\#{ids})"

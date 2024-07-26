@@ -114,21 +114,21 @@ module ActionController #:nodoc:
         write_inheritable_attribute "layout", template_name
       end
 
-      # Returns the name of the active layout. If the layout was specified as a method reference (through a symbol), this method
-      # is called and the return value is used. Likewise if the layout was specified as an inline method (through a proc or method
-      # object).
-      def active_layout
-        layout = read_inheritable_attribute "layout"
-        case layout
-          when Symbol then send(layout)
-          when Proc   then layout.call(self)
-          when String then layout
-        end
-      end
-
       # Returns true if a layout applies to the actions of this controller.
       def has_active_layout?
         read_inheritable_attribute "layout"
+      end
+    end
+
+    # Returns the name of the active layout. If the layout was specified as a method reference (through a symbol), this method
+    # is called and the return value is used. Likewise if the layout was specified as an inline method (through a proc or method
+    # object).
+    def active_layout
+      layout = self.class.read_inheritable_attribute "layout"
+      case layout
+        when Symbol then send(layout)
+        when Proc   then layout.call(self)
+        when String then layout
       end
     end
 
@@ -136,7 +136,7 @@ module ActionController #:nodoc:
       if self.class.has_active_layout?
         add_variables_to_assigns
         @content_for_layout = @template.render_file(template_name)
-        render_file(self.class.active_layout, status, true)
+        render_file(self.active_layout, status, true)
       else
         render_file(template_name, status, true)
       end

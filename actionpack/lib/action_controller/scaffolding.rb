@@ -17,6 +17,10 @@ module ActionController
     # This tiny piece of code will add all of the following methods to the controller:
     #
     #  class WeblogController < ActionController::Base
+    #    def index
+    #      list
+    #    end
+    #
     #    def list
     #      @entries = Entry.find_all
     #      render_scaffold "list"
@@ -76,7 +80,7 @@ module ActionController
       # 
       # It's possible to use more than one scaffold in a single controller by specifying <tt>options[:suffix] = true</tt>. This will
       # make <tt>scaffold :post, :suffix => true</tt> use method names like list_post, show_post, and create_post 
-      # instead of just list, show, and post.
+      # instead of just list, show, and post. If suffix is used, then no index method is added.
       def scaffold(model_id, options = {})
         validate_options([ :class_name, :suffix ], options.keys)
         
@@ -85,6 +89,14 @@ module ActionController
         plural_name   = Object.const_get(class_name).table_name
         
         suffix = options[:suffix] ? "_#{singular_name}" : ""
+
+        unless options[:suffix]
+          module_eval <<-"end_eval", __FILE__, __LINE__
+            def index
+              list
+            end
+          end_eval
+        end
         
         module_eval <<-"end_eval", __FILE__, __LINE__
           def list#{suffix}

@@ -31,8 +31,9 @@ files = %w-
  action_controller/benchmarking.rb
  action_controller/cgi_ext/cgi_ext.rb
  action_controller/cgi_ext/cgi_methods.rb
- action_controller/cgi_ext/drb_database_manager.rb
- action_controller/cgi_ext/drb_sessions.rb
+ action_controller/session/active_record_store.rb
+ action_controller/session/drb_server.rb
+ action_controller/session/drb_store.rb
  action_controller/cgi_process.rb
  action_controller/filters.rb
  action_controller/flash.rb
@@ -43,6 +44,17 @@ files = %w-
  action_controller/scaffolding.rb
  action_controller/support/class_inheritable_attributes.rb
  action_controller/support/class_attribute_accessors.rb
+ action_controller/support/clean_logger.rb
+ action_controller/templates/rescues/diagnostics.rhtml
+ action_controller/templates/rescues/layout.rhtml
+ action_controller/templates/rescues/missing_template.rhtml
+ action_controller/templates/rescues/template_error.rhtml
+ action_controller/templates/rescues/unknown_action.rhtml
+ action_controller/templates/scaffolds/edit.rhtml
+ action_controller/templates/scaffolds/layout.rhtml
+ action_controller/templates/scaffolds/list.rhtml
+ action_controller/templates/scaffolds/new.rhtml
+ action_controller/templates/scaffolds/show.rhtml
  action_controller/test_process.rb
  action_controller/url_rewriter.rb
  action_view.rb
