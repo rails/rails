@@ -250,7 +250,7 @@ module ActiveRecord
 
         # Set the client message level.
         def client_min_messages=(level)
-          internal_execute("SET client_min_messages TO '#{level}'")
+          internal_execute("SET client_min_messages TO '#{level}'", "SCHEMA")
         end
 
         # Returns the sequence name for a table's primary key or some other specified key.

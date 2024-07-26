@@ -926,14 +926,12 @@ module ActiveRecord
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
-          assert_called(statement, :columns, returns: []) do
-            assert_called(statement, :close) do
-              ::SQLite3::Statement.stub(:new, statement) do
-                error = assert_raises ActiveRecord::StatementInvalid do
-                  @conn.exec_query "select * from statement_test"
-                end
-                assert_equal @conn.pool, error.connection_pool
+          assert_called(statement, :close) do
+            ::SQLite3::Statement.stub(:new, statement) do
+              error = assert_raises ActiveRecord::StatementInvalid do
+                @conn.exec_query "select * from statement_test"
               end
+              assert_equal @conn.pool, error.connection_pool
             end
           end
         end
