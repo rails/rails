@@ -34,17 +34,43 @@ module ActionMailer #:nodoc:
     # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
 
-    # Allows you to use a remote mail server. Just change it away from it's default "localhost" setting.
-    @@mail_server_address = "localhost"
-    cattr_accessor :mail_server_address
+    # Allows detailed configuration of the server:
+    # * <tt>:address</tt> Allows you to use a remote mail server. Just change it away from it's default "localhost" setting.
+    # * <tt>:port</tt> On the off change that your mail server doesn't run on port 25, you can change it.
+    # * <tt>:domain</tt> If you need to specify a HELO domain, you can do it here.
+    # * <tt>:user_name</tt> If your mail server requires authentication, set the username and password in these two settings.
+    # * <tt>:password</tt> If your mail server requires authentication, set the username and password in these two settings.
+    # * <tt>:authentication</tt> If your mail server requires authentication, you need to specify the authentication type here. 
+    #   This is a symbol and one of :plain, :login, :cram_md5
+    @@server_settings = { 
+      :address        => "localhost", 
+      :port           => 25, 
+      :domain         => 'localhost.localdomain', 
+      :user_name      => nil, 
+      :password       => nil, 
+      :authentication => nil
+    }
+    cattr_accessor :server_settings
 
-    # On the off change that your mail server doesn't run on port 25, you can change it.
-    @@mail_server_port = 25
-    cattr_accessor :mail_server_port
 
     # Whether or not errors should be raised if the email fails to be delivered
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
+
+    # Defines a delivery method. Possible values are :smtp (default), :sendmail, and :test.
+    # Sendmail is assumed to be present at "/usr/sbin/sendmail".
+    @@delivery_method = :smtp
+    cattr_accessor :delivery_method
+    
+    # Determines whether deliver_* methods are actually carried out. By default they are,
+    # but this can be turned off to help functional testing.
+    @@perform_deliveries = true
+    cattr_accessor :perform_deliveries
+    
+    # Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful
+    # for unit and functional testing.
+    @@deliveries = []
+    cattr_accessor :deliveries
 
     attr_accessor :recipients, :subject, :body, :from, :sent_on, :bcc, :cc
 
@@ -62,26 +88,41 @@ module ActionMailer #:nodoc:
         end        
       end
 
-      def mail(to, subject, body, from, timestamp = nil)#:nodoc:
+      def mail(to, subject, body, from, timestamp = nil) #:nodoc:
         deliver(create(to, subject, body, from, timestamp))
       end
-  
-      def create(to, subject, body, from, timestamp = nil)#:nodoc:
-        m = Mail.new
+
+      def create(to, subject, body, from, timestamp = nil) #:nodoc:
+        m = TMail::Mail.new
         m.to, m.subject, m.body, m.from = to, subject, body, from
         m.date = timestamp.respond_to?("to_time") ? timestamp.to_time : (timestamp || Time.now)    
         return m
       end
 
-      def deliver(mail)#:nodoc:
+      def deliver(mail) #:nodoc:
         logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
-
-        Net::SMTP.start(mail_server_address, mail_server_port) do |smtp|
-          smtp.sendmail(mail.encoded, mail.from_address, mail.destinations)
-        end
+        send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
       end
 
-      private
+      private      
+        def perform_delivery_smtp(mail)
+          Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain], 
+              server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
+            smtp.sendmail(mail.encoded, mail.from_address, mail.destinations)
+          end
+        end
+
+        def perform_delivery_sendmail(mail)
+          IO.popen("/usr/sbin/sendmail -i -t","w+") do |sm|
+            sm.print(mail.encoded)
+            sm.flush
+          end
+        end
+
+        def perform_delivery_test(mail)
+          deliveries << mail
+        end
+
         def create_from_action(method_name, *parameters)
           mailer = new
           mailer.body = {}

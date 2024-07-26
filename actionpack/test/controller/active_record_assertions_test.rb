@@ -4,7 +4,8 @@ if Object.const_defined?("ActiveRecord") || File.exist?(path_to_ar)
 # This test is very different than the others.  It requires ActiveRecord to 
 # run.  There's a bunch of stuff we are assuming here:
 #
-# 1.  active_record exists as a sibling directory to actionpack
+# 1.  activerecord exists as a sibling directory to actionpack
+#     (i.e., actionpack/../activerecord)
 # 2.  you've created the appropriate database to run the active_record unit tests
 # 3.  you set the appropriate database connection below
 

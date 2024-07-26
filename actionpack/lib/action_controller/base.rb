@@ -174,6 +174,13 @@ module ActionController #:nodoc:
   
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
   
+    DEFAULT_SEND_FILE_OPTIONS = {
+      :type => 'application/octet_stream',
+      :disposition  => 'attachment',
+      :stream => true, :buffer_size  => 4096
+    }
+
+
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.
     # By default, it does.
     @@view_controller_internals = true
@@ -234,13 +241,6 @@ module ActionController #:nodoc:
       def process(request, response) #:nodoc:
         new.process(request, response)
       end
-
-      # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
-      # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules 
-      # available to the templates.
-      def add_template_helper(helper_module)
-        template_class.class_eval "include #{helper_module}"
-      end      
     end
 
     public
@@ -285,12 +285,13 @@ module ActionController #:nodoc:
       #   "/library/books/ISBN/0743536703/show?temporary=1"
       # * <tt>:anchor</tt> - specifies the anchor name to be appended to the path. Called with "x14" would give
       #   "/library/books/ISBN/0743536703/show#x14"
+      # * <tt>:only_path</tt> - if true, returns the absolute URL (omitting the protocol, host name, and port).
       #
       # Naturally, you can combine multiple options in a single redirect. Examples:
       #
       #   redirect_to(:controller_prefix => "/shop", :controller => "settings")
       #   redirect_to(:action => "edit", :id => 3425)
-      #   redirect_to(:action => "edit", :path_params => { "type" => "XTC"}, :params => { "temp" => 1})
+      #   redirect_to(:action => "edit", :path_params => { "type" => "XTC" }, :params => { "temp" => 1})
       #   redirect_to(:action => "publish", :action_prefix => "/published", :anchor => "x14")
       #
       # Instead of passing an options hash, you can also pass a method reference in the form of a symbol. Consider this example:
@@ -380,16 +381,18 @@ module ActionController #:nodoc:
       # it feasible to send even large files.
       #
       # Be careful to sanitize the path parameter if it coming from a web
-      # page.  send_file(@params['path'] allows a malicious user to
+      # page.  send_file(@params['path']) allows a malicious user to
       # download any file on your server.
       #
       # Options:
-      # * <tt>:filename</tt> - specifies the filename the browser will see.
+      # * <tt>:filename</tt> - suggests a filename for the browser to use.
       #   Defaults to File.basename(path).
       # * <tt>:type</tt> - specifies an HTTP content type.
       #   Defaults to 'application/octet-stream'.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
       #   Valid values are 'inline' and 'attachment' (default).
+      # * <tt>:streaming</tt> - whether to send the file to the user agent as it is read (true)
+      #   or to read the entire file before sending (false). Defaults to true.
       # * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream the file.
       #   Defaults to 4096.
       #
@@ -416,46 +419,57 @@ module ActionController #:nodoc:
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
       def send_file(path, options = {})
-        options = {
-          :filename => File.basename(path),
-          :type => 'application/octet_stream',
-          :disposition => 'attachment',
-          :buffer_size => 4096
-        }.merge(options)
+        raise MissingFile unless File.file?(path) and File.readable?(path)
 
-        # Internet Explorer cache workaround.
-        if @request.env['HTTP_USER_AGENT'] =~ /msie/i
-          @headers['Pragma']        = ''
-          @headers['Cache-Control'] = ''
+        options[:length]   ||= File.size(path)
+        options[:filename] ||= File.basename(path)
+        send_file_headers! options
 
-        # HTTP 1.1 headers require strict validation with server before
-        # releasing a cached response to client.
-        else
-          @headers['Pragma']        = 'no-cache'
-          @headers['Cache-Control'] = 'no-cache, must-revalidate'
-        end
-
-        # HTTP 1.0 headers for cache expiry.
-        @headers['Last-Modified'] = CGI.rfc1123_date(File.mtime(path))
-        @headers['Expires'] = CGI.rfc1123_date(Time.now)
-
-        # HTTP Content headers.
-        @headers['Content-Type']              = options[:type]
-        @headers['Content-Disposition']       = "#{options[:disposition]}; filename=\"#{options[:filename]}\""
-        @headers['Content-Length']            = File.size(path)
-        @headers['Content-Transfer-Encoding'] = 'binary'
-
-        logger.info("Sending file #{path}") unless logger.nil?
-
-        render_text do
-          File.open(path, 'rb') do |file|
-            while buf = file.read(options[:buffer_size])
-              print buf
+        if options[:stream]
+          render_text do
+            logger.info "Streaming file #{path}" unless logger.nil?
+            len = options[:buffer_size] || 4096
+            File.open(path, 'rb') do |file|
+              begin
+                while true
+                  $stdout.syswrite file.sysread(len)
+                end
+              rescue EOFError
+              end
             end
           end
+        else
+          logger.info "Sending file #{path}" unless logger.nil?
+          File.open(path, 'rb') { |file| render_text file.read }
         end
       end
-      
+
+      # Send binary data to the user as a file download.  May set content type, apparent file name,
+      # and specify whether to show data inline or download as an attachment.
+      #
+      # Options:
+      # * <tt>:filename</tt> - Suggests a filename for the browser to use.
+      # * <tt>:type</tt> - specifies an HTTP content type.
+      #   Defaults to 'application/octet-stream'.
+      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
+      #   Valid values are 'inline' and 'attachment' (default).
+      #
+      # Generic data download:
+      #   send_data buffer
+      #
+      # Download a dynamically-generated tarball:
+      #   send_data generate_tgz('dir'), :filename => 'dir.tgz'
+      #
+      # Display an image Active Record in the browser:
+      #   send_data image.data, :type => image.content_type, :disposition => 'inline'
+      #
+      # See +send_file+ for more information on HTTP Content-* headers and caching.
+      def send_data(data, options = {})
+        logger.info "Sending data #{options[:filename]}" unless logger.nil?
+        send_file_headers! options.merge(:length => data.size)
+        render_text data
+      end
+
       def rewrite_options(options)
         if defaults = default_url_options(options)
           defaults.merge(options)
@@ -602,7 +616,7 @@ module ActionController #:nodoc:
       end
 
       def request_origin
-        "#{@request.remote_addr} at #{Time.now.to_s}"
+        "#{@request.remote_ip} at #{Time.now.to_s}"
       end
       
       def close_session
@@ -614,13 +628,32 @@ module ActionController #:nodoc:
       end
 
       def template_public?(template_name = "#{controller_name}/#{action_name}")
-	      @template.file_public?(template_name)
+        @template.file_public?(template_name)
       end
 
       def assert_existance_of_template_file(template_name)
         unless template_exists?(template_name) || ignore_missing_templates
-          raise(MissingTemplate, "Couldn't find #{template_name}")
+          full_template_path = @template.send(:full_template_path, template_name, 'rhtml')
+          template_type = (template_name =~ /layouts/i) ? 'layout' : 'template'
+          raise(MissingTemplate, "Missing #{template_type} #{full_template_path}")
         end
+      end
+
+      def send_file_headers!(options)
+        options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
+        [:length, :type, :disposition].each do |arg|
+          raise ArgumentError, ":#{arg} option required" if options[arg].nil?
+        end
+
+        disposition = options[:disposition] || 'attachment'
+        disposition <<= %(; filename="#{options[:filename]}") if options[:filename]
+
+        @headers.update(
+          'Content-Length' => options[:length],
+          'Content-Type' => options[:type],
+          'Content-Disposition' => disposition,
+          'Content-Transfer-Encoding' => 'binary'
+        );
       end
   end
 end

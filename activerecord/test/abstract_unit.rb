@@ -1,5 +1,9 @@
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
+# Make rubygems available for testing if possible
+begin require('rubygems');        rescue LoadError; end
+begin require('dev-utils/debug'); rescue LoadError; end
+
 require 'test/unit'
 require 'active_record'
 require 'active_record/fixtures'
@@ -14,3 +18,5 @@ class Test::Unit::TestCase #:nodoc:
     end
   end
 end
+
+Test::Unit::TestCase.fixture_path = File.dirname(__FILE__) + "/fixtures/"

@@ -30,9 +30,14 @@ class UrlTest < Test::Unit::TestCase
       { "type" => "ISBN", "code" => "0743536703" }
     ), "books", "index")
     
-    @clean_url = ActionController::UrlRewriter.new(MockRequest.new(
-      "http://", "www.singlefile.com", 80, "/identity/", {}
-    ), "identity", "index")
+    @clean_urls = [
+      ActionController::UrlRewriter.new(MockRequest.new(
+        "http://", "www.singlefile.com", 80, "/identity/", {}
+      ), "identity", "index"),
+      ActionController::UrlRewriter.new(MockRequest.new(
+        "http://", "www.singlefile.com", 80, "/identity", {}
+      ), "identity", "index")
+    ]
 
     @clean_url_with_id = ActionController::UrlRewriter.new(MockRequest.new(
       "http://", "www.singlefile.com", 80, "/identity/show/5", { "id" => "5" }
@@ -54,9 +59,11 @@ class UrlTest < Test::Unit::TestCase
   def test_action_from_index
     assert_equal "http://www.singlefile.com/library/books/ISBN/0743536703/edit", @library_url_on_index.rewrite(:action => "edit")
   end
-  
+
   def test_action_from_index_on_clean
-    assert_equal "http://www.singlefile.com/identity/edit", @clean_url.rewrite(:action => "edit")
+    @clean_urls.each do |url|
+      assert_equal "http://www.singlefile.com/identity/edit", url.rewrite(:action => "edit")
+    end
   end
 
   def test_action_without_prefix
@@ -127,7 +134,7 @@ class UrlTest < Test::Unit::TestCase
   def test_controller_and_action_params_and_overwrite_params_and_anchor
     assert_equal(
       "http://www.singlefile.com/library/settings/show?code=0000001&version=5.0#5", 
-      @library_url.rewrite(:controller => "settings", :action => "show", :params=>{"version" => "5.0" },  :overwrite_params => {"code"=>"0000001"},  :anchor => "5")
+      @library_url.rewrite(:controller => "settings", :action => "show", :params=>{"version" => "5.0"},  :overwrite_params => {"code"=>"0000001"},  :anchor => "5")
     )
   end
 
@@ -143,7 +150,9 @@ class UrlTest < Test::Unit::TestCase
   end
 
   def test_controller_and_action_with_same_name_as_controller
-    assert_equal "http://www.singlefile.com/anything/identity", @clean_url.rewrite(:controller => "anything", :action => "identity")
+    @clean_urls.each do |url|
+      assert_equal "http://www.singlefile.com/anything/identity", url.rewrite(:controller => "anything", :action => "identity")
+    end
   end
 
   def test_controller_and_index_action_without_controller_prefix
@@ -172,13 +181,15 @@ class UrlTest < Test::Unit::TestCase
   end
 
   def test_parameters_with_id
-    assert_equal(
-      "http://www.singlefile.com/identity/show?name=David&id=5", 
-      @clean_url.rewrite(
-        :action => "show", 
-        :params => {"id" => "5", "name" => "David"}
+    @clean_urls.each do |url|
+      assert_equal(
+        "http://www.singlefile.com/identity/show?name=David&id=5", 
+        url.rewrite(
+          :action => "show",
+          :params => { "id" => "5", "name" => "David" }
+        )
       )
-    )
+    end
   end
   
   def test_action_with_id
@@ -189,16 +200,34 @@ class UrlTest < Test::Unit::TestCase
         :id => 7
       )
     )
+    @clean_urls.each do |url|
+      assert_equal(
+        "http://www.singlefile.com/identity/index/7", 
+        url.rewrite(:id => 7)
+      )
+    end
   end
 
   def test_parameters_with_id_and_away
     assert_equal(
       "http://www.singlefile.com/identity/show/25?name=David", 
       @clean_url_with_id.rewrite(
-        :path_params => {"id" => "25" },
-        :params => { "name" => "David"}
+        :path_params => { "id" => "25" },
+        :params => { "name" => "David" }
       )
     )
+  end
+
+  def test_parameters_with_index_and_id
+    @clean_urls.each do |url|
+      assert_equal(
+        "http://www.singlefile.com/identity/index/25?name=David", 
+        url.rewrite(
+          :path_params => { "id" => "25" },
+          :params => { "name" => "David" }
+        )
+      )
+    end
   end
 
   def test_action_going_away_from_id
@@ -215,7 +244,7 @@ class UrlTest < Test::Unit::TestCase
       "http://www.singlefile.com/identity/show/25?name=David", 
       @clean_url_with_id.rewrite(
         :id => "25",
-        :params => { "name" => "David"}
+        :params => { "name" => "David" }
       )
     )
   end
@@ -227,20 +256,24 @@ class UrlTest < Test::Unit::TestCase
         :controller => "store",
         :action => "open",
         :id => "25",
-        :params => { "name" => "David"}
+        :params => { "name" => "David" }
       )
     )
   end
 
   def test_parameters_to_id
-    assert_equal(
-      "http://www.singlefile.com/identity/show/25?name=David", 
-      @clean_url.rewrite(
-        :action => "show",
-        :path_params => {"id" => "25" },
-        :params => { "name" => "David"}
-      )
-    )
+    @clean_urls.each do |url|
+      %w(show index).each do |action|
+        assert_equal(
+          "http://www.singlefile.com/identity/#{action}/25?name=David", 
+          url.rewrite(
+            :action => action,
+            :path_params => { "id" => "25" },
+            :params => { "name" => "David" }
+          )
+        )
+      end
+    end
   end
 
   def test_parameters_from_id
@@ -262,17 +295,19 @@ class UrlTest < Test::Unit::TestCase
     )
   end
 
-  def test_from_clean_to_libray
-    assert_equal(
-      "http://www.singlefile.com/library/books/ISBN/0743536703/show?delete=1&name=David", 
-      @clean_url.rewrite(
-        :controller_prefix => "library",
-        :controller => "books", 
-        :action_prefix => "ISBN/0743536703",
-        :action => "show", 
-        :params => {"delete" => "1", "name" => "David"}
+  def test_from_clean_to_library
+    @clean_urls.each do |url|
+      assert_equal(
+        "http://www.singlefile.com/library/books/ISBN/0743536703/show?delete=1&name=David", 
+        url.rewrite(
+          :controller_prefix => "library",
+          :controller => "books", 
+          :action_prefix => "ISBN/0743536703",
+          :action => "show", 
+          :params => { "delete" => "1", "name" => "David" }
+        )
       )
-    )
+    end
   end
   
   def test_from_library_to_clean
@@ -315,4 +350,15 @@ class UrlTest < Test::Unit::TestCase
       basecamp_url.rewrite(:action_prefix => "transcripts/1", :action => "comments")
     )
   end
+
+  def test_on_explicit_index_page # My index page is very modest, thank you...
+    url = ActionController::UrlRewriter.new(
+      MockRequest.new(
+        "http://", "example.com", 80, "/controller/index",
+        {"controller"=>"controller", "action"=>"index"}
+      ), "controller", "index"
+    )
+    assert_equal("http://example.com/controller/foo", url.rewrite(:action => 'foo'))
+  end
+
 end

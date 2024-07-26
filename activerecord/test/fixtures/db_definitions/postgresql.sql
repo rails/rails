@@ -22,7 +22,8 @@ SELECT setval('companies_id_seq', 100);
 
 CREATE TABLE developers_projects (
     developer_id integer NOT NULL,
-    project_id integer NOT NULL
+    project_id integer NOT NULL,
+    joined_on date
 );
 
 CREATE TABLE developers (

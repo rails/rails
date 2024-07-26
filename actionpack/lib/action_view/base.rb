@@ -141,6 +141,16 @@ module ActionView #:nodoc:
       end
     end
 
+    def self.controller_delegate(*methods)
+      methods.flatten.each do |method|
+        class_eval <<-end_eval
+          def #{method}(*args, &block)
+            controller.send(%(#{method}), *args, &block)
+          end
+        end_eval
+      end
+    end
+
     def initialize(base_path = nil, assigns_for_first_render = {}, controller = nil)#:nodoc:
       @base_path, @assigns = base_path, assigns_for_first_render
       @controller = controller
@@ -245,6 +255,7 @@ module ActionView #:nodoc:
       end
 
       def rxml_render(template, binding)
+        @controller.headers["Content-Type"] ||= 'text/xml'
         eval(template, binding)
       end
   end

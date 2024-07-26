@@ -52,15 +52,20 @@ class FormHelperTest < Test::Unit::TestCase
   
   def test_check_box
     assert_equal(
-      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret")
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
+      check_box("post", "secret")
     )
     
     @post.secret = 0
-    assert_equal '<input id="post_secret" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret")    
+    assert_equal(
+      '<input id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
+      check_box("post", "secret")    
+    )
     
     @post.secret = true
     assert_equal(
-      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret")
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
+      check_box("post", "secret")
     )
   end
   
@@ -96,7 +101,8 @@ class FormHelperTest < Test::Unit::TestCase
       text_area("post", "body", "name" => "really!")
     )
     assert_equal(
-      '<input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" />', check_box("post", "secret", "name" => "i mean it")
+      '<input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" /><input name="i mean it" type="hidden" value="0" />',
+      check_box("post", "secret", "name" => "i mean it")
     )
   end
  
@@ -109,7 +115,8 @@ class FormHelperTest < Test::Unit::TestCase
       text_area("post", "body", "id" => "really!")
     )
     assert_equal(
-      '<input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret", "id" => "i mean it")
+      '<input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
+      check_box("post", "secret", "id" => "i mean it")
     )
   end
 end

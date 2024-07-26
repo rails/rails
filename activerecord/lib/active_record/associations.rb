@@ -22,9 +22,9 @@ module ActiveRecord
     #     has_and_belongs_to_many :categories
     #   end
     #
-    # The project class now has the following methods to ease the traversel and manipulation of its relationships:
+    # The project class now has the following methods (and more) to ease the traversal and manipulation of its relationships:
     # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?, Project#portfolio?(portfolio)</tt>
-    # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manger.nil?,</tt>
+    # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
     #   <tt>Project#project_manager?(project_manager), Project#build_project_manager, Project#create_project_manager</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
     #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.find_all(conditions),</tt>
@@ -119,10 +119,11 @@ module ActiveRecord
       # +collection+ is replaced with the symbol passed as the first argument, so 
       # <tt>has_many :clients</tt> would add among others <tt>has_clients?</tt>.
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
-      #   An empty array is returned if none is found.
-      # * <tt>collection<<(object)</tt> - adds the object to the collection (by setting the foreign key on it) and saves it.
-      # * <tt>collection.delete(object)</tt> - removes the association by setting the foreign key to null on the associated object.
-      # * <tt>!collection.empty?</tt> - returns true if there's any associated objects.
+      #   An empty array is returned if none are found.
+      # * <tt>collection<<(object, ...)</tt> - adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
+      # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by setting their foreign keys to NULL.  This does not destroy the objects.
+      # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
+      # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
       # * <tt>collection.find(id)</tt> - finds an associated object responding to the +id+ and that
       #   meets the condition that it has to be associated with this object.
@@ -137,13 +138,14 @@ module ActiveRecord
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.find_all "firm_id = #{id}"</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
-      # * <tt>!Firm#clients.empty?</tt> (similar to <tt>firm.clients.length > 0</tt>)
+      # * <tt>Firm#clients.clear</tt>
+      # * <tt>Firm#clients.empty?</tt> (similar to <tt>firm.clients.size == 0</tt>)
       # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
       # * <tt>Firm#clients.find</tt> (similar to <tt>Client.find_on_conditions(id, "firm_id = #{id}")</tt>)
       # * <tt>Firm#clients.find_all</tt> (similar to <tt>Client.find_all "firm_id = #{id}"</tt>)
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("client_id" => id); c.save; c</tt>)
-      # The declaration can also include an options hash to specialize the generated methods.
+      # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
       # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be infered
@@ -156,10 +158,12 @@ module ActiveRecord
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_many association will use "person_id"
       #   as the default foreign_key.
-      # * <tt>:dependent</tt>   - if set to true all the associated object are destroyed alongside this object
+      # * <tt>:dependent</tt>   - if set to true all the associated object are destroyed alongside this object.
+      #   May not be set if :exclusively_dependent is also set.
       # * <tt>:exclusively_dependent</tt>   - if set to true all the associated object are deleted in one SQL statement without having their
       #   before_destroy callback run. This should only be used on associations that depend solely on this class and don't need to do any
       #   clean-up in before_destroy. The upside is that it's much faster, especially if there's a counter_cache involved.
+      #   May not be set if :dependent is also set.
       # * <tt>:finder_sql</tt>  - specify a complete SQL statement to fetch the association. This is a good way to go for complex
       #   associations that depends on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
       #
@@ -177,25 +181,26 @@ module ActiveRecord
         association_name, association_class_name, association_class_primary_key_name =
               associate_identification(association_id, options[:class_name], options[:foreign_key])
  
-        if options[:dependent]
+        if options[:dependent] and options[:exclusively_dependent]
+          raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.'
+        elsif options[:dependent]
           module_eval "before_destroy '#{association_name}.each { |o| o.destroy }'"
+        elsif options[:exclusively_dependent]
+          module_eval "before_destroy { |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = '\#{record.id}')) }"
         end
 
-        if options[:exclusively_dependent]
-          module_eval "before_destroy Proc.new{ |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = '\#{record.id}')) }"
-        end
-
-        module_eval <<-"end_eval", __FILE__, __LINE__
-          def #{association_name}(force_reload = false)
-            if @#{association_name}.nil?
-                @#{association_name} = HasManyAssociation.new(self, "#{association_name}", "#{association_class_name}", 
-                  "#{association_class_primary_key_name}", #{options.inspect})
-            end
-            @#{association_name}.reload if force_reload
-            
-            return @#{association_name}
+        define_method(association_name) do |*params|
+          force_reload = params.first unless params.empty?
+          association = instance_variable_get("@#{association_name}")
+          if association.nil?
+            association = HasManyAssociation.new(self,
+              association_name, association_class_name,
+              association_class_primary_key_name, options)
+            instance_variable_set("@#{association_name}", association)
           end
-        end_eval
+          association.reload if force_reload
+          association
+        end
         
         # deprecated api
         deprecated_collection_count_method(association_name)
@@ -216,7 +221,7 @@ module ActiveRecord
       #   and saves the associate object.
       # * <tt>association?(object, force_reload = false)</tt> - returns true if the +object+ is of the same type and has the
       #   same id as the associated object.
-      # * <tt>!association.nil?</tt> - returns true if there's an associated object.
+      # * <tt>association.nil?</tt> - returns true if there is no associated object.
       # * <tt>build_association(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key but has not yet been saved.
       # * <tt>create_association(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
@@ -226,10 +231,10 @@ module ActiveRecord
       # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find_first "account_id = #{id}"</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
       # * <tt>Account#beneficiary?</tt> (similar to <tt>account.beneficiary == some_beneficiary</tt>)
-      # * <tt>!Account#beneficiary.nil?</tt>
+      # * <tt>Account#beneficiary.nil?</tt>
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
-      # The declaration can also include an options hash to specialize the generated methods.
+      # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
       # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be infered
@@ -269,14 +274,14 @@ module ActiveRecord
       # * <tt>association=(associate)</tt> - assigns the associate object, extracts the primary key, and sets it as the foreign key.
       # * <tt>association?(object, force_reload = false)</tt> - returns true if the +object+ is of the same type and has the
       #   same id as the associated object.
-      # * <tt>association.nil?</tt> - returns true if there's an associated object.
+      # * <tt>association.nil?</tt> - returns true if there is no associated object.
       #
       # Example: An Post class declares <tt>has_one :author</tt>, which will add:
       # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
       # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
-      # * <tt>!Post#author.nil?</tt>
-      # The declaration can also include an options hash to specialize the generated methods.
+      # * <tt>Post#author.nil?</tt>
+      # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
       # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be infered
@@ -341,25 +346,37 @@ module ActiveRecord
       # Associates two classes via an intermediate join table.  Unless the join table is explicitly specified as
       # an option, it is guessed using the lexical order of the class names. So a join between Developer and Project
       # will give the default join table name of "developers_projects" because "D" outranks "P".
+      #
+      # Any additional fields added to the join table will be placed as attributes when pulling records out through
+      # has_and_belongs_to_many associations. This is helpful when have information about the association itself
+      # that you want available on retrival.
+      #
       # Adds the following methods for retrival and query.
       # +collection+ is replaced with the symbol passed as the first argument, so 
       # <tt>has_and_belongs_to_many :categories</tt> would add among others +add_categories+.
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
       #   An empty array is returned if none is found.
-      # * <tt>!collection.empty?</tt> - returns true if there's any associated objects.
+      # * <tt>collection<<(object, ...)</tt> - adds one or more objects to the collection by creating associations in the join table 
+      #   (collection.push and collection.concat are aliases to this method).
+      # * <tt>collection.push_with_attributes(object, join_attributes)</tt> - adds one to the collection by creating an association in the join table that
+      #   also holds the attributes from <tt>join_attributes</tt> (should be a hash with the column names as keys). This can be used to have additional
+      #   attributes on the join, which will be injected into the associated objects when they are retrieved through the collection.
+      #   (collection.concat_with_attributes is an alias to this method).
+      # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by removing their associations from the join table.  
+      #   This does not destroy the objects.
+      # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
+      # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
-      # * <tt>collection<<(object)</tt> - adds an association between this object and the object given as argument. Multiple associations
-      #   can be created by passing an array of objects instead.
-      # * <tt>collection.delete(object)</tt> - removes the association between this object and the object given as 
-      #   argument. Multiple associations can be removed by passing an array of objects instead.
       #
       # Example: An Developer class declares <tt>has_and_belongs_to_many :projects</tt>, which will add:
       # * <tt>Developer#projects</tt>
-      # * <tt>!Developer#projects.empty?</tt>
-      # * <tt>Developer#projects.size</tt>
       # * <tt>Developer#projects<<</tt>
       # * <tt>Developer#projects.delete</tt>
-      # The declaration can also include an options hash to specialize the generated methods.
+      # * <tt>Developer#projects.clear</tt>
+      # * <tt>Developer#projects.empty?</tt>
+      # * <tt>Developer#projects.size</tt>
+      # * <tt>Developer#projects.find(id)</tt>
+      # The declaration may include an options hash to specialize the behavior of the association.
       # 
       # Options are:
       # * <tt>:class_name</tt> - specify the class name of the association. Use it only if that name can't be infered
@@ -374,7 +391,10 @@ module ActiveRecord
       # * <tt>:association_foreign_key</tt> - specify the association foreign key used for the association. By default this is
       #   guessed to be the name of the associated class in lower-case and "_id" suffixed. So the associated class is +Project+
       #   that makes a has_and_belongs_to_many association will use "project_id" as the default association foreign_key.
-      # * <tt>:order</tt> - specify the order in which the associated objects are returned as a "ORDER BY" sql fragment, such as "last_name, first_name DESC".
+      # * <tt>:conditions</tt>  - specify the conditions that the associated object must meet in order to be included as a "WHERE"
+      #   sql fragment, such as "authorized = 1".
+      # * <tt>:order</tt> - specify the order in which the associated objects are returned as a "ORDER BY" sql fragment, such as "last_name, first_name DESC"
+      # * <tt>:uniq</tt> - if set to true, duplicate associated objects will be ignored by accessors and query methods
       # * <tt>:finder_sql</tt> - overwrite the default generated SQL used to fetch the association with a manual one
       # * <tt>:delete_sql</tt> - overwrite the default generated SQL used to remove links between the associated 
       #   classes with a manual one
@@ -386,8 +406,8 @@ module ActiveRecord
       #   has_and_belongs_to_many :nations, :class_name => "Country"
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
       def has_and_belongs_to_many(association_id, options = {})
-        validate_options([ :class_name, :table_name, :foreign_key, :association_foreign_key,
-                           :join_table, :finder_sql, :delete_sql, :insert_sql, :order ], options.keys)
+        validate_options([ :class_name, :table_name, :foreign_key, :association_foreign_key, :conditions,
+                           :join_table, :finder_sql, :delete_sql, :insert_sql, :order, :uniq ], options.keys)
         association_name, association_class_name, association_class_primary_key_name =
               associate_identification(association_id, options[:class_name], options[:foreign_key])
 
@@ -395,19 +415,20 @@ module ActiveRecord
           join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(association_class_name))
  
         
-        module_eval <<-"end_eval", __FILE__, __LINE__
-          def #{association_name}(force_reload = false)
-            if @#{association_name}.nil?
-                @#{association_name} = HasAndBelongsToManyCollection.new(self, "#{association_name}", "#{association_class_name}", 
-                  "#{association_class_primary_key_name}", '#{join_table}', #{options.inspect})
-            end
-            @#{association_name}.reload if force_reload
-            
-            return @#{association_name}
+        define_method(association_name) do |*params|
+          force_reload = params.first unless params.empty?
+          association = instance_variable_get("@#{association_name}")
+          if association.nil?
+            association = HasAndBelongsToManyAssociation.new(self,
+              association_name, association_class_name,
+              association_class_primary_key_name, join_table, options)
+            instance_variable_set("@#{association_name}", association)
           end
-        end_eval
+          association.reload if force_reload
+          association
+        end
 
-        before_destroy_sql = "DELETE FROM #{join_table} WHERE #{Inflector.foreign_key(self.class_name)} = '\\\#{self.id}'"
+        before_destroy_sql = "DELETE FROM #{join_table} WHERE #{association_class_primary_key_name} = '\\\#{self.id}'"
         module_eval(%{before_destroy "self.connection.delete(%{#{before_destroy_sql}})"}) # "
         
         # deprecated api

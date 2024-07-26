@@ -1,35 +1,5 @@
 module ActionView
-  # The template helpers serves to relieve the templates from including the same inline code again and again. It's a
-  # set of standardized methods for working with forms (FormHelper), dates (DateHelper), texts (TextHelper), and 
-  # Active Records (ActiveRecordHelper) that's available to all templates by default.
-  #
-  # It's also really easy to make your own helpers and it's much encouraged to keep the template files free
-  # from complicated logic. It's even encouraged to bundle common compositions of methods from other helpers 
-  # (often the common helpers) as they're used by the specific application.
-  # 
-  # Defining a helper requires you to include a specialized +append_features+ method that makes them capable 
-  # of configuring their integration upon inclusion in a controller, like this:
-  # 
-  #   module MyHelper
-  #     def self.append_features(controller)
-  #       controller.ancestors.include?(ActionController::Base) ?
-  #         controller.add_template_helper(self) : super
-  #     end
-  #   
-  #     def hello_world() "hello world" end
-  #   end
-  # 
-  # MyHelper can now be included in a controller, like this:
-  # 
-  #   require 'my_helper'
-  #   class MyController < ActionController::Base
-  #     include MyHelper
-  #   end
-  # 
-  # ...and, same as above, used in any template rendered from MyController, like this:
-  # 
-  # Let's hear what the helper has to say: <tt><%= hello_world %></tt>
-  module Helpers
+  module Helpers #:nodoc:
     # Provides a set of methods for working with text strings that can help unburden the level of inline Ruby code in the
     # templates. In the example below we iterate over a collection of posts provided to the template and prints each title 
     # after making sure it doesn't run longer than 20 characters:
@@ -109,6 +79,18 @@ module ActionView
           if textiled[0..2] == "<p>" then textiled = textiled[3..-1] end
           if textiled[-4..-1] == "</p>" then textiled = textiled[0..-5] end
           return textiled
+        end
+      rescue LoadError
+        # We can't really help what's not there
+      end
+
+      begin
+        require "bluecloth"
+
+        # Returns the text with all the Markdown codes turned into HTML-tags. 
+        # <i>This method is only available if BlueCloth can be required</i>.
+        def markdown(text)
+          BlueCloth.new(text).to_html
         end
       rescue LoadError
         # We can't really help what's not there

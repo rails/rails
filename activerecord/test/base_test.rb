@@ -59,9 +59,13 @@ class BasicsTest < Test::Unit::TestCase
     assert topic.respond_to?("title")
     assert topic.respond_to?("title?")
     assert topic.respond_to?("title=")
+    assert topic.respond_to?(:title)
+    assert topic.respond_to?(:title?)
+    assert topic.respond_to?(:title=)
     assert topic.respond_to?("author_name")
     assert topic.respond_to?("attribute_names")
     assert !topic.respond_to?("nothingness")
+    assert !topic.respond_to?(:nothingness)
   end
   
   def test_array_content
@@ -325,6 +329,10 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal Topic.find(1), Topic.find(2).parent
   end
   
+  def test_hashing
+    assert_equal [ Topic.find(1) ], [ Topic.find(2).parent ] & [ Topic.find(1) ]
+  end
+  
   def test_destroy_new_record
     client = Client.new
     client.destroy
@@ -509,5 +517,11 @@ class BasicsTest < Test::Unit::TestCase
     Topic.find(topic.id).update_attribute("content", settings)
     assert_equal(settings, Topic.find(topic.id).content)
     Topic.serialize(:content)
+  end
+
+  def test_quote
+    content = "\\ \001 ' \n \\n \""
+    topic = Topic.create('content' => content)
+    assert_equal content, Topic.find(topic.id).content
   end
 end

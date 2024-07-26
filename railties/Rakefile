@@ -2,11 +2,15 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
+require 'rake/contrib/rubyforgepublisher'
 
 require 'date'
 
-PKG_NAME        = "rails"
-PKG_VERSION     = "0.8.0"
+
+PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME        = 'rails'
+PKG_VERSION     = '0.8.5' + PKG_BUILD
+PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
 desc "Default Task"
@@ -163,9 +167,11 @@ task :copy_generators do
   File.cp "generators/new_controller.rb", "#{PKG_DESTINATION}/script/new_controller"
   File.cp "generators/new_model.rb", "#{PKG_DESTINATION}/script/new_model"
   File.cp "generators/new_mailer.rb", "#{PKG_DESTINATION}/script/new_mailer"
+  File.cp "generators/new_crud.rb", "#{PKG_DESTINATION}/script/new_crud"
   chmod 0755, "#{PKG_DESTINATION}/script/new_controller"
   chmod 0755, "#{PKG_DESTINATION}/script/new_model"
   chmod 0755, "#{PKG_DESTINATION}/script/new_mailer"
+  chmod 0755, "#{PKG_DESTINATION}/script/new_crud"
 end
 
 task :copy_rootfiles do
@@ -237,10 +243,10 @@ spec = Gem::Specification.new do |s|
     on top of either MySQL, PostgreSQL, or SQLite with eRuby-based templates.
   EOF
 
-  s.add_dependency('rake', '>= 0.4.4')
-  s.add_dependency('activerecord', '>= 1.0.0')
-  s.add_dependency('actionpack', '>= 0.9.0')
-  s.add_dependency('actionmailer', '>= 0.3.0')
+  s.add_dependency('rake', '>= 0.4.11')
+  s.add_dependency('activerecord', '>= 1.1.0')
+  s.add_dependency('actionpack', '>= 0.9.5')
+  s.add_dependency('actionmailer', '>= 0.4.0')
 
   s.files = PKG_FILES.to_a
   s.require_path = 'lib'
@@ -256,4 +262,10 @@ spec = Gem::Specification.new do |s|
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
+end
+
+# Publish beta gem
+desc "Publish the API documentation"
+task :pgem => [:gem] do 
+  Rake::SshFilePublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
 end

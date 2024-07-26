@@ -110,7 +110,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
       end
       
       dispatch_rb_path = File.expand_path(File.join(@server_options[:server_root], "dispatch.rb"))
-      IO.popen(ruby_interpreter, "r+") do |ruby|
+      IO.popen(ruby_interpreter, "rb+") do |ruby|
         ruby.puts <<-END
           require 'cgi'
           require 'stringio'

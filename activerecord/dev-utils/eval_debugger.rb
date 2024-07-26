@@ -1,9 +1,14 @@
-# Require the eval_debugger to get an insight into the methods that aggregations and associations macross are adding.
-# All the additions are reported to $stderr just by requiring this file.
+# Require this file to see the methods Active Record generates as they are added.
 class Module
-	alias :old_module_eval :module_eval
-	def module_eval(*args, &block)
-		puts("in #{self.name}, #{if args[1] then "file #{args[1]}" end} #{if args[2] then "on line #{args[2]}" end}:\n#{args[0]}") if args[0]
-		old_module_eval(*args, &block)
-	end
+  alias :old_module_eval :module_eval
+  def module_eval(*args, &block)
+    if args[0]
+      puts  "----"
+      print "module_eval in #{self.name}"
+      print ": file #{args[1]}" if args[1]
+      print " on line #{args[2]}" if args[2]
+      puts  "\n#{args[0]}"
+    end
+    old_module_eval(*args, &block)
+  end
 end

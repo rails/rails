@@ -17,11 +17,11 @@ module ActionView
       # confirm alerts where if you pass :confirm => 'Are you sure?', the link will be guarded with a JS popup asking that question.
       # If the user accepts, the link is processed, otherwise not.
       def link_to(name, options = {}, html_options = {}, *parameters_for_method_reference)
+        convert_confirm_option_to_javascript!(html_options) unless html_options.nil?
         if options.is_a?(String)
-          content_tag "a", name, "href" => options
+          content_tag "a", name, (html_options || {}).merge({ "href" => options })
         else
-          convert_confirm_option_to_javascript!(html_options)
-          content_tag("a", name, html_options.merge({ "href" => url_for(options, *parameters_for_method_reference) }))
+          content_tag("a", name, (html_options || {}).merge({ "href" => url_for(options, *parameters_for_method_reference) }))
         end
       end
 
@@ -41,6 +41,12 @@ module ActionView
         end
       end
 
+      # Creates a link tag for starting an email to the specified <tt>email_address</tt>, which is also used as the name of the
+      # link unless +name+ is specified. Additional HTML options, such as class or id, can be passed in the <tt>html_options</tt> hash.
+      def mail_to(email_address, name = nil, html_options = {})
+        content_tag "a", name || email_address, html_options.merge({ "href" => "mailto:#{email_address}" })
+      end
+
       private
         def destination_equal_to_current(options)
           params_without_location = @params.reject { |key, value| %w( controller action id ).include?(key) }
@@ -50,7 +56,7 @@ module ActionView
             options[:controller] == @params['controller'] &&
             (options.has_key?(:params) ? params_without_location == options[:params] : true) 
         end
-        
+
         def assume_current_url_options!(options)
           if options[:controller].nil?
             options[:controller] = @params['controller']
@@ -63,7 +69,7 @@ module ActionView
         
         def convert_confirm_option_to_javascript!(html_options)
           if html_options.include?(:confirm)
-            html_options["onClick"] = "return confirm('#{html_options[:confirm]}');"
+            html_options["onclick"] = "return confirm('#{html_options[:confirm]}');"
             html_options.delete(:confirm)
           end
         end

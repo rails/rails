@@ -85,13 +85,19 @@ module ActionView
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). It's intended that +method+ returns an integer and if that
       # integer is above zero, then the checkbox is checked. Additional options on the input tag can be passed as a
-      # hash with +options+. The +value+ defaults to 1, which is convenient for boolean values. 
+      # hash with +options+. The +checked_value+ defaults to 1 while the default +unchecked_value+
+      # is set to 0 which is convenient for boolean values. Usually unchecked checkboxes don't post anything. 
+      # We work around this problem by adding a hidden value with the same name as the checkbox.
       #
       # Example (call, result). Imagine that @post.validated? returns 1:
       #   check_box("post", "validated")
-      #     <input type="checkbox" id="post_validate" name="post[validated] value="1" checked="checked" />
-      def check_box(object, method, options = {}, value = "1")
-        InstanceTag.new(object, method, self).to_check_box_tag(options, value)
+      #     <input type="checkbox" id="post_validate" name="post[validated] value="1" checked="checked" /><input name="post[validated]" type="hidden" value="0" />
+      #
+      # Example (call, result). Imagine that @puppy.gooddog returns no:
+      #   check_box("puppy", "gooddog", {}, "yes", "no")
+      #     <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog] value="yes" /><input name="puppy[gooddog]" type="hidden" value="no" />
+      def check_box(object, method, options = {}, checked_value = "1", unchecked_value = "0")
+        InstanceTag.new(object, method, self).to_check_box_tag(options, checked_value, unchecked_value)
       end
     end
 
@@ -122,11 +128,11 @@ module ActionView
         content_tag("textarea", html_escape(value), options)
       end
 
-      def to_check_box_tag(options = {}, checked_value = "1")
+      def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
         options.merge!({"checked" => "checked"}) if !value.nil? && ((value.is_a?(TrueClass) || value.is_a?(FalseClass)) ? value : value.to_i > 0)
         options.merge!({ "type" => "checkbox", "value" => checked_value })
         add_default_name_and_id(options)
-        tag("input", options)
+        tag("input", options) << tag("input", ({ "name" => options['name'], "type" => "hidden", "value" => unchecked_value }))
       end
 
       def to_date_tag()

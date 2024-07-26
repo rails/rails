@@ -1,3 +1,104 @@
+*1.1.0* (34)
+
+* Added automatic fixture setup and instance variable availability. Fixtures can also be automatically 
+  instantiated in instance variables relating to their names using the following style:
+
+    class FixturesTest < Test::Unit::TestCase
+      fixtures :developers # you can add more with comma separation
+
+      def test_developers
+        assert_equal 3, @developers.size # the container for all the fixtures is automatically set
+        assert_kind_of Developer, @david # works like @developers["david"].find
+        assert_equal "David Heinemeier Hansson", @david.name
+      end
+    end
+
+* Added HasAndBelongsToManyAssociation#push_with_attributes(object, join_attributes) that can create associations in the join table with additional
+  attributes. This is really useful when you have information that's only relevant to the join itself, such as a "added_on" column for an association
+  between post and category. The added attributes will automatically be injected into objects retrieved through the association similar to the piggy-back
+  approach:
+  
+    post.categories.push_with_attributes(category, :added_on => Date.today)
+    post.categories.first.added_on # => Date.today
+    
+  NOTE: The categories table doesn't have a added_on column, it's the categories_post join table that does!
+
+* Fixed that :exclusively_dependent and :dependent can't be activated at the same time on has_many associations [bitsweat]
+
+* Fixed that database passwords couldn't be all numeric [bitsweat]
+
+* Fixed that calling id would create the instance variable for new_records preventing them from being saved correctly [bitsweat]
+
+* Added sanitization feature to HasManyAssociation#find_all so it works just like Base.find_all [Sam Stephenson/bitsweat]
+
+* Added that you can pass overlapping ids to find without getting duplicated records back [bitsweat]
+
+* Added that Base.benchmark returns the result of the block [bitsweat]
+
+* Fixed problem with unit tests on Windows with SQLite [paterno]
+
+* Fixed that quotes would break regular non-yaml fixtures [Dmitry Sabanin/daft]
+
+* Fixed fixtures on windows with line endings cause problems under unix / mac [Tobias Luetke]
+
+* Added HasAndBelongsToManyAssociation#find(id) that'll search inside the collection and find the object or record with that id
+
+* Added :conditions option to has_and_belongs_to_many that works just like the one on all the other associations
+
+* Added AssociationCollection#clear to remove all associations from has_many and has_and_belongs_to_many associations without destroying the records [geech]
+
+* Added type-checking and remove in 1-instead-of-N sql statements to AssociationCollection#delete [geech]
+
+* Added a return of self to AssociationCollection#<< so appending can be chained, like project << Milestone.create << Milestone.create [geech]
+
+* Added Base#hash and Base#eql? which means that all of the equality using features of array and other containers now works:
+
+    [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
+
+* Added :uniq as an option to has_and_belongs_to_many which will automatically ensure that AssociateCollection#uniq is called
+  before pulling records out of the association. This is especially useful for three-way (and above) has_and_belongs_to_many associations.
+
+* Added AssociateCollection#uniq which is especially useful for has_and_belongs_to_many associations that can include duplicates,
+  which is common on associations that also use metadata. Usage: post.categories.uniq
+
+* Fixed respond_to? to use a subclass specific hash instead of an Active Record-wide one
+
+* Fixed has_and_belongs_to_many to treat associations between classes in modules properly [Florian Weber]
+
+* Added a NoMethod exception to be raised when query and writer methods are called for attributes that doesn't exist [geech]
+
+* Added a more robust version of Fixtures that throws meaningful errors when on formatting issues [geech]
+
+* Added Base#transaction as a compliment to Base.transaction for prettier use in instance methods [geech]
+
+* Improved the speed of respond_to? by placing the dynamic methods lookup table in a hash [geech]
+
+* Added that any additional fields added to the join table in a has_and_belongs_to_many association 
+  will be placed as attributes when pulling records out through has_and_belongs_to_many associations. 
+  This is helpful when have information about the association itself that you want available on retrival.
+
+* Added better loading exception catching and RubyGems retries to the database adapters [alexeyv]
+
+* Fixed bug with per-model transactions [daniel]
+
+* Fixed Base#transaction so that it returns the result of the last expression in the transaction block [alexeyv]
+
+* Added Fixture#find to find the record corresponding to the fixture id. The record 
+  class name is guessed by using Inflector#classify (also new) on the fixture directory name.
+  
+    Before: Document.find(@documents["first"]["id"])
+    After : @documents["first"].find
+
+* Fixed that the table name part of column names ("TABLE.COLUMN") wasn't removed properly [Andreas Schwarz]
+
+* Fixed a bug with Base#size when a finder_sql was used that didn't capitalize SELECT and FROM [geech]
+
+* Fixed quoting problems on SQLite by adding quote_string to the AbstractAdapter that can be overwritten by the concrete
+  adapters for a call to the dbm. [Andreas Schwarz]
+  
+* Removed RubyGems backup strategy for requiring SQLite-adapter -- if people want to use gems, they're already doing it with AR.
+
+
 *1.0.0 (35)*
 
 * Added OO-style associations methods [Florian Weber]. Examples:
@@ -45,7 +146,7 @@
       log { result = ... }
       result.map { ... }
 
-* Added "socket" option for the MySQL adapter, so you can change it to something else than "/tmp/mysql.sock" [Anna Liss Cruz]
+* Added "socket" option for the MySQL adapter, so you can change it to something else than "/tmp/mysql.sock" [Anna Lissa Cruz]
 
 * Added respond_to? answers for all the attribute methods. So if Person has a name attribute retrieved from the table schema, 
   person.respond_to? "name" will return true.

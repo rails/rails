@@ -20,7 +20,7 @@ module ActiveRecord
     
        def deprecated_remove_association_relation(association_name)# :nodoc:
         module_eval <<-"end_eval", __FILE__, __LINE__
-          def remove_#{association_name}(items)
+          def remove_#{association_name}(*items)
             #{association_name}.delete(items)
           end
         end_eval

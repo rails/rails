@@ -31,6 +31,14 @@ module Inflector
     class_name_in_module.gsub(/^.*::/, '')
   end
 
+  def tableize(class_name)
+    pluralize(underscore(class_name))
+  end
+  
+  def classify(table_name)
+    camelize(singularize(table_name))
+  end
+
   def foreign_key(class_name, separate_class_name_and_id_with_underscore = true)
     Inflector.underscore(Inflector.demodulize(class_name)) + 
       (separate_class_name_and_id_with_underscore ? "_id" : "id")

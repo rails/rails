@@ -1,3 +1,31 @@
+*0.8.5* (9)
+
+* Made dev-util available to all tests, so you can insert breakpoints in any test case to get an IRB prompt at that point [bitsweat]:
+
+    def test_complex_stuff
+      @david.projects << @new_project
+      breakpoint "Let's have a closer look at @david"
+    end
+  
+  You need to install dev-utils yourself for this to work ("gem install dev-util").
+
+* Added shared generator behavior so future upgrades should be possible without manually copying over files [bitsweat]
+
+* Added the new helper style to both controller and helper templates [bitsweat]
+
+* Added new_crud generator for creating a model and controller at the same time with explicit scaffolding [bitsweat]
+
+* Added configuration of Test::Unit::TestCase.fixture_path to test_helper to concide with the new AR fixtures style
+
+* Fixed that new_model was generating singular table/fixture names
+
+* Upgraded to Action Mailer 0.4.0
+
+* Upgraded to Action Pack 0.9.5
+
+* Upgraded to Active Record 1.1.0
+
+
 *0.8.0 (15)*
 
 * Removed custom_table_name option for new_model now that the Inflector is as powerful as it is

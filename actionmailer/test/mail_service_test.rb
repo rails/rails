@@ -24,30 +24,69 @@ end
 TestMailer.template_root = File.dirname(__FILE__) + "/fixtures"
 
 class ActionMailerTest < Test::Unit::TestCase
+  def setup
+    ActionMailer::Base.delivery_method = :test
+    ActionMailer::Base.perform_deliveries = true
+    ActionMailer::Base.deliveries = []
+
+    @recipient = 'test@localhost'
+  end
+
   def test_signed_up
     expected = TMail::Mail.new
-    expected.to      = "david@loudthinking.com"
-    expected.subject = "[Signed up] Welcome david@loudthinking.com"
-    expected.body    = "Hello there, \n\nMr. david@loudthinking.com"
+    expected.to      = @recipient
+    expected.subject = "[Signed up] Welcome #{@recipient}"
+    expected.body    = "Hello there, \n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
 
-    assert_equal expected.encoded, TestMailer.create_signed_up("david@loudthinking.com").encoded
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_signed_up(@recipient) }
+    assert_not_nil created
+    assert_equal expected.encoded, created.encoded
+
+    assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
+    assert_not_nil ActionMailer::Base.deliveries.first
+    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
   end
   
   def test_cancelled_account
     expected = TMail::Mail.new
-    expected.to      = "david@loudthinking.com"
-    expected.subject = "[Cancelled] Goodbye david@loudthinking.com"
-    expected.body    = "Goodbye, Mr. david@loudthinking.com"
+    expected.to      = @recipient
+    expected.subject = "[Cancelled] Goodbye #{@recipient}"
+    expected.body    = "Goodbye, Mr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
 
-    assert_equal expected.encoded, TestMailer.create_cancelled_account("david@loudthinking.com").encoded
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_cancelled_account(@recipient) }
+    assert_not_nil created
+    assert_equal expected.encoded, created.encoded
+
+    assert_nothing_raised { TestMailer.deliver_cancelled_account(@recipient) }
+    assert_not_nil ActionMailer::Base.deliveries.first
+    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
   end
   
   def test_instances_are_nil
     assert_nil ActionMailer::Base.new
     assert_nil TestMailer.new
+  end
+
+  def test_deliveries_array
+    assert_not_nil ActionMailer::Base.deliveries
+    assert_equal 0, ActionMailer::Base.deliveries.size
+    TestMailer.deliver_signed_up(@recipient)
+    assert_equal 1, ActionMailer::Base.deliveries.size
+    assert_not_nil ActionMailer::Base.deliveries.first
+  end
+
+  def test_perform_deliveries_flag
+    ActionMailer::Base.perform_deliveries = false
+    TestMailer.deliver_signed_up(@recipient)
+    assert_equal 0, ActionMailer::Base.deliveries.size
+    ActionMailer::Base.perform_deliveries = true
+    TestMailer.deliver_signed_up(@recipient)
+    assert_equal 1, ActionMailer::Base.deliveries.size
   end
 end

@@ -8,7 +8,7 @@ module ActiveRecord
   #
   #   class CommentObserver < ActiveRecord::Observer
   #     def after_save(comment)
-  #       NotificationServer.send_email("admin@do.com", "New comment was posted", comment)
+  #       Notifications.deliver_comment("admin@do.com", "New comment was posted", comment)
   #     end
   #   end
   #

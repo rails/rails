@@ -21,9 +21,11 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+
 $:.unshift(File.dirname(__FILE__))
 
 require 'active_record/support/clean_logger'
+# require 'active_record/support/array_ext'
 
 require 'active_record/base'
 require 'active_record/observer'

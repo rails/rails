@@ -18,9 +18,10 @@ unless $sitedir
   end
 end
 
-makedirs = %w{ action_controller/cgi_ext action_controller/session
-               action_controller/support action_controller/templates
-               action_controller/templates/rescues action_controller/templates/scaffolds
+makedirs = %w{ action_controller/assertions action_controller/cgi_ext
+               action_controller/session action_controller/support
+               action_controller/templates action_controller/templates/rescues
+               action_controller/templates/scaffolds
                action_view/helpers action_view/vendor action_view/vendor/builder
 }
 
@@ -33,6 +34,8 @@ makedirs.each {|f| File::makedirs(File.join($sitedir, *f.split(/\//)))}
 # files to install in library path
 files = %w-
  action_controller.rb
+ action_controller/assertions/action_pack_assertions.rb
+ action_controller/assertions/active_record_assertions.rb
  action_controller/base.rb
  action_controller/benchmarking.rb
  action_controller/cgi_ext/cgi_ext.rb
@@ -40,6 +43,7 @@ files = %w-
  action_controller/cgi_process.rb
  action_controller/filters.rb
  action_controller/flash.rb
+ action_controller/helpers.rb
  action_controller/layout.rb
  action_controller/request.rb
  action_controller/rescue.rb

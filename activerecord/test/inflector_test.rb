@@ -58,6 +58,11 @@ class InflectorTest < Test::Unit::TestCase
     "Person" => "personid",
     "MyApplication::Billing::Account" => "accountid"
   }
+  
+  ClassNameToTableName = {
+    "PrimarySpokesman" => "primary_spokesmen",
+    "NodeChild"        => "node_children"
+  }
 
   def test_pluralize
     SingularToPlural.each do |singular, plural|
@@ -99,6 +104,18 @@ class InflectorTest < Test::Unit::TestCase
 
     ClassNameToForeignKeyWithoutUnderscore.each do |klass, foreign_key|
       assert_equal(foreign_key, Inflector.foreign_key(klass, false))
+    end
+  end
+
+  def test_tableize
+    ClassNameToTableName.each do |class_name, table_name|
+      assert_equal(table_name, Inflector.tableize(class_name))
+    end
+  end
+
+  def test_classify
+    ClassNameToTableName.each do |class_name, table_name|
+      assert_equal(class_name, Inflector.classify(table_name))
     end
   end
 end

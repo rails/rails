@@ -1,6 +1,29 @@
 require 'benchmark'
 require 'date'
 
+# Method that requires a library, ensuring that rubygems is loaded
+# This is used in the database adaptors to require DB drivers. Reasons:
+# (1) database drivers are the only third-party library that Rails depend upon
+# (2) they are often installed as gems
+def require_library_or_gem(library_name)
+  begin
+    require library_name
+  rescue LoadError => cannot_require
+    # 1. Requiring the module is unsuccessful, maybe it's a gem and nobody required rubygems yet. Try.
+    begin
+      require 'rubygems'
+    rescue LoadError => rubygems_not_installed
+      raise cannot_require
+    end
+    # 2. Rubygems is installed and loaded. Try to load the library again
+    begin 
+      require library_name
+    rescue LoadError => gem_not_installed
+      raise cannot_require
+    end
+  end
+end
+
 module ActiveRecord
   class Base
     class ConnectionSpecification #:nodoc:
@@ -9,7 +32,7 @@ module ActiveRecord
         @config, @adapter_method = config, adapter_method
       end
     end
-
+    
     # The class -> [adapter_method, config] map
     @@defined_connections = {}
 
@@ -251,6 +274,21 @@ module ActiveRecord
         return rt
       end
 
+      # Wrap a block in a transaction.  Returns result of block.
+      def transaction
+        begin
+          if block_given?
+            begin_db_transaction
+            result = yield
+            commit_db_transaction
+            result
+          end
+        rescue Exception => database_transaction_rollback
+          rollback_db_transaction
+          raise
+        end
+      end
+
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
       
@@ -263,14 +301,18 @@ module ActiveRecord
 
       def quote(value, column = nil)
         case value
-          when String                      then "'#{value.gsub(/\\/,'\&\&').gsub(/'/, "''")}'" # ' (for ruby-mode)
+          when String                      then "'#{quote_string(value)}'" # ' (for ruby-mode)
           when NilClass                    then "NULL"
           when TrueClass                   then (column && column.type == :boolean ? "'t'" : "1")
           when FalseClass                  then (column && column.type == :boolean ? "'f'" : "0")
           when Float, Fixnum, Bignum, Date then "'#{value.to_s}'" 
           when Time, DateTime              then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-          else                                  "'#{value.to_yaml.gsub(/'/, "''")}'"
+          else                                  "'#{quote_string(value.to_yaml)}'"
         end
+      end
+
+      def quote_string(s)
+        s.gsub(/\\/, '\&\&').gsub(/'/, "''") # ' (for ruby-mode)
       end
 
       def quote_column_name(name)
@@ -322,5 +364,6 @@ module ActiveRecord
           log_entry
         end
     end
+    
   end
 end

@@ -186,9 +186,10 @@ end
 class Test::Unit::TestCase #:nodoc:
   private  
     # execute the request and set/volley the response
-    def process(action, parameters = {})
+    def process(action, parameters = nil, session = nil)
       @request.action = action.to_s
-      @request.parameters.update(parameters)
+      @request.parameters.update(parameters) unless parameters.nil?
+      @request.session = ActionController::TestSession.new(session) unless session.nil?
       @controller.process(@request, @response)
     end
 end

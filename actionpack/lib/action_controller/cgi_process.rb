@@ -71,7 +71,7 @@ module ActionController #:nodoc:
         @session["__valid_session"]
         return @session
       rescue ArgumentError => e
-        @session.delete
+        @session.delete if @session
         raise(
           ActionController::SessionRestoreError, 
           "Session contained objects where the class definition wasn't available. " +
@@ -104,6 +104,7 @@ module ActionController #:nodoc:
 
     def out
       convert_content_type!(@headers)
+      $stdout.binmode if $stdout.respond_to?(:binmode)
       print @cgi.header(@headers)
       if @body.respond_to?(:call)
         @body.call(self)
@@ -111,7 +112,7 @@ module ActionController #:nodoc:
         print @body
       end
     end
-    
+
     private
       def convert_content_type!(headers)
         if headers["Content-Type"]

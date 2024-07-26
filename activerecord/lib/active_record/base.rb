@@ -111,7 +111,7 @@ module ActiveRecord #:nodoc:
   #   end
   # 
   #   user = User.create("preferences" => %w( one two three ))
-  #   User.find(user.id).preferences # => raises SerializationTypeMismatch
+  #   User.find(user.id).preferences    # raises SerializationTypeMismatch
   # 
   # == Single table inheritance
   #
@@ -220,7 +220,7 @@ module ActiveRecord #:nodoc:
       #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
       # +RecordNotFound+ is raised if no record can be found.
       def find(*ids)
-        ids = [ ids ].flatten.compact
+        ids = ids.flatten.compact.uniq
 
         if ids.length > 1
           ids_list = ids.map{ |id| "'#{sanitize(id)}'" }.join(", ")
@@ -234,7 +234,7 @@ module ActiveRecord #:nodoc:
         elsif ids.length == 1
           id = ids.first
           sql = "SELECT * FROM #{table_name} WHERE #{primary_key} = '#{sanitize(id)}'"
-          sql << " AND #{type_condition}" unless descents_from_active_record?
+          sql << " AND #{type_condition}" unless descends_from_active_record?
 
           if record = connection.select_one(sql, "#{name} Find")
             instantiate(record)
@@ -275,7 +275,7 @@ module ActiveRecord #:nodoc:
       def find_by_sql(sql)
         connection.select_all(sql, "#{name} Load").inject([]) { |objects, record| objects << instantiate(record) }
       end
-    
+      
       # Returns the object for the first record responding to the conditions in +conditions+, 
       # such as "group = 'master'". If more than one record is returned from the query, it's the first that'll
       # be used to create the object. In such cases, it might be beneficial to also specify 
@@ -461,7 +461,7 @@ module ActiveRecord #:nodoc:
 
       # Defines the column name for use with single table inheritance -- can be overridden in subclasses.
       def inheritance_column
-	      "type"
+        "type"
       end
 
       # Turns the +table_name+ back into a class name following the reverse rules of +table_name+.
@@ -485,7 +485,19 @@ module ActiveRecord #:nodoc:
       # Returns an array of columns objects where the primary id, all columns ending in "_id" or "_count", 
       # and columns used for single table inheritance has been removed.
       def content_columns
-        columns.reject { |c| c.name == primary_key || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
+        @content_columns ||= columns.reject { |c| c.name == primary_key || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
+      end
+
+      # Returns a hash of all the methods added to query each of the columns in the table with the name of the method as the key
+      # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
+      # is available. 
+      def column_methods_hash
+        @dynamic_methods_hash ||= columns_hash.keys.inject(Hash.new(false)) do |methods, attr|
+          methods[attr.to_sym]       = true
+          methods["#{attr}=".to_sym] = true
+          methods["#{attr}?".to_sym] = true
+          methods
+        end
       end
 
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
@@ -494,7 +506,7 @@ module ActiveRecord #:nodoc:
         attribute_key_name.gsub(/_/, " ").capitalize unless attribute_key_name.nil?
       end
       
-      def descents_from_active_record? # :nodoc:
+      def descends_from_active_record? # :nodoc:
         superclass == Base
       end
 
@@ -513,10 +525,12 @@ module ActiveRecord #:nodoc:
       #     project.milestones << Milestone.find_all
       #   end
       def benchmark(title)
+        result = nil
         logger.level = Logger::ERROR
-        bm = Benchmark.measure { yield }
+        bm = Benchmark.measure { result = yield }
         logger.level = Logger::DEBUG
         logger.info "#{title} (#{sprintf("%f", bm.real)})"
+        return result
       end
 
       private
@@ -531,7 +545,7 @@ module ActiveRecord #:nodoc:
         # Returns true if the +record+ has a single table inheritance column and is using it.
         def record_with_type?(record)
           record.include?(inheritance_column) && !record[inheritance_column].nil? && 
-	           !record[inheritance_column].empty?
+            !record[inheritance_column].empty?
         end
         
         # Returns the name of the type of the record using the current module as a prefix. So descendents of
@@ -543,12 +557,12 @@ module ActiveRecord #:nodoc:
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that it's the passed +sql+ string is changed.
         def add_conditions!(sql, conditions)
           sql << "WHERE #{sanitize_conditions(conditions)} " unless conditions.nil?
-          sql << (conditions.nil? ? "WHERE " : " AND ") + type_condition unless descents_from_active_record?
+          sql << (conditions.nil? ? "WHERE " : " AND ") + type_condition unless descends_from_active_record?
         end
         
         def type_condition
           " (" + subclasses.inject("#{inheritance_column} = '#{Inflector.demodulize(name)}' ") do |condition, subclass| 
-            condition << "OR #{inheritance_column} = '#{Inflector.demodulize(subclass.name)}' "
+            condition << "OR #{inheritance_column} = '#{Inflector.demodulize(subclass.name)}'"
           end + ") "
         end
 
@@ -614,7 +628,7 @@ module ActiveRecord #:nodoc:
       # Every Active Record class must use "id" as their primary ID. This getter overwrites the native
       # id method, which isn't being used in this context.
       def id
-        read_attribute(self.class.primary_key)
+        read_attribute(self.class.primary_key) unless new_record?
       end
       
       # Sets the primary ID.
@@ -716,10 +730,21 @@ module ActiveRecord #:nodoc:
       def column_for_attribute(name)
         self.class.columns_hash[name]
       end
-      
+            
       # Returns true if the +comparison_object+ is of the same type and has the same id.
       def ==(comparison_object)
         comparison_object.instance_of?(self.class) && comparison_object.id == id
+      end
+
+      # Delegates to ==
+      def eql?(comparison_object)
+        self == (comparison_object)
+      end
+      
+      # Delegates to id in order to allow two records of the same type and id to work with something like:
+      #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
+      def hash
+        id
       end
 
       # For checking respond_to? without searching the attributes (which is faster).
@@ -728,8 +753,7 @@ module ActiveRecord #:nodoc:
       # A Person object with a name attribute can ask person.respond_to?("name"), person.respond_to?("name="), and
       # person.respond_to?("name?") which will all return true.
       def respond_to?(method)
-        @@dynamic_methods ||= attribute_names + attribute_names.collect { |attr| attr + "=" } + attribute_names.collect { |attr| attr + "?" }
-        @@dynamic_methods.include?(method.to_s) ? true : respond_to_without_attributes?(method)
+        self.class.column_methods_hash[method.to_sym] || respond_to_without_attributes?(method)
       end
 
     private
@@ -754,7 +778,7 @@ module ActiveRecord #:nodoc:
           "(#{quoted_column_names.join(', ')}) " +
           "VALUES(#{attributes_with_quotes.values.join(', ')})",
           "#{self.class.name} Create",
-      	  self.class.primary_key, self.id
+          self.class.primary_key, self.id
         )
         
         @new_record = false
@@ -765,9 +789,9 @@ module ActiveRecord #:nodoc:
       # set Reply[Reply.inheritance_column] = "Reply" yourself. No such attribute would be set for objects of the 
       # Message class in that example.
       def ensure_proper_type
-        unless self.class.descents_from_active_record?
-	        write_attribute(self.class.inheritance_column, Inflector.demodulize(self.class.name))
-	      end
+        unless self.class.descends_from_active_record?
+          write_attribute(self.class.inheritance_column, Inflector.demodulize(self.class.name))
+        end
       end
 
       # Allows access to the object attributes, which are held in the @attributes hash, as were
@@ -781,11 +805,13 @@ module ActiveRecord #:nodoc:
       def method_missing(method_id, *arguments)
         method_name = method_id.id2name
       
+      
+      
         if method_name =~ read_method? && @attributes.include?($1)
           return read_attribute($1)
-        elsif method_name =~ write_method?
+        elsif method_name =~ write_method? && @attributes.include?($1)
           write_attribute($1, arguments[0])
-        elsif method_name =~ query_method?
+        elsif method_name =~ query_method? && @attributes.include?($1)
           return query_attribute($1)
         else
           super
@@ -884,6 +910,12 @@ module ActiveRecord #:nodoc:
         connection.quote(value, column)
       end
 
+      # Interpolate custom sql string in instance context.
+      # Optional record argument is meant for custom insert_sql.
+      def interpolate_sql(sql, record = nil)
+        instance_eval("%(#{sql})")
+      end
+
       # Initializes the attributes array with keys matching the columns from the linked table and
       # the values matching the corresponding default value of that column, so
       # that a new instance, or one populated from a passed-in Hash, still has all the attributes
@@ -949,8 +981,8 @@ module ActiveRecord #:nodoc:
         hash.inject([]) { |list, pair| list << "#{pair.first} = #{pair.last}" }.join(", ")
       end
 
-      def quoted_column_names
-        attributes_with_quotes.keys.collect { |column_name| connection.quote_column_name(column_name) }
+      def quoted_column_names(attributes = attributes_with_quotes)
+        attributes.keys.collect { |column_name| connection.quote_column_name(column_name) }
       end
 
       def quote_columns(column_quoter, hash)

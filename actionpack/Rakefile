@@ -6,7 +6,10 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_VERSION = "0.9.0"
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME      = 'actionpack'
+PKG_VERSION   = '0.9.5' + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 desc "Default Task"
 task :default => [ :test ]
@@ -38,10 +41,10 @@ dist_dirs = [ "lib", "test", "examples" ]
 
 spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
-  s.name = 'actionpack'
+  s.name = PKG_NAME
+  s.version = PKG_VERSION
   s.summary = "Web-flow and rendering framework putting the VC in MVC."
   s.description = %q{Eases web-request routing, handling, and response as a half-way front, half-way page controller. Implemented with specific emphasis on enabling easy unit/integration testing that doesn't require a browser.}
-  s.version = PKG_VERSION
 
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
@@ -67,6 +70,12 @@ Rake::GemPackageTask.new(spec) do |p|
   p.need_zip = true
 end
 
+
+# Publish beta gem
+desc "Publish the API documentation"
+task :pgem => [:package] do 
+  Rake::SshFilePublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+end
 
 # Publish documentation
 desc "Publish the API documentation"

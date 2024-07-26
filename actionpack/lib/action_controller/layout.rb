@@ -105,6 +105,12 @@ module ActionController #:nodoc:
     #
     #   class WeblogController < ActionController::Base
     #     layout "layouts/weblog_standard"
+    #
+    # == Avoiding the use of a layout
+    #
+    # If you have a layout that by default is applied to all the actions of a controller, you still have the option to rendering
+    # a given action without a layout. Just use the method <tt>render_without_layout</tt>, which works just like Base.render --
+    # it just doesn't apply any layouts.
     module ClassMethods
       # If a layout is specified, all actions rendered through render and render_action will have their result assigned 
       # to <tt>@content_for_layout</tt>, which can then be used by the layout to insert their contents with
@@ -130,11 +136,11 @@ module ActionController #:nodoc:
     end
 
     def render_with_layout(template_name = "#{controller_name}/#{action_name}", status = nil, layout = nil) #:nodoc:
-      if layout || active_layout
+      if layout ||= active_layout
         add_variables_to_assigns
-        logger.info("Rendering #{template_name} within #{layout || active_layout}") unless logger.nil?
+        logger.info("Rendering #{template_name} within #{layout}") unless logger.nil?
         @content_for_layout = @template.render_file(template_name, true)
-        render_without_layout(layout || self.active_layout, status)
+        render_without_layout(layout, status)
       else
         render_without_layout(template_name, status)
       end

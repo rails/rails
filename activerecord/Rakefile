@@ -6,7 +6,10 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_VERSION = "1.0.0"
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME      = 'activerecord'
+PKG_VERSION   = '1.1.0' + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 PKG_FILES = FileList[
     "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "rakefile"
@@ -20,7 +23,6 @@ task :default => [ :test_ruby_mysql, :test_mysql_ruby, :test_sqlite, :test_postg
 
 Rake::TestTask.new("test_ruby_mysql") { |t|
   t.libs << "test" << "test/connections/native_mysql"
-  t.test_files = "lib/active_record/vendor/mysql.rb"
   t.pattern = 'test/*_test.rb'
   t.verbose = true
 }
@@ -43,7 +45,7 @@ Rake::TestTask.new("test_sqlite") { |t|
   t.verbose = true
 }
 
-# Genereate the RDoc documentation
+# Generate the RDoc documentation
 
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
@@ -55,6 +57,12 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('dev-utils/*.rb')
 }
 
+
+# Publish beta gem
+desc "Publish the beta gem"
+task :pgem => [:package] do 
+  Rake::SshFilePublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+end
 
 # Publish documentation
 desc "Publish the API documentation"
@@ -73,7 +81,7 @@ end
 dist_dirs = [ "lib", "test", "examples", "dev-utils" ]
 
 spec = Gem::Specification.new do |s|
-  s.name = 'activerecord'
+  s.name = PKG_NAME
   s.version = PKG_VERSION
   s.summary = "Implements the ActiveRecord pattern for ORM."
   s.description = %q{Implements the ActiveRecord pattern (Fowler, PoEAA) for ORM. It ties database tables and classes together for business objects, like Customer or Subscription, that can find, save, and destroy themselves without resorting to manual SQL.}

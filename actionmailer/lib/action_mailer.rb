@@ -36,7 +36,6 @@ require 'action_mailer/mail_helper'
 require 'action_mailer/vendor/tmail'
 require 'net/smtp'
 
-include TMail
 ActionView::Base.class_eval { include MailHelper }
 
 old_verbose, $VERBOSE = $VERBOSE, nil

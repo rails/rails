@@ -8,18 +8,30 @@ class TransactionTest < Test::Unit::TestCase
     @first, @second = Topic.find(1, 2)
   end
 
-  def test_succesful
+  def test_successful
     Topic.transaction do
       @first.approved  = 1
       @second.approved = 0
       @first.save
       @second.save
     end
-    
+
     assert Topic.find(1).approved?, "First should have been approved"
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   end
-  
+
+  def test_successful_with_instance_method
+    @first.transaction do
+      @first.approved  = 1
+      @second.approved = 0
+      @first.save
+      @second.save
+    end
+
+    assert Topic.find(1).approved?, "First should have been approved"
+    assert !Topic.find(2).approved?, "Second should have been unapproved"
+  end
+ 
   def test_failing_on_exception
     begin
       Topic.transaction do

@@ -1,3 +1,91 @@
+*0.9.5* (28)
+
+* Added helper_method to designate that a given private or protected method you should available as a helper in the view. [bitsweat]
+
+* Fixed assert_rendered_file so it actually verifies if that was the rendered file [htonl]
+
+* Added the option for sharing partial spacer templates just like partials themselves [radsaq]
+
+* Fixed that Russia was named twice in country_select [alexey]
+
+* Fixed request_origin to use remote_ip instead of remote_addr [bitsweat]
+
+* Fixed link_to breakage when nil was passed for html_options [alexey]
+
+* Fixed redirect_to on a virtual server setup with apache with a port other than the default where it would forget the port number [seanohalpin]
+
+* Fixed that auto-loading webrick on Windows would cause file uploads to fail [bitsweat]
+
+* Fixed issues with sending files on WEBrick by setting the proper binmode [bitsweat]
+
+* Added send_data as an alternative to send_file when the stream is not read off the filesystem but from a database or generated live [bitsweat]
+
+* Added a new way to include helpers that doesn't require the include hack and can go without the explicit require. [bitsweat]
+
+  Before:
+
+    module WeblogHelper
+      def self.append_features(controller) #:nodoc:
+        controller.ancestors.include?(ActionController::Base) ? controller.add_template_helper(self) : super
+      end
+    end
+
+    require 'weblog_helper'
+    class WeblogController < ActionController::Base
+      include WeblogHelper
+    end
+    
+  After:
+
+    module WeblogHelper
+    end
+
+    class WeblogController < ActionController::Base
+      helper :weblog
+    end
+
+* Added a default content-type of "text/xml" to .rxml renders [Ryan Platte]
+
+* Fixed that when /controller/index was requested by the browser, url_for would generates wrong URLs [Ryan Platte]
+
+* Fixed a bug that would share cookies between users when using FastCGI and mod_ruby [The Robot Co-op]
+
+* Added an optional third hash parameter to the process method in functional tests that takes the session data to be used [alexey]
+
+* Added UrlHelper#mail_to to make it easier to create mailto: style ahrefs
+
+* Added better error messages for layouts declared with the .rhtml extension (which they shouldn't) [geech]
+
+* Added another case to DateHelper#distance_in_minutes to return "less than a minute" instead of "0 minutes" and "1 minute" instead of "1 minutes"
+
+* Added a hidden field to checkboxes generated with FormHelper#check_box that will make sure that the unchecked value (usually 0)
+  is sent even if the checkbox is not checked. This relieves the controller from doing custom checking if the the checkbox wasn't
+  checked. BEWARE: This might conflict with your run-on-the-mill work-around code. [Tobias Luetke]
+
+* Fixed error_message_on to just use the first if more than one error had been added [marcel]
+
+* Fixed that URL rewriting with /controller/ was working but /controller was not and that you couldn't use :id on index [geech]
+
+* Fixed a bug with link_to where the :confirm option wouldn't be picked up if the link was a straight url instead of an option hash
+
+* Changed scaffolding of forms to use <label> tags instead of <b> to please W3C [evl]
+
+* Added DateHelper#distance_of_time_in_words_to_now(from_time) that works like distance_of_time_in_words, 
+  but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
+
+* Added assert_flash_equal(expected, key, message), assert_session_equal(expected, key, message), 
+  assert_assigned_equal(expected, key, message) to test the contents of flash, session, and template assigns.
+
+* Improved the failure report on assert_success when the action triggered a redirection [alexey].
+
+* Added "markdown" to accompany "textilize" as a TextHelper method for converting text to HTML using the Markdown syntax.
+  BlueCloth must be installed in order for this method to become available.
+
+* Made sure that an active session exists before we attempt to delete it [Samuel]
+
+* Changed link_to with Javascript confirmation to use onclick instead of onClick for XHTML validity [Scott Barron]
+
+
 *0.9.0 (43)*
 
 * Added support for Builder-based templates for files with the .rxml extension. These new templates are an alternative to ERb that

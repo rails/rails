@@ -44,9 +44,12 @@ module ActionView
       end
 
       return nil if collection_of_partials.empty?
-      partial_spacer_template ? 
-        collection_of_partials.join(render("#{controller.send(:controller_name)}/_#{partial_spacer_template}")) : 
+      if partial_spacer_template
+        spacer_path, spacer_name = partial_pieces(partial_spacer_template)
+        collection_of_partials.join(render("#{spacer_path}/_#{spacer_name}"))
+      else
         collection_of_partials
+      end
     end
     
     private

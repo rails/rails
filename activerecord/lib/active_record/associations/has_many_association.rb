@@ -3,76 +3,65 @@ module ActiveRecord
     class HasManyAssociation < AssociationCollection #:nodoc:
       def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
         super(owner, association_name, association_class_name, association_class_primary_key_name, options)
-        @conditions = options[:conditions]
-        
-        if options[:finder_sql]
-          @counter_sql = options[:finder_sql].gsub(/SELECT (.*) FROM/, "SELECT COUNT(*) FROM")
-          @finder_sql = options[:finder_sql]
-        else
-          @counter_sql = "#{@association_class_primary_key_name} = '#{@owner.id}'#{@conditions ? " AND " + @conditions : ""}"
-          @finder_sql = "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + @conditions : ""}"   
-        end
-      end
-      
-      def <<(record)
-        raise ActiveRecord::AssociationTypeMismatch unless @association_class === record
-        record.send(@association_class_primary_key_name + "=", @owner.id)
-        record.save(false)
-        @collection_array << record unless @collection_array.nil?
-      end
- 
-      def delete(records)
-        duplicated_records_array(records).each do |record|
-          next if record.send(@association_class_primary_key_name) != @owner.id
-          record.send(@association_class_primary_key_name + "=", nil)
-          record.save(false)
-          @collection_array.delete(record) unless @collection_array.nil?
-        end
-      end
-      
-      def create(attributes = {})
-        # We can't use the regular Base.create method as the foreign key might be a protected attribute, hence the repetion
-        record = @association_class.new(attributes || {})
-        record.send(@association_class_primary_key_name + "=", @owner.id)
-        record.save
+        @conditions = @association_class.send(:sanitize_conditions, options[:conditions])
 
-        @collection_array << record unless @collection_array.nil?
-        
-        return record
+        if options[:finder_sql]
+          @finder_sql = interpolate_sql(options[:finder_sql])
+          @counter_sql = @finder_sql.gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
+        else
+          @finder_sql = "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"   
+          @counter_sql = "#{@association_class_primary_key_name} = '#{@owner.id}'#{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
+        end
+      end
+
+      def create(attributes = {})
+        # Can't use Base.create since the foreign key may be a protected attribute.
+        record = build(attributes)
+        record.save
+        @collection << record if loaded?
+        record
       end
 
       def build(attributes = {})
-        association = @association_class.new
-        association.attributes = attributes.merge({ "#{@association_class_primary_key_name}" => @owner.id})
-        association
+        record = @association_class.new(attributes)
+        record[@association_class_primary_key_name] = @owner.id
+        record
       end
-      
+
       def find_all(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil, &block)
         if block_given? || @options[:finder_sql]
-          load_collection_to_array
-          @collection_array.send(:find_all, &block)
+          load_collection
+          @collection.find_all(&block)
         else
           @association_class.find_all(
-              "#{@association_class_primary_key_name} = '#{@owner.id}' " +
-              "#{@conditions ? " AND " + @conditions : ""} #{runtime_conditions ? " AND " + runtime_conditions : ""}",
-              orderings, 
-              limit, 
-              joins
-            )
+            "#{@association_class_primary_key_name} = '#{@owner.id}' " +
+            "#{@conditions ? " AND " + @conditions : ""} #{runtime_conditions ? " AND " + @association_class.send(:sanitize_conditions, runtime_conditions) : ""}",
+            orderings, 
+            limit, 
+            joins
+          )
         end
       end
 
       def find(association_id = nil, &block)
         if block_given? || @options[:finder_sql]
-          load_collection_to_array
-          return @collection_array.send(:find, &block)
+          load_collection
+          @collection.find(&block)
         else
-          @association_class.find_on_conditions(
-              association_id, "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + @conditions : ""}"
-            )
+          @association_class.find_on_conditions(association_id,
+            "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + @conditions : ""}"
+          )
         end
       end
-      
+
+      # Removes all records from this association.  Returns +self+ so
+      # method calls may be chained.
+      def clear
+        @association_class.update_all("#{@association_class_primary_key_name} = NULL", "#{@association_class_primary_key_name} = '#{@owner.id}'")
+        @collection = []
+        self
+      end
+
       protected
         def find_all_records
           if @options[:finder_sql]
@@ -97,7 +86,16 @@ module ActiveRecord
         end
         
         def cached_counter_attribute_name
-          @association_name + "_count"
+          "#{@association_name}_count"
+        end
+
+        def insert_record(record)
+          record.update_attribute(@association_class_primary_key_name, @owner.id)
+        end
+
+        def delete_records(records)
+          ids = quoted_record_ids(records)
+          @association_class.update_all("#{@association_class_primary_key_name} = NULL", "#{@association_class_primary_key_name} = '#{@owner.id}' AND #{@association_class.primary_key} IN (#{ids})")
         end
     end
   end

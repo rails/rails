@@ -18,13 +18,13 @@ module ActiveRecord
       end
     end
 
-    # Transactions are protective blocks where SQL statements are only permanent if they can all succed as one atomic action. 
+    # Transactions are protective blocks where SQL statements are only permanent if they can all succeed as one atomic action. 
     # The classic example is a transfer between two accounts where you can only have a deposit if the withdrawal succedded and
     # vice versa. Transaction enforce the integrity of the database and guards the data against program errors or database break-downs.
     # So basically you should use transaction blocks whenever you have a number of statements that must be executed together or
     # not at all. Example:
     #
-    #   Account.transaction do
+    #   transaction do
     #     david.withdrawal(100)
     #     mary.deposit(100)
     #   end
@@ -32,6 +32,23 @@ module ActiveRecord
     # This example will only take money from David and give to Mary if neither +withdrawal+ nor +deposit+ raises an exception.
     # Exceptions will force a ROLLBACK that returns the database to the state before the transaction was begun. Be aware, though,
     # that the objects by default will _not_ have their instance data returned to their pre-transactional state.
+    #
+    # == Transactions are not distributed across database connections
+    #
+    # A transaction acts on a single database connection.  If you have
+    # multiple class-specific databases, the transaction will not protect
+    # interaction among them.  One workaround is to begin a transaction
+    # on each class whose models you alter:
+    #
+    #   Student.transaction do
+    #     Course.transaction do
+    #       course.enroll(student)
+    #       student.units += course.units
+    #     end
+    #   end
+    #
+    # This is a poor solution, but full distributed transactions are beyond
+    # the scope of Active Record.
     #
     # == Save and destroy are automatically wrapped in a transaction
     #
@@ -65,38 +82,38 @@ module ActiveRecord
         begin
           objects.each { |o| o.extend(Transaction::Simple) }
           objects.each { |o| o.start_transaction }
-          connection.begin_db_transaction
 
-          block.call
-  
-          connection.commit_db_transaction
+          result = connection.transaction(&block)
+
           objects.each { |o| o.commit_transaction }
-        rescue Exception => exception
-          connection.rollback_db_transaction
+          return result
+        rescue Exception => object_transaction_rollback
           objects.each { |o| o.abort_transaction }
-          raise exception
+          raise
         ensure
           TRANSACTION_MUTEX.unlock
         end
       end
     end
 
+    def transaction(*objects, &block)
+      self.class.transaction(*objects, &block)
+    end
+
     def destroy_with_transactions #:nodoc:
       if TRANSACTION_MUTEX.locked?
         destroy_without_transactions
       else
-        ActiveRecord::Base.transaction { destroy_without_transactions }
+        transaction { destroy_without_transactions }
       end
     end
     
     def save_with_transactions(perform_validation = true) #:nodoc:
-      result = nil
       if TRANSACTION_MUTEX.locked?
-        result = save_without_transactions(perform_validation)
+        save_without_transactions(perform_validation)
       else
-        ActiveRecord::Base.transaction { result = save_without_transactions(perform_validation) }
+        transaction { save_without_transactions(perform_validation) }
       end
-      return result
     end
   end
 end

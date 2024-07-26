@@ -1,5 +1,6 @@
 module ActionController
-  class AbstractRequest #:nodoc:
+  # These methods are available in both the production and test Request objects.
+  class AbstractRequest
     # Returns both GET and POST parameters in a single hash.
     def parameters
       @parameters ||= request_parameters.update(query_parameters)
@@ -60,14 +61,18 @@ module ActionController
     end
 
     def host_with_port
-      if (protocol == "http://" && port == 80) || (protocol == "https://" && port == 443)
+      if env['HTTP_HOST']
+        env['HTTP_HOST']
+      elsif (protocol == "http://" && port == 80) || (protocol == "https://" && port == 443)
         host
       else
         host + ":#{port}"
       end
     end
 
+    #--
     # Must be implemented in the concrete request
+    #++
     def query_parameters
     end
 

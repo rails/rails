@@ -32,12 +32,14 @@ require 'action_controller/filters'
 require 'action_controller/layout'
 require 'action_controller/flash'
 require 'action_controller/scaffolding'
+require 'action_controller/helpers'
 require 'action_controller/cgi_process'
 
 ActionController::Base.class_eval do
   include ActionController::Filters
   include ActionController::Layout
   include ActionController::Flash
+  include ActionController::Helpers
   include ActionController::Benchmarking
   include ActionController::Rescue
   include ActionController::Scaffolding

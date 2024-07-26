@@ -19,12 +19,19 @@ module ActionView
         distance_in_minutes = ((to_time - from_time) / 60).round
         
         case distance_in_minutes
-          when 0..45      then "#{distance_in_minutes} minutes"
+          when 0          then "less than a minute"
+          when 1          then "1 minute"
+          when 2..45      then "#{distance_in_minutes} minutes"
           when 46..90     then "about 1 hour"
           when 90..1440   then "about #{(distance_in_minutes.to_f / 60.0).round} hours"
           when 1441..2880 then "1 day"
           else                 "#{(distance_in_minutes / 1440).round} days"
         end
+      end
+      
+      # Like distance_of_time_in_words, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
+      def distance_of_time_in_words_to_now(from_time)
+        distance_of_time_in_words(from_time, Time.now)
       end
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute (identified by

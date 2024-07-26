@@ -146,7 +146,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # test the assert_rendered_file 
   def test_assert_rendered_file
     process :hello_world
-    assert_rendered_file 'test_request_response/hello_world'
+    assert_rendered_file 'test/hello_world'
     assert_rendered_file 'hello_world'
     assert_rendered_file
   end
@@ -163,6 +163,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   def test_session_objects
     process :session_stuffing
     assert @response.has_session_object?('xmas')
+    assert_session_equal 'turkey', 'xmas'
     assert !@response.has_session_object?('easter')
   end
   
@@ -177,6 +178,11 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   def test_template_object_missing
     process :nothing
     assert_nil @response.template_objects['howdy']
+  end
+  
+  def test_assigned_equal
+    process :assign_this
+    assert_assigned_equal "ho", :howdy
   end
 
   # check the empty flashing
@@ -200,6 +206,12 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert !@response.has_flash?
     assert !@response.has_flash_with_contents?
     assert_nil @response.flash['hello']
+  end
+  
+  # examine that the flash objects are what we expect
+  def test_flash_equals
+    process :flash_me
+    assert_flash_equal 'my name is inigo montoya...', 'hello'
   end
   
   
@@ -291,5 +303,21 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   def test_array_of_elements_in_xpath_match
     process :hello_xml_world
     assert_template_xpath_match('//p', %w( abes monks wiseguys ))
+  end
+end
+
+class ActionPackHeaderTest < Test::Unit::TestCase  
+  def setup
+    @controller = ActionPackAssertionsController.new
+    @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
+  end
+  def test_rendering_xml_sets_content_type
+    process :hello_xml_world
+    assert_equal('text/xml', @controller.headers['Content-Type'])
+  end
+  def test_rendering_xml_respects_content_type
+	  @response.headers['Content-Type'] = 'application/pdf'
+	  process :hello_xml_world
+	  assert_equal('application/pdf', @controller.headers['Content-Type'])
   end
 end

@@ -1,0 +1,24 @@
+require 'abstract_application'
+<% if options[:scaffold] -%>
+require '<%= file_name %>'
+<% end -%>
+
+class <%= class_name %>Controller < AbstractApplicationController
+  helper :<%= file_name %>
+
+<% if options[:scaffold] -%>
+  scaffold :<%= options[:scaffold] %>
+
+  <%- for action in actions -%>
+  #def <%= action %>
+  #end
+
+  <%- end -%>
+<% else -%>
+  <%- for action in actions -%>
+  def <%= action %>
+  end
+
+  <%- end -%>
+<% end -%>
+end

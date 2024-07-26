@@ -99,13 +99,11 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   def test_belongs_to_with_different_class_name
     assert_equal Company.find(1).name, Company.find(3).firm_with_other_name.name
     assert Company.find(3).has_firm_with_other_name?, "Microsoft should have a firm"
-    assert !Company.find(1).has_firm_with_other_name?, "37signals shouldn't have a firm"
   end
 
   def test_belongs_to_with_condition
     assert_equal Company.find(1).name, Company.find(3).firm_with_condition.name
     assert Company.find(3).has_firm_with_condition?, "Microsoft should have a firm"
-    assert !Company.find(1).has_firm_with_condition?, "37signals shouldn't have a firm"
   end
 
   
@@ -314,16 +312,17 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
 
   def test_storing_in_pstore
     require "pstore"
+    require "tmpdir"
     apple = Firm.create("name" => "Apple")
     natural = Client.new("name" => "Natural Company")
     apple.clients << natural
 
-    db = PStore.new("/tmp/ar-pstore-association-test")
+    db = PStore.new(File.join(Dir.tmpdir, "ar-pstore-association-test"))
     db.transaction do
       db["apple"] = apple
     end
 
-    db = PStore.new("/tmp/ar-pstore-association-test")
+    db = PStore.new(File.join(Dir.tmpdir, "ar-pstore-association-test"))
     db.transaction do
       assert_equal "Natural Company", db["apple"].clients.first.name
     end

@@ -6,7 +6,10 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_VERSION = "0.3.0"
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME      = 'actionmailer'
+PKG_VERSION   = '0.4.0' + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 desc "Default Task"
 task :default => [ :test ]
@@ -37,7 +40,7 @@ Rake::RDocTask.new { |rdoc|
 
 spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
-  s.name = 'actionmailer'
+  s.name = PKG_NAME
   s.summary = "Service layer for easy email delivery and testing."
   s.description = %q{Makes it trivial to test and deliver emails sent from a single service layer.}
   s.version = PKG_VERSION
@@ -47,7 +50,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "actionmailer"
   s.homepage = "http://actionmailer.rubyonrails.org"
 
-  s.add_dependency('actionpack', '>= 0.9.0')
+  s.add_dependency('actionpack', '>= 0.9.5')
 
   s.has_rdoc = true
   s.requirements << 'none'
@@ -66,6 +69,11 @@ Rake::GemPackageTask.new(spec) do |p|
 end
 
 
+# Publish beta gem
+desc "Publish the API documentation"
+task :pgem => [:package] do 
+  Rake::SshFilePublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+end
 
 # Publish documentation
 desc "Publish the API documentation"
@@ -83,10 +91,10 @@ desc "Count lines in the main rake file"
 task :lines do
   lines = 0
   codelines = 0
-  Dir.foreach("lib/action_controller") { |file_name| 
+  Dir.foreach("lib/action_mailer") { |file_name| 
     next unless file_name =~ /.*rb/
     
-    f = File.open("lib/action_controller/" + file_name)
+    f = File.open("lib/action_mailer/" + file_name)
 
     while line = f.gets
       lines += 1

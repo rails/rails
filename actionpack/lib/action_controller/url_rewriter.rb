@@ -50,25 +50,41 @@ module ActionController
         path = rewrite_controller(path, options)  if options[:controller] || options[:controller_prefix]
         return path
       end
-      
+
       def rewrite_path_params(path, options)
-        options[:path_params].inject(path) do |path, pair|
-          if options[:action].nil? && @request.parameters[pair.first]
-            path.sub(/\b#{@request.parameters[pair.first]}\b/, pair.last.to_s)
-          else
-            path += "/#{pair.last}"
+        index_action = options[:action] == 'index' || options[:action].nil? && @action == 'index'
+        id_only = options[:path_params].size == 1 && options[:path_params]['id']
+
+        if index_action && id_only
+          path += '/' unless path[-1..-1] == '/'
+          path += "index/#{options[:path_params]['id']}"
+          path
+        else
+          options[:path_params].inject(path) do |path, pair|
+            if options[:action].nil? && @request.parameters[pair.first]
+              path.sub(/\b#{@request.parameters[pair.first]}\b/, pair.last.to_s)
+            else
+              path += "/#{pair.last}"
+            end
           end
         end
       end
 
       def rewrite_action(path, options)
-        all, controller_prefix, action_prefix, action_suffix = 
+        # This regex assumes that "index" actions won't be included in the URL
+        all, controller_prefix, action_prefix, action_suffix =
           /^\/(.*)#{@controller}\/(.*)#{@action == "index" ? "" : @action}(.*)/.match(path).to_a
 
-        if @action == "index" && action_prefix && !action_prefix.empty?
-          path = path.sub(action_prefix, action_name(options, action_prefix))
-        elsif @action == "index"
-          path = path.sub(/#{@controller}\//, @controller + "/" + action_name(options))
+        if @action == "index" 
+          if action_prefix == "index" 
+            # we broke the parsing assumption that this would be excluded, so
+            # don't tell action_name about our little boo-boo
+            path = path.sub(action_prefix, action_name(options, nil))
+          elsif action_prefix && !action_prefix.empty?
+            path = path.sub(action_prefix, action_name(options, action_prefix))
+          else
+            path = path.sub(%r(#{@controller}/?), @controller + "/" + action_name(options)) # " ruby-mode
+          end
         else
           path = path.sub((action_prefix || "") + @action + (action_suffix || ""), action_name(options, action_prefix))
         end

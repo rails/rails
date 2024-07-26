@@ -26,11 +26,11 @@ module ActionView
       #   form("post") =>
       #     <form action='create' method='POST'>
       #       <p>
-      #         <b>Title</b><br />
+      #         <label for="post_title">Title</label><br />
       #         <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
       #       </p>
       #       <p>
-      #         <b>Body</b><br />
+      #         <label for="post_body">Body</label><br />
       #         <textarea cols="40" id="post_body" name="post[body]" rows="20" wrap="virtual">
       #           Back to the hill and over it again!
       #         </textarea>
@@ -71,8 +71,8 @@ module ActionView
       #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work)", "inputError" %> =>
       #     <div class="inputError">Title simply can't be empty (or it won't work)</div>
       def error_message_on(object, method, prepend_text = "", append_text = "", css_class = "formError")
-        if instance_eval("@#{object}").errors.on(method)
-          "<div class=\"#{css_class}\">#{prepend_text + instance_eval("@#{object}").errors.on(method) + append_text}</div>"
+        if errors = instance_eval("@#{object}").errors.on(method)
+          "<div class=\"#{css_class}\">#{prepend_text + (errors.is_a?(Array) ? errors.first : errors) + append_text}</div>"
         end
       end
       
@@ -94,7 +94,7 @@ module ActionView
         end
 
         def default_input_block
-          Proc.new { |record, column| "<p><b>#{column.human_name}</b><br />#{input(record, column.name)}</p>" }
+          Proc.new { |record, column| "<p><label for=\"#{record}_#{column.name}\">#{column.human_name}</label><br />#{input(record, column.name)}</p>" }
         end        
     end
 

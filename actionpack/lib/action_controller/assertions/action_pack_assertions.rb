@@ -11,19 +11,30 @@ module Test #:nodoc:
       # ensure that the web request has been serviced correctly
       def assert_success(message=nil)
         response = acquire_assertion_target
-        msg = build_message(message, "unsuccessful request (response code = <?>)", response.response_code)
-        assert_block(msg) { response.success? }
+        if response.success?
+          # to count the assertion
+          assert_block("") { true }
+        else
+          if response.redirect?
+            msg = build_message(message, "Response unexpectedly redirect to <?>", response.redirect_url)
+          else
+            msg = build_message(message, "unsuccessful request (response code = <?>)", 
+                response.response_code)
+          end
+          assert_block(msg) { false }
+        end
       end
 
       # ensure the request was rendered with the appropriate template file
       def assert_rendered_file(expected=nil, message=nil)
         response = acquire_assertion_target
-        msg = build_message(message, "expecting <?> but rendering with <?>", expected, response.rendered_file)
+        rendered = expected ? response.rendered_file(!expected.include?('/')) : response.rendered_file
+        msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
         assert_block(msg) do
           if expected.nil?
             response.rendered_with_file?
           else
-            expected != response.rendered_file(expected.include?('/')) 
+            expected == rendered
           end
         end
       end
@@ -42,6 +53,12 @@ module Test #:nodoc:
         response = acquire_assertion_target
         msg = build_message(message, "<?> is in the session <?>", key, response.session)
         assert_block(msg) { !response.has_session_object?(key) }
+      end
+      
+      def assert_session_equal(expected = nil, key = nil, message = nil)
+        response = acquire_assertion_target
+        msg = build_message(message, "<?> expected in session['?'] but was <?>", expected, key, response.session[key])
+        assert_block(msg) { expected == response.session[key] }
       end
       
       # -- flash assertions ---------------------------------------------------
@@ -88,6 +105,12 @@ module Test #:nodoc:
         assert_block(msg) { response.has_flash_with_contents? }
       end
       
+      def assert_flash_equal(expected = nil, key = nil, message = nil)
+        response = acquire_assertion_target
+        msg = build_message(message, "<?> expected in flash['?'] but was <?>", expected, key, response.flash[key])
+        assert_block(msg) { expected == response.flash[key] }
+      end
+      
       # -- redirection assertions ---------------------------------------------
 
       # ensure we have be redirected
@@ -103,8 +126,11 @@ module Test #:nodoc:
 
         msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)", response.redirected_to)
         assert_block(msg) do
-          response.redirected_to == options ||
+          if options.is_a?(Symbol)
+            response.redirected_to == options
+          else
             options.keys.all? { |k| options[k] == response.redirected_to[k] }
+          end
         end
       end
 
@@ -138,6 +164,13 @@ module Test #:nodoc:
         response = acquire_assertion_target
         msg = build_message(message, "<?> is a template object <?>", key, response.template_objects[key])
         assert_block(msg) { !response.has_template_object?(key) }
+      end
+
+      # ensures that the object assigned to the template on +key+ is equal to +expected+ object.
+      def assert_assigned_equal(expected = nil, key = nil, message = nil)
+        response = acquire_assertion_target
+        msg = build_message(message, "<?> expected in assigns['?'] but was <?>", expected, key, response.template.assigns[key.to_s])
+        assert_block(msg) { expected == response.template.assigns[key.to_s] }
       end
 
       # Asserts that the template returns the +expected+ string or array based on the XPath +expression+.

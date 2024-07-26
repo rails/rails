@@ -1,0 +1,14 @@
+#!/bin/sh
+WORK=$1-snapshot
+cd /tmp
+if [ -d $WORK ]; then
+    cd $WORK
+    cvs update
+else
+    cvs -d:pserver:anonymous@rubyforge.org:/var/cvs/$1 login
+    cvs -d:pserver:anonymous@rubyforge.org:/var/cvs/$1 checkout -d $WORK $1
+    cd $WORK
+fi
+rm -rf pkg
+EDGE_RAILS=`date -u "+%Y%m%d"` rake gem
+cp pkg/$1*gem /tmp

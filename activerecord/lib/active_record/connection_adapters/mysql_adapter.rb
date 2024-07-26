@@ -1,25 +1,29 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'parsedate'
 
-begin
-  begin
-    # Only include the MySQL driver if one hasn't already been loaded
-    require 'mysql' unless self.class.const_defined?(:Mysql)
-  rescue LoadError
-    # Only use the supplied backup Ruby/MySQL driver if no driver is already in place
-    require 'active_record/vendor/mysql'
-  end
-
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects
     def self.mysql_connection(config) # :nodoc:
+      unless self.class.const_defined?(:Mysql)
+        begin
+          # Only include the MySQL driver if one hasn't already been loaded
+          require_library_or_gem 'mysql'
+        rescue LoadError => cannot_require_mysql
+          # Only use the supplied backup Ruby/MySQL driver if no driver is already in place
+          begin 
+            require 'active_record/vendor/mysql'
+          rescue LoadError
+            raise cannot_require_mysql
+          end
+        end
+      end
       symbolize_strings_in_hash(config)
       host     = config[:host]
       port     = config[:port]
       socket   = config[:socket]
-      username = config[:username] || "root"
-      password = config[:password]
+      username = config[:username] ? config[:username].to_s : 'root'
+      password = config[:password].to_s
 
       if config.has_key?(:database)
         database = config[:database]
@@ -124,8 +128,4 @@ module ActiveRecord
         end
     end
   end
-end
-
-rescue LoadError
-  # MySQL is not available, so neither should the adapter be
 end

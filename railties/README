@@ -82,7 +82,7 @@ app
 
 app/controllers
   Holds controllers that should be named like weblog_controller.rb for
-  automated URL mapping. All controllers should descent from
+  automated URL mapping. All controllers should descend from
   ActionController::Base.
 
 app/models
