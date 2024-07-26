@@ -1,7 +1,7 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/date_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_helper'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/active_record_helper'
+# require File.dirname(__FILE__) + '/../../lib/action_view/helpers/active_record_helper'
 
 class ActiveRecordHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormHelper

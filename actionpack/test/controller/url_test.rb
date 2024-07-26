@@ -2,6 +2,15 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 require 'action_controller/url_rewriter'
 
 MockRequest = Struct.new("MockRequest", :protocol, :host, :port, :path, :parameters)
+class MockRequest
+  def host_with_port
+    if (protocol == "http://" && port == 80) || (protocol == "https://" && port == 443)
+      host
+    else
+      host + ":#{port}"
+    end
+  end
+end
 
 class UrlTest < Test::Unit::TestCase
   def setup
@@ -38,6 +47,10 @@ class UrlTest < Test::Unit::TestCase
     assert_equal "http://www.singlefile.com/library/books/ISBN/0743536703/edit", @library_url.rewrite(:action => "edit")
   end
 
+  def test_clean_action_with_only_path
+    assert_equal "/library/books/ISBN/0743536703/edit", @library_url.rewrite(:action => "edit", :only_path => true)
+  end
+
   def test_action_from_index
     assert_equal "http://www.singlefile.com/library/books/ISBN/0743536703/edit", @library_url_on_index.rewrite(:action => "edit")
   end
@@ -57,6 +70,13 @@ class UrlTest < Test::Unit::TestCase
     )
   end
 
+  def test_action_prefix_alone
+    assert_equal(
+      "http://www.singlefile.com/library/books/XTC/123/",
+      @library_url.rewrite(:action_prefix => "XTC/123")
+    )
+  end
+
   def test_action_with_suffix
     assert_equal(
       "http://www.singlefile.com/library/books/show/XTC/123",
@@ -67,7 +87,11 @@ class UrlTest < Test::Unit::TestCase
   def test_clean_controller
     assert_equal "http://www.singlefile.com/library/settings/", @library_url.rewrite(:controller => "settings")
   end
-  
+
+  def test_clean_controller_prefix
+    assert_equal "http://www.singlefile.com/shop/", @library_url.rewrite(:controller_prefix => "shop")
+  end
+
   def test_controller_and_action
     assert_equal "http://www.singlefile.com/library/settings/show", @library_url.rewrite(:controller => "settings", :action => "show")
   end
@@ -94,13 +118,6 @@ class UrlTest < Test::Unit::TestCase
     assert_equal(
       "http://www.singlefile.com/settings/", 
       @library_url.rewrite(:controller => "settings", :action => "index", :controller_prefix => "")
-    )
-  end
-
-  def test_action_with_controller_prefix
-    assert_equal(
-      "http://www.singlefile.com/fantastic/books/ISBN/0743536703/edit", 
-      @library_url.rewrite(:controller_prefix => "fantastic", :action => "edit")
     )
   end
 
@@ -252,24 +269,18 @@ class UrlTest < Test::Unit::TestCase
     )
   end
   
-  def basecamp_test
+  def test_basecamp
     basecamp_url = ActionController::UrlRewriter.new(MockRequest.new(
       "http://",
       "projects.basecamp", 
       80,
-      "/clients/indoff/1/weblog/documentation/", 
-      { 
-        "category_name"=>"documentation", 
-        "client_name"=>"indoff", 
-        "action"=>"category", 
-        "controller"=>"weblog", 
-        "project_name"=>"1"
-      }
-    ), "weblog", "category")
+      "/clients/disarray/1/msg/transcripts/", 
+      {"category_name"=>"transcripts", "client_name"=>"disarray", "action"=>"index", "controller"=>"msg", "project_name"=>"1"}
+    ), "msg", "index")
     
     assert_equal(
-      "http://nextangle.seework.com/clients/indoff/1/weblog/misc/", 
-      basecamp_url.rewrite(:action_prefix=>"notes", :action=>"index", :controller_prefix=>"clients/indoff/1")
+      "http://projects.basecamp/clients/disarray/1/msg/transcripts/1/comments", 
+      basecamp_url.rewrite(:action_prefix => "transcripts/1", :action => "comments")
     )
   end
 end

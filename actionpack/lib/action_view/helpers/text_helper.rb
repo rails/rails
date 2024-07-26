@@ -37,6 +37,13 @@ module ActionView
     #     Title: <%= truncate(post.title, 20) %>
     #   <% end %>
     module TextHelper
+      # The regular puts and print are outlawed in eRuby. It's recommended to use the <%= "hello" %> form instead of print "hello".
+      # If you absolutely must use a method-based output, you can use concat. It's use like this <% concat "hello" %>. Notice that
+      # it doesn't have an equal sign in front. Using <%= concat "hello" %> would result in a double hello.
+      def concat(string)
+        _erbout.concat(string)
+      end
+
       # Truncates +text+ to the length of +length+ and replaces the last three characters with the +truncate_string+
       # if the +text+ is longer than +length+.
       def truncate(text, length = 30, truncate_string = "...")

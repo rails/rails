@@ -21,6 +21,14 @@ module ActionController
       env["SERVER_PORT"].to_i
     end
 
+    def host_with_port
+      if (protocol == "http://" && port == 80) || (protocol == "https://" && port == 443)
+        host
+      else
+        host + ":#{port}"
+      end
+    end
+
     # Must be implemented in the concrete request
     def query_parameters
     end

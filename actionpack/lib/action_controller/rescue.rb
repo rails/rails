@@ -83,7 +83,7 @@ module ActionController #:nodoc:
       
       def clean_backtrace(exception)
         base_dir = File.expand_path(File.dirname(__FILE__) + "/../../../../")
-        exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/public/../vendor/railties/../../", "") }
+        exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/public/../config/environments/../../vendor/railties/configs/../../../", "") }
       end
   end
 end

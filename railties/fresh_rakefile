@@ -1,15 +1,11 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require File.dirname(__FILE__) + "/vendor/railties/lib/code_statistics"
 
 $VERBOSE = nil
 
-require File.dirname(__FILE__) + '/vendor/railties/configs/load_path'
-require 'active_record'
-require 'yaml'
-
-DB_CONF = YAML::load(File.open("config/database.yml"))
+require File.dirname(__FILE__) + '/config/environments/production'
+require 'code_statistics'
 
 desc "Run all the tests"
 task :default => [ :clone_production_structure_to_test, :test_units, :test_functional, :appdoc, :stats ]
@@ -31,7 +27,7 @@ Rake::TestTask.new("test_functional") { |t|
 desc "Generate documentation for the application"
 Rake::RDocTask.new("appdoc") { |rdoc|
   rdoc.rdoc_dir = 'doc/app'
-  rdoc.template = 'css2'
+  # rdoc.template = 'css2'
   rdoc.title    = "Rails Application Documentation"
   rdoc.options << '--line-numbers --inline-source'
   rdoc.rdoc_files.include('doc/README_FOR_APP')
@@ -41,7 +37,7 @@ Rake::RDocTask.new("appdoc") { |rdoc|
 desc "Generate documentation for the Rails framework"
 Rake::RDocTask.new("apidoc") { |rdoc|
   rdoc.rdoc_dir = 'doc/api'
-  rdoc.template = 'css2'
+  # rdoc.template = 'css2'
   rdoc.title    = "Rails Framework Documentation"
   rdoc.options << '--line-numbers --inline-source'
   rdoc.rdoc_files.include('README')
@@ -70,26 +66,32 @@ end
 
 desc "Recreate the test databases from the production structure"
 task :clone_production_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
-  if DB_CONF["test"]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(DB_CONF["test"])
+  if database_configurations["test"]["adapter"] == "mysql"
+    ActiveRecord::Base.establish_connection(database_configurations["test"])
     IO.readlines("db/production_structure.sql").join.split("\n\n").each do |table|
       ActiveRecord::Base.connection.execute(table)
     end
+  elsif DB_CONF["test"]["adapter"] == "postgresql"
+    `psql -f db/production_structure.sql #{DB_CONF["test"]["database"]}`
   end
 end
 
 desc "Dump the database structure to a SQL file"
 task :db_structure_dump do
-  if DB_CONF["test"]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(DB_CONF["production"])
+  if database_configurations["test"]["adapter"] == "mysql"
+    ActiveRecord::Base.establish_connection(database_configurations["production"])
     File.open("db/production_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
+  elsif DB_CONF["test"]["adapter"] == "postgresql"
+    `pg_dump -s -f db/production_structure.sql #{DB_CONF["production"]["database"]}`
   end
 end
 
 desc "Drop the test database and bring it back again"
 task :purge_test_database do
-  if DB_CONF["test"]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(DB_CONF["production"])
-    ActiveRecord::Base.connection.recreate_database(DB_CONF["test"]["database"])
+  if database_configurations["test"]["adapter"] == "mysql"
+    ActiveRecord::Base.establish_connection(database_configurations["production"])
+    ActiveRecord::Base.connection.recreate_database(database_configurations["test"]["database"])
+  elsif DB_CONF["test"]["adapter"] == "postgresql"
+    `dropdb #{DB_CONF["test"]["database"]}; createdb #{DB_CONF["test"]["database"]}`
   end
 end

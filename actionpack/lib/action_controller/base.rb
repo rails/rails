@@ -288,13 +288,37 @@ module ActionController #:nodoc:
 
       # Renders the +text+ string without parsing it through any template engine. Useful for rendering static information as it's
       # considerably faster than rendering through the template engine.
-      def render_text(text, status = nil) #:doc:
+      # Use block for response body if provided (useful for deferred rendering or streaming output).
+      def render_text(text = nil, status = nil, &block) #:doc:
         add_variables_to_assigns
         @response.headers["Status"] = status || DEFAULT_RENDER_STATUS_CODE
-        @response.body = text
+        @response.body = block_given? ? block : text
         @performed_render = true
       end
 
+      # Sends the file by streaming it 1024 bytes at a time. This way the whole file doesn't need to be read into memory at once.
+      # This makes it feasible to send even large files this way. The files is sent with a bunch of voodoo HTTP headers required to get
+      # arbitrary files to download as expected in as many browsers as possible (eg, IE hacks).
+      def send_file(path)
+        @headers['Pragma']                    = ' '
+        @headers['Cache-Control']             = ' '
+        @headers['Content-type']              = 'application/octet-stream'
+        @headers['Content-Disposition']       = "attachment; filename=#{File.basename(path)}" 
+        @headers['Accept-Ranges']             = 'bytes'
+        @headers['Content-Length']            = File.size(path)
+        @headers['Content-Transfer-Encoding'] = 'binary'
+        @headers['Content-Description']       = 'File Transfer'
+
+        logger.info("Sending file #{path}") unless logger.nil?
+
+        render_text do |response|
+          File.open(path, 'rb') do |file|
+            while buf = file.read(1024)
+              print buf 
+            end 
+          end
+        end
+      end
 
       # Returns an URL that has been rewritten according to the hash of +options+ (for doing a complete redirect, use redirect_to). The
       # valid keys in options are specified below with an example going from "/library/books/ISBN/0743536703/show" (mapped to
@@ -387,7 +411,7 @@ module ActionController #:nodoc:
       # Redirects the browser to the specified <tt>path</tt> within the current host (specified with a leading /). Used to sidestep
       # the URL rewriting and go directly to a known path. Example: <tt>redirect_to_path "/images/screenshot.jpg"</tt>.
       def redirect_to_path(path) #:doc:
-        redirect_to_url(@request.protocol + @request.host + path)
+        redirect_to_url(@request.protocol + @request.host_with_port + path)
       end
 
       # Redirects the browser to the specified <tt>url</tt>. Used to redirect outside of the current application. Example:

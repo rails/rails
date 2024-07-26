@@ -35,9 +35,9 @@ A short rundown of the major features:
 * Associations between objects controlled by simple meta-programming macros. 
 
    class Firm < ActiveRecord::Base
-     has_many  :clients
-     has_one   :account
-     belong_to :conglomorate
+     has_many   :clients
+     has_one    :account
+     belongs_to :conglomorate
    end
 
   Learn more in link:classes/ActiveRecord/Associations/ClassMethods.html
@@ -206,7 +206,7 @@ Active Record automatically links the "Company" object to the "companies" table
 The foreign_key is only necessary because we didn't use "firm_id" in the data definition
  
    class Client < Company
-     belong_to :firm, :foreign_key => "client_of"
+     belongs_to :firm, :foreign_key => "client_of"
    end
 
    # CREATE TABLE people (
@@ -219,7 +219,7 @@ The foreign_key is only necessary because we didn't use "firm_id" in the data de
 Active Record can't guess the table name itself from exceptions like these, so we help it...
 
    class Person < ActiveRecord::Base
-     belong_to :company
+     belongs_to :company
 
      def self.table_name() "people" end
    end
@@ -274,7 +274,7 @@ Constrained finds makes access security easier when ID comes from a web-app
    # SQL: SELECT * FROM companies WHERE client_of = 1 AND type = 'Client' AND id = 2
    thirty_seven_signals = next_angle.find_in_clients(2)
 
-Bi-directional associations thanks to the "belong_to" macro
+Bi-directional associations thanks to the "belongs_to" macro
 
    thirty_seven_signals.has_firm? # true
    thirty_seven_signals.firm?(next_angle) # true

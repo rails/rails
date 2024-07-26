@@ -7,20 +7,15 @@ module ActionView
     module UrlHelper
       # Creates a link tag of the given +name+ using an URL created by the set of +options+. See the valid options in
       # link:classes/ActionController/Base.html#M000021
-      def link_to(name, options = {}, html_options = {})
-        "<a href='#{url_for(options)}'#{tag_options(html_options)}>#{name}</a>"
+      def link_to(name, options = {}, html_options = {}, *parameters_for_method_reference)
+        content_tag("a", name, html_options.merge({ "href" => url_for(options, *parameters_for_method_reference) }))
       end
 
       # Returns the URL for the set of +options+ provided. See the valid options in link:classes/ActionController/Base.html#M000021
-      def url_for(options = {})
-        @controller.send(:url_for, options).gsub("&", "&amp;")
+      def url_for(options = {}, *parameters_for_method_reference)
+        if Hash === options then options = { :only_path => true }.merge(options) end
+        @controller.send(:url_for, options, *parameters_for_method_reference).gsub("&", "&amp;")
       end
-      
-      private
-        def tag_options(options_hash)
-          if options_hash.nil? then return "" end
-          " " + options_hash.collect { |pair| "#{pair.first}=\"#{pair.last}\"" }.sort.join(" ") unless options_hash.empty?
-        end
     end
   end
 end

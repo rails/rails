@@ -1,14 +1,14 @@
 <%
   base_dir = File.expand_path(File.dirname(__FILE__))
     
-  clean_backtrace = @exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/../vendor/railties/../../", "") }
+  clean_backtrace = @exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/../config/environments/../../vendor/railties/configs/../../../", "") }
   app_trace       = clean_backtrace.reject { |line| line[0..6] == "vendor/" || line.include?("dispatch.cgi") }
   framework_trace = clean_backtrace - app_trace
 %>
 
 <h1>
   <%= @exception.class.to_s %> in
-  <%= @request.request_parameters["controller"].capitalize %>#<%= @request.request_parameters["action"] %>
+  <%= @request.parameters["controller"].capitalize %>#<%= @request.parameters["action"] %>
 </h1>
 <p><%= @exception.message %></p>
 

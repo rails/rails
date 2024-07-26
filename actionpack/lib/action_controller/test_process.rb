@@ -38,6 +38,11 @@ module ActionController #:nodoc:
       @query_parameters.update({ "action" => action_name })
       @parameters = nil
     end
+    
+    def request_uri=(uri)
+      @request_uri = uri
+      @path = uri.split("?").first
+    end
 
     private
       def initialize_containers

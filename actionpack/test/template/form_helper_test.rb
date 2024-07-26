@@ -47,7 +47,7 @@ class FormHelperTest < Test::Unit::TestCase
   
   def test_text_field_assuming_size
     assert_equal(
-      '<input id="post_title" maxlength="35" name="post[title]" size="30" type="text" value="Hello World" />', 
+      '<input id="post_title" maxlength="35" name="post[title]" size="35" type="text" value="Hello World" />', 
       text_field("post", "title", "maxlength" => 35)
     )
   end

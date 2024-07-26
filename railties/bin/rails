@@ -1,0 +1,28 @@
+if ARGV[0]
+  ENV["RAILS_PKG_DESTINATION"] = File.expand_path(ARGV[0])
+  if RUBY_PLATFORM =~ /mswin32/
+    Dir.chdir File.dirname(__FILE__)
+    system %{rake.cmd fresh_gem_rails}
+  else
+    system %{ cd #{File.dirname(__FILE__)}; rake fresh_gem_rails }
+  end
+else
+  puts <<-HELP
+
+NAME
+     rails - creates a new Rails installation 
+
+SYNOPSIS
+     rails [full path]
+
+DESCRIPTION
+     This generator will create a suggested directory structure, lots of minor helper
+     files, and a default configuration for creating a new Rails application. Once the
+     generator is done, you're adviced to look at the README in the root of the folder.
+     
+EXAMPLE
+     rails ~/Code/Ruby/weblog
+     
+     This will generate a new Rails installation in the ~/Code/Ruby/weblog folder.
+HELP
+end

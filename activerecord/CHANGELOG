@@ -1,3 +1,20 @@
+*0.9.4*
+
+* Correctly guesses the primary key when the class is inside a module [Dave Steinberg].
+
+* Added [] and []= as alternatives to read_attribute and write_attribute [Dave Steinberg]
+
+* has_and_belongs_to_many now accepts an :order key to determine in which order the collection is returned [radsaq].
+
+* The ids passed to find and find_on_conditions are now automatically sanitized.
+
+* Added escaping of plings in YAML content.
+
+* Multi-parameter assigns where all the parameters are empty will now be set to nil instead of a new instance of their class.
+
+* Proper type within an inheritance hierarchy is now ensured already at object initialization (instead of first at create)
+
+
 *0.9.3*
 
 * Fixed bug with using a different primary key name together with has_and_belongs_to_many [Investigation by Scott] 

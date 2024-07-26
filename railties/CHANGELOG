@@ -1,3 +1,25 @@
+*0.6.5*
+
+* No longer specifies a template for rdoc, so it'll use whatever is default (you can change it in the rakefile)
+
+* The new_model generator will now use the same rules for plural wordings as Active Record 
+  (so Category will give categories, not categorys) [Kevin Radloff]
+
+* dispatch.fcgi now sets FCGI_PURE_RUBY to true to ensure that it's the Ruby version that's loaded [danp]
+
+* Made the GEM work with Windows
+
+* Fixed bug where mod_ruby would "forget" the load paths added when switching between controllers
+
+* PostgreSQL are now supported for the automated production => test database dropping [Kevin Radloff]
+
+* Errors thrown by the dispatcher are now properly handled in FCGI.
+
+* Upgraded to Action Pack 0.8.0 (lots and lots and lots of fixes)
+
+* Upgraded to Active Record 0.9.4 (a bunch of fixes)
+
+
 *0.6.0*
 
 * Added AbstractionApplicationController as a superclass for all controllers generated. This class can be used

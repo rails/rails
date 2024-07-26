@@ -1,5 +1,6 @@
 require 'cgi'
 require File.dirname(__FILE__) + '/date_helper'
+require File.dirname(__FILE__) + '/tag_helper'
 # require 'action_view/support/caller_binding'
 
 module ActionView
@@ -96,6 +97,10 @@ module ActionView
     end
 
     class InstanceTag #:nodoc:
+      include Helpers::TagHelper
+
+      attr_reader :method_name, :object_name
+      
       DEFAULT_FIELD_OPTIONS     = { "size" => 30 } unless const_defined?("DEFAULT_FIELD_OPTIONS")
       DEFAULT_TEXT_AREA_OPTIONS = { "wrap" => "virtual", "cols" => 40, "rows" => 20 } unless const_defined?("DEFAULT_TEXT_AREA_OPTIONS")
 
@@ -105,24 +110,24 @@ module ActionView
       end
       
       def to_input_field_tag(field_type, options = {})
-        options = DEFAULT_FIELD_OPTIONS.merge(options)
-        options.merge!({ "size" => options["maxlength"]}) if options["maxlength"] && !options["size"]
-        options.merge!({ "type" =>  field_type, "value" => escaped_value })
-        add_default_name_and_id(options)
-        html_tag("input", options)
+        html_options = DEFAULT_FIELD_OPTIONS.merge(options)
+        html_options.merge!({ "size" => options["maxlength"]}) if options["maxlength"] && !options["size"]
+        html_options.merge!({ "type" =>  field_type, "value" => escaped_value })
+        add_default_name_and_id(html_options)
+        tag("input", html_options)
       end
       
       def to_text_area_tag(options = {})
         options = DEFAULT_TEXT_AREA_OPTIONS.merge(options)
         add_default_name_and_id(options)
-        html_tag("textarea", options, true, value)
+        content_tag("textarea", value, options)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1")
         options.merge!({"checked" => "checked"}) if !value.nil? && value > 0
         options.merge!({ "type" => "checkbox", "value" => checked_value })
         add_default_name_and_id(options)
-        html_tag("input", options)
+        tag("input", options)
       end
 
       def to_date_tag()
@@ -146,13 +151,15 @@ module ActionView
         tag_text << ">True</option></select>"
       end
 
-      private
-        def html_tag(name, options, has_content = false, content = nil)
-          html_tag  = "<#{name}"
-          html_tag << tag_options(options)
-          html_tag << (has_content ? ">#{content}</#{name}>" : " />")
-        end
+      def object
+        @template_object.instance_variable_get "@#{@object_name}"
+      end
 
+      def value
+        object.send(@method_name) unless object.nil?
+      end
+
+      private
         def add_default_name_and_id(options)
           options['name'] = tag_name unless options.has_key? "name"
           options['id'] = tag_id unless options.has_key? "id"
@@ -164,19 +171,6 @@ module ActionView
 
         def tag_id
           "#{@object_name}_#{@method_name}"
-        end
-
-        def tag_options(options)
-          " " + options.collect { |pair| "#{pair.first}=\"#{pair.last}\"" }.sort.join(" ") unless options.empty?
-        end
-
-        def object
-          # eval(@object_name, @local_binding) rescue @template_object.instance_variable_get "@#{@object_name}"
-          @template_object.instance_variable_get "@#{@object_name}"
-        end
-        
-        def value
-          object.send(@method_name) unless object.nil?
         end
 
         def escaped_value

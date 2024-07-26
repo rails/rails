@@ -6,7 +6,7 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_VERSION = "0.9.3"
+PKG_VERSION = "0.9.4"
 
 PKG_FILES = FileList[
     "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "rakefile"
@@ -20,7 +20,7 @@ task :default => [ :test_ruby_mysql, :test_mysql_ruby, :test_sqlite, :test_postg
 
 Rake::TestTask.new("test_ruby_mysql") { |t|
   t.libs << "test" << "test/connections/native_mysql"
-  t.requires << "active_record/vendor/mysql" if t.respond_to?(:requires) # pending Rake patch approval
+  t.test_files = "lib/active_record/vendor/mysql.rb"
   t.pattern = 'test/*_test.rb'
   t.verbose = true
 }
@@ -88,7 +88,9 @@ spec = Gem::Specification.new do |s|
   s.autorequire = 'active_record'
 
   s.has_rdoc = true
-
+  s.extra_rdoc_files = %w( README )
+  s.rdoc_options << '--main README'
+  
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
   s.homepage = "http://activerecord.rubyonrails.org"

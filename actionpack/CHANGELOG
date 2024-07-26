@@ -1,3 +1,123 @@
+*CVS*
+
+* Added select, collection_select, and country_select to make it easier for Active Records to set attributes through
+  drop-down lists of options. Example:
+  
+    <%= select "person", "gender", %w( Male Female ) %>
+    
+  ...would give the following:
+  
+    <select name="person[gender]" id="person_gender"><option>Male</option><option>Female</option></select>
+
+* Added an option for getting multiple values on a single form name into an array instead of having the last one overwrite.
+  This is especially useful for groups of checkboxes, which can now be written as:
+  
+    <input type="checkbox" name="rights[]" value="CREATE" />
+    <input type="checkbox" name="rights[]" value="UPDATE" />
+    <input type="checkbox" name="rights[]" value="DELETE" />
+  
+  ...and retrieved in the controller action with:
+  
+    @params["rights"] # => [ "CREATE", "UPDATE", "DELETE" ]
+  
+  The old behavior (where the last one wins, "DELETE" in the example) is still available. Just don't add "[]" to the 
+  end of the name. [Scott Baron]
+  
+* Added send_file which uses the new render_text block acceptance to make it feasible to send large files.
+  The files is sent with a bunch of voodoo HTTP headers required to get arbitrary files to download as 
+  expected in as many browsers as possible (eg, IE hacks). Example:
+  
+  def play_movie
+    send_file "/movies/that_movie.avi"
+  end
+  
+  [Jeremy Kemper]
+
+* render_text now accepts a block for deferred rendering. Useful for streaming large files, displaying 
+  a “please wait” message during a complex search, etc. Streaming example:
+  
+    render_text do |response|
+      File.open(path, 'rb') do |file|
+        while buf = file.read(1024)
+          print buf 
+        end 
+      end
+    end
+  
+  [Jeremy Kemper]
+
+* Added a new Tag Helper that can generate generic tags programmatically insted of through HTML. Example:
+    
+    tag("br", "clear" => "all") => <br clear="all" />
+  
+  ...that's usually not terribly interesting (unless you have a lot of options already in a hash), but it 
+  gives way for more specific tags, like the new form tag:
+  
+    form_tag({ :controller => "weblog", :action => "update" }, { :multipart => "true", "style" => "width: 200px"}) =>
+      <form action="/weblog/update" enctype="multipart/formdata" style="width: 200px">
+    
+  There's even a "pretty" version for people who don't like to open tags in code and close them in HTML:
+  
+    <%= start_form_tag :action => "update" %>
+      # all the input fields
+    <%= end_form_tag %>
+  
+  (end_form_tag just returns "</form>")
+
+* The selected parameter in options_for_select may now also an array of values to be selected when 
+  using a multiple select. Example:
+
+    options_for_select([ "VISA", "Mastercard", "Discover" ], ["VISA", "Discover"]) =>
+      <option selected>VISA</option>\n<option>Mastercard</option>\n<option selected>Discover</option>
+      
+  [Scott Baron]
+
+* Changed the URL rewriter so controller_prefix and action_prefix can be used in isolation. You can now do:
+
+    url_for(:controller_prefix => "clients")
+
+  ...or:
+  
+    url_for(:action_prefix => "category/messages")
+
+  Neither would have worked in isolation before (:controller_prefix required a :controller and :action_prefix required an :action)
+
+* Started process of a cleaner separation between Action Controller and ERb-based Action Views by introducing an
+  abstract base class for views. And Amita adapter could be fitted in more easily now.
+
+* The date helper methods date_select and datetime_select now also use the field error wrapping 
+  (div with class fieldWithErrors by default).
+
+* The date helper methods date_select and datetime_select can now discard selects
+
+* Added option on AbstractTemplate to specify a different field error wrapping. Example:
+
+    ActionView::AbstractTemplate.field_error_proc = Proc.new do |html, instance|
+      "<p>#{instance.method_name + instance.error_message}</p><div style='background-color: red'>#{html}</div>"
+    end
+
+  ...would give the following on a Post#title (text field) error:
+  
+    <p>Title can't be empty</p>
+    <div style='background-color: red'>
+      <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
+    </div>
+
+* The UrlHelper methods url_for and link_to will now by default only return paths, not complete URIs.
+  That should make it easier to fit a Rails application behind a proxy or load-balancer.
+  You can overwrite this by passing :only_path => false as part of the options. [Suggested by U235]
+
+* Fixed bug with having your own layout for use with scaffolding [Kevin Radloff]
+
+* Fixed bug where redirect_to_path didn't append the port on non-standard ports [dhawkins]
+
+* Scaffolding plays nicely with single-table inheritance (LoadErrors are caught) [Jeremy Kemper]
+
+* Scaffolding plays nice with plural models like Category/categories [Jeremy Kemper]
+
+* Fixed missing suffix appending in scaffolding [Kevin Radloff]
+
+
 *0.7.9*
 
 * The "form" method now present boolean fields from PostgreSQL as drop-down menu. [Scott]

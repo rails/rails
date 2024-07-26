@@ -59,6 +59,7 @@ files = %w-
  action_controller/test_process.rb
  action_controller/url_rewriter.rb
  action_view.rb
+ action_view/abstract_template.rb
  action_view/erb_template.rb
  action_view/eruby_template.rb
  action_view/helpers/active_record_helper.rb

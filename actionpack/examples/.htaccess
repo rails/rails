@@ -1,12 +1,12 @@
-#<IfModule mod_ruby.c>
-#  RubyRequire apache/ruby-run
-#  RubySafeLevel 0
+<IfModule mod_ruby.c>
+  RubyRequire apache/ruby-run
+  RubySafeLevel 0
 
-#  <Files *.rbx>
-#    SetHandler ruby-object
-#    RubyHandler Apache::RubyRun.instance
-#  </Files>
-#</IfModule>
+  <Files *.rbx>
+    SetHandler ruby-object
+    RubyHandler Apache::RubyRun.instance
+  </Files>
+</IfModule>
 
 
 RewriteEngine On

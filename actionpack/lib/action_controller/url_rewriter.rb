@@ -1,7 +1,7 @@
 module ActionController
   # Rewrites urls for Base.redirect_to and Base.url_for in the controller.
   class UrlRewriter #:nodoc:
-    VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :controller, :controller_prefix, :anchor, :params, :path_params, :id]
+    VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :controller, :controller_prefix, :anchor, :params, :path_params, :id, :only_path]
   
     def initialize(request, controller, action)
       @request, @controller, @action = request, controller, action
@@ -17,8 +17,12 @@ module ActionController
       )
     end
 
+    def to_s
+      to_str
+    end
+
     def to_str
-      "#{@request.protocol}, #{@request.host}, #{@request.path}, #{@controller}, #{@action}, #{@request.parameters.inspect}"
+      "#{@request.protocol}, #{@request.host_with_port}, #{@request.path}, #{@controller}, #{@action}, #{@request.parameters.inspect}"
     end
 
     private
@@ -29,9 +33,9 @@ module ActionController
 
       def rewrite_url(path, options)
         rewritten_url = ""
-        rewritten_url << @request.protocol
-        rewritten_url << @request.host
-        rewritten_url << ":#{@request.port}" unless @request.port == 80
+        rewritten_url << @request.protocol unless options[:only_path]
+        rewritten_url << @request.host_with_port unless options[:only_path]
+
         rewritten_url << path
         rewritten_url << build_query_string(options[:params]) if options[:params]
         rewritten_url << "#" + options[:anchor] if options[:anchor]
@@ -41,9 +45,9 @@ module ActionController
       def rewrite_path(path, options)
         include_id_in_path_params(options)
       
-        path = rewrite_action(path, options)      if options[:action]
+        path = rewrite_action(path, options)      if options[:action] || options[:action_prefix]
         path = rewrite_path_params(path, options) if options[:path_params]
-        path = rewrite_controller(path, options)  if options[:controller]
+        path = rewrite_controller(path, options)  if options[:controller] || options[:controller_prefix]
         return path
       end
       
@@ -96,15 +100,16 @@ module ActionController
 
         prefix = options[:action_prefix] || action_prefix || ""
         suffix = options[:action] == "index" ? "" : (options[:action_suffix] || action_suffix || "")
-        name = options[:action] == "index" ? "" : options[:action]
+        name   = (options[:action] == "index" ? "" : options[:action]) || ""
 
         return prefix + name + suffix
       end
       
       def controller_name(options, controller_prefix)
         ensure_slash_suffix(options, :controller_prefix)
-        prefix = options[:controller_prefix] || controller_prefix || ""
-        prefix + options[:controller] + "/"
+        controller_name = options[:controller_prefix] || controller_prefix || ""
+        controller_name << (options[:controller] + "/") if options[:controller] 
+        return controller_name
       end
       
       def path_params_in_list(options)

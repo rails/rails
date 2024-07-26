@@ -303,7 +303,7 @@ module ActiveRecord
 
       # Associates two classes via an intermediate join table.  Unless the join table is explicitly specified as
       # an option, it is guessed using the lexical order of the class names. So a join between Developer and Project
-      # will give the default join table name of "developers_projects" because "D" outranks "C".
+      # will give the default join table name of "developers_projects" because "D" outranks "P".
       # Adds the following methods for retrival and query.
       # +collection+ is replaced with the symbol passed as the first argument, so 
       # <tt>has_and_belongs_to_many :categories</tt> would add among others +add_categories+.
@@ -341,6 +341,7 @@ module ActiveRecord
       # * <tt>:association_foreign_key</tt> - specify the association foreign key used for the association. By default this is
       #   guessed to be the name of the associated class in lower-case and "_id" suffixed. So the associated class is +Project+
       #   that makes a has_and_belongs_to_many association will use "project_id" as the default association foreign_key.
+      # * <tt>:order</tt> - specify the order in which the associated objects are returned as a "ORDER BY" sql fragment, such as "last_name, first_name DESC".
       # * <tt>:finder_sql</tt> - overwrite the default generated SQL used to fetch the association with a manual one
       # * <tt>:delete_sql</tt> - overwrite the default generated SQL used to remove links between the associated 
       #   classes with a manual one
@@ -353,7 +354,7 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
       def has_and_belongs_to_many(association_id, options = {})
         validate_options([ :class_name, :table_name, :foreign_key, :association_foreign_key,
-                           :join_table, :finder_sql, :delete_sql, :insert_sql ], options.keys)
+                           :join_table, :finder_sql, :delete_sql, :insert_sql, :order ], options.keys)
 
         association_name, association_class_name, association_class_primary_key_name =
             associate_identification(association_id, options[:class_name], options[:foreign_key])
@@ -365,10 +366,12 @@ module ActiveRecord
         join_table  = options[:join_table] || 
           join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(association_class_name))
 
+        order = options[:order] || "t.\#{self.class.primary_key}"
+
         finder_sql  = 
           options[:finder_sql] ||
           "SELECT t.* FROM #{association_table_name} t, #{join_table} j " +
-          "WHERE t.\#{self.class.primary_key} = j.#{association_foreign_key} AND j.#{association_class_primary_key_name} = '\#{id}' ORDER BY t.\#{self.class.primary_key}"
+          "WHERE t.\#{self.class.primary_key} = j.#{association_foreign_key} AND j.#{association_class_primary_key_name} = '\#{id}' ORDER BY #{order}"
 
         has_collection_method(association_name)
         collection_accessor_method_for_has_and_belongs_to_many(association_name, "#{association_class_name}.find_by_sql(\"#{finder_sql}\")")

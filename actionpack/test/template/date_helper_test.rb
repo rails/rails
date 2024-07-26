@@ -74,17 +74,17 @@ class DateHelperTest < Test::Unit::TestCase
   
   
   def test_select_date
-    expected = "<select name='date[first][day]'>\n"
-    expected <<
-"<option>1</option>\n<option>2</option>\n<option>3</option>\n<option>4</option>\n<option>5</option>\n<option>6</option>\n<option>7</option>\n<option>8</option>\n<option>9</option>\n<option>10</option>\n<option>11</option>\n<option>12</option>\n<option>13</option>\n<option>14</option>\n<option>15</option>\n<option selected>16</option>\n<option>17</option>\n<option>18</option>\n<option>19</option>\n<option>20</option>\n<option>21</option>\n<option>22</option>\n<option>23</option>\n<option>24</option>\n<option>25</option>\n<option>26</option>\n<option>27</option>\n<option>28</option>\n<option>29</option>\n<option>30</option>\n<option>31</option>\n"
+    expected =  "<select name='date[first][year]'>\n"
+    expected << "<option selected>2003</option>\n<option>2004</option>\n<option>2005</option>\n"
     expected << "</select>\n"
 
     expected << "<select name='date[first][month]'>\n"
     expected << "<option value='1'>January</option>\n<option value='2'>February</option>\n<option value='3'>March</option>\n<option value='4'>April</option>\n<option value='5'>May</option>\n<option value='6'>June</option>\n<option value='7'>July</option>\n<option value='8' selected>August</option>\n<option value='9'>September</option>\n<option value='10'>October</option>\n<option value='11'>November</option>\n<option value='12'>December</option>\n"
     expected << "</select>\n"
 
-    expected << "<select name='date[first][year]'>\n"
-    expected << "<option selected>2003</option>\n<option>2004</option>\n<option>2005</option>\n"
+    expected << "<select name='date[first][day]'>\n"
+    expected <<
+"<option>1</option>\n<option>2</option>\n<option>3</option>\n<option>4</option>\n<option>5</option>\n<option>6</option>\n<option>7</option>\n<option>8</option>\n<option>9</option>\n<option>10</option>\n<option>11</option>\n<option>12</option>\n<option>13</option>\n<option>14</option>\n<option>15</option>\n<option selected>16</option>\n<option>17</option>\n<option>18</option>\n<option>19</option>\n<option>20</option>\n<option>21</option>\n<option>22</option>\n<option>23</option>\n<option>24</option>\n<option>25</option>\n<option>26</option>\n<option>27</option>\n<option>28</option>\n<option>29</option>\n<option>30</option>\n<option>31</option>\n"
     expected << "</select>\n"
     
     assert_equal expected, select_date(

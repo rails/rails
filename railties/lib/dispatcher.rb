@@ -21,12 +21,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require File.dirname(__FILE__) + "/../../../config/environments/production"
-
 class Dispatcher
   DEFAULT_SESSION_OPTIONS = { "database_manager" => CGI::Session::PStore, "prefix" => "ruby_sess.", "session_path" => "/" }
 
-  def self.dispatch(cgi = CGI.new, session_options = DEFAULT_SESSION_OPTIONS)
+  def self.dispatch(cgi = CGI.new, session_options = DEFAULT_SESSION_OPTIONS, error_page = nil)
     begin
       request  = ActionController::CgiRequest.new(cgi, session_options)
       response = ActionController::CgiResponse.new(cgi)
@@ -36,8 +34,13 @@ class Dispatcher
       require "#{controller_name}_controller"
       Object.const_get("#{controller_name.capitalize}Controller").process(request, response).out
     rescue Exception => e
-      ActionController::Base.logger.info "\n\nException throw during dispatch: #{e.message}\n#{e.backtrace.join("\n")}"
-      raise e
+      begin
+        ActionController::Base.logger.info "\n\nException throw during dispatch: #{e.message}\n#{e.backtrace.join("\n")}"
+      rescue Exception
+        # Couldn't log error
+      end
+      
+      if error_page then cgi.out{ IO.readlines(error_page) } else raise e end
     end
   end
 end

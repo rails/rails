@@ -98,8 +98,8 @@ class ValidationsTest < Test::Unit::TestCase
     
     assert_equal "Reply is not dignifying", r.errors.on_base
     
-    assert_equal "Title Empty", errors[0]
-    assert_equal "Reply is not dignifying", errors[1]
+    assert errors.include?("Title Empty")
+    assert errors.include?("Reply is not dignifying")
     assert_equal 2, r.errors.count
   end
 

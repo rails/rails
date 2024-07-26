@@ -58,7 +58,7 @@ class CodeStatistics
 
     def print_line(name, statistics)
       m_over_c   = (statistics["methods"] / statistics["classes"])   rescue m_over_c = 0
-      loc_over_m = (statistics["codelines"] / statistics["methods"]) rescue loc_over_m = 0
+      loc_over_m = (statistics["codelines"] / statistics["methods"]) - 2 rescue loc_over_m = 0
 
       puts "| #{name.ljust(20)} " +
            "| #{statistics["lines"].to_s.rjust(5)} " +

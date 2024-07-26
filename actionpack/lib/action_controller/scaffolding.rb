@@ -84,13 +84,12 @@ module ActionController
       def scaffold(model_id, options = {})
         validate_options([ :class_name, :suffix ], options.keys)
 
-        require "#{model_id.id2name}"
-        
+        require "#{model_id.id2name}" rescue logger.warn "Couldn't auto-require #{model_id.id2name}.rb" unless logger.nil?
+
         singular_name = model_id.id2name
         class_name    = options[:class_name] || singular_name.capitalize
-        plural_name   = Object.const_get(class_name).table_name
-        
-        suffix = options[:suffix] ? "_#{singular_name}" : ""
+        plural_name   = ActiveRecord::Base.send(:undecorated_table_name, class_name)
+        suffix        = options[:suffix] ? "_#{singular_name}" : ""
 
         unless options[:suffix]
           module_eval <<-"end_eval", __FILE__, __LINE__
@@ -158,7 +157,7 @@ module ActionController
                 @scaffold_suffix = "#{suffix}"
                 add_instance_variables_to_assigns
 
-                @contents_for_layout = @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false)
+                @content_for_layout = @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false)
                 
                 if self.class.has_active_layout?
                   render_file(self.active_layout, "200 OK", true)

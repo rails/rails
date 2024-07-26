@@ -1,7 +1,7 @@
 <%
   base_dir = File.expand_path(File.dirname(__FILE__))
     
-  request_parameters_without_action = @request.request_parameters.clone
+  request_parameters_without_action = @request.parameters.clone
   request_parameters_without_action.delete("action")
   request_parameters_without_action.delete("controller")
   

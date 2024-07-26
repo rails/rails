@@ -2,13 +2,13 @@
   base_dir = File.expand_path(File.dirname(__FILE__))
   
   framework_trace = @exception.original_exception.backtrace.collect do |line| 
-    line.gsub(base_dir, "").gsub("/../vendor/railties/../../", "")
+    line.gsub(base_dir, "").gsub("/../config/environments/../../vendor/railties/configs/../../../", "")
   end
 %>
 
 <h1>
   <%= @exception.original_exception.class.to_s %> in
-  <%= @request.request_parameters["controller"].capitalize %>#<%= @request.request_parameters["action"] %>
+  <%= @request.parameters["controller"].capitalize %>#<%= @request.parameters["action"] %>
 </h1>
 
 <p>

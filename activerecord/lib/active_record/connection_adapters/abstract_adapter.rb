@@ -219,7 +219,7 @@ module ActiveRecord
           when FalseClass          then (column and column.type == :boolean ? "'f'" : "0")
           when Float, Fixnum, Date then "'#{value.to_s}'"
           when Time, DateTime      then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-          else                          "'#{value.to_yaml}'"
+          else                          "'#{value.to_yaml.gsub(/'/, "''")}'"
         end
       end
 

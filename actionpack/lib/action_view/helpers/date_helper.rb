@@ -28,10 +28,16 @@ module ActionView
       end
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute (identified by
-      # +method+) on an object assigned to the template (identified by +object+). Examples:
+      # +method+) on an object assigned to the template (identified by +object+). It's possible to tailor the selects through the +options+ hash, 
+      # which both accepts all the keys that each of the individual select builders does (like :use_month_numbers for select_month) and a range
+      # of discard options. The discard options are <tt>:discard_month</tt> and <tt>:discard_day</tt>. Set to true, they'll drop the respective
+      # select. Discarding the month select will also automatically discard the day select. NOTE: Discarded selects will default to 1. So if no
+      # month select is available, January will be assumed. Examples:
       #
       #   date_select("post", "written_on")
       #   date_select("post", "written_on", :start_year => 1995)
+      #   date_select("post", "written_on", :start_year => 1995, :use_month_numbers => true, 
+      #                                     :discard_day => true, :include_blank => true)
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def date_select(object, method, options = {})
@@ -51,7 +57,7 @@ module ActionView
 
       # Returns a set of html select-tags (one for year, month, and day) pre-selected with the +date+.
       def select_date(date = Date.today, options = {})
-        select_day(date, options) + select_month(date, options) + select_year(date, options)
+        select_year(date, options) + select_month(date, options) + select_day(date, options)
       end
 
       # Returns a set of html select-tags (one for year, month, day, hour, and minute) preselected the +datetime+.
@@ -167,24 +173,30 @@ module ActionView
 
       def to_date_select_tag(options = {})
         defaults = { :discard_type => true }
-        date     = value || Date.today
-        options  = Proc.new { |position| defaults.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
+        options  = defaults.merge(options) 
+        options_with_prefix = Proc.new { |position| options.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
+        date     = options[:include_blank] ? (value || 0) : (value || Date.today)
 
-        select_year(date, options.call(1)) +
-        select_month(date, options.call(2)) +
-        select_day(date, options.call(3))
+        date_select  = select_year(date, options_with_prefix.call(1))
+        date_select << select_month(date, options_with_prefix.call(2)) unless options[:discard_month]
+        date_select << select_day(date, options_with_prefix.call(3))   unless options[:discard_day] || options[:discard_month]
+
+        return date_select
       end
       
       def to_datetime_select_tag(options = {})
         defaults = { :discard_type => true }
-        datetime = value || Time.now
-        options  = Proc.new { |position| defaults.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
+        options  = defaults.merge(options) 
+        options_with_prefix = Proc.new { |position| options.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
+        datetime = options[:include_blank] ? (value || 0) : (value || Time.now)
 
-        select_year(datetime, options.call(1)) +
-        select_month(datetime, options.call(2)) +
-        select_day(datetime, options.call(3)) + " &mdash; " +
-        select_hour(datetime, options.call(4)) + " : " +
-        select_minute(datetime, options.call(5))
+        datetime_select  = select_year(datetime, options_with_prefix.call(1))
+        datetime_select << select_month(datetime, options_with_prefix.call(2)) unless options[:discard_month]
+        datetime_select << select_day(datetime, options_with_prefix.call(3)) unless options[:discard_day] || options[:discard_month]
+        datetime_select << " &mdash; " + select_hour(datetime, options_with_prefix.call(4)) unless options[:discard_hour]
+        datetime_select << " : " + select_minute(datetime, options_with_prefix.call(5)) unless options[:discard_minute] || options[:discard_hour]
+        
+        return datetime_select
       end
     end
   end

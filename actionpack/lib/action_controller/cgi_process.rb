@@ -93,7 +93,11 @@ module ActionController #:nodoc:
 
     def out
       print @cgi.header(@headers)
-      print @body
+      if @body.respond_to?(:call)
+        @body.call(self)
+      else
+        print @body
+      end
     end
   end
 end

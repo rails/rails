@@ -171,7 +171,7 @@ module ActiveRecord #:nodoc:
         ids = [ ids ].flatten.compact
 
         if ids.length > 1
-          ids_list = ids.map{ |id| "'#{id}'" }.join(", ")
+          ids_list = ids.map{ |id| "'#{sanitize(id)}'" }.join(", ")
           objects  = find_all("#{primary_key} IN (#{ids_list})", primary_key)
 
           if objects.length == ids.length
@@ -181,7 +181,7 @@ module ActiveRecord #:nodoc:
           end
         elsif ids.length == 1
           id = ids.first
-          sql = "SELECT * FROM #{table_name} WHERE #{primary_key} = '#{id}'"
+          sql = "SELECT * FROM #{table_name} WHERE #{primary_key} = '#{sanitize(id)}'"
           sql << "AND type = '#{name.gsub(/.*::/, '')}'" unless descents_from_active_record?
 
           if record = connection.select_one(sql, "#{name} Find")
@@ -199,7 +199,7 @@ module ActiveRecord #:nodoc:
       # Example:
       #   Person.find_on_conditions 5, "first_name LIKE '%dav%' AND last_name = 'heinemeier'"
       def find_on_conditions(id, conditions)
-        find_first("#{primary_key} = '#{id}' AND #{sanitize_conditions(conditions)}") || 
+        find_first("#{primary_key} = '#{sanitize(id)}' AND #{sanitize_conditions(conditions)}") || 
             raise(RecordNotFound, "Couldn't find #{name} with #{primary_key} = #{id} on the condition of #{conditions}")
       end
     
@@ -374,9 +374,9 @@ module ActiveRecord #:nodoc:
       def primary_key
         case primary_key_prefix_type
           when :table_name                 
-            "#{class_name_of_active_record_descendant(self).downcase}id"
+            "#{class_name_of_active_record_descendant(self).gsub(/.*::/, '').downcase}id"
           when :table_name_with_underscore
-            "#{class_name_of_active_record_descendant(self).downcase}_id"
+            "#{class_name_of_active_record_descendant(self).gsub(/.*::/, '').downcase}_id"
           else
             "id"
         end
@@ -514,6 +514,7 @@ module ActiveRecord #:nodoc:
       def initialize(attributes = nil)
         @attributes = attributes_from_column_definition
         @new_record = true
+        ensure_proper_type
         self.attributes = attributes unless attributes.nil?
         yield self if block_given?
       end
@@ -616,8 +617,6 @@ module ActiveRecord #:nodoc:
       
       # Creates a new record with values matching those of the instant attributes.
       def create
-        ensure_proper_type
-      
         auto_id = connection.insert(
           "INSERT INTO #{self.class.table_name} " +
           "(#{attributes_with_quotes.keys.join(', ')}) " +
@@ -676,6 +675,17 @@ module ActiveRecord #:nodoc:
       def write_attribute(attr_name, value) #:doc:
         @attributes[attr_name] = value
       end
+
+      # Alias for read_attribute. An alternative to the attributes-by-method-calls technique, provide access as if 
+      # we're a hash.
+      def [](attr_name) read_attribute(attr_name) #:doc:
+      end
+      
+      # Alias for write_attribute. An alternative to the attributes-by-method-calls technique, provide access as if 
+      # we're a hash.
+      def []= (attr_name, value) write_attribute(attr_name, value) #:doc:
+      end
+
 
       def query_attribute(attr_name)
         attribute = @attributes[attr_name]
@@ -736,7 +746,7 @@ module ActiveRecord #:nodoc:
       # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
       # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
       # parenteses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, f for Float,
-      # s for String, and a for Array.
+      # s for String, and a for Array. If all the values for a given attribute is empty, the attribute will be set to nil.
       def assign_multiparameter_attributes(pairs)
         execute_callstack_for_multiparameter_attributes(
           extract_callstack_for_multiparameter_attributes(pairs)
@@ -747,7 +757,11 @@ module ActiveRecord #:nodoc:
       def execute_callstack_for_multiparameter_attributes(callstack)
         callstack.each do |name, values|
           klass = (self.class.reflect_on_aggregation(name) || column_for_attribute(name)).klass
-          send(name + "=", Time == klass ? klass.local(*values) : klass.new(*values))
+          if values.empty?
+            send(name + "=", nil)
+          else
+            send(name + "=", Time == klass ? klass.local(*values) : klass.new(*values))
+          end
         end
       end
       
@@ -758,10 +772,13 @@ module ActiveRecord #:nodoc:
           multiparameter_name, value = pair
           attribute_name = multiparameter_name.split("(").first
           attributes[attribute_name] = [] unless attributes.include?(attribute_name)
-          attributes[attribute_name] << 
-            [find_parameter_position(multiparameter_name), type_cast_attribute_value(multiparameter_name, value)]
+
+          unless value.empty?
+            attributes[attribute_name] << 
+              [find_parameter_position(multiparameter_name), type_cast_attribute_value(multiparameter_name, value)]
+          end
         end
-        
+
         attributes.each { |name, values| attributes[name] = values.sort_by{ |v| v.first }.collect { |v| v.last } }
       end
       

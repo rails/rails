@@ -2,6 +2,11 @@ require 'cgi'
 require File.dirname(__FILE__) + '/form_helper'
 
 module ActionView
+  class AbstractTemplate
+    @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }
+    cattr_accessor :field_error_proc
+  end
+
   module Helpers
     # The Active Record Helper makes it easier to create forms for records kept in instance variables. The most far-reaching is the form
     # method that creates a complete form for all the basic content types of the record (not associations or aggregations, though). This
@@ -71,6 +76,17 @@ module ActionView
         end
       end
       
+      def error_messages_for(object_name)
+        object = instance_eval("@#{object_name}")
+        unless object.errors.empty?
+          "<div id=\"ErrorExplanation\">" +
+          "<h2>#{object.errors.count} error#{"s" unless object.errors.count == 1} prohibited this #{object_name} from being saved</h2>" +
+          "<p>There were problems with the following fields (marked in red below):</p>" +
+          "<ul>#{object.errors.full_messages.collect { |msg| "<li>#{msg}</li>"}}</ul>" +
+          "</div>"
+        end
+      end
+      
       private
         def all_input_tags(record, record_name, options)
           input_block = options[:input_block] || default_input_block
@@ -83,11 +99,6 @@ module ActionView
     end
 
     class InstanceTag #:nodoc:
-      # Specifies the stylesheet class name used with the DIVs that enclose fields in error. 
-      # For example, if there's an error on on @post.title and <tt><%= text_field(@post, "title") %></tt> is used:
-      # <tt><div class="fieldWithErrors"><input type="text" name="post[title]" id="post_title"/></div></tt>
-      FIELD_ERROR_CSS_CLASS_NAME = "fieldWithErrors" unless const_defined?("FIELD_ERROR_CSS_CLASS_NAME")
-
       def to_tag(options = {})
         case column_type
           when :string
@@ -106,18 +117,50 @@ module ActionView
         end
       end
 
-      alias_method :html_tag_with_out_error_wrapping, :html_tag
+      alias_method :tag_without_error_wrapping, :tag
 
-      def html_tag(name, options, has_content = false, content = nil)
+      def tag(name, options)
         if object.respond_to?("errors") && object.errors.respond_to?("on")
-          error_wrapping(html_tag_with_out_error_wrapping(name, options, has_content, content), object.errors.on(@method_name))
+          error_wrapping(tag_without_error_wrapping(name, options), object.errors.on(@method_name))
         else
-          html_tag_with_out_error_wrapping(name, options, has_content, content)
+          tag_without_error_wrapping(name, options)
+        end
+      end
+
+      alias_method :content_tag_without_error_wrapping, :content_tag
+
+      def content_tag(name, value, options)
+        if object.respond_to?("errors") && object.errors.respond_to?("on")
+          error_wrapping(content_tag_without_error_wrapping(name, value, options), object.errors.on(@method_name))
+        else
+          content_tag_without_error_wrapping(name, value, options)
+        end
+      end
+
+      alias_method :to_date_select_tag_without_error_wrapping, :to_date_select_tag
+      def to_date_select_tag(options = {})
+        if object.respond_to?("errors") && object.errors.respond_to?("on")
+          error_wrapping(to_date_select_tag_without_error_wrapping(options), object.errors.on(@method_name))
+        else
+          to_date_select_tag_without_error_wrapping(options)
+        end
+      end
+
+      alias_method :to_datetime_select_tag_without_error_wrapping, :to_datetime_select_tag
+      def to_datetime_select_tag(options = {})
+        if object.respond_to?("errors") && object.errors.respond_to?("on")
+            error_wrapping(to_datetime_select_tag_without_error_wrapping(options), object.errors.on(@method_name))
+          else
+            to_datetime_select_tag_without_error_wrapping(options)
         end
       end
 
       def error_wrapping(html_tag, has_error)
-        has_error ? "<div class=\"#{FIELD_ERROR_CSS_CLASS_NAME}\">#{html_tag}</div>" : html_tag
+        has_error ? AbstractTemplate.field_error_proc.call(html_tag, self) : html_tag
+      end
+
+      def error_message
+        object.errors.on(@method_name)
       end
 
       def column_type

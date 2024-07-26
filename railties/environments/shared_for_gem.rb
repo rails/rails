@@ -1,20 +1,11 @@
-ADDITIONAL_LOAD_PATHS = [ 
-  "app/models", 
-  "app/controllers", 
-  "app/helpers", 
-  "config", 
-  "lib", 
-  "vendor",
-  "vendor/railties", 
-  "vendor/railties/lib", 
-  "vendor/activerecord/lib", 
-  "vendor/actionpack/lib",
-]
-
+ADDITIONAL_LOAD_PATHS = [ "app/models", "app/controllers", "app/helpers", "config", "lib", "vendor" ]
 ADDITIONAL_LOAD_PATHS.each { |dir| $:.unshift "#{File.dirname(__FILE__)}/../../#{dir}" }
 
-require 'active_record'
-require 'action_controller'
+require 'rubygems'
+
+require_gem 'activerecord'
+require_gem 'actionpack'
+require_gem 'rails'
 
 require 'yaml'
 

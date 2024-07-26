@@ -155,15 +155,24 @@ module ActiveRecord
     # Yields each full error message added. So Person.errors.add("first_name", "can't be empty") will be returned
     # through iteration as "First name can't be empty".
     def each_full
+      full_messages.each { |msg| yield msg }
+    end
+
+    # Returns all the full error messages in an array.
+    def full_messages
+      full_messages = []
+      
       @errors.each_key do |attr| 
         @errors[attr].each do |msg|
           if attr == :base
-            yield msg
+            full_messages << msg
           else
-            yield @base.class.human_attribute_name(attr) + " " + msg
+            full_messages << @base.class.human_attribute_name(attr) + " " + msg
           end
         end
       end
+      
+      return full_messages
     end
 
     # Returns true if no errors have been added.

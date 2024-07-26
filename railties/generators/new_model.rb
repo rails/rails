@@ -1,5 +1,7 @@
 #!/usr/local/bin/ruby
 
+require File.dirname(__FILE__) + '/../config/environments/production'
+
 def create_model_class(model_name)
   File.open("app/models/" + model_name.downcase  + ".rb", "w", 0777) do |model_file|
     model_file.write <<EOF
@@ -11,7 +13,7 @@ EOF
   end
 end
 
-def create_test_class(model_name)
+def create_test_class(model_name, table_name)
     File.open("test/unit/" + model_name.downcase  + "_test.rb", "w", 0777) do |test_file|
         test_file.write <<EOF
 require File.dirname(__FILE__) + '/../unit_test_helper'
@@ -19,7 +21,7 @@ require '#{model_name.downcase}'
 
 class #{model_name}Test < Test::Unit::TestCase
   def setup
-    @#{model_name.downcase}s = create_fixtures "#{model_name.downcase}s"
+    @#{table_name} = create_fixtures "#{table_name}"
   end
 
   def test_something
@@ -30,17 +32,18 @@ EOF
     end
 end
 
-def create_fixtures_directory(model_name)
-  Dir.mkdir("test/fixtures/" + model_name.downcase + "s") rescue puts "Fixtures directory already exists"
+def create_fixtures_directory(table_name)
+  Dir.mkdir("test/fixtures/" + table_name) rescue puts "Fixtures directory already exists"
 end
 
 
 if !ARGV.empty?
   model_name = ARGV.shift
+  table_name = ActiveRecord::Base.send(:undecorated_table_name, model_name.downcase)
 
   create_model_class(model_name)
-  create_test_class(model_name)
-  create_fixtures_directory(model_name)
+  create_test_class(model_name, table_name)
+  create_fixtures_directory(table_name)
 else
   puts <<-HELP
 

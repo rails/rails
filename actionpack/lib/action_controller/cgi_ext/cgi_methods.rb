@@ -9,9 +9,17 @@ class CGIMethods #:nodoc:
     def CGIMethods.parse_query_parameters(query_string)
       parsed_params = {}
   
-      query_string.split(/[&;]/).each { |p| 
+      CGI.unescape(query_string).split(/[&;]/).each { |p| 
         k, v = p.split('=')
-        parsed_params[CGI.unescape(k)] = v.nil? ? nil : CGI.unescape(v)
+        if k =~ /(.*)\[\]$/
+            if parsed_params.has_key? $1
+                parsed_params[$1] << v
+            else
+                parsed_params[$1] = [v]
+            end
+        else
+            parsed_params[k] = v.nil? ? nil : v
+        end
       }
   
       return parsed_params
@@ -24,6 +32,7 @@ class CGIMethods #:nodoc:
       parsed_params = {}
 
       for key, value in params
+        value = [value] if key =~ /.*\[\]$/
         CGIMethods.build_deep_hash(
           CGIMethods.get_typed_value(value[0]),
           parsed_params, 
@@ -42,6 +51,8 @@ class CGIMethods #:nodoc:
       elsif value.respond_to?(:read)
         # Value as part of a multipart request
         value.read
+      elsif value.class == Array
+          value
       else
         # Standard value (not a multipart request)
         value.to_s

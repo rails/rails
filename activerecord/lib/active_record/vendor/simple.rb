@@ -1,5 +1,4 @@
 # :title: Transaction::Simple
-# :main: Transaction::Simple
 #
 # == Licence
 #
@@ -27,7 +26,7 @@
 #
 # Copyright (c) 2003 Austin Ziegler
 #
-# $Id: simple.rb,v 1.1 2004/06/02 21:19:38 webster132 Exp $
+# $Id: simple.rb,v 1.2 2004/08/20 13:56:37 webster132 Exp $
 #
 # ==========================================================================
 # Revision History ::
