@@ -366,12 +366,6 @@ module ActiveRecord
 
       return false if !conditions || limit_value == 0
 
-      # Ignore if we have records which have saved changes since the load, because the
-      # relation can be a CollectionProxy and we updated the reference to the owner record.
-      if conditions == :none && loaded? && records.none?(&:saved_changes?)
-        return records.any?(&:persisted?)
-      end
-
       if eager_loading?
         relation = apply_join_dependency(eager_loading: false)
         return relation.exists?(conditions)
