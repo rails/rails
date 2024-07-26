@@ -1,3 +1,9 @@
+*   Use SQLite `IMMEDIATE` transactions when possible.
+
+    Transactions run against the SQLite3 adapter default to IMMEDIATE mode to improve concurrency support and avoid busy exceptions.
+
+    *Stephen Margheim*
+
 *   Raise specific exception when a connection is not defined.
 
      The new `ConnectionNotDefined` exception provides connection name, shard and role accessors indicating the details of the connection that was requested.

@@ -411,6 +411,14 @@ module ActiveRecord
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
 
+      def begin_deferred_transaction(isolation_level = nil) # :nodoc:
+        if isolation_level
+          begin_isolated_db_transaction(isolation_level)
+        else
+          begin_db_transaction
+        end
+      end
+
       def transaction_isolation_levels
         {
           read_uncommitted: "READ UNCOMMITTED",

@@ -448,10 +448,14 @@ module ActiveRecord
     # = Active Record Real \Transaction
     class RealTransaction < Transaction
       def materialize!
-        if isolation_level
-          connection.begin_isolated_db_transaction(isolation_level)
+        if joinable?
+          if isolation_level
+            connection.begin_isolated_db_transaction(isolation_level)
+          else
+            connection.begin_db_transaction
+          end
         else
-          connection.begin_db_transaction
+          connection.begin_deferred_transaction(isolation_level)
         end
 
         super

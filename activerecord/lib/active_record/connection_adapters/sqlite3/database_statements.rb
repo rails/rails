@@ -65,25 +65,16 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        def begin_isolated_db_transaction(isolation) # :nodoc:
-          raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
-          raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
+        def begin_deferred_transaction(isolation = nil) # :nodoc:
+          internal_begin_transaction(:deferred, isolation)
+        end
 
-          with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-            ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = conn.get_first_value("PRAGMA read_uncommitted")
-            conn.read_uncommitted = true
-            begin_db_transaction
-          end
+        def begin_isolated_db_transaction(isolation) # :nodoc:
+          internal_begin_transaction(:deferred, isolation)
         end
 
         def begin_db_transaction # :nodoc:
-          log("begin transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              result = conn.transaction
-              verified!
-              result
-            end
-          end
+          internal_begin_transaction(:immediate, nil)
         end
 
         def commit_db_transaction # :nodoc:
@@ -114,6 +105,25 @@ module ActiveRecord
         end
 
         private
+          def internal_begin_transaction(mode, isolation)
+            if isolation
+              raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
+              raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
+            end
+
+            log("begin #{mode} transaction", "TRANSACTION") do
+              with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
+                if isolation
+                  ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = conn.get_first_value("PRAGMA read_uncommitted")
+                  conn.read_uncommitted = true
+                end
+                result = conn.transaction(mode)
+                verified!
+                result
+              end
+            end
+          end
+
           def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: false)
             log(sql, name, async: async) do |notification_payload|
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
