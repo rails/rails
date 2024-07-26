@@ -11,10 +11,10 @@ SELECT setval('accounts_id_seq', 100);
 CREATE TABLE companies (
     id serial,
     "type" character varying(50),
+    "ruby_type" character varying(50),
     firm_id integer,
     name character varying(50),
     client_of integer,
-    companies_count integer DEFAULT 0,
     rating integer default 1,
     PRIMARY KEY (id)
 );
@@ -47,7 +47,7 @@ CREATE TABLE topics (
     written_on timestamp without time zone,
     last_read date,
     content text,
-    reply_count integer,
+    replies_count integer default 0,
     parent_id integer,
     "type" character varying(50),
     approved smallint DEFAULT 1,
@@ -84,3 +84,30 @@ CREATE TABLE booleantests (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE defaults (
+    id serial,
+    modified_date date default CURRENT_DATE,
+    fixed_date date default '2004-01-01',
+    modified_time timestamp default CURRENT_TIMESTAMP,
+    fixed_time timestamp default '2004-01-01 00:00:00.000000-00',
+    char1 char(1) default 'Y',
+    char2 character varying(50) default 'a varchar field',
+    char3 text default 'a text field'
+);
+
+CREATE TABLE auto_id_tests (
+    auto_id serial,
+    value integer,
+    PRIMARY KEY (auto_id)
+);
+
+CREATE TABLE entrants (
+  id serial,
+  name text,
+  course_id integer
+);
+
+CREATE TABLE colnametests (
+  id serial,
+  "references" integer NOT NULL
+);

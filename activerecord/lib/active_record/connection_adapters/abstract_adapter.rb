@@ -3,6 +3,16 @@ require 'date'
 
 module ActiveRecord
   class Base
+    class ConnectionSpecification #:nodoc:
+      attr_reader :config, :adapter_method
+      def initialize (config, adapter_method)
+        @config, @adapter_method = config, adapter_method
+      end
+    end
+
+    # The class -> [adapter_method, config] map
+    @@defined_connections = {}
+
     # Establishes the connection to the database. Accepts a hash as input where
     # the :adapter key must be specified with the name of a database adapter (in lower-case)
     # example for regular databases (MySQL, Postgresql, etc):
@@ -30,26 +40,83 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
-    def self.establish_connection(config)
-      if config.nil? then raise AdapterNotSpecified end
-      symbolize_strings_in_hash(config)
-      unless config.key?(:adapter) then raise AdapterNotSpecified end
-  
-      adapter_method = "#{config[:adapter]}_connection"
-      unless methods.include?(adapter_method) then raise AdapterNotFound end
-
-      @@config, @@adapter_method = config, adapter_method
-      Thread.current['connection'] = nil
+    #
+    # == Connecting to another database for a single model
+    #
+    # To support different connections for different classes, you can
+    # simply call establish_connection with the classes you wish to have
+    # different connections for:
+    #
+    #   class Courses < ActiveRecord::Base
+    #    ...
+    #   end
+    #
+    #   Courses.establish_connection( ... )
+    def self.establish_connection(spec)
+      if spec.instance_of? ConnectionSpecification
+        @@defined_connections[self] = spec
+      else
+        if spec.nil? then raise AdapterNotSpecified end
+        symbolize_strings_in_hash(spec)
+        unless spec.key?(:adapter) then raise AdapterNotSpecified end
+    
+        adapter_method = "#{spec[:adapter]}_connection"
+        unless methods.include?(adapter_method) then raise AdapterNotFound end
+        remove_connection
+        @@defined_connections[self] = ConnectionSpecification.new(spec, adapter_method)
+      end
     end
     
+    # Locate the connection of the nearest super class. This can be an
+    # active or defined connections: if it is the latter, it will be
+    # opened and set as the active connection for the class it was defined
+    # for (not necessarily the current class).
     def self.retrieve_connection #:nodoc:
-      raise(ConnectionNotEstablished) if @@config.nil?
-
-      begin
-        self.send(@@adapter_method, @@config)
-      rescue Exception => e
-        raise(ConnectionFailed, e.message)
+      klass = self
+      until klass == ActiveRecord::Base.superclass
+        Thread.current['active_connections'] ||= {}
+        if Thread.current['active_connections'][klass]
+          return Thread.current['active_connections'][klass]
+        elsif @@defined_connections[klass]
+          klass.connection = @@defined_connections[klass]
+          return self.connection
+        end
+        klass = klass.superclass
       end
+      raise ConnectionNotEstablished
+    end
+    
+    # Returns true if a connection that's accessible to this class have already been opened.
+    def self.connected?
+      klass = self
+      until klass == ActiveRecord::Base.superclass
+        if Thread.current['active_connections'].is_a?(Hash) && Thread.current['active_connections'][klass]
+          return true 
+        else
+          klass = klass.superclass
+        end
+      end
+      return false
+    end
+    
+    # Remove the connection for this class. This will close the active
+    # connection and the defined connection (if they exist). The result
+    # can be used as argument for establish_connection, for easy
+    # re-establishing of the connection.
+    def self.remove_connection(klass=self)
+      conn = @@defined_connections[klass]
+      @@defined_connections.delete(klass)
+      Thread.current['active_connections'] ||= {}
+      Thread.current['active_connections'][klass] = nil
+      conn.config if conn
+    end
+    
+    # Set the connection for the class.
+    def self.connection=(spec)
+      raise ConnectionNotEstablished unless spec
+      conn = self.send(spec.adapter_method, spec.config)
+      Thread.current['active_connections'] ||= {}
+      Thread.current['active_connections'][self] = conn
     end
 
     # Converts all strings in a hash to symbols.
@@ -94,7 +161,7 @@ module ActiveRecord
         if value.nil? then return nil end
         case type
           when :string   then value
-          when :text     then object_from_yaml(value)
+          when :text     then value
           when :integer  then value.to_i
           when :float    then value.to_f
           when :datetime then string_to_time(value)
@@ -109,23 +176,6 @@ module ActiveRecord
       end
 
       private
-        def object_from_yaml(string)
-          if has_yaml_encoding_header?(string)
-            begin
-              YAML::load(string)
-            rescue Exception
-              # Apparently wasn't YAML anyway
-              string
-            end
-          else
-            string
-          end
-        end
-        
-        def has_yaml_encoding_header?(string)
-          string[0..3] == "--- "
-        end
-      
         def string_to_date(string)
           return string if Date === string
           date_array = ParseDate.parsedate(string)
@@ -150,13 +200,13 @@ module ActiveRecord
               :integer
             when /float|double|decimal|numeric/i
               :float
-            when /datetime/i, /time/i
+            when /time/i
               :datetime
             when /date/i
               :date
             when /(c|b)lob/i, /text/i
               :text
-            when /varchar/i, /char/i, /string/i, /character/i
+            when /char/i, /string/i
               :string
             when /boolean/i
               :boolean
@@ -187,7 +237,7 @@ module ActiveRecord
       def columns(table_name, name = nil) end
 
       # Returns the last auto-generated ID from the affected table.
-      def insert(sql, name = nil) end
+      def insert(sql, name = nil, pk = nil, id_value = nil) end
 
       # Executes the update statement.
       def update(sql, name = nil) end
@@ -215,12 +265,16 @@ module ActiveRecord
         case value
           when String                      then "'#{value.gsub(/\\/,'\&\&').gsub(/'/, "''")}'" # ' (for ruby-mode)
           when NilClass                    then "NULL"
-          when TrueClass                   then (column and column.type == :boolean ? "'t'" : "1")
-          when FalseClass                  then (column and column.type == :boolean ? "'f'" : "0")
+          when TrueClass                   then (column && column.type == :boolean ? "'t'" : "1")
+          when FalseClass                  then (column && column.type == :boolean ? "'f'" : "0")
           when Float, Fixnum, Bignum, Date then "'#{value.to_s}'" 
           when Time, DateTime              then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
           else                                  "'#{value.to_yaml.gsub(/'/, "''")}'"
         end
+      end
+
+      def quote_column_name(name)
+        return name
       end
 
       # Returns a string of the CREATE TABLE SQL statements for recreating the entire structure of the database.
@@ -232,11 +286,14 @@ module ActiveRecord
             if @logger.nil?
               action.call(connection)
             else
-              bm = measure { action.call(connection) }
+              result = nil
+              bm = measure { result = action.call(connection) }
               @runtime += bm.real
               log_info(sql, name, bm.real)
+              result
             end
           rescue => e
+            log_info("#{e.message}: #{sql}", name, 0)
             raise ActiveRecord::StatementInvalid, "#{e.message}: #{sql}"
           end
         end

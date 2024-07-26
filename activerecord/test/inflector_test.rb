@@ -8,6 +8,8 @@ class InflectorTest < Test::Unit::TestCase
     "box"         => "boxes",
     "process"     => "processes",
     "address"     => "addresses",
+    "case"        => "cases",
+    "stack"       => "stacks",
 
     "category"    => "categories",
     "query"       => "queries",
@@ -34,12 +36,31 @@ class InflectorTest < Test::Unit::TestCase
     "node_child"  => "node_children",
     "child"       => "children",
 
+    "experience"  => "experiences",
+    "day"         => "days",
+
     "comment"     => "comments",
     "foobar"      => "foobars"
   }
 
+  CamelToUnderscore = {
+    "Product"                       => "product",
+    "SpecialGuest"                  => "special_guest",
+    "AbstractApplicationController" => "abstract_application_controller"
+  }
+
+  ClassNameToForeignKeyWithUnderscore = {
+    "Person" => "person_id",
+    "MyApplication::Billing::Account" => "account_id"
+  }
+
+  ClassNameToForeignKeyWithoutUnderscore = {
+    "Person" => "personid",
+    "MyApplication::Billing::Account" => "accountid"
+  }
+
   def test_pluralize
-    SingularToPlural.each do |(singular, plural)|
+    SingularToPlural.each do |singular, plural|
       assert_equal(plural, Inflector.pluralize(singular))
     end
 
@@ -47,8 +68,37 @@ class InflectorTest < Test::Unit::TestCase
   end
 
   def test_singularize
-    SingularToPlural.each do |(singular, plural)|
+    SingularToPlural.each do |singular, plural|
       assert_equal(singular, Inflector.singularize(plural))
+    end
+  end
+
+  def test_camelize
+    CamelToUnderscore.each do |camel, underscore|
+      assert_equal(camel, Inflector.camelize(underscore))
+    end
+  end
+
+  def test_underscore
+    CamelToUnderscore.each do |camel, underscore|
+      assert_equal(underscore, Inflector.underscore(camel))
+    end
+    
+    assert_equal "html_tidy", Inflector.underscore("HTMLTidy")
+    assert_equal "html_tidy_generator", Inflector.underscore("HTMLTidyGenerator")
+  end
+
+  def test_demodulize
+    assert_equal "Account", Inflector.demodulize("MyApplication::Billing::Account")
+  end
+
+  def test_foreign_key
+    ClassNameToForeignKeyWithUnderscore.each do |klass, foreign_key|
+      assert_equal(foreign_key, Inflector.foreign_key(klass))
+    end
+
+    ClassNameToForeignKeyWithoutUnderscore.each do |klass, foreign_key|
+      assert_equal(foreign_key, Inflector.foreign_key(klass, false))
     end
   end
 end

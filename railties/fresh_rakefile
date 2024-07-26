@@ -7,8 +7,12 @@ $VERBOSE = nil
 require File.dirname(__FILE__) + '/config/environments/production'
 require 'code_statistics'
 
-desc "Run all the tests"
-task :default => [ :clone_production_structure_to_test, :test_units, :test_functional, :appdoc, :stats ]
+desc "Run all the tests on a fresh test database"
+task :default => [ :clone_production_structure_to_test, :test_units, :test_functional ]
+
+desc "Generate API documentatio, show coding stats"
+task :doc => [ :appdoc, :stats ]
+
 
 desc "Run the unit tests in test/unit"
 Rake::TestTask.new("test_units") { |t|
@@ -66,11 +70,12 @@ desc "Recreate the test databases from the production structure"
 task :clone_production_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
   if database_configurations["test"]["adapter"] == "mysql"
     ActiveRecord::Base.establish_connection(database_configurations["test"])
+    ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
     IO.readlines("db/production_structure.sql").join.split("\n\n").each do |table|
       ActiveRecord::Base.connection.execute(table)
     end
   elsif database_configurations["test"]["adapter"] == "postgresql"
-    `psql -f db/production_structure.sql #{database_configurations["test"]["database"]}`
+    `psql -U #{database_configurations["test"]["username"]} -f db/production_structure.sql #{database_configurations["test"]["database"]}`
   end
 end
 
@@ -80,7 +85,7 @@ task :db_structure_dump do
     ActiveRecord::Base.establish_connection(database_configurations["production"])
     File.open("db/production_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
   elsif database_configurations["test"]["adapter"] == "postgresql"
-    `pg_dump -s -f db/production_structure.sql #{database_configurations["production"]["database"]}`
+    `pg_dump -U #{database_configurations["test"]["username"]} -s -f db/production_structure.sql #{database_configurations["production"]["database"]}`
   end
 end
 
@@ -90,6 +95,7 @@ task :purge_test_database do
     ActiveRecord::Base.establish_connection(database_configurations["production"])
     ActiveRecord::Base.connection.recreate_database(database_configurations["test"]["database"])
   elsif database_configurations["test"]["adapter"] == "postgresql"
-    `dropdb #{database_configurations["test"]["database"]}; createdb #{database_configurations["test"]["database"]}`
+    `dropdb -U #{database_configurations["test"]["username"]} #{database_configurations["test"]["database"]}`
+    `createdb -U #{database_configurations["test"]["username"]}  #{database_configurations["test"]["database"]}`
   end
 end

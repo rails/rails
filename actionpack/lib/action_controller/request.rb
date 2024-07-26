@@ -5,6 +5,44 @@ module ActionController
       @parameters ||= request_parameters.update(query_parameters)
     end
 
+    def method
+      env['REQUEST_METHOD'].downcase.intern
+    end
+
+    def get?
+      method == :get
+    end
+
+    def post?
+      method == :post
+    end
+
+    def put?
+      method == :put
+    end
+
+    def delete?
+      method == :delete
+    end
+
+    # Determine originating IP address.  REMOTE_ADDR is the standard
+    # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
+    # HTTP_X_FORWARDED_FOR are set by proxies so check for these before
+    # falling back to REMOTE_ADDR.  HTTP_X_FORWARDED_FOR may be a comma-
+    # delimited list in the case of multiple chained proxies; the first is
+    # the originating IP.
+    def remote_ip
+      if env['HTTP_CLIENT_IP']
+        env['HTTP_CLIENT_IP']
+      elsif env['HTTP_X_FORWARDED_FOR']
+        env['HTTP_X_FORWARDED_FOR'].split(',').reject { |ip|
+            ip =~ /^unknown$|^(10|172\.16|192\.168)\./i
+        }.first.strip
+      else
+        env['REMOTE_ADDR']
+      end
+    end
+
     def request_uri
       env["REQUEST_URI"]
     end
@@ -14,7 +52,7 @@ module ActionController
     end
 
     def path
-      request_uri.split("?").first
+      request_uri ? request_uri.split("?").first : ""
     end
 
     def port

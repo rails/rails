@@ -1,12 +1,16 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
+Customer = Struct.new("Customer", :name)
+
 class RenderTest < Test::Unit::TestCase
   class TestController < ActionController::Base
+    layout :determine_layout
+
     def hello_world
     end
 
     def render_hello_world
-      render "hello_world"
+      render "test/hello_world"
     end
 
     def render_hello_world_from_variable
@@ -25,9 +29,41 @@ class RenderTest < Test::Unit::TestCase
     def render_custom_code
       render_text "hello world", "404 Moved"
     end
+    
+    def render_xml_hello
+      @name = "David"
+      render "test/hello"
+    end
+
+    def greeting
+      # let's just rely on the template
+    end
+
+    def layout_test
+      render_action "hello_world"
+    end
+    
+    def builder_layout_test
+      render_action "hello"
+    end
+
+    def partials_list
+      @customers = [ Customer.new("david"), Customer.new("mary") ]
+      render_action "list"
+    end
 
     def rescue_action(e) raise end
+      
+    private
+      def determine_layout
+        case action_name 
+          when "layout_test":         "layouts/standard"
+          when "builder_layout_test": "layouts/builder"
+        end
+      end
   end
+
+  TestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
   
   class TestLayoutController < ActionController::Base
     layout "layouts/standard"
@@ -54,12 +90,12 @@ class RenderTest < Test::Unit::TestCase
     @request.action = "hello_world"
     response = process_request
     assert_equal "200 OK", response.headers["Status"]
-    assert_equal "test/hello_world", response.template.template_name
+    assert_equal "test/hello_world", response.template.first_render
   end
 
   def test_do_with_render
     @request.action = "render_hello_world"
-    assert_equal "hello_world", process_request.template.template_name
+    assert_equal "test/hello_world", process_request.template.first_render
   end
 
   def test_do_with_render_from_variable
@@ -69,7 +105,7 @@ class RenderTest < Test::Unit::TestCase
 
   def test_do_with_render_action
     @request.action = "render_action_hello_world"
-    assert_equal "test/hello_world", process_request.template.template_name
+    assert_equal "test/hello_world", process_request.template.first_render
   end
 
   def test_do_with_render_text
@@ -101,7 +137,29 @@ class RenderTest < Test::Unit::TestCase
     assert_kind_of ActionController::AbstractRequest, response.template.assigns["request"]
   end
   
+  def test_render_xml
+    @request.action = "render_xml_hello"
+    assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", process_request.body
+  end
+
+  def test_render_xml_with_default
+    @request.action = "greeting"
+    assert_equal "<p>This is grand!</p>\n", process_request.body
+  end
+
   def test_layout_rendering
+    @request.action = "layout_test"
+    assert_equal "<html>Hello world!</html>", process_request.body
+  end
+
+  def test_render_xml_with_layouts
+    @request.action = "builder_layout_test"
+    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", process_request.body
+  end
+
+  def test_partials_list
+    @request.action = "partials_list"
+    assert_equal "Hello: davidHello: mary", process_request.body
   end
 
   private

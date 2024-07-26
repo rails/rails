@@ -8,10 +8,10 @@ module ActionController #:nodoc:
   module Rescue
     def self.append_features(base) #:nodoc:
       super
-      base.class_eval {
+      base.class_eval do
         alias_method :perform_action_without_rescue, :perform_action
         alias_method :perform_action, :perform_action_with_rescue
-      }
+      end
     end
 
     protected
@@ -28,11 +28,15 @@ module ActionController #:nodoc:
 
       # Overwrite to implement custom logging of errors. By default logs as fatal.
       def log_error(exception) #:doc:
-        logger.fatal(
-          "  #{exception.class} (#{exception.message}):\n    " + 
-          clean_backtrace(exception).join("\n    ") + 
-          "\n"
-        )
+        if ActionView::TemplateError === exception
+          logger.fatal(exception.to_s)
+        else
+          logger.fatal(
+            "\n\n#{exception.class} (#{exception.message}):\n    " + 
+            clean_backtrace(exception).join("\n    ") + 
+            "\n\n"
+          )
+        end
       end
 
       # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).
@@ -41,7 +45,7 @@ module ActionController #:nodoc:
       end
 
       # Overwrite to expand the meaning of a local request in order to show local rescues on other occurances than
-      # the remote IP being 127.0.0.1. For example, this include the IP of the developer machine when debugging
+      # the remote IP being 127.0.0.1. For example, this could include the IP of the developer machine when debugging
       # remotely.
       def local_request? #:doc:
         @request.remote_addr == "127.0.0.1"
@@ -54,6 +58,7 @@ module ActionController #:nodoc:
         add_variables_to_assigns
         @contents = @template.render_file(template_path_for_local_rescue(exception), false)
     
+        @headers["Content-Type"] = "text/html"
         render_file(rescues_path("layout"), "500 Internal Error")
       end
     
@@ -83,7 +88,7 @@ module ActionController #:nodoc:
       
       def clean_backtrace(exception)
         base_dir = File.expand_path(File.dirname(__FILE__) + "/../../../../")
-        exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/public/../config/environments/../../vendor/railties/configs/../../../", "") }
+        exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/public/../config/environments/../../", "").gsub("/public/../", "") }
       end
   end
 end

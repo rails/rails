@@ -31,8 +31,8 @@ class Dispatcher
 
       controller_name = request.parameters["controller"].gsub(/[^_a-zA-Z0-9]/, "").untaint
 
-      require "#{controller_name}_controller"
-      Object.const_get("#{controller_name.capitalize}Controller").process(request, response).out
+      require "#{Inflector.underscore(controller_name)}_controller"
+      Object.const_get("#{Inflector.camelize(controller_name)}Controller").process(request, response).out
     rescue Exception => e
       begin
         ActionController::Base.logger.info "\n\nException throw during dispatch: #{e.message}\n#{e.backtrace.join("\n")}"

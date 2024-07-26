@@ -68,6 +68,29 @@ A short rundown of the major features:
   Learn more in link:classes/ActionView.html
 
 
+* Builder-based templates (great for XML content, like RSS)
+
+  xml.rss("version" => "2.0") do
+    xml.channel do
+      xml.title(@feed_title)
+      xml.link(@url)
+      xml.description "Basecamp: Recent items"
+      xml.language "en-us"
+      xml.ttl "40"
+
+      for item in @recent_items
+        xml.item do
+          xml.title(item_title(item))
+          xml.description(item_description(item))
+          xml.pubDate(item_pubDate(item))
+          xml.guid(@recent_items.url(item))
+          xml.link(@recent_items.url(item))
+        end
+      end
+    end
+  end
+
+
 * Filters for pre and post processing of the response (as methods, procs, and classes)
 
     class WeblogController < ActionController::Base
@@ -150,22 +173,15 @@ A short rundown of the major features:
 
     class LoginControllerTest < Test::Unit::TestCase
       def setup
-        @request = ActionController::TestRequest.new
-        @request.host = "http://somewhere"
+        @controller = LoginController.new
+        @request     = ActionController::TestRequest.new
+        @response   = ActionController::TestResponse.new
       end
 
-      def test_succesful_authentication
-          @request.action = "authenticate"
-          @request.request_parameters["user_name"] = "david"
-          @request.request_parameters["password"]  = "secret"
-
-          response = LoginController.process_test(@request)
-
-          assert_equal(
-            "http://somewhere/clients/", response.headers["location"])
-          assert_equal Person.find(1), response.session["person"]
-          assert(response.body.split("\n").include?(
-            "<h1>You've been logged in!</h1>"))
+      def test_failing_authenticate
+        process :authenticate, "user_name" => "nop", "password" => ""
+        assert_flash_has 'alert'
+        assert_redirected_to :action => "index"
       end
     end
 

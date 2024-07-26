@@ -6,7 +6,7 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_VERSION = "0.8.5"
+PKG_VERSION = "0.9.0"
 
 desc "Default Task"
 task :default => [ :test ]
@@ -53,9 +53,9 @@ spec = Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.autorequire = 'action_controller'
 
-  s.files = [ "rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "examples/.htaccess" ]
+  s.files = [ "rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG", "MIT-LICENSE", "examples/.htaccess" ]
   dist_dirs.each do |dir|
-    s.files.concat Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "CVS" ) }
+    s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "CVS" ) }
   end
   s.files.delete "examples/benchmark.rb"
   s.files.delete "examples/benchmark_with_ar.fcgi"
@@ -68,16 +68,15 @@ Rake::GemPackageTask.new(spec) do |p|
 end
 
 
-
 # Publish documentation
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
-  Rake::SshDirPublisher.new("david@hunter.5th.dk", "sites/rubyonrails.org/ap", "doc").upload
+  Rake::SshDirPublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/ap", "doc").upload
 end
 
 desc "Publish to RubyForge"
 task :rubyforge do
-    Rake::RubyForgePublisher.new('activerecord', 'webster132').upload
+    Rake::RubyForgePublisher.new('actionpack', 'webster132').upload
 end
 
 

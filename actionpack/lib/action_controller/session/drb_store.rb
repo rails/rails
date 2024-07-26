@@ -5,7 +5,6 @@ require 'drb'
 class CGI #:nodoc:all
   class Session
     class DRbStore
-      DRb.start_service
       @@session_data = DRbObject.new(nil, 'druby://localhost:9192')
  
       def initialize(session, option=nil)
@@ -21,6 +20,7 @@ class CGI #:nodoc:all
       end
  
       def close
+        update
       end
  
       def delete

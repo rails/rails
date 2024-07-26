@@ -3,6 +3,8 @@ require 'thread'
 
 module ActiveRecord
   module Transactions # :nodoc:
+    TRANSACTION_MUTEX = Mutex.new
+
     def self.append_features(base)
       super
       base.extend(ClassMethods)
@@ -10,6 +12,9 @@ module ActiveRecord
       base.class_eval do
         alias_method :destroy_without_transactions, :destroy
         alias_method :destroy, :destroy_with_transactions
+
+        alias_method :save_without_transactions, :save
+        alias_method :save, :save_with_transactions
       end
     end
 
@@ -27,6 +32,12 @@ module ActiveRecord
     # This example will only take money from David and give to Mary if neither +withdrawal+ nor +deposit+ raises an exception.
     # Exceptions will force a ROLLBACK that returns the database to the state before the transaction was begun. Be aware, though,
     # that the objects by default will _not_ have their instance data returned to their pre-transactional state.
+    #
+    # == Save and destroy are automatically wrapped in a transaction
+    #
+    # Both Base#save and Base#destroy come wrapped in a transaction that ensures that whatever you do in validations or callbacks
+    # will happen under the protected cover of a transaction. So you can use validations to check for values that the transaction
+    # depend on or you can raise exceptions in the callbacks to rollback.
     #
     # == Object-level transactions
     #
@@ -48,38 +59,44 @@ module ActiveRecord
     #
     # Tribute: Object-level transactions are implemented by Transaction::Simple by Austin Ziegler.
     module ClassMethods      
-      @@mutex = Mutex.new
-    
       def transaction(*objects, &block)
-        Thread.current['transaction_running'] ||= 0
-        @@mutex.lock if Thread.current['transaction_running'] == 0
+        TRANSACTION_MUTEX.lock
 
         begin
           objects.each { |o| o.extend(Transaction::Simple) }
           objects.each { |o| o.start_transaction }
-          connection.begin_db_transaction if Thread.current['transaction_running'] == 0
-          Thread.current['transaction_running'] += 1
+          connection.begin_db_transaction
 
           block.call
   
-          Thread.current['transaction_running'] -= 1
-          connection.commit_db_transaction if Thread.current['transaction_running'] == 0
+          connection.commit_db_transaction
           objects.each { |o| o.commit_transaction }
         rescue Exception => exception
-          Thread.current['transaction_running'] -= 1
-          connection.rollback_db_transaction if Thread.current['transaction_running'] == 0
+          connection.rollback_db_transaction
           objects.each { |o| o.abort_transaction }
           raise exception
         ensure
-          @@mutex.unlock
+          TRANSACTION_MUTEX.unlock
         end
       end
     end
 
     def destroy_with_transactions #:nodoc:
-      ActiveRecord::Base.transaction do
+      if TRANSACTION_MUTEX.locked?
         destroy_without_transactions
+      else
+        ActiveRecord::Base.transaction { destroy_without_transactions }
       end
+    end
+    
+    def save_with_transactions(perform_validation = true) #:nodoc:
+      result = nil
+      if TRANSACTION_MUTEX.locked?
+        result = save_without_transactions(perform_validation)
+      else
+        ActiveRecord::Base.transaction { result = save_without_transactions(perform_validation) }
+      end
+      return result
     end
   end
 end

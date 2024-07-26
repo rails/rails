@@ -6,7 +6,7 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_VERSION = "0.9.5"
+PKG_VERSION = "1.0.0"
 
 PKG_FILES = FileList[
     "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "rakefile"
@@ -59,7 +59,7 @@ Rake::RDocTask.new { |rdoc|
 # Publish documentation
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
-  Rake::SshDirPublisher.new("david@hunter.5th.dk", "sites/rubyonrails.org/ar", "doc").upload
+  Rake::SshDirPublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/ar", "doc").upload
 end
 
 desc "Publish to RubyForge"
@@ -80,7 +80,7 @@ spec = Gem::Specification.new do |s|
 
   s.files = [ "rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG" ]
   dist_dirs.each do |dir|
-    s.files.concat Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "CVS" ) }
+    s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "CVS" ) }
   end
   s.files.delete "test/fixtures/fixture_database.sqlite"
   s.require_path = 'lib'

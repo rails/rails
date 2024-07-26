@@ -14,6 +14,8 @@ module ActiveRecord
   #
   # This Observer is triggered when a Comment#save is finished and sends a notification about it to the administrator.
   #
+  # == Observing a class that can't be infered
+  #
   # Observers will by default be mapped to the class with which they share a name. So CommentObserver will
   # be tied to observing Comment, ProductManagerObserver to ProductManager, and so on. If you want to name your observer
   # something else than the class you're interested in observing, you can implement the observed_class class method. Like this:
@@ -25,13 +27,28 @@ module ActiveRecord
   #     end
   #   end
   #
+  # == Observing multiple classes at once
+  #
+  # If the audit observer needs to watch more than one kind of object, this can be specified in an array, like this:
+  #
+  #   class AuditObserver < ActiveRecord::Observer
+  #     def self.observed_class() [ Account, Balance ] end
+  #     def after_update(record)
+  #       AuditTrail.new(record, "UPDATED")
+  #     end
+  #   end
+  #
+  # The AuditObserver will now act on both updates to Account and Balance by treating them both as records.
+  #
   # The observer can implement callback methods for each of the methods described in the Callbacks module.
   class Observer
     include Singleton
   
     def initialize
-      observed_class.add_observer(self)
-      observed_class.send(:define_method, :after_find) unless observed_class.respond_to?(:after_find)
+      [ observed_class ].flatten.each do |klass| 
+        klass.add_observer(self)
+        klass.send(:define_method, :after_find) unless klass.respond_to?(:after_find)
+      end
     end
   
     def update(callback_method, object)

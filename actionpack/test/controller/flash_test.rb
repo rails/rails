@@ -4,15 +4,18 @@ class FlashTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     def set_flash
       flash["that"] = "hello"
+      render_text "hello"
     end
 
     def use_flash
       @flashy = flash["that"]
+      render_text "hello"
     end
 
     def use_flash_and_keep_it
       @flashy = flash["that"]
       keep_flash
+      render_text "hello"
     end
 
     def rescue_action(e)

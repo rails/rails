@@ -101,6 +101,10 @@ app/helpers
 config
   Configuration files for Apache, database, and other dependencies.
 
+lib
+  Application specific libraries. Basically, any kind of custom code that doesn't
+  belong controllers, models, or helpers. This directory is in the load path.
+    
 public
   The directory available for Apache, which includes symbolic links to other
   parts of the structure that are to be made available. Refrain from placing
@@ -114,4 +118,4 @@ test
   Unit and functional tests along with fixtures.
 
 vendor
-  External libraries that the application depend on.
+  External libraries that the application depend on. This directory is in the load path.

@@ -109,8 +109,8 @@ module ActiveRecord
     # Adds an error message (+msg+) to the +attribute+, which will be returned on a call to <tt>on(attribute)</tt>
     # for the same attribute and ensure that this error object returns false when asked if +empty?+. More than one
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
-    # If no +msg+ is supplied, +true+ is assumed.
-    def add(attribute, msg = true)
+    # If no +msg+ is supplied, "invalid" is assumed.
+    def add(attribute, msg = "invalid")
       @errors[attribute] = [] if @errors[attribute].nil?
       @errors[attribute] << msg
     end
@@ -120,14 +120,16 @@ module ActiveRecord
       [attributes].flatten.each { |attr| add(attr, msg) unless @base.attribute_present?(attr) }
     end
 
-    # Will add an error message to each of the attributes in +attributes+ that has a length outside of the passed boundry +range+. 
-    # If the length is above the boundry, the too_long_msg message will be used. If below, the too_short_msg.
-    def add_on_boundry_breaking(attributes, range, too_long_msg = "is too long (max is %d characters)", too_short_msg = "is too short (min is %d characters)")
+    # Will add an error message to each of the attributes in +attributes+ that has a length outside of the passed boundary +range+. 
+    # If the length is above the boundary, the too_long_msg message will be used. If below, the too_short_msg.
+    def add_on_boundary_breaking(attributes, range, too_long_msg = "is too long (max is %d characters)", too_short_msg = "is too short (min is %d characters)")
       for attr in [attributes].flatten
         add(attr, too_short_msg % range.begin) if @base.attribute_present?(attr) && @base.send(attr).length < range.begin
         add(attr, too_long_msg % range.end) if @base.attribute_present?(attr) && @base.send(attr).length > range.end
       end
     end
+
+    alias :add_on_boundry_breaking :add_on_boundary_breaking
 
     # Returns true if the specified +attribute+ has errors associated with it.
     def invalid?(attribute)
@@ -146,6 +148,8 @@ module ActiveRecord
         @errors[attribute]
       end
     end
+
+    alias :[] :on
 
     # Returns errors assigned to base object through add_to_base according to the normal rules of on(attribute).
     def on_base

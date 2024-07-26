@@ -1,3 +1,40 @@
+*0.8.0 (15)*
+
+* Removed custom_table_name option for new_model now that the Inflector is as powerful as it is
+
+* Changed the default rake action to just do testing and separate API generation and coding statistics into a "doc" task.
+
+* Fixed WEBrick dispatcher to handle missing slashes in the URLs gracefully [alexey]
+
+* Added user option for all postgresql tool calls in the rakefile [elvstone]
+
+* Fixed problem with running "ruby public/dispatch.servlet" instead of "cd public; ruby dispatch.servlet" [alexey]
+
+* Fixed WEBrick server so that it no longer hardcodes the ruby interpreter used to "ruby" but will get the one used based
+  on the Ruby runtime configuration. [Marcel Molina Jr.]
+
+* Fixed Dispatcher so it'll route requests to magic_beans to MagicBeansController/magic_beans_controller.rb [Caio Chassot]
+
+* "new_controller MagicBeans" and "new_model SubscriptionPayments" will now both behave properly as they use the new Inflector.
+
+* Fixed problem with MySQL foreign key constraint checks in Rake :clone_production_structure_to_test target [Andreas Schwarz]
+
+* Changed WEBrick server to by default be auto-reloading, which is slower but makes source changes instant.
+  Class compilation cache can be turned on with "-c" or "--cache-classes".
+
+* Added "-b/--binding" option to WEBrick dispatcher to bind the server to a specific IP address (default: 127.0.0.1) [Kevin Temp]
+
+* dispatch.fcgi now DOESN'T set FCGI_PURE_RUBY as it was slowing things down for now reason [Andreas Schwarz]
+
+* Added new_mailer generator to work with Action Mailer
+
+* Included new framework: Action Mailer 0.3
+
+* Upgraded to Action Pack 0.9.0
+
+* Upgraded to Active Record 1.0.0
+
+
 *0.7.0*
 
 * Added an optional second argument to the new_model script that allows the programmer to specify the table name, 

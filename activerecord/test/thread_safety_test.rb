@@ -10,7 +10,9 @@ class ThreadSafetyTest < Test::Unit::TestCase
   def test_threading_on_transactions
     # SQLite breaks down under thread banging
     # Jamis Buck (author of SQLite-ruby): "I know that sqlite itself is not designed for concurrent access"
-    return true if ActiveRecord::Base.class_eval("@@adapter_method") == "sqlite_connection"
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLiteAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLiteAdapter)
+    end
 
     5.times do |thread_number|
       @threads << Thread.new(thread_number) do |thread_number|

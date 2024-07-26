@@ -2,7 +2,7 @@ require 'cgi'
 require File.dirname(__FILE__) + '/form_helper'
 
 module ActionView
-  class AbstractTemplate
+  class Base
     @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"fieldWithErrors\">#{html_tag}</div>" }
     cattr_accessor :field_error_proc
   end
@@ -156,7 +156,7 @@ module ActionView
       end
 
       def error_wrapping(html_tag, has_error)
-        has_error ? AbstractTemplate.field_error_proc.call(html_tag, self) : html_tag
+        has_error ? Base.field_error_proc.call(html_tag, self) : html_tag
       end
 
       def error_message

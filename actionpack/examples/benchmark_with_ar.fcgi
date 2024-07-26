@@ -48,7 +48,7 @@ class TestController < ActionController::Base
     EOT
   end
   
-  def rescue_action(e) puts e.message end
+  def rescue_action(e) puts e.message + e.backtrace.join("\n") end
 end
 
 if ARGV.empty? && ENV["REQUEST_URI"]

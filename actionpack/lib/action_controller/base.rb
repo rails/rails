@@ -1,11 +1,14 @@
 require 'action_controller/request'
 require 'action_controller/response'
+require 'action_controller/url_rewriter'
 require 'action_controller/support/class_attribute_accessors'
 require 'action_controller/support/class_inheritable_attributes'
-require 'action_controller/url_rewriter'
+require 'action_controller/support/inflector'
 
 module ActionController #:nodoc:
-  class ActionControllerError < Exception #:nodoc:
+  class ActionControllerError < StandardError #:nodoc:
+  end
+  class SessionRestoreError < ActionControllerError #:nodoc:
   end
   class MissingTemplate < ActionControllerError #:nodoc:
   end
@@ -70,7 +73,7 @@ module ActionController #:nodoc:
   #   <input type="text" name="post[name]" value="david">
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
-  # A request steeming from a form holding these inputs will include { "post" => { "name" => "david", "address" => "hyacintvej" }.
+  # A request stemming from a form holding these inputs will include { "post" # => { "name" => "david", "address" => "hyacintvej" } }.
   # If the address input had been named "post[address][street]", the @params would have included 
   # { "post" => { "address" => { "street" => "hyacintvej" } } }. There's no limit to the depth of the nesting.
   #
@@ -100,19 +103,19 @@ module ActionController #:nodoc:
   #
   # == Renders
   #
-  # Action Controllers sends content to the user by using one of five rendering methods. The most versatile and common is the rendering
-  # of a template. Included in the Action Pack is the Action View, which enables rendering of eRuby templates. It's automatically configgured.
+  # Action Controller sends content to the user by using one of five rendering methods. The most versatile and common is the rendering
+  # of a template. Included in the Action Pack is the Action View, which enables rendering of ERb templates. It's automatically configured.
   # The controller passes objects to the view by assigning instance variables:
   #
   #   def show
-  #     @post = Post.find(@params["id"]
+  #     @post = Post.find(@params["id"])
   #   end
   #
   # Which are then automatically available to the view:
   #
   #   Title: <%= @post.title %>
   #
-  # You don't have to rely the automated rendering. Especially actions that could result in the rendering of different templates will use
+  # You don't have to rely on the automated rendering. Especially actions that could result in the rendering of different templates will use
   # the manual rendering methods:
   #
   #   def search
@@ -124,7 +127,7 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  # Read more about writing eRuby templates in link:classes/ActionView/ERbTemplate.html.
+  # Read more about writing ERb and Builder templates in link:classes/ActionView/Base.html.
   #
   # == Redirects
   #
@@ -140,7 +143,7 @@ module ActionController #:nodoc:
   # 
   # Redirects work by rewriting the URL of the current action. So if the show action was called by "/library/books/ISBN/0743536703/show", 
   # we can redirect to an edit action simply by doing <tt>redirect_to(:action => "edit")</tt>, which could throw the user to 
-  # "/library/books/ISBN/0743536703/edit". Naturally, you'll need to setup the .htaccess (or other mean of URL rewriting for the web server)
+  # "/library/books/ISBN/0743536703/edit". Naturally, you'll need to setup the .htaccess (or other means of URL rewriting for the web server)
   # to point to the proper controller and action in the first place, but once you have, it can be rewritten with ease.
   # 
   # Let's consider a bunch of examples on how to go from "/library/books/ISBN/0743536703/edit" to somewhere else:
@@ -254,23 +257,98 @@ module ActionController #:nodoc:
         return @response
       end
 
+      # Returns an URL that has been rewritten according to the hash of +options+ (for doing a complete redirect, use redirect_to). The
+      # valid keys in options are specified below with an example going from "/library/books/ISBN/0743536703/show" (mapped to
+      # books_controller?action=show&type=ISBN&id=0743536703):
+      #
+      #            .---> controller      .--> action
+      #   /library/books/ISBN/0743536703/show
+      #   '------>      '--------------> action_prefix
+      #    controller_prefix 
+      #
+      # * <tt>:controller_prefix</tt> - specifies the string before the controller name, which would be "/library" for the example.
+      #   Called with "/shop" gives "/shop/books/ISBN/0743536703/show".
+      # * <tt>:controller</tt> - specifies a new controller and clears out everything after the controller name (including the action, 
+      #   the pre- and suffix, and all params), so called with "settings" gives "/library/settings/".
+      # * <tt>:action_prefix</tt> - specifies the string between the controller name and the action name, which would
+      #   be "/ISBN/0743536703" for the example. Called with "/XTC/123/" gives "/library/books/XTC/123/show".
+      # * <tt>:action</tt> - specifies a new action, so called with "edit" gives "/library/books/ISBN/0743536703/edit"
+      # * <tt>:action_suffix</tt> - specifies the string after the action name, which would be empty for the example.
+      #   Called with "/detailed" gives "/library/books/ISBN/0743536703/detailed".
+      # * <tt>:path_params</tt> - specifies a hash that contains keys mapping to the request parameter names. In the example, 
+      #   { "type" => "ISBN", "id" => "0743536703" } would be the path_params. It serves as another way of replacing part of
+      #   the action_prefix or action_suffix. So passing { "type" => "XTC" } would give "/library/books/XTC/0743536703/show".
+      # * <tt>:id</tt> - shortcut where ":id => 5" can be used instead of specifying :path_params => { "id" => 5 }.
+      #   Called with "123" gives "/library/books/ISBN/123/show".
+      # * <tt>:params</tt> - specifies a hash that represents the regular request parameters, such as { "cat" => 1, 
+      #   "origin" => "there"} that would give "?cat=1&origin=there". Called with { "temporary" => 1 } in the example would give
+      #   "/library/books/ISBN/0743536703/show?temporary=1"
+      # * <tt>:anchor</tt> - specifies the anchor name to be appended to the path. Called with "x14" would give
+      #   "/library/books/ISBN/0743536703/show#x14"
+      #
+      # Naturally, you can combine multiple options in a single redirect. Examples:
+      #
+      #   redirect_to(:controller_prefix => "/shop", :controller => "settings")
+      #   redirect_to(:action => "edit", :id => 3425)
+      #   redirect_to(:action => "edit", :path_params => { "type" => "XTC"}, :params => { "temp" => 1})
+      #   redirect_to(:action => "publish", :action_prefix => "/published", :anchor => "x14")
+      #
+      # Instead of passing an options hash, you can also pass a method reference in the form of a symbol. Consider this example:
+      #
+      #   class WeblogController < ActionController::Base
+      #     def update
+      #       # do some update
+      #       redirect_to :dashboard_url
+      #     end
+      #     
+      #     protected
+      #       def dashboard_url
+      #         url_for :controller => (@project.active? ? "project" : "account"), :action => "dashboard"
+      #       end
+      #   end
+      def url_for(options = {}, *parameters_for_method_reference) #:doc:
+        case options
+          when String then options
+          when Symbol then send(options, *parameters_for_method_reference)
+          when Hash   then @url.rewrite(rewrite_options(options))
+        end
+      end
+
+      # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
+      def controller_class_name
+        self.class.name.split("::").last
+      end
+
+      # Converts the class name from something like "OneModule::TwoModule::NeatController" to "neat".
+      def controller_name
+        controller_class_name.sub(/Controller/, "").gsub(/([a-z])([A-Z])/) { |s| $1 + "_" + $2.downcase }.downcase
+      end
+
+      # Returns the name of the action this controller is processing.
+      def action_name
+        @params["action"] || "index"
+      end
+
     protected
       # Renders the template specified by <tt>template_name</tt>, which defaults to the name of the current controller and action.
-      # So calling +render+ in WeblogController#show will attempt to render "#{template_root}/weblog/show.rhtml". The template_root is
-      # set on the ActionController::Base class and is shared by all controllers. It's also possible to pass a status code using the
-      # second parameter. This defaults to "200 OK", but can be changed, such as by calling <tt>render("weblog/error", "500 Error")</tt>.
+      # So calling +render+ in WeblogController#show will attempt to render "#{template_root}/weblog/show.rhtml" or 
+      # "#{template_root}/weblog/show.rxml" (in that order). The template_root is set on the ActionController::Base class and is 
+      # shared by all controllers. It's also possible to pass a status code using the second parameter. This defaults to "200 OK", 
+      # but can be changed, such as by calling <tt>render("weblog/error", "500 Error")</tt>.
       def render(template_name = nil, status = nil) #:doc:
         render_file(template_name || "#{controller_name}/#{action_name}", status, true)
       end
       
       # Works like render, but instead of requiring a full template name, you can get by with specifying the action name. So calling
-      # <tt>render_action "show_many"</tt> in WeblogController#display will render "#{template_root}/weblog/show_many.rhtml".
+      # <tt>render_action "show_many"</tt> in WeblogController#display will render "#{template_root}/weblog/show_many.rhtml" or 
+      # "#{template_root}/weblog/show_many.rxml".
       def render_action(action_name, status = nil) #:doc:
         render "#{controller_name}/#{action_name}", status
       end
       
       # Works like render, but disregards the template_root and requires a full path to the template that needs to be rendered. Can be
-      # used like <tt>render_file "/Users/david/Code/Ruby/template"</tt> to render "/Users/david/Code/Ruby/template.rhtml".
+      # used like <tt>render_file "/Users/david/Code/Ruby/template"</tt> to render "/Users/david/Code/Ruby/template.rhtml" or
+      # "/Users/david/Code/Ruby/template.rxml".
       def render_file(template_path, status = nil, use_full_path = false) #:doc:
         assert_existance_of_template_file(template_path) if use_full_path
         logger.info("Rendering #{template_path} (#{status || DEFAULT_RENDER_STATUS_CODE})") unless logger.nil?
@@ -280,10 +358,11 @@ module ActionController #:nodoc:
       end
       
       # Renders the +template+ string, which is useful for rendering short templates you don't want to bother having a file for. So
-      # you'd call <tt>render_template "Hello, <%= @user.name %>"</tt> to greet the current user.
-      def render_template(template, status = nil) #:doc:
+      # you'd call <tt>render_template "Hello, <%= @user.name %>"</tt> to greet the current user. Or if you want to render as Builder
+      # template, you could do <tt>render_template "xml.h1 @user.name", nil, "rxml"</tt>.
+      def render_template(template, status = nil, type = "rhtml") #:doc:
         add_variables_to_assigns
-        render_text(@template.render_template(template), status)
+        render_text(@template.render_template(type, template), status)
       end
 
       # Renders the +text+ string without parsing it through any template engine. Useful for rendering static information as it's
@@ -376,63 +455,6 @@ module ActionController #:nodoc:
           end
         end
       end
-
-      # Returns an URL that has been rewritten according to the hash of +options+ (for doing a complete redirect, use redirect_to). The
-      # valid keys in options are specified below with an example going from "/library/books/ISBN/0743536703/show" (mapped to
-      # books_controller?action=show&type=ISBN&id=0743536703):
-      #
-      #            .---> controller      .--> action
-      #   /library/books/ISBN/0743536703/show
-      #   '------>      '--------------> action_prefix
-      #    controller_prefix 
-      #
-      # * <tt>:controller_prefix</tt> - specifies the string before the controller name, which would be "/library" for the example.
-      #   Called with "/shop" gives "/shop/books/ISBN/0743536703/show".
-      # * <tt>:controller</tt> - specifies a new controller and clears out everything after the controller name (including the action, 
-      #   the pre- and suffix, and all params), so called with "settings" gives "/library/settings/".
-      # * <tt>:action_prefix</tt> - specifies the string between the controller name and the action name, which would
-      #   be "/ISBN/0743536703" for the example. Called with "/XTC/123/" gives "/library/books/XTC/123/show".
-      # * <tt>:action</tt> - specifies a new action, so called with "edit" gives "/library/books/ISBN/0743536703/edit"
-      # * <tt>:action_suffix</tt> - specifies the string after the action name, which would be empty for the example.
-      #   Called with "/detailed" gives "/library/books/ISBN/0743536703/detailed".
-      # * <tt>:path_params</tt> - specifies a hash that contains keys mapping to the request parameter names. In the example, 
-      #   { "type" => "ISBN", "id" => "0743536703" } would be the path_params. It serves as another way of replacing part of
-      #   the action_prefix or action_suffix. So passing { "type" => "XTC" } would give "/library/books/XTC/0743536703/show".
-      # * <tt>:id</tt> - shortcut where ":id => 5" can be used instead of specifying :path_params => { "id" => 5 }.
-      #   Called with "123" gives "/library/books/ISBN/123/show".
-      # * <tt>:params</tt> - specifies a hash that represents the regular request parameters, such as { "cat" => 1, 
-      #   "origin" => "there"} that would give "?cat=1&origin=there". Called with { "temporary" => 1 } in the example would give
-      #   "/library/books/ISBN/0743536703/show?temporary=1"
-      # * <tt>:anchor</tt> - specifies the anchor name to be appended to the path. Called with "x14" would give
-      #   "/library/books/ISBN/0743536703/show#x14"
-      #
-      # Naturally, you can combine multiple options in a single redirect. Examples:
-      #
-      #   redirect_to(:controller_prefix => "/shop", :controller => "settings")
-      #   redirect_to(:action => "edit", :id => 3425)
-      #   redirect_to(:action => "edit", :path_params => { "type" => "XTC"}, :params => { "temp" => 1})
-      #   redirect_to(:action => "publish", :action_prefix => "/published", :anchor => "x14")
-      #
-      # Instead of passing an options hash, you can also pass a method reference in form of a symbol. Consider this example:
-      #
-      #   class WeblogController < ActionController::Base
-      #     def update
-      #       # do some update
-      #       redirect_to :dashboard_url
-      #     end
-      #     
-      #     protected
-      #       def dashboard_url
-      #         url_for :controller => (@project.active? ? "project" : "account"), :action => "dashboard"
-      #       end
-      #   end
-      def url_for(options = {}, *parameters_for_method_reference) #:doc:
-        case options
-          when String then options
-          when Symbol then send(options, *parameters_for_method_reference)
-          when Hash   then @url.rewrite(rewrite_options(options))
-        end
-      end
       
       def rewrite_options(options)
         if defaults = default_url_options(options)
@@ -443,13 +465,13 @@ module ActionController #:nodoc:
       end
       
       # Overwrite to implement a number of default options that all url_for-based methods will use. The default options should come in
-      # form of a hash, just like the one you would use for url_for directly. Example:
+      # the form of a hash, just like the one you would use for url_for directly. Example:
       #
       #   def default_url_options(options)
       #     { :controller_prefix => @project.active? ? "projects/" : "accounts/" }
       #   end
       #
-      # As you can infer from the example, this is mostly useful for situations where you want to centralize dynamic dissions about the
+      # As you can infer from the example, this is mostly useful for situations where you want to centralize dynamic decisions about the
       # urls as they stem from the business domain. Please note that any individual url_for call can always override the defaults set
       # by this method.
       def default_url_options(options) #:doc:
@@ -459,8 +481,10 @@ module ActionController #:nodoc:
       # See url_for for a description of the valid options.
       def redirect_to(options = {}, *parameters_for_method_reference) #:doc:
         if parameters_for_method_reference.empty?
+          @response.redirected_to = options
           redirect_to_url(url_for(options))
         else
+          @response.redirected_to, @response.redirected_to_method_params = options, parameters_for_method_reference
           redirect_to_url(url_for(options, *parameters_for_method_reference))
         end
       end
@@ -498,21 +522,8 @@ module ActionController #:nodoc:
       # Resets the session by clearsing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
         @request.reset_session
-      end
-
-      # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
-      def controller_class_name
-        self.class.name.split("::").last
-      end
-
-      # Converts the class name from something like "OneModule::TwoModule::NeatController" to "neat".
-      def controller_name
-        controller_class_name.sub(/Controller/, "").gsub(/([a-z])([A-Z])/) { |s| $1 + "_" + $2.downcase }.downcase
-      end
-
-      # Returns the name of the action this controller is processing.
-      def action_name
-        @params["action"] || "index"
+        @session = @request.session
+        @response.session = @session
       end
     
     private
@@ -551,7 +562,7 @@ module ActionController #:nodoc:
         if action_methods.include?(action_name)
           send(action_name)
           render unless @performed_render || @performed_redirect
-        elsif template_exists?
+        elsif template_exists? && template_public?
           render
         else
           raise UnknownAction, "No action responded to #{action_name}", caller
@@ -593,9 +604,8 @@ module ActionController #:nodoc:
       def request_origin
         "#{@request.remote_addr} at #{Time.now.to_s}"
       end
-            
+      
       def close_session
-        @session.update unless @session.nil? || Hash === @session
         @session.close  unless @session.nil? || Hash === @session
       end
       
@@ -603,10 +613,14 @@ module ActionController #:nodoc:
         @template.file_exists?(template_name)
       end
 
+      def template_public?(template_name = "#{controller_name}/#{action_name}")
+	      @template.file_public?(template_name)
+      end
+
       def assert_existance_of_template_file(template_name)
         unless template_exists?(template_name) || ignore_missing_templates
           raise(MissingTemplate, "Couldn't find #{template_name}")
         end
-      end      
+      end
   end
 end

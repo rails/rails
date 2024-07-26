@@ -7,10 +7,10 @@ CREATE TABLE 'accounts' (
 CREATE TABLE 'companies' (
   'id' INTEGER PRIMARY KEY NOT NULL,
   'type' VARCHAR(255) DEFAULT NULL,
+  'ruby_type' VARCHAR(255) DEFAULT NULL,
   'firm_id' INTEGER DEFAULT NULL,
   'name' TEXT DEFAULT NULL,
   'client_of' INTEGER DEFAULT NULL,
-  'companies_count' INTEGER DEFAULT 0,
   'rating' INTEGER DEFAULT 1
 );
 
@@ -24,7 +24,7 @@ CREATE TABLE 'topics' (
   'last_read' DATE DEFAULT NULL,
   'content' TEXT,
   'approved' INTEGER DEFAULT 1,
-  'reply_count' INTEGER DEFAULT NULL,
+  'replies_count' INTEGER DEFAULT 0,
   'parent_id' INTEGER DEFAULT NULL,
   'type' VARCHAR(255) DEFAULT NULL
 );
@@ -66,4 +66,20 @@ CREATE TABLE subscribers (
 CREATE TABLE 'booleantests' (
   'id' INTEGER PRIMARY KEY NOT NULL,
   'value' INTEGER DEFAULT NULL
+);
+
+CREATE TABLE 'auto_id_tests' (
+  'auto_id' INTEGER PRIMARY KEY NOT NULL,
+  'value' INTEGER DEFAULT NULL
+);
+
+CREATE TABLE 'entrants' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'name' VARCHAR(255) NOT NULL,
+  'course_id' INTEGER NOT NULL
+);
+
+CREATE TABLE 'colnametests' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'references' INTEGER NOT NULL
 );

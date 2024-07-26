@@ -1,7 +1,7 @@
 module ActionController
   # Rewrites urls for Base.redirect_to and Base.url_for in the controller.
   class UrlRewriter #:nodoc:
-    VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :controller, :controller_prefix, :anchor, :params, :path_params, :id, :only_path]
+    VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :controller, :controller_prefix, :anchor, :params, :path_params, :id, :only_path, :overwrite_params ]
   
     def initialize(request, controller, action)
       @request, @controller, @action = request, controller, action
@@ -37,8 +37,8 @@ module ActionController
         rewritten_url << @request.host_with_port unless options[:only_path]
 
         rewritten_url << path
-        rewritten_url << build_query_string(options[:params]) if options[:params]
-        rewritten_url << "#" + options[:anchor] if options[:anchor]
+        rewritten_url << build_query_string(new_parameters(options)) if options[:params] || options[:overwrite_params]
+        rewritten_url << "##{options[:anchor]}" if options[:anchor]
         return rewritten_url
       end
 
@@ -86,7 +86,7 @@ module ActionController
       end
 
       def rewrite_controller(path, options)
-        all, controller_prefix = /^\/(.*)#{@controller}/.match(path).to_a
+        all, controller_prefix = /^\/(.*?)#{@controller}/.match(path).to_a
         path = "/"
         path << controller_name(options, controller_prefix)
         path << action_name(options) if options[:action]
@@ -126,6 +126,16 @@ module ActionController
 
       def include_id_in_path_params(options)
         options[:path_params] = (options[:path_params] || {}).merge({"id" => options[:id]}) if options[:id]
+      end
+
+      def new_parameters(options)
+        parameters = options[:params] || existing_parameters
+        parameters.update(options[:overwrite_params]) if options[:overwrite_params]
+        parameters.reject { |key,value| value.nil? }
+      end
+
+      def existing_parameters
+        @request.parameters.reject { |key, value| %w( id action controller).include?(key) }
       end
 
       # Returns a query string with escaped keys and values from the passed hash. If the passed hash contains an "id" it'll

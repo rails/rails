@@ -34,14 +34,14 @@ require 'action_controller/flash'
 require 'action_controller/scaffolding'
 require 'action_controller/cgi_process'
 
-ActionController::Base.class_eval { 
-  include ActionController::Benchmarking
+ActionController::Base.class_eval do
   include ActionController::Filters
   include ActionController::Layout
   include ActionController::Flash
+  include ActionController::Benchmarking
   include ActionController::Rescue
   include ActionController::Scaffolding
-}
+end
 
 require 'action_view'
-ActionController::Base.template_class = ActionView::ERbTemplate
+ActionController::Base.template_class = ActionView::Base

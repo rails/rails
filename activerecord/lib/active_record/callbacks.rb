@@ -197,8 +197,8 @@ module ActiveRecord
     module ClassMethods #:nodoc:
       def instantiate_with_callbacks(record)
         object = instantiate_without_callbacks(record)
-        object.callback(:after_find) if object.respond_to?(:after_find)
-        object.callback(:after_initialize) if object.respond_to?(:after_initialize)
+        object.callback(:after_find) if object.respond_to_without_attributes?(:after_find)
+        object.callback(:after_initialize) if object.respond_to_without_attributes?(:after_initialize)
         object
       end
     end
@@ -211,7 +211,7 @@ module ActiveRecord
     def initialize_with_callbacks(attributes = nil) #:nodoc:
       initialize_without_callbacks(attributes)
       yield self if block_given?
-      after_initialize if respond_to?(:after_initialize)
+      after_initialize if respond_to_without_attributes?(:after_initialize)
     end
     
     # Is called _before_ Base.save (regardless of whether it's a create or update save).

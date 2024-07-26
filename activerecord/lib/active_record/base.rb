@@ -4,7 +4,11 @@ require 'active_record/support/inflector'
 require 'yaml'
 
 module ActiveRecord #:nodoc:
-  class ActiveRecordError < Exception #:nodoc:
+  class ActiveRecordError < StandardError #:nodoc:
+  end
+  class AssociationTypeMismatch < ActiveRecordError #:nodoc:
+  end
+  class SerializationTypeMismatch < ActiveRecordError #:nodoc:
   end
   class AdapterNotSpecified < ActiveRecordError # :nodoc:
   end
@@ -54,11 +58,11 @@ module ActiveRecord #:nodoc:
   # be used for statements that doesn't involve tainted data. Examples:
   # 
   #   User < ActiveRecord::Base
-  #     def authenticate_unsafely(user_name, password)
+  #     def self.authenticate_unsafely(user_name, password)
   #       find_first("user_name = '#{user_name}' AND password = '#{password}'")
   #     end
   # 
-  #     def authenticate_safely(user_name, password)
+  #     def self.authenticate_safely(user_name, password)
   #       find_first([ "user_name = '%s' AND password = '%s'", user_name, password ])
   #     end
   #   end
@@ -89,16 +93,52 @@ module ActiveRecord #:nodoc:
   # 
   # == Saving arrays, hashes, and other non-mappeable objects in text columns
   # 
-  # Active Record will automatically attempt to serialize (using YAML) any object in text columns that isn't either a String,
-  # NilClass, TrueClass, FalseClass, Fixnum, Date, or Time. This makes it possible to store arrays, hashes, and other
-  # non-mappeable objects without doing any additional work. Example:
+  # Active Record can serialize any object in text columns using YAML. To do so, you must specify this with a call to the class method +serialize+. 
+  # This makes it possible to store arrays, hashes, and other non-mappeable objects without doing any additional work. Example:
   # 
-  #    user = User.find(1)
-  #    user.preferences = { "background" => "black", "display" => large }
-  #    user.save
-  #    
-  #    User.find(1).preferences # => { "background" => "black", "display" => large }
+  #   class User < ActiveRecord::Base
+  #     serialize :preferences
+  #   end
   # 
+  #   user = User.create("preferences" => { "background" => "black", "display" => large })
+  #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
+  # 
+  # You can also specify an optional :class_name option that'll raise an exception if a serialized object is retrieved as a 
+  # descendent of a class not in the hierarchy. Example:
+  # 
+  #   class User < ActiveRecord::Base
+  #     serialize :preferences, :class_name => "Hash"
+  #   end
+  # 
+  #   user = User.create("preferences" => %w( one two three ))
+  #   User.find(user.id).preferences # => raises SerializationTypeMismatch
+  # 
+  # == Single table inheritance
+  #
+  # Active Record allows inheritance by storing the name of the class in a column that by default is called "type" (can be changed 
+  # by overwriting <tt>Base.inheritance_column</tt>). This means that an inheritance looking like this:
+  #
+  #   class Company < ActiveRecord::Base; end
+  #   class Firm < Company; end
+  #   class Client < Company; end
+  #   class PriorityClient < Client; end
+  #
+  # When you do Firm.create("name" => "37signals"), this record with be saved in the companies table with type = "Firm". You can then
+  # fetch this row again using Company.find_first "name = '37signals'" and it will return a Firm object.
+  #
+  # Note, all the attributes for all the cases are kept in the same table. Read more:
+  # http://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
+  # 
+  # == Connection to multiple databases in different models
+  #
+  # Connections are usually created through ActiveRecord::Base.establish_connection and retrieved by ActiveRecord::Base.connection.
+  # All classes inheriting from ActiveRecord::Base will use this connection. But you can also set a class-specific connection. 
+  # For example, if Course is a ActiveRecord::Base, but resides in a different database you can just say Course.establish_connection
+  # and Course *and all its subclasses* will use this connection instead.
+  #
+  # This feature is implemented by keeping a connection pool in ActiveRecord::Base that is a Hash indexed by the class. If a connection is
+  # requested, the retrieve_connection method will go up the class-hierarchy until a connection is found in the connection pool.
+  #
   # == Exceptions
   # 
   # * +ActiveRecordError+ -- generic error class and superclass of all other errors raised by Active Record
@@ -106,7 +146,9 @@ module ActiveRecord #:nodoc:
   #   <tt>:adapter</tt> key.
   # * +AdapterNotSpecified+ -- the <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified an unexisting adapter
   #   (or a bad spelling of an existing one). 
-  #   <tt>:adapter</tt> key.
+  # * +AssociationTypeMismatch+ -- the object assigned to the association wasn't of the type specified in the association definition. 
+  # * +SerializationTypeMismatch+ -- the object serialized wasn't of the class specified in the <tt>:class_name</tt> option of 
+  #   the serialize definition. 
   # * +ConnectionNotEstablished+ -- no connection has been established. Use <tt>establish_connection</tt> before querying.
   # * +RecordNotFound+ -- no record responded to the find* method. 
   #   Either the row with the given ID doesn't exist or the row didn't meet the additional restrictions.
@@ -123,20 +165,21 @@ module ActiveRecord #:nodoc:
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger
 
-    # Returns the connection currently held by the class. This can be used to "borrow" the connection to do database
-    # work unrelated to any of the specific Active Records. Use *_connection methods to establish the connection in 
-    # the first place.
-    cattr_accessor :connection
-    def self.connection #:nodoc:
-      Thread.current['connection'] ||= retrieve_connection
-      Thread.current['connection']
+    # Returns the connection currently associated with the class. This can
+    # also be used to "borrow" the connection to do database work unrelated
+    # to any of the specific Active Records. 
+    def self.connection
+      retrieve_connection
     end
-    
-    def self.connected?
-      !Thread.current['connection'].nil?
-    end 
-    
-    def self.inherited(child)
+
+    # Returns the connection currently associated with the class. This can
+    # also be used to "borrow" the connection to do database work that isn't 
+    # easily done without going straight to SQL. 
+    def connection
+      self.class.connection
+    end
+
+    def self.inherited(child) #:nodoc:
       @@subclasses[self] ||= []
       @@subclasses[self] << child
       super
@@ -191,7 +234,7 @@ module ActiveRecord #:nodoc:
         elsif ids.length == 1
           id = ids.first
           sql = "SELECT * FROM #{table_name} WHERE #{primary_key} = '#{sanitize(id)}'"
-          sql << "AND type = '#{name.gsub(/.*::/, '')}'" unless descents_from_active_record?
+          sql << " AND #{type_condition}" unless descents_from_active_record?
 
           if record = connection.select_one(sql, "#{name} Find")
             instantiate(record)
@@ -311,14 +354,12 @@ module ActiveRecord #:nodoc:
       # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
       # that needs to list both the number of posts and comments.
       def increment_counter(counter_name, id)
-        object = find(id)
-        object.update_attribute(counter_name, object.send(counter_name) + 1)
+        update_all "#{counter_name} = #{counter_name} + 1", "#{primary_key} = #{id}"
       end
 
       # Works like increment_counter, but decrements instead.
       def decrement_counter(counter_name, id)
-        object = find(id)
-        object.update_attribute(counter_name, object.send(counter_name) - 1)
+        update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{id}"
       end
 
       # Attributes named in this macro are protected from mass-assignment, such as <tt>new(attributes)</tt> and 
@@ -358,9 +399,22 @@ module ActiveRecord #:nodoc:
         read_inheritable_attribute("attr_accessible")
       end
 
+      # Specifies that the attribute by the name of +attr_name+ should be serialized before saving to the database and unserialized
+      # after loading from the database. The serialization is done through YAML. If +class_name+ is specified, the serialized
+      # object must be of that class on retrival or +SerializationTypeMismatch+ will be raised.
+      def serialize(attr_name, class_name = Object)
+        write_inheritable_attribute("attr_serialized", serialized_attributes.update(attr_name.to_s => class_name))
+      end
+      
+      # Returns a hash of all the attributes that have been specified for serialization as keys and their class restriction as values.
+      def serialized_attributes
+        read_inheritable_attribute("attr_serialized") || { }
+      end
+
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
       # directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
       # to guess the table name from even when called on Reply. The guessing rules are as follows:
+      #
       # * Class name ends in "x", "ch" or "ss": "es" is appended, so a Search class becomes a searches table.
       # * Class name ends in "y" preceded by a consonant or "qu": The "y" is replaced with "ies", so a Category class becomes a categories table. 
       # * Class name ends in "fe": The "fe" is replaced with "ves", so a Wife class becomes a wives table.
@@ -373,6 +427,7 @@ module ActiveRecord #:nodoc:
       # * Class name ends in an "s": No additional characters are added or removed.
       # * Class name doesn't end in "s": An "s" is appended, so a Comment class becomes a comments table.
       # * Class name with word compositions: Compositions are underscored, so CreditCard class becomes a credit_cards table.
+      #
       # Additionally, the class-level table_name_prefix is prepended to the table_name and the table_name_suffix is appended.
       # So if you have "myapp_" as a prefix, the table name guess for an Account class becomes "myapp_accounts".
       #
@@ -395,27 +450,26 @@ module ActiveRecord #:nodoc:
       # primary_key_prefix_type setting, though.
       def primary_key
         case primary_key_prefix_type
-          when :table_name                 
-            "#{class_name_of_active_record_descendant(self).gsub(/.*::/, '').downcase}id"
+          when :table_name
+            Inflector.foreign_key(class_name_of_active_record_descendant(self), false)
           when :table_name_with_underscore
-            "#{class_name_of_active_record_descendant(self).gsub(/.*::/, '').downcase}_id"
+            Inflector.foreign_key(class_name_of_active_record_descendant(self))
           else
             "id"
         end
       end
 
+      # Defines the column name for use with single table inheritance -- can be overridden in subclasses.
+      def inheritance_column
+	      "type"
+      end
+
       # Turns the +table_name+ back into a class name following the reverse rules of +table_name+.
-      def class_name(table_name) # :nodoc:
+      def class_name(table_name = table_name) # :nodoc:
         # remove any prefix and/or suffix from the table name
-        class_name = table_name[table_name_prefix.length..-(table_name_suffix.length + 1)]
-
-        class_name = class_name.capitalize.gsub(/_(.)/) { |s| $1.capitalize }
-      
-        if pluralize_table_names
-          class_name = Inflector.singularize(class_name)
-        end
-
-        class_name
+        class_name = Inflector.camelize(table_name[table_name_prefix.length..-(table_name_suffix.length + 1)])
+        class_name = Inflector.singularize(class_name) if pluralize_table_names
+        return class_name
       end
 
       # Returns an array of column objects for the table associated with this class.
@@ -429,9 +483,9 @@ module ActiveRecord #:nodoc:
       end
 
       # Returns an array of columns objects where the primary id, all columns ending in "_id" or "_count", 
-      # and columns named "type" has been removed.
+      # and columns used for single table inheritance has been removed.
       def content_columns
-        columns.reject { |c| c.name == primary_key || c.name =~ /(_id|_count)$/ || c.name == "type" }
+        columns.reject { |c| c.name == primary_key || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
       end
 
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
@@ -450,18 +504,34 @@ module ActiveRecord #:nodoc:
         object.to_s.gsub(/([;:])/, "").gsub('##', '\#\#').gsub(/'/, "''") # ' (for ruby-mode)
       end
 
+      # Used to aggregate logging and benchmark, so you can measure and represent multiple statements in a single block.
+      # Usage (hides all the SQL calls for the individual actions and calculates total runtime for them all):
+      #
+      #   Project.benchmark("Creating project") do
+      #     project = Project.create("name" => "stuff")
+      #     project.create_manager("name" => "David")
+      #     project.milestones << Milestone.find_all
+      #   end
+      def benchmark(title)
+        logger.level = Logger::ERROR
+        bm = Benchmark.measure { yield }
+        logger.level = Logger::DEBUG
+        logger.info "#{title} (#{sprintf("%f", bm.real)})"
+      end
+
       private
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
         def instantiate(record)
-          object = record_with_type?(record) ? compute_type(record["type"]).allocate : allocate
+          object = record_with_type?(record) ? compute_type(record[inheritance_column]).allocate : allocate
           object.instance_variable_set("@attributes", record)
           return object
         end
         
-        # Returns true if the +record+ has a type column and is using it.
+        # Returns true if the +record+ has a single table inheritance column and is using it.
         def record_with_type?(record)
-          record.include?("type") && !record["type"].nil? && !record["type"].empty?
+          record.include?(inheritance_column) && !record[inheritance_column].nil? && 
+	           !record[inheritance_column].empty?
         end
         
         # Returns the name of the type of the record using the current module as a prefix. So descendents of
@@ -477,19 +547,15 @@ module ActiveRecord #:nodoc:
         end
         
         def type_condition
-          subclasses.inject("type = '#{name.gsub(/.*::/, '')}' ") do |condition, subclass| 
-            condition << "OR type = '#{subclass.name.gsub(/.*::/, '')}' "
-          end
+          " (" + subclasses.inject("#{inheritance_column} = '#{Inflector.demodulize(name)}' ") do |condition, subclass| 
+            condition << "OR #{inheritance_column} = '#{Inflector.demodulize(subclass.name)}' "
+          end + ") "
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
         def undecorated_table_name(class_name = class_name_of_active_record_descendant(self))
-          table_name = class_name.gsub(/.*::/, '').gsub(/([a-z])([A-Z])/, '\1_\2').downcase
-
-          if pluralize_table_names
-            table_name = Inflector.pluralize(table_name)
-          end
-
+          table_name = Inflector.underscore(Inflector.demodulize(class_name))
+          table_name = Inflector.pluralize(table_name) if pluralize_table_names
           return table_name
         end
 
@@ -584,7 +650,17 @@ module ActiveRecord #:nodoc:
 
       # Returns a clone of the record that hasn't been assigned an id yet and is treated as a new record.
       def clone
-        cloned_record = super
+        attr = Hash.new
+
+        self.attribute_names.each do |name|
+          begin
+            attr[name] = read_attribute(name).clone
+          rescue TypeError
+            attr[name] = read_attribute(name)
+          end
+        end
+
+        cloned_record = self.class.new(attr)
         cloned_record.instance_variable_set "@new_record", true
         cloned_record.id = nil
         cloned_record
@@ -592,8 +668,21 @@ module ActiveRecord #:nodoc:
             
       # Updates a single attribute and saves the record. This is especially useful for boolean flags on existing records.
       def update_attribute(name, value)
-        self.name = value
+        self[name] = value
         save
+      end
+
+      # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example, 
+      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
+      # (Alias for the protected read_attribute method).
+      def [](attr_name) 
+        read_attribute(attr_name)
+      end
+      
+      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
+      # (Alias for the protected write_attribute method).
+      def []= (attr_name, value) 
+        write_attribute(attr_name, value)
       end
 
       # Allows you to set all the attributes at once by passing in a hash with keys
@@ -603,10 +692,9 @@ module ActiveRecord #:nodoc:
       # attributes not included in that won't be allowed to be mass-assigned.
       def attributes=(attributes)
         return if attributes.nil?
-        remove_attributes_protected_from_mass_assignment(attributes)
 
         multi_parameter_attributes = []
-        attributes.each do |k, v| 
+        remove_attributes_protected_from_mass_assignment(attributes).each do |k, v| 
           k.include?("(") ? multi_parameter_attributes << [ k, v ] : send(k + "=", v)
         end
         assign_multiparameter_attributes(multi_parameter_attributes)
@@ -634,6 +722,15 @@ module ActiveRecord #:nodoc:
         comparison_object.instance_of?(self.class) && comparison_object.id == id
       end
 
+      # For checking respond_to? without searching the attributes (which is faster).
+      alias_method :respond_to_without_attributes?, :respond_to?
+
+      # A Person object with a name attribute can ask person.respond_to?("name"), person.respond_to?("name="), and
+      # person.respond_to?("name?") which will all return true.
+      def respond_to?(method)
+        @@dynamic_methods ||= attribute_names + attribute_names.collect { |attr| attr + "=" } + attribute_names.collect { |attr| attr + "?" }
+        @@dynamic_methods.include?(method.to_s) ? true : respond_to_without_attributes?(method)
+      end
 
     private
       def create_or_update
@@ -644,30 +741,33 @@ module ActiveRecord #:nodoc:
       def update
         connection.update(
           "UPDATE #{self.class.table_name} " +
-          "SET #{comma_pair_list(attributes_with_quotes)} " +
+          "SET #{quoted_comma_pair_list(connection, attributes_with_quotes)} " +
           "WHERE #{self.class.primary_key} = '#{id}'",
           "#{self.class.name} Update"
         )
       end
-      
+
       # Creates a new record with values matching those of the instant attributes.
       def create
-        auto_id = connection.insert(
+        self.id = connection.insert(
           "INSERT INTO #{self.class.table_name} " +
-          "(#{attributes_with_quotes.keys.join(', ')}) " +
+          "(#{quoted_column_names.join(', ')}) " +
           "VALUES(#{attributes_with_quotes.values.join(', ')})",
-          "#{self.class.name} Create"
+          "#{self.class.name} Create",
+      	  self.class.primary_key, self.id
         )
         
         @new_record = false
-        self.id = auto_id if self.id.nil?
       end
 
-      # Sets the type attribute to this class name if this is not the ActiveRecord descendant. Considering the hierarchy
-      # Reply < Message < ActiveRecord, this makes it possible to do Reply.new without having to set Reply.type = "Reply"
-      # yourself. No type attribute would be set for objects of the Message class in that example.
+      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord descendant. 
+      # Considering the hierarchy Reply < Message < ActiveRecord, this makes it possible to do Reply.new without having to 
+      # set Reply[Reply.inheritance_column] = "Reply" yourself. No such attribute would be set for objects of the 
+      # Message class in that example.
       def ensure_proper_type
-        self.type = self.class.name.gsub(/.*::/, '') unless self.class.descents_from_active_record?
+        unless self.class.descents_from_active_record?
+	        write_attribute(self.class.inheritance_column, Inflector.demodulize(self.class.name))
+	      end
       end
 
       # Allows access to the object attributes, which are held in the @attributes hash, as were
@@ -697,30 +797,46 @@ module ActiveRecord #:nodoc:
       def query_method?() /^([a-zA-Z][-_\w]*)\?$/     end
 
       # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example, 
-      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)). Can be used when 
+      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name) #:doc:
         if column = column_for_attribute(attr_name)
-          @attributes[attr_name] = column.type_cast(@attributes[attr_name])
+          @attributes[attr_name] = unserializable_attribute?(attr_name, column) ?
+            unserialize_attribute(attr_name) : column.type_cast(@attributes[attr_name])
         end
         
         @attributes[attr_name]
       end
 
-      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
+      # Returns true if the attribute is of a text column and marked for serialization.
+      def unserializable_attribute?(attr_name, column)
+        @attributes[attr_name] && column.send(:type) == :text && @attributes[attr_name].is_a?(String) && self.class.serialized_attributes[attr_name]
+      end
+
+      # Returns the unserialized object of the attribute.
+      def unserialize_attribute(attr_name)
+        unserialized_object = object_from_yaml(@attributes[attr_name])
+
+        if unserialized_object.is_a?(self.class.serialized_attributes[attr_name])
+          @attributes[attr_name] = unserialized_object
+        else
+          raise(
+            SerializationTypeMismatch, 
+            "#{attr_name} was supposed to be a #{self.class.serialized_attributes[attr_name]}, " +
+            "but was a #{unserialized_object.class.to_s}"
+          )
+        end
+      end
+
+      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings for fixnum and float
+      # columns are turned into nil.
       def write_attribute(attr_name, value) #:doc:
-        @attributes[attr_name] = value
+        @attributes[attr_name] = empty_string_for_number_column?(attr_name, value) ? nil : value
       end
 
-      # Alias for read_attribute. An alternative to the attributes-by-method-calls technique, provide access as if 
-      # we're a hash.
-      def [](attr_name) read_attribute(attr_name) #:doc:
+      def empty_string_for_number_column?(attr_name, value)
+        column = column_for_attribute(attr_name)
+        column && (column.klass == Fixnum || column.klass == Float) && value == ""
       end
-      
-      # Alias for write_attribute. An alternative to the attributes-by-method-calls technique, provide access as if 
-      # we're a hash.
-      def []= (attr_name, value) write_attribute(attr_name, value) #:doc:
-      end
-
 
       def query_attribute(attr_name)
         attribute = @attributes[attr_name]
@@ -745,11 +861,11 @@ module ActiveRecord #:nodoc:
 
       def remove_attributes_protected_from_mass_assignment(attributes)
         if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
-          attributes.delete_if { |key, value| key == self.class.primary_key }
+          attributes.reject { |key, value| key == self.class.primary_key }
         elsif self.class.protected_attributes.nil?
-          attributes.delete_if { |key, value| !self.class.accessible_attributes.include?(key.intern) || key == self.class.primary_key }
+          attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.intern) || key == self.class.primary_key }
         elsif self.class.accessible_attributes.nil?
-          attributes.delete_if { |key, value| self.class.protected_attributes.include?(key.intern) || key == self.class.primary_key }
+          attributes.reject { |key, value| self.class.protected_attributes.include?(key.intern) || key == self.class.primary_key }
         end
       end
 
@@ -757,7 +873,10 @@ module ActiveRecord #:nodoc:
       # an SQL statement. 
       def attributes_with_quotes
         columns_hash = self.class.columns_hash
-        @attributes.inject({}) { |attrs_quoted, pair| attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first]); attrs_quoted }
+        @attributes.inject({}) do |attrs_quoted, pair| 
+          attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first])
+          attrs_quoted
+        end
       end
       
       # Quote strings appropriately for SQL statements.
@@ -825,9 +944,42 @@ module ActiveRecord #:nodoc:
         multiparameter_name.scan(/\(([0-9]*).*\)/).first.first
       end
       
-      # Returns a comma-seperated pair list, like "key1 = val1, key2 = val2".
+      # Returns a comma-separated pair list, like "key1 = val1, key2 = val2".
       def comma_pair_list(hash)
         hash.inject([]) { |list, pair| list << "#{pair.first} = #{pair.last}" }.join(", ")
+      end
+
+      def quoted_column_names
+        attributes_with_quotes.keys.collect { |column_name| connection.quote_column_name(column_name) }
+      end
+
+      def quote_columns(column_quoter, hash)
+        hash.inject({}) {|list, pair|
+          list[column_quoter.quote_column_name(pair.first)] = pair.last
+          list
+        }
+      end
+
+      def quoted_comma_pair_list(column_quoter, hash)
+        comma_pair_list(quote_columns(column_quoter, hash))
+      end
+
+      def object_from_yaml(string)
+        return string unless String === string
+        if has_yaml_encoding_header?(string)
+          begin
+            YAML::load(string)
+          rescue Object
+            # Apparently wasn't YAML anyway
+            string
+          end
+        else
+          string
+        end
+      end
+
+      def has_yaml_encoding_header?(string)
+        string[0..3] == "--- "
       end
   end
 end

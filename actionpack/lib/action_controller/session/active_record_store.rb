@@ -16,6 +16,7 @@ class CGI
     class ActiveRecordStore
       # The ActiveRecord class which corresponds to the database table.
       class Session < ActiveRecord::Base
+        serialize :data
         # Isn't this class definition beautiful?
       end
 

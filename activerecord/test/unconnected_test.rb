@@ -4,15 +4,15 @@ class TestRecord < ActiveRecord::Base
 end
 
 class TestUnconnectedAdaptor < Test::Unit::TestCase
+
   def setup
-    @config = Marshal::dump(ActiveRecord::Base.class_eval("@@config"))
-    ActiveRecord::Base.class_eval "@@config = Thread.current['connection'] = nil"
+    @connection = ActiveRecord::Base.remove_connection
   end
-  
+
   def teardown
-    ActiveRecord::Base.class_eval "@@config = Marshal::load('#{@config}')"
+    ActiveRecord::Base.establish_connection(@connection)
   end
-  
+
   def test_unconnected
     assert_raise(ActiveRecord::ConnectionNotEstablished) do
       TestRecord.find(1)   

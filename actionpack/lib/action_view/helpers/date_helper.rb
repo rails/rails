@@ -31,8 +31,11 @@ module ActionView
       # +method+) on an object assigned to the template (identified by +object+). It's possible to tailor the selects through the +options+ hash, 
       # which both accepts all the keys that each of the individual select builders does (like :use_month_numbers for select_month) and a range
       # of discard options. The discard options are <tt>:discard_month</tt> and <tt>:discard_day</tt>. Set to true, they'll drop the respective
-      # select. Discarding the month select will also automatically discard the day select. NOTE: Discarded selects will default to 1. So if no
-      # month select is available, January will be assumed. Examples:
+      # select. Discarding the month select will also automatically discard the day select. 
+      #
+      # NOTE: Discarded selects will default to 1. So if no month select is available, January will be assumed. Additionally, you can get the 
+      # month select before the year by setting :month_before_year to true in the options. This is especially useful for credit card forms. 
+      # Examples:
       #
       #   date_select("post", "written_on")
       #   date_select("post", "written_on", :start_year => 1995)
@@ -73,7 +76,7 @@ module ActionView
 
         0.upto(59) do |minute|
           minute_options << ((datetime.kind_of?(Fixnum) ? datetime : datetime.min) == minute ?
-            "<option selected>#{leading_zero_on_single_digits(minute)}</option>\n" : 
+            "<option selected=\"selected\">#{leading_zero_on_single_digits(minute)}</option>\n" : 
             "<option>#{leading_zero_on_single_digits(minute)}</option>\n"
           )
         end
@@ -88,7 +91,7 @@ module ActionView
 
         0.upto(23) do |hour|
           hour_options << ((datetime.kind_of?(Fixnum) ? datetime : datetime.hour) == hour ?
-            "<option selected>#{leading_zero_on_single_digits(hour)}</option>\n" : 
+            "<option selected=\"selected\">#{leading_zero_on_single_digits(hour)}</option>\n" : 
             "<option>#{leading_zero_on_single_digits(hour)}</option>\n"
           )
         end
@@ -103,7 +106,7 @@ module ActionView
 
         1.upto(31) do |day|
           day_options << ((date.kind_of?(Fixnum) ? date : date.day) == day ?
-            "<option selected>#{day}</option>\n" : 
+            "<option selected=\"selected\">#{day}</option>\n" : 
             "<option>#{day}</option>\n"
           )
         end
@@ -114,17 +117,26 @@ module ActionView
       # Returns a select tag with options for each of the months January through December with the current month selected.
       # The month names are presented as keys (what's shown to the user) and the month numbers (1-12) are used as values
       # (what's submitted to the server). It's also possible to use month numbers for the presentation instead of names --
-      # set the <tt>:use_month_numbers</tt> key in +options+ to true for this to happen. The <tt>date</tt> can also be substituted 
-      # for a month number. Example:
+      # set the <tt>:use_month_numbers</tt> key in +options+ to true for this to happen. If you want both numbers and names, 
+      # set the <tt>:add_month_numbers</tt> key in +options+ to true. Examples:
       #
-      #   select_month(Date.today, :use_month_numbers => true)
+      #   select_month(Date.today)                             # Will use keys like "January", "March"
+      #   select_month(Date.today, :use_month_numbers => true) # Will use keys like "1", "3"
+      #   select_month(Date.today, :add_month_numbers => true) # Will use keys like "1 - January", "3 - March"
       def select_month(date, options = {})
         month_options = []
 
         1.upto(12) do |month_number|
-          month_name = options[:use_month_numbers] ? month_number : Date::MONTHNAMES[month_number]
+          month_name = if options[:use_month_numbers] 
+            month_number
+          elsif options[:add_month_numbers]
+            month_number.to_s + " - " + Date::MONTHNAMES[month_number]
+          else
+            Date::MONTHNAMES[month_number]
+          end
+
           month_options << ((date.kind_of?(Fixnum) ? date : date.month) == month_number ?
-            "<option value='#{month_number}' selected>#{month_name}</option>\n" : 
+            "<option value='#{month_number}' selected=\"selected\">#{month_name}</option>\n" : 
             "<option value='#{month_number}'>#{month_name}</option>\n"
           )
         end
@@ -143,7 +155,7 @@ module ActionView
 
         (options[:start_year] || default_start_year).upto(options[:end_year] || default_end_year) do |year|
           year_options << ((date.kind_of?(Fixnum) ? date : date.year) == year ?
-            "<option selected>#{year}</option>\n" : 
+            "<option selected=\"selected\">#{year}</option>\n" : 
             "<option>#{year}</option>\n"
           )
         end
@@ -177,8 +189,16 @@ module ActionView
         options_with_prefix = Proc.new { |position| options.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
         date     = options[:include_blank] ? (value || 0) : (value || Date.today)
 
-        date_select  = select_year(date, options_with_prefix.call(1))
-        date_select << select_month(date, options_with_prefix.call(2)) unless options[:discard_month]
+        date_select = ""
+        
+        if options[:month_before_year]
+          date_select << select_month(date, options_with_prefix.call(2)) unless options[:discard_month]
+          date_select << select_year(date, options_with_prefix.call(1))
+        else
+          date_select << select_year(date, options_with_prefix.call(1))
+          date_select << select_month(date, options_with_prefix.call(2)) unless options[:discard_month]
+        end
+
         date_select << select_day(date, options_with_prefix.call(3))   unless options[:discard_day] || options[:discard_month]
 
         return date_select

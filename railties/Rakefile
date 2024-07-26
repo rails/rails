@@ -6,7 +6,7 @@ require 'rake/gempackagetask'
 require 'date'
 
 PKG_NAME        = "rails"
-PKG_VERSION     = "0.7.0"
+PKG_VERSION     = "0.8.0"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
 desc "Default Task"
@@ -59,6 +59,7 @@ task :make_app_dirs do
   File.mkdir "#{PKG_DESTINATION}/app/controllers"
   File.mkdir "#{PKG_DESTINATION}/app/helpers"
   File.mkdir "#{PKG_DESTINATION}/app/views"
+  File.mkdir "#{PKG_DESTINATION}/app/views/layouts"
 end
 
 task :make_public_dirs do
@@ -95,7 +96,7 @@ end
 # Copy Vendors ----------------------------------------------------------------------------
 
 desc "Copy in all the Rails packages to vendor"
-task :copy_vendor_libraries => [ :copy_action_pack, :copy_active_record, :copy_ties ]
+task :copy_vendor_libraries => [ :copy_action_pack, :copy_active_record, :copy_ties, :copy_action_mailer ]
 
 task :copy_action_pack do
   File.cp_r "../actionpack", "#{PKG_DESTINATION}/vendor/actionpack"
@@ -103,6 +104,10 @@ end
 
 task :copy_active_record do
   File.cp_r "../activerecord", "#{PKG_DESTINATION}/vendor/activerecord" 
+end
+
+task :copy_action_mailer do
+  File.cp_r "../actionmailer", "#{PKG_DESTINATION}/vendor/actionmailer" 
 end
 
 task :copy_ties do
@@ -157,8 +162,10 @@ end
 task :copy_generators do
   File.cp "generators/new_controller.rb", "#{PKG_DESTINATION}/script/new_controller"
   File.cp "generators/new_model.rb", "#{PKG_DESTINATION}/script/new_model"
+  File.cp "generators/new_mailer.rb", "#{PKG_DESTINATION}/script/new_mailer"
   chmod 0755, "#{PKG_DESTINATION}/script/new_controller"
   chmod 0755, "#{PKG_DESTINATION}/script/new_model"
+  chmod 0755, "#{PKG_DESTINATION}/script/new_mailer"
 end
 
 task :copy_rootfiles do
@@ -231,8 +238,9 @@ spec = Gem::Specification.new do |s|
   EOF
 
   s.add_dependency('rake', '>= 0.4.4')
-  s.add_dependency('activerecord', '>= 0.9.5')
-  s.add_dependency('actionpack', '>= 0.8.5')
+  s.add_dependency('activerecord', '>= 1.0.0')
+  s.add_dependency('actionpack', '>= 0.9.0')
+  s.add_dependency('actionmailer', '>= 0.3.0')
 
   s.files = PKG_FILES.to_a
   s.require_path = 'lib'

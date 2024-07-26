@@ -13,7 +13,7 @@
 
 <p>
   Showing <i><%=h @exception.file_name %></i> where line <b>#<%=h @exception.line_number %></b> raised
-  <u><%=h @exception.original_exception.message %></u>
+  <u><%=h @exception.message %></u>
 </p>
 
 <pre><code><%=h @exception.source_extract %></code></pre>

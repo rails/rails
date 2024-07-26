@@ -38,10 +38,10 @@ module ActionView
     #   <% end %>
     module TextHelper
       # The regular puts and print are outlawed in eRuby. It's recommended to use the <%= "hello" %> form instead of print "hello".
-      # If you absolutely must use a method-based output, you can use concat. It's use like this <% concat "hello" %>. Notice that
+      # If you absolutely must use a method-based output, you can use concat. It's use like this <% concat "hello", binding %>. Notice that
       # it doesn't have an equal sign in front. Using <%= concat "hello" %> would result in a double hello.
-      def concat(string)
-        _erbout.concat(string)
+      def concat(string, binding)
+        eval("_erbout", binding).concat(string)
       end
 
       # Truncates +text+ to the length of +length+ and replaces the last three characters with the +truncate_string+
@@ -116,7 +116,7 @@ module ActionView
 
       # Turns all links into words, like "<a href="something">else</a>" to "else".
       def strip_links(text)
-        text.gsub(/<a.*>(.*)<\/a>/, '\1')
+        text.gsub(/<a.*>(.*)<\/a>/m, '\1')
       end
       
       private

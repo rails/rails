@@ -1,11 +1,10 @@
 # require File.dirname(__FILE__) + '/../dev-utils/eval_debugger'
 require 'abstract_unit'
 require 'fixtures/topic'
+require 'fixtures/developer'
 
-class Topic
-  def after_find
-  end
-end
+class Topic; def after_find() end end
+class Developer; def after_find() end end
 
 class TopicManualObserver
   include Singleton
@@ -44,9 +43,20 @@ class TopicObserver < ActiveRecord::Observer
   end
 end
 
+class MultiObserver < ActiveRecord::Observer
+  attr_reader :record
+  
+  def self.observed_class() [ Topic, Developer ] end
+
+  def after_find(record)
+    @record = record
+  end
+
+end
+
 class LifecycleTest < Test::Unit::TestCase
   def setup
-    @topic_fixtures = create_fixtures("topics")
+    @topics, @developers = create_fixtures("topics", "developers")
   end
 
   def test_before_destroy
@@ -86,5 +96,15 @@ class LifecycleTest < Test::Unit::TestCase
 
     topic = Topic.find(1)    
     assert_equal topic_observer.topic.title, topic.title
+  end
+  
+  def test_observing_two_classes
+    multi_observer = MultiObserver.instance
+
+    topic = Topic.find(1)
+    assert_equal multi_observer.record.title, topic.title
+
+    developer = Developer.find(1)    
+    assert_equal multi_observer.record.name, developer.name
   end
 end

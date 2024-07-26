@@ -15,10 +15,11 @@ module ActiveRecord
     # Establishes a connection to the database that's used by all Active Record objects
     def self.mysql_connection(config) # :nodoc:
       symbolize_strings_in_hash(config)
-      host     = config[:host]     || "localhost"
-      port     = config[:port]     || 3306
+      host     = config[:host]
+      port     = config[:port]
+      socket   = config[:socket]
       username = config[:username] || "root"
-      password = config[:password] || ""
+      password = config[:password]
 
       if config.has_key?(:database)
         database = config[:database]
@@ -26,8 +27,8 @@ module ActiveRecord
         raise ArgumentError, "No database specified. Missing argument: database."
       end
 
-      self.connection = ConnectionAdapters::MysqlAdapter.new(
-        Mysql::real_connect(host, username, password, database, port), logger
+      ConnectionAdapters::MysqlAdapter.new(
+        Mysql::real_connect(host, username, password, database, port, socket), logger
       )
     end
   end
@@ -53,9 +54,9 @@ module ActiveRecord
         columns
       end
 
-      def insert(sql, name = nil)
+      def insert(sql, name = nil, pk = nil, id_value = nil)
         execute(sql, name = nil)
-        return @connection.insert_id
+        return id_value || @connection.insert_id
       end
 
       def execute(sql, name = nil)
@@ -67,7 +68,6 @@ module ActiveRecord
       
       def begin_db_transaction
         begin
-          execute "SET AUTOCOMMIT=0"
           execute "BEGIN"
         rescue Exception
           # Transactions aren't supported
@@ -77,7 +77,6 @@ module ActiveRecord
       def commit_db_transaction
         begin
           execute "COMMIT"
-          execute "SET AUTOCOMMIT=1"
         rescue Exception
           # Transactions aren't supported
         end
@@ -86,10 +85,13 @@ module ActiveRecord
       def rollback_db_transaction
         begin
           execute "ROLLBACK"
-          execute "SET AUTOCOMMIT=1"
         rescue Exception
           # Transactions aren't supported
         end
+      end
+
+      def quote_column_name(name)
+        return "`#{name}`"
       end
       
       def structure_dump

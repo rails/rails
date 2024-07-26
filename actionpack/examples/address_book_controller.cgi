@@ -4,6 +4,6 @@ require "address_book_controller"
 
 begin
   AddressBookController.process_cgi(CGI.new)
-rescue Exception => e
-  CGI.new.out { e.message }
+rescue => e
+  CGI.new.out { "#{e.class}: #{e.message}" }
 end 

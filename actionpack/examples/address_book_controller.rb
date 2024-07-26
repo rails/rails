@@ -45,4 +45,8 @@ end
 ActionController::Base.template_root = File.dirname(__FILE__)
 # ActionController::Base.logger = Logger.new("debug.log") # Remove first comment to turn on logging in current dir
 
-AddressBookController.process_cgi(CGI.new) if $0 == __FILE__
+begin
+  AddressBookController.process_cgi(CGI.new) if $0 == __FILE__
+rescue => e
+  CGI.new.out { "#{e.class}: #{e.message}" }
+end

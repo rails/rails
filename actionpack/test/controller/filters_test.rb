@@ -29,6 +29,10 @@ class FilterTest < Test::Unit::TestCase
     before_filter(proc { |c| c.assigns["ran_proc_filter"] = true })
   end
 
+  class ImplicitProcController < PrependingController
+    before_filter { |c| c.assigns["ran_proc_filter"] = true }
+  end
+
   class AuditFilter
     def self.filter(controller)
       controller.assigns["was_audited"] = true
@@ -37,13 +41,13 @@ class FilterTest < Test::Unit::TestCase
   
   class AroundFilter
     def before(controller)
-    	@execution_log = "before"
-    	controller.class.execution_log << " before aroundfilter " if controller.respond_to? :execution_log
+      @execution_log = "before"
+      controller.class.execution_log << " before aroundfilter " if controller.respond_to? :execution_log
       controller.assigns["before_ran"] = true
     end
 
     def after(controller)
-    	controller.assigns["execution_log"] = @execution_log + " and after"
+      controller.assigns["execution_log"] = @execution_log + " and after"
       controller.assigns["after_ran"] = true
       controller.class.execution_log << " after aroundfilter " if controller.respond_to? :execution_log
     end    
@@ -51,7 +55,7 @@ class FilterTest < Test::Unit::TestCase
 
   class AppendedAroundFilter
     def before(controller)
-    	controller.class.execution_log << " before appended aroundfilter "
+      controller.class.execution_log << " before appended aroundfilter "
     end
 
     def after(controller)
@@ -61,6 +65,10 @@ class FilterTest < Test::Unit::TestCase
   
   class AuditController < ActionController::Base
     before_filter(AuditFilter)
+    
+    def show
+      render_text "hello"
+    end
   end
 
   class BadFilterController < ActionController::Base
@@ -77,14 +85,15 @@ class FilterTest < Test::Unit::TestCase
   end
 
   class MixedFilterController < PrependingController
-  	cattr_accessor :execution_log
-  	def initialize
-  		@@execution_log = ""
-  	end
-  	
-  	before_filter(proc { |c| c.class.execution_log << " before procfilter "  })
+    cattr_accessor :execution_log
+    def initialize
+      @@execution_log = ""
+    end
+
+    before_filter { |c| c.class.execution_log << " before procfilter "  }
     prepend_around_filter AroundFilter.new
-    after_filter(proc { |c|  c.class.execution_log << " after procfilter " })
+
+    after_filter  { |c| c.class.execution_log << " after procfilter " }
     append_around_filter AppendedAroundFilter.new
   end
   
@@ -109,6 +118,10 @@ class FilterTest < Test::Unit::TestCase
     assert test_process(ProcController).template.assigns["ran_proc_filter"]
   end
   
+  def test_running_filters_with_implicit_proc
+    assert test_process(ImplicitProcController).template.assigns["ran_proc_filter"]
+  end
+  
   def test_running_filters_with_class
     assert test_process(AuditController).template.assigns["was_audited"]
   end
@@ -120,21 +133,21 @@ class FilterTest < Test::Unit::TestCase
   end
   
   def test_around_filter
-  	controller = test_process(AroundFilterController)
-  	assert controller.template.assigns["before_ran"]
-  	assert controller.template.assigns["after_ran"]
+    controller = test_process(AroundFilterController)
+    assert controller.template.assigns["before_ran"]
+    assert controller.template.assigns["after_ran"]
   end
  
   def test_having_properties_in_around_filter
-  	controller = test_process(AroundFilterController)
-  	assert_equal "before and after", controller.template.assigns["execution_log"]
+    controller = test_process(AroundFilterController)
+    assert_equal "before and after", controller.template.assigns["execution_log"]
   end
 
   def test_prepending_and_appending_around_filter
-  	controller = test_process(MixedFilterController)
-  	assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
-  							 " after appended aroundfilter  after aroundfilter  after procfilter ", 
-  							 MixedFilterController.execution_log
+    controller = test_process(MixedFilterController)
+    assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
+                 " after appended aroundfilter  after aroundfilter  after procfilter ", 
+                 MixedFilterController.execution_log
   end
 
   private

@@ -8,10 +8,10 @@ CREATE TABLE `accounts` (
 CREATE TABLE `companies` (
   `id` int(11) NOT NULL auto_increment,
   `type` varchar(50) default NULL,
+  `ruby_type` varchar(50) default NULL,
   `firm_id` int(11) default NULL,
   `name` varchar(50) default NULL,
   `client_of` int(11) default NULL,
-  `companies_count` int(11) default 0,
   `rating` int(11) default NULL default 1,
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
@@ -26,7 +26,7 @@ CREATE TABLE `topics` (
   `last_read` date default NULL,
   `content` text,
   `approved` tinyint(1) default 1,
-  `reply_count` int(11) default NULL,
+  `replies_count` int(11) default 0,
   `parent_id` int(11) default NULL,
   `type` varchar(50) default NULL,
   PRIMARY KEY  (`id`)
@@ -74,5 +74,23 @@ CREATE TABLE `subscribers` (
 CREATE TABLE `booleantests` (
   `id` int(11) NOT NULL auto_increment,
   `value` integer default NULL,
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `auto_id_tests` (
+  `auto_id` int(11) NOT NULL auto_increment,
+  `value` integer default NULL,
+  PRIMARY KEY (`auto_id`)
+);
+
+CREATE TABLE `entrants` (
+  `id` INTEGER NOT NULL PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL,
+  `course_id` INTEGER NOT NULL
+);
+
+CREATE TABLE `colnametests` (
+  `id` int(11) NOT NULL auto_increment,
+  `references` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 );

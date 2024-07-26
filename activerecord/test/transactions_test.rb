@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/topic'
 
+
 class TransactionTest < Test::Unit::TestCase
   def setup
     @topics         = create_fixtures "topics"
@@ -55,4 +56,28 @@ class TransactionTest < Test::Unit::TestCase
     assert !@first.approved?, "First shouldn't have been approved"
     assert @second.approved?, "Second should still be approved"
   end
+  
+  def test_callback_rollback_in_save
+    add_exception_raising_after_save_callback_to_topic
+
+    begin
+      @first.approved = true
+      @first.save
+      flunk
+    rescue => e
+      assert_equal "Make the transaction rollback", e.message
+      assert !Topic.find(1).approved?
+    ensure
+      remove_exception_raising_after_save_callback_to_topic
+    end
+  end
+
+  private
+    def add_exception_raising_after_save_callback_to_topic
+      Topic.class_eval { def after_save() raise "Make the transaction rollback" end }
+    end
+    
+    def remove_exception_raising_after_save_callback_to_topic
+      Topic.class_eval { remove_method :after_save }
+    end
 end

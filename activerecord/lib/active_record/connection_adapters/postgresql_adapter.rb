@@ -1,3 +1,4 @@
+
 # postgresql_adaptor.rb
 # author: Luke Holden <lholden@cablelan.net>
 # notes: Currently this adaptor does not pass the test_zero_date_fields
@@ -32,7 +33,7 @@ begin
           raise ArgumentError, "No database specified. Missing argument: database."
         end
 
-        self.connection = ConnectionAdapters::PostgreSQLAdapter.new(
+        ConnectionAdapters::PostgreSQLAdapter.new(
           PGconn.connect(host, port, "", "", database, username, password), logger
         )
       end
@@ -57,15 +58,10 @@ begin
           end
         end
 
-        def insert(sql, name = nil)
+        def insert(sql, name = nil, pk = nil, id_value = nil)
           execute(sql, name = nil)
-
-          begin
-            table = sql.split(" ", 4)[2]
-            last_insert_id(table)
-          rescue
-            # table_id_seq not found
-          end
+          table = sql.split(" ", 4)[2]
+          return id_value || last_insert_id(table, pk)
         end
 
         def execute(sql, name = nil)
@@ -79,14 +75,14 @@ begin
         def commit_db_transaction()   execute "COMMIT" end
         def rollback_db_transaction() execute "ROLLBACK" end
 
+        def quote_column_name(name)
+          return "\"#{name}\""
+        end
 
         private
           def last_insert_id(table, column = "id")
-            # This is per connection
-            # will throw an error if the sequence does not exist... so make sure
-            # to catch it.
-            result = @connection.exec("SELECT currval('#{table}_#{column}_seq')");
-            result[0][0].to_i
+            sequence_name = "#{table}_#{column || 'id'}_seq"
+            @connection.exec("SELECT currval('#{sequence_name}')")[0][0].to_i
           end
 
           def select(sql, name = nil)
@@ -143,6 +139,7 @@ begin
             type = case field_type
               when 'numeric', 'real', 'money'      then 'float'
               when 'character varying', 'interval' then 'string'
+	            when 'timestamp without time zone'   then 'datetime'
               else field_type
             end
 
@@ -157,10 +154,16 @@ begin
             return "f" if value =~ /false/i
             
             # Char/String type values
-            return $1 if value =~ /^'([0-9a-zA-Z]+)'::.*/
+            return $1 if value =~ /^'(.*)'::(bpchar|text|character varying)$/
             
             # Numeric values
             return value if value =~ /^[0-9]+(\.[0-9]*)?/
+
+      	    # Date / Time magic values
+      	    return Time.now.to_s if value =~ /^\('now'::text\)::(date|timestamp)/
+
+      	    # Fixed dates / times
+      	    return $1 if value =~ /^'(.+)'::(date|timestamp)/
             
             # Anything else is blank, some user type, or some function
             # and we can't know the value of that, so return nil.

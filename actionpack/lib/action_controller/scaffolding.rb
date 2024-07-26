@@ -87,8 +87,8 @@ module ActionController
         require "#{model_id.id2name}" rescue logger.warn "Couldn't auto-require #{model_id.id2name}.rb" unless logger.nil?
 
         singular_name = model_id.id2name
-        class_name    = options[:class_name] || singular_name.capitalize
-        plural_name   = ActiveRecord::Base.send(:undecorated_table_name, class_name)
+        class_name    = options[:class_name] || Inflector.camelize(singular_name)
+        plural_name   = Inflector.pluralize(singular_name)
         suffix        = options[:suffix] ? "_#{singular_name}" : ""
 
         unless options[:suffix]
@@ -158,12 +158,7 @@ module ActionController
                 add_instance_variables_to_assigns
 
                 @content_for_layout = @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false)
-                
-                if self.class.has_active_layout?
-                  render_file(self.active_layout, "200 OK", true)
-                else
-                  render_file(scaffold_path("layout"))
-                end
+                self.active_layout ? render_file(self.active_layout, "200 OK", true) : render_file(scaffold_path("layout"))
               end
             end
             

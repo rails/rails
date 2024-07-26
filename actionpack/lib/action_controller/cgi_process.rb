@@ -1,4 +1,5 @@
 require 'action_controller/cgi_ext/cgi_ext'
+require 'action_controller/support/cookie_performance_fix'
 require 'action_controller/session/drb_store'
 require 'action_controller/session/active_record_store'
 
@@ -60,29 +61,39 @@ module ActionController #:nodoc:
     end
 
     def host
-      @cgi.host.split(":").first
+      env["HTTP_X_FORWARDED_HOST"] || @cgi.host.split(":").first
     end
     
     def session
+      return @session unless @session.nil?
       begin
-        @session = (@session_options == false ? {} : CGI::Session.new(cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options)))
+        @session = (@session_options == false ? {} : CGI::Session.new(@cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options)))
         @session["__valid_session"]
         return @session
       rescue ArgumentError => e
-        warn "Session contained objects where the class definition wasn't available -- the session has been cleared"
         @session.delete
-        retry
+        raise(
+          ActionController::SessionRestoreError, 
+          "Session contained objects where the class definition wasn't available. " +
+          "Remember to require classes for all objects kept in the session. " +
+          "The session has been deleted."
+        )
       end
     end
     
     def reset_session
       @session.delete
-      @session = (@session_options == false ? {} : CGI::Session.new(cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options)))
+      @session = (@session_options == false ? {} : new_session)
     end
 
     def method_missing(method_id, *arguments)
       @cgi.send(method_id, *arguments) rescue super
     end
+
+    private
+      def new_session
+        CGI::Session.new(@cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options).merge("new_session" => true))
+      end
   end
 
   class CgiResponse < AbstractResponse #:nodoc:

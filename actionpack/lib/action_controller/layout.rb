@@ -77,9 +77,9 @@ module ActionController #:nodoc:
     #
     # Layouts are basically just regular templates, but the name of this template needs not be specified statically. Sometimes
     # you want to alternate layouts depending on runtime information, such as whether someone is logged in or not. This can
-    # be done either by specifying a method reference as a symbol or use an inline method (as a proc).
+    # be done either by specifying a method reference as a symbol or using an inline method (as a proc).
     #
-    # The method reference is the prefered approach to variable layouts and is used like this:
+    # The method reference is the preferred approach to variable layouts and is used like this:
     #
     #   class WeblogController < ActionController::Base
     #     layout :writers_and_readers
@@ -113,33 +113,30 @@ module ActionController #:nodoc:
       def layout(template_name)
         write_inheritable_attribute "layout", template_name
       end
-
-      # Returns true if a layout applies to the actions of this controller.
-      def has_active_layout?
-        read_inheritable_attribute "layout"
-      end
     end
 
     # Returns the name of the active layout. If the layout was specified as a method reference (through a symbol), this method
     # is called and the return value is used. Likewise if the layout was specified as an inline method (through a proc or method
-    # object).
+    # object). If the layout was defined without a directory, layouts is assumed. So <tt>layout "weblog/standard"</tt> will return
+    # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
     def active_layout(passed_layout = nil)
       layout = passed_layout || self.class.read_inheritable_attribute("layout")
-      case layout
+      active_layout = case layout
         when Symbol then send(layout)
         when Proc   then layout.call(self)
         when String then layout
       end
+      active_layout.include?("/") ? active_layout : "layouts/#{active_layout}" if active_layout
     end
 
     def render_with_layout(template_name = "#{controller_name}/#{action_name}", status = nil, layout = nil) #:nodoc:
-      if layout || self.class.has_active_layout?
+      if layout || active_layout
         add_variables_to_assigns
-        logger.info("Rendering #{template_name} within #{layout || self.active_layout}") unless logger.nil?
-        @content_for_layout = @template.render_file(template_name)
-        render_file(layout || self.active_layout, status, true)
+        logger.info("Rendering #{template_name} within #{layout || active_layout}") unless logger.nil?
+        @content_for_layout = @template.render_file(template_name, true)
+        render_without_layout(layout || self.active_layout, status)
       else
-        render_file(template_name, status, true)
+        render_without_layout(template_name, status)
       end
     end
   end

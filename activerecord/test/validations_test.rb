@@ -111,12 +111,12 @@ class ValidationsTest < Test::Unit::TestCase
     assert reply.save(false)
   end
   
-  def test_errors_on_boundry_breaking
+  def test_errors_on_boundary_breaking
     developer = Developer.new("name" => "xs")
     assert !developer.save
     assert_equal "is too short (min is 3 characters)", developer.errors.on("name")
     
-    developer.name = "All too very long for this boundry, it really is"
+    developer.name = "All too very long for this boundary, it really is"
     assert !developer.save
     assert_equal "is too long (max is 20 characters)", developer.errors.on("name")
 

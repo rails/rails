@@ -47,7 +47,7 @@ module ActionController #:nodoc:
     #
     # A filter can take one of three forms: method reference (symbol), external class, or inline method (proc). The first
     # is the most common and works by referencing a protected or private method somewhere in the inheritance hierarchy of
-    # the controller by use of a symbol. In the bank example above, both BankController and VaultController uses this form.
+    # the controller by use of a symbol. In the bank example above, both BankController and VaultController use this form.
     #
     # Using an external class makes for more easily reused generic filters, such as output compression. External filter classes
     # are implemented by having a static +filter+ method on any class and then passing this class to the filter method. Example:
@@ -69,13 +69,13 @@ module ActionController #:nodoc:
     # Or just as a quick test. It works like this:
     #
     #   class WeblogController < ActionController::Base
-    #     before_filter proc{ |controller| return false if controller.params["stop_action"] }
+    #     before_filter { |controller| return false if controller.params["stop_action"] }
     #   end
     #
-    # As you can see, the proc expects to be passed the controller after it has assigned the request to the internal variables.
-    # This means that the proc has access to both the request and response objects complete with convenience methods for params,
-    # session, template, and assigns. Note: The inline method doesn't strictly has to be a Proc. Any object that responds to call
-    # and returns 1 or -1 on arity will do (such as a Method object).
+    # As you can see, the block expects to be passed the controller after it has assigned the request to the internal variables.
+    # This means that the block has access to both the request and response objects complete with convenience methods for params,
+    # session, template, and assigns. Note: The inline method doesn't strictly has to be a block. Any object that responds to call
+    # and returns 1 or -1 on arity will do (such as a Proc or an Method object).
     #
     # == Filter chain ordering
     #
@@ -93,6 +93,9 @@ module ActionController #:nodoc:
     # The filter chain for the CheckoutController is now <tt>:ensure_items_in_cart, :ensure_items_in_stock,</tt>
     # <tt>:verify_open_shop</tt>. So if either of the ensure filters return false, we'll never get around to see if the shop 
     # is open or not.
+    #
+    # You may pass multiple filter arguments of each type as well as a filter block.
+    # If a block is given, it is treated as the last argument.
     #
     # == Around filters
     #
@@ -126,22 +129,34 @@ module ActionController #:nodoc:
     module ClassMethods
       # The passed <tt>filters</tt> will be appended to the array of filters that's run _before_ actions
       # on this controller are performed.
-      def append_before_filter(*filters)  append_filter_to_chain("before", filters) end
+      def append_before_filter(*filters, &block)
+          filters << block if block_given?
+          append_filter_to_chain("before", filters)
+      end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters that's run _before_ actions
       # on this controller are performed.
-      def prepend_before_filter(*filters) prepend_filter_to_chain("before", filters) end
+      def prepend_before_filter(*filters, &block)
+          filters << block if block_given?
+          prepend_filter_to_chain("before", filters)
+      end
 
       # Short-hand for append_before_filter since that's the most common of the two.
       alias :before_filter :append_before_filter
       
       # The passed <tt>filters</tt> will be appended to the array of filters that's run _after_ actions
       # on this controller are performed.
-      def append_after_filter(*filters)  append_filter_to_chain("after", filters) end
+      def append_after_filter(*filters, &block)
+          filters << block if block_given?
+          append_filter_to_chain("after", filters)
+      end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters that's run _after_ actions
       # on this controller are performed.
-      def prepend_after_filter(*filters) prepend_filter_to_chain("after", filters) end
+      def prepend_after_filter(*filters, &block)
+          filters << block if block_given?
+          prepend_filter_to_chain("after", filters)
+      end
 
       # Short-hand for append_after_filter since that's the most common of the two.
       alias :after_filter :append_after_filter
@@ -157,8 +172,8 @@ module ActionController #:nodoc:
       def append_around_filter(filters)
         for filter in [filters].flatten
           ensure_filter_responds_to_before_and_after(filter)
-        	append_before_filter(proc { |c| filter.before(c) })
-        	prepend_after_filter(proc { |c| filter.after(c) })
+          append_before_filter { |c| filter.before(c) }
+          prepend_after_filter { |c| filter.after(c) }
         end
       end        
 
@@ -173,8 +188,8 @@ module ActionController #:nodoc:
       def prepend_around_filter(filters)
         for filter in [filters].flatten
           ensure_filter_responds_to_before_and_after(filter)
-        	prepend_before_filter(proc { |c| filter.before(c) })
-        	append_after_filter(proc { |c| filter.after(c) })
+          prepend_before_filter { |c| filter.before(c) }
+          append_after_filter   { |c| filter.after(c) }
         end
       end     
 
@@ -199,7 +214,7 @@ module ActionController #:nodoc:
         def prepend_filter_to_chain(condition, filters)
           write_inheritable_attribute("#{condition}_filters", filters + read_inheritable_attribute("#{condition}_filters"))
         end
-        
+
         def ensure_filter_responds_to_before_and_after(filter)
           unless filter.respond_to?(:before) && filter.respond_to?(:after)
             raise ActionControllerError, "Filter object must respond to both before and after"

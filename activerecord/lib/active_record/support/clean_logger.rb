@@ -1,6 +1,6 @@
 require 'logger'
 
-class Logger
+class Logger #:nodoc:
   private
     remove_const "Format"
     Format = "%s\n"

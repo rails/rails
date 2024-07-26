@@ -10,7 +10,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   def self.dispatch(options = {})
     Socket.do_not_reverse_lookup = true # patch for OS X
 
-    server = WEBrick::HTTPServer.new(:Port => options[:port].to_i, :ServerType => options[:server_type])
+    server = WEBrick::HTTPServer.new(:Port => options[:port].to_i, :ServerType => options[:server_type], :BindAddress => options[:ip])
     server.mount('/', DispatchServlet, options)
 
     trap("INT") { server.shutdown }
@@ -65,26 +65,17 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def handle_mapped(req, res)
-    controller = action = id = nil
-    component = /([-_a-zA-Z0-9]+)/
-
-    case req.request_uri.path.sub(%r{^/(?:fcgi|mruby|cgi)/}, "/")
-      when %r{^/#{component}/$} then
-        controller, action = $1, "index"
-      when %r{^/#{component}/#{component}$} then
-        controller, action = $1, $2
-      when %r{^/#{component}/#{component}/#{component}$} then
-        controller, action, id = $1, $2, $3
-      else
-        return false
+    parsed_ok, controller, action, id = DispatchServlet.parse_uri(req.request_uri.path)
+    if parsed_ok
+      query = "controller=#{controller}&action=#{action}&id=#{id}"
+      query << "&#{req.request_uri.query}" if req.request_uri.query
+      origin = req.request_uri.path + "?" + query
+      req.request_uri.path = "/dispatch.rb"
+      req.request_uri.query = query
+      handle_dispatch(req, res, origin)
+    else
+      return false
     end
-
-    query = "controller=#{controller}&action=#{action}&id=#{id}"
-    query << "&#{req.request_uri.query}" if req.request_uri.query
-    origin = req.request_uri.path + "?" + query
-    req.request_uri.path = "/dispatch.rb"
-    req.request_uri.query = query
-    handle_dispatch(req, res, origin)
   end
 
   def handle_dispatch(req, res, origin = nil)
@@ -95,23 +86,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     env["REQUEST_URI"] = origin if origin
     
     data = nil
-    if @server_options[:auto_reload]
-      IO.popen("ruby", "r+") do |ruby|
-        ruby.puts <<-END
-          require 'cgi'
-          require 'stringio'
-          env = #{env.inspect}
-          CGI.send(:define_method, :env_table) { env }
-          $stdin = StringIO.new(#{(req.body || "").inspect})
-    
-          Dir.chdir(#{@server_options[:server_root].inspect})
-    
-          eval 'load "dispatch.rb"', binding, #{File.join(@server_options[:server_root], "dispatch.rb").inspect}
-        END
-        ruby.close_write
-        data = ruby.read
-      end
-    else
+    if @server_options[:cache_classes]
       old_stdin, old_stdout = $stdin, $stdout
       $stdin, $stdout = StringIO.new(req.body || ""), StringIO.new
 
@@ -125,6 +100,28 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
         data = $stdout.read
       ensure
         $stdin, $stdout = old_stdin, old_stdout
+      end
+    else
+      begin
+        require 'rbconfig'
+        ruby_interpreter = Config::CONFIG['ruby_install_name'] || 'ruby'
+      rescue Object
+        ruby_interpreter = 'ruby'
+      end
+      
+      dispatch_rb_path = File.expand_path(File.join(@server_options[:server_root], "dispatch.rb"))
+      IO.popen(ruby_interpreter, "r+") do |ruby|
+        ruby.puts <<-END
+          require 'cgi'
+          require 'stringio'
+          env = #{env.inspect}
+          CGI.send(:define_method, :env_table) { env }
+          $stdin = StringIO.new(#{(req.body || "").inspect})
+    
+          eval "load '#{dispatch_rb_path}'", binding, #{dispatch_rb_path.inspect}
+        END
+        ruby.close_write
+        data = ruby.read
       end
     end
 
@@ -142,4 +139,20 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     p err, err.backtrace
     return false
   end
+  
+  def self.parse_uri(path)
+    component = /([-_a-zA-Z0-9]+)/
+
+    case path.sub(%r{^/(?:fcgi|mruby|cgi)/}, "/")
+      when %r{^/#{component}/?$} then
+        [true, $1, "index", nil]
+      when %r{^/#{component}/#{component}/?$} then
+        [true, $1, $2, nil]
+      when %r{^/#{component}/#{component}/#{component}/?$} then
+        [true, $1, $2, $3]
+      else
+        [false, nil, nil, nil]
+    end
+  end
+  
 end

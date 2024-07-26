@@ -15,7 +15,7 @@ class ReflectionTest < Test::Unit::TestCase
 
   def test_read_attribute_names
     assert_equal(
-      %w( id title author_name author_email_address written_on last_read content approved reply_count parent_id type ).sort,
+      %w( id title author_name author_email_address written_on last_read content approved replies_count parent_id type ).sort,
       @first.attribute_names
     )
   end

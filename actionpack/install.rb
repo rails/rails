@@ -18,7 +18,13 @@ unless $sitedir
   end
 end
 
-makedirs = %w{ action_view/helpers action_controller/cgi_ext action_controller/support }
+makedirs = %w{ action_controller/cgi_ext action_controller/session
+               action_controller/support action_controller/templates
+               action_controller/templates/rescues action_controller/templates/scaffolds
+               action_view/helpers action_view/vendor action_view/vendor/builder
+}
+
+
 makedirs.each {|f| File::makedirs(File.join($sitedir, *f.split(/\//)))}
 
 # deprecated files that should be removed
@@ -31,9 +37,6 @@ files = %w-
  action_controller/benchmarking.rb
  action_controller/cgi_ext/cgi_ext.rb
  action_controller/cgi_ext/cgi_methods.rb
- action_controller/session/active_record_store.rb
- action_controller/session/drb_server.rb
- action_controller/session/drb_store.rb
  action_controller/cgi_process.rb
  action_controller/filters.rb
  action_controller/flash.rb
@@ -42,9 +45,14 @@ files = %w-
  action_controller/rescue.rb
  action_controller/response.rb
  action_controller/scaffolding.rb
+ action_controller/session/active_record_store.rb
+ action_controller/session/drb_server.rb
+ action_controller/session/drb_store.rb
  action_controller/support/class_inheritable_attributes.rb
  action_controller/support/class_attribute_accessors.rb
  action_controller/support/clean_logger.rb
+ action_controller/support/cookie_performance_fix.rb
+ action_controller/support/inflector.rb
  action_controller/templates/rescues/_request_and_response.rhtml
  action_controller/templates/rescues/diagnostics.rhtml
  action_controller/templates/rescues/layout.rhtml
@@ -59,10 +67,7 @@ files = %w-
  action_controller/test_process.rb
  action_controller/url_rewriter.rb
  action_view.rb
- action_view/abstract_template.rb
- action_view/template_error.rb
- action_view/erb_template.rb
- action_view/eruby_template.rb
+ action_view/base.rb
  action_view/helpers/active_record_helper.rb
  action_view/helpers/date_helper.rb
  action_view/helpers/debug_helper.rb
@@ -71,6 +76,13 @@ files = %w-
  action_view/helpers/text_helper.rb
  action_view/helpers/tag_helper.rb
  action_view/helpers/url_helper.rb
+ action_view/partials.rb
+ action_view/template_error.rb
+ action_view/vendor/builder.rb
+ action_view/vendor/builder/blankslate.rb
+ action_view/vendor/builder/xmlbase.rb
+ action_view/vendor/builder/xmlevents.rb
+ action_view/vendor/builder/xmlmarkup.rb
 -
 
 # the acual gruntwork

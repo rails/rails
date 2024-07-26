@@ -5,11 +5,12 @@ require 'rubygems'
 
 require_gem 'activerecord'
 require_gem 'actionpack'
+require_gem 'actionmailer'
 require_gem 'rails'
 
 require 'yaml'
 
-ActionController::Base.template_root = File.dirname(__FILE__) + '/../../app/views/'
+ActionController::Base.template_root = ActionMailer::Base.template_root = File.dirname(__FILE__) + '/../../app/views/'
 
 def database_configurations
   YAML::load(File.open(File.dirname(__FILE__) + "/../../config/database.yml"))

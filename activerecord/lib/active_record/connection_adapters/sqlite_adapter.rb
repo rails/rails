@@ -16,10 +16,12 @@ begin
         end
 
         db = SQLite::Database.new(config[:dbfile], 0)
-        db.show_datatypes   = "ON"
+
+        db.show_datatypes   = "ON" if !defined? SQLite::Version
+        db.results_as_hash  = true if defined? SQLite::Version
         db.type_translation = false
-        
-        self.connection = ConnectionAdapters::SQLiteAdapter.new(db, logger)
+
+        ConnectionAdapters::SQLiteAdapter.new(db, logger)
       end
     end
 
@@ -41,13 +43,24 @@ begin
           end
         end
 
-        def insert(sql, name = nil)
+        def insert(sql, name = nil, pk = nil, id_value = nil)
           execute(sql, name = nil)
-          @connection.last_insert_rowid()
+          id_value || @connection.send( defined?( SQLite::Version ) ? :last_insert_row_id : :last_insert_rowid )
         end
 
         def execute(sql, name = nil)
-          log(sql, name, @connection) { |connection| connection.execute(sql) }
+          log(sql, name, @connection) do |connection|
+            if defined?( SQLite::Version )
+              case sql
+                when "BEGIN" then connection.transaction
+                when "COMMIT" then connection.commit
+                when "ROLLBACK" then connection.rollback
+                else connection.execute(sql)
+              end
+            else
+              connection.execute( sql )
+            end
+          end
         end
 
         alias_method :update, :execute
@@ -56,6 +69,10 @@ begin
         def begin_db_transaction()    execute "BEGIN" end
         def commit_db_transaction()   execute "COMMIT" end
         def rollback_db_transaction() execute "ROLLBACK" end
+
+        def quote_column_name(name)
+          return "'#{name}'"
+        end
 
         private
           def select(sql, name = nil)
@@ -71,7 +88,7 @@ begin
               end
               rows << hash_only_row
             end
-            
+
             return rows
           end
 
@@ -85,5 +102,6 @@ begin
     end
   end
 rescue LoadError
+  retry if require('rubygems') rescue LoadError
   # SQLite driver is not availible
 end

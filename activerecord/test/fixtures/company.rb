@@ -14,8 +14,8 @@ class Firm < Company
 end
 
 class Client < Company
-  belongs_to :firm, :foreign_key => "client_of", :counter_cache => true
-  belongs_to :firm_with_basic_id, :class_name => "Firm", :foreign_key => "firm_id", :counter_cache => true
+  belongs_to :firm, :foreign_key => "client_of"
+  belongs_to :firm_with_basic_id, :class_name => "Firm", :foreign_key => "firm_id"
   belongs_to :firm_with_other_name, :class_name => "Firm", :foreign_key => "client_of"
   belongs_to :firm_with_condition, :class_name => "Firm", :foreign_key => "client_of", :conditions => "1 = 1"
 end

@@ -103,6 +103,34 @@ class UrlTest < Test::Unit::TestCase
     )
   end
 
+  def test_controller_and_action_and_empty_overwrite_params_and_anchor
+    assert_equal(
+      "http://www.singlefile.com/library/settings/show?code=0743536703&type=ISBN#5", 
+      @library_url.rewrite(:controller => "settings", :action => "show", :overwrite_params => {},  :anchor => "5")
+    )
+  end
+  
+  def test_controller_and_action_and_overwrite_params_and_anchor
+    assert_equal(
+      "http://www.singlefile.com/library/settings/show?code=0000001&type=ISBN#5", 
+      @library_url.rewrite(:controller => "settings", :action => "show", :overwrite_params => {"code"=>"0000001"},  :anchor => "5")
+    )
+  end
+
+  def test_controller_and_action_and_overwrite_params_with_nil_value_and_anchor
+    assert_equal(
+      "http://www.singlefile.com/library/settings/show?type=ISBN#5", 
+      @library_url.rewrite(:controller => "settings", :action => "show", :overwrite_params => {"code" => nil},  :anchor => "5")
+    )
+  end
+
+  def test_controller_and_action_params_and_overwrite_params_and_anchor
+    assert_equal(
+      "http://www.singlefile.com/library/settings/show?code=0000001&version=5.0#5", 
+      @library_url.rewrite(:controller => "settings", :action => "show", :params=>{"version" => "5.0" },  :overwrite_params => {"code"=>"0000001"},  :anchor => "5")
+    )
+  end
+
   def test_controller_and_action_and_params_anchor
     assert_equal(
       "http://www.singlefile.com/library/settings/show?update=1#5", 
@@ -112,6 +140,10 @@ class UrlTest < Test::Unit::TestCase
 
   def test_controller_and_index_action
     assert_equal "http://www.singlefile.com/library/settings/", @library_url.rewrite(:controller => "settings", :action => "index")
+  end
+
+  def test_controller_and_action_with_same_name_as_controller
+    assert_equal "http://www.singlefile.com/anything/identity", @clean_url.rewrite(:controller => "anything", :action => "identity")
   end
 
   def test_controller_and_index_action_without_controller_prefix
@@ -134,7 +166,7 @@ class UrlTest < Test::Unit::TestCase
   
   def test_parameters
     assert_equal(
-      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&delete=1", 
+      "http://www.singlefile.com/library/books/ISBN/0743536703/show?delete=1&name=David", 
       @library_url.rewrite(:params => {"delete" => "1", "name" => "David"})
     )
   end
@@ -232,7 +264,7 @@ class UrlTest < Test::Unit::TestCase
 
   def test_from_clean_to_libray
     assert_equal(
-      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&delete=1", 
+      "http://www.singlefile.com/library/books/ISBN/0743536703/show?delete=1&name=David", 
       @clean_url.rewrite(
         :controller_prefix => "library",
         :controller => "books", 

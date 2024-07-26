@@ -64,7 +64,7 @@ class CGIMethods #:nodoc:
     end
   
     def CGIMethods.get_levels(key_string)
-      return [] if key_string.nil?
+      return [] if key_string.nil? or key_string.empty?
 
       levels = []
       main, existance = /(\w+)(\[)?.?/.match(key_string).captures

@@ -1,4 +1,6 @@
 class Reply < Topic
+  belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true
+  
   attr_accessible :title, :author_name, :author_email_address, :written_on, :content, :last_read
 
   def validate

@@ -1,0 +1,102 @@
+= Action Mailer -- Easy email delivery and testing
+
+Action Mailer is framework for designing email-service layers. These layers
+are used to consolidate code for sending out forgotten passwords, welcoming
+wishes on signup, invoices for billing, and any other use case that requires
+a written notification to either a person or another system.
+
+The framework works by setting up all the email details, except the body,
+in methods on the service layer. Subject, recipients, sender, and timestamp
+are all set up this way. An example of such a method:
+
+  def signed_up(recipient)
+    @recipients   = recipient
+    @subject      = "[Signed up] Welcome #{recipient}"
+    @from         = "system@loudthinking.com"
+    @sent_on      = Time.local(2004, 12, 12)
+
+    @body["recipient"] = recipient
+  end
+
+The body of the email is created by using an Action View template (regular
+ERb) that has the content of the @body hash available as instance variables. 
+So the corresponding body template for the method above could look like this:
+
+  Hello there, 
+
+  Mr. <%= @recipient %>
+  
+And if the recipient was given as "david@loudthinking.com", the email 
+generated would look like this:
+
+  Date: Sun, 12 Dec 2004 00:00:00 +0100
+  From: system@loudthinking.com
+  To: david@loudthinking.com
+  Subject: [Signed up] Welcome david@loudthinking.com
+
+  Hello there, 
+
+  Mr. david@loudthinking.com
+
+You never actually call the instance methods like signed_up directly. Instead,
+you call class methods like deliver_* and create_* that are automatically
+created for each instance method. So if the signed_up method sat on
+ApplicationMailer, it would look like this:
+
+  ApplicationMailer.create_signed_up("david@loudthinking.com")  # => tmail object for testing
+  ApplicationMailer.deliver_signed_up("david@loudthinking.com") # sends the email
+  ApplicationMailer.new.signed_up("david@loudthinking.com")     # won't work!
+
+
+== Dependencies
+
+Action Mailer requires that the Action Pack is either available to be required immediately
+or is accessible as a GEM.
+
+
+== Bundled software
+
+* tmail 0.10.8 by Minero Aoki released under LGPL
+  Read more on http://i.loveruby.net/en/prog/tmail.html
+
+* Text::Format 0.63 by Austin Ziegler released under OpenSource
+  Read more on http://www.halostatue.ca/ruby/Text__Format.html
+
+
+== Download
+
+The latest version of Action Mailer can be found at
+
+* http://rubyforge.org/project/showfiles.php?group_id=361
+
+Documentation can be found at 
+
+* http://actionmailer.rubyonrails.org
+
+
+== Installation
+
+You can install Action Mailer with the following command.
+
+  % [sudo] ruby install.rb
+
+from its distribution directory.
+
+
+== License
+
+Action Mailer is released under the MIT license.
+
+
+== Support
+
+The Action Mailer homepage is http://actionmailer.rubyonrails.org. You can find
+the Action Mailer RubyForge page at http://rubyforge.org/projects/actionmailer.
+And as Jim from Rake says:
+
+   Feel free to submit commits or feature requests.  If you send a patch,
+   remember to update the corresponding unit tests.  If fact, I prefer
+   new feature to be submitted in the form of new unit tests.
+
+For other information, feel free to ask on the ruby-talk mailing list (which
+is mirrored to comp.lang.ruby) or contact mailto:david@loudthinking.com.

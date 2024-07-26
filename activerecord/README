@@ -216,12 +216,10 @@ The foreign_key is only necessary because we didn't use "firm_id" in the data de
    #   PRIMARY KEY  (id)
    # )
 
-Active Record can't guess the table name itself from exceptions like these, so we help it...
+Active Record will also automatically link the "Person" object to the "people" table
 
    class Person < ActiveRecord::Base
      belongs_to :company
-
-     def self.table_name() "people" end
    end
 
 == Simple example (2/2): Using the domain
@@ -265,19 +263,18 @@ The supertype, Company, will return subtype instances
 
 All the dynamic methods added by the has_many macro
 
-  next_angle.has_clients?  # true
-  next_angle.clients_count # total number of clients
+  next_angle.clients.empty?  # true
+  next_angle.clients.size    # total number of clients
   all_clients = next_angle.clients
 
 Constrained finds makes access security easier when ID comes from a web-app
 
    # SQL: SELECT * FROM companies WHERE client_of = 1 AND type = 'Client' AND id = 2
-   thirty_seven_signals = next_angle.find_in_clients(2)
+   thirty_seven_signals = next_angle.clients.find(2)
 
 Bi-directional associations thanks to the "belongs_to" macro
 
-   thirty_seven_signals.has_firm? # true
-   thirty_seven_signals.firm?(next_angle) # true
+   thirty_seven_signals.firm.nil? # true
 
 
 == Examples
@@ -295,7 +292,7 @@ It's also highly recommended to have a look at the unit tests. Read more in link
 Active Record ships with adapters for MySQL/Ruby[http://www.tmtm.org/en/mysql/ruby/] 
 (compatible with Ruby/MySQL[http://www.tmtm.org/ruby/mysql/README_en.html]), 
 PostgreSQL[http://www.postgresql.jp/interfaces/ruby/], and 
-SQLite[http://rubyforge.org/projects/sqlite-ruby/] (needs SQLite 2.8.13 and SQLite-Ruby 1.1.2+).
+SQLite[http://rubyforge.org/projects/sqlite-ruby/] (needs SQLite 2.8.13+ and SQLite-Ruby 1.1.2+).
 The adapters are around 100 lines of code fulfilling the interface specified by 
 ActiveRecord::ConnectionAdapters::AbstractAdapter. Writing a new adapter should be a small task --
 especially considering the extensive test suite that'll make sure you're fulfilling the contract.
@@ -336,7 +333,7 @@ The prefered method of installing Active Record is through its GEM file. You'll 
 RubyGems[http://rubygems.rubyforge.org/wiki/wiki.pl] installed for that, though. If you have,
 then use:
 
-  % [sudo] gem -i activerecord-0.7.5.gem --install-stub
+  % [sudo] gem install activerecord-0.9.0.gem
 
 You can also install Active Record the old-fashion way with the following command:
 

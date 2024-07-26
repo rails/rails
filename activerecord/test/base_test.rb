@@ -2,6 +2,9 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/company'
+require 'fixtures/default'
+require 'fixtures/auto_id'
+require 'fixtures/column_name'
 
 class Category < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
@@ -24,7 +27,7 @@ class Booleantest < ActiveRecord::Base; end
 
 class BasicsTest < Test::Unit::TestCase
   def setup
-    @topic_fixtures = create_fixtures "topics"
+    @topic_fixtures, @companies = create_fixtures "topics", "companies"
   end
 
   def test_set_attributes
@@ -36,6 +39,11 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal(@topic_fixtures["first"]["author_email_address"], Topic.find(1).author_email_address)
   end
   
+  def test_integers_as_nil
+    Topic.update(1, "approved" => "")
+    assert_nil Topic.find(1).approved
+  end
+  
   def test_set_attributes_with_block
     topic = Topic.new do |t|
       t.title       = "Budget"
@@ -44,6 +52,16 @@ class BasicsTest < Test::Unit::TestCase
 
     assert_equal("Budget", topic.title)
     assert_equal("Jason", topic.author_name)
+  end
+  
+  def test_respond_to?
+    topic = Topic.find(1)
+    assert topic.respond_to?("title")
+    assert topic.respond_to?("title?")
+    assert topic.respond_to?("title=")
+    assert topic.respond_to?("author_name")
+    assert topic.respond_to?("attribute_names")
+    assert !topic.respond_to?("nothingness")
   end
   
   def test_array_content
@@ -212,19 +230,19 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_increment_counter
-    Topic.increment_counter("reply_count", 1)
-    assert_equal 1, Topic.find(1).reply_count
+    Topic.increment_counter("replies_count", 1)
+    assert_equal 1, Topic.find(1).replies_count
 
-    Topic.increment_counter("reply_count", 1)
-    assert_equal 2, Topic.find(1).reply_count
+    Topic.increment_counter("replies_count", 1)
+    assert_equal 2, Topic.find(1).replies_count
   end
   
   def test_decrement_counter
-    Topic.decrement_counter("reply_count", 2)
-    assert_equal 1, Topic.find(2).reply_count
+    Topic.decrement_counter("replies_count", 2)
+    assert_equal 1, Topic.find(2).replies_count
 
-    Topic.decrement_counter("reply_count", 2)
-    assert_equal 0, Topic.find(1).reply_count
+    Topic.decrement_counter("replies_count", 2)
+    assert_equal 0, Topic.find(1).replies_count
   end
   
   def test_update_all
@@ -275,6 +293,7 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_null_fields
     assert_nil Topic.find(1).parent_id
+    assert_nil Topic.create("title" => "Hey you").parent_id
   end
   
   def test_default_values
@@ -399,13 +418,96 @@ class BasicsTest < Test::Unit::TestCase
     cloned_topic = topic.clone
     assert_equal topic.title, cloned_topic.title
     assert cloned_topic.new_record?
+
+    # test if the attributes have been cloned
+    topic.title = "a" 
+    cloned_topic.title = "b" 
+    assert_equal "a", topic.title
+    assert_equal "b", cloned_topic.title
+
+    # test if the attribute values have been cloned
+    topic.title = {"a" => "b"}
+    cloned_topic = topic.clone
+    cloned_topic.title["a"] = "c" 
+    assert_equal "b", topic.title["a"]
   end
   
   def test_bignum
-    topic = Topic.new
-    topic.reply_count = 2147483647
-    topic.save
-    topic = Topic.find(topic.id)
-    assert_equal 2147483647, topic.reply_count
+    company = Company.find(1)
+    company.rating = 2147483647
+    company.save
+    company = Company.find(1)
+    assert_equal 2147483647, company.rating
+  end
+
+  def test_default
+    if Default.connection.class.name == 'ActiveRecord::ConnectionAdapters::PostgreSQLAdapter'
+      default = Default.new
+  
+      # dates / timestampts
+      time_format = "%m/%d/%Y %H:%M"
+      assert_equal Time.now.strftime(time_format), default.modified_time.strftime(time_format)
+      assert_equal Date.today, default.modified_date
+  
+      # fixed dates / times
+      assert_equal Date.new(2004, 1, 1), default.fixed_date
+      assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
+  
+      # char types
+      assert_equal 'Y', default.char1
+      assert_equal 'a varchar field', default.char2
+      assert_equal 'a text field', default.char3
+    end
+  end
+
+  def test_auto_id
+    auto = AutoId.new
+    auto.save
+    assert (auto.id > 0)
+  end
+  
+  def quote_column_name(name)
+    "<#{name}>"
+  end
+
+  def test_quote_keys
+    ar = AutoId.new
+    source = {"foo" => "bar", "baz" => "quux"}
+    actual = ar.send(:quote_columns, self, source)
+    inverted = actual.invert
+    assert_equal("<foo>", inverted["bar"])
+    assert_equal("<baz>", inverted["quux"])
+  end
+
+  def test_column_name_properly_quoted
+    col_record = ColumnName.new
+    col_record.references = 40
+    col_record.save
+    col_record.references = 41
+    col_record.save
+    c2 = ColumnName.find(col_record.id)
+    assert_equal(41, c2.references)
+  end
+
+  MyObject = Struct.new :attribute1, :attribute2
+  
+  def test_serialized_attribute
+    myobj = MyObject.new('value1', 'value2')
+    topic = Topic.create("content" => myobj)  
+    Topic.serialize("content", MyObject)
+    assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_attribute_with_class_constraint
+    myobj = MyObject.new('value1', 'value2')
+    topic = Topic.create("content" => myobj)
+    Topic.serialize(:content, Hash)
+
+    assert_raises(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
+
+    settings = { "color" => "blue" }
+    Topic.find(topic.id).update_attribute("content", settings)
+    assert_equal(settings, Topic.find(topic.id).content)
+    Topic.serialize(:content)
   end
 end

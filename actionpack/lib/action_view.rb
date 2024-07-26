@@ -21,7 +21,20 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'action_view/erb_template'
-require 'action_view/eruby_template'
+begin
+  require 'rubygems'	
+  require 'builder'
+rescue LoadError
+  # RubyGems is not available, use included Builder
+  $:.unshift(File.dirname(__FILE__) + "/action_view/vendor")
+  require 'action_view/vendor/builder'
+end
 
-ActionView::AbstractTemplate.load_helpers(File.dirname(__FILE__) + "/action_view/helpers/")
+require 'action_view/base'
+require 'action_view/partials'
+
+ActionView::Base.class_eval do
+  include ActionView::Partials
+end
+
+ActionView::Base.load_helpers(File.dirname(__FILE__) + "/action_view/helpers/")

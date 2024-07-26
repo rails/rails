@@ -1,4 +1,7 @@
 class Topic < ActiveRecord::Base
+  has_many :replies, :foreign_key => "parent_id"
+  serialize :content
+  
   before_create  :default_written_on
   before_destroy :destroy_children #'self.class.delete_all "parent_id = #{id}"'
 

@@ -28,16 +28,14 @@ class FormHelperTest < Test::Unit::TestCase
       '<input id="person_name" name="person[name]" size="30" type="password" value="" />', password_field("person", "name")
     )
   end
-  
-  # Pending a speed-up fix from Batsman on caller_binding approach
-  def xtest_text_field_on_local_variables
-    post = Post.new("I am local!")
-    
+
+  def test_text_field_with_escapes
+    @post.title = "<b>Hello World</b>"
     assert_equal(
-      '<input id="post_title" name="post[title]" size="30" type="text" value="I am local!" />', text_field("post", "title")
-    )    
+      '<input id="post_title" name="post[title]" size="30" type="text" value="&lt;b&gt;Hello World&lt;/b&gt;" />', text_field("post", "title")
+    )
   end
-  
+
   def test_text_field_with_options
     assert_equal(
       '<input id="post_title" name="post[title]" size="35" type="text" value="Hello World" />', 
@@ -56,9 +54,14 @@ class FormHelperTest < Test::Unit::TestCase
     assert_equal(
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret")
     )
-
+    
     @post.secret = 0
     assert_equal '<input id="post_secret" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret")    
+    
+    @post.secret = true
+    assert_equal(
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret")
+    )
   end
   
   def test_text_area
@@ -68,6 +71,14 @@ class FormHelperTest < Test::Unit::TestCase
     )
   end
   
+  def test_text_area_with_escapes
+    @post.body        = "Back to <i>the</i> hill and over it again!"
+    assert_equal(
+      '<textarea cols="40" id="post_body" name="post[body]" rows="20" wrap="virtual">Back to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>',
+      text_area("post", "body")
+    )
+  end
+
   def test_date_selects
     assert_equal(
       '<textarea cols="40" id="post_body" name="post[body]" rows="20" wrap="virtual">Back to the hill and over it again!</textarea>',

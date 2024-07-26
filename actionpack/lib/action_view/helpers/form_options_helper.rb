@@ -1,4 +1,5 @@
 require 'cgi'
+require 'erb'
 require File.dirname(__FILE__) + '/form_helper'
 
 module ActionView
@@ -6,6 +7,8 @@ module ActionView
     # Provides a number of methods for turning different kinds of containers into a set of option tags. Neither of the methods provide
     # the actual select tag, so you'll need to construct that in HTML manually.
     module FormOptionsHelper
+      include ERB::Util
+      
       def select(object, method, choices, options = {}, html_options = {})
         InstanceTag.new(object, method, self).to_select_tag(choices, options, html_options)
       end
@@ -43,13 +46,13 @@ module ActionView
           if element.respond_to?(:first) && element.respond_to?(:last)
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element.last) : element.last == selected) )
             if is_selected
-              options << "<option value=\"#{CGI.escapeHTML(element.last)}\" selected=\"selected\">#{CGI.escapeHTML(element.first)}</option>"
+              options << "<option value=\"#{html_escape(element.last.to_s)}\" selected=\"selected\">#{html_escape(element.first.to_s)}</option>"
             else
-              options << "<option value=\"#{CGI.escapeHTML(element.last)}\">#{CGI.escapeHTML(element.first)}</option>"
+              options << "<option value=\"#{html_escape(element.last.to_s)}\">#{html_escape(element.first.to_s)}</option>"
             end
           else
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element) : element == selected) )
-            options << ((is_selected) ? "<option selected=\"selected\">#{CGI.escapeHTML(element)}</option>" : "<option>#{CGI.escapeHTML(element)}</option>")
+            options << ((is_selected) ? "<option selected=\"selected\">#{html_escape(element.to_s)}</option>" : "<option>#{html_escape(element.to_s)}</option>")
           end
         end
         
@@ -105,7 +108,7 @@ module ActionView
             option_key_method, option_value_method, selected_key = nil)
         collection.inject("") do |options_for_select, group|
           group_label_string = eval("group.#{group_label_method}")
-          options_for_select += "<optgroup label=\"#{CGI.escapeHTML(group_label_string)}\">"
+          options_for_select += "<optgroup label=\"#{html_escape(group_label_string)}\">"
           options_for_select += options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key)
           options_for_select += '</optgroup>'
         end

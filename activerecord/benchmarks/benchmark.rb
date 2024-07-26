@@ -12,8 +12,8 @@ class Post < ActiveRecord::Base; end
 
 require 'benchmark'
 
-require 'profile' if ARGV[1] == "profile"
 RUNS = ARGV[0].to_i
+if ARGV[1] == "profile" then require 'profile' end
 
 runtime = Benchmark::measure {
   RUNS.times { 

@@ -1,7 +1,6 @@
 require 'cgi'
 require File.dirname(__FILE__) + '/date_helper'
 require File.dirname(__FILE__) + '/tag_helper'
-# require 'action_view/support/caller_binding'
 
 module ActionView
   module Helpers
@@ -120,11 +119,11 @@ module ActionView
       def to_text_area_tag(options = {})
         options = DEFAULT_TEXT_AREA_OPTIONS.merge(options)
         add_default_name_and_id(options)
-        content_tag("textarea", value, options)
+        content_tag("textarea", html_escape(value), options)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1")
-        options.merge!({"checked" => "checked"}) if !value.nil? && value.to_i > 0
+        options.merge!({"checked" => "checked"}) if !value.nil? && ((value.is_a?(TrueClass) || value.is_a?(FalseClass)) ? value : value.to_i > 0)
         options.merge!({ "type" => "checkbox", "value" => checked_value })
         add_default_name_and_id(options)
         tag("input", options)
