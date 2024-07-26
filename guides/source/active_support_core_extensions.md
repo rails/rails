@@ -2881,27 +2881,25 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### Working with Keys
 
-#### `except` and `except!`
+#### `except!`
 
-The method [`except`][Hash#except] returns a hash with the keys in the argument list removed, if present:
-
-```ruby
-{ a: 1, b: 2 }.except(:a) # => {:b=>2}
-```
-
-If the receiver responds to `convert_key`, the method is called on each of the arguments. This allows `except` to play nice with hashes with indifferent access for instance:
+The method [`except!`][Hash#except!] is identical to the built-in `except` method but removes keys in place, returning `self`.
 
 ```ruby
-{ a: 1 }.with_indifferent_access.except(:a)  # => {}
-{ a: 1 }.with_indifferent_access.except("a") # => {}
+{ a: 1, b: 2 }.except!(:a) # => {:b=>2}
+{ a: 1, b: 2 }.except!(:c) # => {:a=>1, :b=>2}
 ```
 
-There's also the bang variant [`except!`][Hash#except!] that removes keys in place.
+If the receiver responds to `convert_key`, the method is called on each of the arguments. This allows `except!` (and `except`) to play nice with hashes with indifferent access for instance:
+
+```ruby
+{ a: 1 }.with_indifferent_access.except!(:a)  # => {}
+{ a: 1 }.with_indifferent_access.except!("a") # => {}
+```
 
 NOTE: Defined in `active_support/core_ext/hash/except.rb`.
 
 [Hash#except!]: https://api.rubyonrails.org/classes/Hash.html#method-i-except-21
-[Hash#except]: https://api.rubyonrails.org/classes/Hash.html#method-i-except
 
 #### `stringify_keys` and `stringify_keys!`
 
