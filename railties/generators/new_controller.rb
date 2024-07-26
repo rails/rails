@@ -6,8 +6,8 @@ def create_controller_class(controller_name, show_actions)
 require 'action_controller'
 require '#{controller_name.downcase}_helper'
 
-class #{controller_name}Controller < ActionController::Base
-  include #{controller_name}Helper
+class #{controller_name.capitalize}Controller < ActionController::Base
+  include #{controller_name.capitalize}Helper
 
 #{show_actions.collect { |action| "  def #{action}\n  end" }.join "\n\n" }
 end
@@ -18,7 +18,7 @@ end
 def create_helper_class(controller_name)
   File.open("app/helpers/" + controller_name.downcase  + "_helper.rb", "w", 0777) do |helper_file|
     helper_file.write <<EOF
-module #{controller_name}Helper
+module #{controller_name.capitalize}Helper
   def self.append_features(controller) #:nodoc:
     controller.ancestors.include?(ActionController::Base) ? controller.add_template_helper(self) : super
   end
@@ -31,9 +31,14 @@ def create_templates(controller_name, show_actions)
   Dir.mkdir("app/views/#{controller_name.downcase}") rescue nil
   show_actions.each { |action| File.open("app/views/#{controller_name.downcase}/#{action}.rhtml", "w", 0777) do |template_file|
     template_file.write <<EOF
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>#{controller_name.capitalize}##{action}</title>
+</head>   
 <body>
-<h1>#{controller_name}##{action}</h1>
+<h1>#{controller_name.capitalize}##{action}</h1>
+<p>Find me in app/views/#{controller_name.capitalize}/#{action}.rhtml</p>
 </body>
 </html>
 EOF
@@ -47,9 +52,9 @@ require File.dirname(__FILE__) + '/../functional_test_helper'
 require '#{controller_name.downcase}_controller'
 
 # Raise errors beyond the default web-based presentation
-class #{controller_name}Controller; def rescue_action(e) raise e end; end
+class #{controller_name.capitalize}Controller; def rescue_action(e) raise e end; end
 
-class #{controller_name}ControllerTest < Test::Unit::TestCase
+class #{controller_name.capitalize}ControllerTest < Test::Unit::TestCase
   def setup
     @request = ActionController::TestRequest.new
     @request.host = ""

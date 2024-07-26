@@ -1,3 +1,8 @@
+*0.7.7*
+
+* Fixed bug in CGI extension that prevented multipart forms from working
+
+
 *0.7.6*
 
 * Included ERB::Util so all templates can easily escape HTML content with <%=h @person.content %>

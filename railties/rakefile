@@ -6,7 +6,7 @@ require 'rake/rdoctask'
 require 'date'
 
 PACKAGE_NAME    = "rails"
-PACKAGE_VERSION = "0.5.5"
+PACKAGE_VERSION = "0.5.6"
 
 desc "Default Task"
 task :default => [ :fresh_rails ]

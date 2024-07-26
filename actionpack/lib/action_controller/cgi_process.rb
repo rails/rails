@@ -49,7 +49,7 @@ module ActionController #:nodoc:
     end
 
     def request_parameters
-      CGIMethods.parse_request_parameters(@cgi.params)
+      @request_parameters ||= CGIMethods.parse_request_parameters(@cgi.params)
     end
     
     def env

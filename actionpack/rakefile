@@ -6,7 +6,7 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_VERSION = "0.7.6"
+PKG_VERSION = "0.7.7"
 
 desc "Default Task"
 task :default => [ :test ]
@@ -27,7 +27,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.template = 'css2'
   rdoc.title    = "Action Pack -- On rails from request to response"
   rdoc.options << '--line-numbers --inline-source --main README'
-  rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS')
+  rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
 }
 

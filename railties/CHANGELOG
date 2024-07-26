@@ -1,4 +1,14 @@
-*0.5.1*
+*0.5.6*
+
+* Upgraded to Action Pack 0.7.7 (multipart form fix)
+
+* Updated the generated template stubs to valid XHTML files
+
+* Ensure that controllers generated are capitalized, so "new_controller TodoLists" 
+  gives the same as "new_controller Todolists" and "new_controller todolists".
+
+
+*0.5.5*
 
 * Works on Windows out of the box! (Dropped symlinks)
 
@@ -13,3 +23,8 @@
 * Added distinct 500.html instead of reusing 404.html
 
 * Added MIT license
+
+
+*0.5.0*
+
+* First public release
