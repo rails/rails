@@ -4,7 +4,13 @@ module ActionView
     module DebugHelper
       # Returns a <pre>-tag set with the +object+ dumped by YAML. Very readable way to inspect an object.
       def debug(object)
-        "<pre class='debug_dump'>#{h(object.to_yaml).gsub("  ", "&nbsp; ")}</pre>"
+        begin
+          Marshall::dump(object)
+          "<pre class='debug_dump'>#{h(object.to_yaml).gsub("  ", "&nbsp; ")}</pre>"
+        rescue Object => e
+          # Object couldn't be dumped, perhaps because of singleton methods -- this is the fallback
+          "<code class='debug_dump'>#{h(object.inspect)}</code>"
+        end
       end
     end
   end

@@ -5,7 +5,7 @@ require File.dirname(__FILE__) + "/vendor/railties/lib/code_statistics"
 
 $VERBOSE = nil
 
-require File.dirname(__FILE__) + '/vendor/railties/load_path'
+require File.dirname(__FILE__) + '/vendor/railties/configs/load_path'
 require 'active_record'
 require 'yaml'
 

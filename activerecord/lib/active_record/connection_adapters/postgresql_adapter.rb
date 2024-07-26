@@ -22,6 +22,7 @@ begin
       def self.postgresql_connection(config) # :nodoc:
         symbolize_strings_in_hash(config)
         host     = config[:host]     || "localhost"
+        port     = config[:port]     || 5432 unless host.nil?
         username = config[:username] || ""
         password = config[:password] || ""
         
@@ -32,75 +33,13 @@ begin
         end
 
         self.connection = ConnectionAdapters::PostgreSQLAdapter.new(
-          PGconn.connect(host, 5432, "", "", database, username, password), logger
+          PGconn.connect(host, port, "", "", database, username, password), logger
         )
       end
     end
 
     module ConnectionAdapters
       class PostgreSQLAdapter < AbstractAdapter # :nodoc:
-        # This is a list of the various internal types of PostgreSQL.
-        # There may be a better place for this.
-        BOOLOID			= 16   # "bool",		SQL_INTEGER
-        BYTEAOID		= 17   # "bytea",		SQL_BINARY
-        CHAROID			= 18   # "char",		SQL_CHAR
-        NAMEOID			= 19   # "name",		SQL_VARCHAR
-        INT8OID			= 20   # "int8",		SQL_DOUBLE
-        INT2OID			= 21   # "int2",		SQL_SMALLINT
-        INT2VECTOROID		= 22   # "int28"
-        INT4OID			= 23   # "int4",		SQL_INTEGER
-        REGPROCOID		= 24   # "regproc"
-        TEXTOID			= 25   # "text",		SQL_VARCHAR
-        OIDOID			= 26   # "oid",			SQL_INTEGER
-        TIDOID			= 27   # "tid",			SQL_INTEGER
-        XIDOID 			= 28   # "xid",			SQL_INTEGER
-        CIDOID 			= 29   # "cid",			SQL_INTEGER
-        OIDVECTOROID		= 30   # "oid8"
-        POINTOID		= 600  # "point"
-        LSEGOID			= 601  # "lseg"
-        PATHOID			= 602  # "path"
-        BOXOID			= 603  # "box"
-        POLYGONOID		= 604  # "polygon"
-        LINEOID			= 628  # "line"
-        FLOAT4OID 		= 700  # "float4",		SQL_NUMERIC
-        FLOAT8OID 		= 701  # "float8", 		SQL_REAL
-        ABSTIMEOID		= 702  # "abstime"
-        RELTIMEOID		= 703  # "reltime"
-        TINTERVALOID		= 704  # "tinterval"
-        UNKNOWNOID		= 705  # "unknown"
-        CIRCLEOID		= 718  # "circle"
-        CASHOID 		= 790  # "money"
-        MACADDROID 		= 829  # "Mac address"
-        INETOID 		= 869  # "IP address"
-        CIDROID 		= 650  # "IP - cidr"
-        ACLITEMOID		= 1033 # "aclitem"
-        BPCHAROID		= 1042 # "bpchar",		SQL_CHAR
-        VARCHAROID		= 1043 # "varchar", 		SQL_VARCHAR
-        DATEOID			= 1082 # "date"
-        TIMEOID			= 1083 # "time"
-        TIMESTAMPOID		= 1114 # "timestamp"
-        TIMESTAMPTZOID		= 1184 # "datetime"
-        INTERVALOID		= 1186 # "timespan"
-        TIMETZOID		= 1266 # "timestampz"
-        BITOID	 		= 1560 # "bitstring"
-        VARBITOID	 	= 1562 # "vbitstring"
-        NUMERICOID		= 1700 # "numeric",		SQL_DECIMAL
-        REFCURSOROID		= 1790 # "refcursor"
-        REGPROCEDUREOID 	= 2202 # "regprocedureoid"
-        REGOPEROID		= 2203 # "registerdoperator
-        REGOPERATOROID		= 2204 # "registeroperator_arts
-        REGCLASSOID		= 2205 # "regclass"
-        REGTYPEOID		= 2206 # "regtype"
-        RECORDOID		= 2249 # "record"
-        CSTRINGOID		= 2275 # "cstring"
-        ANYOID			= 2276 # "any"
-        ANYARRAYOID		= 2277 # "anyarray"
-        VOIDOID			= 2278 # "void"
-        TRIGGEROID		= 2279 # "trigger"
-        LANGUAGE_HANDLEROID	= 2280 # "languagehandle"
-        INTERNALOID		= 2281 # "internal"
-        OPAQUEOID		= 2282 # "opaque"
-
 
         def select_all(sql, name = nil)
           select(sql, name)
@@ -113,7 +52,7 @@ begin
 
         def columns(table_name, name = nil)
           table_structure(table_name).inject([]) do |columns, field|
-            columns << Column.new(field[0], field[2], type_as_string(field[1], field[3]))
+            columns << Column.new(field[0], field[2], field[1])
             columns
           end
         end
@@ -143,7 +82,7 @@ begin
 
         private
           def last_insert_id(table, column = "id")
-            # This would appear to be per connection... so it should be safe
+            # This is per connection
             # will throw an error if the sequence does not exist... so make sure
             # to catch it.
             result = @connection.exec("SELECT currval('#{table}_#{column}_seq')");
@@ -178,17 +117,11 @@ begin
           end
 
           def table_structure(table_name)
-            # Due to the fact there is no way to directly get the default
-            # value from a column without having to query the columns table,
-            # we are forced to make two queries. However, considering we
-            # are not actually asking for any data in the second query, we 
-            # should not hurt TOO bad on performance.
-
             database_name = @connection.db
             schema_name, table_name = split_table_schema(table_name)
             
             # Grab a list of all the default values for the columns.
-            sql =  "SELECT column_name, column_default, character_maximum_length "
+            sql =  "SELECT column_name, column_default, character_maximum_length, data_type "
             sql << "  FROM information_schema.columns "
             sql << " WHERE table_catalog = '#{database_name}' "
             sql << "   AND table_schema = '#{schema_name}' "
@@ -196,52 +129,42 @@ begin
 
             column_defaults = nil
             log(sql, nil, @connection) { |connection| column_defaults = connection.query(sql) }
+            column_defaults.collect do |row|
+                field   = row[0]
+                type    = type_as_string(row[3], row[2])
+                default = default_value(row[1])
+                length  = row[2]
 
-
-            # A dummy query used to get a ResultSet that we can ask type
-            # information from.
-            sql =  "SELECT * "
-            sql << "  FROM #{schema_name}.#{table_name} "
-            sql << "  LIMIT 0;"
-
-            field_res = []
-            log(sql, nil, @connection) { |connection| field_res = connection.exec(sql) }
-           
-            # return a new array of rows, containing arrays of column data.
-            field_res.fields.collect do |field|
-              index = field_res.fieldnum(field)
-              type = field_res.type(index)
-              default = column_defaults.find { |row| row[0] == field }[1]
-              length  = column_defaults.find { |row| row[0] == field }[2]
-
-              [field, type, default, length]
+                [field, type, default, length]
             end
           end
 
           def type_as_string(field_type, field_length)
             type = case field_type
-              when BOOLOID
-                "bool"
-              when INT2OID, INT4OID, OIDOID, TIDOID, XIDOID, CIDOID, INT8OID
-                "integer"
-              when FLOAT4OID, FLOAT8OID, NUMERICOID, CASHOID
-                "float"
-              when TIMESTAMPOID, TIMETZOID, TIMESTAMPTZOID
-                "timestamp"
-              when INTERVALOID
-                "time"
-              when TIMEOID
-                "time"
-              when DATEOID
-                "date"
-              when NAMEOID, VARCHAROID, CSTRINGOID, BPCHAROID
-                "string"
-              when TEXTOID
-                "text"
+              when 'numeric', 'real', 'money'      then 'float'
+              when 'character varying', 'interval' then 'string'
+              else field_type
             end
-            
+
             size = field_length.nil? ? "" : "(#{field_length})"
+
             return type + size
+          end
+
+          def default_value(value)
+            # Boolean types
+            return "t" if value =~ /true/i
+            return "f" if value =~ /false/i
+            
+            # Char/String type values
+            return $1 if value =~ /^'([0-9a-zA-Z]+)'::.*/
+            
+            # Numeric values
+            return value if value =~ /^[0-9]+(\.[0-9]*)?/
+            
+            # Anything else is blank, some user type, or some function
+            # and we can't know the value of that, so return nil.
+            return nil
           end
       end
     end

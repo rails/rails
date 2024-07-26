@@ -2,5 +2,5 @@
 
 <%= form(@scaffold_singular_name, :action => "../update" + @scaffold_suffix) %>
 
-<a href="../show<%= @scaffold_suffix %>/<%= instance_variable_get("@#{@scaffold_singular_name}").id %>">Show</a> |
-<a href="../list<%= @scaffold_suffix %>">List</a>
+<%= link_to "Show", :action => "show", :id => instance_variable_get("@#{@scaffold_singular_name}").id %> |
+<%= link_to "Back", :action => "list#{@scaffold_suffix}" %>

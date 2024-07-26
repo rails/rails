@@ -86,6 +86,7 @@ module ActiveRecord
           when :datetime      then Time
           when :date          then Date
           when :text, :string then String
+          when :boolean       then Object
         end
       end
       
@@ -98,6 +99,7 @@ module ActiveRecord
           when :float    then value.to_f
           when :datetime then string_to_time(value)
           when :date     then string_to_date(value)
+          when :boolean  then (value == "t" or value == true ? true : false)
           else value
         end
       end
@@ -156,6 +158,8 @@ module ActiveRecord
               :text
             when /varchar/i, /char/i, /string/i, /character/i
               :string
+            when /boolean/i
+              :boolean
           end
         end
     end
@@ -206,6 +210,18 @@ module ActiveRecord
       # Rollsback the transaction (and turns on auto-committing). Must be done if the transaction block
       # raises an exception or returns false.
       def rollback_db_transaction() end
+
+      def quote(value, column = nil)
+        case value
+          when String              then "'#{value.gsub(/\\/,'\&\&').gsub(/'/, "''")}'" # ' (for ruby-mode)
+          when NilClass            then "NULL"
+          when TrueClass           then (column and column.type == :boolean ? "'t'" : "1")
+          when FalseClass          then (column and column.type == :boolean ? "'f'" : "0")
+          when Float, Fixnum, Date then "'#{value.to_s}'"
+          when Time, DateTime      then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
+          else                          "'#{value.to_yaml}'"
+        end
+      end
 
       # Returns a string of the CREATE TABLE SQL statements for recreating the entire structure of the database.
       def structure_dump() end

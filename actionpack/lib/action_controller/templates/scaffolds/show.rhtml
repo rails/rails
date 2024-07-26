@@ -5,4 +5,5 @@
   </p>
 <% end %>
 
-<a href="../edit<%= @scaffold_suffix %>/<%= instance_variable_get("@#{@scaffold_singular_name}").id %>">Edit</a> | <a href="../list<%= @scaffold_suffix %>">Back</a>
+<%= link_to "Edit", :action => "edit", :id => instance_variable_get("@#{@scaffold_singular_name}").id %> |
+<%= link_to "Back", :action => "list#{@scaffold_suffix}" %>

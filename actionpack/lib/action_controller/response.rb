@@ -1,5 +1,5 @@
 module ActionController
-  class Response #:nodoc:
+  class AbstractResponse #:nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache", "cookie" => [] }
     attr_accessor :body, :headers, :session, :cookies, :assigns, :template
 

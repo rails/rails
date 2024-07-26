@@ -98,7 +98,7 @@ class RenderTest < Test::Unit::TestCase
 
     @request.action = "hello_world"
     response = process_request
-    assert_kind_of ActionController::Request, response.template.assigns["request"]
+    assert_kind_of ActionController::AbstractRequest, response.template.assigns["request"]
   end
   
   def test_layout_rendering

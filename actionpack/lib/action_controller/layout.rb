@@ -123,8 +123,8 @@ module ActionController #:nodoc:
     # Returns the name of the active layout. If the layout was specified as a method reference (through a symbol), this method
     # is called and the return value is used. Likewise if the layout was specified as an inline method (through a proc or method
     # object).
-    def active_layout
-      layout = self.class.read_inheritable_attribute "layout"
+    def active_layout(passed_layout = nil)
+      layout = passed_layout || self.class.read_inheritable_attribute("layout")
       case layout
         when Symbol then send(layout)
         when Proc   then layout.call(self)
@@ -132,12 +132,12 @@ module ActionController #:nodoc:
       end
     end
 
-    def render_with_layout(template_name = "#{controller_name}/#{action_name}", status = nil) #:nodoc:
-      if self.class.has_active_layout?
+    def render_with_layout(template_name = "#{controller_name}/#{action_name}", status = nil, layout = nil) #:nodoc:
+      if layout || self.class.has_active_layout?
         add_variables_to_assigns
-        logger.info("Rendering #{template_name} within #{self.active_layout}") unless logger.nil?
+        logger.info("Rendering #{template_name} within #{layout || self.active_layout}") unless logger.nil?
         @content_for_layout = @template.render_file(template_name)
-        render_file(self.active_layout, status, true)
+        render_file(layout || self.active_layout, status, true)
       else
         render_file(template_name, status, true)
       end

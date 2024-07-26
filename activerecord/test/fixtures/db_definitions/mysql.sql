@@ -70,3 +70,9 @@ CREATE TABLE `subscribers` (
   `name` varchar(100) default NULL,
   PRIMARY KEY  (`nick`)
 );
+
+CREATE TABLE `booleantests` (
+  `id` int(11) NOT NULL auto_increment,
+  `value` integer default NULL,
+  PRIMARY KEY (`id`)
+);

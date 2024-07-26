@@ -20,6 +20,8 @@ class TightDescendent < TightPerson
   attr_accessible :phone_number
 end
 
+class Booleantest < ActiveRecord::Base; end
+
 class BasicsTest < Test::Unit::TestCase
   def setup
     @topic_fixtures = create_fixtures "topics"
@@ -354,5 +356,17 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
+  end
+
+  def test_boolean
+    b_false = Booleantest.create({ "value" => false })
+    false_id = b_false.id
+    b_true = Booleantest.create({ "value" => true })
+    true_id = b_true.id
+
+    b_false = Booleantest.find(false_id)
+    assert !b_false.value?
+    b_true = Booleantest.find(true_id)
+    assert b_true.value?
   end
 end

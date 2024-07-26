@@ -1,8 +1,8 @@
 require 'abstract_unit'
-# require File.dirname(__FILE__) + '/../dev-utils/eval_debugger'
-require 'fixtures/company'
 require 'fixtures/developer'
 require 'fixtures/project'
+# require File.dirname(__FILE__) + '/../dev-utils/eval_debugger'
+require 'fixtures/company'
 
 # Can't declare new classes in test case methods, so tests before that
 bad_collection_keys = false
@@ -314,5 +314,22 @@ class AssociationsTest < Test::Unit::TestCase
     ap.developers.delete john
     assert_nil Project.find(ap.id).developers.find { |d| d.id == john.id }
 		assert_nil Developer.find(john.id).projects.find { |p| p.id == ap.id }
+  end
+
+  def test_storing_in_pstore
+    require "pstore"
+    apple = Firm.create("name" => "Apple")
+    natural = Client.new("name" => "Natural Company")
+    apple.clients << natural
+
+    db = PStore.new("/tmp/ar-pstore-association-test")
+    db.transaction do
+      db["apple"] = apple
+    end
+
+    db = PStore.new("/tmp/ar-pstore-association-test")
+    db.transaction do
+      assert_equal "Natural Company", db["apple"].clients.first.name
+    end
   end
 end

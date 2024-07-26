@@ -2,4 +2,4 @@
 
 <%= form(@scaffold_singular_name, :action => "create" + @scaffold_suffix) %>
 
-<a href="list<%= @scaffold_suffix %>">Back</a>
+<%= link_to "Back", :action => "list#{@scaffold_suffix}" %>

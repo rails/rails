@@ -1,3 +1,68 @@
+*0.7.9*
+
+* The "form" method now present boolean fields from PostgreSQL as drop-down menu. [Scott]
+
+* Scaffolding now automatically attempts to require the class that's being scaffolded.
+
+* Scaffolding will use the current active layout, instead of its own, if one has been specified. Example:
+
+    class WeblogController < ActionController::Base
+      layout "layouts/weblog"
+      scaffold :post
+    end
+  
+  [Suggested by Scott]
+
+* Changed url_for (and all the that drives, like redirect_to, link_to, link_for) so you can pass it a symbol instead of a hash.
+  This symbol is a method reference which is then called to calculate the url. Example:
+  
+    class WeblogController < ActionController::Base
+      def update
+        # do some update
+        redirect_to :dashboard_url
+      end
+      
+      protected
+        def dashboard_url
+          if @project.active?
+            url_for :controller => "project", :action => "dashboard"
+          else
+            url_for :controller => "account", :action => "dashboard"
+          end
+        end
+    end
+      
+* Added default_url_options to specialize behavior for all url_for (and friends) calls:
+
+    Overwrite to implement a number of default options that all url_for-based methods will use. 
+    The default options should come in form of a hash, just like the one you would use for 
+    url_for directly. Example:
+    
+      def default_url_options(options)
+        { :controller_prefix => @project.active? ? "projects/" : "accounts/" }
+      end
+    
+    As you can infer from the example, this is mostly useful for situations where you want to 
+    centralize dynamic dissions about the urls as they stem from the business domain. Please note
+    that any individual url_for call can always override the defaults set by this method.
+    
+
+* Changed url_for so that an "id" passed in the :params is not treated special. You need to use the dedicated :id to get 
+  the special auto path-params treatment. Considering the url http://localhost:81/friends/list
+
+    url_for(:action => "show", :params => { "id" => 5 })
+      ...used to give http://localhost:81/friends/show/5
+      ......now gives http://localhost:81/friends/show?id=5
+
+    If you want the automated id behavior, do:
+
+    url_for(:action => "show", :id => 5 )
+      ....which gives http://localhost:81/friends/show/5
+
+
+* Fixed problem with anchor being inserted before path parameters with url_for (and friends)
+
+
 *0.7.8*
 
 * Fixed session bug where you couldn't store any objects that didn't exist in the standard library 

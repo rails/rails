@@ -3,22 +3,22 @@ module ActionController
   class UrlRewriter #:nodoc:
     VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :controller, :controller_prefix, :anchor, :params, :path_params, :id]
   
-    def initialize(protocol, host, port, path, controller, action, params)
-      @protocol, @host, @port, @path, @controller, @action, @params = protocol, host, port.to_i, path, controller, action, params
-      @rewritten_path = @path ? @path.dup : ""
+    def initialize(request, controller, action)
+      @request, @controller, @action = request, controller, action
+      @rewritten_path = @request.path ? @request.path.dup : ""
     end
     
     def rewrite(options = {})
       validate_options(VALID_OPTIONS, options.keys)
 
       rewrite_url(
-        rewrite_path(@path.dup, options), 
+        rewrite_path(@rewritten_path, options), 
         options
       )
     end
 
     def to_str
-      "#{@protocol}, #{@host}, #{@path}, #{@controller}, #{@action}, #{@params.inspect}"
+      "#{@request.protocol}, #{@request.host}, #{@request.path}, #{@controller}, #{@action}, #{@request.parameters.inspect}"
     end
 
     private
@@ -29,11 +29,12 @@ module ActionController
 
       def rewrite_url(path, options)
         rewritten_url = ""
-        rewritten_url << @protocol
-        rewritten_url << @host
-        rewritten_url << ":#{@port}" unless @port == 80
+        rewritten_url << @request.protocol
+        rewritten_url << @request.host
+        rewritten_url << ":#{@request.port}" unless @request.port == 80
         rewritten_url << path
         rewritten_url << build_query_string(options[:params]) if options[:params]
+        rewritten_url << "#" + options[:anchor] if options[:anchor]
         return rewritten_url
       end
 
@@ -43,14 +44,13 @@ module ActionController
         path = rewrite_action(path, options)      if options[:action]
         path = rewrite_path_params(path, options) if options[:path_params]
         path = rewrite_controller(path, options)  if options[:controller]
-        path << "#" + options[:anchor] if options[:anchor]
         return path
       end
       
       def rewrite_path_params(path, options)
         options[:path_params].inject(path) do |path, pair|
-          if options[:action].nil? && @params[pair.first]
-            path.sub(/\b#{@params[pair.first]}\b/, pair.last.to_s)
+          if options[:action].nil? && @request.parameters[pair.first]
+            path.sub(/\b#{@request.parameters[pair.first]}\b/, pair.last.to_s)
           else
             path += "/#{pair.last}"
           end
@@ -71,7 +71,11 @@ module ActionController
 
         if options[:controller_prefix] && !options[:controller]
           ensure_slash_suffix(options, :controller_prefix)
-          path = path.sub(controller_prefix, options[:controller_prefix]) 
+          if controller_prefix
+            path = path.sub(controller_prefix, options[:controller_prefix])
+          else
+            path = options[:controller_prefix] + path
+          end
         end
         
         return path
@@ -123,12 +127,10 @@ module ActionController
       # be added as a path element instead of a regular parameter pair.
       def build_query_string(hash)
         elements = []
-
-        query_string = hash["id"] ? "/#{hash["id"]}" : ""
-        hash.delete("id") if hash["id"]
+        query_string = ""
 
         hash.each { |key, value| elements << "#{CGI.escape(key)}=#{CGI.escape(value.to_s)}" }
-        unless elements.empty? then query_string << ("?" + elements.join("&amp;")) end
+        unless elements.empty? then query_string << ("?" + elements.join("&")) end
         
         return query_string
       end

@@ -31,7 +31,7 @@ module ActionController #:nodoc:
     end
   end
 
-  class CgiRequest < Request #:nodoc:
+  class CgiRequest < AbstractRequest #:nodoc:
     attr_accessor :cgi
 
     DEFAULT_SESSION_OPTIONS =
@@ -48,23 +48,19 @@ module ActionController #:nodoc:
     end
 
     def request_parameters
-      @request_parameters ||= CGIMethods.parse_request_parameters(@cgi.params)
+      CGIMethods.parse_request_parameters(@cgi.params)
     end
     
     def env
       @cgi.send(:env_table)
-    end
-    
-    def request_uri
-      env["REQUEST_URI"]
     end
 
     def cookies
       @cgi.cookies.freeze
     end
 
-    def method_missing(method_id, *arguments)
-      @cgi.send(method_id, *arguments) rescue super
+    def host
+      @cgi.host.split(":").first
     end
     
     def session
@@ -83,9 +79,13 @@ module ActionController #:nodoc:
       @session.delete
       @session = (@session_options == false ? {} : CGI::Session.new(cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options)))
     end
+
+    def method_missing(method_id, *arguments)
+      @cgi.send(method_id, *arguments) rescue super
+    end
   end
 
-  class CgiResponse < Response #:nodoc:
+  class CgiResponse < AbstractResponse #:nodoc:
     def initialize(cgi)
       @cgi = cgi
       super()

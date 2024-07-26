@@ -689,6 +689,10 @@ module ActiveRecord #:nodoc:
           false
         elsif attribute == false
           false
+        elsif attribute == "f"
+          false
+        elsif attribute == "false"
+          false
         else
           true
         end
@@ -696,31 +700,24 @@ module ActiveRecord #:nodoc:
 
       def remove_attributes_protected_from_mass_assignment(attributes)
         if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
-          attributes.delete_if { |key, value| key == "id" }
+          attributes.delete_if { |key, value| key == self.class.primary_key }
         elsif self.class.protected_attributes.nil?
-          attributes.delete_if { |key, value| !self.class.accessible_attributes.include?(key.intern) || key == "id" }
+          attributes.delete_if { |key, value| !self.class.accessible_attributes.include?(key.intern) || key == self.class.primary_key }
         elsif self.class.accessible_attributes.nil?
-          attributes.delete_if { |key, value| self.class.protected_attributes.include?(key.intern) || key == "id" }
+          attributes.delete_if { |key, value| self.class.protected_attributes.include?(key.intern) || key == self.class.primary_key }
         end
       end
 
       # Returns copy of the attributes hash where all the values have been safely quoted for use in
       # an SQL statement. 
       def attributes_with_quotes
-        @attributes.inject({}) { |attrs_quoted, pair| attrs_quoted[pair.first] = quote(pair.last); attrs_quoted }
+        columns_hash = self.class.columns_hash
+        @attributes.inject({}) { |attrs_quoted, pair| attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first]); attrs_quoted }
       end
       
       # Quote strings appropriately for SQL statements.
-      def quote(value)
-        case value
-          when String         then "'#{value.gsub(/\\/,'\&\&').gsub(/'/, "''")}'" # ' (for ruby-mode)
-          when NilClass       then "NULL"
-          when TrueClass      then "1"
-          when FalseClass     then "0"
-          when Fixnum, Date   then "'#{value.to_s}'"
-          when Time, DateTime then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-          else                     "'#{value.to_yaml}'"
-        end
+      def quote(value, column = nil)
+        connection.quote(value, column)
       end
 
       # Initializes the attributes array with keys matching the columns from the linked table and
@@ -729,7 +726,7 @@ module ActiveRecord #:nodoc:
       # that instances loaded from the database would.
       def attributes_from_column_definition
         connection.columns(self.class.table_name, "#{self.class.name} Columns").inject({}) do |attributes, column| 
-          attributes[column.name] = column.default unless column.name == "id"
+          attributes[column.name] = column.default unless column.name == self.class.primary_key
           attributes
         end
       end

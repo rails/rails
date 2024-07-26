@@ -63,8 +63,6 @@ module ActionController #:nodoc:
           perform_action_without_rescue
         rescue Exception => exception
           rescue_action(exception)
-        ensure
-          close_session
         end
       end
 

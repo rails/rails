@@ -1,35 +1,37 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'action_controller/url_rewriter'
 
+MockRequest = Struct.new("MockRequest", :protocol, :host, :port, :path, :parameters)
+
 class UrlTest < Test::Unit::TestCase
   def setup
-    @library_url = ActionController::UrlRewriter.new(
+    @library_url = ActionController::UrlRewriter.new(MockRequest.new(
       "http://",
       "www.singlefile.com", 
       80,
-      "/library/books/ISBN/0743536703/show", 
-      "books", "show", { "type" => "ISBN", "code" => "0743536703" }
-    )
+      "/library/books/ISBN/0743536703/show",
+      { "type" => "ISBN", "code" => "0743536703" }
+    ), "books", "show")
 
-    @library_url_on_index = ActionController::UrlRewriter.new(
+    @library_url_on_index = ActionController::UrlRewriter.new(MockRequest.new(
       "http://",
       "www.singlefile.com", 
       80,
       "/library/books/ISBN/0743536703/", 
-      "books", "index", { "type" => "ISBN", "code" => "0743536703" }
-    )
+      { "type" => "ISBN", "code" => "0743536703" }
+    ), "books", "index")
     
-    @clean_url = ActionController::UrlRewriter.new(
-      "http://", "www.singlefile.com", 80, "/identity/", "identity", "index", {}
-    )
+    @clean_url = ActionController::UrlRewriter.new(MockRequest.new(
+      "http://", "www.singlefile.com", 80, "/identity/", {}
+    ), "identity", "index")
 
-    @clean_url_with_id = ActionController::UrlRewriter.new(
-      "http://", "www.singlefile.com", 80, "/identity/show/5", "identity", "show", { "id" => "5" }
-    )
+    @clean_url_with_id = ActionController::UrlRewriter.new(MockRequest.new(
+      "http://", "www.singlefile.com", 80, "/identity/show/5", { "id" => "5" }
+    ), "identity", "show")
 
-    @clean_url_with_id_as_char = ActionController::UrlRewriter.new(
-      "http://", "www.singlefile.com", 80, "/teachers/show/t", "teachers", "show", { "id" => "t" }
-    )
+    @clean_url_with_id_as_char = ActionController::UrlRewriter.new(MockRequest.new(
+      "http://", "www.singlefile.com", 80, "/teachers/show/t", { "id" => "t" }
+    ), "teachers", "show")
   end
 
   def test_clean_action
@@ -77,6 +79,13 @@ class UrlTest < Test::Unit::TestCase
     )
   end
 
+  def test_controller_and_action_and_params_anchor
+    assert_equal(
+      "http://www.singlefile.com/library/settings/show?update=1#5", 
+      @library_url.rewrite(:controller => "settings", :action => "show", :params => { "update" => "1"}, :anchor => "5")
+    )
+  end
+
   def test_controller_and_index_action
     assert_equal "http://www.singlefile.com/library/settings/", @library_url.rewrite(:controller => "settings", :action => "index")
   end
@@ -108,14 +117,14 @@ class UrlTest < Test::Unit::TestCase
   
   def test_parameters
     assert_equal(
-      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&amp;delete=1", 
+      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&delete=1", 
       @library_url.rewrite(:params => {"delete" => "1", "name" => "David"})
     )
   end
 
   def test_parameters_with_id
     assert_equal(
-      "http://www.singlefile.com/identity/show/5?name=David", 
+      "http://www.singlefile.com/identity/show?name=David&id=5", 
       @clean_url.rewrite(
         :action => "show", 
         :params => {"id" => "5", "name" => "David"}
@@ -206,7 +215,7 @@ class UrlTest < Test::Unit::TestCase
 
   def test_from_clean_to_libray
     assert_equal(
-      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&amp;delete=1", 
+      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&delete=1", 
       @clean_url.rewrite(
         :controller_prefix => "library",
         :controller => "books", 
@@ -227,19 +236,40 @@ class UrlTest < Test::Unit::TestCase
   end
   
   def test_from_another_port
-    @library_url = ActionController::UrlRewriter.new(
+    @library_url = ActionController::UrlRewriter.new(MockRequest.new(
       "http://",
       "www.singlefile.com", 
       8080,
       "/library/books/ISBN/0743536703/show", 
-      "books", "show", { "type" => "ISBN", "code" => "0743536703" }
-    )
+      { "type" => "ISBN", "code" => "0743536703" }
+    ), "books", "show")
 
     assert_equal(
       "http://www.singlefile.com:8080/identity/", 
       @library_url.rewrite(
         :controller => "identity", :controller_prefix => ""
       )
+    )
+  end
+  
+  def basecamp_test
+    basecamp_url = ActionController::UrlRewriter.new(MockRequest.new(
+      "http://",
+      "projects.basecamp", 
+      80,
+      "/clients/indoff/1/weblog/documentation/", 
+      { 
+        "category_name"=>"documentation", 
+        "client_name"=>"indoff", 
+        "action"=>"category", 
+        "controller"=>"weblog", 
+        "project_name"=>"1"
+      }
+    ), "weblog", "category")
+    
+    assert_equal(
+      "http://nextangle.seework.com/clients/indoff/1/weblog/misc/", 
+      basecamp_url.rewrite(:action_prefix=>"notes", :action=>"index", :controller_prefix=>"clients/indoff/1")
     )
   end
 end

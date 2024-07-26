@@ -6,48 +6,41 @@ require 'rake/rdoctask'
 require 'date'
 
 PACKAGE_NAME    = "rails"
-PACKAGE_VERSION = "0.5.6"
+PACKAGE_VERSION = "0.6.0"
 
 desc "Default Task"
 task :default => [ :fresh_rails ]
 
-task :fresh_rails => [
-  :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
-  :make_test_dirs, :copy_test_helpers, :copy_vendor_libraries, :copy_rootfiles, :make_public_dirs, :copy_ties,
-  :generate_rails_framework_doc, :generate_app_doc, :copy_docs_in_public
-]
+desc "Generates a fresh Rails package with documentation"
+task :fresh_rails => [ :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content, :generate_documentation ]
 
-task :fresh_rails_without_docs => [
-  :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
-  :make_test_dirs, :copy_test_helpers, :copy_vendor_libraries, :copy_rootfiles, :make_public_dirs, :copy_ties
-]
+desc "Generates a fresh Rails package without documentation (faster)"
+task :fresh_rails => [ :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content ]
 
-task :fresh_rails_with_symlinks => [
-  :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
-  :make_test_dirs, :link_test_helpers, :copy_vendor_libraries, :copy_rootfiles, :make_public_dirs, :link_ties,
-  :generate_rails_framework_doc, :generate_app_doc, :link_framework_doc, :link_docs_in_public
-]
-
-task :linked_rails => [
-  :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
-  :make_test_dirs, :link_test_helpers, :link_vendor_libraries, :copy_rootfiles, :make_public_dirs, :link_ties
-]
-
+desc "Packages the fresh Rails package with documentation"
 task :package => [ :clean, :fresh_rails ] do
   system %{cd ..; tar -czvf #{PACKAGE_NAME}-#{PACKAGE_VERSION}.tgz #{PACKAGE_NAME}}
   system %{cd ..; zip -r #{PACKAGE_NAME}-#{PACKAGE_VERSION}.zip #{PACKAGE_NAME}}
 end
 
-task :package_with_symlinks => [ :clean, :fresh_rails_with_symlinks ] do
-  system  %{cd ..; tar -czvf #{PACKAGE_NAME}-#{PACKAGE_VERSION}-with-symlinks.tgz #{PACKAGE_NAME}}
+task :clean do
+  File.rm_rf "../#{PACKAGE_NAME}"
+end
+
+
+# Make directory structure ----------------------------------------------------------------
+
+desc "Make the directory structure for the new Rails application"
+task :make_dir_structure => [ :make_base_dirs, :make_app_dirs, :make_public_dirs, :make_test_dirs ] do
 end
 
 task :make_base_dirs do
   File.rm_rf "../#{PACKAGE_NAME}"
   File.mkdir "../#{PACKAGE_NAME}"
   File.mkdir "../#{PACKAGE_NAME}/app"
-  File.mkdir "../#{PACKAGE_NAME}/db"
   File.mkdir "../#{PACKAGE_NAME}/config"
+  File.mkdir "../#{PACKAGE_NAME}/config/environments"
+  File.mkdir "../#{PACKAGE_NAME}/db"
   File.mkdir "../#{PACKAGE_NAME}/log"
   File.mkdir "../#{PACKAGE_NAME}/lib"
   File.mkdir "../#{PACKAGE_NAME}/public"
@@ -63,9 +56,24 @@ task :make_app_dirs do
   File.mkdir "../#{PACKAGE_NAME}/app/views"
 end
 
-task :copy_default_config do
-  File.cp "configs/database.yml", "../#{PACKAGE_NAME}/config/database.yml"
-  File.cp "configs/apache.conf", "../#{PACKAGE_NAME}/public/.htaccess"
+task :make_public_dirs do
+  File.mkdir "../#{PACKAGE_NAME}/public/images"
+  File.mkdir "../#{PACKAGE_NAME}/public/javascripts"
+  File.mkdir "../#{PACKAGE_NAME}/public/stylesheets"
+  File.mkdir "../#{PACKAGE_NAME}/public/_doc"
+end
+
+task :make_test_dirs do
+  File.mkdir "../#{PACKAGE_NAME}/test/fixtures"
+  File.mkdir "../#{PACKAGE_NAME}/test/unit"
+  File.mkdir "../#{PACKAGE_NAME}/test/functional"
+end
+
+
+# Initialize file stubs -------------------------------------------------------------------
+
+desc "Initialize empty file stubs (such as for logging)"
+task :initialize_file_stubs => [ :initialize_log_files ] do
 end
 
 task :initialize_log_files do
@@ -79,25 +87,9 @@ task :initialize_log_files do
 end
 
 
-task :make_test_dirs do
-  File.mkdir "../#{PACKAGE_NAME}/test/fixtures"
-  File.mkdir "../#{PACKAGE_NAME}/test/unit"
-  File.mkdir "../#{PACKAGE_NAME}/test/functional"
-end
+# Copy Vendors ----------------------------------------------------------------------------
 
-task :link_test_helpers do
-  cd "../#{PACKAGE_NAME}/test"
-  ln_s "../vendor/railties/helpers/functional_test_helper.rb", "functional_test_helper.rb"
-  ln_s "../vendor/railties/helpers/unit_test_helper.rb", "unit_test_helper.rb"
-  cd "../../railties"
-end
-
-task :copy_test_helpers do
-  File.cp "helpers/functional_test_helper.rb", "../#{PACKAGE_NAME}/test/functional_test_helper.rb"
-  File.cp "helpers/unit_test_helper.rb", "../#{PACKAGE_NAME}/test/unit_test_helper.rb"
-end
-
-
+desc "Copy in all the Rails packages to vendor"
 task :copy_vendor_libraries => [ :copy_action_pack, :copy_active_record, :copy_ties ]
 
 task :copy_action_pack do
@@ -113,91 +105,80 @@ task :copy_ties do
 end
 
 
-task :link_vendor_libraries => [ :link_action_pack, :link_active_record, :link_ties ]
+# Copy Ties Content -----------------------------------------------------------------------
 
-task :link_action_pack do
-  cd "../#{PACKAGE_NAME}/vendor"
-  ln_s "../../actionpack", "actionpack"
-  cd "../../railties"
+desc "Make copies of all the default content of ties"
+task :copy_ties_content => [ 
+  :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_abstract_application,
+  :copy_configs, :copy_generators, :copy_test_helpers, :copy_docs_in_public, :link_apache_config ] do
 end
 
-task :link_active_record do
-  cd "../#{PACKAGE_NAME}/vendor"
-  ln_s "../../activerecord", "activerecord"
-  cd "../../railties"
-end
-
-task :link_ties do
-  cd "../#{PACKAGE_NAME}/vendor"
-  ln_s "../../railties", "railties"
-  cd "../../railties"
-end
-
-
-
-task :make_public_dirs do
-  mkdir "../#{PACKAGE_NAME}/public/images"
-  mkdir "../#{PACKAGE_NAME}/public/javascripts"
-  mkdir "../#{PACKAGE_NAME}/public/stylesheets"
-end
-
-task :link_ties do
-  cd "../#{PACKAGE_NAME}/public"
-  ln_s "../vendor/railties/dispatch.rb", "dispatch.cgi"
-  chmod 0755, "dispatch.cgi"
-
-  ln_s "../vendor/railties/dispatch.fcgi", "dispatch.fcgi"
-  chmod 0755, "dispatch.fcgi"
-
-  ln_s "../vendor/railties/dispatch.rb", "dispatch.rb"
-  ln_s "../vendor/railties/dispatch.servlet", "dispatch.servlet"
-
-  ln_s "../vendor/railties/html/404.html", "404.html"
-  ln_s "../vendor/railties/html/500.html", "500.html"
-  ln_s "../vendor/railties/html/index.html", "index.html"
-  
-  ln_s "../config/apache.conf", ".htaccess"
-
-  cd "../script"
-  ln_s "../vendor/railties/generators/new_controller.rb", "new_controller"
-  ln_s "../vendor/railties/generators/new_model.rb", "new_model"
-
-  chmod 0755, "new_controller"
-  chmod 0755, "new_model"
-
-  cd "../../railties"
-end
-
-task :copy_ties do
-  File.cp "dispatch.rb", "../#{PACKAGE_NAME}/public/dispatch.rb"
+task :copy_dispatches do
+  File.cp "dispatches/dispatch.rb", "../#{PACKAGE_NAME}/public/dispatch.rb"
   chmod 0755, "../#{PACKAGE_NAME}/public/dispatch.rb"
 
-  File.cp "dispatch.rb", "../#{PACKAGE_NAME}/public/dispatch.cgi"
+  File.cp "dispatches/dispatch.rb", "../#{PACKAGE_NAME}/public/dispatch.cgi"
   chmod 0755, "../#{PACKAGE_NAME}/public/dispatch.cgi"
 
-  File.cp "dispatch.fcgi", "../#{PACKAGE_NAME}/public/dispatch.fcgi"
+  File.cp "dispatches/dispatch.fcgi", "../#{PACKAGE_NAME}/public/dispatch.fcgi"
   chmod 0755, "../#{PACKAGE_NAME}/public/dispatch.fcgi"
 
-  File.cp "dispatch.servlet", "../#{PACKAGE_NAME}/public/dispatch.servlet"
+  File.cp "dispatches/dispatch.servlet", "../#{PACKAGE_NAME}/public/dispatch.servlet"
+end
 
+task :copy_html_files do
   File.cp "html/404.html", "../#{PACKAGE_NAME}/public/404.html"
   File.cp "html/500.html", "../#{PACKAGE_NAME}/public/500.html"
   File.cp "html/index.html", "../#{PACKAGE_NAME}/public/index.html"
+end
 
-  ln_s "../#{PACKAGE_NAME}/public/.htaccess", "../#{PACKAGE_NAME}/config/apache.conf"
+task :copy_abstract_application do
+  File.cp "helpers/abstract_application.rb", "../#{PACKAGE_NAME}/app/controllers/abstract_application.rb"
+  File.cp "helpers/application_helper.rb", "../#{PACKAGE_NAME}/app/helpers/application_helper.rb"
+end
 
+task :copy_configs do
+  File.cp "configs/database.yml", "../#{PACKAGE_NAME}/config/database.yml"
+
+  File.cp "configs/apache.conf", "../#{PACKAGE_NAME}/public/.htaccess"
+
+  File.cp "environments/shared.rb", "../#{PACKAGE_NAME}/config/environments/shared.rb"
+  File.cp "environments/production.rb", "../#{PACKAGE_NAME}/config/environments/production.rb"
+  File.cp "environments/test.rb", "../#{PACKAGE_NAME}/config/environments/test.rb"
+end
+
+task :copy_generators do
   File.cp "generators/new_controller.rb", "../#{PACKAGE_NAME}/script/new_controller"
   File.cp "generators/new_model.rb", "../#{PACKAGE_NAME}/script/new_model"
   chmod 0755, "../#{PACKAGE_NAME}/script/new_controller"
   chmod 0755, "../#{PACKAGE_NAME}/script/new_model"
 end
 
-
 task :copy_rootfiles do
   File.cp "fresh_rakefile", "../#{PACKAGE_NAME}/rakefile"
   File.cp "README", "../#{PACKAGE_NAME}/README"
 end
 
+task :copy_test_helpers do
+  File.cp "helpers/functional_test_helper.rb", "../#{PACKAGE_NAME}/test/functional_test_helper.rb"
+  File.cp "helpers/unit_test_helper.rb", "../#{PACKAGE_NAME}/test/unit_test_helper.rb"
+end
+
+task :copy_docs_in_public do
+  File.cp "doc/index.html", "../#{PACKAGE_NAME}/public/_doc/index.html"
+end
+
+task :link_apache_config do
+  cd "../#{PACKAGE_NAME}/config/"
+  ln_s "../public/.htaccess", "apache.conf"
+  cd "../../railties"
+end
+
+# Generate documentation ------------------------------------------------------------------
+
+desc "Generate documentation for the framework and for the empty application"
+task :generate_documentation => [ :generate_rails_framework_doc, :generate_app_doc, :copy_docs_in_public ] do
+end
 
 task :generate_rails_framework_doc do
   system %{cd ./../#{PACKAGE_NAME}; rake apidoc}
@@ -206,33 +187,4 @@ end
 task :generate_app_doc do
   File.cp "doc/README_FOR_APP", "../#{PACKAGE_NAME}/doc/README_FOR_APP"
   system %{cd ./../#{PACKAGE_NAME}; rake appdoc}
-end
-
-task :link_framework_doc do
-  cd "../#{PACKAGE_NAME}"
-  ln_s "doc/api/index.html", "README.html"
-  cd "../railties"
-end
-
-task :link_docs_in_public do 
-  cd "../#{PACKAGE_NAME}/public"
-
-  mkdir "_doc"
-  cd "_doc"
-  ln_s "../../vendor/railties/doc/index.html", "index.html"
-  ln_s "../../vendor/railties/doc/apache_protection", ".htaccess"
-  ln_s "../../doc/api", "api"
-  ln_s "../../doc/app", "app"
-
-  cd "../../../railties"
-end
-
-task :copy_docs_in_public do
-  mkdir "../#{PACKAGE_NAME}/public/_doc"
-  File.cp "doc/index.html", "../#{PACKAGE_NAME}/public/_doc/index.html"
-  # File.cp "doc/apache_protection", "../#{PACKAGE_NAME}/public/_doc/.htaccess"
-end
-
-task :clean do
-  File.rm_rf "../#{PACKAGE_NAME}"
 end

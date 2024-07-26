@@ -13,11 +13,12 @@ module ActionView
 
       # Returns the URL for the set of +options+ provided. See the valid options in link:classes/ActionController/Base.html#M000021
       def url_for(options = {})
-        @controller.send(:url_for, options)
+        @controller.send(:url_for, options).gsub("&", "&amp;")
       end
       
       private
         def tag_options(options_hash)
+          if options_hash.nil? then return "" end
           " " + options_hash.collect { |pair| "#{pair.first}=\"#{pair.last}\"" }.sort.join(" ") unless options_hash.empty?
         end
     end

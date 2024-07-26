@@ -51,7 +51,7 @@ class TestController < ActionController::Base
   def rescue_action(e) puts e.message end
 end
 
-if ARGV.empty? # && ENV["REQUEST_URI"]
+if ARGV.empty? && ENV["REQUEST_URI"]
   FCGI.each_cgi do |cgi| 
     TestController.process(ActionController::CgiRequest.new(cgi, SESSION_OPTIONS), ActionController::CgiResponse.new(cgi)).out
   end

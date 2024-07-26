@@ -83,6 +83,8 @@ module ActionController
       # instead of just list, show, and post. If suffix is used, then no index method is added.
       def scaffold(model_id, options = {})
         validate_options([ :class_name, :suffix ], options.keys)
+
+        require "#{model_id.id2name}"
         
         singular_name = model_id.id2name
         class_name    = options[:class_name] || singular_name.capitalize
@@ -156,8 +158,13 @@ module ActionController
                 @scaffold_suffix = "#{suffix}"
                 add_instance_variables_to_assigns
 
-                @contents = @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false)
-                render_file(scaffold_path("layout"))
+                @contents_for_layout = @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false)
+                
+                if self.class.has_active_layout?
+                  render_file(self.active_layout, "200 OK", true)
+                else
+                  render_file(scaffold_path("layout"))
+                end
               end
             end
             

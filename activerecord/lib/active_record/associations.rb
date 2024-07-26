@@ -113,6 +113,9 @@ module ActiveRecord
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_many association will use "person_id"
       #   as the default foreign_key.
       # * <tt>:dependent</tt>   - if set to true all the associated object are destroyed alongside this object
+      # * <tt>:exclusively_dependent</tt>   - if set to true all the associated object are deleted in one SQL statement without having their
+      #   before_destroy callback run. This should only be used on associations that depend solely on this class and don't need to do any
+      #   clean-up in before_destroy. The upside is that it's much faster, especially if there's a counter_cache involved.
       # * <tt>:finder_sql</tt>  - specify a complete SQL statement to fetch the association. This is a good way to go for complex
       #   associations that depends on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
       #
@@ -126,7 +129,7 @@ module ActiveRecord
       #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
       #       'ORDER BY p.first_name'
       def has_many(collection_id, options = {})
-        validate_options([ :foreign_key, :class_name, :dependent, :conditions, :order, :finder_sql ], options.keys)
+        validate_options([ :foreign_key, :class_name, :exclusively_dependent, :dependent, :conditions, :order, :finder_sql ], options.keys)
 
         collection_name, collection_class_name, class_primary_key_name =
             associate_identification(collection_id, options[:class_name], options[:foreign_key])
@@ -159,7 +162,13 @@ module ActiveRecord
           find_in_collection_method(collection_name, collection_class_name, class_primary_key_name, options[:conditions])
         end
 
-        module_eval "before_destroy '#{collection_name}.each { |o| o.destroy }'" if options[:dependent]
+        if options[:dependent]
+          module_eval "before_destroy '#{collection_name}.each { |o| o.destroy }'"
+        end
+        
+        if options[:exclusively_dependent]
+          module_eval "before_destroy \"#{collection_class_name}.delete_all(%(#{class_primary_key_name} = '\#{id}'))\""
+        end
       end
 
       # Adds the following methods for retrival and query of a single associated object.
@@ -346,21 +355,20 @@ module ActiveRecord
         validate_options([ :class_name, :table_name, :foreign_key, :association_foreign_key,
                            :join_table, :finder_sql, :delete_sql, :insert_sql ], options.keys)
 
-        association_name, association_class_name, class_primary_key_name =
+        association_name, association_class_name, association_class_primary_key_name =
             associate_identification(association_id, options[:class_name], options[:foreign_key])
 
 
         association_foreign_key = options[:association_foreign_key] || association_class_name.downcase + "_id"
 
         association_table_name = options[:table_name] || table_name(association_class_name)
-        my_key      = options[:key] || name.downcase + "_id"
         join_table  = options[:join_table] || 
           join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(association_class_name))
 
         finder_sql  = 
           options[:finder_sql] ||
           "SELECT t.* FROM #{association_table_name} t, #{join_table} j " +
-          "WHERE t.id = j.#{association_foreign_key} AND j.#{class_primary_key_name} = '\#{id}' ORDER BY t.id"
+          "WHERE t.\#{self.class.primary_key} = j.#{association_foreign_key} AND j.#{association_class_primary_key_name} = '\#{id}' ORDER BY t.\#{self.class.primary_key}"
 
         has_collection_method(association_name)
         collection_accessor_method_for_has_and_belongs_to_many(association_name, "#{association_class_name}.find_by_sql(\"#{finder_sql}\")")
@@ -369,13 +377,13 @@ module ActiveRecord
         add_association_relation(
           association_name, 
           options[:insert_sql] || 
-            "INSERT INTO #{join_table} (#{class_primary_key_name}, #{association_foreign_key}) " +
+            "INSERT INTO #{join_table} (#{association_class_primary_key_name}, #{association_foreign_key}) " +
             "VALUES ('\#{id}', '\#{item.id}')"
         )
 
         remove_association_relation(
           association_name, association_foreign_key, 
-          options[:delete_sql] || "DELETE FROM #{join_table} WHERE #{class_primary_key_name} = '\#{id}'"
+          options[:delete_sql] || "DELETE FROM #{join_table} WHERE #{association_class_primary_key_name} = '\#{id}'"
         )
       end
 
@@ -424,6 +432,23 @@ module ActiveRecord
             end
           end_eval
         end
+        
+        module HasManyAssocationArray
+          attr_writer :owner
+          attr_writer :class_primary_key_name
+          
+          def <<(association)
+            association.send(@class_primary_key_name + "=", @owner.id)
+            association.save(false)
+            super association
+          end
+
+          def delete(association)
+            association.send(@class_primary_key_name + "=", nil)
+            association.save(false)
+            super association
+          end
+        end
 				
         def collection_accessor_method_for_has_many(collection_name, collection_finder, class_primary_key_name)
           module_eval <<-"end_eval", __FILE__, __LINE__
@@ -436,23 +461,28 @@ module ActiveRecord
                 end
               end
               
-              def @#{collection_name}.owner=(owner); @owner = owner; end
+              @#{collection_name}.extend(HasManyAssocationArray) 
+              @#{collection_name}.class_primary_key_name = '#{class_primary_key_name}'
               @#{collection_name}.owner = self
-              def @#{collection_name}.<<(association)
-                association.#{class_primary_key_name} = @owner.id
-                association.save(false)
-                super association
-              end
-
-              def @#{collection_name}.delete(association)
-                association.#{class_primary_key_name} = nil
-                association.save(false)
-                super association
-              end
             
               return @#{collection_name}
             end
           end_eval
+        end
+
+        module HasAndBelongsToManyAssocationArray
+          attr_writer :owner
+          attr_writer :collection_name
+          def <<(association)
+            @owner.send("add_" + @collection_name, association)
+            super association
+          end
+        
+          def delete(association)
+            @owner.send("remove_" + @collection_name, association)
+            super association
+          end
+        
         end
 
         def collection_accessor_method_for_has_and_belongs_to_many(collection_name, collection_finder)
@@ -465,19 +495,10 @@ module ActiveRecord
                   @#{collection_name} = []
                 end
               end
-              
-              def @#{collection_name}.owner=(owner); @owner = owner; end
+
+              @#{collection_name}.extend(HasAndBelongsToManyAssocationArray) 
               @#{collection_name}.owner = self
-              
-              def @#{collection_name}.<<(association)
-                @owner.add_#{collection_name}(association)
-                super association
-              end
-              
-              def @#{collection_name}.delete(association)
-                @owner.remove_#{collection_name}(association)
-                super association
-              end
+              @#{collection_name}.collection_name = '#{collection_name}'
               
               return @#{collection_name}
             end

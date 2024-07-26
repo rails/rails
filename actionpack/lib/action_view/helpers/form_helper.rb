@@ -135,6 +135,17 @@ module ActionView
         html_year_select(date, options.call(1))
       end
 
+      def to_boolean_select_tag(options = {})
+        add_default_name_and_id(options)
+        tag_text = "<select"
+        tag_text << tag_options(options)
+        tag_text << "><option value=\"false\""
+        tag_text << " selected" if value == false
+        tag_text << ">False</option><option value=\"true\""
+        tag_text << " selected" if value
+        tag_text << ">True</option></select>"
+      end
+
       private
         def html_tag(name, options, has_content = false, content = nil)
           html_tag  = "<#{name}"

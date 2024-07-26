@@ -249,6 +249,7 @@ module ActionController #:nodoc:
 
         log_processing unless logger.nil?
         perform_action
+        close_session
 
         return @response
       end
@@ -330,20 +331,63 @@ module ActionController #:nodoc:
       #   redirect_to(:action => "edit", :id => 3425)
       #   redirect_to(:action => "edit", :path_params => { "type" => "XTC"}, :params => { "temp" => 1})
       #   redirect_to(:action => "publish", :action_prefix => "/published", :anchor => "x14")
-      def url_for(options = {}) #:doc:
-        @url.rewrite(options)
+      #
+      # Instead of passing an options hash, you can also pass a method reference in form of a symbol. Consider this example:
+      #
+      #   class WeblogController < ActionController::Base
+      #     def update
+      #       # do some update
+      #       redirect_to :dashboard_url
+      #     end
+      #     
+      #     protected
+      #       def dashboard_url
+      #         url_for :controller => (@project.active? ? "project" : "account"), :action => "dashboard"
+      #       end
+      #   end
+      def url_for(options = {}, *parameters_for_method_reference) #:doc:
+        case options
+          when String then options
+          when Symbol then send(options, *parameters_for_method_reference)
+          when Hash   then @url.rewrite(rewrite_options(options))
+        end
+      end
+      
+      def rewrite_options(options)
+        if defaults = default_url_options(options)
+          defaults.merge(options)
+        else
+          options
+        end
+      end
+      
+      # Overwrite to implement a number of default options that all url_for-based methods will use. The default options should come in
+      # form of a hash, just like the one you would use for url_for directly. Example:
+      #
+      #   def default_url_options(options)
+      #     { :controller_prefix => @project.active? ? "projects/" : "accounts/" }
+      #   end
+      #
+      # As you can infer from the example, this is mostly useful for situations where you want to centralize dynamic dissions about the
+      # urls as they stem from the business domain. Please note that any individual url_for call can always override the defaults set
+      # by this method.
+      def default_url_options(options) #:doc:
       end
       
       # Redirects the browser to an URL that has been rewritten according to the hash of +options+ using a "302 Moved" HTTP header.
       # See url_for for a description of the valid options.
-      def redirect_to(options = {}) #:doc:
-        redirect_to_url(url_for(options))
+      def redirect_to(options = {}, *parameters_for_method_reference) #:doc:
+        if parameters_for_method_reference.empty?
+          redirect_to_url(url_for(options))
+        else
+          redirect_to_url(url_for(options, *parameters_for_method_reference))
+        end
       end
       
       # Redirects the browser to the specified <tt>path</tt> within the current host (specified with a leading /). Used to sidestep
       # the URL rewriting and go directly to a known path. Example: <tt>redirect_to_path "/images/screenshot.jpg"</tt>.
       def redirect_to_path(path) #:doc:
-        redirect_to_url("http://" + @request.host + path)
+        redirect_to_url(@request.protocol + @request.host + path)
       end
 
       # Redirects the browser to the specified <tt>url</tt>. Used to redirect outside of the current application. Example:
@@ -414,14 +458,7 @@ module ActionController #:nodoc:
       end
       
       def initialize_current_url
-        if @request.respond_to?("env") && @request.env["SERVER_PORT"]
-          @url = UrlRewriter.new(
-            @request.env["SERVER_PORT"].to_i == 443 ? "https://" : "http://", @request.host.split(":").first, @request.env["SERVER_PORT"],
-            @request.request_uri.split("?").first, controller_name, action_name, @params
-          )
-        else
-          @url = UrlRewriter.new("http://", "test", 80, "/", controller_name, action_name, @params)
-        end
+        @url = UrlRewriter.new(@request, controller_name, action_name)
       end
 
       def log_processing
@@ -438,8 +475,6 @@ module ActionController #:nodoc:
         else
           raise UnknownAction, "No action responded to #{action_name}", caller
         end
-        
-        close_session
       end
 
       def action_methods
@@ -491,6 +526,6 @@ module ActionController #:nodoc:
         unless template_exists?(template_name) || ignore_missing_templates
           raise(MissingTemplate, "Couldn't find #{template_name}")
         end
-      end
+      end      
   end
 end

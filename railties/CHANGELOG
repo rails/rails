@@ -1,3 +1,33 @@
+*0.6.0*
+
+* Added AbstractionApplicationController as a superclass for all controllers generated. This class can be used
+  to carry filters and methods that are to be shared by all. It has an accompanying ApplicationHelper that all
+  controllers will also automatically have available.
+
+* Added environments that can be included from any script to get the full Active Record and Action Controller
+  context running. This can be used by maintenance scripts or to interact with the model through IRB. Example:
+  
+    require 'config/environments/production'
+    
+    for account in Account.find_all
+      account.recalculate_interests
+    end
+  
+  A short migration script for an account model that had it's interest calculation strategy changed.
+
+* Accessing the index of a controller with "/weblog" will now redirect to "/weblog/" (only on Apache, not WEBrick)
+
+* Simplified the default Apache config so even remote requests are served off CGI as a default.
+  You'll now have to do something specific to activate mod_ruby and FCGI (like using the force urls).
+  This should make it easier for new comers that start on an external server.
+
+* Added more of the necessary Apache options to .htaccess to make it easier to setup
+
+* Upgraded to Action Pack 0.7.9 (lots of fixes)
+
+* Upgraded to Active Record 0.9.3 (lots of fixes)
+
+
 *0.5.7*
 
 * Fixed bug in the WEBrick dispatcher that prevented it from getting parameters from the URL

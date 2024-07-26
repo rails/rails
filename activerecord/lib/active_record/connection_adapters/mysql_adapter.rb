@@ -16,6 +16,7 @@ module ActiveRecord
     def self.mysql_connection(config) # :nodoc:
       symbolize_strings_in_hash(config)
       host     = config[:host]     || "localhost"
+      port     = config[:port]     || 3306
       username = config[:username] || "root"
       password = config[:password] || ""
 
@@ -26,7 +27,7 @@ module ActiveRecord
       end
 
       self.connection = ConnectionAdapters::MysqlAdapter.new(
-        Mysql::real_connect(host, username, password, database), logger
+        Mysql::real_connect(host, username, password, database, port), logger
       )
     end
   end

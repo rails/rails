@@ -1,3 +1,28 @@
+*0.9.3*
+
+* Fixed bug with using a different primary key name together with has_and_belongs_to_many [Investigation by Scott] 
+
+* Added :exclusively_dependent option to the has_many association macro. The doc reads:
+
+    If set to true all the associated object are deleted in one SQL statement without having their
+    before_destroy callback run. This should only be used on associations that depend solely on 
+    this class and don't need to do any clean-up in before_destroy. The upside is that it's much
+    faster, especially if there's a counter_cache involved.
+
+* Added :port key to connection options, so the PostgreSQL and MySQL adapters can connect to a database server
+  running on another port than the default.
+
+* Converted the new natural singleton methods that prevented AR objects from being saved by PStore
+  (and hence be placed in a Rails session) to a module. [Florian Weber]
+
+* Fixed the use of floats (was broken since 0.9.0+)
+
+* Fixed PostgreSQL adapter so default values are displayed properly when used in conjunction with 
+  Action Pack scaffolding.
+
+* Fixed booleans support for PostgreSQL (use real true/false on boolean fields instead of 0/1 on tinyints) [radsaq]
+
+
 *0.9.2*
 
 * Added static method for instantly updating a record

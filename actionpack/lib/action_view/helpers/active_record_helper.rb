@@ -101,6 +101,8 @@ module ActionView
             to_date_select_tag(options)
           when :datetime
             to_datetime_select_tag(options)
+          when :boolean
+            to_boolean_select_tag(options)
         end
       end
 

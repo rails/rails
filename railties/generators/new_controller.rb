@@ -3,10 +3,10 @@
 def create_controller_class(controller_name, show_actions)
   File.open("app/controllers/" + controller_name.downcase  + "_controller.rb", "w", 0777) do |controller_file|
     controller_file.write <<EOF
-require 'action_controller'
+require 'abstract_application'
 require '#{controller_name.downcase}_helper'
 
-class #{controller_name.capitalize}Controller < ActionController::Base
+class #{controller_name.capitalize}Controller < AbstractApplicationController
   include #{controller_name.capitalize}Helper
 
 #{show_actions.collect { |action| "  def #{action}\n  end" }.join "\n\n" }
@@ -61,6 +61,7 @@ class #{controller_name.capitalize}ControllerTest < Test::Unit::TestCase
   end
 
   # def test_index
+  #   @request.path   = "/test/index"
   #   @request.action = "index"
   #   assert_equal "#{controller_name.downcase}/index", #{controller_name}Controller.process_test(@request).template.first_render
   # end

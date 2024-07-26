@@ -220,7 +220,6 @@ module ActionController #:nodoc:
         return if before_action == false
         perform_action_without_filters
         after_action
-        close_session
       end
 
       # Calls all the defined before-filter filters, which are added by using "before_filter :method".

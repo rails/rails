@@ -21,16 +21,13 @@ class FlashTest < Test::Unit::TestCase
   end
 
   def setup
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-
-    @request.host = "www.nextangle.com"
+    initialize_request_and_response
   end
 
   def test_flash
     @request.action = "set_flash"
     response = process_request
-    
+
     @request.action = "use_flash"
     first_response = process_request
     assert_equal "hello", first_response.template.assigns["flash"]["that"]
@@ -58,6 +55,11 @@ class FlashTest < Test::Unit::TestCase
   end
   
   private
+    def initialize_request_and_response
+      @request  = ActionController::TestRequest.new
+      @response = ActionController::TestResponse.new
+    end
+  
     def process_request
       TestController.process(@request, @response)
     end
