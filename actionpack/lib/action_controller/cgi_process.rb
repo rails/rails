@@ -33,14 +33,13 @@ module ActionController #:nodoc:
 
   class CgiRequest < Request #:nodoc:
     attr_accessor :cgi
-    attr_reader :session
 
     DEFAULT_SESSION_OPTIONS =
       { "database_manager" => CGI::Session::PStore, "prefix" => "ruby_sess.", "session_path" => "/" }
 
     def initialize(cgi, session_options = {})
       @cgi = cgi
-      initialize_session(session_options)
+      @session_options = session_options
       super()
     end
 
@@ -68,17 +67,22 @@ module ActionController #:nodoc:
       @cgi.send(method_id, *arguments) rescue super
     end
     
-    private
-      def initialize_session(session_options)
-        begin
-          @session = (session_options == false ? {} : CGI::Session.new(cgi, DEFAULT_SESSION_OPTIONS.merge(session_options)))
-          @session["___valid_session___"]
-        rescue ArgumentError => e
-          warn "Session contained objects where the class definition wasn't available -- the session has been cleared"
-          @session.delete
-          retry
-        end
+    def session
+      begin
+        @session = (@session_options == false ? {} : CGI::Session.new(cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options)))
+        @session["__valid_session"]
+        return @session
+      rescue ArgumentError => e
+        warn "Session contained objects where the class definition wasn't available -- the session has been cleared"
+        @session.delete
+        retry
       end
+    end
+    
+    def reset_session
+      @session.delete
+      @session = (@session_options == false ? {} : CGI::Session.new(cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options)))
+    end
   end
 
   class CgiResponse < Response #:nodoc:

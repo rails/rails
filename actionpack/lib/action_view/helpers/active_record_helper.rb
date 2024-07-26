@@ -13,7 +13,7 @@ module ActionView
       #   input("post", "title") => 
       #     <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
       def input(record_name, method)
-        InstanceTag.new(record_name, method, binding).to_tag
+        InstanceTag.new(record_name, method, self).to_tag
       end
 
       # Returns an entire form with input tags and everything for a specified Active Record object. Example
@@ -47,7 +47,7 @@ module ActionView
       def form(record_name, options = {})
         record   = instance_eval("@#{record_name}")
         action   = options[:action] || (record.new_record? ? "create" : "update")
-        id_field = record.new_record? ? "" : InstanceTag.new(record_name, "id", binding).to_input_field_tag("hidden")
+        id_field = record.new_record? ? "" : InstanceTag.new(record_name, "id", self).to_input_field_tag("hidden")
 
         "<form action='#{action}' method='POST'>" +
         id_field + all_input_tags(record, record_name, options) +

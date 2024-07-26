@@ -246,7 +246,16 @@ module ActiveRecord #:nodoc:
         object.save
         object
       end
-    
+
+      # Finds the record from the passed +id+, instantly saves it with the passed +attributes+ (if the validation permits it), 
+      # and returns it. If the save fail under validations, the unsaved object is still returned.
+      def update(id, attributes)
+        object = find(id)
+        object.attributes = attributes
+        object.save
+        object
+      end
+
       # Updates all records with the SET-part of an SQL update statement in +updates+. A subset of the records can be selected 
       # by specifying +conditions+. Example:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
@@ -558,6 +567,7 @@ module ActiveRecord #:nodoc:
       # specify which attributes *can* be accessed in with the +attr_accessible+ macro. Then all the
       # attributes not included in that won't be allowed to be mass-assigned.
       def attributes=(attributes)
+        return if attributes.nil?
         remove_attributes_protected_from_mass_assignment(attributes)
 
         multi_parameter_attributes = []

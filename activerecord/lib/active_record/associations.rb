@@ -602,7 +602,6 @@ module ActiveRecord
             def remove_#{association_name}(*items)
               if items.flatten.length < 1
                 connection.delete "#{delete_sql}"
-                puts "asd!!"
               else
                 ids = items.flatten.map { |item| "'" + item.id.to_s + "'" }.join(',')
                 connection.delete "#{delete_sql} AND #{foreign_key} in (\#{ids})"

@@ -45,6 +45,7 @@ files = %w-
  action_controller/support/class_inheritable_attributes.rb
  action_controller/support/class_attribute_accessors.rb
  action_controller/support/clean_logger.rb
+ action_controller/templates/rescues/_request_and_response.rhtml
  action_controller/templates/rescues/diagnostics.rhtml
  action_controller/templates/rescues/layout.rhtml
  action_controller/templates/rescues/missing_template.rhtml
@@ -62,6 +63,7 @@ files = %w-
  action_view/eruby_template.rb
  action_view/helpers/active_record_helper.rb
  action_view/helpers/date_helper.rb
+ action_view/helpers/debug_helper.rb
  action_view/helpers/form_helper.rb
  action_view/helpers/form_options_helper.rb
  action_view/helpers/text_helper.rb

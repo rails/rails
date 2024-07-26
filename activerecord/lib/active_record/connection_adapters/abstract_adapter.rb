@@ -146,7 +146,7 @@ module ActiveRecord
           case field_type
             when /int/i
               :integer
-            when /float|double/i
+            when /float|double|decimal|numeric/i
               :float
             when /datetime/i, /time/i
               :datetime
@@ -154,7 +154,7 @@ module ActiveRecord
               :date
             when /(c|b)lob/i, /text/i
               :text
-            when /varchar/i, /string/i, /character/i
+            when /varchar/i, /char/i, /string/i, /character/i
               :string
           end
         end

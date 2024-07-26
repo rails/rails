@@ -50,6 +50,7 @@ module ActionController #:nodoc:
       # Renders a detailed diagnostics screen on action exceptions. 
       def rescue_action_locally(exception)
         @exception = exception
+        @rescues_path = File.dirname(__FILE__) + "/templates/rescues/"
         add_variables_to_assigns
         @contents = @template.render_file(template_path_for_local_rescue(exception), false)
     

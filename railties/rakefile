@@ -49,6 +49,7 @@ task :make_base_dirs do
   File.mkdir "../#{PACKAGE_NAME}/db"
   File.mkdir "../#{PACKAGE_NAME}/config"
   File.mkdir "../#{PACKAGE_NAME}/log"
+  File.mkdir "../#{PACKAGE_NAME}/lib"
   File.mkdir "../#{PACKAGE_NAME}/public"
   File.mkdir "../#{PACKAGE_NAME}/script"
   File.mkdir "../#{PACKAGE_NAME}/test"

@@ -77,6 +77,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     end
 
     query = "controller=#{controller}&action=#{action}&id=#{id}"
+    query << "&#{req.request_uri.query}" if req.request_uri.query
     origin = req.request_uri.path + "?" + query
     req.request_uri.path = "/dispatch.rb"
     req.request_uri.query = query

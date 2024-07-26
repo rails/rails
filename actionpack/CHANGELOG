@@ -1,3 +1,60 @@
+*0.7.8*
+
+* Fixed session bug where you couldn't store any objects that didn't exist in the standard library 
+  (such as Active Record objects).
+
+* Added reset_session method for Action Controller objects to clear out all objects in the session.
+
+* Fixed that exceptions raised during filters are now also caught by the default rescues
+
+* Added new around_filter for doing before and after filtering with a single object [Florian Weber]:
+
+    class WeblogController < ActionController::Base
+      around_filter BenchmarkingFilter.new
+      
+      # Before this action is performed, BenchmarkingFilter#before(controller) is executed
+      def index
+      end
+      # After this action has been performed, BenchmarkingFilter#after(controller) is executed
+    end
+    
+    class BenchmarkingFilter
+      def initialize
+        @runtime
+      end
+      
+      def before
+        start_timer
+      end
+      
+      def after
+        stop_timer
+        report_result
+      end
+    end
+
+* Added the options for specifying a different name and id for the form helper methods than what is guessed [Florian Weber]:
+
+    text_field "post", "title"
+      ...just gives: <input id="post_title" name="post[title]" size="30" type="text" value="" />
+      
+    text_field "post", "title", "id" => "title_for_post", "name" => "first_post_title"
+      ...can now give: <input id="title_for_post" name="first_post_title" size="30" type="text" value="" />
+
+* Added DebugHelper with a single "debug" method for doing pretty dumps of objects in the view
+  (now used in the default rescues to better present the contents of session and template variables)
+
+* Added note to log about the templates rendered within layouts (before just the layout was shown)
+
+* Fixed redirects on https setups [Andreas]
+
+* Fixed scaffolding problem on the edit action when using :suffix => true [Scott]
+
+* Fixed scaffolding problem where implementing list.rhtml wouldn't work for the index action
+
+* URLs generated now uses &amp; instead of just & so pages using it can validate with W3C [Spotted by Andreas]
+
+
 *0.7.7*
 
 * Fixed bug in CGI extension that prevented multipart forms from working

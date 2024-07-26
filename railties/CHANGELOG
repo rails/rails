@@ -1,3 +1,18 @@
+*0.5.7*
+
+* Fixed bug in the WEBrick dispatcher that prevented it from getting parameters from the URL
+  (through GET requests or otherwise)
+
+* Added lib in root as a place to store app specific libraries
+
+* Added lib and vendor to load_path, so anything store within can be loaded directly. 
+  Hence lib/redcloth.rb can be loaded with require "redcloth"
+
+* Upgraded to Action Pack 0.7.8 (lots of fixes)
+
+* Upgraded to Active Record 0.9.2 (minor upgrade)
+
+
 *0.5.6*
 
 * Upgraded to Action Pack 0.7.7 (multipart form fix)

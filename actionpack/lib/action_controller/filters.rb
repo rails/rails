@@ -93,28 +93,93 @@ module ActionController #:nodoc:
     # The filter chain for the CheckoutController is now <tt>:ensure_items_in_cart, :ensure_items_in_stock,</tt>
     # <tt>:verify_open_shop</tt>. So if either of the ensure filters return false, we'll never get around to see if the shop 
     # is open or not.
+    #
+    # == Around filters
+    #
+    # In addition to the individual before and after filters, it's also possible to specify that a single object should handle
+    # both the before and after call. That's especially usefuly when you need to keep state active between the before and after,
+    # such as the example of a benchmark filter below:
+    # 
+    #   class WeblogController < ActionController::Base
+    #     around_filter BenchmarkingFilter.new
+    #     
+    #     # Before this action is performed, BenchmarkingFilter#before(controller) is executed
+    #     def index
+    #     end
+    #     # After this action has been performed, BenchmarkingFilter#after(controller) is executed
+    #   end
+    #
+    #   class BenchmarkingFilter
+    #     def initialize
+    #       @runtime
+    #     end
+    #     
+    #     def before
+    #       start_timer
+    #     end
+    #     
+    #     def after
+    #       stop_timer
+    #       report_result
+    #     end
+    #   end
     module ClassMethods
       # The passed <tt>filters</tt> will be appended to the array of filters that's run _before_ actions
       # on this controller are performed.
-      def append_before_filter(*filters)  append_filter("before", filters) end
+      def append_before_filter(*filters)  append_filter_to_chain("before", filters) end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters that's run _before_ actions
       # on this controller are performed.
-      def prepend_before_filter(*filters) prepend_filter("before", filters) end
+      def prepend_before_filter(*filters) prepend_filter_to_chain("before", filters) end
 
       # Short-hand for append_before_filter since that's the most common of the two.
       alias :before_filter :append_before_filter
       
       # The passed <tt>filters</tt> will be appended to the array of filters that's run _after_ actions
       # on this controller are performed.
-      def append_after_filter(*filters)  append_filter("after", filters) end
+      def append_after_filter(*filters)  append_filter_to_chain("after", filters) end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters that's run _after_ actions
       # on this controller are performed.
-      def prepend_after_filter(*filters) prepend_filter("after", filters) end
+      def prepend_after_filter(*filters) prepend_filter_to_chain("after", filters) end
 
       # Short-hand for append_after_filter since that's the most common of the two.
       alias :after_filter :append_after_filter
+      
+      # The passed <tt>filters</tt> will have their +before+ method appended to the array of filters that's run both before actions
+      # on this controller are performed and have their +after+ method prepended to the after actions. The filter objects must all 
+      # respond to both +before+ and +after+. So if you do append_around_filter A.new, B.new, the callstack will look like:
+      #
+      #   B#before
+      #     A#before
+      #     A#after
+      #   B#after
+      def append_around_filter(filters)
+        for filter in [filters].flatten
+          ensure_filter_responds_to_before_and_after(filter)
+        	append_before_filter(proc { |c| filter.before(c) })
+        	prepend_after_filter(proc { |c| filter.after(c) })
+        end
+      end        
+
+      # The passed <tt>filters</tt> will have their +before+ method prepended to the array of filters that's run both before actions
+      # on this controller are performed and have their +after+ method appended to the after actions. The filter objects must all 
+      # respond to both +before+ and +after+. So if you do prepend_around_filter A.new, B.new, the callstack will look like:
+      #
+      #   A#before
+      #     B#before
+      #     B#after
+      #   A#after
+      def prepend_around_filter(filters)
+        for filter in [filters].flatten
+          ensure_filter_responds_to_before_and_after(filter)
+        	prepend_before_filter(proc { |c| filter.before(c) })
+        	append_after_filter(proc { |c| filter.after(c) })
+        end
+      end     
+
+      # Short-hand for append_around_filter since that's the most common of the two.
+      alias :around_filter :append_around_filter
       
       # Returns all the before filters for this class and all its ancestors.
       def before_filters #:nodoc:
@@ -127,12 +192,18 @@ module ActionController #:nodoc:
       end
       
       private
-        def append_filter(condition, filters)
+        def append_filter_to_chain(condition, filters)
           write_inheritable_array("#{condition}_filters", filters)
         end
 
-        def prepend_filter(condition, filters)
+        def prepend_filter_to_chain(condition, filters)
           write_inheritable_attribute("#{condition}_filters", filters + read_inheritable_attribute("#{condition}_filters"))
+        end
+        
+        def ensure_filter_responds_to_before_and_after(filter)
+          unless filter.respond_to?(:before) && filter.respond_to?(:after)
+            raise ActionControllerError, "Filter object must respond to both before and after"
+          end
         end
     end
 

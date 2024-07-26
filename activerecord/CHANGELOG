@@ -1,3 +1,14 @@
+*0.9.2*
+
+* Added static method for instantly updating a record
+
+* Treat decimal and numeric as Ruby floats [Andreas Schwartz]
+
+* Treat chars as Ruby strings (fixes problem for Action Pack form helpers too)
+
+* Removed debugging output accidently left in (which would screw web applications)
+
+
 *0.9.1*
 
 * Added MIT license

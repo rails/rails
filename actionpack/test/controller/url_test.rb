@@ -108,7 +108,7 @@ class UrlTest < Test::Unit::TestCase
   
   def test_parameters
     assert_equal(
-      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&delete=1", 
+      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&amp;delete=1", 
       @library_url.rewrite(:params => {"delete" => "1", "name" => "David"})
     )
   end
@@ -206,7 +206,7 @@ class UrlTest < Test::Unit::TestCase
 
   def test_from_clean_to_libray
     assert_equal(
-      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&delete=1", 
+      "http://www.singlefile.com/library/books/ISBN/0743536703/show?name=David&amp;delete=1", 
       @clean_url.rewrite(
         :controller_prefix => "library",
         :controller => "books", 

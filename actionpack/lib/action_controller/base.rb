@@ -370,6 +370,11 @@ module ActionController #:nodoc:
         @response.headers["cookie"] << CGI::Cookie.new(*options)
       end
 
+      # Resets the session by clearsing out all the objects stored within and initializing a new session object.
+      def reset_session #:doc:
+        @request.reset_session
+      end
+
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
       def controller_class_name
         self.class.name.split("::").last
@@ -411,7 +416,7 @@ module ActionController #:nodoc:
       def initialize_current_url
         if @request.respond_to?("env") && @request.env["SERVER_PORT"]
           @url = UrlRewriter.new(
-            @request.env["SERVER_PORT"] == 443 ? "https://" : "http://", @request.host.split(":").first, @request.env["SERVER_PORT"],
+            @request.env["SERVER_PORT"].to_i == 443 ? "https://" : "http://", @request.host.split(":").first, @request.env["SERVER_PORT"],
             @request.request_uri.split("?").first, controller_name, action_name, @params
           )
         else

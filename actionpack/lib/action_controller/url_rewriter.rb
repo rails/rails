@@ -128,7 +128,7 @@ module ActionController
         hash.delete("id") if hash["id"]
 
         hash.each { |key, value| elements << "#{CGI.escape(key)}=#{CGI.escape(value.to_s)}" }
-        unless elements.empty? then query_string << ("?" + elements.join("&")) end
+        unless elements.empty? then query_string << ("?" + elements.join("&amp;")) end
         
         return query_string
       end

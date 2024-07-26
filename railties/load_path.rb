@@ -3,7 +3,8 @@
 
 OVERWRITTEABLE_INCLUDES = [] # [ "activerecord", "actionpack" ]
 FIXED_INCLUDES = [ 
-  "config", "app/models", "app/controllers", "app/helpers", "vendor/railties", "vendor/activerecord/lib", "vendor/actionpack/lib"
+  "config", "app/models", "app/controllers", "app/helpers", "vendor/railties", "vendor/activerecord/lib", "vendor/actionpack/lib",
+  "lib", "vendor"
 ]
 
 OVERWRITTEABLE_INCLUDES.each { |dir| $: << "#{File.dirname(__FILE__)}/../../vendor/#{dir}/lib" }

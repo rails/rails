@@ -35,11 +35,11 @@ require 'action_controller/scaffolding'
 require 'action_controller/cgi_process'
 
 ActionController::Base.class_eval { 
-  include ActionController::Rescue
   include ActionController::Benchmarking
   include ActionController::Filters
   include ActionController::Layout
   include ActionController::Flash
+  include ActionController::Rescue
   include ActionController::Scaffolding
 }
 

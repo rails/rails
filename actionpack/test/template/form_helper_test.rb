@@ -29,6 +29,15 @@ class FormHelperTest < Test::Unit::TestCase
     )
   end
   
+  # Pending a speed-up fix from Batsman on caller_binding approach
+  def xtest_text_field_on_local_variables
+    post = Post.new("I am local!")
+    
+    assert_equal(
+      '<input id="post_title" name="post[title]" size="30" type="text" value="I am local!" />', text_field("post", "title")
+    )    
+  end
+  
   def test_text_field_with_options
     assert_equal(
       '<input id="post_title" name="post[title]" size="35" type="text" value="Hello World" />', 
@@ -63,6 +72,33 @@ class FormHelperTest < Test::Unit::TestCase
     assert_equal(
       '<textarea cols="40" id="post_body" name="post[body]" rows="20" wrap="virtual">Back to the hill and over it again!</textarea>',
       text_area("post", "body")
+    )
+  end
+  
+  
+  def test_explicit_name
+    assert_equal(
+      '<input id="post_title" name="dont guess" size="30" type="text" value="Hello World" />', text_field("post", "title", "name" => "dont guess")
+    )  
+    assert_equal(
+      '<textarea cols="40" id="post_body" name="really!" rows="20" wrap="virtual">Back to the hill and over it again!</textarea>',
+      text_area("post", "body", "name" => "really!")
+    )
+    assert_equal(
+      '<input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" />', check_box("post", "secret", "name" => "i mean it")
+    )
+  end
+ 
+  def test_explicit_id
+    assert_equal(
+      '<input id="dont guess" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title", "id" => "dont guess")
+    )  
+    assert_equal(
+      '<textarea cols="40" id="really!" name="post[body]" rows="20" wrap="virtual">Back to the hill and over it again!</textarea>',
+      text_area("post", "body", "id" => "really!")
+    )
+    assert_equal(
+      '<input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" />', check_box("post", "secret", "id" => "i mean it")
     )
   end
 end

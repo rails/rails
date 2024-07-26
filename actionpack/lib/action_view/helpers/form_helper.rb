@@ -1,5 +1,6 @@
 require 'cgi'
 require File.dirname(__FILE__) + '/date_helper'
+# require 'action_view/support/caller_binding'
 
 module ActionView
   module Helpers
@@ -55,17 +56,17 @@ module ActionView
       #   text_field("post", "title", "size" => 20)
       #     <input type="text" id="post_title" name="post[title]" size="20" value="#{@post.title}" />
       def text_field(object, method, options = {}) 
-        InstanceTag.new(object, method, binding).to_input_field_tag("text", options)
+        InstanceTag.new(object, method, self).to_input_field_tag("text", options)
       end
 
       # Works just like text_field, but returns a input tag of the "password" type instead.
       def password_field(object, method, options = {})
-        InstanceTag.new(object, method, binding).to_input_field_tag("password", options)
+        InstanceTag.new(object, method, self).to_input_field_tag("password", options)
       end
 
       # Works just like text_field, but returns a input tag of the "hidden" type instead.
       def hidden_field(object, method, options = {})
-        InstanceTag.new(object, method, binding).to_input_field_tag("hidden", options)
+        InstanceTag.new(object, method, self).to_input_field_tag("hidden", options)
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -78,7 +79,7 @@ module ActionView
       #       #{@post.body}
       #     </textarea>
       def text_area(object, method, options = {})
-        InstanceTag.new(object, method, binding).to_text_area_tag(options)
+        InstanceTag.new(object, method, self).to_text_area_tag(options)
       end
       
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -90,7 +91,7 @@ module ActionView
       #   check_box("post", "validated")
       #     <input type="checkbox" id="post_validate" name="post[validated] value="1" checked="checked" />
       def check_box(object, method, options = {}, value = "1")
-        InstanceTag.new(object, method, binding).to_check_box_tag(options, value)
+        InstanceTag.new(object, method, self).to_check_box_tag(options, value)
       end
     end
 
@@ -98,27 +99,29 @@ module ActionView
       DEFAULT_FIELD_OPTIONS     = { "size" => 30 } unless const_defined?("DEFAULT_FIELD_OPTIONS")
       DEFAULT_TEXT_AREA_OPTIONS = { "wrap" => "virtual", "cols" => 40, "rows" => 20 } unless const_defined?("DEFAULT_TEXT_AREA_OPTIONS")
 
-      def initialize(object_name, method_name, tag_binding)
+      def initialize(object_name, method_name, template_object, local_binding = nil)
         @object_name, @method_name = object_name, method_name
-        @binding = tag_binding
+        @template_object, @local_binding = template_object, local_binding
       end
       
       def to_input_field_tag(field_type, options = {})
         options = DEFAULT_FIELD_OPTIONS.merge(options)
         options.merge!({ "size" => options["maxlength"]}) if options["maxlength"] && !options["size"]
-        options.merge!({ "type" =>  field_type, "id" => tag_id, "name" => tag_name, "value" => escaped_value })
+        options.merge!({ "type" =>  field_type, "value" => escaped_value })
+        add_default_name_and_id(options)
         html_tag("input", options)
       end
       
       def to_text_area_tag(options = {})
         options = DEFAULT_TEXT_AREA_OPTIONS.merge(options)
-        options.merge!({ "id" => tag_id, "name" => tag_name })
+        add_default_name_and_id(options)
         html_tag("textarea", options, true, value)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1")
         options.merge!({"checked" => "checked"}) if !value.nil? && value > 0
-        options.merge!({ "type" => "checkbox", "id" => tag_id, "name" => tag_name, "value" => checked_value })
+        options.merge!({ "type" => "checkbox", "value" => checked_value })
+        add_default_name_and_id(options)
         html_tag("input", options)
       end
 
@@ -139,6 +142,11 @@ module ActionView
           html_tag << (has_content ? ">#{content}</#{name}>" : " />")
         end
 
+        def add_default_name_and_id(options)
+          options['name'] = tag_name unless options.has_key? "name"
+          options['id'] = tag_id unless options.has_key? "id"
+        end
+				
         def tag_name
           "#{@object_name}[#{@method_name}]"
         end
@@ -152,7 +160,8 @@ module ActionView
         end
 
         def object
-          eval "@#{@object_name}", @binding
+          # eval(@object_name, @local_binding) rescue @template_object.instance_variable_get "@#{@object_name}"
+          @template_object.instance_variable_get "@#{@object_name}"
         end
         
         def value

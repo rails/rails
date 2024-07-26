@@ -135,6 +135,7 @@ module ActionController #:nodoc:
     def render_with_layout(template_name = "#{controller_name}/#{action_name}", status = nil) #:nodoc:
       if self.class.has_active_layout?
         add_variables_to_assigns
+        logger.info("Rendering #{template_name} within #{self.active_layout}") unless logger.nil?
         @content_for_layout = @template.render_file(template_name)
         render_file(self.active_layout, status, true)
       else

@@ -131,7 +131,7 @@ module ActionController
           
           def edit#{suffix}
             @#{singular_name} = #{class_name}.find(@params["id"])
-            render_scaffold
+            render#{suffix}_scaffold
           end
           
           def update#{suffix}
@@ -148,8 +148,8 @@ module ActionController
           
           private
             def render#{suffix}_scaffold(action = caller_method_name(caller))
-              if template_exists? 
-                render
+              if template_exists?("\#{controller_name}/\#{action}")
+                render_action(action)
               else
                 @scaffold_class = #{class_name}
                 @scaffold_singular_name, @scaffold_plural_name = "#{singular_name}", "#{plural_name}"
