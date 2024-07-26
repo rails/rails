@@ -1,0 +1,198 @@
+require 'rake'
+require 'rake/testtask'
+# require 'rake/packagetask'
+require 'rake/rdoctask'
+
+require 'date'
+
+PACKAGE_NAME    = "rails"
+PACKAGE_VERSION = "0.5.0"
+
+desc "Default Task"
+task :default => [ :fresh_rails ]
+
+task :fresh_rails => [
+  :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
+  :setup_tests, :copy_vendor_libraries, :copy_rootfiles, :setup_public,
+  :generate_rails_framework_doc, :generate_app_doc, :link_framework_doc, :link_docs_in_public
+]
+
+task :fresh_rails_without_docs => [
+  :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
+  :setup_tests, :copy_vendor_libraries, :copy_rootfiles, :setup_public
+]
+
+task :linked_rails => [
+  :make_base_dirs, :make_app_dirs, :copy_default_config, :initialize_log_files, 
+  :setup_tests, :link_vendor_libraries, :copy_rootfiles, :setup_public
+]
+
+task :package => [ :clean, :fresh_rails ] do
+  system  %{cd ..; tar -czvf #{PACKAGE_NAME}-#{PACKAGE_VERSION}.tgz #{PACKAGE_NAME}}
+end
+
+task :make_base_dirs do
+  File.rm_rf "../#{PACKAGE_NAME}"
+  File.mkdir "../#{PACKAGE_NAME}"
+  File.mkdir "../#{PACKAGE_NAME}/app"
+  File.mkdir "../#{PACKAGE_NAME}/db"
+  File.mkdir "../#{PACKAGE_NAME}/config"
+  File.mkdir "../#{PACKAGE_NAME}/log"
+  File.mkdir "../#{PACKAGE_NAME}/public"
+  File.mkdir "../#{PACKAGE_NAME}/script"
+  File.mkdir "../#{PACKAGE_NAME}/test"
+  File.mkdir "../#{PACKAGE_NAME}/vendor"
+end
+
+task :make_app_dirs do
+  File.mkdir "../#{PACKAGE_NAME}/app/models"
+  File.mkdir "../#{PACKAGE_NAME}/app/controllers"
+  File.mkdir "../#{PACKAGE_NAME}/app/helpers"
+  File.mkdir "../#{PACKAGE_NAME}/app/views"
+  File.mkdir "../#{PACKAGE_NAME}/app/views/_images"
+  File.mkdir "../#{PACKAGE_NAME}/app/views/_javascripts"
+  File.mkdir "../#{PACKAGE_NAME}/app/views/_stylesheets"
+end
+
+task :copy_default_config do
+  File.cp "configs/database.yml", "../#{PACKAGE_NAME}/config/database.yml"
+  File.cp "configs/apache.conf", "../#{PACKAGE_NAME}/config/apache.conf"
+end
+
+task :initialize_log_files do
+  chmod 0777, "../#{PACKAGE_NAME}/log"
+
+  File.touch "../#{PACKAGE_NAME}/log/apache.log"
+  File.touch "../#{PACKAGE_NAME}/log/production.log"
+
+  chmod 0777, "../#{PACKAGE_NAME}/log/apache.log"
+  chmod 0777, "../#{PACKAGE_NAME}/log/production.log"
+end
+
+
+task :setup_tests => [ :make_test_dirs, :link_test_helpers ]
+
+task :make_test_dirs do
+  File.mkdir "../#{PACKAGE_NAME}/test/fixtures"
+  File.mkdir "../#{PACKAGE_NAME}/test/unit"
+  File.mkdir "../#{PACKAGE_NAME}/test/functional"
+end
+
+task :link_test_helpers do
+  cd "../#{PACKAGE_NAME}/test"
+  ln_s "../vendor/railties/helpers/functional_test_helper.rb", "functional_test_helper.rb"
+  ln_s "../vendor/railties/helpers/unit_test_helper.rb", "unit_test_helper.rb"
+  cd "../../railties"
+end
+
+
+task :copy_vendor_libraries => [ :copy_action_pack, :copy_active_record, :copy_ties ]
+
+task :copy_action_pack do
+  File.cp_r "../actionpack", "../#{PACKAGE_NAME}/vendor/actionpack"
+end
+
+task :copy_active_record do
+  File.cp_r "../activerecord", "../#{PACKAGE_NAME}/vendor/activerecord" 
+end
+
+task :copy_ties do
+  File.cp_r "../railties", "../#{PACKAGE_NAME}/vendor/railties" 
+end
+
+
+task :link_vendor_libraries => [ :link_action_pack, :link_active_record, :link_ties ]
+
+task :link_action_pack do
+  cd "../#{PACKAGE_NAME}/vendor"
+  ln_s "../../actionpack", "actionpack"
+  cd "../../railties"
+end
+
+task :link_active_record do
+  cd "../#{PACKAGE_NAME}/vendor"
+  ln_s "../../activerecord", "activerecord"
+  cd "../../railties"
+end
+
+task :link_ties do
+  cd "../#{PACKAGE_NAME}/vendor"
+  ln_s "../../railties", "railties"
+  cd "../../railties"
+end
+
+
+
+task :setup_public => [ :make_public_dirs, :link_ties ]
+
+task :make_public_dirs do
+  cd "../#{PACKAGE_NAME}/public"
+  ln_s "../app/views/_images", "images"
+  ln_s "../app/views/_javascripts", "javascripts"
+  ln_s "../app/views/_stylesheets", "stylesheets"
+  cd "../../railties"
+end
+
+task :link_ties do
+  cd "../#{PACKAGE_NAME}/public"
+  ln_s "../vendor/railties/dispatch.rb", "dispatch.cgi"
+  chmod 0755, "dispatch.cgi"
+
+  ln_s "../vendor/railties/dispatch.fcgi", "dispatch.fcgi"
+  chmod 0755, "dispatch.fcgi"
+
+  ln_s "../vendor/railties/dispatch.rb", "dispatch.rb"
+
+  ln_s "../vendor/railties/html/404.html", "404.html"
+  ln_s "../vendor/railties/html/index.html", "index.html"
+  
+  ln_s "../config/apache.conf", ".htaccess"
+
+  cd "../script"
+  ln_s "../vendor/railties/generators/new_controller.rb", "new_controller"
+  ln_s "../vendor/railties/generators/new_model.rb", "new_model"
+
+  chmod 0755, "new_controller"
+  chmod 0755, "new_model"
+
+  cd "../../railties"
+end
+
+
+task :copy_rootfiles do
+  File.cp "fresh_rakefile", "../#{PACKAGE_NAME}/rakefile"
+  File.cp "README", "../#{PACKAGE_NAME}/README"
+end
+
+
+task :generate_rails_framework_doc do
+  system %{cd ./../#{PACKAGE_NAME}; rake apidoc}
+end
+
+task :generate_app_doc do
+  File.cp "doc/README_FOR_APP", "../#{PACKAGE_NAME}/doc/README_FOR_APP"
+  system %{cd ./../#{PACKAGE_NAME}; rake appdoc}
+end
+
+task :link_framework_doc do
+  cd "../#{PACKAGE_NAME}"
+  ln_s "doc/api/index.html", "README.html"
+  cd "../railties"
+end
+
+task :link_docs_in_public do 
+  cd "../#{PACKAGE_NAME}/public"
+
+  mkdir "_doc"
+  cd "_doc"
+  ln_s "../../vendor/railties/doc/index.html", "index.html"
+  ln_s "../../vendor/railties/doc/apache_protection", ".htaccess"
+  ln_s "../../doc/api", "api"
+  ln_s "../../doc/app", "app"
+
+  cd "../../../railties"
+end
+
+task :clean do
+  File.rm_rf "../#{PACKAGE_NAME}"
+end

@@ -1,0 +1,24 @@
+<h1>Listing <%= @scaffold_plural_name %></h1>
+
+<table>
+  <tr>
+  <% for column in @scaffold_class.content_columns %>
+    <th><%= column.human_name %></th>
+  <% end %>
+  </tr>
+  
+<% for entry in instance_variable_get("@#{@scaffold_plural_name}") %>
+  <tr>
+  <% for column in @scaffold_class.content_columns %>
+    <td><%= entry.send(column.name) %></td>
+  <% end %>
+    <td><a href="show<%= @scaffold_suffix %>/<%= entry.id %>">Show</td>
+    <td><a href="edit<%= @scaffold_suffix %>/<%= entry.id %>">Edit</td>
+    <td><a href="destroy<%= @scaffold_suffix %>/<%= entry.id %>">Delete</td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<a href="new<%= @scaffold_suffix %>">New <%= @scaffold_singular_name %></a>

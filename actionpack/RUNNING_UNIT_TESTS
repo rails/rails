@@ -1,0 +1,14 @@
+== Running with Rake
+
+The easiest way to run the unit tests is through Rake. The default task runs
+the entire test suite for all classes. For more information, checkout the 
+full array of rake tasks with "rake -T"
+
+Rake can be found at http://rake.rubyforge.org
+
+== Running by hand
+
+If you only want to run a single test suite, or don't want to bother with Rake,
+you can do so with something like:
+
+   ruby controller/base_test.rb

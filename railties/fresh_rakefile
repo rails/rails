@@ -1,0 +1,91 @@
+require 'rake'
+require 'rake/testtask'
+require 'rake/rdoctask'
+require File.dirname(__FILE__) + "/vendor/railties/lib/code_statistics"
+
+$VERBOSE = nil
+
+require File.dirname(__FILE__) + '/vendor/railties/load_path'
+require 'active_record'
+require 'yaml'
+
+DB_CONF = YAML::load(File.open("config/database.yml"))
+
+desc "Run all the tests"
+task :default => [ :clone_production_structure_to_test, :test_units, :test_functional, :appdoc, :stats ]
+
+desc "Run the unit tests in test/unit"
+Rake::TestTask.new("test_units") { |t|
+  t.libs << "test"
+  t.pattern = 'test/unit/*_test.rb'
+  t.verbose = true
+}
+
+desc "Run the functional tests in test/functional"
+Rake::TestTask.new("test_functional") { |t|
+  t.libs << "test"
+  t.pattern = 'test/functional/*_test.rb'
+  t.verbose = true
+}
+
+desc "Generate documentation for the application"
+Rake::RDocTask.new("appdoc") { |rdoc|
+  rdoc.rdoc_dir = 'doc/app'
+  rdoc.template = 'css2'
+  rdoc.title    = "Rails Application Documentation"
+  rdoc.options << '--line-numbers --inline-source'
+  rdoc.rdoc_files.include('doc/README_FOR_APP')
+  rdoc.rdoc_files.include('app/**/*.rb')
+}
+
+desc "Generate documentation for the Rails framework"
+Rake::RDocTask.new("apidoc") { |rdoc|
+  rdoc.rdoc_dir = 'doc/api'
+  rdoc.template = 'css2'
+  rdoc.title    = "Rails Framework Documentation"
+  rdoc.options << '--line-numbers --inline-source'
+  rdoc.rdoc_files.include('README')
+  rdoc.rdoc_files.include('vendor/activerecord/README')
+  rdoc.rdoc_files.include('vendor/activerecord/lib/active_record/**/*.rb')
+  rdoc.rdoc_files.exclude('vendor/activerecord/lib/active_record/vendor/*')
+  rdoc.rdoc_files.include('vendor/actionpack/README')
+  rdoc.rdoc_files.include('vendor/actionpack/lib/action_controller/**/*.rb')
+  rdoc.rdoc_files.include('vendor/actionpack/lib/action_view/**/*.rb')
+}
+
+desc "Report code statistics (KLOCs, etc) from the application"
+task :stats do
+  CodeStatistics.new(
+    ["Controllers", "app/controllers"], 
+    ["Helpers", "app/helpers"], 
+    ["Models", "app/models"],
+    ["Units", "test/unit"],
+    ["Functionals", "test/functional"]
+  ).to_s
+end
+
+desc "Recreate the test databases from the production structure"
+task :clone_production_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
+  if DB_CONF["test"]["adapter"] == "mysql"
+    ActiveRecord::Base.establish_connection(DB_CONF["test"])
+    IO.readlines("db/production_structure.sql").join.split("\n\n").each do |table|
+      ActiveRecord::Base.connection.execute(table)
+    end
+  end
+end
+
+desc "Dump the database structure to a SQL file"
+task :db_structure_dump do
+  if DB_CONF["test"]["adapter"] == "mysql"
+    ActiveRecord::Base.establish_connection(DB_CONF["production"])
+    File.open("db/production_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
+  end
+end
+
+desc "Drop the test database and bring it back again"
+task :purge_test_database do
+  if DB_CONF["test"]["adapter"] == "mysql"
+    ActiveRecord::Base.establish_connection(DB_CONF["production"])
+    ActiveRecord::Base.connection.recreate_database(DB_CONF["test"]["database"])
+  end
+end

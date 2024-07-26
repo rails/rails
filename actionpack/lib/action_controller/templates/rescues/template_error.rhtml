@@ -1,0 +1,41 @@
+<%
+  base_dir = File.expand_path(File.dirname(__FILE__))
+  
+  query_dump    = CGI::escapeHTML(@request.query_parameters.inspect.gsub(/,/, ",\n"))
+  request_dump  = CGI::escapeHTML(@request.request_parameters.inspect.gsub(/,/, ",\n"))
+  session_dump  = CGI::escapeHTML(@request.session.instance_variable_get("@data").inspect.gsub(/,/, ",\n"))
+  response_dump = CGI::escapeHTML(@response.inspect.gsub(/,/, ",\n"))
+
+  template_assigns = @response.template.instance_variable_get("@assigns")
+  %w( response exception template session request template_root template_class url ignore_missing_templates logger cookies headers params ).each { |t| template_assigns.delete(t) }
+  template_dump = CGI::escapeHTML(template_assigns.inspect.gsub(/,/, ",\n"))
+
+  framework_trace = @exception.original_exception.backtrace.collect do |line| 
+    line.gsub(base_dir, "").gsub("/../vendor/railties/../../", "")
+  end
+%>
+
+<h1><%= @exception.original_exception.class.to_s %></h1>
+
+<p>
+  Showing <i><%= @exception.file_name %></i> where line <b>#<%= @exception.line_number %></b> raised
+  <u><%= @exception.original_exception.message %></u>
+</p>
+
+<pre><code><%= CGI.escapeHTML(@exception.source_extract) %></code></pre>
+
+<p><%= @exception.sub_template_message %></p>
+
+<a href="#" onclick="document.getElementById('framework_trace').style.display='block'">Show template trace</a>
+<pre id="framework_trace" style="display:none"><code><%= framework_trace.join("\n") %></code></pre>
+
+<h2>Request</h2>
+<b>Query parameters</b>: <%= query_dump %><br/>
+<b>Request parameters</b>: <%= request_dump %><br/>
+<b>Session</b>: <%= session_dump %><br/>
+
+<h2>Response</h2>
+<b>Template parameters</b>: <%= template_dump %><br/>
+<b>Headers</b>: <%= @response.headers.inspect.gsub(/,/, ",\n") %><br/>
+<a href="#" onclick="document.getElementById('response_dump').style.display='block'">Show response dump</a>
+<div id="response_dump" style="display:none"><pre><code><%= response_dump %></code></pre></div>

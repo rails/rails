@@ -1,0 +1,295 @@
+*0.9.0*
+
+* Active Record is now thread safe! (So you can use it with Cerise and WEBrick applications)
+  [Implementation idea by Michael Neumann, debugging assistance by Jamis Buck]
+
+* Improved performance by roughly 400% on a basic test case of pulling 100 records and querying one attribute. 
+  This brings the tax for using Active Record instead of "riding on the metal" (using MySQL-ruby C-driver directly) down to ~50%.
+  Done by doing lazy type conversions and caching column information on the class-level.
+
+* Added callback objects and procs as options for implementing the target for callback macros.
+
+* Added "counter_cache" option to belongs_to that automates the usage of increment_counter and decrement_counter. Consider:
+
+    class Post < ActiveRecord::Base
+      has_many :comments
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post
+    end
+
+  Iterating over 100 posts like this:
+  
+    <% for post in @posts %>
+      <%= post.title %> has <%= post.comments_count %> comments
+    <% end %>
+    
+  Will generate 100 SQL count queries -- one for each call to post.comments_count. If you instead add a "comments_count" int column
+  to the posts table and rewrite the comments association macro with:
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post, :counter_cache => true
+    end
+  
+  Those 100 SQL count queries will be reduced to zero. Beware that counter caching is only appropriate for objects that begin life
+  with the object it's specified to belong with and is destroyed like that as well. Typically objects where you would also specify
+  :dependent => true. If your objects switch from one belonging to another (like a post that can be move from one category to another),
+  you'll have to manage the counter yourself. 
+
+* Added natural object-style assignment for has_one and belongs_to associations. Consider the following model:
+
+    class Project < ActiveRecord::Base
+      has_one :manager
+    end
+    
+    class Manager < ActiveRecord::Base
+      belongs_to :project
+    end
+  
+  Earlier, assignments would work like following regardless of which way the assignment told the best story:
+  
+    active_record.manager_id = david.id
+  
+  Now you can do it either from the belonging side:
+
+    david.project = active_record
+  
+  ...or from the having side:
+  
+    active_record.manager = david
+  
+  If the assignment happens from the having side, the assigned object is automatically saved. So in the example above, the 
+  project_id attribute on david would be set to the id of active_record, then david would be saved.
+
+* Added natural object-style assignment for has_many associations [Florian Weber]. Consider the following model:
+
+    class Project < ActiveRecord::Base
+      has_many :milestones
+    end
+    
+    class Milestone < ActiveRecord::Base
+      belongs_to :project
+    end
+  
+  Earlier, assignments would work like following regardless of which way the assignment told the best story:
+  
+    deadline.project_id = active_record.id
+  
+  Now you can do it either from the belonging side:
+
+    deadline.project = active_record
+  
+  ...or from the having side:
+  
+    active_record.milestones << deadline
+  
+  The milestone is automatically saved with the new foreign key.
+
+* API CHANGE: Attributes for text (or blob or similar) columns will now have unknown classes stored using YAML instead of using
+  to_s. (Known classes that won't be yamelized are: String, NilClass, TrueClass, FalseClass, Fixnum, Date, and Time).
+  Likewise, data pulled out of text-based attributes will be attempted converged using Yaml if they have the "--- " header.
+  This was primarily done to be enable the storage of hashes and arrays without wrapping them in aggregations, so now you can do:
+  
+    user = User.find(1)
+    user.preferences = { "background" => "black", "display" => large }
+    user.save
+    
+    User.find(1).preferences # => { "background" => "black", "display" => large }
+  
+  Please note that this method should only be used when you don't care about representing the object in proper columns in
+  the database. A money object consisting of an amount and a currency is still a much better fit for a value object done through
+  aggregations than this new option.
+
+* POSSIBLE CODE BREAKAGE: As a consequence of the lazy type conversions, it's a bad idea to reference the @attributes hash
+  directly (it always was, but now it's paramount that you don't). If you do, you won't get the type conversion. So to implement
+  new accessors for existing attributes, use read_attribute(attr_name) and write_attribute(attr_name, value) instead. Like this:
+  
+    class Song < ActiveRecord::Base
+      # Uses an integer of seconds to hold the length of the song
+      
+      def length=(minutes)
+        write_attribute("length", minutes * 60)
+      end
+      
+      def length
+        read_attribute("length") / 60
+      end
+    end
+
+  The clever kid will notice that this opens a door to sidestep the automated type conversion by using @attributes directly.
+  This is not recommended as read/write_attribute may be granted additional responsibilities in the future, but if you think
+  you know what you're doing and aren't afraid of future consequences, this is an option.
+
+* Applied a few minor bug fixes reported by Daniel Von Fange.
+
+
+*0.8.4*
+
+_Reflection_
+
+* Added ActiveRecord::Reflection with a bunch of methods and classes for reflecting in aggregations and associations.
+
+* Added Base.columns and Base.content_columns which returns arrays of column description (type, default, etc) objects.
+
+* Added Base#attribute_names which returns an array of names for the attributes available on the object.
+
+* Added Base#column_for_attribute(name) which returns the column description object for the named attribute.
+
+
+_Misc_
+
+* Added multi-parameter assignment:
+
+    # Instantiate objects for all attribute classes that needs more than one constructor parameter. This is done
+    # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
+    # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
+    # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
+    # parenteses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, f for Float,
+    # s for String, and a for Array.
+  
+  This is incredibly useful for assigning dates from HTML drop-downs of month, year, and day.
+
+* Fixed bug with custom primary key column name and Base.find on multiple parameters.
+
+* Fixed bug with dependent option on has_one associations if there was no associated object.
+
+
+*0.8.3*
+
+_Transactions_
+
+* Added transactional protection for destroy (important for the new :dependent option) [Suggested by Carl Youngblood]
+
+* Fixed so transactions are ignored on MyISAM tables for MySQL (use InnoDB to get transactions)
+
+* Changed transactions so only exceptions will cause a rollback, not returned false.
+
+
+_Mapping_
+
+* Added support for non-integer primary keys [Aredridel/earlier work by Michael Neumann]
+  
+    User.find "jdoe"
+    Product.find "PDKEY-INT-12"
+
+* Added option to specify naming method for primary key column. ActiveRecord::Base.primary_key_prefix_type can either
+  be set to nil, :table_name, or :table_name_with_underscore. :table_name will assume that Product class has a primary key
+  of "productid" and :table_name_with_underscore will assume "product_id". The default nil will just give "id".
+    
+* Added an overwriteable primary_key method that'll instruct AR to the name of the 
+  id column [Aredridele/earlier work by Guan Yang]
+    
+    class Project < ActiveRecord::Base
+      def self.primary_key() "project_id" end
+    end
+
+* Fixed that Active Records can safely associate inside and out of modules.
+
+    class MyApplication::Account < ActiveRecord::Base
+      has_many :clients # will look for MyApplication::Client
+      has_many :interests, :class_name => "Business::Interest" # will look for Business::Interest
+    end
+
+* Fixed that Active Records can safely live inside modules [Aredridel]
+
+    class MyApplication::Account < ActiveRecord::Base
+    end
+
+
+_Misc_
+
+* Added freeze call to value object assignments to ensure they remain immutable [Spotted by Gavin Sinclair]
+ 
+* Changed interface for specifying observed class in observers. Was OBSERVED_CLASS constant, now is 
+  observed_class() class method. This is more consistant with things like self.table_name(). Works like this:
+
+    class AuditObserver < ActiveRecord::Observer
+      def self.observed_class() Account end
+      def after_update(account)
+        AuditTrail.new(account, "UPDATED")
+      end
+    end
+
+  [Suggested by Gavin Sinclair]
+
+* Create new Active Record objects by setting the attributes through a block. Like this:
+
+    person = Person.new do |p|
+      p.name = 'Freddy'
+      p.age  = 19
+    end
+
+  [Suggested by Gavin Sinclair]
+
+
+*0.8.2*
+
+* Added inheritable callback queues that can ensure that certain callback methods or inline fragments are
+  run throughout the entire inheritance hierarchy. Regardless of whether a descendent overwrites the callback
+  method:
+  
+    class Topic < ActiveRecord::Base
+      before_destroy :destroy_author, 'puts "I'm an inline fragment"'
+    end
+  
+  Learn more in link:classes/ActiveRecord/Callbacks.html
+
+* Added :dependent option to has_many and has_one, which will automatically destroy associated objects when 
+  the holder is destroyed:
+  
+    class Album < ActiveRecord::Base
+      has_many :tracks, :dependent => true
+    end
+    
+  All the associated tracks are destroyed when the album is.
+
+* Added Base.create as a factory that'll create, save, and return a new object in one step.
+
+* Automatically convert strings in config hashes to symbols for the _connection methods. This allows you
+  to pass the argument hashes directly from yaml. (Luke)
+
+* Fixed the install.rb to include simple.rb [Spotted by Kevin Bullock]
+
+* Modified block syntax to better follow our code standards outlined in 
+  http://www.rubyonrails.org/CodingStandards
+
+
+*0.8.1*
+
+* Added object-level transactions [Thanks to Austin Ziegler for Transaction::Simple]
+
+* Changed adapter-specific connection methods to use centralized ActiveRecord::Base.establish_connection,
+  which is parametized through a config hash with symbol keys instead of a regular parameter list.
+  This will allow for database connections to be opened in a more generic fashion. (Luke)
+  
+  NOTE: This requires all *_connections to be updated! Read more in:
+  http://ar.rubyonrails.org/classes/ActiveRecord/Base.html#M000081
+
+* Fixed SQLite adapter so objects fetched from has_and_belongs_to_many have proper attributes
+  (t.name is now name). [Spotted by Garrett Rooney]
+
+* Fixed SQLite adapter so dates are returned as Date objects, not Time objects [Spotted by Gavin Sinclair]
+
+* Fixed requirement of date class, so date conversions are succesful regardless of whether you 
+  manually require date or not.
+
+
+*0.8.0*
+
+* Added transactions
+
+* Changed Base.find to also accept either a list (1, 5, 6) or an array of ids ([5, 7]) 
+  as parameter and then return an array of objects instead of just an object
+
+* Fixed method has_collection? for has_and_belongs_to_many macro to behave as a 
+  collection, not an association
+
+* Fixed SQLite adapter so empty or nil values in columns of datetime, date, or time type
+  aren't treated as current time [Spotted by Gavin Sinclair]
+
+
+*0.7.6*
+
+* Fixed the install.rb to create the lib/active_record/support directory [Spotted by Gavin Sinclair]
+* Fixed that has_association? would always return true [Spotted by Daniel Von Fange]

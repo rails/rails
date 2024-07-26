@@ -1,0 +1,8 @@
+<% for column in @scaffold_class.content_columns %>
+  <p>
+    <b><%= column.human_name %>:</b>
+    <%= instance_variable_get("@#{@scaffold_singular_name}").send(column.name) %>
+  </p>
+<% end %>
+
+<a href="../edit<%= @scaffold_suffix %>/<%= instance_variable_get("@#{@scaffold_singular_name}").id %>">Edit</a> | <a href="../list<%= @scaffold_suffix %>">Back</a>
