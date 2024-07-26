@@ -6,7 +6,7 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
-PKG_VERSION = "0.9.4"
+PKG_VERSION = "0.9.5"
 
 PKG_FILES = FileList[
     "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "rakefile"
@@ -47,7 +47,6 @@ Rake::TestTask.new("test_sqlite") { |t|
 
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
-  rdoc.template = 'css2'
   rdoc.title    = "Active Record -- Object-relation mapping put on rails"
   rdoc.options << '--line-numbers --inline-source --accessor cattr_accessor=object'
   rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
@@ -89,7 +88,7 @@ spec = Gem::Specification.new do |s|
 
   s.has_rdoc = true
   s.extra_rdoc_files = %w( README )
-  s.rdoc_options << '--main README'
+  s.rdoc_options.concat ['--main',  'README']
   
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"

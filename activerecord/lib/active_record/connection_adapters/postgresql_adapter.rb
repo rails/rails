@@ -21,7 +21,7 @@ begin
       # Establishes a connection to the database that's used by all Active Record objects
       def self.postgresql_connection(config) # :nodoc:
         symbolize_strings_in_hash(config)
-        host     = config[:host]     || "localhost"
+        host     = config[:host]
         port     = config[:port]     || 5432 unless host.nil?
         username = config[:username] || ""
         password = config[:password] || ""

@@ -23,7 +23,8 @@ module ActiveRecord
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#has_project_manger?,</tt>
     #   <tt>Project#project_manager?(project_manager), Project#build_project_manager, Project#create_project_manager</tt>
     # * <tt>Project#has_milestones?, Project#milestones_count, Project#milestones, Project#milestones<<(milestone),</tt>
-    #   <tt>Project#milestones.delete(milestone), Project#find_in_milestones(milestone_id), Project#build_to_milestones,</tt>
+    #   <tt>Project#milestones.delete(milestone), Project#find_in_milestones(milestone_id), Project#find_all_in_milestones(conditions),</tt>
+    #   <tt>Project#build_to_milestones,</tt>
     #   <tt>Project#create_in_milestones<</tt>
     # * <tt>Project#has_categories?, Project#categories_count, Project#categories, Project#add_categories(category1, category2), </tt>
     #   <tt>Project#remove_categories(category1, category2), Project#categories<<(category1), Project#categories.delete(category1)</tt>
@@ -85,6 +86,8 @@ module ActiveRecord
       # * <tt>collection_count(force_reload = false)</tt> - returns the number of associated objects.
       # * <tt>find_in_collection(id)</tt> - finds an associated object responding to the +id+ and that
       #   meets the condition that it has to be associated with this object.
+      # * <tt>find_all_in_collection(conditions = nil, orderings = nil, limit = nil, joins = nil)</tt> - finds all associated objects responding 
+      #   criterias mentioned (like in the standard find_all) and that meets the condition that it has to be associated with this object.
       # * <tt>build_to_collection(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key but has not yet been saved.
       # * <tt>create_in_collection(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
@@ -96,7 +99,8 @@ module ActiveRecord
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#has_clients?</tt> (similar to <tt>firm.clients.length > 0</tt>)
       # * <tt>Firm#clients_count</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
-      # * <tt>Firm#find_in_clients</tt> (similar to <tt>Client.find_on_conditions(id, "firm_id = #{id}"</tt>)
+      # * <tt>Firm#find_in_clients</tt> (similar to <tt>Client.find_on_conditions(id, "firm_id = #{id}")</tt>)
+      # * <tt>Firm#find_all_in_clients</tt> (similar to <tt>Client.find_all "firm_id = #{id}"</tt>)
       # * <tt>Firm#build_to_clients</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#create_in_clients</tt> (similar to <tt>c = Client.new("client_id" => id); c.save; c</tt>)
       # The declaration can also include an options hash to specialize the generated methods.
@@ -160,6 +164,7 @@ module ActiveRecord
         # Can't use constrained finds with specialized finder SQL
         unless options[:finder_sql]
           find_in_collection_method(collection_name, collection_class_name, class_primary_key_name, options[:conditions])
+          find_all_in_collection_method(collection_name, collection_class_name, class_primary_key_name, options[:conditions])
         end
 
         if options[:dependent]
@@ -167,7 +172,7 @@ module ActiveRecord
         end
         
         if options[:exclusively_dependent]
-          module_eval "before_destroy \"#{collection_class_name}.delete_all(%(#{class_primary_key_name} = '\#{id}'))\""
+          module_eval "before_destroy Proc.new{ |record| #{collection_class_name}.delete_all(%(#{class_primary_key_name} = '\#{record.id}')) }"
         end
       end
 
@@ -607,6 +612,19 @@ module ActiveRecord
             def find_in_#{collection_name}(association_id)
               #{collection_class_name}.find_on_conditions(
                 association_id, "#{class_primary_key_name} = '\#{id}'#{conditions ? " AND " + conditions : ""}"
+              )
+            end
+          end_eval
+        end
+
+        def find_all_in_collection_method(collection_name, collection_class_name, class_primary_key_name, conditions = nil)
+          module_eval <<-"end_eval", __FILE__, __LINE__
+            def find_all_in_#{collection_name}(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil)
+              #{collection_class_name}.find_all(
+                "#{class_primary_key_name} = '\#{id}'#{conditions ? " AND " + conditions : ""}\#{runtime_conditions ? " AND " + runtime_conditions : ""}",
+                orderings, 
+                limit, 
+                joins
               )
             end
           end_eval

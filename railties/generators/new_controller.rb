@@ -48,7 +48,7 @@ end
 def create_test_class(controller_name)
   File.open("test/functional/" + controller_name.downcase  + "_controller_test.rb", "w", 0777) do |test_file|
     test_file.write <<EOF
-require File.dirname(__FILE__) + '/../functional_test_helper'
+require File.dirname(__FILE__) + '/../test_helper'
 require '#{controller_name.downcase}_controller'
 
 # Raise errors beyond the default web-based presentation

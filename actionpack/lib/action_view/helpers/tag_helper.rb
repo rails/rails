@@ -8,7 +8,7 @@ module ActionView
       end
       
       def content_tag(name, content, options)
-        "#{tag(name, options)[0..-4]}>#{content}</#{name}>"
+        "<#{name + tag_options(options)}>#{content}</#{name}>"
       end
 
       def form_tag(url_for_options, options = {}, *parameters_for_url)

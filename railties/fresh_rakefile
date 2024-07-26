@@ -27,7 +27,6 @@ Rake::TestTask.new("test_functional") { |t|
 desc "Generate documentation for the application"
 Rake::RDocTask.new("appdoc") { |rdoc|
   rdoc.rdoc_dir = 'doc/app'
-  # rdoc.template = 'css2'
   rdoc.title    = "Rails Application Documentation"
   rdoc.options << '--line-numbers --inline-source'
   rdoc.rdoc_files.include('doc/README_FOR_APP')
@@ -37,7 +36,6 @@ Rake::RDocTask.new("appdoc") { |rdoc|
 desc "Generate documentation for the Rails framework"
 Rake::RDocTask.new("apidoc") { |rdoc|
   rdoc.rdoc_dir = 'doc/api'
-  # rdoc.template = 'css2'
   rdoc.title    = "Rails Framework Documentation"
   rdoc.options << '--line-numbers --inline-source'
   rdoc.rdoc_files.include('README')
@@ -71,8 +69,8 @@ task :clone_production_structure_to_test => [ :db_structure_dump, :purge_test_da
     IO.readlines("db/production_structure.sql").join.split("\n\n").each do |table|
       ActiveRecord::Base.connection.execute(table)
     end
-  elsif DB_CONF["test"]["adapter"] == "postgresql"
-    `psql -f db/production_structure.sql #{DB_CONF["test"]["database"]}`
+  elsif database_configurations["test"]["adapter"] == "postgresql"
+    `psql -f db/production_structure.sql #{database_configurations["test"]["database"]}`
   end
 end
 
@@ -81,8 +79,8 @@ task :db_structure_dump do
   if database_configurations["test"]["adapter"] == "mysql"
     ActiveRecord::Base.establish_connection(database_configurations["production"])
     File.open("db/production_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
-  elsif DB_CONF["test"]["adapter"] == "postgresql"
-    `pg_dump -s -f db/production_structure.sql #{DB_CONF["production"]["database"]}`
+  elsif database_configurations["test"]["adapter"] == "postgresql"
+    `pg_dump -s -f db/production_structure.sql #{database_configurations["production"]["database"]}`
   end
 end
 
@@ -91,7 +89,7 @@ task :purge_test_database do
   if database_configurations["test"]["adapter"] == "mysql"
     ActiveRecord::Base.establish_connection(database_configurations["production"])
     ActiveRecord::Base.connection.recreate_database(database_configurations["test"]["database"])
-  elsif DB_CONF["test"]["adapter"] == "postgresql"
-    `dropdb #{DB_CONF["test"]["database"]}; createdb #{DB_CONF["test"]["database"]}`
+  elsif database_configurations["test"]["adapter"] == "postgresql"
+    `dropdb #{database_configurations["test"]["database"]}; createdb #{database_configurations["test"]["database"]}`
   end
 end

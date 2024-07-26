@@ -9,8 +9,12 @@ class CGIMethods #:nodoc:
     def CGIMethods.parse_query_parameters(query_string)
       parsed_params = {}
   
-      CGI.unescape(query_string).split(/[&;]/).each { |p| 
+      query_string.split(/[&;]/).each { |p| 
         k, v = p.split('=')
+
+        k = CGI.unescape(k) unless k.nil?
+        v = CGI.unescape(v) unless v.nil?
+
         if k =~ /(.*)\[\]$/
             if parsed_params.has_key? $1
                 parsed_params[$1] << v

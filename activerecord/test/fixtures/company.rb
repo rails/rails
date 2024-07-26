@@ -21,6 +21,12 @@ class Client < Company
 end
 
 
+class SpecialClient < Client
+end
+
+class VerySpecialClient < SpecialClient
+end
+
 class Account < ActiveRecord::Base
   belongs_to :firm
   

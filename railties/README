@@ -56,7 +56,8 @@ link:files/vendor/actionpack/README.html.
     <Directory /path/application/public/>
       Options ExecCGI FollowSymLinks
       AllowOverride all
-      Order allow, deny
+      Allow from all
+      Order allow,deny
     </Directory>
   </VirtualHost>
 

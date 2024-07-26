@@ -19,6 +19,7 @@ class CGITest < Test::Unit::TestCase
     @query_string = "action=create_customer&full_name=David%20Heinemeier%20Hansson&customerId=1"
     @query_string_with_nil = "action=create_customer&full_name="
     @query_string_with_array = "action=create_customer&selected[]=1&selected[]=2&selected[]=3"
+    @query_string_with_amps  = "action=create_customer&name=Don%27t+%26+Does"
     @query_string_with_multiple_of_same_name = 
       "action=update_order&full_name=Lau%20Taarnskov&products=4&products=2&products=3"
   end
@@ -42,6 +43,13 @@ class CGITest < Test::Unit::TestCase
       { "action" => "create_customer", "selected" => ["1", "2", "3"]},
       CGIMethods.parse_query_parameters(@query_string_with_array)
       )
+  end
+
+  def test_query_string_with_amps
+    assert_equal(
+      { "action" => "create_customer", "name" => "Don't & Does"},
+      CGIMethods.parse_query_parameters(@query_string_with_amps)
+    )    
   end
   
   def test_parse_params
@@ -130,12 +138,5 @@ class CGITest < Test::Unit::TestCase
       expected_output = { "selected" => [ "1", "2", "3" ] }
 
       assert_equal expected_output, CGIMethods.parse_request_parameters(input)
-  end
-
-  def xtest_query_string_multiple_of_same_name
-    assert_equal(
-      { "action" => "update_order", "full_name" => "Lau Taarnskov", "products" => [4,2,3]},
-      CGIMethods.parse_query_parameters(@query_string_with_multiple_of_same_name)
-    )
   end
 end

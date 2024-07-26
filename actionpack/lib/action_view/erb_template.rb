@@ -15,6 +15,8 @@ require 'action_view/abstract_template'
 #
 #   Hi, Mr. <% puts "Frodo" %>
 #
+# (If you absolutely must write from within a function, you can use the TextHelper#concat)
+#
 # == Using sub templates
 #
 # Using sub templates allows you to sidestep tedious replication and extract common display structures in shared templates. The
@@ -35,7 +37,42 @@ require 'action_view/abstract_template'
 #
 # Now the header can pick up on the @page_title variable and use it for outputting a title tag:
 #
-#    <title><%= @page_title %></title>
+#   <title><%= @page_title %></title>
+#
+# == Passing local variables to sub templates
+# 
+# You can pass local variables to sub templates by using a hash of with the variable names as keys and the objects as values:
+#
+#   <%= render "shared/header", { "headline" => "Welcome", "person" => person } %>
+#
+# These can now be accessed in shared/header with:
+#
+#   Headline: <%= headline %>
+#   First name: <%= person.first_name %>
+#
+# == Using partials
+#
+# There's also a convenience method for rendering sub templates within the current controller that depends on a single object 
+# (we call this kind of sub templates for partials). It relies on the fact that partials should follow the naming convention of being 
+# prefixed with an underscore -- as to separate them from regular templates that could be rendered on their own. In the template for 
+# Advertiser#buy, we could have:
+#
+#   <% for ad in @advertisements %>
+#     <%= render_partial "ad", ad %>
+#   <% end %>
+#
+# This would render "advertiser/_ad.rhtml" and pass the local variable +ad+ for the template to display.
+#
+# == Rendering a collection of partials
+#
+# The example of partial use describes a familar pattern where a template needs to iterate over an array and render a sub
+# template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders
+# a partial by the same name of as the elements contained within. So the three-lined example in "Using partials" can be rewritten
+# with a single line:
+#
+#   <%= render_collection_of_partials "ad", @advertisements %>
+#
+# So this will render "advertiser/_ad.rhtml" and pass the local variable +ad+ for the template to display.
 #
 # == Other template engines
 #
@@ -46,7 +83,9 @@ module ActionView
   class ERbTemplate < AbstractTemplate #:nodoc:
     include ERB::Util
 
-    def render_template(template)
+    def render_template(template, local_assigns = {})
+      b = binding
+      local_assigns.each { |key, value| eval "#{key} = local_assigns[\"#{key}\"]", b }
       @assigns.each { |key, value| instance_variable_set "@#{key}", value }
       template_render(template, binding)
     end

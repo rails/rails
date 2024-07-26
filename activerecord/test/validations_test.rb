@@ -1,11 +1,13 @@
 require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/reply'
+require 'fixtures/developer'
 
 
 class ValidationsTest < Test::Unit::TestCase
   def setup
     @topic_fixtures = create_fixtures("topics")
+    @developers = create_fixtures("developers")
   end
 
   def test_single_field_validation
@@ -107,5 +109,18 @@ class ValidationsTest < Test::Unit::TestCase
     reply = Reply.new
     assert !reply.save
     assert reply.save(false)
+  end
+  
+  def test_errors_on_boundry_breaking
+    developer = Developer.new("name" => "xs")
+    assert !developer.save
+    assert_equal "is too short (min is 3 characters)", developer.errors.on("name")
+    
+    developer.name = "All too very long for this boundry, it really is"
+    assert !developer.save
+    assert_equal "is too long (max is 20 characters)", developer.errors.on("name")
+
+    developer.name = "Just right"
+    assert developer.save
   end
 end

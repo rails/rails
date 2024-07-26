@@ -1,5 +1,6 @@
 require 'active_record/support/class_attribute_accessors'
 require 'active_record/support/class_inheritable_attributes'
+require 'active_record/support/inflector'
 require 'yaml'
 
 module ActiveRecord #:nodoc:
@@ -134,13 +135,21 @@ module ActiveRecord #:nodoc:
     def self.connected?
       !Thread.current['connection'].nil?
     end 
+    
+    def self.inherited(child)
+      @@subclasses[self] ||= []
+      @@subclasses[self] << child
+      super
+    end
 
+    @@subclasses = {}
+    
     # Accessor for the prefix type that will be prepended to every primary key column name. The options are :table_name and 
     # :table_name_with_underscore. If the first is specified, the Product class will look for "productid" instead of "id" as
     # the primary column. If the latter is specified, the Product class will look for "product_id" instead of "id". Remember
     # that this is a global setting for all Active Records. 
     cattr_accessor :primary_key_prefix_type
-    @@primary_key_prefix = nil
+    @@primary_key_prefix_type = nil
 
     # Accessor for the name of the prefix string to prepend to every table name. So if set to "basecamp_", all 
     # table names will be named like "basecamp_projects", "basecamp_people", etc. This is a convinient way of creating a namespace
@@ -352,21 +361,34 @@ module ActiveRecord #:nodoc:
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
       # directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
       # to guess the table name from even when called on Reply. The guessing rules are as follows:
-      # * Class name doesn't end in "s" or "y": An "s" is appended, so a Comment class becomes a comments table. 
-      # * Class name ends in a "y": The "y" is replaced with "ies", so a Category class becomes a categories table. 
+      # * Class name ends in "x", "ch" or "ss": "es" is appended, so a Search class becomes a searches table.
+      # * Class name ends in "y" preceded by a consonant or "qu": The "y" is replaced with "ies", so a Category class becomes a categories table. 
+      # * Class name ends in "fe": The "fe" is replaced with "ves", so a Wife class becomes a wives table.
+      # * Class name ends in "lf" or "rf": The "f" is replaced with "ves", so a Half class becomes a halves table.
+      # * Class name ends in "person": The "person" is replaced with "people", so a Salesperson class becomes a salespeople table.
+      # * Class name ends in "man": The "man" is replaced with "men", so a Spokesman class becomes a spokesmen table.
+      # * Class name ends in "sis": The "i" is replaced with an "e", so a Basis class becomes a bases table.
+      # * Class name ends in "tum" or "ium": The "um" is replaced with an "a", so a Datum class becomes a data table.
+      # * Class name ends in "child": The "child" is replaced with "children", so a NodeChild class becomes a node_children table.
       # * Class name ends in an "s": No additional characters are added or removed.
+      # * Class name doesn't end in "s": An "s" is appended, so a Comment class becomes a comments table.
       # * Class name with word compositions: Compositions are underscored, so CreditCard class becomes a credit_cards table.
       # Additionally, the class-level table_name_prefix is prepended to the table_name and the table_name_suffix is appended.
       # So if you have "myapp_" as a prefix, the table name guess for an Account class becomes "myapp_accounts".
       #
-      # You can also overwrite this class method to allow for unguessable links, such as a Person class with a link to a
-      # People table. Example:
+      # You can also overwrite this class method to allow for unguessable links, such as a Mouse class with a link to a
+      # "mice" table. Example:
       #
-      #   class Person < ActiveRecord::Base
-      #      def self.table_name() "people" end
+      #   class Mouse < ActiveRecord::Base
+      #      def self.table_name() "mice" end
       #   end
-      def table_name(class_name = class_name_of_active_record_descendant(self))
-        table_name_prefix + undecorated_table_name(class_name) + table_name_suffix
+      def table_name(class_name = nil)
+        if class_name.nil?
+          class_name  = class_name_of_active_record_descendant(self)
+          table_name_prefix + undecorated_table_name(class_name) + table_name_suffix
+        else
+          table_name_prefix + undecorated_table_name(class_name) + table_name_suffix
+        end
       end
 
       # Defines the primary key field -- can be overridden in subclasses. Overwritting will negate any effect of the
@@ -390,11 +412,7 @@ module ActiveRecord #:nodoc:
         class_name = class_name.capitalize.gsub(/_(.)/) { |s| $1.capitalize }
       
         if pluralize_table_names
-          if class_name[-3,3] == "ies"
-            class_name = class_name[0..-4] + "y"
-          elsif class_name[-1,1] == "s"
-            class_name = class_name[0..-2]
-          end
+          class_name = Inflector.singularize(class_name)
         end
 
         class_name
@@ -455,7 +473,13 @@ module ActiveRecord #:nodoc:
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that it's the passed +sql+ string is changed.
         def add_conditions!(sql, conditions)
           sql << "WHERE #{sanitize_conditions(conditions)} " unless conditions.nil?
-          sql << (conditions.nil? ? "WHERE " : " AND ") + "type = '#{name.gsub(/.*::/, '')}' " unless descents_from_active_record?
+          sql << (conditions.nil? ? "WHERE " : " AND ") + type_condition unless descents_from_active_record?
+        end
+        
+        def type_condition
+          subclasses.inject("type = '#{name.gsub(/.*::/, '')}' ") do |condition, subclass| 
+            condition << "OR type = '#{subclass.name.gsub(/.*::/, '')}' "
+          end
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
@@ -463,17 +487,19 @@ module ActiveRecord #:nodoc:
           table_name = class_name.gsub(/.*::/, '').gsub(/([a-z])([A-Z])/, '\1_\2').downcase
 
           if pluralize_table_names
-            case table_name[-1,1]
-              when "s" # no change
-              when "y" then table_name = table_name[0..-2] + "ies"
-              else table_name = table_name + "s"
-            end
+            table_name = Inflector.pluralize(table_name)
           end
 
           return table_name
         end
 
-      protected        
+
+      protected
+        def subclasses
+          @@subclasses[self] ||= []
+          @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
+        end
+      
         # Returns the class type of the record using the current module as a prefix. So descendents of
         # MyApp::Business::Account would be appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
@@ -555,7 +581,15 @@ module ActiveRecord #:nodoc:
 
         freeze
       end
-      
+
+      # Returns a clone of the record that hasn't been assigned an id yet and is treated as a new record.
+      def clone
+        cloned_record = super
+        cloned_record.instance_variable_set "@new_record", true
+        cloned_record.id = nil
+        cloned_record
+      end
+            
       # Updates a single attribute and saves the record. This is especially useful for boolean flags on existing records.
       def update_attribute(name, value)
         self.name = value
@@ -599,6 +633,7 @@ module ActiveRecord #:nodoc:
       def ==(comparison_object)
         comparison_object.instance_of?(self.class) && comparison_object.id == id
       end
+
 
     private
       def create_or_update

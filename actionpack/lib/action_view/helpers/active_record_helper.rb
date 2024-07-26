@@ -79,8 +79,8 @@ module ActionView
       def error_messages_for(object_name)
         object = instance_eval("@#{object_name}")
         unless object.errors.empty?
-          "<div id=\"ErrorExplanation\">" +
-          "<h2>#{object.errors.count} error#{"s" unless object.errors.count == 1} prohibited this #{object_name} from being saved</h2>" +
+          "<div id=\"errorExplanation\">" +
+          "<h2>#{object.errors.count} error#{"s" unless object.errors.count == 1} prohibited this #{object_name.gsub("_", " ")} from being saved</h2>" +
           "<p>There were problems with the following fields (marked in red below):</p>" +
           "<ul>#{object.errors.full_messages.collect { |msg| "<li>#{msg}</li>"}}</ul>" +
           "</div>"

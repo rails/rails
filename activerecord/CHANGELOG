@@ -1,3 +1,72 @@
+*0.9.5*
+
+* Expanded the table_name guessing rules immensely [Florian Green]. Documentation:
+
+    Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
+    directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
+    to guess the table name from even when called on Reply. The guessing rules are as follows:
+    * Class name ends in "x", "ch" or "ss": "es" is appended, so a Search class becomes a searches table.
+    * Class name ends in "y" preceded by a consonant or "qu": The "y" is replaced with "ies", 
+      so a Category class becomes a categories table. 
+    * Class name ends in "fe": The "fe" is replaced with "ves", so a Wife class becomes a wives table.
+    * Class name ends in "lf" or "rf": The "f" is replaced with "ves", so a Half class becomes a halves table.
+    * Class name ends in "person": The "person" is replaced with "people", so a Salesperson class becomes a salespeople table.
+    * Class name ends in "man": The "man" is replaced with "men", so a Spokesman class becomes a spokesmen table.
+    * Class name ends in "sis": The "i" is replaced with an "e", so a Basis class becomes a bases table.
+    * Class name ends in "tum" or "ium": The "um" is replaced with an "a", so a Datum class becomes a data table.
+    * Class name ends in "child": The "child" is replaced with "children", so a NodeChild class becomes a node_children table.
+    * Class name ends in an "s": No additional characters are added or removed.
+    * Class name doesn't end in "s": An "s" is appended, so a Comment class becomes a comments table.
+    * Class name with word compositions: Compositions are underscored, so CreditCard class becomes a credit_cards table.
+    Additionally, the class-level table_name_prefix is prepended to the table_name and the table_name_suffix is appended.
+    So if you have "myapp_" as a prefix, the table name guess for an Account class becomes "myapp_accounts".
+    
+    You can also overwrite this class method to allow for unguessable links, such as a Mouse class with a link to a
+    "mice" table. Example:
+    
+      class Mouse < ActiveRecord::Base
+         def self.table_name() "mice" end
+      end
+  
+  This conversion is now done through an external class called Inflector residing in lib/active_record/support/inflector.rb.
+
+* Added find_all_in_collection to has_many defined collections. Works like this:
+
+    class Firm < ActiveRecord::Base
+      has_many :clients
+    end
+    
+    firm.id # => 1
+    firm.find_all_in_clients "revenue > 1000" # SELECT * FROM clients WHERE firm_id = 1 AND revenue > 1000
+
+  [Requested by Dave Thomas]
+
+* Fixed finders for inheritance hierarchies deeper than one level [Florian Weber]
+
+* Added add_on_boundry_breaking to errors to accompany add_on_empty as a default validation method. It's used like this:
+
+    class Person < ActiveRecord::Base
+      protected
+        def validation
+          errors.add_on_boundry_breaking "password", 3..20
+        end
+    end
+    
+  This will add an error to the tune of "is too short (min is 3 characters)" or "is too long (min is 20 characters)" if
+  the password is outside the boundry. The messages can be changed by passing a third and forth parameter as message strings.
+
+* Implemented a clone method that works properly with AR. It returns a clone of the record that 
+  hasn't been assigned an id yet and is treated as a new record.
+
+* Allow for domain sockets in PostgreSQL by not assuming localhost when no host is specified [Scott Barron]
+
+* Fixed that bignums are saved properly instead of attempted to be YAMLized [Andreas Schwartz]
+
+* Fixed a bug in the GEM where the rdoc options weren't being passed according to spec [Chad Fowler]
+
+* Fixed a bug with the exclusively_dependent option for has_many
+
+
 *0.9.4*
 
 * Correctly guesses the primary key when the class is inside a module [Dave Steinberg].

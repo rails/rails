@@ -213,13 +213,13 @@ module ActiveRecord
 
       def quote(value, column = nil)
         case value
-          when String              then "'#{value.gsub(/\\/,'\&\&').gsub(/'/, "''")}'" # ' (for ruby-mode)
-          when NilClass            then "NULL"
-          when TrueClass           then (column and column.type == :boolean ? "'t'" : "1")
-          when FalseClass          then (column and column.type == :boolean ? "'f'" : "0")
-          when Float, Fixnum, Date then "'#{value.to_s}'"
-          when Time, DateTime      then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-          else                          "'#{value.to_yaml.gsub(/'/, "''")}'"
+          when String                      then "'#{value.gsub(/\\/,'\&\&').gsub(/'/, "''")}'" # ' (for ruby-mode)
+          when NilClass                    then "NULL"
+          when TrueClass                   then (column and column.type == :boolean ? "'t'" : "1")
+          when FalseClass                  then (column and column.type == :boolean ? "'f'" : "0")
+          when Float, Fixnum, Bignum, Date then "'#{value.to_s}'" 
+          when Time, DateTime              then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
+          else                                  "'#{value.to_yaml.gsub(/'/, "''")}'"
         end
       end
 

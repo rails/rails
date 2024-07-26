@@ -296,26 +296,83 @@ module ActionController #:nodoc:
         @performed_render = true
       end
 
-      # Sends the file by streaming it 1024 bytes at a time. This way the whole file doesn't need to be read into memory at once.
-      # This makes it feasible to send even large files this way. The files is sent with a bunch of voodoo HTTP headers required to get
-      # arbitrary files to download as expected in as many browsers as possible (eg, IE hacks).
-      def send_file(path)
-        @headers['Pragma']                    = ' '
-        @headers['Cache-Control']             = ' '
-        @headers['Content-type']              = 'application/octet-stream'
-        @headers['Content-Disposition']       = "attachment; filename=#{File.basename(path)}" 
-        @headers['Accept-Ranges']             = 'bytes'
+      # Sends the file by streaming it 4096 bytes at a time. This way the
+      # whole file doesn't need to be read into memory at once.  This makes
+      # it feasible to send even large files.
+      #
+      # Be careful to sanitize the path parameter if it coming from a web
+      # page.  send_file(@params['path'] allows a malicious user to
+      # download any file on your server.
+      #
+      # Options:
+      # * <tt>:filename</tt> - specifies the filename the browser will see.
+      #   Defaults to File.basename(path).
+      # * <tt>:type</tt> - specifies an HTTP content type.
+      #   Defaults to 'application/octet-stream'.
+      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
+      #   Valid values are 'inline' and 'attachment' (default).
+      # * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream the file.
+      #   Defaults to 4096.
+      #
+      # The default Content-Type and Content-Disposition headers are
+      # set to download arbitrary binary files in as many browsers as
+      # possible.  IE versions 4, 5, 5.5, and 6 are all known to have
+      # a variety of quirks (especially when downloading over SSL).
+      #
+      # Simple download:
+      #   send_file '/path/to.zip'
+      #
+      # Show a JPEG in browser:
+      #   send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
+      #
+      # Read about the other Content-* HTTP headers if you'd like to
+      # provide the user with more information (such as Content-Description).
+      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11
+      #
+      # Also be aware that the document may be cached by proxies and browsers.
+      # The Pragma and Cache-Control headers declare how the file may be cached
+      # by intermediaries.  They default to require clients to validate with
+      # the server before releasing cached responses.  See
+      # http://www.mnot.net/cache_docs/ for an overview of web caching and
+      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
+      # for the Cache-Control header spec.
+      def send_file(path, options = {})
+        options = {
+          :filename => File.basename(path),
+          :type => 'application/octet_stream',
+          :disposition => 'attachment',
+          :buffer_size => 4096
+        }.merge(options)
+
+        # Internet Explorer cache workaround.
+        if @request.env['HTTP_USER_AGENT'] =~ /msie/i
+          @headers['Pragma']        = ''
+          @headers['Cache-Control'] = ''
+
+        # HTTP 1.1 headers require strict validation with server before
+        # releasing a cached response to client.
+        else
+          @headers['Pragma']        = 'no-cache'
+          @headers['Cache-Control'] = 'no-cache, must-revalidate'
+        end
+
+        # HTTP 1.0 headers for cache expiry.
+        @headers['Last-Modified'] = CGI.rfc1123_date(File.mtime(path))
+        @headers['Expires'] = CGI.rfc1123_date(Time.now)
+
+        # HTTP Content headers.
+        @headers['Content-Type']              = options[:type]
+        @headers['Content-Disposition']       = "#{options[:disposition]}; filename=\"#{options[:filename]}\""
         @headers['Content-Length']            = File.size(path)
         @headers['Content-Transfer-Encoding'] = 'binary'
-        @headers['Content-Description']       = 'File Transfer'
 
         logger.info("Sending file #{path}") unless logger.nil?
 
-        render_text do |response|
+        render_text do
           File.open(path, 'rb') do |file|
-            while buf = file.read(1024)
-              print buf 
-            end 
+            while buf = file.read(options[:buffer_size])
+              print buf
+            end
           end
         end
       end

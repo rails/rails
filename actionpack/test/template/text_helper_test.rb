@@ -54,4 +54,9 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", 5))
     assert_nil excerpt("This is a beautiful morning", "day")
   end
+  
+  def test_pluralization
+    assert_equal("1 count", pluralize(1, "count"))
+    assert_equal("2 counts", pluralize(2, "count"))
+  end
 end

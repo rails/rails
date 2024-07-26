@@ -57,4 +57,13 @@ class InheritanceTest < Test::Unit::TestCase
     assert_kind_of Firm, Firm.find_first("name = '37signals'")
     assert_nil Client.find_first("name = '37signals'")
   end
+  
+  def test_complex_inheritance
+    very_special_client = VerySpecialClient.create("name" => "veryspecial")
+    assert_equal very_special_client, VerySpecialClient.find_first("name = 'veryspecial'")
+    assert_equal very_special_client, SpecialClient.find_first("name = 'veryspecial'")
+    assert_equal very_special_client, Company.find_first("name = 'veryspecial'")
+    assert_equal very_special_client, Client.find_first("name = 'veryspecial'")
+  end
+
 end

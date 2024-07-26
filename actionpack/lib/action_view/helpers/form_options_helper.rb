@@ -29,13 +29,13 @@ module ActionView
       #     <option value="$">Dollar</option>\n<option value="DKK">Kroner</option>
       #
       #   options_for_select([ "VISA", "Mastercard" ], "Mastercard")
-      #     <option>VISA</option>\n<option selected>Mastercard</option>
+      #     <option>VISA</option>\n<option selected="selected">Mastercard</option>
       #
       #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
-      #     <option value="$20">Basic</option>\n<option value="$40" selected>Plus</option>
+      #     <option value="$20">Basic</option>\n<option value="$40" selected="selected">Plus</option>
       #
       #   options_for_select([ "VISA", "Mastercard", "Discover" ], ["VISA", "Discover"])
-      #     <option selected>VISA</option>\n<option>Mastercard</option>\n<option selected>Discover</option>
+      #     <option selected="selected">VISA</option>\n<option>Mastercard</option>\n<option selected="selected">Discover</option>
       def options_for_select(container, selected = nil)
         container = container.to_a if Hash === container
       
@@ -43,13 +43,13 @@ module ActionView
           if element.respond_to?(:first) && element.respond_to?(:last)
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element.last) : element.last == selected) )
             if is_selected
-              options << "<option value=\"#{element.last}\" selected>#{element.first}</option>"
+              options << "<option value=\"#{CGI.escapeHTML(element.last)}\" selected=\"selected\">#{CGI.escapeHTML(element.first)}</option>"
             else
-              options << "<option value=\"#{element.last}\">#{element.first}</option>"
+              options << "<option value=\"#{CGI.escapeHTML(element.last)}\">#{CGI.escapeHTML(element.first)}</option>"
             end
           else
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element) : element == selected) )
-            options << ((is_selected) ? "<option selected>#{element}</option>" : "<option>#{element}</option>")
+            options << ((is_selected) ? "<option selected=\"selected\">#{CGI.escapeHTML(element)}</option>" : "<option>#{CGI.escapeHTML(element)}</option>")
           end
         end
         
@@ -105,7 +105,7 @@ module ActionView
             option_key_method, option_value_method, selected_key = nil)
         collection.inject("") do |options_for_select, group|
           group_label_string = eval("group.#{group_label_method}")
-          options_for_select += "<optgroup label=\"#{group_label_string}\">"
+          options_for_select += "<optgroup label=\"#{CGI.escapeHTML(group_label_string)}\">"
           options_for_select += options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key)
           options_for_select += '</optgroup>'
         end
@@ -123,7 +123,7 @@ module ActionView
         end
 
         if priority_countries && priority_countries.include?(selected)
-          country_options += options_for_select(COUNTRIES - priority_countries)
+          country_options += options_for_select(COUNTRIES - priority_countries, selected)
         else
           country_options += options_for_select(COUNTRIES, selected)
         end

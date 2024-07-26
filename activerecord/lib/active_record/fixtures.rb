@@ -29,6 +29,18 @@
 #     assert_equal @developers["david"]["name"], Developer.find(@developers["david"]["id"]).name
 #   end
 class Fixtures
+  def self.create_fixtures(fixtures_directory, *table_names)
+    ActiveRecord::Base.logger.level = Logger::ERROR
+
+    fixtures = [ table_names ].flatten.collect do |table_name|
+      Fixtures.new(ActiveRecord::Base.connection, table_name, "#{fixtures_directory}/#{table_name}")
+    end
+
+    ActiveRecord::Base.logger.level = Logger::DEBUG
+
+    return fixtures
+  end
+
   def initialize(connection, table_name, fixture_path, file_filter = /^\.|CVS/)
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
     @fixtures = read_fixtures

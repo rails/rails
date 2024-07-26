@@ -12,14 +12,14 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
 
   def setup
     @post = Post.new    
-    def @post.errors() Class.new{ def on(field) field == "author_name" end }.new end
+    def @post.errors() Class.new{ def on(field) field == "author_name" || field == "body" end }.new end
     def @post.new_record?() true end
 
     def @post.column_for_attribute(attr_name)
       Post.content_columns.select { |column| column.name == attr_name }.first
     end
 
-    def Post.content_columns() [ Column.new(:string, "title", "Title") ] end
+    def Post.content_columns() [ Column.new(:string, "title", "Title"), Column.new(:text, "body", "Body") ] end
 
     @post.title       = "Hello World"
     @post.author_name = ""
@@ -33,6 +33,13 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       '<input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />', input("post", "title")
     )
   end
+  
+  def test_text_area_with_errors
+    assert_equal(
+      "<div class=\"fieldWithErrors\"><textarea cols=\"40\" id=\"post_body\" name=\"post[body]\" rows=\"20\" wrap=\"virtual\">Back to the hill and over it again!</textarea></div>",
+      text_area("post", "body")
+    )    
+  end
 
   def test_text_field_with_errors
     assert_equal(
@@ -43,7 +50,7 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
   
   def test_form_with_string
     assert_equal(
-      "<form action='create' method='POST'><p><b>Title</b><br /><input id=\"post_title\" name=\"post[title]\" size=\"30\" type=\"text\" value=\"Hello World\" /></p><input type='submit' value='Create' /></form>",
+      "<form action='create' method='POST'><p><b>Title</b><br /><input id=\"post_title\" name=\"post[title]\" size=\"30\" type=\"text\" value=\"Hello World\" /></p>\n<p><b>Body</b><br /><div class=\"fieldWithErrors\"><textarea cols=\"40\" id=\"post_body\" name=\"post[body]\" rows=\"20\" wrap=\"virtual\">Back to the hill and over it again!</textarea></div></p><input type='submit' value='Create' /></form>",
       form("post")
     )
   end

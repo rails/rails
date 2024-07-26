@@ -112,7 +112,7 @@ module ActionView
       def to_input_field_tag(field_type, options = {})
         html_options = DEFAULT_FIELD_OPTIONS.merge(options)
         html_options.merge!({ "size" => options["maxlength"]}) if options["maxlength"] && !options["size"]
-        html_options.merge!({ "type" =>  field_type, "value" => escaped_value })
+        html_options.merge!({ "type" =>  field_type, "value" => value.to_s })
         add_default_name_and_id(html_options)
         tag("input", html_options)
       end
@@ -124,7 +124,7 @@ module ActionView
       end
 
       def to_check_box_tag(options = {}, checked_value = "1")
-        options.merge!({"checked" => "checked"}) if !value.nil? && value > 0
+        options.merge!({"checked" => "checked"}) if !value.nil? && value.to_i > 0
         options.merge!({ "type" => "checkbox", "value" => checked_value })
         add_default_name_and_id(options)
         tag("input", options)
@@ -171,10 +171,6 @@ module ActionView
 
         def tag_id
           "#{@object_name}_#{@method_name}"
-        end
-
-        def escaped_value
-          CGI.escapeHTML(value.to_s)
         end
     end
   end

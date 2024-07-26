@@ -393,4 +393,19 @@ class BasicsTest < Test::Unit::TestCase
     b_true = Booleantest.find(true_id)
     assert b_true.value?
   end
+  
+  def test_clone
+    topic = Topic.find(1)
+    cloned_topic = topic.clone
+    assert_equal topic.title, cloned_topic.title
+    assert cloned_topic.new_record?
+  end
+  
+  def test_bignum
+    topic = Topic.new
+    topic.reply_count = 2147483647
+    topic.save
+    topic = Topic.find(topic.id)
+    assert_equal 2147483647, topic.reply_count
+  end
 end

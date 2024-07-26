@@ -117,10 +117,15 @@ module ActiveRecord
 
     # Will add an error message to each of the attributes in +attributes+ that is empty (defined by <tt>attribute_present?</tt>).
     def add_on_empty(attributes, msg = "can't be empty")
-      if attributes.kind_of?(Array)
-        attributes.each { |attr| add(attr, msg) unless @base.attribute_present?(attr) }
-      else
-        add(attributes, msg) unless @base.attribute_present?(attributes)
+      [attributes].flatten.each { |attr| add(attr, msg) unless @base.attribute_present?(attr) }
+    end
+
+    # Will add an error message to each of the attributes in +attributes+ that has a length outside of the passed boundry +range+. 
+    # If the length is above the boundry, the too_long_msg message will be used. If below, the too_short_msg.
+    def add_on_boundry_breaking(attributes, range, too_long_msg = "is too long (max is %d characters)", too_short_msg = "is too short (min is %d characters)")
+      for attr in [attributes].flatten
+        add(attr, too_short_msg % range.begin) if @base.attribute_present?(attr) && @base.send(attr).length < range.begin
+        add(attr, too_long_msg % range.end) if @base.attribute_present?(attr) && @base.send(attr).length > range.end
       end
     end
 

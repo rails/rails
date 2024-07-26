@@ -92,6 +92,7 @@ module ActionController #:nodoc:
     end
 
     def out
+      convert_content_type!(@headers)
       print @cgi.header(@headers)
       if @body.respond_to?(:call)
         @body.call(self)
@@ -99,5 +100,13 @@ module ActionController #:nodoc:
         print @body
       end
     end
+    
+    private
+      def convert_content_type!(headers)
+        if headers["Content-Type"]
+          headers["type"] = headers["Content-Type"]
+          headers.delete "Content-Type"
+        end
+      end
   end
 end

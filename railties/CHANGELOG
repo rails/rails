@@ -1,3 +1,28 @@
+*0.7.0*
+
+* Added an optional second argument to the new_model script that allows the programmer to specify the table name, 
+  which will used to generate a custom table_name method in the model and will also be used in the creation of fixtures.
+  [Kevin Radloff]
+
+* script/new_model now turns AccountHolder into account_holder instead of accountholder [Kevin Radloff]
+
+* Fixed the faulty handleing of static files with WEBrick [Andreas Schwarz]
+
+* Unified function_test_helper and unit_test_helper into test_helper
+
+* Fixed bug with the automated production => test database dropping on PostgreSQL [dhawkins]
+
+* create_fixtures in both the functional and unit test helper now turns off the log during fixture generation
+  and can generate more than one fixture at a time. Which makes it possible for assignments like:
+  
+    @people, @projects, @project_access, @companies, @accounts = 
+      create_fixtures "people", "projects", "project_access", "companies", "accounts"
+
+* Upgraded to Action Pack 0.8.5 (locally-scoped variables, partials, advanced send_file)
+
+* Upgraded to Active Record 0.9.5 (better table_name guessing, cloning, find_all_in_collection)
+
+
 *0.6.5*
 
 * No longer specifies a template for rdoc, so it'll use whatever is default (you can change it in the rakefile)

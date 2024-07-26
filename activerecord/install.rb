@@ -41,6 +41,7 @@ files = %w-
  active_record/support/class_attribute_accessors.rb
  active_record/support/class_inheritable_attributes.rb
  active_record/support/clean_logger.rb
+ active_record/support/inflector.rb
  active_record/transactions.rb
  active_record/validations.rb
  active_record/vendor/mysql.rb

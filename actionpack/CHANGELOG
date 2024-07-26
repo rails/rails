@@ -1,4 +1,103 @@
-*CVS*
+*0.8.5*
+
+* Introduced passing of locally scoped variables between templates:
+
+    You can pass local variables to sub templates by using a hash of with the variable 
+    names as keys and the objects as values:
+    
+      <%= render "shared/header", { "headline" => "Welcome", "person" => person } %>
+    
+    These can now be accessed in shared/header with:
+    
+      Headline: <%= headline %>
+      First name: <%= person.first_name %>
+    
+* Introduced the concept of partials as a certain type of sub templates:
+
+    There's also a convenience method for rendering sub templates within the current 
+    controller that depends on a single object (we call this kind of sub templates for 
+    partials). It relies on the fact that partials should follow the naming convention
+    of being prefixed with an underscore -- as to separate them from regular templates
+    that could be rendered on their own. In the template for Advertiser#buy, we could have:
+    
+      <% for ad in @advertisements %>
+        <%= render_partial "ad", ad %>
+      <% end %>
+    
+    This would render "advertiser/_ad.rhtml" and pass the local variable +ad+ 
+    for the template to display.
+    
+    == Rendering a collection of partials
+    
+    The example of partial use describes a familar pattern where a template needs
+    to iterate over a array and render a sub template for each of the elements. 
+    This pattern has been implemented as a single method that accepts an array and 
+    renders a partial by the same name of as the elements contained within. So the 
+    three-lined example in "Using partials" can be rewritten with a single line:
+    
+      <%= render_collection_of_partials "ad", @advertisements %>
+    
+    So this will render "advertiser/_ad.rhtml" and pass the local variable +ad+ for 
+    the template to display.
+
+* Improved send_file by allowing a wide range of options to be applied [Jeremy Kemper]:
+
+    Sends the file by streaming it 4096 bytes at a time. This way the
+    whole file doesn't need to be read into memory at once.  This makes
+    it feasible to send even large files.
+    
+    Be careful to sanitize the path parameter if it coming from a web
+    page.  send_file(@params['path'] allows a malicious user to
+    download any file on your server.
+    
+    Options:
+    * <tt>:filename</tt> - specifies the filename the browser will see.  
+      Defaults to File.basename(path).
+    * <tt>:type</tt> - specifies an HTTP content type.  
+      Defaults to 'application/octet-stream'.
+    * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
+      Valid values are 'inline' and 'attachment' (default).
+    * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream
+      the file.  Defaults to 4096.
+    
+    The default Content-Type and Content-Disposition headers are
+    set to download arbitrary binary files in as many browsers as
+    possible.  IE versions 4, 5, 5.5, and 6 are all known to have
+    a variety of quirks (especially when downloading over SSL).
+    
+    Simple download:
+      send_file '/path/to.zip'
+    
+    Show a JPEG in browser:
+      send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
+    
+    Read about the other Content-* HTTP headers if you'd like to
+    provide the user with more information (such as Content-Description).
+    http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11
+    
+    Also be aware that the document may be cached by proxies and browsers.
+    The Pragma and Cache-Control headers declare how the file may be cached
+    by intermediaries.  They default to require clients to validate with
+    the server before releasing cached responses.  See
+    http://www.mnot.net/cache_docs/ for an overview of web caching and
+    http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
+    for the Cache-Control header spec.
+
+* Added pluralize method to the TextHelper that makes it easy to get strings like "1 message", "3 messages"
+
+* Added proper escaping for the rescues [Andreas Schwartz]
+
+* Added proper escaping for the option and collection tags [Andreas Schwartz]
+
+* Fixed NaN errors on benchmarking [Jim Weirich]
+
+* Fixed query string parsing for URLs that use the escaped versions of & or ; as part of a key or value
+
+* Fixed bug with custom Content-Type headers being in addition to rather than instead of the default header.
+  (This bug didn't matter with neither CGI or mod_ruby, but FCGI exploded on it) [With help from Ara T. Howard]
+
+
+*0.8.0*
 
 * Added select, collection_select, and country_select to make it easier for Active Records to set attributes through
   drop-down lists of options. Example:

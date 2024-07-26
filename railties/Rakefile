@@ -6,7 +6,7 @@ require 'rake/gempackagetask'
 require 'date'
 
 PKG_NAME        = "rails"
-PKG_VERSION     = "0.6.5"
+PKG_VERSION     = "0.7.0"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
 desc "Default Task"
@@ -167,8 +167,7 @@ task :copy_rootfiles do
 end
 
 task :copy_test_helpers do
-  File.cp "helpers/functional_test_helper.rb", "#{PKG_DESTINATION}/test/functional_test_helper.rb"
-  File.cp "helpers/unit_test_helper.rb", "#{PKG_DESTINATION}/test/unit_test_helper.rb"
+  File.cp "helpers/test_helper.rb", "#{PKG_DESTINATION}/test/test_helper.rb"
 end
 
 task :copy_docs_in_public do
@@ -231,9 +230,9 @@ spec = Gem::Specification.new do |s|
     on top of either MySQL, PostgreSQL, or SQLite with eRuby-based templates.
   EOF
 
-  s.add_dependency('rake', '> 0.4.4')
-  s.add_dependency('activerecord', '> 0.9.4')
-  s.add_dependency('actionpack', '> 0.8.0')
+  s.add_dependency('rake', '>= 0.4.4')
+  s.add_dependency('activerecord', '>= 0.9.5')
+  s.add_dependency('actionpack', '>= 0.8.5')
 
   s.files = PKG_FILES.to_a
   s.require_path = 'lib'

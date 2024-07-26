@@ -55,6 +55,9 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     begin
       @file_handler.send(:do_GET, req, res)
       return true
+    rescue HTTPStatus::PartialContent, HTTPStatus::NotModified => err
+      res.set_error(err)
+      return true
     rescue => err
       p err
       return false

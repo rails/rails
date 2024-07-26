@@ -60,6 +60,7 @@ files = %w-
  action_controller/url_rewriter.rb
  action_view.rb
  action_view/abstract_template.rb
+ action_view/template_error.rb
  action_view/erb_template.rb
  action_view/eruby_template.rb
  action_view/helpers/active_record_helper.rb
@@ -68,6 +69,7 @@ files = %w-
  action_view/helpers/form_helper.rb
  action_view/helpers/form_options_helper.rb
  action_view/helpers/text_helper.rb
+ action_view/helpers/tag_helper.rb
  action_view/helpers/url_helper.rb
 -
 
