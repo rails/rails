@@ -313,6 +313,10 @@ module ActiveRecord
           target.any? { |record| record.new_record? || record.changed? }
       end
 
+      def collection?
+        true
+      end
+
       private
         def transaction(&block)
           reflection.klass.transaction(&block)
