@@ -1,3 +1,8 @@
+*   Fixes `validates_associated` raising an exception when configured with a
+    singular association and having `index_nested_attribute_errors` enabled.
+
+    *Martin Spickermann*
+
 *   The constant `ActiveRecord::ImmutableRelation` has been deprecated because
     we want to reserve that name for a stronger sense of "immutable relation".
     Please use `ActiveRecord::UnmodifiableRelation` instead.
