@@ -974,18 +974,6 @@ Active Storage can use either [Vips][] or MiniMagick as the variant processor.
 The default depends on your `config.load_defaults` target version, and the
 processor can be changed by setting [`config.active_storage.variant_processor`][].
 
-The two processors are not fully compatible, so when migrating an existing application
-between MiniMagick and Vips, some changes have to be made if using options that are format
-specific:
-
-```erb
-<!-- MiniMagick -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
-
-<!-- Vips -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
-```
-
 The parameters available are defined by the [`image_processing`][] gem and depend on the
 variant processor that you are using, but both support the following parameters:
 
@@ -998,8 +986,30 @@ variant processor that you are using, but both support the following parameters:
 | `crop` | `crop: [20, 50, 300, 300]` | Extracts an area from an image. The first two arguments are the left and top edges of area to extract, while the last two arguments are the width and height of the area to extract. |
 | `rotate` | `rotate: 90` | Rotates the image by the specified angle. |
 
-[`image_processing`][] has more options available (such as `saver` which allows image compression to be configured) in it's own documentation for the [Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and [MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md) processors.
+[`image_processing`][] has all parameters available in it's own documentation
+for both the
+[Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and
+[MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md)
+processors.
 
+Some parameters, including those listed above, accept additional processor
+specific options which can be passed as `key: value` pairs inside a hash:
+
+```erb
+<!-- Vips supports configuring `crop` for many of its transformations -->
+<%= image_tag user.avatar.variant(resize_to_fill: [100, 100, { crop: :centre }]) %>
+```
+
+If migrating an existing application between MiniMagick and Vips, processor
+specific options will need to be updated:
+
+```erb
+<!-- MiniMagick -->
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
+
+<!-- Vips -->
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
+```
 
 [`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
 [`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
