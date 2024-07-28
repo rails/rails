@@ -950,8 +950,8 @@ en:
       assert_equal "bukkits_", Bukkits.table_name_prefix
       assert_equal "bukkits", Bukkits::Engine.engine_name
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
-      assert ::Bukkits::MyMailer.new.respond_to?(:foo_url)
-      assert_not ::Bukkits::MyMailer.new.respond_to?(:bar_url)
+      assert ::Bukkits::MyMailer.method_defined?(:foo_url)
+      assert_not ::Bukkits::MyMailer.method_defined?(:bar_url)
 
       get("/bar")
       assert_equal "/bar", last_response.body
@@ -1067,6 +1067,73 @@ en:
       boot_rails
 
       get("/bukkits/foo")
+      assert_equal "ok", last_response.body
+    end
+
+    test "nested isolated engines should set correct route module prefix" do
+      app = File.readlines("#{app_path}/config/application.rb")
+      app.insert(6, "require \"bukkits/awesome\"")
+      File.open("#{app_path}/config/application.rb", "r+") do |f|
+        f.puts app
+      end
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      @plugin.write "lib/bukkits/awesome.rb", <<-RUBY
+        module Bukkits
+          module Awesome
+            class Engine < ::Rails::Engine
+              isolate_namespace Bukkits::Awesome
+            end
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount Bukkits::Engine, at: "/bukkits"
+        end
+
+        Bukkits::Engine.routes.draw do
+          get "/foo" => "foo#index"
+
+          mount Bukkits::Awesome::Engine, at: "/awesome"
+        end
+
+        Bukkits::Awesome::Engine.routes.draw do
+          get "/bar", as: :bar, to: "bar#index"
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
+        class Bukkits::FooController < ActionController::Base
+          def index
+            render plain: bukkits_awesome.bar_path
+          end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/awesome/bar_controller.rb", <<-RUBY
+        class Bukkits::Awesome::BarController < ActionController::Base
+          def index
+            render plain: "ok"
+          end
+        end
+      RUBY
+
+      add_to_config("config.action_dispatch.show_exceptions = :none")
+
+      boot_rails
+
+      get("/bukkits/foo")
+      assert_equal "/bukkits/awesome/bar", last_response.body
+      get("/bukkits/awesome/bar")
       assert_equal "ok", last_response.body
     end
 

@@ -1201,7 +1201,7 @@ Due to the `:foreign_key` option, Active Record will not automatically recognize
     ```irb
     irb> author = Author.first
     irb> author.books.any? do |book|
-    irb>   book.writer.equal?(author) # This executes a writer query for every book
+    irb>   book.writer.equal?(author) # This executes an author query for every book
     irb> end
     => false
     ```
@@ -2876,9 +2876,9 @@ Read more about association callbacks in the [Active Record Callbacks Guide](act
 
 ### Association Extensions
 
-Rails allows you to extend the functionality of the objects that manage associations (known as association proxy objects) by adding new finders, creators, or other methods through anonymous modules. This gives you the flexibility to tailor associations to fit your application's needs.
+Rails provides the ability to extend the functionality of association proxy objects, which manage associations, by adding new finders, creators, or other methods through anonymous modules. This feature allows you to customize associations to meet the specific needs of your application.
 
-For example, you can extend a `has_many` association with custom methods:
+You can extend a `has_many` association with custom methods directly within the model definition. For example:
 
 ```ruby
 class Author < ApplicationRecord
@@ -2890,7 +2890,7 @@ class Author < ApplicationRecord
 end
 ```
 
-In this example, the `find_by_book_prefix` method is added to the `books` association of the `Author` model, allowing you to find books based on a specific prefix.
+In this example, the `find_by_book_prefix` method is added to the `books` association of the `Author` model. This custom method allows you to find `books` based on a specific prefix of the `book_number`.
 
 If you have an extension that should be shared by multiple associations, you can use a named extension module. For example:
 
@@ -2910,7 +2910,33 @@ class Supplier < ApplicationRecord
 end
 ```
 
-Here, the `FindRecentExtension` module is used to add a `find_recent` method to both the `books` association in the `Author` model and the `deliveries` association in the `Supplier` model.
+In this case, the `FindRecentExtension` module is used to add a `find_recent` method to both the `books` association in the `Author` model and the `deliveries` association in the `Supplier` model. This method retrieves records created within the last five days.
+
+Extensions can interact with the internals of the association proxy using the `proxy_association` accessor. The `proxy_association` provides three important attributes:
+
+* `proxy_association.owner` returns the object that the association is a part of.
+* `proxy_association.reflection` returns the reflection object that describes the association.
+* `proxy_association.target` returns the associated object for `belongs_to` or `has_one`, or the collection of associated objects for `has_many` or `has_and_belongs_to_many`.
+
+These attributes allow extensions to access and manipulate the association proxy's internal state and behavior.
+
+Here's an advanced example demonstrating how to use these attributes in an extension:
+
+```ruby
+module AdvancedExtension
+  def find_and_log(query)
+    results = where(query)
+    proxy_association.owner.logger.info("Querying #{proxy_association.reflection.name} with #{query}")
+    results
+  end
+end
+
+class Author < ApplicationRecord
+  has_many :books, -> { extending AdvancedExtension }
+end
+```
+
+In this example, the `find_and_log` method performs a query on the association and logs the query details using the owner's logger. The method accesses the owner's logger via `proxy_association.owner` and the association's name via `proxy_association.reflection`.name.
 
 ### Association Scoping using the Association Owner
 

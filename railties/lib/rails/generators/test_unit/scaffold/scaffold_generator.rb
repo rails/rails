@@ -39,7 +39,11 @@ module TestUnit # :nodoc:
 
       private
         def attributes_string
-          attributes_hash.map { |k, v| "#{k}: #{v}" }.join(", ")
+          if attributes_hash.empty?
+            "{}"
+          else
+            "{ #{attributes_hash.map { |k, v| "#{k}: #{v}" }.join(", ")} }"
+          end
         end
 
         def attributes_hash

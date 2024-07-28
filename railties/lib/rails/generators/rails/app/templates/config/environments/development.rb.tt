@@ -42,6 +42,8 @@ Rails.application.configure do
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
 
+  # Disable caching for Action Mailer templates even if Action Controller
+  # caching is enabled.
   config.action_mailer.perform_caching = false
 
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
@@ -66,8 +68,8 @@ Rails.application.configure do
   <%- unless skip_sprockets? -%>
   # Suppress logger output for asset requests.
   config.assets.quiet = true
-  <%- end -%>
 
+  <%- end -%>
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 

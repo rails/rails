@@ -289,6 +289,46 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(false)
   end
 
+  def test_exists_with_loaded_relation
+    topics = Topic.all.load
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
+      assert_predicate topics, :exists?
+    end
+  end
+
+  def test_exists_with_empty_loaded_relation
+    Topic.delete_all
+    topics = Topic.all.load
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
+      assert_not_predicate topics, :exists?
+    end
+  end
+
+  def test_exists_with_loaded_relation_having_unsaved_records
+    author = authors(:david)
+    posts = author.posts.load
+    assert_not_empty posts
+    posts.each(&:destroy)
+
+    assert_queries_match(/SELECT 1 AS one/i) do
+      assert_not_predicate posts, :exists?
+    end
+  end
+
+  def test_exists_with_loaded_relation_having_updated_owner_record
+    author = authors(:david)
+    assert_not_empty author.posts
+
+    author.posts.each do |post|
+      post.author = nil
+      post.save!
+    end
+
+    assert_queries_count(1) do
+      assert_not_predicate author.posts, :exists?
+    end
+  end
+
   # exists? should handle nil for id's that come from URLs and always return false
   # (example: Topic.exists?(params[:id])) where params[:id] is nil
   def test_exists_with_nil_arg
@@ -1116,9 +1156,9 @@ class FinderTest < ActiveRecord::TestCase
     ClothingItem.implicit_order_column = "description"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
-    quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
+    quoted_description = Regexp.escape(c.quote_table_name("clothing_items.description"))
 
-    assert_queries_match(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{quoted_description} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure

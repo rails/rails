@@ -6,6 +6,8 @@ require "rake/testtask"
 
 task :package
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb"].exclude("test/system/**/*", "test/dummy/**/*")

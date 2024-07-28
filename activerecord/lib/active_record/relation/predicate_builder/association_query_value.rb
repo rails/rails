@@ -57,9 +57,15 @@ module ActiveRecord
         end
 
         def convert_to_id(value)
-          return primary_key.map { |pk| value.public_send(pk) } if primary_key.is_a?(Array)
-
-          if value.respond_to?(primary_key)
+          if primary_key.is_a?(Array)
+            primary_key.map do |attribute|
+              if attribute == "id"
+                value.id_value
+              else
+                value.public_send(attribute)
+              end
+            end
+          elsif value.respond_to?(primary_key)
             value.public_send(primary_key)
           else
             value

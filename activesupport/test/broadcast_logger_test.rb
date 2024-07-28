@@ -302,6 +302,11 @@ module ActiveSupport
       assert_same logger, broadcast_logger.broadcasts.sole
     end
 
+    test "logging always returns true" do
+      assert_equal true, @logger.info("Hello")
+      assert_equal true, @logger.error("Hello")
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
@@ -362,6 +367,26 @@ module ActiveSupport
 
       def add(message_level, message = nil, progname = nil, &block)
         @adds << [message_level, message, progname] if message_level >= local_level
+      end
+
+      def debug?
+        level <= ::Logger::DEBUG
+      end
+
+      def info?
+        level <= ::Logger::INFO
+      end
+
+      def warn?
+        level <= ::Logger::WARN
+      end
+
+      def error?
+        level <= ::Logger::ERROR
+      end
+
+      def fatal?
+        level <= ::Logger::FATAL
       end
 
       def close

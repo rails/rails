@@ -53,6 +53,12 @@ module Digest
       SecureRandom.uuid
     end
 
+    # Returns the nil UUID. This is a special form of UUID that is specified to
+    # have all 128 bits set to zero.
+    def self.nil_uuid
+      "00000000-0000-0000-0000-000000000000"
+    end
+
     def self.pack_uuid_namespace(namespace)
       if [DNS_NAMESPACE, OID_NAMESPACE, URL_NAMESPACE, X500_NAMESPACE].include?(namespace)
         namespace

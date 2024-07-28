@@ -356,9 +356,9 @@ module ActiveRecord
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
-          yield current_transaction
+          yield current_transaction.user_transaction
         else
-          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)
+          within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
@@ -410,6 +410,14 @@ module ActiveRecord
 
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
+
+      def begin_deferred_transaction(isolation_level = nil) # :nodoc:
+        if isolation_level
+          begin_isolated_db_transaction(isolation_level)
+        else
+          begin_db_transaction
+        end
+      end
 
       def transaction_isolation_levels
         {

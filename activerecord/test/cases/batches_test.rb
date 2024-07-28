@@ -506,6 +506,23 @@ class EachTest < ActiveRecord::TestCase
     assert_equal posts.size - 2, batch_count
   end
 
+  def test_in_batches_when_loaded_runs_no_queries_with_start_and_end_arguments_and_reverse_order
+    posts = Post.all.order(id: :asc)
+    posts.load
+    batch_count = 0
+
+    start_id = posts.map(&:id)[-2]
+    finish_id = posts.map(&:id)[1]
+    assert_queries_count(0) do
+      posts.in_batches(of: 1, start: start_id, finish: finish_id, order: :desc) do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+
+    assert_equal posts.size - 2, batch_count
+  end
+
   def test_in_batches_when_loaded_can_return_an_enum
     posts = Post.all
     posts.load
@@ -519,6 +536,25 @@ class EachTest < ActiveRecord::TestCase
     end
 
     assert_equal posts.size, batch_count
+  end
+
+  def test_in_batches_when_loaded_runs_no_queries_when_batching_over_cpk_model
+    incorrectly_sorted_orders = Cpk::Order.order(shop_id: :asc, id: :desc)
+    incorrectly_sorted_orders.load
+
+    correctly_sorted_orders = Cpk::Order.order(shop_id: :desc, id: :asc).to_a
+    expected_orders = correctly_sorted_orders[1..-2]
+    start_id = expected_orders.first.id
+    finish_id = expected_orders.last.id
+    orders = []
+
+    assert_no_queries do
+      incorrectly_sorted_orders.find_each(batch_size: 1, start: start_id, finish: finish_id, order: [:desc, :asc]) do |order|
+        orders << order
+      end
+    end
+
+    assert_equal expected_orders, orders
   end
 
   def test_in_batches_should_return_relations

@@ -656,6 +656,10 @@ class ProductsController < ApplicationController
 end
 ```
 
+When both `last_modified` and `etag` are set, behavior varies depending on the value of `config.action_dispatch.strict_freshness`.
+If set to `true`, only the `etag` is considered as specified by RFC 7232 section 6.
+If set to `false`, both are considered and the cache is considered fresh if both conditions are satisfied, as was the historical Rails behavior.
+
 Sometimes we want to cache response, for example a static page, that never gets
 expired. To achieve this, we can use `http_cache_forever` helper and by doing
 so browser and proxies will cache it indefinitely.

@@ -4,6 +4,8 @@ require "bundler/setup"
 require "bundler/gem_tasks"
 require "rake/testtask"
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 Rake::TestTask.new do |t|
   t.libs << "app/controllers"
   t.libs << "test"

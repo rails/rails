@@ -106,7 +106,16 @@ module ActiveRecord
 
 
     # Returns a signed id that's generated using a preconfigured +ActiveSupport::MessageVerifier+ instance.
+    #
     # This signed id is tamper proof, so it's safe to send in an email or otherwise share with the outside world.
+    # However, as with any message signed with a +ActiveSupport::MessageVerifier+,
+    # {the signed id is not encrypted}[link:classes/ActiveSupport/MessageVerifier.html#class-ActiveSupport::MessageVerifier-label-Signing+is+not+encryption].
+    # It's just encoded and protected against tampering.
+    #
+    # This means that the ID can be decoded by anyone; however, if tampered with (so to point to a different ID),
+    # the cryptographic signature will no longer match, and the signed id will be considered invalid and return nil
+    # when passed to +find_signed+ (or raise with +find_signed!+).
+    #
     # It can furthermore be set to expire (the default is not to expire), and scoped down with a specific purpose.
     # If the expiration date has been exceeded before +find_signed+ is called, the id won't find the designated
     # record. If a purpose is set, this too must match.

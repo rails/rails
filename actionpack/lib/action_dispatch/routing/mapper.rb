@@ -714,7 +714,7 @@ module ActionDispatch
               def optimize_routes_generation?; false; end
 
               define_method :find_script_name do |options|
-                if options.key? :script_name
+                if options.key?(:script_name) && options[:script_name].present?
                   super(options)
                 else
                   script_namer.call(options)
@@ -1934,6 +1934,11 @@ module ActionDispatch
           end
 
           def map_match(paths, options)
+            ActionDispatch.deprecator.warn(<<-MSG.squish) if paths.count > 1
+              Mapping a route with multiple paths is deprecated and
+              will be removed in Rails 8.1. Please use multiple method calls instead.
+            MSG
+
             if (on = options[:on]) && !VALID_ON_OPTIONS.include?(on)
               raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
             end

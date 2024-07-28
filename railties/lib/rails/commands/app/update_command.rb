@@ -14,6 +14,7 @@ module Rails
         def perform
           configs
           bin
+          public_directory
           active_storage
           display_upgrade_guide_info
         end
@@ -29,6 +30,12 @@ module Rails
         def bin
           require_application!
           app_generator.update_bin_files
+        end
+
+        desc "public_directory", "Add or update files in the application public/ directory", hide: true
+        def public_directory
+          require_application!
+          app_generator.create_public_files
         end
 
         desc "active_storage", "Run the active_storage:update command", hide: true

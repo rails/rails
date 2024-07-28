@@ -134,7 +134,7 @@ config.action_mailbox.ingress = :mailgun
 ```
 
 [Configure
-Mailgun](https://documentation.mailgun.com/en/latest/user_manual.html#receiving-forwarding-and-storing-messages)
+Mailgun](https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/)
 to forward inbound emails to
 `/rails/action_mailbox/mailgun/inbound_emails/mime`. If your application lived
 at `https://example.com`, you would specify the fully-qualified URL

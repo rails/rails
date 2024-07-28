@@ -71,7 +71,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--api", "--skip-action-cable"]
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "config/cable.yml"
-    assert_no_file "app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/"redis"/, content)
     end
@@ -115,7 +114,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "config/initializers/assets.rb"
     assert_no_file "config/initializers/content_security_policy.rb"
-    assert_no_file "config/initializers/permissions_policy.rb"
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files
@@ -137,7 +135,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         Rakefile
         Dockerfile
         config.ru
-        app/channels
         app/controllers
         app/mailers
         app/models
@@ -187,7 +184,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          bin/yarn
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
-         config/initializers/permissions_policy.rb
          lib/assets
          test/helpers
          public/404.html

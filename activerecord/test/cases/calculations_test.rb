@@ -277,24 +277,18 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
   end
 
   def test_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.offset(1).count }
     assert_equal 1, queries.length
     assert_match(/OFFSET/, queries.first)
   end
 
   def test_limit_with_offset_is_kept
-    return if current_adapter?(:OracleAdapter)
-
     queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
@@ -844,11 +838,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_without_column_names
-    if current_adapter?(:OracleAdapter)
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil, "active"]], Company.order(:id).limit(1).pluck
-    else
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
-    end
+    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
   end
 
   def test_pluck_type_cast
@@ -857,6 +847,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.approved ], relation.pluck(:approved)
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
+    assert_equal(
+      [[topic.written_on, topic.replies_count]],
+      relation.pluck("min(written_on)", "min(replies_count)")
+    )
   end
 
   def test_pluck_type_cast_with_conflict_column_names
@@ -1234,22 +1228,13 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_functions_without_alias
-    expected = if current_adapter?(:PostgreSQLAdapter)
-      # PostgreSQL returns the same name for each column in the given query, so each column is named "coalesce"
-      # As a result Rails cannot accurately type cast each value.
-      # To work around this, you should use aliases in your select statement (see test_pluck_functions_with_alias).
-      [
-        ["1", "The First Topic"], ["2", "The Second Topic of the day"],
-        ["3", "The Third Topic of the day"], ["4", "The Fourth Topic of the day"],
-        ["5", "The Fifth Topic of the day"]
-      ]
-    else
-      [
-        [1, "The First Topic"], [2, "The Second Topic of the day"],
-        [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
-        [5, "The Fifth Topic of the day"]
-      ]
-    end
+    expected = [
+      [1, "The First Topic"],
+      [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"],
+      [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ]
 
     assert_equal expected, Topic.order(:id).pluck(
       Arel.sql("COALESCE(id, 0)"),

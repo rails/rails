@@ -434,9 +434,7 @@ module ActiveRecord
         end
 
         def ignored_table?(table_name)
-          ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
-            ignored === table_name
-          end
+          ActiveRecord.schema_cache_ignored_table?(table_name)
         end
 
         def derive_columns_hash_and_deduplicate_values

@@ -400,6 +400,50 @@ Each of these classes include `Minitest::Assertions`, allowing us to use all of 
 NOTE: For more information on `Minitest`, refer to [its
 documentation](http://docs.seattlerb.org/minitest).
 
+### Transactions
+
+By default, Rails automatically wraps tests in a database transaction that is
+rolled back after they finish. This makes tests independent of each other and
+changes to the database are only visible within a single test.
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  test "newly created users are active by default" do
+    # Since the test is implicitly wrapped in a database transaction, the user
+    # created here won't be seen by other tests.
+    assert User.create.active?
+  end
+end
+```
+
+The method `ActiveRecord::Base.current_transaction` still acts as intended,
+though:
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  test "current_transaction" do
+    # The implicit transaction around tests does not interfere with the
+    # application-level semantics of current_transaction.
+    assert User.current_transaction.blank?
+  end
+end
+```
+
+If there are [multiple writing databases](active_record_multiple_databases.html)
+in place, tests are wrapped in as many respective transactions, and all of them
+are rolled back.
+
+#### Opting-out of Test Transactions
+
+Individual test cases can opt-out:
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  # No implicit database transaction wraps the tests in this test case.
+  self.use_transactional_tests = false
+end
+```
+
 ### The Rails Test Runner
 
 We can run all of our tests at once by using the `bin/rails test` command.
@@ -598,15 +642,11 @@ $ PARALLEL_WORKERS=15 bin/rails test
 
 ### Testing Parallel Transactions
 
-Rails automatically wraps any test case in a database transaction that is rolled
-back after the test completes.  This makes test cases independent of each other
-and changes to the database are only visible within a single test.
+When you want to test code that runs parallel database transactions in threads,
+those can block each other because they are already nested under the implicit
+test transaction.
 
-When you want to test code that runs parallel transactions in threads,
-transactions can block each other because they are already nested under the test
-transaction.
-
-You can disable transactions in a test case class by setting
+To workaround this, you can disable transactions in a test case class by setting
 `self.use_transactional_tests = false`:
 
 ```ruby

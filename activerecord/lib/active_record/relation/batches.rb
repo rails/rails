@@ -327,8 +327,8 @@ module ActiveRecord
 
         if raise_error
           raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
-        elsif logger
-          logger.warn(ORDER_IGNORE_MESSAGE)
+        elsif model.logger
+          model.logger.warn(ORDER_IGNORE_MESSAGE)
         end
       end
 
@@ -338,17 +338,17 @@ module ActiveRecord
 
       def batch_on_loaded_relation(relation:, start:, finish:, order:, batch_limit:)
         records = relation.to_a
+        order = build_batch_orders(order).map(&:second)
 
         if start || finish
           records = records.filter do |record|
-            (start.nil? || record.id >= start) && (finish.nil? || record.id <= finish)
+            (start.nil? || compare_values_for_order(record.id, start, order) >= 0) &&
+              (finish.nil? || compare_values_for_order(record.id, finish, order) <= 0)
           end
         end
 
-        records.sort_by!(&:id)
-
-        if order == :desc
-          records.reverse!
+        records.sort! do |record1, record2|
+          compare_values_for_order(record1.id, record2.id, order)
         end
 
         records.each_slice(batch_limit) do |subrecords|
@@ -361,13 +361,35 @@ module ActiveRecord
         nil
       end
 
+      # This is a custom implementation of `<=>` operator,
+      # which also takes into account how the collection will be ordered.
+      def compare_values_for_order(value1, value2, order)
+        # Multiple column values.
+        if value1.is_a?(Array)
+          value1.each_with_index do |element1, index|
+            element2 = value2[index]
+            direction = order[index]
+            comparison = element1 <=> element2
+            comparison = -comparison if direction == :desc
+            return comparison if comparison != 0
+          end
+
+          0
+        # Single column values.
+        elsif order.first == :asc
+          value1 <=> value2
+        else
+          value2 <=> value1
+        end
+      end
+
       def batch_on_unloaded_relation(relation:, start:, finish:, load:, order:, use_ranges:, remaining:, batch_limit:)
         batch_orders = build_batch_orders(order)
         relation = relation.reorder(batch_orders.to_h).limit(batch_limit)
         relation = apply_limits(relation, start, finish, batch_orders)
         relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
         batch_relation = relation
-        empty_scope = to_sql == klass.unscoped.all.to_sql
+        empty_scope = to_sql == model.unscoped.all.to_sql
 
         loop do
           if load

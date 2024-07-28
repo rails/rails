@@ -58,13 +58,18 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
 
+#### Default Values for Target Version 8.0
+
+- [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
+- [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:zone`
+
 #### Default Values for Target Version 7.2
 
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
-- [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
+- [`config.yjit`](#config-yjit): `true`
 
 #### Default Values for Target Version 7.1
 
@@ -157,6 +162,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
+- [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:offset`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 
 ### Rails General Configuration
@@ -612,6 +618,16 @@ Used to easily add nested custom configuration to the application config object
   ```
 
 See [Custom Configuration](#custom-configuration)
+
+#### `config.yjit`
+
+Enables YJIT as of Ruby 3.3, to bring sizeable performance improvements. If you are
+deploying to a memory constrained environment you may want to set this to `false`.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.2                   | `true`               |
 
 ### Configuring Assets
 
@@ -1095,6 +1111,10 @@ class Comment < ApplicationRecord
 end
 ```
 
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+
 #### `config.active_record.validate_migration_timestamps`
 
 Controls whether to validate migration timestamps. When set, an error will be raised if the
@@ -1269,6 +1289,12 @@ changed to `:log` to send violations to the logger instead of raising.
 
 Is a boolean value that either enables or disables strict_loading mode by
 default. Defaults to `false`.
+
+#### `config.active_record.strict_loading_mode`
+
+Sets the mode in which strict loading is reported. Defaults to `:all`. It can be
+changed to `:n_plus_one_only` to only report when loading associations that will
+lead to an N + 1 query.
 
 #### `config.active_record.warn_on_records_fetched_greater_than`
 
@@ -1687,6 +1713,12 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.active_record.encryption.compressor`
+
+Sets the compressor used by Active Record Encryption. The default value is `Zlib`.
+
+You can use your own compressor by setting this to a class that responds to `deflate` and `inflate`.
+
 #### `config.active_record.protocol_adapters`
 
 When using a URL to configure the database connection, this option provides a mapping from the protocol to the underlying
@@ -2085,6 +2117,27 @@ Setting the value to `:none` configures Action Pack raise all exceptions.
 | (original)            | `true`                |
 | 7.1                   | `:all`                |
 
+### `config.action_dispatch.strict_freshness`
+
+Configures whether the `ActionDispatch::ETag` middleware should prefer the `ETag` header over the `Last-Modified` header when both are present in the response.
+
+If set to `true`, when both headers are present only the `ETag` is considered as specificed by RFC 7232 section 6.
+
+If set to `false`, when both headers are present, both headers are checked and both need to match for the response to be considered fresh.
+
+| Starting with version | The default value is  |
+| --------------------- | --------------------- |
+| (original)            | `false`               |
+| 8.0                   | `true`                |
+
+#### `config.action_dispatch.always_write_cookie`
+
+Cookies will be written at the end of a request if they marked as insecure, if the request is made over SSL, or if the request is made to an onion service.
+
+If set to `true`, cookies will be written even if this criteria is not met.
+
+This defaults to `true` in `development`, and `false` in all other environments.
+
 #### `ActionDispatch::Callbacks.before`
 
 Takes a block of code to run before the request.
@@ -2205,7 +2258,7 @@ Determines whether to annotate rendered view with template file names. This defa
 
 #### `config.action_view.preload_links_header`
 
-Determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `Link` header that preload assets.
+Determines whether `javascript_include_tag` and `stylesheet_link_tag` will generate a `link` header that preload assets.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2673,6 +2726,18 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.0                   | `true`               |
 
+#### `config.active_support.to_time_preserves_timezone`
+
+Specifies whether `to_time` methods preserve the UTC offset of their receivers or preserves the timezone. If set to `:zone`, `to_time` methods will use the timezone of their receivers. If set to `:offset`, `to_time` methods will use the UTC offset. If `false`, `to_time` methods will convert to the local system UTC offset instead.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 5.0                   | `:offset`            |
+| 8.0                   | `:zone`              |
+
 #### `ActiveSupport::Logger.silencer`
 
 Is set to `false` to disable the ability to silence logging in a block. The default is `true`.
@@ -2936,6 +3001,7 @@ For example, if you want to use `AVIF` variants in your application you can add
 `image/avif` to this array.
 
 The default value depends on the `config.load_defaults` target version:
+
 | Starting with version | The default value is                            |
 | --------------------- | ----------------------------------------------- |
 | (original)            | `%w(image/png image/jpeg image/gif)`            |
@@ -3693,7 +3759,7 @@ Initialization Events
 
 Rails has 5 initialization events which can be hooked into (listed in the order that they are run):
 
-* `before_configuration`: This is run as soon as the application constant inherits from `Rails::Application`. The `config` calls are evaluated before this happens.
+* `before_configuration`: This is run when the application class inherits from `Rails::Application` in `config/application.rb`. Before the class body is executed. Engines may use this hook to run code before the application itself gets configured.
 
 * `before_initialize`: This is run directly before the initialization process of the application occurs with the `:bootstrap_hook` initializer near the beginning of the Rails initialization process.
 

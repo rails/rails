@@ -300,7 +300,16 @@ module ActiveSupport
       if duration_of_variable_length?(other)
         method_missing(:+, other)
       else
-        result = utc.acts_like?(:date) ? utc.since(other) : utc + other rescue utc.since(other)
+        begin
+          result = utc + other
+        rescue TypeError
+          result = utc.to_datetime.since(other)
+          ActiveSupport.deprecator.warn(
+            "Adding an instance of #{other.class} to an instance of #{self.class} is deprecated. This behavior will raise " \
+            "a `TypeError` in Rails 8.1."
+          )
+          result.in_time_zone(time_zone)
+        end
         result.in_time_zone(time_zone)
       end
     end
@@ -332,11 +341,11 @@ module ActiveSupport
     #
     def -(other)
       if other.acts_like?(:time)
-        to_time - other.to_time
+        getutc - other.getutc
       elsif duration_of_variable_length?(other)
         method_missing(:-, other)
       else
-        result = utc.acts_like?(:date) ? utc.ago(other) : utc - other rescue utc.ago(other)
+        result = utc - other
         result.in_time_zone(time_zone)
       end
     end
@@ -479,10 +488,17 @@ module ActiveSupport
       @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
-    # Returns an instance of +Time+ with the same UTC offset
-    # as +self+.
+    # Returns an instance of +Time+, either with the same timezone as +self+,
+    # with the same UTC offset as +self+ or in the local system timezone
+    # depending on the setting of +ActiveSupport.to_time_preserves_timezone+.
     def to_time
-      @to_time_with_instance_offset ||= getlocal(utc_offset)
+      if preserve_timezone == :zone
+        @to_time_with_timezone ||= getlocal(time_zone)
+      elsif preserve_timezone
+        @to_time_with_instance_offset ||= getlocal(utc_offset)
+      else
+        @to_time_with_system_offset ||= getlocal
+      end
     end
 
     # So that +self+ <tt>acts_like?(:time)</tt>.
@@ -530,7 +546,6 @@ module ActiveSupport
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)
-      return false if sym.to_sym == :acts_like_date?
       time.respond_to?(sym, include_priv)
     end
 

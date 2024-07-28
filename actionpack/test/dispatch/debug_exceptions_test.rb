@@ -45,14 +45,25 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
 
     def raise_nested_exceptions
-      raise "First error"
-    rescue
-      begin
-        raise "Second error"
-      rescue
-        raise "Third error"
-      end
+      raise_nested_exceptions_third
     end
+
+    def raise_nested_exceptions_first
+      raise "First error"
+    end
+
+    def raise_nested_exceptions_second
+      raise_nested_exceptions_first
+    rescue
+      raise "Second error"
+    end
+
+    def raise_nested_exceptions_third
+      raise_nested_exceptions_second
+    rescue
+      raise "Third error"
+    end
+
 
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
@@ -627,11 +638,81 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/nested_exceptions", headers: env
     assert_response 500
     log = output.rewind && output.read
-    assert_includes log, <<~MSG
-      Causes:
-      RuntimeError (Second error)
-      RuntimeError (First error)
+
+    # Splitting into paragraphs to be easier to see difference/error when there is one
+    paragraphs = log.split(/\n\s*\n/)
+
+    assert_includes(paragraphs[0], <<~MSG.strip)
+      RuntimeError (Third error)
+      Caused by: RuntimeError (Second error)
+      Caused by: RuntimeError (First error)
     MSG
+
+    assert_includes(paragraphs[1], <<~MSG.strip)
+      Information for: RuntimeError (Third error):
+    MSG
+
+    if RUBY_VERSION >= "3.4"
+      # Changes to the format of exception backtraces
+      # https://bugs.ruby-lang.org/issues/16495 (use single quote instead of backtrace)
+      # https://bugs.ruby-lang.org/issues/20275 (don't have entry for rescue in)
+      # And probably more, they now show the class too
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[2]
+        \\A.*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+
+      assert_includes(paragraphs[3], <<~MSG.strip)
+        Information for cause: RuntimeError (Second error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[4]
+        \\A.*in '.*raise_nested_exceptions_second'
+        .*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+
+
+      assert_includes(paragraphs[5], <<~MSG.strip)
+        Information for cause: RuntimeError (First error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[6]
+        \\A.*in '.*raise_nested_exceptions_first'
+        .*in '.*raise_nested_exceptions_second'
+        .*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+    else
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[2]
+        \\A.*in `rescue in raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+
+      assert_includes(paragraphs[3], <<~MSG.strip)
+        Information for cause: RuntimeError (Second error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[4]
+        \\A.*in `rescue in raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+
+
+      assert_includes(paragraphs[5], <<~MSG.strip)
+        Information for cause: RuntimeError (First error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[6]
+        \\A.*in `raise_nested_exceptions_first'
+        .*in `raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+    end
   end
 
   test "display backtrace when error type is SyntaxError" do
@@ -751,28 +832,28 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         # Possible Ruby 3.4-dev bug: https://bugs.ruby-lang.org/issues/19117#note-45
         # assert application trace refers to line that raises the last exception
         assert_select "#Application-Trace-0" do
-          assert_select "code a:first", %r{in '.*raise_nested_exceptions'}
+          assert_select "code a:first", %r{in '.*raise_nested_exceptions_third'}
         end
 
         # assert the second application trace refers to the line that raises the second exception
         assert_select "#Application-Trace-1" do
-          assert_select "code a:first", %r{in '.*raise_nested_exceptions'}
+          assert_select "code a:first", %r{in '.*raise_nested_exceptions_second'}
         end
       else
         # assert application trace refers to line that raises the last exception
         assert_select "#Application-Trace-0" do
-          assert_select "code a:first", %r{in [`']rescue in rescue in .*raise_nested_exceptions'}
+          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions_third'}
         end
 
         # assert the second application trace refers to the line that raises the second exception
         assert_select "#Application-Trace-1" do
-          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions'}
+          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions_second'}
         end
       end
 
       # assert the third application trace refers to the line that raises the first exception
       assert_select "#Application-Trace-2" do
-        assert_select "code a:first", %r{in [`'].*raise_nested_exceptions'}
+        assert_select "code a:first", %r{in [`'].*raise_nested_exceptions_first'}
       end
     end
   end

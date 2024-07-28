@@ -31,11 +31,13 @@ env:
   # clear:
   #   DB_HOST: 192.168.0.2
 
+<% unless skip_storage? %>
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
 # Recommended to change this to a mounted volume path that is backed up off server.
 volumes:
   - "<%= app_name %>_storage:/rails/storage"
 
+<% end %>
 # Bridge fingerprinted assets, like JS and CSS, between versions to avoid
 # hitting 404 on in-flight requests. Combines all files from new and old
 # version inside the asset_path.
