@@ -317,9 +317,13 @@ setup allows each author to have multiple associated books.
 Depending on the use case, it's usually a good idea to create a non-unique index
 and optionally a foreign key constraint on the author column for the books
 table. Adding an index on the `author_id` column improves query performance when
-retrieving books associated with a specific author. Optionally, a foreign key
-constraint ensures that the `author_id` in the books table must correspond to a
-valid `id` in the `authors` table, maintaining data integrity.
+retrieving books associated with a specific author.
+
+If you wish to enforce [referential
+integrity](https://en.wikipedia.org/wiki/Referential_integrity) at the database
+level, add the [`foreign_key: true`](active_record_migrations.html#foreign-keys) option to the ‘reference’
+column declarations above. This will ensure that the `author_id` in the books table must correspond to a
+valid `id` in the `authors` table,
 
 ```ruby
 create_table :books do |t|
@@ -1306,10 +1310,6 @@ class AddAuthorToBooks < ActiveRecord::Migration[7.2]
 end
 ```
 
-NOTE: If you wish to enforce [referential
-integrity](https://en.wikipedia.org/wiki/Referential_integrity) at the database
-level](active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’
-column declarations above.
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
