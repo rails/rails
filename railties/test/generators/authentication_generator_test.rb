@@ -2,9 +2,9 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/app/app_generator"
-require "rails/generators/rails/sessions/sessions_generator"
+require "rails/generators/rails/authentication/authentication_generator"
 
-class SessionsGeneratorTest < Rails::Generators::TestCase
+class AuthenticationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
   def setup
@@ -16,11 +16,11 @@ class SessionsGeneratorTest < Rails::Generators::TestCase
     Rails.application = Rails.application.instance
   end
 
-  def test_session_generator
+  def test_authentication_generator
     self.class.tests Rails::Generators::AppGenerator
     run_generator([destination_root])
 
-    self.class.tests Rails::Generators::SessionsGenerator
+    self.class.tests Rails::Generators::AuthenticationGenerator
     run_generator
 
     assert_file "app/models/user.rb"

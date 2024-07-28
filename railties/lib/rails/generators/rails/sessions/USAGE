@@ -1,6 +1,0 @@
-Description:
-    Generates a basic sessions system with user authentication.
-
-Example:
-    `bin/rails generate sessions`
-

@@ -1,0 +1,6 @@
+Description:
+    Generates a basic authentication system with users and sessions.
+
+Example:
+    `bin/rails generate authentication`
+
