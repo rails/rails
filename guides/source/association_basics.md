@@ -1624,7 +1624,7 @@ the initial examples above.
 
 [`config.active_record.automatic_scope_inversing`]: configuring.html#config-active-record-automatic-scope-inversing
 
-Detailed Association Reference
+Detailed Association References
 ------------------------------
 
 ### References
