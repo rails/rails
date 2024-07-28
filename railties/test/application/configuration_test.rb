@@ -4633,6 +4633,21 @@ module ApplicationTests
       assert_includes last_response.body, "rescued missing translation error from view"
     end
 
+    test "raise_on_missing_translations affects human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+
+      assert_raises I18n::MissingTranslationData do
+        Post.human_attribute_name("title")
+      end
+    end
+
     test "dom testing uses the HTML5 parser in new apps if it is supported" do
       app "development"
       expected = defined?(Nokogiri::HTML5) ? :html5 : :html4

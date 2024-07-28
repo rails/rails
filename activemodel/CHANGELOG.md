@@ -1,3 +1,27 @@
+*   Add a load hook `active_model_translation` for `ActiveModel::Translation`.
+
+    *Shouichi Kamiya*
+
+*   Add `raise_on_missing_translations` option to `ActiveModel::Translation`.
+    When the option is set, `human_attribute_name` raises an error if a translation of the given attribute is missing.
+
+    ```ruby
+    # ActiveModel::Translation.raise_on_missing_translations = false
+    Post.human_attribute_name("title")
+    => "Title"
+
+    # ActiveModel::Translation.raise_on_missing_translations = true
+    Post.human_attribute_name("title")
+    => Translation missing. Options considered were: (I18n::MissingTranslationData)
+        - en.activerecord.attributes.post.title
+        - en.attributes.title
+
+                raise exception.respond_to?(:to_exception) ? exception.to_exception : exception
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ```
+
+    *Shouichi Kamiya*
+
 *   Introduce `ActiveModel::AttributeAssignment#attribute_writer_missing`
 
     Provide instances with an opportunity to gracefully handle assigning to an

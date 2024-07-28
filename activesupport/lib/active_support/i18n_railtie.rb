@@ -83,6 +83,10 @@ module I18n
         ActionView::Helpers::TranslationHelper.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
       end
 
+      ActiveSupport.on_load(:active_model_translation) do
+        ActiveModel::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+      end
+
       if app.config.i18n.raise_on_missing_translations &&
           I18n.exception_handler.is_a?(I18n::ExceptionHandler) # Only override the i18n gem's default exception handler.
 
