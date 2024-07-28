@@ -133,7 +133,7 @@ module ActionView
       #     First name: <%= f.text_field :first_name %><br />
       #     Last name : <%= f.text_field :last_name %><br />
       #     Biography : <%= f.text_area :biography %><br />
-      #     Admin?    : <%= f.check_box :admin %><br />
+      #     Admin?    : <%= f.checkbox :admin %><br />
       #     <%= f.submit %>
       #   <% end %>
       #
@@ -200,7 +200,7 @@ module ActionView
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
-      #     Admin?    : <%= check_box_tag "person[admin]", "1", @person.company.admin? %>
+      #     Admin?    : <%= checkbox_tag "person[admin]", "1", @person.company.admin? %>
       #     <%= f.submit %>
       #   <% end %>
       #
@@ -390,7 +390,7 @@ module ActionView
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
       #     <%= f.text_area :biography %>
-      #     <%= f.check_box :admin %>
+      #     <%= f.checkbox :admin %>
       #     <%= f.submit %>
       #   <% end %>
       #
@@ -669,7 +669,7 @@ module ActionView
       #     <%= form.text_field :last_name %>
       #
       #     <%= text_area :person, :biography %>
-      #     <%= check_box_tag "person[admin]", "1", @person.company.admin? %>
+      #     <%= checkbox_tag "person[admin]", "1", @person.company.admin? %>
       #
       #     <%= form.submit %>
       #   <% end %>
@@ -731,7 +731,7 @@ module ActionView
       #     <%= form.text_field :first_name %>
       #     <%= form.text_field :last_name %>
       #     <%= form.text_area :biography %>
-      #     <%= form.check_box :admin %>
+      #     <%= form.checkbox :admin %>
       #     <%= form.submit %>
       #   <% end %>
       #
@@ -804,7 +804,7 @@ module ActionView
       #     Last name : <%= person_form.text_field :last_name %>
       #
       #     <%= fields_for :permission, @person.permission do |permission_fields| %>
-      #       Admin?  : <%= permission_fields.check_box :admin %>
+      #       Admin?  : <%= permission_fields.checkbox :admin %>
       #     <% end %>
       #
       #     <%= person_form.submit %>
@@ -821,7 +821,7 @@ module ActionView
       # object to +fields_for+ -
       #
       #   <%= fields_for :permission do |permission_fields| %>
-      #     Admin?: <%= permission_fields.check_box :admin %>
+      #     Admin?: <%= permission_fields.checkbox :admin %>
       #   <% end %>
       #
       # ...in which case, if <tt>:permission</tt> also happens to be the name of an
@@ -833,7 +833,7 @@ module ActionView
       # name has been omitted) -
       #
       #   <%= fields_for @person.permission do |permission_fields| %>
-      #     Admin?: <%= permission_fields.check_box :admin %>
+      #     Admin?: <%= permission_fields.checkbox :admin %>
       #   <% end %>
       #
       # and +fields_for+ will derive the required name of the field from the
@@ -914,7 +914,7 @@ module ActionView
       #     ...
       #     <%= person_form.fields_for :address do |address_fields| %>
       #       ...
-      #       Delete: <%= address_fields.check_box :_destroy %>
+      #       Delete: <%= address_fields.checkbox :_destroy %>
       #     <% end %>
       #     ...
       #   <% end %>
@@ -1002,7 +1002,7 @@ module ActionView
       #   <%= form_with model: @person do |person_form| %>
       #     ...
       #     <%= person_form.fields_for :projects do |project_fields| %>
-      #       Delete: <%= project_fields.check_box :_destroy %>
+      #       Delete: <%= project_fields.checkbox :_destroy %>
       #     <% end %>
       #     ...
       #   <% end %>
@@ -1070,7 +1070,7 @@ module ActionView
       #     <%= fields.text_field :body %>
       #
       #     <%= text_area :commenter, :biography %>
-      #     <%= check_box_tag "comment[all_caps]", "1", @comment.commenter.hulk_mode? %>
+      #     <%= checkbox_tag "comment[all_caps]", "1", @comment.commenter.hulk_mode? %>
       #   <% end %>
       #
       # Same goes for the methods in FormOptionsHelper and DateHelper designed
@@ -1316,7 +1316,7 @@ module ActionView
       # within an array-like parameter, as in
       #
       #   <%= fields_for "project[invoice_attributes][]", invoice, index: nil do |form| %>
-      #     <%= form.check_box :paid %>
+      #     <%= form.checkbox :paid %>
       #     ...
       #   <% end %>
       #
@@ -1324,27 +1324,28 @@ module ActionView
       # the elements of the array. For each item with a checked check box you
       # get an extra ghost item with only that attribute, assigned to "0".
       #
-      # In that case it is preferable to either use +check_box_tag+ or to use
+      # In that case it is preferable to either use +checkbox_tag+ or to use
       # hashes instead of arrays.
       #
       # ==== Examples
       #
       #   # Let's say that @article.validated? is 1:
-      #   check_box("article", "validated")
+      #   checkbox("article", "validated")
       #   # => <input name="article[validated]" type="hidden" value="0" />
       #   #    <input checked="checked" type="checkbox" id="article_validated" name="article[validated]" value="1" />
       #
       #   # Let's say that @puppy.gooddog is "no":
-      #   check_box("puppy", "gooddog", {}, "yes", "no")
+      #   checkbox("puppy", "gooddog", {}, "yes", "no")
       #   # => <input name="puppy[gooddog]" type="hidden" value="no" />
       #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
       #
-      #   check_box("eula", "accepted", { class: 'eula_check' }, "yes", "no")
+      #   checkbox("eula", "accepted", { class: 'eula_check' }, "yes", "no")
       #   # => <input name="eula[accepted]" type="hidden" value="no" />
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
-      def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
+      def checkbox(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
         Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
       end
+      alias_method :check_box, :checkbox
 
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). If the current value of +method+ is +tag_value+ the
@@ -1634,12 +1635,12 @@ module ActionView
     #
     #   <%= form_with model: @person do |person_form| %>
     #     Name: <%= person_form.text_field :name %>
-    #     Admin: <%= person_form.check_box :admin %>
+    #     Admin: <%= person_form.checkbox :admin %>
     #   <% end %>
     #
     # In the above block, a +FormBuilder+ object is yielded as the
     # +person_form+ variable. This allows you to generate the +text_field+
-    # and +check_box+ fields by specifying their eponymous methods, which
+    # and +checkbox+ fields by specifying their eponymous methods, which
     # modify the underlying template and associates the <tt>@person</tt> model object
     # with the form.
     #
@@ -1681,7 +1682,7 @@ module ActionView
       # The methods which wrap a form helper call.
       class_attribute :field_helpers, default: [
         :fields_for, :fields, :label, :text_field, :password_field,
-        :hidden_field, :file_field, :text_area, :check_box,
+        :hidden_field, :file_field, :text_area, :checkbox,
         :radio_button, :color_field, :search_field,
         :telephone_field, :phone_field, :date_field,
         :time_field, :datetime_field, :datetime_local_field,
@@ -2019,7 +2020,7 @@ module ActionView
       # Please refer to the documentation of the base helper for details.
 
       ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
-        (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
+        (field_helpers - [:label, :checkbox, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
           code_generator.define_cached_method(selector, namespace: :form_builder) do |batch|
             batch.push <<-RUBY_EVAL
               def #{selector}(method, options = {})  # def text_field(method, options = {})
@@ -2055,7 +2056,7 @@ module ActionView
       #     Last name : <%= person_form.text_field :last_name %>
       #
       #     <%= fields_for :permission, @person.permission do |permission_fields| %>
-      #       Admin?  : <%= permission_fields.check_box :admin %>
+      #       Admin?  : <%= permission_fields.checkbox :admin %>
       #     <% end %>
       #
       #     <%= person_form.submit %>
@@ -2072,7 +2073,7 @@ module ActionView
       # object to +fields_for+ -
       #
       #   <%= fields_for :permission do |permission_fields| %>
-      #     Admin?: <%= permission_fields.check_box :admin %>
+      #     Admin?: <%= permission_fields.checkbox :admin %>
       #   <% end %>
       #
       # ...in which case, if <tt>:permission</tt> also happens to be the name of an
@@ -2084,7 +2085,7 @@ module ActionView
       # name has been omitted) -
       #
       #   <%= fields_for @person.permission do |permission_fields| %>
-      #     Admin?: <%= permission_fields.check_box :admin %>
+      #     Admin?: <%= permission_fields.checkbox :admin %>
       #   <% end %>
       #
       # and +fields_for+ will derive the required name of the field from the
@@ -2102,7 +2103,7 @@ module ActionView
       #   <%= form_with model: @person do |person_form| %>
       #     ...
       #     <%= fields_for :permission, @person.permission, {} do |permission_fields| %>
-      #       Admin?: <%= check_box_tag permission_fields.field_name(:admin), @person.permission[:admin] %>
+      #       Admin?: <%= checkbox_tag permission_fields.field_name(:admin), @person.permission[:admin] %>
       #     <% end %>
       #     ...
       #   <% end %>
@@ -2177,7 +2178,7 @@ module ActionView
       #     ...
       #     <%= person_form.fields_for :address do |address_fields| %>
       #       ...
-      #       Delete: <%= address_fields.check_box :_destroy %>
+      #       Delete: <%= address_fields.checkbox :_destroy %>
       #     <% end %>
       #     ...
       #   <% end %>
@@ -2265,7 +2266,7 @@ module ActionView
       #   <%= form_with model: @person do |person_form| %>
       #     ...
       #     <%= person_form.fields_for :projects do |project_fields| %>
-      #       Delete: <%= project_fields.check_box :_destroy %>
+      #       Delete: <%= project_fields.checkbox :_destroy %>
       #     <% end %>
       #     ...
       #   <% end %>
@@ -2444,7 +2445,7 @@ module ActionView
       # within an array-like parameter, as in
       #
       #   <%= fields_for "project[invoice_attributes][]", invoice, index: nil do |form| %>
-      #     <%= form.check_box :paid %>
+      #     <%= form.checkbox :paid %>
       #     ...
       #   <% end %>
       #
@@ -2452,28 +2453,29 @@ module ActionView
       # the elements of the array. For each item with a checked check box you
       # get an extra ghost item with only that attribute, assigned to "0".
       #
-      # In that case it is preferable to either use +check_box_tag+ or to use
+      # In that case it is preferable to either use +checkbox_tag+ or to use
       # hashes instead of arrays.
       #
       # ==== Examples
       #
       #   # Let's say that @article.validated? is 1:
-      #   check_box("validated")
+      #   checkbox("validated")
       #   # => <input name="article[validated]" type="hidden" value="0" />
       #   #    <input checked="checked" type="checkbox" id="article_validated" name="article[validated]" value="1" />
       #
       #   # Let's say that @puppy.gooddog is "no":
-      #   check_box("gooddog", {}, "yes", "no")
+      #   checkbox("gooddog", {}, "yes", "no")
       #   # => <input name="puppy[gooddog]" type="hidden" value="no" />
       #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
       #
       #   # Let's say that @eula.accepted is "no":
-      #   check_box("accepted", { class: 'eula_check' }, "yes", "no")
+      #   checkbox("accepted", { class: 'eula_check' }, "yes", "no")
       #   # => <input name="eula[accepted]" type="hidden" value="no" />
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
-      def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
-        @template.check_box(@object_name, method, objectify_options(options), checked_value, unchecked_value)
+      def checkbox(method, options = {}, checked_value = "1", unchecked_value = "0")
+        @template.checkbox(@object_name, method, objectify_options(options), checked_value, unchecked_value)
       end
+      alias_method :check_box, :checkbox
 
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). If the current value of +method+ is +tag_value+ the

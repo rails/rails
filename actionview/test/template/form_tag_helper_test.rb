@@ -70,56 +70,56 @@ class FormTagHelperTest < ActionView::TestCase
 
   VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
 
-  def test_check_box_tag
-    actual = check_box_tag "admin"
+  def test_checkbox_tag
+    actual = checkbox_tag "admin"
     expected = %(<input id="admin" name="admin" type="checkbox" value="1" />)
     assert_dom_equal expected, actual
   end
 
-  def test_check_box_tag_disabled
-    actual = check_box_tag "admin", "1", false, disabled: true
+  def test_checkbox_tag_disabled
+    actual = checkbox_tag "admin", "1", false, disabled: true
     expected = %(<input id="admin" disabled="disabled" name="admin" type="checkbox" value="1" />)
     assert_dom_equal expected, actual
   end
 
-  def test_check_box_tag_default_checked
-    actual = check_box_tag "admin", "1", true
+  def test_checkbox_tag_default_checked
+    actual = checkbox_tag "admin", "1", true
     expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1" />)
     assert_dom_equal expected, actual
   end
 
-  def test_check_box_tag_checked_kwarg_true
-    actual = check_box_tag "admin", "yes", checked: true
+  def test_checkbox_tag_checked_kwarg_true
+    actual = checkbox_tag "admin", "yes", checked: true
     expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="yes" />)
     assert_dom_equal expected, actual
   end
 
-  def test_check_box_tag_checked_kwarg_false
-    actual = check_box_tag "admin", "1", checked: false
+  def test_checkbox_tag_checked_kwarg_false
+    actual = checkbox_tag "admin", "1", checked: false
     expected = %(<input id="admin" name="admin" type="checkbox" value="1" />)
     assert_dom_equal expected, actual
   end
 
-  def test_check_box_tag_checked_kwarg_false_and_disabled
-    actual = check_box_tag "admin", "1", checked: false, disabled: true
+  def test_checkbox_tag_checked_kwarg_false_and_disabled
+    actual = checkbox_tag "admin", "1", checked: false, disabled: true
     expected = %(<input id="admin" name="admin" type="checkbox" value="1" disabled="disabled" />)
     assert_dom_equal expected, actual
   end
 
-  def test_check_box_tag_checked_kwarg_true_value_argument_skipped
-    actual = check_box_tag "admin", checked: true
+  def test_checkbox_tag_checked_kwarg_true_value_argument_skipped
+    actual = checkbox_tag "admin", checked: true
     expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1" />)
     assert_dom_equal expected, actual
   end
 
-  def test_check_box_tag_value_kwarg
-    actual = check_box_tag "admin", value: "0", checked: true
+  def test_checkbox_tag_value_kwarg
+    actual = checkbox_tag "admin", value: "0", checked: true
     expected = %(<input id="admin" name="admin" type="checkbox" value="0" checked="checked" />)
     assert_dom_equal expected, actual
   end
 
-  def test_check_box_tag_id_sanitized
-    label_elem = root_elem(check_box_tag("project[2][admin]"))
+  def test_checkbox_tag_id_sanitized
+    label_elem = root_elem(checkbox_tag("project[2][admin]"))
     assert_match VALID_HTML_ID, label_elem["id"]
   end
 
@@ -658,8 +658,8 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_boolean_options
-    assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), check_box_tag("admin", 1, true, "disabled" => true, :readonly => "yes")
-    assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), check_box_tag("admin", 1, true, disabled: false, readonly: nil)
+    assert_dom_equal %(<input checked="checked" disabled="disabled" id="admin" name="admin" readonly="readonly" type="checkbox" value="1" />), checkbox_tag("admin", 1, true, "disabled" => true, :readonly => "yes")
+    assert_dom_equal %(<input checked="checked" id="admin" name="admin" type="checkbox" value="1" />), checkbox_tag("admin", 1, true, disabled: false, readonly: nil)
     assert_dom_equal %(<input type="checkbox" />), tag(:input, type: "checkbox", checked: false)
     assert_dom_equal %(<select id="people" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people", raw("<option>david</option>"), multiple: true)
     assert_dom_equal %(<select id="people_" multiple="multiple" name="people[]"><option>david</option></select>), select_tag("people[]", raw("<option>david</option>"), multiple: true)

@@ -365,7 +365,7 @@ You can write this view in Rails 2.3:
       <% unless order_form.object.new_record? %>
         <div>
           <%= order_form.label :_delete, 'Remove:' %>
-          <%= order_form.check_box :_delete %>
+          <%= order_form.checkbox :_delete %>
         </div>
       <% end %>
     </p>

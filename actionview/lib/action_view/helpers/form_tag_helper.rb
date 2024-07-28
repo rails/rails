@@ -425,9 +425,9 @@ module ActionView
 
       ##
       # :call-seq:
-      #   check_box_tag(name, options = {})
-      #   check_box_tag(name, value, options = {})
-      #   check_box_tag(name, value, checked, options = {})
+      #   checkbox_tag(name, options = {})
+      #   checkbox_tag(name, value, options = {})
+      #   checkbox_tag(name, value, checked, options = {})
       #
       # Creates a check box form input tag.
       #
@@ -438,21 +438,21 @@ module ActionView
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
-      #   check_box_tag 'accept'
+      #   checkbox_tag 'accept'
       #   # => <input id="accept" name="accept" type="checkbox" value="1" />
       #
-      #   check_box_tag 'rock', 'rock music'
+      #   checkbox_tag 'rock', 'rock music'
       #   # => <input id="rock" name="rock" type="checkbox" value="rock music" />
       #
-      #   check_box_tag 'receive_email', 'yes', true
+      #   checkbox_tag 'receive_email', 'yes', true
       #   # => <input checked="checked" id="receive_email" name="receive_email" type="checkbox" value="yes" />
       #
-      #   check_box_tag 'tos', 'yes', false, class: 'accept_tos'
+      #   checkbox_tag 'tos', 'yes', false, class: 'accept_tos'
       #   # => <input class="accept_tos" id="tos" name="tos" type="checkbox" value="yes" />
       #
-      #   check_box_tag 'eula', 'accepted', false, disabled: true
+      #   checkbox_tag 'eula', 'accepted', false, disabled: true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
-      def check_box_tag(name, *args)
+      def checkbox_tag(name, *args)
         if args.length >= 4
           raise ArgumentError, "wrong number of arguments (given #{args.length + 1}, expected 1..4)"
         end
@@ -462,6 +462,7 @@ module ActionView
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
+      alias_method :check_box_tag, :checkbox_tag
 
       ##
       # :call-seq:
