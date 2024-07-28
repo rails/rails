@@ -1,8 +1,8 @@
-*   Add sessions generator to give a basic start to an authentication system using database-tracked sessions.
+*   Add authentication generator to give a basic start to an authentication system using database-tracked sessions.
 
 
     # Generate with...
-    bin/rails generate sessions
+    bin/rails generate authentication
 
     # Generated files
     app/models/current.rb
