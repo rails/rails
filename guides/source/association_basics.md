@@ -1209,6 +1209,68 @@ author.books.size
 author.books.reload.empty?
 ```
 
+### Counter Cache
+
+The `:counter_cache` option in Rails helps improve the efficiency of finding the number of associated objects. Consider the following models:
+
+```ruby
+class Book < ApplicationRecord
+  belongs_to :author
+end
+
+class Author < ApplicationRecord
+  has_many :books
+end
+```
+
+By default, querying `@auth books.size` results in a database call to perform a `COUNT(*)` query. To optimize this, you can add a counter cache to the _belonging_ model (in this case, `Book`). This way, Rails can return the count directly from the cache without querying the database.
+
+```ruby
+class Book < ApplicationRecord
+  belongs_to :author, counter_cache: true
+end
+
+class Author < ApplicationRecord
+  has_many :books
+end
+```
+
+With this declaration, Rails will keep the cache value up to date, and then return that value in response to the `size` method, avoiding the database call.
+
+Although the `:counter_cache` option is specified on the model with the `belongs_to` declaration, the actual column must be added to the _associated_ (in this case `has_many`) model. In this example, you need to add a `books_count` column to the `Author` model:
+
+```ruby
+class AddBooksCountToAuthors < ActiveRecord::Migration[6.0]
+  def change
+    add_column :authors, :books_count, :integer, default: 0, null: false
+  end
+end
+```
+
+You can specify a custom column name in the `counter_cache` declaration instead of using the default `books_count`. For example, to use `count_of_books`:
+
+```ruby
+class Book < ApplicationRecord
+  belongs_to :author, counter_cache: :count_of_books
+end
+
+class Author < ApplicationRecord
+  has_many :books
+end
+```
+
+NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
+side of the association.
+
+Using counter caches on existing large tables can be troublesome. To avoid locking the table for too long, the column values must be backfilled separately from the column addition. This backfill must also happen before using `:counter_cache`; otherwise, methods like `size`, `any?`, etc., which rely on counter caches, may return incorrect results.
+
+To backfill values safely while keeping counter cache columns updated with child record creation/removal and ensuring methods always get results from the database (avoiding potentially incorrect counter cache values), use `counter_cache: { active: false }`. This setting ensures that methods always fetch results from the database, avoiding incorrect values from an uninitialized counter cache. If you need to specify a custom column name, use `counter_cache: { active: false, column: :my_custom_counter }`.
+
+If for some reason you change the value of an owner model's primary key, and do
+not also update the foreign keys of the counted models, then the counter cache
+may have stale data. In other words, any orphaned models will still count
+towards the counter. To fix a stale counter cache, use [`reset_counters`](https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-reset_counters).
+
 ### Avoiding Name Collisions
 
 When creating associations in Ruby on Rails models, it's important to avoid using names that are already used for instance methods of `ActiveRecord::Base`. This is because creating an association with a name that clashes with an existing method could lead to unintended consequences, such as overriding the base method and causing issues with functionality. For example, using names like `attributes` or `connection` for associations would be problematic.
@@ -1720,66 +1782,6 @@ class Book < ApplicationRecord
   belongs_to :author, class_name: "Patron"
 end
 ```
-
-##### `:counter_cache`
-
-The `:counter_cache` option can be used to make finding the number of belonging objects more efficient. Consider these models:
-
-```ruby
-class Book < ApplicationRecord
-  belongs_to :author
-end
-
-class Author < ApplicationRecord
-  has_many :books
-end
-```
-
-With these declarations, asking for the value of `@author.books.size` requires making a call to the database to perform a `COUNT(*)` query. To avoid this call, you can add a counter cache to the _belonging_ model:
-
-```ruby
-class Book < ApplicationRecord
-  belongs_to :author, counter_cache: true
-end
-
-class Author < ApplicationRecord
-  has_many :books
-end
-```
-
-With this declaration, Rails will keep the cache value up to date, and then return that value in response to the `size` method.
-
-Although the `:counter_cache` option is specified on the model that includes
-the `belongs_to` declaration, the actual column must be added to the
-_associated_ (`has_many`) model. In the case above, you would need to add a
-column named `books_count` to the `Author` model.
-
-You can override the default column name by specifying a custom column name in
-the `counter_cache` declaration instead of `true`. For example, to use
-`count_of_books` instead of `books_count`:
-
-```ruby
-class Book < ApplicationRecord
-  belongs_to :author, counter_cache: :count_of_books
-end
-
-class Author < ApplicationRecord
-  has_many :books
-end
-```
-
-NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
-side of the association.
-
-Using counter caches on existing large tables can be troublesome. To avoid locking the table for too long, the column values must be backfilled separately from the column addition. This backfill must also happen before using `:counter_cache`; otherwise, methods like `size`, `any?`, etc., which rely on counter caches, may return incorrect results.
-
-To backfill values safely while keeping counter cache columns updated with child record creation/removal and ensuring methods always get results from the database (avoiding potentially incorrect counter cache values), use `counter_cache: { active: false }`. This setting ensures that methods always fetch results from the database, avoiding incorrect values from an uninitialized counter cache. If you need to specify a custom column name, use `counter_cache: { active: false, column: :my_custom_counter }`.
-
-If for some reason you change the value of an owner model's primary key, and do
-not also update the foreign keys of the counted models, then the counter cache
-may have stale data. In other words, any orphaned models will still count
-towards the counter. To fix a stale counter cache, use [`reset_counters`](https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-reset_counters).
-
 
 ##### `:dependent`
 
