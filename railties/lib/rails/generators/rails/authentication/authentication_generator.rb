@@ -2,8 +2,8 @@
 
 module Rails
   module Generators
-    class SessionsGenerator < Base # :nodoc:
-      def create_session_files
+    class AuthenticationGenerator < Base # :nodoc:
+      def create_files
         template "models/session.rb", File.join("app/models/session.rb")
         template "models/user.rb", File.join("app/models/user.rb")
         template "models/current.rb", File.join("app/models/current.rb")
