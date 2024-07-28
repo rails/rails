@@ -2921,7 +2921,7 @@ In case of key collision, the value will be the one most recently inserted into 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionView::Helpers::FormHelper` defines:
 
 ```ruby
-def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
+def to_checkbox_tag(options = {}, checked_value = "1", unchecked_value = "0")
   options = options.stringify_keys
   options["type"] = "checkbox"
   # ...

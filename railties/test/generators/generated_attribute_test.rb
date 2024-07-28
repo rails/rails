@@ -53,8 +53,8 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_field_type :text, :text_area
   end
 
-  def test_field_type_returns_check_box
-    assert_field_type :boolean, :check_box
+  def test_field_type_returns_checkbox
+    assert_field_type :boolean, :checkbox
   end
 
   def test_field_type_returns_rich_text_area

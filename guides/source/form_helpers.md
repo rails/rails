@@ -104,11 +104,11 @@ A Checkbox is a form control that allows for a single value to be selected or de
 Here's an example with three checkboxes in a form:
 
 ```erb
-<%= form.check_box :biography %>
+<%= form.checkbox :biography %>
 <%= form.label :biography, "Biography" %>
-<%= form.check_box :romance %>
+<%= form.checkbox :romance %>
 <%= form.label :romance, "Romance" %>
-<%= form.check_box :mystery %>
+<%= form.checkbox :mystery %>
 <%= form.label :mystery, "Mystery" %>
 ```
 
@@ -123,7 +123,7 @@ The above will generate the following:
 <label for="mystery">Mystery</label>
 ```
 
-The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box) is the name of the input which can be found in the `params` hash. If the user has checked the "Biography" checkbox only, the `params` hash would contain:
+The first parameter to [`checkbox`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-checkbox) is the name of the input which can be found in the `params` hash. If the user has checked the "Biography" checkbox only, the `params` hash would contain:
 
 ```ruby
 {
@@ -135,9 +135,9 @@ The first parameter to [`check_box`](https://api.rubyonrails.org/classes/ActionV
 
 You can use `params[:biography]` to check if that checkbox is selected by the user.
 
-The checkbox's values (the values that will appear in `params`) can optionally be specified using the `checked_value` and `unchecked_value` parameters. See the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-check_box) for more details.
+The checkbox's values (the values that will appear in `params`) can optionally be specified using the `checked_value` and `unchecked_value` parameters. See the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-checkbox) for more details.
 
-There is also a `collection_check_boxes`, which you can learn about in the [Collection Related Helpers section](#collection-related-helpers).
+There is also a `collection_checkboxes`, which you can learn about in the [Collection Related Helpers section](#collection-related-helpers).
 
 #### Radio Buttons
 
@@ -698,7 +698,7 @@ Output:
 Collection Related Helpers
 --------------------------
 
-If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_button`, and `collection_check_boxes` helpers.
+If you need to generate a set of choices from a collection of arbitrary objects, Rails has `collection_select`, `collection_radio_button`, and `collection_checkboxes` helpers.
 
 To see when these helpers are useful, suppose you have a `City` model and corresponding `belongs_to :city` association with `Person`:
 
@@ -781,12 +781,12 @@ Output:
 <label for="person_city_id_2">Madrid</label>
 ```
 
-### The `collection_check_boxes` Helper
+### The `collection_checkboxes` Helper
 
-To generate a set of check boxes — for example, to support a `has_and_belongs_to_many` association — we can use [`collection_check_boxes`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_check_boxes):
+To generate a set of check boxes — for example, to support a `has_and_belongs_to_many` association — we can use [`collection_checkboxes`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_checkboxes):
 
 ```erb
-<%= form.collection_check_boxes :interest_ids, Interest.order(:name), :id, :name %>
+<%= form.collection_checkboxes :interest_ids, Interest.order(:name), :id, :name %>
 ```
 
 Output:
@@ -1034,7 +1034,7 @@ This would result in `params[:person][:addresses]` being an array of hashes. Eac
 
 It's important to note that while hashes can be nested arbitrarily, only one level of "arrayness" is allowed. Arrays can usually be replaced by hashes. For example, instead of an array of model objects, you can have a hash of model objects keyed by their id or similar.
 
-WARNING: Array parameters do not play well with the `check_box` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `check_box` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If it is checked then both are submitted but the value submitted by the checkbox takes precedence. There is a `include_hidden` option that can be set to `false` if you want to omit this hidden field. By default, this option is `true`.
+WARNING: Array parameters do not play well with the `checkbox` helper. According to the HTML specification unchecked checkboxes submit no value. However it is often convenient for a checkbox to always submit a value. The `checkbox` helper fakes this by creating an auxiliary hidden input with the same name. If the checkbox is unchecked only the hidden input is submitted. If it is checked then both are submitted but the value submitted by the checkbox takes precedence. There is a `include_hidden` option that can be set to `false` if you want to omit this hidden field. By default, this option is `true`.
 
 ### Hashes with an Index
 
@@ -1260,7 +1260,7 @@ destroyed. This form allows users to remove addresses:
   <ul>
     <%= form.fields_for :addresses do |addresses_form| %>
       <li>
-        <%= addresses_form.check_box :_destroy %>
+        <%= addresses_form.checkbox :_destroy %>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
         ...
@@ -1321,10 +1321,10 @@ At other times, the fields that can be used in the form are limited by an extern
 Using Tag Helpers without a Form Builder
 ----------------------------------------
 
-In case you need to render form fields outside of the context of a form builder, Rails provides tag helpers for common form elements. For example, [`check_box_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-check_box_tag):
+In case you need to render form fields outside of the context of a form builder, Rails provides tag helpers for common form elements. For example, [`checkbox_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-checkbox_tag):
 
 ```erb
-<%= check_box_tag "accept" %>
+<%= checkbox_tag "accept" %>
 ```
 
 Output:
