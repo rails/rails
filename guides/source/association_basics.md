@@ -2310,7 +2310,7 @@ If you want to assign an object to a `has_and_belongs_to_many` association witho
 
 ### Options
 
-While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the association references. Such customizations can be accomplished by passing options and scope blocks when you create the association. For example, this association uses two such options:
+While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the association references. Such customizations can be accomplished by passing options blocks when you create the association. For example, this association uses two such options:
 
 ```ruby
 class Book < ApplicationRecord
@@ -2320,7 +2320,6 @@ end
 ```
 
 Each association supports numerous options which you can read more about in [`Options` section of each association in the ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html). We'll discuss some of the common use cases below.
-
 
 ##### `:class_name`
 
@@ -2365,20 +2364,13 @@ Controls what happens to the associated object when its owner is destroyed:
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database because destroying the parent object may attempt to destroy its children, which in turn may attempt to destroy the parent again, causing inconsistencies.
 
-Ensure you do not set or leave the `:nullify` option for associations that have
-`NOT NULL` database constraints. Failing to set `dependent` to destroy these
-associations will prevent you from changing the associated object because the
-foreign key of the initial associated object will be set to `NULL`.
+Do not leave the `:nullify` option for associations with `NOT NULL` database constraints. Setting `dependent` to `:destroy` is essential; otherwise, the foreign key of the associated object may be set to `NULL`, preventing changes to it.
 
-Note that :dependent option is ignored when using :through option.
+NOTE: The `:dependent` option is ignored with the `:through` option. When using `:through`, the join model must have a `belongs_to` association, and the deletion affects only the join records, not the associated records.
 
-If using with the :through option, the association on the join model must be a belongs_to, and the records which get deleted are the join records, rather than the associated records.
+When using `dependent: :destroy` on a scoped association, only the scoped objects are destroyed. For example, in a `Post` model defined as `has_many :comments, -> { where published: true }, dependent: :destroy`, calling destroy on a post will only delete published comments, leaving unpublished comments intact with a foreign key pointing to the deleted post.
 
-If using dependent: :destroy on a scoped association, only the scoped objects are destroyed. For example, if a Post model defines has_many :comments, -> { where published: true }, dependent: :destroy and destroy is called on a post, only published comments are destroyed. This means that any unpublished comments in the database would still contain a foreign key pointing to the now deleted post.
-
-You cannot use the :dependent option directly on a has_and_belongs_to_many (HABTM) association in Rails. The :dependent option is used with has_many, has_one, and belongs_to associations to specify what should happen to the associated records when the owner is destroyed.
-
-For has_and_belongs_to_many associations, you typically need to handle the deletion of join table records manually or switch to using a has_many :through association, which gives you more flexibility and allows you to use the :dependent option.
+You cannot use the `:dependent` option directly on a `has_and_belongs_to_many` association. To manage deletions of join table records, handle them manually or switch to a `has_many :through` association, which provides more flexibility and supports the `:dependent` option.
 
 ##### `:foreign_key`
 
@@ -2434,8 +2426,7 @@ class Book < ApplicationRecord
 end
 ```
 
-<!-- TODO: does has_many support touch? -->
-`has_and_belongs_to_many` does not support the `:touch` option. For this type of association, you can achieve similar functionality by using a join table with has_many `:through` association. You can read more about this in the [`has_many :through` section](#has-many-through).
+`has_and_belongs_to_many` does not support the `:touch` option. For this type of association, you can achieve similar functionality by using a join table with `has_many :through` association. You can read more about this in the [`has_many :through` section](#has-many-through).
 
 ##### `:validate`
 
@@ -2446,8 +2437,7 @@ If you set the `:validate` option to `true`, then new associated objects will be
 
 ##### `:inverse_of`
 
-The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
-See the [bi-directional association](#bi-directional-associations) section for more details.
+The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association. See the [bi-directional association](#bi-directional-associations) section for more details.
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -2458,7 +2448,6 @@ class Account < ApplicationRecord
   belongs_to :supplier, inverse_of: :account
 end
 ```
-
 
 ##### `:source_type`
 
@@ -2478,16 +2467,13 @@ class Hardback < ApplicationRecord; end
 class Paperback < ApplicationRecord; end
 ```
 
-
 ##### `:strict_loading`
 
 Enforces strict loading every time an associated record is loaded through this association.
 
 ##### `:association_foreign_key`
 
-The `:association_foreign_key` can be found on a `has_and_belongs_to_many` relationship. By convention, Rails assumes that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix `_id` added. The `:association_foreign_key` option lets you set the name of the foreign key directly:
-
-TIP: The `:foreign_key` and `:association_foreign_key` options are useful when setting up a many-to-many self-join. For example:
+The `:association_foreign_key` can be found on a `has_and_belongs_to_many` relationship. By convention, Rails assumes that the column in the join table used to hold the foreign key pointing to the other model is the name of that model with the suffix `_id` added. The `:association_foreign_key` option lets you set the name of the foreign key directly For example:
 
 ```ruby
 class User < ApplicationRecord
@@ -2498,29 +2484,17 @@ class User < ApplicationRecord
 end
 ```
 
+TIP: The `:foreign_key` and `:association_foreign_key` options are useful when setting up a many-to-many self-join.
+
 ##### `:join_table`
 
 The `:join_table` can be found on a `has_and_belongs_to_many` relationship. If the default name of the join table, based on lexical ordering, is not what you want, you can use the `:join_table` option to override the default.
 
 ### Scopes
 
-Scopes allow you to specify common queries that can be referenced as method calls on the association objects. This is useful for defining custom queries that are reused in multiple places in your application.
-
-Scopes can be defined on associations in the following ways:
+Scopes allow you to specify common queries that can be referenced as method calls on the association objects. This is useful for defining custom queries that are reused in multiple places in your application. For example:
 
 ```ruby
-class Book < ApplicationRecord
-  belongs_to :author, -> { where active: true }
-end
-
-class Supplier < ApplicationRecord
-  has_one :account, -> { where active: true }
-end
-
-class Author < ApplicationRecord
-  has_many :books, -> { where processed: true }
-end
-
 class Parts < ApplicationRecord
   has_and_belongs_to_many :assemblies, -> { where active: true }
 end
