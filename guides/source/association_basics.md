@@ -537,23 +537,16 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
+    # Create a join table to establish the many-to-many relationship between assemblies and parts.
+    # `id: false` indicates that the table does not need a primary key of its own
     create_table :assemblies_parts, id: false do |t|
+      # creates foreign keys linking the join table to the `assemblies` and `parts` tables
       t.belongs_to :assembly
       t.belongs_to :part
     end
   end
 end
 ```
-
-In this migration, the `assemblies` table is created with columns for `name` and
-`timestamps`. The `parts` table is also created for parts with columns for
-`part_number` and `timestamps`. Finally, a join table called
-`assemblies_parts`is created to establish the many-to-many relationship between
-`assemblies` and `parts`. The `id: false` option indicates that this table does
-not need a primary key of its own. `t.belongs_to :assembly` and `t.belongs_to
-:part` creates foreign keys linking the join table to the `assemblies` and
-`parts` tables respectively, ensuring [referential
-integrity](https://en.wikipedia.org/wiki/Referential_integrity).
 
 If the join table for a `has_and_belongs_to_many` association has additional columns beyond the two foreign keys, these columns will be added as attributes to records retrieved via that association. Records returned with additional attributes will always be read-only, because Rails cannot save changes to those attributes.
 
