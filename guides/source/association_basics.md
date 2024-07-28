@@ -862,6 +862,312 @@ manager = employee.manager
 
 [connection.add_reference]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference
 
+Single Table Inheritance (STI)
+------------------------------
+
+Single Table Inheritance (STI) is a pattern in Rails that allows multiple models to be stored in a single database table. This is useful when you have different types of entities that share common attributes and behavior but also have specific behaviors.
+
+For example, suppose we have `Car`, `Motorcycle`, and `Bicycle` models. These models will share fields like `color` and `price`, but each will have unique behaviors. They will also each have their own controller.
+
+### Generating the Base Vehicle Model
+
+First, we generate the base `Vehicle` model with shared fields:
+
+```bash
+$ bin/rails generate model vehicle type:string color:string price:decimal{10.2}
+```
+
+Here, the `type` field is crucial for STI as it stores the model name (`Car`, `Motorcycle`, or `Bicycle`). STI requires this field to differentiate between the different models stored in the same table.
+
+### Generating Child Models
+
+Next, we generate the `Car`, `Motorcycle`, and `Bicycle` models that inherit from Vehicle. These models won't have their own tables; instead, they will use the `vehicles` table.
+
+To generate the`Car` model:
+
+```bash
+$ bin/rails generate model car --parent=Vehicle
+```
+
+For this, we can use the `--parent=PARENT` option, which will generate a model that
+inherits from the specified parent and without equivalent migration (since the
+table already exists).
+
+This generates a `Car` model that inherits from `Vehicle`:
+
+```ruby
+class Car < Vehicle
+end
+```
+
+This means that all behavior added to Vehicle is available for Car too, as
+associations, public methods, etc. Creating a car will save it in the `vehicles` table with "Car" as the `type` field:
+
+Repeat the same process for `Motorcycle` and `Bicycle`.
+
+### Creating Records
+
+Creating a record for `Car`:
+
+```ruby
+Car.create(color: 'Red', price: 10000)
+```
+
+This will generate the following SQL:
+
+```sql
+INSERT INTO "vehicles" ("type", "color", "price") VALUES ('Car', 'Red', 10000)
+```
+
+### Querying Records
+
+Querying car records will search only for vehicles that are cars:
+
+```ruby
+Car.all
+```
+
+will run a query like:
+
+```sql
+SELECT "vehicles".* FROM "vehicles" WHERE "vehicles"."type" IN ('Car')
+```
+
+### Adding Specific Behavior
+
+You can add specific behavior or methods to the child models. For example, adding a method to the `Car` model:
+
+```ruby
+class Car < Vehicle
+  def honk
+    'Beep Beep'
+  end
+end
+```
+
+Now you can call the `honk` method on a `Car` instance:
+
+```ruby
+car = Car.first
+car.honk
+# => 'Beep Beep'
+```
+
+### Controllers
+
+Each model can have its own controller. For example, the `CarsController`:
+
+```ruby
+# app/controllers/cars_controller.rb
+
+class CarsController < ApplicationController
+  def index
+    @cars = Car.all
+  end
+end
+```
+
+### Overriding the inheritance column
+
+There may be cases (like when working with a legacy database) where you need to
+override the name of the inheritance column. This can be achieved with the
+[inheritance_column][] method.
+
+```ruby
+# Schema: vehicles[ id, kind, created_at, updated_at ]
+class Vehicle < ApplicationRecord
+  self.inheritance_column = "kind"
+end
+
+class Car < Vehicle
+end
+
+Car.create
+# => #<Car kind: "Car", color: "Red", price: 10000>
+```
+In this setup, Rails will use the `kind` column to store the model type, allowing STI to function correctly with the custom column name.
+
+### Disabling the inheritance column
+
+There may be cases (like when working with a legacy database) where you need to
+disable Single Table Inheritance altogether. If you don't disable STI properly, you might encounter an [`ActiveRecord::SubclassNotFound`][] error.
+
+To disable STI, you can set the [inheritance_column][] to `nil`.
+
+```ruby
+# Schema: vehicles[ id, type, created_at, updated_at ]
+class Vehicle < ApplicationRecord
+  self.inheritance_column = nil
+end
+
+Vehicle.create!(type: "Car")
+# => #<Vehicle type: "Car", color: "Red", price: 10000>
+```
+
+In this configuration, Rails will treat the type column as a normal attribute and will not use it for STI purposes. This is useful if you need to work with a legacy schema that does not follow the STI pattern.
+
+These adjustments provide flexibility when integrating Rails with existing databases or when specific customization is required for your models.
+
+[inheritance_column]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-inheritance_column
+[`ActiveRecord::SubclassNotFound`]: https://api.rubyonrails.org/classes/ActiveRecord/SubclassNotFound.html
+
+Delegated Types
+----------------
+
+[`Single Table Inheritance (STI)`](#single-table-inheritance-sti) works best when there is little difference between subclasses and their attributes, but it includes all attributes of all subclasses in a single table.
+
+The disadvantage of this approach is that it can result in table bloat, as the table will include attributes specific to each subclass, even if they aren't used by others.
+
+In the following example, there are two Active Record models that inherit from the same `Entry` class which includes the `subject` attribute.
+
+```ruby
+# Schema: entries[ id, type, subject, created_at, updated_at]
+class Entry < ApplicationRecord
+end
+
+class Comment < Entry
+end
+
+class Message < Entry
+end
+```
+
+Delegated types solves this problem, via `delegated_type`. This approach allows us to store shared attributes in a superclass table and have separate tables for subclass-specific attributes.
+
+### Setting up Delegated Types
+
+To use delegated types, we need to model our data as follows:
+
+* There is a superclass that stores shared attributes among all subclasses in its table.
+* Each subclass must inherit from the super class, and will have a separate table for any additional attributes specific to it.
+
+This eliminates the need to define attributes in a single table that are unintentionally shared among all subclasses.
+
+### Generating Models
+
+In order to apply this to our example above, we need to regenerate our models.
+
+First, let's generate the base `Entry` model which will act as our superclass:
+
+```bash
+$ bin/rails generate model entry entryable_type:string entryable_id:integer
+```
+
+Then, we will generate new `Message` and `Comment` models for delegation:
+
+```bash
+$ bin/rails generate model message subject:string body:string
+$ bin/rails generate model comment content:string
+```
+
+After running the generators, our models should look like this:
+
+```ruby
+# Schema: entries[ id, entryable_type, entryable_id, created_at, updated_at ]
+class Entry < ApplicationRecord
+end
+
+# Schema: messages[ id, subject, body, created_at, updated_at ]
+class Message < ApplicationRecord
+end
+
+# Schema: comments[ id, content, created_at, updated_at ]
+class Comment < ApplicationRecord
+end
+```
+
+### Declaring `delegated_type`
+
+First, declare a `delegated_type` in the superclass `Entry`.
+
+```ruby
+class Entry < ApplicationRecord
+  delegated_type :entryable, types: %w[ Message Comment ], dependent: :destroy
+end
+```
+
+The `entryable` parameter specifies the field to use for delegation, and include the types `Message` and `Comment` as the delegate classes. The `entryable_type` and `entryable_id` fields store the subclass name and the record ID of the delegatee subclass, respectively.
+
+### Defining the `Entryable` Module
+
+Next, define a module to implement those delegated types by declaring the `as: :entryable` parameter in the `has_one` association.
+
+```ruby
+module Entryable
+  extend ActiveSupport::Concern
+
+  included do
+    has_one :entry, as: :entryable, touch: true
+  end
+end
+```
+
+Include the created module in your subclass:
+
+```ruby
+class Message < ApplicationRecord
+  include Entryable
+end
+
+class Comment < ApplicationRecord
+  include Entryable
+end
+```
+
+With this definition complete, our `Entry` delegator now provides the following methods:
+
+| Method | Return |
+|---|---|
+| `Entry.entryable_types` | ["Message", "Comment"] |
+| `Entry#entryable_class` | Message or Comment |
+| `Entry#entryable_name` | "message" or "comment" |
+| `Entry.messages` | `Entry.where(entryable_type: "Message")` |
+| `Entry#message?` | Returns true when `entryable_type == "Message"` |
+| `Entry#message` | Returns the message record, when `entryable_type == "Message"`, otherwise `nil` |
+| `Entry#message_id` | Returns `entryable_id`, when `entryable_type == "Message"`, otherwise `nil` |
+| `Entry.comments` | `Entry.where(entryable_type: "Comment")` |
+| `Entry#comment?` | Returns true when `entryable_type == "Comment"` |
+| `Entry#comment` | Returns the comment record, when `entryable_type == "Comment"`, otherwise `nil` |
+| `Entry#comment_id` | Returns entryable_id, when `entryable_type == "Comment"`, otherwise `nil` |
+
+### Object creation
+
+When creating a new `Entry` object, we can specify the `entryable` subclass at the same time.
+
+```ruby
+Entry.create! entryable: Message.new(subject: "hello!")
+```
+
+### Adding further delegation
+
+We can enhance our `Entry` delegator by defining `delegate` and using polymorphism on the subclasses.
+For example, to delegate the `title` method from `Entry` to it's subclasses:
+
+```ruby
+class Entry < ApplicationRecord
+  delegated_type :entryable, types: %w[ Message Comment ]
+  delegate :title, to: :entryable
+end
+
+class Message < ApplicationRecord
+  include Entryable
+
+  def title
+    subject
+  end
+end
+
+class Comment < ApplicationRecord
+  include Entryable
+
+  def title
+    content.truncate(20)
+  end
+end
+```
+
+This setup allows `Entry` to delegate the `title` method to its subclasses, where `Message` uses `subject` and `Comment` uses a truncated version of `content`.
+
 Tips, Tricks, and Warnings
 --------------------------
 
@@ -2953,309 +3259,3 @@ end
 In this example, the `account` association of the `Supplier` model is scoped based on the `active` status of the supplier.
 
 By utilizing association extensions and scoping with the association owner, you can create more dynamic and context-aware associations in your Rails applications.
-
-Single Table Inheritance (STI)
-------------------------------
-
-Single Table Inheritance (STI) is a pattern in Rails that allows multiple models to be stored in a single database table. This is useful when you have different types of entities that share common attributes and behavior but also have specific behaviors.
-
-For example, suppose we have `Car`, `Motorcycle`, and `Bicycle` models. These models will share fields like `color` and `price`, but each will have unique behaviors. They will also each have their own controller.
-
-### Generating the Base Vehicle Model
-
-First, we generate the base `Vehicle` model with shared fields:
-
-```bash
-$ bin/rails generate model vehicle type:string color:string price:decimal{10.2}
-```
-
-Here, the `type` field is crucial for STI as it stores the model name (`Car`, `Motorcycle`, or `Bicycle`). STI requires this field to differentiate between the different models stored in the same table.
-
-### Generating Child Models
-
-Next, we generate the `Car`, `Motorcycle`, and `Bicycle` models that inherit from Vehicle. These models won't have their own tables; instead, they will use the `vehicles` table.
-
-To generate the`Car` model:
-
-```bash
-$ bin/rails generate model car --parent=Vehicle
-```
-
-For this, we can use the `--parent=PARENT` option, which will generate a model that
-inherits from the specified parent and without equivalent migration (since the
-table already exists).
-
-This generates a `Car` model that inherits from `Vehicle`:
-
-```ruby
-class Car < Vehicle
-end
-```
-
-This means that all behavior added to Vehicle is available for Car too, as
-associations, public methods, etc. Creating a car will save it in the `vehicles` table with "Car" as the `type` field:
-
-Repeat the same process for `Motorcycle` and `Bicycle`.
-
-### Creating Records
-
-Creating a record for `Car`:
-
-```ruby
-Car.create(color: 'Red', price: 10000)
-```
-
-This will generate the following SQL:
-
-```sql
-INSERT INTO "vehicles" ("type", "color", "price") VALUES ('Car', 'Red', 10000)
-```
-
-### Querying Records
-
-Querying car records will search only for vehicles that are cars:
-
-```ruby
-Car.all
-```
-
-will run a query like:
-
-```sql
-SELECT "vehicles".* FROM "vehicles" WHERE "vehicles"."type" IN ('Car')
-```
-
-### Adding Specific Behavior
-
-You can add specific behavior or methods to the child models. For example, adding a method to the `Car` model:
-
-```ruby
-class Car < Vehicle
-  def honk
-    'Beep Beep'
-  end
-end
-```
-
-Now you can call the `honk` method on a `Car` instance:
-
-```ruby
-car = Car.first
-car.honk
-# => 'Beep Beep'
-```
-
-### Controllers
-
-Each model can have its own controller. For example, the `CarsController`:
-
-```ruby
-# app/controllers/cars_controller.rb
-
-class CarsController < ApplicationController
-  def index
-    @cars = Car.all
-  end
-end
-```
-
-### Overriding the inheritance column
-
-There may be cases (like when working with a legacy database) where you need to
-override the name of the inheritance column. This can be achieved with the
-[inheritance_column][] method.
-
-```ruby
-# Schema: vehicles[ id, kind, created_at, updated_at ]
-class Vehicle < ApplicationRecord
-  self.inheritance_column = "kind"
-end
-
-class Car < Vehicle
-end
-
-Car.create
-# => #<Car kind: "Car", color: "Red", price: 10000>
-```
-In this setup, Rails will use the `kind` column to store the model type, allowing STI to function correctly with the custom column name.
-
-### Disabling the inheritance column
-
-There may be cases (like when working with a legacy database) where you need to
-disable Single Table Inheritance altogether. If you don't disable STI properly, you might encounter an [`ActiveRecord::SubclassNotFound`][] error.
-
-To disable STI, you can set the [inheritance_column][] to `nil`.
-
-```ruby
-# Schema: vehicles[ id, type, created_at, updated_at ]
-class Vehicle < ApplicationRecord
-  self.inheritance_column = nil
-end
-
-Vehicle.create!(type: "Car")
-# => #<Vehicle type: "Car", color: "Red", price: 10000>
-```
-
-In this configuration, Rails will treat the type column as a normal attribute and will not use it for STI purposes. This is useful if you need to work with a legacy schema that does not follow the STI pattern.
-
-These adjustments provide flexibility when integrating Rails with existing databases or when specific customization is required for your models.
-
-[inheritance_column]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-inheritance_column
-[`ActiveRecord::SubclassNotFound`]: https://api.rubyonrails.org/classes/ActiveRecord/SubclassNotFound.html
-
-Delegated Types
-----------------
-
-[`Single Table Inheritance (STI)`](#single-table-inheritance-sti) works best when there is little difference between subclasses and their attributes, but it includes all attributes of all subclasses in a single table.
-
-The disadvantage of this approach is that it can result in table bloat, as the table will include attributes specific to each subclass, even if they aren't used by others.
-
-In the following example, there are two Active Record models that inherit from the same `Entry` class which includes the `subject` attribute.
-
-```ruby
-# Schema: entries[ id, type, subject, created_at, updated_at]
-class Entry < ApplicationRecord
-end
-
-class Comment < Entry
-end
-
-class Message < Entry
-end
-```
-
-Delegated types solves this problem, via `delegated_type`. This approach allows us to store shared attributes in a superclass table and have separate tables for subclass-specific attributes.
-
-### Setting up Delegated Types
-
-To use delegated types, we need to model our data as follows:
-
-* There is a superclass that stores shared attributes among all subclasses in its table.
-* Each subclass must inherit from the super class, and will have a separate table for any additional attributes specific to it.
-
-This eliminates the need to define attributes in a single table that are unintentionally shared among all subclasses.
-
-### Generating Models
-
-In order to apply this to our example above, we need to regenerate our models.
-
-First, let's generate the base `Entry` model which will act as our superclass:
-
-```bash
-$ bin/rails generate model entry entryable_type:string entryable_id:integer
-```
-
-Then, we will generate new `Message` and `Comment` models for delegation:
-
-```bash
-$ bin/rails generate model message subject:string body:string
-$ bin/rails generate model comment content:string
-```
-
-After running the generators, our models should look like this:
-
-```ruby
-# Schema: entries[ id, entryable_type, entryable_id, created_at, updated_at ]
-class Entry < ApplicationRecord
-end
-
-# Schema: messages[ id, subject, body, created_at, updated_at ]
-class Message < ApplicationRecord
-end
-
-# Schema: comments[ id, content, created_at, updated_at ]
-class Comment < ApplicationRecord
-end
-```
-
-### Declaring `delegated_type`
-
-First, declare a `delegated_type` in the superclass `Entry`.
-
-```ruby
-class Entry < ApplicationRecord
-  delegated_type :entryable, types: %w[ Message Comment ], dependent: :destroy
-end
-```
-
-The `entryable` parameter specifies the field to use for delegation, and include the types `Message` and `Comment` as the delegate classes. The `entryable_type` and `entryable_id` fields store the subclass name and the record ID of the delegatee subclass, respectively.
-
-### Defining the `Entryable` Module
-
-Next, define a module to implement those delegated types by declaring the `as: :entryable` parameter in the `has_one` association.
-
-```ruby
-module Entryable
-  extend ActiveSupport::Concern
-
-  included do
-    has_one :entry, as: :entryable, touch: true
-  end
-end
-```
-
-Include the created module in your subclass:
-
-```ruby
-class Message < ApplicationRecord
-  include Entryable
-end
-
-class Comment < ApplicationRecord
-  include Entryable
-end
-```
-
-With this definition complete, our `Entry` delegator now provides the following methods:
-
-| Method | Return |
-|---|---|
-| `Entry.entryable_types` | ["Message", "Comment"] |
-| `Entry#entryable_class` | Message or Comment |
-| `Entry#entryable_name` | "message" or "comment" |
-| `Entry.messages` | `Entry.where(entryable_type: "Message")` |
-| `Entry#message?` | Returns true when `entryable_type == "Message"` |
-| `Entry#message` | Returns the message record, when `entryable_type == "Message"`, otherwise `nil` |
-| `Entry#message_id` | Returns `entryable_id`, when `entryable_type == "Message"`, otherwise `nil` |
-| `Entry.comments` | `Entry.where(entryable_type: "Comment")` |
-| `Entry#comment?` | Returns true when `entryable_type == "Comment"` |
-| `Entry#comment` | Returns the comment record, when `entryable_type == "Comment"`, otherwise `nil` |
-| `Entry#comment_id` | Returns entryable_id, when `entryable_type == "Comment"`, otherwise `nil` |
-
-### Object creation
-
-When creating a new `Entry` object, we can specify the `entryable` subclass at the same time.
-
-```ruby
-Entry.create! entryable: Message.new(subject: "hello!")
-```
-
-### Adding further delegation
-
-We can enhance our `Entry` delegator by defining `delegate` and using polymorphism on the subclasses.
-For example, to delegate the `title` method from `Entry` to it's subclasses:
-
-```ruby
-class Entry < ApplicationRecord
-  delegated_type :entryable, types: %w[ Message Comment ]
-  delegate :title, to: :entryable
-end
-
-class Message < ApplicationRecord
-  include Entryable
-
-  def title
-    subject
-  end
-end
-
-class Comment < ApplicationRecord
-  include Entryable
-
-  def title
-    content.truncate(20)
-  end
-end
-```
-
-This setup allows `Entry` to delegate the `title` method to its subclasses, where `Message` uses `subject` and `Comment` uses a truncated version of `content`.
