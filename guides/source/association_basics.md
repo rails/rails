@@ -2337,17 +2337,31 @@ end
 Controls what happens to the associated object when its owner is destroyed:
 
 * `:destroy`, when the object is destroyed, `destroy` will be called on its
-  associated objects.
+  associated objects. This method not only removes the associated records from
+  the database but also ensures that any defined callbacks (like
+  `before_destroy` and `after_destroy`) are executed. This is useful for
+  performing custom logic during the deletion process, such as logging or
+  cleaning up related data.
 * `:delete`, when the object is destroyed, all its associated objects will be
   deleted directly from the database without calling their `destroy` method.
-* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob`
-  job is enqueued which will call destroy on its associated objects. Active Job must be set up
-  for this to work. Do not use this option if the association is backed by foreign key
-  constraints in your database. The foreign key constraint actions will occur inside the same
-  transaction that deletes its owner.
-  * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type column is also nullified on polymorphic associations. Callbacks are not executed.
-  * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there is an associated record
-  * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
+  This method performs a direct deletion and bypasses any callbacks or
+  validations in the associated models, making it more efficient but potentially
+  leading to data integrity issues if important cleanup tasks are skipped. Use
+  `delete` when you need to remove records quickly and are confident that no
+  additional actions are required for the associated records.
+* `:destroy_async`: when the object is destroyed, an
+  `ActiveRecord::DestroyAssociationAsyncJob` job is enqueued which will call
+  destroy on its associated objects. Active Job must be set up for this to work.
+  Do not use this option if the association is backed by foreign key constraints
+  in your database. The foreign key constraint actions will occur inside the
+  same transaction that deletes its owner.
+  * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type
+    column is also nullified on polymorphic associations. Callbacks are not
+    executed.
+  * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError`
+    exception to be raised if there is an associated record
+  * `:restrict_with_error` causes an error to be added to the owner if there is
+    an associated object
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database because destroying the parent object may attempt to destroy its children, which in turn may attempt to destroy the parent again, causing inconsistencies.
 
