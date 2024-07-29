@@ -14,10 +14,6 @@ module ActiveRecord
         end
 
         private
-          def sync_timezone_changes(raw_connection)
-            raw_connection.query_options[:database_timezone] = default_timezone
-          end
-
           def execute_batch(statements, name = nil)
             combine_multi_statements(statements).each do |statement|
               with_raw_connection do |conn|
@@ -59,7 +55,9 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
-            sync_timezone_changes(raw_connection)
+            # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
+            # made since we established the connection
+            raw_connection.query_options[:database_timezone] = default_timezone
 
             result = if prepare
               stmt = @statements[sql] ||= raw_connection.prepare(sql)

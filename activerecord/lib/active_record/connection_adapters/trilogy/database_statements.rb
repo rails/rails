@@ -11,7 +11,14 @@ module ActiveRecord
 
         private
           def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
-            sync_timezone_changes(raw_connection)
+            # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
+            # made since we established the connection
+            if default_timezone == :local
+              raw_connection.query_flags |= ::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
+            else
+              raw_connection.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
+            end
+
             result = raw_connection.query(sql)
             while raw_connection.more_results_exist?
               raw_connection.next_result
@@ -39,15 +46,6 @@ module ActiveRecord
               super
             else
               result.last_insert_id
-            end
-          end
-
-          def sync_timezone_changes(conn)
-            # Sync any changes since connection last established.
-            if default_timezone == :local
-              conn.query_flags |= ::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
-            else
-              conn.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
             end
           end
 

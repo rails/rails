@@ -981,9 +981,9 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
-            internal_execute("SET SESSION timezone TO 'UTC'", "SCHEMA")
+            raw_execute("SET SESSION timezone TO 'UTC'", "SCHEMA")
           else
-            internal_execute("SET SESSION timezone TO DEFAULT", "SCHEMA")
+            raw_execute("SET SESSION timezone TO DEFAULT", "SCHEMA")
           end
         end
 

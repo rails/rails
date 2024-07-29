@@ -770,12 +770,6 @@ module ActiveRecord
           warning.level == "Note" || super
         end
 
-        # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
-        # made since we established the connection
-        def sync_timezone_changes(raw_connection)
-          raise NotImplementedError
-        end
-
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
