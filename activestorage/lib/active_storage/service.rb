@@ -43,6 +43,7 @@ module ActiveStorage
   class Service
     extend ActiveSupport::Autoload
     autoload :Configurator
+    autoload :UrlConfig
     attr_accessor :name
 
     class << self
@@ -60,6 +61,10 @@ module ActiveStorage
       #
       # See MirrorService for an example.
       def build(configurator:, name:, service: nil, **service_config) # :nodoc:
+        if service_config.key?(:uri)
+          service_config.merge!(options_from_uri(**service_config))
+        end
+
         new(**service_config).tap do |service_instance|
           service_instance.name = name
         end
