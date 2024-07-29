@@ -1,3 +1,24 @@
+*   Fix `delegate_missing_to allow_nil: true` when called with implict self
+
+    ```ruby
+    class Person
+      delegate_missing_to :address, allow_nil: true
+
+      def address
+        nil
+      end
+
+      def berliner?
+        city == "Berlin"
+      end
+    end
+
+    Person.new.city # => nil
+    Person.new.berliner? # undefined local variable or method `city' for an instance of Person (NameError)
+    ```
+
+    *Jean Boussier*
+
 *   Work around a Ruby bug that can cause a VM crash.
 
     This would happen if using `TaggerLogger` with a Proc

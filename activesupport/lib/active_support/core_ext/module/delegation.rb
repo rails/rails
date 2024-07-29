@@ -317,37 +317,52 @@ class Module
   # of <tt>object</tt> add or remove instance variables.
   def delegate_missing_to(target, allow_nil: nil)
     target = target.to_s
-    target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)
+    target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target) || target == "__target"
 
-    module_eval <<-RUBY, __FILE__, __LINE__ + 1
-      def respond_to_missing?(name, include_private = false)
-        # It may look like an oversight, but we deliberately do not pass
-        # +include_private+, because they do not get delegated.
+    if allow_nil
+      module_eval <<~RUBY, __FILE__, __LINE__ + 1
+        def respond_to_missing?(name, include_private = false)
+          # It may look like an oversight, but we deliberately do not pass
+          # +include_private+, because they do not get delegated.
 
-        return false if name == :marshal_dump || name == :_dump
-        #{target}.respond_to?(name) || super
-      end
+          return false if name == :marshal_dump || name == :_dump
+          #{target}.respond_to?(name) || super
+        end
 
-      def method_missing(method, *args, &block)
-        if #{target}.respond_to?(method)
-          #{target}.public_send(method, *args, &block)
-        else
-          begin
+        def method_missing(method, *args, &block)
+          __target = #{target}
+          if __target.nil? && !nil.respond_to?(method)
+            nil
+          elsif __target.respond_to?(method)
+            __target.public_send(method, *args, &block)
+          else
             super
-          rescue NoMethodError
-            if #{target}.nil?
-              if #{allow_nil == true}
-                nil
-              else
-                raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
-              end
-            else
-              raise
-            end
           end
         end
-      end
-      ruby2_keywords(:method_missing)
-    RUBY
+        ruby2_keywords(:method_missing)
+      RUBY
+    else
+      module_eval <<~RUBY, __FILE__, __LINE__ + 1
+        def respond_to_missing?(name, include_private = false)
+          # It may look like an oversight, but we deliberately do not pass
+          # +include_private+, because they do not get delegated.
+
+          return false if name == :marshal_dump || name == :_dump
+          #{target}.respond_to?(name) || super
+        end
+
+        def method_missing(method, *args, &block)
+          __target = #{target}
+          if __target.nil? && !nil.respond_to?(method)
+            raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
+          elsif __target.respond_to?(method)
+            __target.public_send(method, *args, &block)
+          else
+            super
+          end
+        end
+        ruby2_keywords(:method_missing)
+      RUBY
+    end
   end
 end
