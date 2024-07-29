@@ -773,6 +773,7 @@ module ActiveRecord
         # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
         # made since we established the connection
         def sync_timezone_changes(raw_connection)
+          raise NotImplementedError
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html

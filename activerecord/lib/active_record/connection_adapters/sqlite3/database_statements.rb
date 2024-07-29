@@ -86,46 +86,40 @@ module ActiveRecord
             end
           end
 
-          def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true) # :nodoc:
-            type_casted_binds = type_casted_binds(binds)
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+            if prepare
+              stmt = @statements[sql] ||= raw_connection.prepare(sql)
+              stmt.reset!
+              stmt.bind_params(type_casted_binds)
 
-            result = log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-              with_raw_connection(materialize_transactions: materialize_transactions) do |conn|
-                if prepare
-                  stmt = @statements[sql] ||= conn.prepare(sql)
-                  stmt.reset!
+              result = if stmt.column_count.zero? # No return
+                stmt.step
+                ActiveRecord::Result.empty
+              else
+                ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+              end
+            else
+              # Don't cache statements if they are not prepared.
+              stmt = raw_connection.prepare(sql)
+              begin
+                unless without_prepared_statement?(binds)
                   stmt.bind_params(type_casted_binds)
-
-                  result = if stmt.column_count.zero? # No return
-                    stmt.step
-                    ActiveRecord::Result.empty
-                  else
-                    ActiveRecord::Result.new(stmt.columns, stmt.to_a)
-                  end
-                else
-                  # Don't cache statements if they are not prepared.
-                  stmt = conn.prepare(sql)
-                  begin
-                    unless without_prepared_statement?(binds)
-                      stmt.bind_params(type_casted_binds)
-                    end
-                    result = if stmt.column_count.zero? # No return
-                      stmt.step
-                      ActiveRecord::Result.empty
-                    else
-                      ActiveRecord::Result.new(stmt.columns, stmt.to_a)
-                    end
-                  ensure
-                    stmt.close
-                  end
                 end
-                @last_affected_rows = @raw_connection.changes
-                verified!
-
-                notification_payload[:row_count] = result.length
-                result
+                result = if stmt.column_count.zero? # No return
+                  stmt.step
+                  ActiveRecord::Result.empty
+                else
+                  ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+                end
+              ensure
+                stmt.close
               end
             end
+            @last_affected_rows = raw_connection.changes
+            verified!
+
+            notification_payload[:row_count] = result.length
+            result
           end
 
           def cast_result(result)

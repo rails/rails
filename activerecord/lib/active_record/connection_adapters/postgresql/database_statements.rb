@@ -132,47 +132,40 @@ module ActiveRecord
           rescue PG::Error
           end
 
-          def raw_execute(sql, name, binds = nil, prepare: false, async: false, allow_retry: false, materialize_transactions: true)
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
             update_typemap_for_default_timezone
-
-            type_casted_binds = type_casted_binds(binds)
-
-            log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-              with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-                result = if prepare
-                  begin
-                    stmt_key = prepare_statement(sql, binds, conn)
-                    notification_payload[:statement_name] = stmt_key
-                    conn.exec_prepared(stmt_key, type_casted_binds)
-                  rescue PG::FeatureNotSupported => error
-                    if is_cached_plan_failure?(error)
-                      # Nothing we can do if we are in a transaction because all commands
-                      # will raise InFailedSQLTransaction
-                      if in_transaction?
-                        raise PreparedStatementCacheExpired.new(error.message, connection_pool: @pool)
-                      else
-                        @lock.synchronize do
-                          # outside of transactions we can simply flush this query and retry
-                          @statements.delete sql_key(sql)
-                        end
-                        retry
-                      end
+            result = if prepare
+              begin
+                stmt_key = prepare_statement(sql, binds, raw_connection)
+                notification_payload[:statement_name] = stmt_key
+                raw_connection.exec_prepared(stmt_key, type_casted_binds)
+              rescue PG::FeatureNotSupported => error
+                if is_cached_plan_failure?(error)
+                  # Nothing we can do if we are in a transaction because all commands
+                  # will raise InFailedSQLTransaction
+                  if in_transaction?
+                    raise PreparedStatementCacheExpired.new(error.message, connection_pool: @pool)
+                  else
+                    @lock.synchronize do
+                      # outside of transactions we can simply flush this query and retry
+                      @statements.delete sql_key(sql)
                     end
-
-                    raise
+                    retry
                   end
-                elsif without_prepared_statement?(binds)
-                  conn.async_exec(sql)
-                else
-                  conn.exec_params(sql, type_casted_binds)
                 end
 
-                verified!
-                handle_warnings(result)
-                notification_payload[:row_count] = result.count
-                result
+                raise
               end
+            elsif without_prepared_statement?(binds)
+              raw_connection.async_exec(sql)
+            else
+              raw_connection.exec_params(sql, type_casted_binds)
             end
+
+            verified!
+            handle_warnings(result)
+            notification_payload[:row_count] = result.count
+            result
           end
 
           def cast_result(result)

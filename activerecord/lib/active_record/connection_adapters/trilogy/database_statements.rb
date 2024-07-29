@@ -10,20 +10,16 @@ module ActiveRecord
         end
 
         private
-          def raw_execute(sql, name, binds = nil, prepare: false, async: false, allow_retry: false, materialize_transactions: true)
-            log(sql, name, async: async) do |notification_payload|
-              with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-                sync_timezone_changes(conn)
-                result = conn.query(sql)
-                while conn.more_results_exist?
-                  conn.next_result
-                end
-                verified!
-                handle_warnings(sql)
-                notification_payload[:row_count] = result.count
-                result
-              end
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+            sync_timezone_changes(raw_connection)
+            result = raw_connection.query(sql)
+            while raw_connection.more_results_exist?
+              raw_connection.next_result
             end
+            verified!
+            handle_warnings(sql)
+            notification_payload[:row_count] = result.count
+            result
           end
 
           def cast_result(result)

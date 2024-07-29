@@ -58,37 +58,34 @@ module ActiveRecord
             end
           end
 
-          def raw_execute(sql, name, binds = nil, prepare: false, async: false, allow_retry: false, materialize_transactions: true)
-            log(sql, name, async: async) do |notification_payload|
-              with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-                sync_timezone_changes(conn)
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+            sync_timezone_changes(raw_connection)
 
-                result = if prepare
-                  stmt = @statements[sql] ||= conn.prepare(sql)
+            result = if prepare
+              stmt = @statements[sql] ||= raw_connection.prepare(sql)
 
-                  begin
-                    ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                      stmt.execute(*type_casted_binds)
-                    end
-                  rescue ::Mysql2::Error
-                    @statements.delete(sql)
-                    stmt.close
-                    raise
-                  end
-                  verified!
-                else
-                  conn.query(sql)
+              begin
+                ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                  stmt.execute(*type_casted_binds)
                 end
-
-                @affected_rows_before_warnings = conn.affected_rows
-                conn.abandon_results!
-
-                verified!
-                handle_warnings(sql)
-                notification_payload[:row_count] = result&.size || 0
-                result
+              rescue ::Mysql2::Error
+                @statements.delete(sql)
+                stmt.close
+                raise
               end
+              verified!
+            else
+              raw_connection.query(sql)
             end
+
+            notification_payload[:row_count] = result&.size || 0
+
+            @affected_rows_before_warnings = raw_connection.affected_rows
+            raw_connection.abandon_results!
+
+            verified!
+            handle_warnings(sql)
+            result
           end
 
           def cast_result(result)

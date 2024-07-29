@@ -545,6 +545,28 @@ module ActiveRecord
       private
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true)
+          type_casted_binds = type_casted_binds(binds)
+          notification_payload = {
+            sql: sql,
+            name: name,
+            binds: binds,
+            type_casted_binds: type_casted_binds,
+            async: async,
+            connection: self,
+            transaction: current_transaction.user_transaction.presence,
+            statement_name: nil,
+            row_count: 0,
+          }
+          @instrumenter.instrument("sql.active_record", notification_payload) do
+            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
+              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload)
+            end
+          rescue ActiveRecord::StatementInvalid => ex
+            raise ex.set_query(sql, binds)
+          end
+        end
+
+        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
           raise NotImplementedError
         end
 
