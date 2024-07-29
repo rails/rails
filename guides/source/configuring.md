@@ -3741,6 +3741,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveJob::Base`                    | `active_job`                         |
 | `ActiveJob::TestCase`                | `active_job_test_case`               |
 | `ActiveModel::Model`                 | `active_model`                       |
+| `ActiveModel::Translation`           | `active_model_translation`           |
 | `ActiveRecord::Base`                 | `active_record`                      |
 | `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
 | `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter`    | `active_record_postgresqladapter`    |
