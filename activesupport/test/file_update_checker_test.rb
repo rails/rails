@@ -14,4 +14,23 @@ class FileUpdateCheckerTest < ActiveSupport::TestCase
     sleep 0.1 # let's wait a bit to ensure there's a new mtime
     super
   end
+
+  test "should watch symlinked directories" do
+    i = 0
+
+    subdir = tmpfile("subdir")
+    subdir_with_symlink = tmpfile("subdir_with_symlink")
+    symlink = tmpfile("subdir_with_symlink/symlink")
+
+    mkdir(subdir)
+    mkdir(subdir_with_symlink)
+    File.symlink(subdir, symlink)
+
+    checker = new_checker([], subdir_with_symlink => :rb) { i += 1 }
+
+    touch(tmpfile("subdir/foo.rb"))
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 end
