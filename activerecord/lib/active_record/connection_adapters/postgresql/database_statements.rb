@@ -137,49 +137,40 @@ module ActiveRecord
 
             type_casted_binds = type_casted_binds(binds)
 
-            begin
+            log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-                stmt_key = prepare_statement(sql, binds, conn) if prepare
-
-                log(sql, name, binds, type_casted_binds, stmt_key, async: async) do |notification_payload|
+                result = if prepare
                   begin
-                    result = if prepare
-                      conn.exec_prepared(stmt_key, type_casted_binds)
-                    elsif without_prepared_statement?(binds)
-                      conn.async_exec(sql)
-                    else
-                      conn.exec_params(sql, type_casted_binds)
+                    stmt_key = prepare_statement(sql, binds, conn)
+                    notification_payload[:statement_name] = stmt_key
+                    conn.exec_prepared(stmt_key, type_casted_binds)
+                  rescue PG::FeatureNotSupported => error
+                    if is_cached_plan_failure?(error)
+                      # Nothing we can do if we are in a transaction because all commands
+                      # will raise InFailedSQLTransaction
+                      if in_transaction?
+                        raise PreparedStatementCacheExpired.new(error.message, connection_pool: @pool)
+                      else
+                        @lock.synchronize do
+                          # outside of transactions we can simply flush this query and retry
+                          @statements.delete sql_key(sql)
+                        end
+                        retry
+                      end
                     end
-                  rescue => original_exception
-                    # Contrary to all other adapters we have to enter `with_raw_connection` before `log`
-                    # so that we can prepare the statement and pass the key to `log`.
-                    # So we need to translate exceptions ourselves.
-                    raise translate_exception_class(original_exception, sql, binds)
+
+                    raise
                   end
-
-                  verified!
-                  handle_warnings(result)
-                  notification_payload[:row_count] = result.count
-                  result
-                end
-              end
-            rescue ActiveRecord::StatementInvalid => error
-              if prepare
-                raise unless is_cached_plan_failure?(error)
-
-                # Nothing we can do if we are in a transaction because all commands
-                # will raise InFailedSQLTransaction
-                if in_transaction?
-                  raise ActiveRecord::PreparedStatementCacheExpired.new(error.cause.message, connection_pool: @pool)
+                elsif without_prepared_statement?(binds)
+                  conn.async_exec(sql)
                 else
-                  @lock.synchronize do
-                    # outside of transactions we can simply flush this query and retry
-                    @statements.delete sql_key(sql)
-                  end
-                  retry
+                  conn.exec_params(sql, type_casted_binds)
                 end
-              else
-                raise
+
+                verified!
+                handle_warnings(result)
+                notification_payload[:row_count] = result.count
+                result
               end
             end
           end

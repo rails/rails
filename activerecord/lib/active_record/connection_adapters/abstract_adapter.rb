@@ -1118,14 +1118,13 @@ module ActiveRecord
           active_record_error
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false, &block) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
             name:              name,
             binds:             binds,
             type_casted_binds: type_casted_binds,
-            statement_name:    statement_name,
             async:             async,
             connection:        self,
             transaction:       current_transaction.user_transaction.presence,
