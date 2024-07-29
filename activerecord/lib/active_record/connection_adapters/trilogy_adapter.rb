@@ -149,23 +149,6 @@ module ActiveRecord
           TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
         end
 
-        def each_hash(result)
-          return to_enum(:each_hash, result) unless block_given?
-
-          keys = result.fields.map(&:to_sym)
-          result.rows.each do |row|
-            hash = {}
-            idx = 0
-            row.each do |value|
-              hash[keys[idx]] = value
-              idx += 1
-            end
-            yield hash
-          end
-
-          nil
-        end
-
         def error_number(exception)
           exception.error_code if exception.respond_to?(:error_code)
         end

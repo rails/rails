@@ -12,16 +12,8 @@ module ActiveRecord
 
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil) # :nodoc:
-          mark_transaction_written_if_write(sql)
-
-          log(sql, name) do |notification_payload|
-            with_raw_connection do |conn|
-              result = conn.async_exec(sql).map_types!(@type_map_for_results).values
-              verified!
-              notification_payload[:row_count] = result.count
-              result
-            end
-          end
+          result = internal_execute(sql, name)
+          result.map_types!(@type_map_for_results).values
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
@@ -49,36 +41,6 @@ module ActiveRecord
         ensure
           @notice_receiver_sql_warnings = []
         end
-
-        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-          log(sql, name, async: async) do |notification_payload|
-            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              result = conn.async_exec(sql)
-              verified!
-              handle_warnings(result)
-              notification_payload[:row_count] = result.count
-              result
-            end
-          end
-        end
-
-        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true) # :nodoc:
-          execute_and_clear(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |result|
-            types = {}
-            fields = result.fields
-            fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = types[i] = get_oid_type(ftype, fmod, fname)
-            end
-            build_result(columns: fields, rows: result.values, column_types: types.freeze)
-          end
-        end
-
-        def exec_delete(sql, name = nil, binds = []) # :nodoc:
-          execute_and_clear(sql, name, binds) { |result| result.cmd_tuples }
-        end
-        alias :exec_update :exec_delete
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           if use_insert_returning? || pk == false
@@ -170,8 +132,61 @@ module ActiveRecord
           rescue PG::Error
           end
 
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+            update_typemap_for_default_timezone
+            result = if prepare
+              begin
+                stmt_key = prepare_statement(sql, binds, raw_connection)
+                notification_payload[:statement_name] = stmt_key
+                raw_connection.exec_prepared(stmt_key, type_casted_binds)
+              rescue PG::FeatureNotSupported => error
+                if is_cached_plan_failure?(error)
+                  # Nothing we can do if we are in a transaction because all commands
+                  # will raise InFailedSQLTransaction
+                  if in_transaction?
+                    raise PreparedStatementCacheExpired.new(error.message, connection_pool: @pool)
+                  else
+                    @lock.synchronize do
+                      # outside of transactions we can simply flush this query and retry
+                      @statements.delete sql_key(sql)
+                    end
+                    retry
+                  end
+                end
+
+                raise
+              end
+            elsif without_prepared_statement?(binds)
+              raw_connection.async_exec(sql)
+            else
+              raw_connection.exec_params(sql, type_casted_binds)
+            end
+
+            verified!
+            handle_warnings(result)
+            notification_payload[:row_count] = result.count
+            result
+          end
+
+          def cast_result(result)
+            types = {}
+            fields = result.fields
+            fields.each_with_index do |fname, i|
+              ftype = result.ftype i
+              fmod  = result.fmod i
+              types[fname] = types[i] = get_oid_type(ftype, fmod, fname)
+            end
+            ar_result = ActiveRecord::Result.new(fields, result.values, types.freeze)
+            result.clear
+            ar_result
+          end
+
+          def affected_rows(result)
+            result.cmd_tuples
+          end
+
           def execute_batch(statements, name = nil)
-            execute(combine_multi_statements(statements))
+            raw_execute(combine_multi_statements(statements), name)
           end
 
           def build_truncate_statements(table_names)

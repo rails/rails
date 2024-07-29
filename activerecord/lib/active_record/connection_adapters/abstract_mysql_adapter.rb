@@ -197,12 +197,6 @@ module ActiveRecord
 
       # HELPER METHODS ===========================================
 
-      # The two drivers have slightly different ways of yielding hashes of results, so
-      # this method must be implemented to provide a uniform interface.
-      def each_hash(result) # :nodoc:
-        raise NotImplementedError
-      end
-
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:
@@ -225,17 +219,6 @@ module ActiveRecord
       #--
       # DATABASE STATEMENTS ======================================
       #++
-
-      # Mysql2Adapter doesn't have to free a result after using it, but we use this method
-      # to write stuff in an abstract way without concerning ourselves about whether it
-      # needs to be explicitly freed or not.
-      def execute_and_free(sql, name = nil, async: false, allow_retry: false) # :nodoc:
-        sql = transform_query(sql)
-        check_if_write_query(sql)
-
-        mark_transaction_written_if_write(sql)
-        yield raw_execute(sql, name, async: async, allow_retry: allow_retry)
-      end
 
       def begin_db_transaction # :nodoc:
         internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
@@ -787,11 +770,6 @@ module ActiveRecord
           warning.level == "Note" || super
         end
 
-        # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
-        # made since we established the connection
-        def sync_timezone_changes(raw_connection)
-        end
-
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
@@ -961,13 +939,11 @@ module ActiveRecord
           end.join(", ")
 
           # ...and send them all in one query
-          internal_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}")
+          raw_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
         end
 
         def column_definitions(table_name) # :nodoc:
-          execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
-            each_hash(result)
-          end
+          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA")
         end
 
         def create_table_info(table_name) # :nodoc:

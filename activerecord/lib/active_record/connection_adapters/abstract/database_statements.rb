@@ -163,14 +163,14 @@ module ActiveRecord
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_delete(sql, name = nil, binds = [])
-        internal_exec_query(sql, name, binds)
+        affected_rows(internal_execute(sql, name, binds))
       end
 
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_update(sql, name = nil, binds = [])
-        internal_exec_query(sql, name, binds)
+        affected_rows(internal_execute(sql, name, binds))
       end
 
       def exec_insert_all(sql, name) # :nodoc:
@@ -532,28 +532,77 @@ module ActiveRecord
         HIGH_PRECISION_CURRENT_TIMESTAMP
       end
 
-      def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
-        raise NotImplementedError
+      # Same as raw_execute but returns an ActiveRecord::Result object.
+      def raw_exec_query(...) # :nodoc:
+        cast_result(raw_execute(...))
+      end
+
+      # Execute a query and returns an ActiveRecord::Result
+      def internal_exec_query(...) # :nodoc:
+        cast_result(internal_execute(...))
       end
 
       private
-        def internal_execute(sql, name = "SCHEMA", allow_retry: false, materialize_transactions: true)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
+        # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
+        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true)
+          type_casted_binds = type_casted_binds(binds)
+          notification_payload = {
+            sql: sql,
+            name: name,
+            binds: binds,
+            type_casted_binds: type_casted_binds,
+            async: async,
+            connection: self,
+            transaction: current_transaction.user_transaction.presence,
+            statement_name: nil,
+            row_count: 0,
+          }
+          @instrumenter.instrument("sql.active_record", notification_payload) do
+            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
+              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload)
+            end
+          rescue ActiveRecord::StatementInvalid => ex
+            raise ex.set_query(sql, binds)
+          end
+        end
 
+        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+          raise NotImplementedError
+        end
+
+        # Receive a native adapter result object and returns an ActiveRecord::Result object.
+        def cast_result(raw_result)
+          raise NotImplementedError
+        end
+
+        def affected_rows(raw_result)
+          raise NotImplementedError
+        end
+
+        def preprocess_query(sql)
+          check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 
-          raw_execute(sql, name, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
+          # We call tranformers after the write checks so we don't add extra parsing work.
+          # This means we assume no transformer whille change a read for a write
+          # but it would be insane to do such a thing.
+          ActiveRecord.query_transformers.each do |transformer|
+            sql = transformer.call(sql, self)
+          end
+
+          sql
+        end
+
+        # Same as #internal_exec_query, but yields a native adapter result
+        def internal_execute(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, &block)
+          sql = preprocess_query(sql)
+          raw_execute(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions, &block)
         end
 
         def execute_batch(statements, name = nil)
           statements.each do |statement|
-            internal_execute(statement, name)
+            raw_execute(statement, name)
           end
-        end
-
-        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-          raise NotImplementedError
         end
 
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
@@ -637,6 +686,8 @@ module ActiveRecord
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
 
+            # We make sure to run query transformers on the orignal thread
+            sql = preprocess_query(sql)
             future_result = async.new(
               pool,
               sql,
@@ -649,14 +700,14 @@ module ActiveRecord
             else
               future_result.execute!(self)
             end
-            return future_result
-          end
-
-          result = internal_exec_query(sql, name, binds, prepare: prepare, allow_retry: allow_retry)
-          if async
-            FutureResult.wrap(result)
+            future_result
           else
-            result
+            result = internal_exec_query(sql, name, binds, prepare: prepare, allow_retry: allow_retry)
+            if async
+              FutureResult.wrap(result)
+            else
+              result
+            end
           end
         end
 

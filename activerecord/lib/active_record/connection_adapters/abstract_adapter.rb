@@ -1106,24 +1106,25 @@ module ActiveRecord
           end
         end
 
-        def translate_exception_class(e, sql, binds)
-          message = "#{e.class.name}: #{e.message}"
+        def translate_exception_class(native_error, sql, binds)
+          return native_error if native_error.is_a?(ActiveRecordError)
 
-          exception = translate_exception(
-            e, message: message, sql: sql, binds: binds
+          message = "#{native_error.class.name}: #{native_error.message}"
+
+          active_record_error = translate_exception(
+            native_error, message: message, sql: sql, binds: binds
           )
-          exception.set_backtrace e.backtrace
-          exception
+          active_record_error.set_backtrace(native_error.backtrace)
+          active_record_error
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false, &block) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
             name:              name,
             binds:             binds,
             type_casted_binds: type_casted_binds,
-            statement_name:    statement_name,
             async:             async,
             connection:        self,
             transaction:       current_transaction.user_transaction.presence,
@@ -1132,13 +1133,6 @@ module ActiveRecord
           )
         rescue ActiveRecord::StatementInvalid => ex
           raise ex.set_query(sql, binds)
-        end
-
-        def transform_query(sql)
-          ActiveRecord.query_transformers.each do |transformer|
-            sql = transformer.call(sql, self)
-          end
-          sql
         end
 
         def translate_exception(exception, message:, sql:, binds:)
@@ -1152,7 +1146,7 @@ module ActiveRecord
         end
 
         def without_prepared_statement?(binds)
-          !prepared_statements || binds.empty?
+          !prepared_statements || binds.nil? || binds.empty?
         end
 
         def column_for(table_name, column_name)

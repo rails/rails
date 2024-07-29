@@ -493,7 +493,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_not_predicate Task, :connected?
 
     Task.cache do
-      assert_queries_count(1) { Task.find(1); Task.find(1) }
+      assert_queries_count(1) { Task.find(1) }
+      assert_no_queries { Task.find(1) }
     ensure
       ActiveRecord::Base.establish_connection(original_connection)
     end

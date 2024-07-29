@@ -21,50 +21,6 @@ module ActiveRecord
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
-        def internal_exec_query(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          mark_transaction_written_if_write(sql)
-
-          type_casted_binds = type_casted_binds(binds)
-
-          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-            with_raw_connection do |conn|
-              if prepare
-                stmt = @statements[sql] ||= conn.prepare(sql)
-                cols = stmt.columns
-                stmt.reset!
-                stmt.bind_params(type_casted_binds)
-                records = stmt.to_a
-              else
-                # Don't cache statements if they are not prepared.
-                stmt = conn.prepare(sql)
-                begin
-                  cols = stmt.columns
-                  unless without_prepared_statement?(binds)
-                    stmt.bind_params(type_casted_binds)
-                  end
-                  records = stmt.to_a
-                ensure
-                  stmt.close
-                end
-              end
-              verified!
-
-              result = build_result(columns: cols, rows: records)
-              notification_payload[:row_count] = result.length
-              result
-            end
-          end
-        end
-
-        def exec_delete(sql, name = "SQL", binds = []) # :nodoc:
-          internal_exec_query(sql, name, binds)
-          @raw_connection.changes
-        end
-        alias :exec_update :exec_delete
-
         def begin_deferred_transaction(isolation = nil) # :nodoc:
           internal_begin_transaction(:deferred, isolation)
         end
@@ -104,6 +60,12 @@ module ActiveRecord
           HIGH_PRECISION_CURRENT_TIMESTAMP
         end
 
+        def execute(...) # :nodoc:
+          # SQLite3Adapter was refactored to use ActiveRecord::Result internally
+          # but for backward compatibility we have to keep returning arrays of hashes here
+          super&.to_a
+        end
+
         private
           def internal_begin_transaction(mode, isolation)
             if isolation
@@ -124,15 +86,50 @@ module ActiveRecord
             end
           end
 
-          def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: false)
-            log(sql, name, async: async) do |notification_payload|
-              with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-                result = conn.execute(sql)
-                verified!
-                notification_payload[:row_count] = result.length
-                result
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+            if prepare
+              stmt = @statements[sql] ||= raw_connection.prepare(sql)
+              stmt.reset!
+              stmt.bind_params(type_casted_binds)
+
+              result = if stmt.column_count.zero? # No return
+                stmt.step
+                ActiveRecord::Result.empty
+              else
+                ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+              end
+            else
+              # Don't cache statements if they are not prepared.
+              stmt = raw_connection.prepare(sql)
+              begin
+                unless without_prepared_statement?(binds)
+                  stmt.bind_params(type_casted_binds)
+                end
+                result = if stmt.column_count.zero? # No return
+                  stmt.step
+                  ActiveRecord::Result.empty
+                else
+                  ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+                end
+              ensure
+                stmt.close
               end
             end
+            @last_affected_rows = raw_connection.changes
+            verified!
+
+            notification_payload[:row_count] = result.length
+            result
+          end
+
+          def cast_result(result)
+            # Given that SQLite3 doesn't really a Result type, raw_execute already return an ActiveRecord::Result
+            # and we have nothing to cast here.
+            result
+          end
+
+          def affected_rows(result)
+            @last_affected_rows
           end
 
           def reset_read_uncommitted
@@ -143,18 +140,12 @@ module ActiveRecord
           end
 
           def execute_batch(statements, name = nil)
-            statements = statements.map { |sql| transform_query(sql) }
             sql = combine_multi_statements(statements)
-
-            check_if_write_query(sql)
-            mark_transaction_written_if_write(sql)
 
             log(sql, name) do |notification_payload|
               with_raw_connection do |conn|
-                result = conn.execute_batch2(sql)
+                conn.execute_batch2(sql)
                 verified!
-                notification_payload[:row_count] = result.length
-                result
               end
             end
           end
