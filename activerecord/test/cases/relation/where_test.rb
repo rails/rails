@@ -124,7 +124,7 @@ module ActiveRecord
       assert_match(/Expected corresponding value for.*to be an Array/, error.message)
 
       error = assert_raise ArgumentError do
-        Cpk::Book.where([:one] => 1)
+        Cpk::Book.where([:one, :two] => 1)
       end
 
       assert_match(/Expected corresponding value for.*to be an Array/, error.message)
