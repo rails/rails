@@ -767,12 +767,15 @@ module ActiveRecord
           if @config[:timeout] && @config[:retries]
             raise ArgumentError, "Cannot specify both timeout and retries arguments"
           elsif @config[:timeout]
-            @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout]))
+            timeout = self.class.type_cast_config_to_integer(@config[:timeout])
+            raise TypeError, "timeout must be integer, not #{timeout}" unless timeout.is_a?(Integer)
+            @raw_connection.busy_handler_timeout = timeout
           elsif @config[:retries]
+            ActiveRecord.deprecator.warn(<<~MSG)
+              The retries option is deprecated and will be removed in Rails 7.3. Use timeout instead.
+            MSG
             retries = self.class.type_cast_config_to_integer(@config[:retries])
-            raw_connection.busy_handler do |count|
-              count <= retries
-            end
+            raw_connection.busy_handler { |count| count <= retries }
           end
 
           super

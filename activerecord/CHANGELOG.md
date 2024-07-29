@@ -1,3 +1,9 @@
+*   Replace `SQLite3::Database#busy_timeout` with `#busy_handler_timeout=`
+
+    Provides a non-GVL-blocking, fair retry interval busy handler implementation
+
+    *Stephen Margheim*
+
 *   Use SQLite `IMMEDIATE` transactions when possible.
 
     Transactions run against the SQLite3 adapter default to IMMEDIATE mode to improve concurrency support and avoid busy exceptions.
