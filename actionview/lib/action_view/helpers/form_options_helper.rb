@@ -782,6 +782,7 @@ module ActionView
       def collection_checkboxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionCheckBoxes.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end
+      alias_method :collection_check_boxes, :collection_checkboxes
 
       private
         def option_html_attributes(element)
@@ -908,6 +909,7 @@ module ActionView
       def collection_checkboxes(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         @template.collection_checkboxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
+      alias_method :collection_check_boxes, :collection_checkboxes
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_radio_buttons for form builders:
       #
