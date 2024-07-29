@@ -3,6 +3,13 @@
 module Rails
   module Generators
     class AuthenticationGenerator < Base # :nodoc:
+      class_option :api, type: :boolean,
+        desc: "Generate API-only controllers and models, with no view templates"
+
+      hook_for :template_engine, as: :authentication do |template_engine|
+        invoke template_engine unless options.api?
+      end
+
       def create_files
         template "models/session.rb", File.join("app/models/session.rb")
         template "models/user.rb", File.join("app/models/user.rb")
@@ -10,8 +17,6 @@ module Rails
 
         template "controllers/sessions_controller.rb", File.join("app/controllers/sessions_controller.rb")
         template "controllers/concerns/authentication.rb", File.join("app/controllers/concerns/authentication.rb")
-
-        template "views/sessions/new.html.erb", File.join("app/views/sessions/new.html.erb")
       end
 
       def configure_application
