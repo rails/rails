@@ -1333,6 +1333,12 @@ ActiveRecord::Schema.define do
     t.integer :zine_id
   end
 
+  create_table :skills, force: true do |t|
+    t.string :topic
+    t.references :human, null: false
+    t.references :zine, null: false
+  end
+
   create_table :zines, force: true do |t|
     t.string :title
   end
