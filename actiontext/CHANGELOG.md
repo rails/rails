@@ -1,3 +1,7 @@
+*   Strip `content` attribute if the key is present but the value is empty
+
+    *Jeremy Green*
+
 *   Only sanitize `content` attribute when present in attachments.
 
     *Petrik de Heus*
