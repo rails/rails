@@ -12,7 +12,7 @@ Example:
         `ruby script/my_script.rb`
 
     You can specify a folder:
-        `bin/rails generate script cleanup/my_script`
+        `bin/rails generate script data/backfill`
 
     This will create:
-        script/cleanup/my_script.rb
+        script/data/backfill.rb
