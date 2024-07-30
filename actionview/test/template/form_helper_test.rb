@@ -892,65 +892,65 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
-  def test_text_area_placeholder_without_locales
+  def test_textarea_placeholder_without_locales
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_body" name="post[body]" placeholder="Body">\nBack to the hill and over it again!</textarea>},
-        text_area(:post, :body, placeholder: true)
+        textarea(:post, :body, placeholder: true)
       )
     end
   end
 
-  def test_text_area_placeholder_with_locales
+  def test_textarea_placeholder_with_locales
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_title" name="post[title]" placeholder="What is this about?">\nHello World</textarea>},
-        text_area(:post, :title, placeholder: true)
+        textarea(:post, :title, placeholder: true)
       )
     end
   end
 
-  def test_text_area_placeholder_with_human_attribute_name
+  def test_textarea_placeholder_with_human_attribute_name
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Total cost">\n</textarea>},
-        text_area(:post, :cost, placeholder: true)
+        textarea(:post, :cost, placeholder: true)
       )
     end
   end
 
-  def test_text_area_placeholder_with_string_value
+  def test_textarea_placeholder_with_string_value
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="HOW MUCH?">\n</textarea>},
-        text_area(:post, :cost, placeholder: "HOW MUCH?")
+        textarea(:post, :cost, placeholder: "HOW MUCH?")
       )
     end
   end
 
-  def test_text_area_placeholder_with_human_attribute_name_and_value
+  def test_textarea_placeholder_with_human_attribute_name_and_value
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Pounds">\n</textarea>},
-        text_area(:post, :cost, placeholder: :uk)
+        textarea(:post, :cost, placeholder: :uk)
       )
     end
   end
 
-  def test_text_area_placeholder_with_locales_and_value
+  def test_textarea_placeholder_with_locales_and_value
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_written_on" name="post[written_on]" placeholder="Escrito en">\n2004-06-15</textarea>},
-        text_area(:post, :written_on, placeholder: :spanish)
+        textarea(:post, :written_on, placeholder: :spanish)
       )
     end
   end
 
-  def test_text_area_placeholder_with_locales_and_nested_attributes
+  def test_textarea_placeholder_with_locales_and_nested_attributes
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:comments) do |cf|
-          concat cf.text_area(:body, placeholder: true)
+          concat cf.textarea(:body, placeholder: true)
         end
       end
 
@@ -962,11 +962,11 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
-  def test_text_area_placeholder_with_locales_fallback_and_nested_attributes
+  def test_textarea_placeholder_with_locales_fallback_and_nested_attributes
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:tags) do |cf|
-          concat cf.text_area(:value, placeholder: true)
+          concat cf.textarea(:value, placeholder: true)
         end
       end
 
@@ -978,39 +978,39 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
-  def test_text_area
+  def test_textarea
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nBack to the hill and over it again!</textarea>},
-      text_area("post", "body")
+      textarea("post", "body")
     )
   end
 
-  def test_text_area_with_escapes
+  def test_textarea_with_escapes
     @post.body = "Back to <i>the</i> hill and over it again!"
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nBack to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>},
-      text_area("post", "body")
+      textarea("post", "body")
     )
   end
 
-  def test_text_area_with_alternate_value
+  def test_textarea_with_alternate_value
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nTesting alternate values.</textarea>},
-      text_area("post", "body", value: "Testing alternate values.")
+      textarea("post", "body", value: "Testing alternate values.")
     )
   end
 
-  def test_text_area_with_nil_alternate_value
+  def test_textarea_with_nil_alternate_value
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\n</textarea>},
-      text_area("post", "body", value: nil)
+      textarea("post", "body", value: nil)
     )
   end
 
   def test_inputs_use_before_type_cast_to_retain_information_from_validations_like_numericality
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
-      text_area("post", "id")
+      textarea("post", "id")
     )
   end
 
@@ -1022,7 +1022,7 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\n0</textarea>},
-      text_area("post", "id")
+      textarea("post", "id")
     )
   end
 
@@ -1030,22 +1030,22 @@ class FormHelperTest < ActionView::TestCase
     class << @post; undef id_came_from_user?; end
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
-      text_area("post", "id")
+      textarea("post", "id")
     )
   end
 
-  def test_text_area_with_html_entities
+  def test_textarea_with_html_entities
     @post.body = "The HTML Entity for & is &amp;"
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nThe HTML Entity for &amp; is &amp;amp;</textarea>},
-      text_area("post", "body")
+      textarea("post", "body")
     )
   end
 
-  def test_text_area_with_size_option
+  def test_textarea_with_size_option
     assert_dom_equal(
       %{<textarea cols="183" id="post_body" name="post[body]" rows="820">\nBack to the hill and over it again!</textarea>},
-      text_area("post", "body", size: "183x820")
+      textarea("post", "body", size: "183x820")
     )
   end
 
@@ -1404,7 +1404,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<textarea id="post_body" name="really!">\nBack to the hill and over it again!</textarea>},
-      text_area("post", "body", "name" => "really!")
+      textarea("post", "body", "name" => "really!")
     )
     assert_dom_equal(
       '<input name="i mean it" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" />',
@@ -1415,8 +1415,8 @@ class FormHelperTest < ActionView::TestCase
       text_field("post", "title", name: "dont guess")
     )
     assert_dom_equal(
-      text_area("post", "body", "name" => "really!"),
-      text_area("post", "body", name: "really!")
+      textarea("post", "body", "name" => "really!"),
+      textarea("post", "body", name: "really!")
     )
     assert_dom_equal(
       checkbox("post", "secret", "name" => "i mean it"),
@@ -1431,7 +1431,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<textarea id="really!" name="post[body]">\nBack to the hill and over it again!</textarea>},
-      text_area("post", "body", "id" => "really!")
+      textarea("post", "body", "id" => "really!")
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" />',
@@ -1442,8 +1442,8 @@ class FormHelperTest < ActionView::TestCase
       text_field("post", "title", id: "dont guess")
     )
     assert_dom_equal(
-      text_area("post", "body", "id" => "really!"),
-      text_area("post", "body", id: "really!")
+      textarea("post", "body", "id" => "really!"),
+      textarea("post", "body", id: "really!")
     )
     assert_dom_equal(
       checkbox("post", "secret", "id" => "i mean it"),
@@ -1458,7 +1458,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<textarea name="post[body]">\nBack to the hill and over it again!</textarea>},
-      text_area("post", "body", "id" => nil)
+      textarea("post", "body", "id" => nil)
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[secret]" type="checkbox" value="1" />',
@@ -1477,8 +1477,8 @@ class FormHelperTest < ActionView::TestCase
       text_field("post", "title", id: nil)
     )
     assert_dom_equal(
-      text_area("post", "body", "id" => nil),
-      text_area("post", "body", id: nil)
+      textarea("post", "body", "id" => nil),
+      textarea("post", "body", id: nil)
     )
     assert_dom_equal(
       checkbox("post", "secret", "id" => nil),
@@ -1497,7 +1497,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<textarea name="post[5][body]" id="post_5_body">\nBack to the hill and over it again!</textarea>},
-      text_area("post", "body", "index" => 5)
+      textarea("post", "body", "index" => 5)
     )
     assert_dom_equal(
       '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" id="post_5_secret" />',
@@ -1508,8 +1508,8 @@ class FormHelperTest < ActionView::TestCase
       text_field("post", "title", "index" => 5)
     )
     assert_dom_equal(
-      text_area("post", "body", "index" => 5),
-      text_area("post", "body", "index" => 5)
+      textarea("post", "body", "index" => 5),
+      textarea("post", "body", "index" => 5)
     )
     assert_dom_equal(
       checkbox("post", "secret", "index" => 5),
@@ -1524,7 +1524,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<textarea name="post[5][body]">\nBack to the hill and over it again!</textarea>},
-      text_area("post", "body", "index" => 5, "id" => nil)
+      textarea("post", "body", "index" => 5, "id" => nil)
     )
     assert_dom_equal(
       '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" />',
@@ -1535,8 +1535,8 @@ class FormHelperTest < ActionView::TestCase
       text_field("post", "title", index: 5, id: nil)
     )
     assert_dom_equal(
-      text_area("post", "body", "index" => 5, "id" => nil),
-      text_area("post", "body", index: 5, id: nil)
+      textarea("post", "body", "index" => 5, "id" => nil),
+      textarea("post", "body", index: 5, id: nil)
     )
     assert_dom_equal(
       checkbox("post", "secret", "index" => 5, "id" => nil),
@@ -1556,7 +1556,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<textarea id="post_#{pid}_body" name="post[#{pid}][body]">\nBack to the hill and over it again!</textarea>},
-      text_area("post[]", "body")
+      textarea("post[]", "body")
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_#{pid}_secret" name="post[#{pid}][secret]" type="checkbox" value="1" />},
@@ -1580,7 +1580,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<textarea name="post[#{pid}][body]">\nBack to the hill and over it again!</textarea>},
-      text_area("post[]", "body", id: nil)
+      textarea("post[]", "body", id: nil)
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[#{pid}][secret]" type="checkbox" value="1" />},
@@ -1621,7 +1621,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, html: { id: "create-post" }) do |f|
       concat f.label(:title) { "The Title" }
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
       concat f.submit("Create post")
       concat f.button("Create post")
@@ -1651,7 +1651,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, html: { id: "create-post" }) do |f|
       concat f.label(:title) { "The Title" }
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
       concat f.submit("Create post")
       concat f.button("Create post")
@@ -2261,7 +2261,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, as: "other_name", html: { id: "create-post" }) do |f|
       concat f.label(:title, class: "post_title")
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
       concat f.submit("Create post")
     end
@@ -2294,7 +2294,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_method_as_part_of_html_options
     form_for(@post, url: "/", html: { id: "create-post", method: :delete }) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -2311,7 +2311,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_method
     form_for(@post, url: "/", method: :delete, html: { id: "create-post" }) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -2342,7 +2342,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_remote
     form_for(@post, url: "/", remote: true, html: { id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -2411,7 +2411,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_remote_in_html
     form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -2430,7 +2430,7 @@ class FormHelperTest < ActionView::TestCase
     @post.stub(:to_key, nil) do
       form_for(@post, remote: true) do |f|
         concat f.text_field(:title)
-        concat f.text_area(:body)
+        concat f.textarea(:body)
         concat f.checkbox(:secret)
       end
 
@@ -2448,7 +2448,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_without_object
     form_for(:post, html: { id: "create-post" }) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -2466,7 +2466,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, as: "post[]") do |f|
       concat f.label(:title)
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -2484,7 +2484,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_nil_index_option_override
     form_for(@post, as: "post[]", index: nil) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -2549,7 +2549,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_namespace
     form_for(@post, namespace: "namespace") do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -2627,7 +2627,7 @@ class FormHelperTest < ActionView::TestCase
     @comment.body = "Hello World"
     form_for(@post, namespace: "namespace") do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.fields_for(@comment) { |c|
         concat c.text_field(:body)
       }
@@ -3660,7 +3660,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for
     @rendered = fields_for(:post, @post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -3682,7 +3682,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_index
     @rendered = fields_for("post[]", @post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -3704,7 +3704,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_nil_index_option_override
     @rendered = fields_for("post[]", @post, index: nil) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -3726,7 +3726,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_index_option_override
     @rendered = fields_for("post[]", @post, index: "abc") do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -3742,7 +3742,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_without_object
     @rendered = fields_for(:post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -3758,7 +3758,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_only_object
     @rendered = fields_for(@post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -3800,7 +3800,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_and_fields_for
     form_for(@post, as: :post, html: { id: "create-post" }) do |post_form|
       concat post_form.text_field(:title)
-      concat post_form.text_area(:body)
+      concat post_form.textarea(:body)
 
       concat fields_for(:parent_post, @post) { |parent_fields|
         concat parent_fields.checkbox(:secret)
@@ -3820,7 +3820,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_and_fields_for_with_object
     form_for(@post, as: :post, html: { id: "create-post" }) do |post_form|
       concat post_form.text_field(:title)
-      concat post_form.text_area(:body)
+      concat post_form.textarea(:body)
 
       concat post_form.fields_for(@comment) { |comment_fields|
         concat comment_fields.text_field(:name)
@@ -3863,7 +3863,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_labelled_builder
     form_for(@post, builder: LabelledFormBuilder) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -3882,7 +3882,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 
@@ -3941,7 +3941,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_labelled_builder
     @rendered = fields_for(:post, @post, builder: LabelledFormBuilder) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
+      concat f.textarea(:body)
       concat f.checkbox(:secret)
     end
 

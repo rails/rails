@@ -130,7 +130,7 @@ name the attribute to be something different from `content`.
 Once you have added the `has_rich_text` class method to the model, you can then
 update your views to make use of the rich text editor (Trix) for that field. To
 do so, use a
-[`rich_text_area`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area)
+[`rich_textarea`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_textarea)
 for the form field.
 
 ```html+erb
@@ -138,7 +138,7 @@ for the form field.
 <%= form_with model: article do |form| %>
   <div class="field">
     <%= form.label :content %>
-    <%= form.rich_text_area :content %>
+    <%= form.rich_textarea :content %>
   </div>
 <% end %>
 ```

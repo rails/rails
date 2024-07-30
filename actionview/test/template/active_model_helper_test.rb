@@ -33,10 +33,10 @@ class ActiveModelHelperTest < ActionView::TestCase
     @post.updated_at  = Date.new(2004, 6, 15)
   end
 
-  def test_text_area_with_errors
+  def test_textarea_with_errors
     assert_dom_equal(
       %(<div class="field_with_errors"><textarea id="post_body" name="post[body]">\nBack to the hill and over it again!</textarea></div>),
-      text_area("post", "body")
+      textarea("post", "body")
     )
   end
 
