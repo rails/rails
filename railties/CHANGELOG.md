@@ -1,10 +1,14 @@
 *   Add authentication generator to give a basic start to an authentication system using database-tracked sessions.
 
+    Generate with...
 
-    # Generate with...
+    ```
     bin/rails generate authentication
+    ```
 
-    # Generated files
+    Generated files:
+
+    ```
     app/models/current.rb
     app/models/user.rb
     app/models/session.rb
@@ -12,18 +16,22 @@
     app/views/sessions/new.html.erb
     db/migrate/xxxxxxx_create_users.rb
     db/migrate/xxxxxxx_create_sessions.rb
-
+    ```
 
     *DHH*
 
 
 *   Add not-null type modifier to migration attributes.
 
+    Generating with...
 
-    # Generating with...
+    ```
     bin/rails generate migration CreateUsers email_address:string!:uniq password_digest:string!
+    ```
 
-    # Produces:
+    Produces:
+
+    ```ruby
     class CreateUsers < ActiveRecord::Migration[8.0]
       def change
         create_table :users do |t|
@@ -35,7 +43,7 @@
         add_index :users, :email_address, unique: true
       end
     end
-
+    ```
 
     *DHH*
 
