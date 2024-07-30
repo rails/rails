@@ -669,6 +669,32 @@ module ActiveRecord
         assert_equal String, date.class
       end
 
+      def test_disable_extension_with_schema
+        @connection.execute("CREATE SCHEMA custom_schema")
+        @connection.execute("CREATE EXTENSION hstore SCHEMA custom_schema")
+        result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal [["hstore"]], result.to_a
+
+        @connection.disable_extension "custom_schema.hstore"
+        result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal [], result.to_a
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("DROP SCHEMA IF EXISTS custom_schema CASCADE")
+      end
+
+      def test_disable_extension_without_schema
+        @connection.execute("CREATE EXTENSION hstore")
+        result = @connection.query("SELECT extname FROM pg_extension")
+        assert_includes result.to_a, ["hstore"]
+
+        @connection.disable_extension "hstore"
+        result = @connection.query("SELECT extname FROM pg_extension")
+        assert_not_includes result.to_a, ["hstore"]
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+      end
+
       private
         def with_postgresql_apdater_decode_dates
           PostgreSQLAdapter.decode_dates = true
