@@ -1,3 +1,7 @@
+*   Handle commas in Sqlite3 default function definitions.
+
+    *Stephen Margheim*
+
 *   Fixes `validates_associated` raising an exception when configured with a
     singular association and having `index_nested_attribute_errors` enabled.
 
