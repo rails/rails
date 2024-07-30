@@ -185,7 +185,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          bin/yarn
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
-         lib/assets
          test/helpers
          public/404.html
          public/422.html

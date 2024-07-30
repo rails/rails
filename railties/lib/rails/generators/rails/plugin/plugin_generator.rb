@@ -160,7 +160,7 @@ module Rails
         remove_file ".ruby-version"
         remove_dir "db"
         remove_file "Gemfile"
-        remove_file "lib/tasks"
+        remove_dir "lib"
         remove_file "public/robots.txt"
         remove_file "README.md"
         remove_file "test"

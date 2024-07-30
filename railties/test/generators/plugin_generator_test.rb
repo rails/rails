@@ -59,7 +59,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/puma.rb
   test/dummy/config/routes.rb
   test/dummy/config/storage.yml
-  test/dummy/lib/assets/.keep
   test/dummy/log/.keep
   test/dummy/public/404.html
   test/dummy/public/406-unsupported-browser.html
