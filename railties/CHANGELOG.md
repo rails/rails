@@ -39,18 +39,20 @@
 
     *DHH*
 
-*   Add script folder and generator
+*   Add a `script` folder to applications, and a scripts generator.
 
-    Add a new script default folder to hold your one-off or general purpose
-    scripts, such as data migration scripts, cleanup scripts, etc.
+    The new `script` folder is meant to hold one-off or general purpose scripts,
+    such as data migration scripts, cleanup scripts, etc.
 
     A new script generator allows you to create such scripts:
 
-      `rails generate script my_script`
+      `bin/rails generate script my_script`
+      `bin/rails generate script data/backfill`
 
     You can run the generated script using:
 
-      `ruby script/my_script.rb`
+      `bundle exec ruby script/my_script.rb`
+      `bundle exec ruby script/data/backfill.rb`
 
     *Jerome Dalbert*, *Haroon Ahmed*
 
