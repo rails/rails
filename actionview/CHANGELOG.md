@@ -1,3 +1,7 @@
+*   Add support for implicitly rendering renderables in controllers.
+
+    *Joel Hawksley*
+
 *   Rename `check_box*` methods into `checkbox*`.
 
     Old names are still available as aliases.

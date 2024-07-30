@@ -33,6 +33,16 @@ module Fun
   end
 end
 
+module Views
+  module Test
+    class ImplicitRenderable
+      def render_in(_)
+        "implicit renderable"
+      end
+    end
+  end
+end
+
 class ValidatingPost < Post
   include ActiveModel::Validations
 
@@ -285,6 +295,9 @@ class TestController < ActionController::Base
   end
 
   def formatted_xml_erb
+  end
+
+  def implicit_renderable
   end
 
   def render_to_string_test
@@ -662,6 +675,7 @@ class RenderTest < ActionController::TestCase
     get :empty_partial_collection, to: "test#empty_partial_collection"
     get :formatted_html_erb, to: "test#formatted_html_erb"
     get :formatted_xml_erb, to: "test#formatted_xml_erb"
+    get :implicit_renderable, to: "test#implicit_renderable"
     get :greeting, to: "test#greeting"
     get :hello_in_a_string, to: "test#hello_in_a_string"
     get :hello_world, to: "fun/games#hello_world"
@@ -1120,6 +1134,11 @@ class RenderTest < ActionController::TestCase
     @request.accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, */*"
     get :formatted_xml_erb
     assert_equal "<test>passed formatted HTML erb</test>", @response.body
+  end
+
+  def test_should_render_implicit_renderable
+    get :implicit_renderable
+    assert_equal "implicit renderable", @response.body
   end
 
   def test_layout_test_with_different_layout
