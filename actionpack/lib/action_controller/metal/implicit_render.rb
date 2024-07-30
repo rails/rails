@@ -35,7 +35,9 @@ module ActionController
     include BasicImplicitRender
 
     def default_render
-      if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
+      if renderable = find_renderable(action_name.to_s, _prefixes)
+        render(renderable.new)
+      elsif template_exists?(action_name.to_s, _prefixes, variants: request.variant)
         render
       elsif any_templates?(action_name.to_s, _prefixes)
         message = "#{self.class.name}\##{action_name} is missing a template " \
@@ -60,6 +62,10 @@ module ActionController
     end
 
     private
+      def find_renderable(action_name, prefixes)
+        ActionView::RenderableRegistry.get_renderables(self)[[prefixes, action_name].join("/")]
+      end
+
       def interactive_browser_request?
         request.get? && request.format == Mime[:html] && !request.xhr?
       end

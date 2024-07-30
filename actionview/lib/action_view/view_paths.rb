@@ -69,6 +69,10 @@ module ActionView
         self._view_paths = _build_view_paths(paths)
       end
 
+      def register_renderable(path, renderable_klass)
+        ActionView::RenderableRegistry.set_renderable(self, path, renderable_klass)
+      end
+
       private
         # Override this method in your controller if you want to change paths prefixes for finding views.
         # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
