@@ -54,13 +54,17 @@
 
     A new script generator allows you to create such scripts:
 
-      `bin/rails generate script my_script`
-      `bin/rails generate script data/backfill`
+    ```
+    bin/rails generate script my_script
+    bin/rails generate script data/backfill
+    ```
 
     You can run the generated script using:
 
-      `bundle exec ruby script/my_script.rb`
-      `bundle exec ruby script/data/backfill.rb`
+    ```
+    bundle exec ruby script/my_script.rb
+    bundle exec ruby script/data/backfill.rb
+    ```
 
     *Jerome Dalbert*, *Haroon Ahmed*
 
