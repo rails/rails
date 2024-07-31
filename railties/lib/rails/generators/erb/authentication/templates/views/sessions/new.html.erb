@@ -1,6 +1,5 @@
-<%% if alert = flash[:alert] %>
-  <div style="color:red"><%%= alert %></div>
-<%% end %>
+<%%= tag.div(flash[:alert], style: "color:red")  %>
+<%%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
 
 <%%= form_with url: session_path do |form| %>
   <div>
@@ -13,3 +12,7 @@
 
   <%%= form.submit "Sign in" %>
 <%% end %>
+
+<p>
+  <%%= link_to "Forgot password?", new_password_path %>
+</p>
