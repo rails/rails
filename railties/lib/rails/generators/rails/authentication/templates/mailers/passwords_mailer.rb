@@ -4,4 +4,3 @@ class PasswordsMailer < ApplicationMailer
     mail subject: "Reset your password", to: user.email_address, from: "passwords@example.com"
   end
 end
-
