@@ -5,7 +5,7 @@ module ActiveRecord
     module Trilogy
       module DatabaseStatements
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          sql = sql_for_insert(sql, pk, returning)
+          sql, _binds = sql_for_insert(sql, pk, binds, returning)
           internal_execute(sql, name)
         end
 
