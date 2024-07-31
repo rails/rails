@@ -493,7 +493,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/messages/_form.html.erb" do |content|
-      assert_match(/^\W{4}<%= form\.rich_text_area :content %>/, content)
+      assert_match(/^\W{4}<%= form\.rich_textarea :content %>/, content)
     end
 
     assert_file "test/system/messages_test.rb" do |content|

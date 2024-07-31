@@ -216,7 +216,7 @@ Output:
 Other common helpers:
 
 ```erb
-<%= form.text_area :message, size: "70x5" %>
+<%= form.textarea :message, size: "70x5" %>
 <%= form.hidden_field :parent_id, value: "foo" %>
 <%= form.number_field :price, in: 1.0..20.0, step: 0.5 %>
 <%= form.range_field :discount, in: 1..100 %>

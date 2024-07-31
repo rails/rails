@@ -120,13 +120,13 @@ module ActiveRecord
         end
 
         @last_affected_rows = nil
+        @previous_read_uncommitted = nil
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
         @connection_parameters = @config.merge(
           database: @config[:database].to_s,
           results_as_hash: true,
           default_transaction_mode: :immediate,
         )
-        @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
       def database_exists?
@@ -431,10 +431,6 @@ module ActiveRecord
 
       def shared_cache? # :nodoc:
         @config.fetch(:flags, 0).anybits?(::SQLite3::Constants::Open::SHAREDCACHE)
-      end
-
-      def use_insert_returning?
-        @use_insert_returning
       end
 
       def get_database_version # :nodoc:

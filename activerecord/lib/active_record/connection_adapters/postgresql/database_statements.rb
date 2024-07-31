@@ -132,7 +132,7 @@ module ActiveRecord
           rescue PG::Error
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
             update_typemap_for_default_timezone
             result = if prepare
               begin
@@ -169,6 +169,11 @@ module ActiveRecord
           end
 
           def cast_result(result)
+            if result.fields.empty?
+              result.clear
+              return ActiveRecord::Result.empty
+            end
+
             types = {}
             fields = result.fields
             fields.each_with_index do |fname, i|
@@ -182,11 +187,13 @@ module ActiveRecord
           end
 
           def affected_rows(result)
-            result.cmd_tuples
+            affected_rows = result.cmd_tuples
+            result.clear
+            affected_rows
           end
 
           def execute_batch(statements, name = nil)
-            raw_execute(combine_multi_statements(statements), name)
+            raw_execute(combine_multi_statements(statements), name, batch: true)
           end
 
           def build_truncate_statements(table_names)

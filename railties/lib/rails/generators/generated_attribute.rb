@@ -126,8 +126,8 @@ module Rails
                         when :time                     then :time_field
                         when :datetime, :timestamp     then :datetime_field
                         when :date                     then :date_field
-                        when :text                     then :text_area
-                        when :rich_text                then :rich_text_area
+                        when :text                     then :textarea
+                        when :rich_text                then :rich_textarea
                         when :boolean                  then :checkbox
                         when :attachment, :attachments then :file_field
                         else

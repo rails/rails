@@ -393,24 +393,24 @@ module ActionView
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
-      #   text_area_tag 'post'
+      #   textarea_tag 'post'
       #   # => <textarea id="post" name="post"></textarea>
       #
-      #   text_area_tag 'bio', @user.bio
+      #   textarea_tag 'bio', @user.bio
       #   # => <textarea id="bio" name="bio">This is my biography.</textarea>
       #
-      #   text_area_tag 'body', nil, rows: 10, cols: 25
+      #   textarea_tag 'body', nil, rows: 10, cols: 25
       #   # => <textarea cols="25" id="body" name="body" rows="10"></textarea>
       #
-      #   text_area_tag 'body', nil, size: "25x10"
+      #   textarea_tag 'body', nil, size: "25x10"
       #   # => <textarea name="body" id="body" cols="25" rows="10"></textarea>
       #
-      #   text_area_tag 'description', "Description goes here.", disabled: true
+      #   textarea_tag 'description', "Description goes here.", disabled: true
       #   # => <textarea disabled="disabled" id="description" name="description">Description goes here.</textarea>
       #
-      #   text_area_tag 'comment', nil, class: 'comment_input'
+      #   textarea_tag 'comment', nil, class: 'comment_input'
       #   # => <textarea class="comment_input" id="comment" name="comment"></textarea>
-      def text_area_tag(name, content = nil, options = {})
+      def textarea_tag(name, content = nil, options = {})
         options = options.stringify_keys
 
         if size = options.delete("size")
@@ -422,6 +422,7 @@ module ActionView
 
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
       end
+      alias_method :text_area_tag, :textarea_tag
 
       ##
       # :call-seq:

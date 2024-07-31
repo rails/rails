@@ -224,11 +224,9 @@ module ActiveRecord
 
         return if table_names.empty?
 
-        with_multi_statements do
-          disable_referential_integrity do
-            statements = build_truncate_statements(table_names)
-            execute_batch(statements, "Truncate Tables")
-          end
+        disable_referential_integrity do
+          statements = build_truncate_statements(table_names)
+          execute_batch(statements, "Truncate Tables")
         end
       end
 
@@ -435,6 +433,15 @@ module ActiveRecord
         raise ActiveRecord::TransactionIsolationError, "adapter does not support setting transaction isolation"
       end
 
+      # Hook point called after an isolated DB transaction is committed
+      # or rolled back.
+      # Most adapters don't need to implement anything because the isolation
+      # level is set on a per transaction basis.
+      # But some databases like SQLite set it on a per connection level
+      # and need to explicitly reset it after commit or rollback.
+      def reset_isolation_level
+      end
+
       # Commits the transaction (and turns on auto-committing).
       def commit_db_transaction()   end
 
@@ -481,11 +488,9 @@ module ActiveRecord
         table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name(table)}" }
         statements = table_deletes + fixture_inserts
 
-        with_multi_statements do
-          transaction(requires_new: true) do
-            disable_referential_integrity do
-              execute_batch(statements, "Fixtures Load")
-            end
+        transaction(requires_new: true) do
+          disable_referential_integrity do
+            execute_batch(statements, "Fixtures Load")
           end
         end
       end
@@ -544,25 +549,12 @@ module ActiveRecord
 
       private
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
-        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true)
+        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
           type_casted_binds = type_casted_binds(binds)
-          notification_payload = {
-            sql: sql,
-            name: name,
-            binds: binds,
-            type_casted_binds: type_casted_binds,
-            async: async,
-            connection: self,
-            transaction: current_transaction.user_transaction.presence,
-            statement_name: nil,
-            row_count: 0,
-          }
-          @instrumenter.instrument("sql.active_record", notification_payload) do
+          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload)
+              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
             end
-          rescue ActiveRecord::StatementInvalid => ex
-            raise ex.set_query(sql, binds)
           end
         end
 
@@ -669,10 +661,6 @@ module ActiveRecord
           table_names.map do |table_name|
             build_truncate_statement(table_name)
           end
-        end
-
-        def with_multi_statements
-          yield
         end
 
         def combine_multi_statements(total_sql)

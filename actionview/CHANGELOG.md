@@ -2,6 +2,12 @@
 
     *Joel Hawksley*
 
+*   Rename `text_area` methods into `textarea`
+
+    Old names are still available as aliases.
+
+    *Sean Doyle*
+
 *   Rename `check_box*` methods into `checkbox*`.
 
     Old names are still available as aliases.

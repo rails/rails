@@ -132,7 +132,7 @@ module ActionView
       #   <%= form_for :person do |f| %>
       #     First name: <%= f.text_field :first_name %><br />
       #     Last name : <%= f.text_field :last_name %><br />
-      #     Biography : <%= f.text_area :biography %><br />
+      #     Biography : <%= f.textarea :biography %><br />
       #     Admin?    : <%= f.checkbox :admin %><br />
       #     <%= f.submit %>
       #   <% end %>
@@ -199,7 +199,7 @@ module ActionView
       #   <%= form_for :person do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
-      #     Biography : <%= text_area :person, :biography %>
+      #     Biography : <%= textarea :person, :biography %>
       #     Admin?    : <%= checkbox_tag "person[admin]", "1", @person.company.admin? %>
       #     <%= f.submit %>
       #   <% end %>
@@ -389,7 +389,7 @@ module ActionView
       #   <%= form_for @person, url: { action: "create" }, builder: LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
-      #     <%= f.text_area :biography %>
+      #     <%= f.textarea :biography %>
       #     <%= f.checkbox :admin %>
       #     <%= f.submit %>
       #   <% end %>
@@ -668,7 +668,7 @@ module ActionView
       #     <%= form.text_field :first_name %>
       #     <%= form.text_field :last_name %>
       #
-      #     <%= text_area :person, :biography %>
+      #     <%= textarea :person, :biography %>
       #     <%= checkbox_tag "person[admin]", "1", @person.company.admin? %>
       #
       #     <%= form.submit %>
@@ -730,7 +730,7 @@ module ActionView
       #   <%= form_with model: @person, url: { action: "create" }, builder: LabellingFormBuilder do |form| %>
       #     <%= form.text_field :first_name %>
       #     <%= form.text_field :last_name %>
-      #     <%= form.text_area :biography %>
+      #     <%= form.textarea :biography %>
       #     <%= form.checkbox :admin %>
       #     <%= form.submit %>
       #   <% end %>
@@ -1069,7 +1069,7 @@ module ActionView
       #   <%= fields model: @comment do |fields| %>
       #     <%= fields.text_field :body %>
       #
-      #     <%= text_area :commenter, :biography %>
+      #     <%= textarea :commenter, :biography %>
       #     <%= checkbox_tag "comment[all_caps]", "1", @comment.commenter.hulk_mode? %>
       #   <% end %>
       #
@@ -1255,28 +1255,29 @@ module ActionView
       # hash with +options+.
       #
       # ==== Examples
-      #   text_area(:article, :body, cols: 20, rows: 40)
+      #   textarea(:article, :body, cols: 20, rows: 40)
       #   # => <textarea cols="20" rows="40" id="article_body" name="article[body]">
       #   #      #{@article.body}
       #   #    </textarea>
       #
-      #   text_area(:comment, :text, size: "20x30")
+      #   textarea(:comment, :text, size: "20x30")
       #   # => <textarea cols="20" rows="30" id="comment_text" name="comment[text]">
       #   #      #{@comment.text}
       #   #    </textarea>
       #
-      #   text_area(:application, :notes, cols: 40, rows: 15, class: 'app_input')
+      #   textarea(:application, :notes, cols: 40, rows: 15, class: 'app_input')
       #   # => <textarea cols="40" rows="15" id="application_notes" name="application[notes]" class="app_input">
       #   #      #{@application.notes}
       #   #    </textarea>
       #
-      #   text_area(:entry, :body, size: "20x20", disabled: 'disabled')
+      #   textarea(:entry, :body, size: "20x20", disabled: 'disabled')
       #   # => <textarea cols="20" rows="20" id="entry_body" name="entry[body]" disabled="disabled">
       #   #      #{@entry.body}
       #   #    </textarea>
-      def text_area(object_name, method, options = {})
+      def textarea(object_name, method, options = {})
         Tags::TextArea.new(object_name, method, self, options).render
       end
+      alias_method :text_area, :textarea
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). This object must be an instance object (@object) and not a local object.
@@ -1682,7 +1683,7 @@ module ActionView
       # The methods which wrap a form helper call.
       class_attribute :field_helpers, default: [
         :fields_for, :fields, :label, :text_field, :password_field,
-        :hidden_field, :file_field, :text_area, :checkbox,
+        :hidden_field, :file_field, :textarea, :checkbox,
         :radio_button, :color_field, :search_field,
         :telephone_field, :phone_field, :date_field,
         :time_field, :datetime_field, :datetime_local_field,
@@ -1825,14 +1826,14 @@ module ActionView
       # Please refer to the documentation of the base helper for details.
 
       ##
-      # :method: text_area
+      # :method: textarea
       #
-      # :call-seq: text_area(method, options = {})
+      # :call-seq: textarea(method, options = {})
       #
-      # Wraps ActionView::Helpers::FormHelper#text_area for form builders:
+      # Wraps ActionView::Helpers::FormHelper#textarea for form builders:
       #
       #   <%= form_with model: @user do |f| %>
-      #     <%= f.text_area :detail %>
+      #     <%= f.textarea :detail %>
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.

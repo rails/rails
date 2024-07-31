@@ -49,16 +49,16 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_field_type :date, :date_field
   end
 
-  def test_field_type_returns_text_area
-    assert_field_type :text, :text_area
+  def test_field_type_returns_textarea
+    assert_field_type :text, :textarea
   end
 
   def test_field_type_returns_checkbox
     assert_field_type :boolean, :checkbox
   end
 
-  def test_field_type_returns_rich_text_area
-    assert_field_type :rich_text, :rich_text_area
+  def test_field_type_returns_rich_textarea
+    assert_field_type :rich_text, :rich_textarea
   end
 
   def test_field_type_returns_file_field
