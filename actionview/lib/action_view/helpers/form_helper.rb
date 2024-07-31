@@ -2035,6 +2035,7 @@ module ActionView
           end
         end
       end
+      alias_method :text_area, :textarea
 
       # Creates a scope around a specific model object like form_with, but
       # doesn't create the form tags themselves. This makes fields_for suitable
