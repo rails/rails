@@ -126,9 +126,18 @@ module ActiveRecord
       end
     end
 
-    def test_exec_query_returns_an_empty_result
+    test "#exec_query queries with no result set return an empty ActiveRecord::Result" do
       result = @connection.exec_query "INSERT INTO subscribers(nick) VALUES('me')"
       assert_instance_of(ActiveRecord::Result, result)
+      assert_empty result.rows
+      assert_empty result.columns
+    end
+
+    test "#exec_query queries with an empty result set still return the columns" do
+      result = @connection.exec_query "SELECT * FROM subscribers WHERE 1=0"
+      assert_instance_of(ActiveRecord::Result, result)
+      assert_empty result.rows
+      assert_not_empty result.columns
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)

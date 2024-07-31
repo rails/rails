@@ -169,6 +169,11 @@ module ActiveRecord
           end
 
           def cast_result(result)
+            if result.fields.empty?
+              result.clear
+              return ActiveRecord::Result.empty
+            end
+
             types = {}
             fields = result.fields
             fields.each_with_index do |fname, i|

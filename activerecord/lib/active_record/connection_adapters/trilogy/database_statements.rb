@@ -30,7 +30,7 @@ module ActiveRecord
           end
 
           def cast_result(result)
-            if result.count.zero?
+            if result.fields.empty?
               ActiveRecord::Result.empty
             else
               ActiveRecord::Result.new(result.fields, result.rows)
