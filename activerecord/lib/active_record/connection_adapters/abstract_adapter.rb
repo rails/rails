@@ -1118,23 +1118,6 @@ module ActiveRecord
           active_record_error
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block) # :doc:
-          @instrumenter.instrument(
-            "sql.active_record",
-            sql:               sql,
-            name:              name,
-            binds:             binds,
-            type_casted_binds: type_casted_binds,
-            async:             async,
-            connection:        self,
-            transaction:       current_transaction.user_transaction.presence,
-            row_count:         0,
-            &block
-          )
-        rescue ActiveRecord::StatementInvalid => ex
-          raise ex.set_query(sql, binds)
-        end
-
         def translate_exception(exception, message:, sql:, binds:)
           # override in derived class
           case exception
