@@ -224,11 +224,9 @@ module ActiveRecord
 
         return if table_names.empty?
 
-        with_multi_statements do
-          disable_referential_integrity do
-            statements = build_truncate_statements(table_names)
-            execute_batch(statements, "Truncate Tables")
-          end
+        disable_referential_integrity do
+          statements = build_truncate_statements(table_names)
+          execute_batch(statements, "Truncate Tables")
         end
       end
 
@@ -490,11 +488,9 @@ module ActiveRecord
         table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name(table)}" }
         statements = table_deletes + fixture_inserts
 
-        with_multi_statements do
-          transaction(requires_new: true) do
-            disable_referential_integrity do
-              execute_batch(statements, "Fixtures Load")
-            end
+        transaction(requires_new: true) do
+          disable_referential_integrity do
+            execute_batch(statements, "Fixtures Load")
           end
         end
       end
@@ -553,11 +549,11 @@ module ActiveRecord
 
       private
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
-        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true)
+        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload)
+              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
             end
           end
         end
@@ -665,10 +661,6 @@ module ActiveRecord
           table_names.map do |table_name|
             build_truncate_statement(table_name)
           end
-        end
-
-        def with_multi_statements
-          yield
         end
 
         def combine_multi_statements(total_sql)

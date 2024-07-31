@@ -132,7 +132,7 @@ module ActiveRecord
           rescue PG::Error
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
             update_typemap_for_default_timezone
             result = if prepare
               begin
@@ -193,7 +193,7 @@ module ActiveRecord
           end
 
           def execute_batch(statements, name = nil)
-            raw_execute(combine_multi_statements(statements), name)
+            raw_execute(combine_multi_statements(statements), name, batch: true)
           end
 
           def build_truncate_statements(table_names)

@@ -16,9 +16,7 @@ module ActiveRecord
         private
           def execute_batch(statements, name = nil)
             combine_multi_statements(statements).each do |statement|
-              with_raw_connection do |conn|
-                raw_execute(statement, name)
-              end
+              raw_execute(statement, name, batch: true)
             end
           end
 
@@ -40,21 +38,12 @@ module ActiveRecord
             end
           end
 
-          def with_multi_statements
-            if multi_statements_enabled?
-              return yield
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+            reset_multi_statement = if batch && !multi_statements_enabled?
+              raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+              true
             end
 
-            with_raw_connection do |conn|
-              conn.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
-
-              yield
-            ensure
-              conn.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
-            end
-          end
-
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
             # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
             raw_connection.query_options[:database_timezone] = default_timezone
@@ -84,6 +73,10 @@ module ActiveRecord
             verified!
             handle_warnings(sql)
             result
+          ensure
+            if reset_multi_statement && active?
+              raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+            end
           end
 
           def cast_result(result)
