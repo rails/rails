@@ -922,6 +922,12 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     Object.send(:remove_const, "ENGINE_ROOT")
   end
 
+  def test_duplicate_plugin_with_in_use
+    content = capture(:stderr) { run_generator [File.join(destination_root, "Digest"), "--duplicate_plugin"] }
+
+    assert_empty content
+  end
+
   private
     def action(*args, &block)
       silence(:stdout) { generator.send(*args, &block) }
