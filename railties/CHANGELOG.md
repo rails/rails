@@ -1,3 +1,7 @@
+*   Generate form helpers to use `textarea*` methods instead of `text_area*` methods
+
+    *Sean Doyle*
+
 *   Add authentication generator to give a basic start to an authentication system using database-tracked sessions.
 
     Generate with...

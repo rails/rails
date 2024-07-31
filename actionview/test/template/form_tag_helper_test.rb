@@ -508,43 +508,43 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
-  def test_text_area_tag_size_string
-    actual = text_area_tag "body", "hello world", "size" => "20x40"
+  def test_textarea_tag_size_string
+    actual = textarea_tag "body", "hello world", "size" => "20x40"
     expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
-  def test_text_area_tag_size_symbol
-    actual = text_area_tag "body", "hello world", size: "20x40"
+  def test_textarea_tag_size_symbol
+    actual = textarea_tag "body", "hello world", size: "20x40"
     expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
-  def test_text_area_tag_should_disregard_size_if_its_given_as_an_integer
-    actual = text_area_tag "body", "hello world", size: 20
+  def test_textarea_tag_should_disregard_size_if_its_given_as_an_integer
+    actual = textarea_tag "body", "hello world", size: 20
     expected = %(<textarea id="body" name="body">\nhello world</textarea>)
     assert_dom_equal expected, actual
   end
 
-  def test_text_area_tag_id_sanitized
-    input_elem = root_elem(text_area_tag("item[][description]"))
+  def test_textarea_tag_id_sanitized
+    input_elem = root_elem(textarea_tag("item[][description]"))
     assert_match VALID_HTML_ID, input_elem["id"]
   end
 
-  def test_text_area_tag_escape_content
-    actual = text_area_tag "body", "<b>hello world</b>", size: "20x40"
+  def test_textarea_tag_escape_content
+    actual = textarea_tag "body", "<b>hello world</b>", size: "20x40"
     expected = %(<textarea cols="20" id="body" name="body" rows="40">\n&lt;b&gt;hello world&lt;/b&gt;</textarea>)
     assert_dom_equal expected, actual
   end
 
-  def test_text_area_tag_unescaped_content
-    actual = text_area_tag "body", "<b>hello world</b>", size: "20x40", escape: false
+  def test_textarea_tag_unescaped_content
+    actual = textarea_tag "body", "<b>hello world</b>", size: "20x40", escape: false
     expected = %(<textarea cols="20" id="body" name="body" rows="40">\n<b>hello world</b></textarea>)
     assert_dom_equal expected, actual
   end
 
-  def test_text_area_tag_unescaped_nil_content
-    actual = text_area_tag "body", nil, escape: false
+  def test_textarea_tag_unescaped_nil_content
+    actual = textarea_tag "body", nil, escape: false
     expected = %(<textarea id="body" name="body">\n</textarea>)
     assert_dom_equal expected, actual
   end
@@ -941,9 +941,9 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  def test_text_area_tag_options_symbolize_keys_side_effects
+  def test_textarea_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
-    text_area_tag "body", "hello world", options
+    textarea_tag "body", "hello world", options
     assert_equal({ option: "random_option" }, options)
   end
 
