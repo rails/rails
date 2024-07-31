@@ -198,7 +198,8 @@ module ActionView
     NONE = Object.new
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
-      @source            = source.dup
+      @_source           = source.dup
+      @source            = nil
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
@@ -293,7 +294,7 @@ module ActionView
     end
 
     def source
-      @source.to_s
+      @source ||= @_source.to_s.dup
     end
 
     LEADING_ENCODING_REGEXP = /\A#{ENCODING_FLAG}/
@@ -376,11 +377,11 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant ]
+      [ @_source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant = *array
+      @_source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 

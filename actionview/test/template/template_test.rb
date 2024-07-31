@@ -102,6 +102,16 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", @template.source
   end
 
+  def test_template_only_loads_template_source_once
+    source_loaded = 0
+    source = Class.new do |klass|
+      klass.define_method(:to_s) { source_loaded += 1; "hello" }
+    end.new
+    @template = new_template(source)
+    render
+    assert_equal 1, source_loaded
+  end
+
   def test_locals
     @template = new_template("<%= my_local %>", locals: [:my_local])
     assert_equal "I am a local", render(my_local: "I am a local")
