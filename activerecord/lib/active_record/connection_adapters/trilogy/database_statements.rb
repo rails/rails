@@ -10,7 +10,12 @@ module ActiveRecord
         end
 
         private
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+            reset_multi_statement = if batch && !@config[:multi_statement]
+              raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
+              true
+            end
+
             # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
             # made since we established the connection
             if default_timezone == :local
@@ -27,6 +32,10 @@ module ActiveRecord
             handle_warnings(sql)
             notification_payload[:row_count] = result.count
             result
+          ensure
+            if reset_multi_statement && active?
+              raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF)
+            end
           end
 
           def cast_result(result)
@@ -51,27 +60,7 @@ module ActiveRecord
 
           def execute_batch(statements, name = nil)
             combine_multi_statements(statements).each do |statement|
-              with_raw_connection do |conn|
-                raw_execute(statement, name)
-              end
-            end
-          end
-
-          def multi_statements_enabled?
-            !!@config[:multi_statement]
-          end
-
-          def with_multi_statements
-            if multi_statements_enabled?
-              return yield
-            end
-
-            with_raw_connection do |conn|
-              conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
-
-              yield
-            ensure
-              conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF) if active?
+              raw_execute(statement, name, batch: true)
             end
           end
       end

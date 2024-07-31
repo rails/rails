@@ -75,8 +75,10 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
-            if prepare
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+            if batch
+              raw_connection.execute_batch2(sql)
+            elsif prepare
               stmt = @statements[sql] ||= raw_connection.prepare(sql)
               stmt.reset!
               stmt.bind_params(type_casted_binds)
@@ -107,7 +109,7 @@ module ActiveRecord
             @last_affected_rows = raw_connection.changes
             verified!
 
-            notification_payload[:row_count] = result.length
+            notification_payload[:row_count] = result&.length || 0
             result
           end
 
@@ -123,13 +125,7 @@ module ActiveRecord
 
           def execute_batch(statements, name = nil)
             sql = combine_multi_statements(statements)
-
-            log(sql, name) do
-              with_raw_connection do |conn|
-                conn.execute_batch2(sql)
-                verified!
-              end
-            end
+            raw_execute(sql, name, batch: true)
           end
 
           def build_fixture_statements(fixture_set)
