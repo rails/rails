@@ -61,4 +61,3 @@ module Authentication
       cookies.delete(:session_token)
     end
 end
-
