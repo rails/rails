@@ -155,7 +155,7 @@ module ActiveRecord
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # the result will contain values of the specified columns from the inserted row.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil)
-        sql, binds = sql_for_insert(sql, pk, binds, returning)
+        sql = sql_for_insert(sql, pk, returning)
         internal_exec_query(sql, name, binds)
       end
 
@@ -707,7 +707,7 @@ module ActiveRecord
           end
         end
 
-        def sql_for_insert(sql, pk, binds, returning) # :nodoc:
+        def sql_for_insert(sql, pk, returning) # :nodoc:
           if supports_insert_returning?
             if pk.nil?
               # Extract the table from the insert sql. Yuck.
@@ -721,7 +721,7 @@ module ActiveRecord
             sql = "#{sql} RETURNING #{returning_columns_statement}" if returning_columns.any?
           end
 
-          [sql, binds]
+          sql
         end
 
         def last_inserted_id(result)
