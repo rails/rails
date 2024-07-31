@@ -225,6 +225,8 @@ module ActiveRecord
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
+        # From MySQL manual: The [SET TRANSACTION] statement applies only to the next single transaction performed within the session.
+        # So we don't need to implement #reset_isolation_level
         internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         begin_db_transaction
       end
