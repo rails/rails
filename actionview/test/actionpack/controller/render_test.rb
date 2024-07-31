@@ -33,12 +33,10 @@ module Fun
   end
 end
 
-module Views
-  module Test
-    class ImplicitRenderable
-      def render_in(_)
-        "implicit renderable"
-      end
+module Test
+  class ImplicitRenderableView
+    def render_in(_)
+      "implicit renderable"
     end
   end
 end

@@ -63,7 +63,7 @@ module ActionController
 
     private
       def renderable_name(action_name, prefixes)
-        ["Views", *prefixes, action_name].map(&:camelize).join("::")
+        [*prefixes, "#{action_name}_view"].map(&:camelize).join("::")
       end
 
       def interactive_browser_request?
