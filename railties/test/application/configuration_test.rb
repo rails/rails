@@ -4619,8 +4619,8 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         routes.prepend do
-          get "foo/controller" => "foo#controller_test"
-          get "foo/view" => "foo#view_test"
+          get "foo/controller", to: "foo#controller_test"
+          get "foo/view", to: "foo#view_test"
         end
       RUBY
 

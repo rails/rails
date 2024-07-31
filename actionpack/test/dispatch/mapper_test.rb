@@ -177,7 +177,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         app = lambda { |env| [200, {}, [""]] }
-        mapper.mount app => "/path", anchor: true
+        mapper.mount app, at: "/path", anchor: true
         assert_equal "/path", fakeset.asts.first.to_s
         assert fakeset.routes.first.path.anchored
       end
