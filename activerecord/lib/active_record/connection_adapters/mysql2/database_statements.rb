@@ -87,7 +87,7 @@ module ActiveRecord
           end
 
           def cast_result(result)
-            if result.nil? || result.size.zero?
+            if result.nil? || result.fields.empty?
               ActiveRecord::Result.empty
             else
               ActiveRecord::Result.new(result.fields, result.to_a)
