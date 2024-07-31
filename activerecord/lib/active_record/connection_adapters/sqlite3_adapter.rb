@@ -120,6 +120,7 @@ module ActiveRecord
         end
 
         @last_affected_rows = nil
+        @previous_read_uncommitted = nil
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
         @connection_parameters = @config.merge(
           database: @config[:database].to_s,

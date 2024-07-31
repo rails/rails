@@ -34,21 +34,11 @@ module ActiveRecord
         end
 
         def commit_db_transaction # :nodoc:
-          log("commit transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              conn.commit
-            end
-          end
-          reset_read_uncommitted
+          internal_execute("COMMIT TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def exec_rollback_db_transaction # :nodoc:
-          log("rollback transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              conn.rollback
-            end
-          end
-          reset_read_uncommitted
+          internal_execute("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # https://stackoverflow.com/questions/17574784
@@ -66,6 +56,11 @@ module ActiveRecord
           super&.to_a
         end
 
+        def reset_isolation_level # :nodoc:
+          internal_execute("PRAGMA read_uncommitted=#{@previous_read_uncommitted}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          @previous_read_uncommitted = nil
+        end
+
         private
           def internal_begin_transaction(mode, isolation)
             if isolation
@@ -73,16 +68,10 @@ module ActiveRecord
               raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
             end
 
-            log("begin #{mode} transaction", "TRANSACTION") do
-              with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-                if isolation
-                  ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = conn.get_first_value("PRAGMA read_uncommitted")
-                  conn.read_uncommitted = true
-                end
-                result = conn.transaction(mode)
-                verified!
-                result
-              end
+            internal_execute("BEGIN #{mode} TRANSACTION", allow_retry: true, materialize_transactions: false)
+            if isolation
+              @previous_read_uncommitted = query_value("PRAGMA read_uncommitted")
+              internal_execute("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             end
           end
 
@@ -142,7 +131,7 @@ module ActiveRecord
           def execute_batch(statements, name = nil)
             sql = combine_multi_statements(statements)
 
-            log(sql, name) do |notification_payload|
+            log(sql, name) do
               with_raw_connection do |conn|
                 conn.execute_batch2(sql)
                 verified!

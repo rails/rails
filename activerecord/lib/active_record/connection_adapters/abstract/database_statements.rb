@@ -435,6 +435,15 @@ module ActiveRecord
         raise ActiveRecord::TransactionIsolationError, "adapter does not support setting transaction isolation"
       end
 
+      # Hook point called after an isolated DB transaction is committed
+      # or rolled back.
+      # Most adapters don't need to implement anything because the isolation
+      # level is set on a per transaction basis.
+      # But some databases like SQLite set it on a per connection level
+      # and need to explicitly reset it after commit or rollback.
+      def reset_isolation_level
+      end
+
       # Commits the transaction (and turns on auto-committing).
       def commit_db_transaction()   end
 
