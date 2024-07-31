@@ -121,13 +121,6 @@ module ActiveRecord
             @last_affected_rows
           end
 
-          def reset_read_uncommitted
-            read_uncommitted = ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted]
-            return unless read_uncommitted
-
-            @raw_connection&.read_uncommitted = read_uncommitted
-          end
-
           def execute_batch(statements, name = nil)
             sql = combine_multi_statements(statements)
 
