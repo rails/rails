@@ -790,7 +790,7 @@ module ApplicationTests
 
     test "application will generate secret_key_base in tmp file if blank in development" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.credentials.secret_key_base = nil
+        Rails.application.config.secret_key_base = nil
       RUBY
 
       # For test that works even if tmp dir does not exist.
@@ -804,7 +804,7 @@ module ApplicationTests
 
     test "application will generate secret_key_base in tmp file if blank in test" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.credentials.secret_key_base = nil
+        Rails.application.config.secret_key_base = nil
       RUBY
 
       # For test that works even if tmp dir does not exist.
