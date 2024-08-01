@@ -21,7 +21,7 @@ class PasswordsController < ApplicationController
   end
 
   def update
-    if find_user_by_token.update password: params[:password], password_confirmation: params[:password_confirmation]
+    if find_user_by_token.update(params.permit(:password, :password_confirmation))
       redirect_to new_session_url, notice: "Password has been reset."
     else
       redirect_to edit_password_url(params[:token]), alert: "Passwords did not match."
