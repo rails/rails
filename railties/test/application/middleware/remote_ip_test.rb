@@ -11,7 +11,7 @@ module ApplicationTests
     def remote_ip(env = {})
       remote_ip = nil
       env = Rack::MockRequest.env_for("/").merge(env).merge!(
-        "action_dispatch.show_exceptions" => false,
+        "action_dispatch.show_exceptions" => :none,
         "action_dispatch.key_generator" => ActiveSupport::CachingKeyGenerator.new(
           ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
         )
@@ -68,7 +68,7 @@ module ApplicationTests
         app.config.action_dispatch.trusted_proxies = [IPAddr.new("4.2.42.0/24"), /^4\.2\.42\.43$/, "4.2.42.44"]
       end
 
-      assert_not_deprecated do
+      assert_not_deprecated(ActionDispatch.deprecator) do
         assert_equal "1.1.1.1",
                      remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42,4.2.42.43,4.2.42.44")
       end
@@ -84,14 +84,13 @@ module ApplicationTests
     end
 
     test "setting trusted proxies to a single value (deprecated) adds value to default trusted proxies" do
-      make_basic_app do |app|
-        app.config.action_dispatch.trusted_proxies = IPAddr.new("4.2.42.0/24")
+      exception = assert_raises(ArgumentError) do
+        make_basic_app do |app|
+          app.config.action_dispatch.trusted_proxies = IPAddr.new("4.2.42.0/24")
+        end
       end
 
-      assert_deprecated(/Setting config\.action_dispatch\.trusted_proxies to a single value/) do
-        assert_equal "1.1.1.1",
-                     remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
-      end
+      assert_match(/Setting config\.action_dispatch\.trusted_proxies to a single value/, exception.message)
     end
   end
 end

@@ -3,11 +3,12 @@
 require "redcarpet"
 require "nokogiri"
 require "rails_guides/markdown/renderer"
+require "rails_guides/markdown/epub_renderer"
 require "rails-html-sanitizer"
 
 module RailsGuides
   class Markdown
-    def initialize(view:, layout:, edge:, version:)
+    def initialize(view:, layout:, edge:, version:, epub:)
       @view          = view
       @layout        = layout
       @edge          = edge
@@ -15,6 +16,7 @@ module RailsGuides
       @index_counter = Hash.new(0)
       @raw_header    = ""
       @node_ids      = {}
+      @epub          = epub
     end
 
     def render(body)
@@ -33,16 +35,15 @@ module RailsGuides
       def dom_id(nodes)
         dom_id = dom_id_text(nodes.last.text)
 
-        # Fix duplicate node by prefix with its parent node
+        # Fix duplicate dom_ids by prefixing the parent node dom_id
         if @node_ids[dom_id]
           if @node_ids[dom_id].size > 1
             duplicate_nodes = @node_ids.delete(dom_id)
-            new_node_id = "#{duplicate_nodes[-2][:id]}-#{duplicate_nodes.last[:id]}"
+            new_node_id = dom_id_with_parent_node(dom_id, duplicate_nodes[-2])
             duplicate_nodes.last[:id] = new_node_id
             @node_ids[new_node_id] = duplicate_nodes
           end
-
-          dom_id = "#{nodes[-2][:id]}-#{dom_id}"
+          dom_id = dom_id_with_parent_node(dom_id, nodes[-2])
         end
 
         @node_ids[dom_id] = nodes
@@ -58,8 +59,17 @@ module RailsGuides
                      .gsub(/\s+/, "-")
       end
 
+      def dom_id_with_parent_node(dom_id, parent_node)
+        if parent_node
+          [parent_node[:id], dom_id].join("-")
+        else
+          dom_id
+        end
+      end
+
       def engine
-        @engine ||= Redcarpet::Markdown.new(Renderer,
+        renderer = @epub ? EpubRenderer : Renderer
+        @engine ||= Redcarpet::Markdown.new(renderer,
           no_intra_emphasis: true,
           fenced_code_blocks: true,
           autolink: true,
@@ -91,33 +101,34 @@ module RailsGuides
       def generate_structure
         @headings_for_index = []
         if @body.present?
-          @body = Nokogiri::HTML.fragment(@body).tap do |doc|
+          document = html_fragment(@body).tap do |doc|
             hierarchy = []
 
             doc.children.each do |node|
-              if /^h[3-6]$/.match?(node.name)
+              if /^h[2-5]$/.match?(node.name)
                 case node.name
-                when "h3"
+                when "h2"
                   hierarchy = [node]
                   @headings_for_index << [1, node, node.inner_html]
-                when "h4"
+                when "h3"
                   hierarchy = hierarchy[0, 1] + [node]
                   @headings_for_index << [2, node, node.inner_html]
-                when "h5"
+                when "h4"
                   hierarchy = hierarchy[0, 2] + [node]
-                when "h6"
+                when "h5"
                   hierarchy = hierarchy[0, 3] + [node]
                 end
 
                 node[:id] = dom_id(hierarchy) unless node[:id]
-                node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
+                node.inner_html = "<span>#{node_index(hierarchy)}</span> #{node.inner_html}"
               end
             end
 
-            doc.css("h3, h4, h5, h6").each do |node|
+            doc.css("h2, h3, h4, h5").each do |node|
               node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
             end
-          end.to_html
+          end
+          @body = @epub ? document.to_xhtml : document.to_html
         end
       end
 
@@ -132,21 +143,31 @@ module RailsGuides
             end
           end
 
-          @index = Nokogiri::HTML.fragment(engine.render(raw_index)).tap do |doc|
+          @index = html_fragment(engine.render(raw_index)).tap do |doc|
             doc.at("ol")[:class] = "chapters"
           end.to_html
 
           @index = <<-INDEX.html_safe
-          <div id="subCol">
-            <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" />Chapters</h3>
+          <nav id="subCol">
+            <h3 class="chapter">
+              <picture>
+                <!-- Using the `source`  HTML tag to set the dark theme image -->
+                <source
+                  srcset="images/icon_book-close-bookmark-1-wht.svg"
+                  media="(prefers-color-scheme: dark)"
+                />
+                <img src="images/icon_book-close-bookmark-1.svg" alt="Chapter Icon" />
+              </picture>
+              Chapters
+            </h3>
             #{@index}
-          </div>
+          </nav>
           INDEX
         end
       end
 
       def generate_title
-        if heading = Nokogiri::HTML.fragment(@header).at(:h2)
+        if heading = html_fragment(@header).at(:h1)
           @title = "#{heading.text} — Ruby on Rails Guides"
         else
           @title = "Ruby on Rails Guides"
@@ -175,6 +196,14 @@ module RailsGuides
         @view.content_for(:page_title) { @title }
         @view.content_for(:index_section) { @index }
         @view.render(layout: @layout, html: @body.html_safe)
+      end
+
+      def html_fragment(html)
+        if defined?(Nokogiri::HTML5)
+          Nokogiri::HTML5.fragment(html)
+        else
+          Nokogiri::HTML4.fragment(html)
+        end
       end
   end
 end

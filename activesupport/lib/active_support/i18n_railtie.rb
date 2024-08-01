@@ -49,7 +49,7 @@ module I18n
         when :load_path
           I18n.load_path += value
         when :raise_on_missing_translations
-          forward_raise_on_missing_translations_config(app)
+          setup_raise_on_missing_translations_config(app)
         else
           I18n.public_send("#{setting}=", value)
         end
@@ -62,8 +62,9 @@ module I18n
 
       if app.config.reloading_enabled?
         directories = watched_dirs_with_extensions(reloadable_paths)
-        reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
-          I18n.load_path.keep_if { |p| File.exist?(p) }
+        root_load_paths = I18n.load_path.select { |path| path.start_with?(Rails.root.to_s) }
+        reloader = app.config.file_watcher.new(root_load_paths, directories) do
+          I18n.load_path.delete_if { |p| p.start_with?(Rails.root.to_s) && !File.exist?(p) }
           I18n.load_path |= reloadable_paths.flat_map(&:existent)
         end
 
@@ -77,13 +78,22 @@ module I18n
       @i18n_inited = true
     end
 
-    def self.forward_raise_on_missing_translations_config(app)
+    def self.setup_raise_on_missing_translations_config(app)
       ActiveSupport.on_load(:action_view) do
         ActionView::Helpers::TranslationHelper.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
       end
 
-      ActiveSupport.on_load(:action_controller) do
-        AbstractController::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+      ActiveSupport.on_load(:active_model_translation) do
+        ActiveModel::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+      end
+
+      if app.config.i18n.raise_on_missing_translations &&
+          I18n.exception_handler.is_a?(I18n::ExceptionHandler) # Only override the i18n gem's default exception handler.
+
+        I18n.exception_handler = ->(exception, *) {
+          exception = exception.to_exception if exception.is_a?(I18n::MissingTranslation)
+          raise exception
+        }
       end
     end
 

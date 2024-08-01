@@ -64,6 +64,9 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
+TIP: New Rails apps come with a preconfigured Dev Container development environment. This
+is the fastest way to get started with Rails. For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
+
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
 needed.
@@ -93,10 +96,10 @@ current version of Ruby installed:
 
 ```bash
 $ ruby --version
-ruby 2.7.0
+ruby 3.1.0
 ```
 
-Rails requires Ruby version 2.7.0 or later. It is preferred to use latest Ruby version.
+Rails requires Ruby version 3.1.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -132,9 +135,10 @@ run the following in a new terminal:
 
 ```bash
 $ rails --version
+Rails 8.0.0
 ```
 
-If it says something like "Rails 7.0.0", you are ready to continue.
+If it says something like "Rails 8.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -171,23 +175,28 @@ of the files and folders that Rails creates by default:
 
 | File/Folder | Purpose |
 | ----------- | ------- |
-|app/|Contains the controllers, models, views, helpers, mailers, channels, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|app/|Contains the controllers, models, views, helpers, mailers, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |bin/|Contains the `rails` script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.|
 |config/|Contains configuration for your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack-based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
 |db/|Contains your current database schema, as well as the database migrations.|
+|Dockerfile|Configuration file for Docker.|
 |Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see the [Bundler website](https://bundler.io).|
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
 |README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
+|script/|Contains one-off or general purpose [scripts](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/script/USAGE) and [benchmarks](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/benchmark/USAGE).|
 |storage/|Active Storage files for Disk Service. This is covered in [Active Storage Overview](active_storage_overview.html).|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
+|.dockerignore|This file tells Docker which files it should not copy into the container.|
 |.gitattributes|This file defines metadata for specific paths in a git repository. This metadata can be used by git and other tools to enhance their behavior. See the [gitattributes documentation](https://git-scm.com/docs/gitattributes) for more information.|
+|.github/|Contains GitHub specific files.|
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more information about ignoring files.|
+|.rubocop.yml|This file contains the configuration for RuboCop.|
 |.ruby-version|This file contains the default Ruby version.|
 
 Hello, Rails!
@@ -196,7 +205,7 @@ Hello, Rails!
 To begin with, let's get some text up on screen quickly. To do this, you need to
 get your Rails application server running.
 
-### Starting up the Web Server
+### Starting Up the Web Server
 
 You actually have a functional Rails application already. To see it, you need to
 start a web server on your development machine. You can do this by running the
@@ -209,7 +218,7 @@ $ bin/rails server
 TIP: If you are using Windows, you have to pass the scripts under the `bin`
 folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 
-TIP: JavaScript asset compression requires you
+TIP: JavaScript asset compression requires you to
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compression.
 Usually macOS and Windows come with a JavaScript runtime installed.
@@ -343,7 +352,7 @@ You may have noticed that `ArticlesController` inherits from `ApplicationControl
 require "application_controller" # DON'T DO THIS.
 ```
 
-Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](https://guides.rubyonrails.org/autoloading_and_reloading_constants.html).
+Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](autoloading_and_reloading_constants.html).
 
 You only need `require` calls for two use cases:
 
@@ -403,7 +412,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[7.0]
+class CreateArticles < ActiveRecord::Migration[7.2]
   def change
     create_table :articles do |t|
       t.string :title
@@ -464,7 +473,7 @@ $ bin/rails console
 You should see an `irb` prompt like:
 
 ```irb
-Loading development environment (Rails 7.0.0)
+Loading development environment (Rails 8.0.0)
 irb(main):001:0>
 ```
 
@@ -557,7 +566,7 @@ file, and replace its contents with:
 </ul>
 ```
 
-The above code is a mixture of HTML and *ERB*. ERB is a templating system that
+The above code is a mixture of HTML and *ERB*. ERB, short for [Embedded Ruby](https://docs.ruby-lang.org/en/3.2/ERB.html), is a templating system that
 evaluates Ruby code embedded in a document. Here, we can see two types of ERB
 tags: `<% %>` and `<%= %>`. The `<% %>` tag means "evaluate the enclosed Ruby
 code." The `<%= %>` tag means "evaluate the enclosed Ruby code, and output the
@@ -703,6 +712,7 @@ $ bin/rails routes
              POST   /articles(.:format)          articles#create
 edit_article GET    /articles/:id/edit(.:format) articles#edit
              PATCH  /articles/:id(.:format)      articles#update
+             PUT    /articles/:id(.:format)      articles#update
              DELETE /articles/:id(.:format)      articles#destroy
 ```
 
@@ -829,7 +839,7 @@ Let's create `app/views/articles/new.html.erb` with the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </div>
 
   <div>
@@ -972,7 +982,7 @@ display any error messages for `title` and `body`:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %><br>
+    <%= form.textarea :body %><br>
     <% @article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
@@ -1136,7 +1146,7 @@ the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %><br>
+    <%= form.textarea :body %><br>
     <% article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
@@ -1341,7 +1351,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[7.0]
+class CreateComments < ActiveRecord::Migration[7.2]
   def change
     create_table :comments do |t|
       t.string :commenter
@@ -1482,7 +1492,7 @@ So first, we'll wire up the Article show template
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1562,7 +1572,7 @@ add that to the `app/views/articles/show.html.erb`.
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1627,7 +1637,7 @@ following:
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1647,14 +1657,14 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_with model: [ @article, @article.comments.build ] do |form| %>
+<%= form_with model: [ article, article.comments.build ] do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1681,16 +1691,13 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= render 'comments/form' %>
+<%= render "comments/form", article: @article %>
 ```
 
 The second render just defines the partial template we want to render,
 `comments/form`. Rails is smart enough to spot the forward slash in that
 string and realize that you want to render the `_form.html.erb` file in
 the `app/views/comments` directory.
-
-The `@article` object is available to any partials rendered in the view because
-we defined it as an instance variable.
 
 ### Using Concerns
 
@@ -1729,6 +1736,7 @@ active_record_migrations.html).
 We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
 
 ```ruby
+
   private
     def article_params
       params.require(:article).permit(:title, :body, :status)
@@ -1738,6 +1746,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 and in `app/controllers/comments_controller.rb`:
 
 ```ruby
+
   private
     def comment_params
       params.require(:comment).permit(:commenter, :body, :status)
@@ -1915,12 +1924,12 @@ Our blog has <%= Article.public_count %> articles and counting!
 <%= link_to "New Article", new_article_path %>
 ```
 
-To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also specify the default status as `public`. In `app/views/articles/_form.html.erb`, we can add:
+To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also select the status of the object, or a default of `public` if it hasn't been set yet. In `app/views/articles/_form.html.erb`, we can add:
 
 ```html+erb
 <div>
   <%= form.label :status %><br>
-  <%= form.select :status, ['public', 'private', 'archived'], selected: 'public' %>
+  <%= form.select :status, Visible::VALID_STATUSES, selected: article.status || 'public' %>
 </div>
 ```
 
@@ -1929,7 +1938,7 @@ and in `app/views/comments/_form.html.erb`:
 ```html+erb
 <p>
   <%= form.label :status %><br>
-  <%= form.select :status, ['public', 'private', 'archived'], selected: 'public' %>
+  <%= form.select :status, Visible::VALID_STATUSES, selected: 'public' %>
 </p>
 ```
 
@@ -1944,22 +1953,24 @@ So first, let's add the delete link in the
 `app/views/comments/_comment.html.erb` partial:
 
 ```html+erb
-<p>
-  <strong>Commenter:</strong>
-  <%= comment.commenter %>
-</p>
+<% unless comment.archived? %>
+  <p>
+    <strong>Commenter:</strong>
+    <%= comment.commenter %>
+  </p>
 
-<p>
-  <strong>Comment:</strong>
-  <%= comment.body %>
-</p>
+  <p>
+    <strong>Comment:</strong>
+    <%= comment.body %>
+  </p>
 
-<p>
-  <%= link_to "Destroy Comment", [comment.article, comment], data: {
-                turbo_method: :delete,
-                turbo_confirm: "Are you sure?"
-              } %>
-</p>
+  <p>
+    <%= link_to "Destroy Comment", [comment.article, comment], data: {
+                  turbo_method: :delete,
+                  turbo_confirm: "Are you sure?"
+                } %>
+  </p>
+<% end %>
 ```
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE
@@ -2034,7 +2045,6 @@ so we write that:
 
 ```ruby
 class ArticlesController < ApplicationController
-
   http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   def index
@@ -2042,6 +2052,7 @@ class ArticlesController < ApplicationController
   end
 
   # snippet for brevity
+end
 ```
 
 We also want to allow only authenticated users to delete comments, so in the
@@ -2049,7 +2060,6 @@ We also want to allow only authenticated users to delete comments, so in the
 
 ```ruby
 class CommentsController < ApplicationController
-
   http_basic_authenticate_with name: "dhh", password: "secret", only: :destroy
 
   def create
@@ -2058,6 +2068,7 @@ class CommentsController < ApplicationController
   end
 
   # snippet for brevity
+end
 ```
 
 Now if you try to create a new article, you will be greeted with a basic HTTP

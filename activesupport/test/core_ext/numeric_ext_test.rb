@@ -114,6 +114,7 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
     assert_equal 1.kilobyte**5, 1.petabyte
     assert_equal 1.kilobyte**6, 1.exabyte
+    assert_equal 1.kilobyte**7, 1.zettabyte
   end
 
   def test_units_as_bytes_independently
@@ -129,6 +130,8 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 3377699720527872, 3.petabyte
     assert_equal 3458764513820540928, 3.exabytes
     assert_equal 3458764513820540928, 3.exabyte
+    assert_equal 3541774862152233910272, 3.zettabytes
+    assert_equal 3541774862152233910272, 3.zettabyte
   end
 end
 
@@ -157,10 +160,11 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     petabytes(number) * 1024
   end
 
+  def zettabytes(number)
+    exabytes(number) * 1024
+  end
+
   def test_to_fs__phone
-    assert_deprecated do
-      assert_equal("555-1234", 5551234.to_s(:phone))
-    end
     assert_equal("555-1234", 5551234.to_fs(:phone))
     assert_equal("555-1234", 5551234.to_formatted_s(:phone))
     assert_equal("800-555-1212", 8005551212.to_fs(:phone))
@@ -176,9 +180,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__currency
-    assert_deprecated do
-      assert_equal("$1,234,567,890.50", 1234567890.50.to_s(:currency))
-    end
     assert_equal("$1,234,567,890.50", 1234567890.50.to_fs(:currency))
     assert_equal("$1,234,567,890.50", 1234567890.50.to_formatted_s(:currency))
     assert_equal("$1,234,567,890.51", 1234567890.506.to_fs(:currency))
@@ -192,9 +193,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__rounded
-    assert_deprecated do
-      assert_equal("-111.235", -111.2346.to_s(:rounded))
-    end
     assert_equal("-111.235", -111.2346.to_fs(:rounded))
     assert_equal("-111.235", -111.2346.to_formatted_s(:rounded))
     assert_equal("111.235", 111.2346.to_fs(:rounded))
@@ -255,9 +253,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__percentage
-    assert_deprecated do
-      assert_equal("100.000%", 100.to_s(:percentage))
-    end
     assert_equal("100.000%", 100.to_fs(:percentage))
     assert_equal("100.000%", 100.to_formatted_s(:percentage))
     assert_equal("100%", 100.to_fs(:percentage, precision: 0))
@@ -269,9 +264,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__delimited
-    assert_deprecated do
-      assert_equal("12,345,678", 12345678.to_s(:delimited))
-    end
     assert_equal("12,345,678", 12345678.to_fs(:delimited))
     assert_equal("12,345,678", 12345678.to_formatted_s(:delimited))
     assert_equal("0", 0.to_fs(:delimited))
@@ -292,9 +284,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__human_size
-    assert_deprecated do
-      assert_equal "0 Bytes",   0.to_s(:human_size)
-    end
     assert_equal "0 Bytes",   0.to_fs(:human_size)
     assert_equal "1 Byte",    1.to_fs(:human_size)
     assert_equal "3 Bytes",   3.14159265.to_fs(:human_size)
@@ -307,7 +296,8 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "1.12 TB",   1234567890123.to_fs(:human_size)
     assert_equal "1.1 PB",    1234567890123456.to_fs(:human_size)
     assert_equal "1.07 EB",   1234567890123456789.to_fs(:human_size)
-    assert_equal "1030 EB",   exabytes(1026).to_fs(:human_size)
+    assert_equal "1020 EB",   exabytes(1023).to_fs(:human_size)
+    assert_equal "16 ZB",     zettabytes(16).to_fs(:human_size)
     assert_equal "444 KB",    kilobytes(444).to_fs(:human_size)
     assert_equal "1020 MB",   megabytes(1023).to_fs(:human_size)
     assert_equal "3 TB",      terabytes(3).to_fs(:human_size)
@@ -318,6 +308,16 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "10 KB",     kilobytes(10.000).to_fs(:human_size, precision: 4)
     assert_equal "1 Byte",    1.1.to_fs(:human_size)
     assert_equal "10 Bytes",  10.to_fs(:human_size)
+  end
+
+  def test_to_fs__human_size_with_negative_number
+    assert_equal "-1 Bytes",   -1.to_fs(:human_size)
+    assert_equal "-3 Bytes",   -3.14159265.to_fs(:human_size)
+    assert_equal "-123 Bytes", -123.to_fs(:human_size)
+    assert_equal "-12.1 KB",   -12345.to_fs(:human_size)
+    assert_equal "-444 KB",    kilobytes(-444).to_fs(:human_size)
+    assert_equal "-1.12 TB",   -1234567890123.to_fs(:human_size)
+    assert_equal "-1.01 KB",   kilobytes(-1.0100).to_fs(:human_size, precision: 4)
   end
 
   def test_to_fs__human_size_with_options_hash
@@ -344,9 +344,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_number_to_human
-    assert_deprecated do
-      assert_equal "-123", -123.to_s(:human)
-    end
     assert_equal "-123", -123.to_fs(:human)
     assert_equal "-123", -123.to_formatted_s(:human)
     assert_equal "-0.5", -0.5.to_fs(:human)
@@ -416,9 +413,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs_with_invalid_formatter
-    assert_deprecated do
-      assert_equal "123", 123.to_s(:invalid)
-    end
     assert_equal "123", 123.to_fs(:invalid)
     assert_equal "123", 123.to_formatted_s(:invalid)
     assert_equal "2.5", 2.5.to_fs(:invalid)
@@ -443,8 +437,9 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
     assert_equal "1000010.0", BigDecimal("1000010").to_s
     assert_equal "1000010.0", BigDecimal("1000010").to_fs
-    assert_equal "10000 10.0", BigDecimal("1000010").to_s("5F")
-    assert_equal "10000 10.0", BigDecimal("1000010").to_fs("5F")
+
+    assert_equal "0.10000 1", BigDecimal("0.100001").to_s("5F")
+    assert_equal "0.10000 1", BigDecimal("0.100001").to_fs("5F")
 
     assert_raises TypeError do
       1.to_s({})

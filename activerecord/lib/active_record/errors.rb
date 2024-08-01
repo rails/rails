@@ -1,18 +1,15 @@
 # frozen_string_literal: true
 
+require "active_support/deprecation"
+
 module ActiveRecord
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
   # = Active Record Errors
   #
   # Generic Active Record exception class.
   class ActiveRecordError < StandardError
   end
-
-  # DEPRECATED: Previously raised when trying to use a feature in Active Record which
-  # requires Active Job but the gem is not present. Now raises a NameError.
-  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-  DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
-  deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
-    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead."
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
@@ -54,16 +51,50 @@ module ActiveRecord
   class AdapterNotFound < ActiveRecordError
   end
 
+  # Superclass for all errors raised from an Active Record adapter.
+  class AdapterError < ActiveRecordError
+    def initialize(message = nil, connection_pool: nil)
+      @connection_pool = connection_pool
+      super(message)
+    end
+
+    attr_reader :connection_pool
+  end
+
   # Raised when connection to the database could not been established (for example when
-  # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
+  # {ActiveRecord::Base.lease_connection=}[rdoc-ref:ConnectionHandling#lease_connection]
   # is given a +nil+ object).
-  class ConnectionNotEstablished < ActiveRecordError
+  class ConnectionNotEstablished < AdapterError
+    def initialize(message = nil, connection_pool: nil)
+      super(message, connection_pool: connection_pool)
+    end
+
+    def set_pool(connection_pool)
+      unless @connection_pool
+        @connection_pool = connection_pool
+      end
+
+      self
+    end
   end
 
   # Raised when a connection could not be obtained within the connection
   # acquisition timeout period: because max connections in pool
   # are in use.
   class ConnectionTimeoutError < ConnectionNotEstablished
+  end
+
+  # Raised when a database connection pool is requested but
+  # has not been defined.
+  class ConnectionNotDefined < ConnectionNotEstablished
+    def initialize(message = nil, connection_name: nil, role: nil, shard: nil)
+      super(message)
+      @connection_name = connection_name
+      @role = role
+      @shard = shard
+    end
+
+    attr_reader :connection_name, :role, :shard
   end
 
   # Raised when connection to the database could not been established because it was not
@@ -93,7 +124,7 @@ module ActiveRecord
   # Raised when a pool was unable to get ahold of all its connections
   # to perform a "group" action such as
   # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
-  # or {ActiveRecord::Base.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
+  # or {ActiveRecord::Base.connection_handler.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
   class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
@@ -115,8 +146,18 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
-  # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
-  # methods when a record is invalid and cannot be saved.
+  # {ActiveRecord::Base.update_attribute!}[rdoc-ref:Persistence#update_attribute!]
+  # methods when a record failed to validate or cannot be saved due to any of the
+  # <tt>before_*</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details.
+  #
+  #   class Product < ActiveRecord::Base
+  #     before_save do
+  #       throw :abort if price < 0
+  #     end
+  #   end
+  #
+  #   Product.create! # => raises an ActiveRecord::RecordNotSaved
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
@@ -127,15 +168,17 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#destroy!}[rdoc-ref:Persistence#destroy!]
-  # when a call to {#destroy}[rdoc-ref:Persistence#destroy]
-  # would return false.
+  # when a record cannot be destroyed due to any of the
+  # <tt>before_destroy</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details.
   #
-  #   begin
-  #     complex_operation_that_internally_calls_destroy!
-  #   rescue ActiveRecord::RecordNotDestroyed => invalid
-  #     puts invalid.record.errors
+  #   class User < ActiveRecord::Base
+  #     before_destroy do
+  #       throw :abort if still_active?
+  #     end
   #   end
   #
+  #   User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
   class RecordNotDestroyed < ActiveRecordError
     attr_reader :record
 
@@ -158,14 +201,23 @@ module ActiveRecord
   # Superclass for all database execution errors.
   #
   # Wraps the underlying database error as +cause+.
-  class StatementInvalid < ActiveRecordError
-    def initialize(message = nil, sql: nil, binds: nil)
-      super(message || $!&.message)
+  class StatementInvalid < AdapterError
+    def initialize(message = nil, sql: nil, binds: nil, connection_pool: nil)
+      super(message || $!&.message, connection_pool: connection_pool)
       @sql = sql
       @binds = binds
     end
 
     attr_reader :sql, :binds
+
+    def set_query(sql, binds)
+      unless @sql
+        @sql = sql
+        @binds = binds
+      end
+
+      self
+    end
   end
 
   # Defunct wrapper class kept for compatibility.
@@ -192,8 +244,13 @@ module ActiveRecord
       foreign_key: nil,
       target_table: nil,
       primary_key: nil,
-      primary_key_column: nil
+      primary_key_column: nil,
+      query_parser: nil,
+      connection_pool: nil
     )
+      @original_message = message
+      @query_parser = query_parser
+
       if table
         type = primary_key_column.bigint? ? :bigint : primary_key_column.type
         msg = <<~EOM.squish
@@ -211,7 +268,24 @@ module ActiveRecord
       if message
         msg << "\nOriginal message: #{message}"
       end
-      super(msg, sql: sql, binds: binds)
+
+      super(msg, sql: sql, binds: binds, connection_pool: connection_pool)
+    end
+
+    def set_query(sql, binds)
+      if @query_parser && !@sql
+        self.class.new(
+          message: @original_message,
+          sql: sql,
+          binds: binds,
+          connection_pool: @connection_pool,
+          **@query_parser.call(sql)
+        ).tap do |exception|
+          exception.set_backtrace backtrace
+        end
+      else
+        super
+      end
     end
   end
 
@@ -225,6 +299,19 @@ module ActiveRecord
 
   # Raised when values that executed are out of range.
   class RangeError < StatementInvalid
+  end
+
+  # Raised when a statement produces an SQL warning.
+  class SQLWarning < AdapterError
+    attr_reader :code, :level
+    attr_accessor :sql
+
+    def initialize(message = nil, code = nil, level = nil, sql = nil, connection_pool = nil)
+      super(message, connection_pool: connection_pool)
+      @code = code
+      @level = level
+      @sql = sql
+    end
   end
 
   # Raised when the number of placeholders in an SQL fragment passed to
@@ -245,21 +332,22 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.create_current
     end
 
-    def initialize(message = nil)
-      super(message || "Database not found")
+    def initialize(message = nil, connection_pool: nil)
+      super(message || "Database not found", connection_pool: connection_pool)
     end
 
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Which can be found in the database configuration file located at config/database.yml.
+          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml.
 
-          To resolve this issue:
+          To resolve this error:
 
-          - Did you create the database for this app, or delete it? You may need to create your database.
-          - Has the database name changed? Check your database.yml config has the correct database name.
+          - Did you not create the database, or did you delete it? To create the database, run:
 
-          To create your database, run:\n\n        bin/rails db:create
+              bin/rails db:create
+
+          - Has the database name changed? Verify that config/database.yml contains the correct database name.
         MSG
       end
     end
@@ -307,6 +395,12 @@ module ActiveRecord
   end
 
   # Raised on attempt to lazily load records that are marked as strict loading.
+  #
+  # You can resolve this error by eager loading marked records before accessing
+  # them. The
+  # {Eager Loading Associations}[https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations]
+  # guide covers solutions, such as using
+  # {ActiveRecord::Base.includes}[rdoc-ref:QueryMethods#includes].
   class StrictLoadingViolationError < ActiveRecordError
   end
 
@@ -399,9 +493,9 @@ module ActiveRecord
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.
-  #   relation.where!(title: 'TODO')  # => ActiveRecord::ImmutableRelation
-  #   relation.limit!(5)              # => ActiveRecord::ImmutableRelation
-  class ImmutableRelation < ActiveRecordError
+  #   relation.where!(title: 'TODO')  # => ActiveRecord::UnmodifiableRelation
+  #   relation.limit!(5)              # => ActiveRecord::UnmodifiableRelation
+  class UnmodifiableRelation < ActiveRecordError
   end
 
   # TransactionIsolationError will be raised under the following conditions:
@@ -410,12 +504,25 @@ module ActiveRecord
   # * You are joining an existing open transaction
   # * You are creating a nested (savepoint) transaction
   #
-  # The mysql2 and postgresql adapters support setting the transaction isolation level.
+  # The mysql2, trilogy, and postgresql adapters support setting the transaction isolation level.
   class TransactionIsolationError < ActiveRecordError
   end
 
   # TransactionRollbackError will be raised when a transaction is rolled
   # back by the database due to a serialization failure or a deadlock.
+  #
+  # These exceptions should not be generally rescued in nested transaction
+  # blocks, because they have side-effects in the actual enclosing transaction
+  # and internal Active Record state. They can be rescued if you are above the
+  # root transaction block, though.
+  #
+  # In that case, beware of transactional tests, however, because they run test
+  # cases in their own umbrella transaction. If you absolutely need to handle
+  # these exceptions in tests please consider disabling transactional tests in
+  # the affected test class (<tt>self.use_transactional_tests = false</tt>).
+  #
+  # Due to the aforementioned side-effects, this exception should not be raised
+  # manually by users.
   #
   # See the following:
   #
@@ -431,11 +538,17 @@ module ActiveRecord
 
   # SerializationFailure will be raised when a transaction is rolled
   # back by the database due to a serialization failure.
+  #
+  # This is a subclass of TransactionRollbackError, please make sure to check
+  # its documentation to be aware of its caveats.
   class SerializationFailure < TransactionRollbackError
   end
 
   # Deadlocked will be raised when a transaction is rolled
   # back by the database when a deadlock is encountered.
+  #
+  # This is a subclass of TransactionRollbackError, please make sure to check
+  # its documentation to be aware of its caveats.
   class Deadlocked < TransactionRollbackError
   end
 
@@ -464,6 +577,11 @@ module ActiveRecord
   class AdapterTimeout < QueryAborted
   end
 
+  # ConnectionFailed will be raised when the network connection to the
+  # database fails while sending a query or waiting for its result.
+  class ConnectionFailed < QueryAborted
+  end
+
   # UnknownAttributeReference is raised when an unknown and potentially unsafe
   # value is passed to a query method. For example, passing a non column name
   # value to a relation's #order method might cause this exception.
@@ -486,4 +604,11 @@ module ActiveRecord
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end
+
+  # DatabaseVersionError will be raised when the database version is not supported, or when
+  # the database version cannot be determined.
+  class DatabaseVersionError < ActiveRecordError
+  end
 end
+
+require "active_record/associations/errors"

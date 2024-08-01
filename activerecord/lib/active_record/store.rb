@@ -3,6 +3,8 @@
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
+  # = Active Record \Store
+  #
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
   # It's like a simple key/value store baked into your record when you don't care about being able to
   # query that store outside the context of a single record.
@@ -70,7 +72,7 @@ module ActiveRecord
   #
   # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
   #
-  #   User.stored_attributes[:settings] # [:color, :homepage, :two_factor_auth, :login_retry]
+  #   User.stored_attributes[:settings] # => [:color, :homepage, :two_factor_auth, :login_retry]
   #
   # == Overwriting default accessors
   #
@@ -102,7 +104,8 @@ module ActiveRecord
 
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
+        coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
+        serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
         store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
@@ -160,19 +163,19 @@ module ActiveRecord
 
             define_method("saved_change_to_#{accessor_key}?") do
               return false unless saved_change_to_attribute?(store_attribute)
-              prev_store, new_store = saved_change_to_attribute(store_attribute)
+              prev_store, new_store = saved_changes[store_attribute]
               prev_store&.dig(key) != new_store&.dig(key)
             end
 
             define_method("saved_change_to_#{accessor_key}") do
               return unless saved_change_to_attribute?(store_attribute)
-              prev_store, new_store = saved_change_to_attribute(store_attribute)
+              prev_store, new_store = saved_changes[store_attribute]
               [prev_store&.dig(key), new_store&.dig(key)]
             end
 
             define_method("#{accessor_key}_before_last_save") do
               return unless saved_change_to_attribute?(store_attribute)
-              prev_store, _new_store = saved_change_to_attribute(store_attribute)
+              prev_store, _new_store = saved_changes[store_attribute]
               prev_store&.dig(key)
             end
           end
@@ -214,7 +217,11 @@ module ActiveRecord
       end
 
       def store_accessor_for(store_attribute)
-        type_for_attribute(store_attribute).accessor
+        type_for_attribute(store_attribute).tap do |type|
+          unless type.respond_to?(:accessor)
+            raise ConfigurationError, "the column '#{store_attribute}' has not been configured as a store. Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your database supports it, use a structured column type like hstore or json."
+          end
+        end.accessor
       end
 
       class HashAccessor # :nodoc:
@@ -225,10 +232,7 @@ module ActiveRecord
 
         def self.write(object, attribute, key, value)
           prepare(object, attribute)
-          if value != read(object, attribute, key)
-            object.public_send :"#{attribute}_will_change!"
-            object.public_send(attribute)[key] = value
-          end
+          object.public_send(attribute)[key] = value if value != read(object, attribute, key)
         end
 
         def self.prepare(object, attribute)
@@ -288,14 +292,7 @@ module ActiveRecord
 
         private
           def as_regular_hash(obj)
-            case obj
-            when ActiveSupport::HashWithIndifferentAccess
-              obj.to_h
-            when Hash
-              obj
-            else
-              {}
-            end
+            obj.respond_to?(:to_hash) ? obj.to_hash : {}
           end
       end
   end

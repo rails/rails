@@ -16,11 +16,12 @@ module Arel
         node_descendants.delete(Arel::Nodes::NodeExpression)
 
         bad_node_descendants = node_descendants.reject do |subnode|
-          eqeq_owner = subnode.instance_method(:==).owner
+          eqeq_method = subnode.instance_method(:==)
+          eqeq_owner = eqeq_method.owner
           eql_owner = subnode.instance_method(:eql?).owner
           hash_owner = subnode.instance_method(:hash).owner
 
-          eqeq_owner < Arel::Nodes::Node &&
+          eqeq_method.super_method && # Not using the ruby default #== method
               eqeq_owner == eql_owner &&
               eqeq_owner == hash_owner
         end

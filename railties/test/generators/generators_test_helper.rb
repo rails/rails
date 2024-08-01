@@ -5,6 +5,7 @@ require "active_support/testing/stream"
 require "active_support/testing/method_call_assertions"
 require "rails/generators"
 require "rails/generators/test_case"
+require "rails/generators/app_base"
 
 Rails.application.config.generators.templates = [File.expand_path("../fixtures/lib/templates", __dir__)]
 
@@ -48,6 +49,7 @@ module GeneratorsTestHelper
     ActiveRecord::Base.configurations = {
       test: {
         "#{database_name}": {
+          adapter: "sqlite3",
           database: "db/#{database_name}.sqlite3",
           migrations_paths: "db/#{database_name}_migrate",
         },
@@ -73,6 +75,32 @@ module GeneratorsTestHelper
     File.write File.join(destination, "Gemfile"), gemfile
   end
 
+  def copy_dockerfile
+    dockerfile = File.expand_path("../fixtures/Dockerfile.test", __dir__)
+    dockerfile = evaluate_template_docker(dockerfile)
+    destination = File.join(destination_root)
+    File.write File.join(destination, "Dockerfile"), dockerfile
+  end
+
+  def copy_devcontainer_files
+    destination = File.join(destination_root, ".devcontainer")
+    mkdir_p(destination)
+
+    devcontainer_json = File.read(File.expand_path("../fixtures/.devcontainer/devcontainer.json", __dir__))
+    File.write File.join(destination, "devcontainer.json"), devcontainer_json
+
+    compose_yaml = File.read(File.expand_path("../fixtures/.devcontainer/compose.yaml", __dir__))
+    File.write File.join(destination, "compose.yaml"), compose_yaml
+  end
+
+  def copy_minimal_devcontainer_compose_file
+    destination = File.join(destination_root, ".devcontainer")
+    mkdir_p(destination)
+
+    compose_yaml = File.read(File.expand_path("../fixtures/.devcontainer/compose-minimal.yaml", __dir__))
+    File.write File.join(destination, "compose.yaml"), compose_yaml
+  end
+
   def evaluate_template(file, locals = {})
     erb = ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
     context = Class.new do
@@ -83,15 +111,34 @@ module GeneratorsTestHelper
     erb.result(context.new.instance_eval("binding"))
   end
 
+  def evaluate_template_docker(file)
+    erb = ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
+    erb.result()
+  end
+
+  def assert_compose_file
+    assert_file ".devcontainer/compose.yaml" do |content|
+      yield YAML.load(content)
+    end
+  end
+
+  def assert_devcontainer_json_file
+    assert_file ".devcontainer/devcontainer.json" do |content|
+      yield JSON.load(content)
+    end
+  end
+
   private
     def gemfile_locals
       {
+        gem_ruby_version: RUBY_VERSION,
         rails_prerelease: false,
         skip_active_storage: true,
         depend_on_bootsnap: false,
         depends_on_system_test: false,
         options: ActiveSupport::OrderedOptions.new,
         skip_sprockets: false,
+        bundler_windows_platforms: "windows",
       }
     end
 end

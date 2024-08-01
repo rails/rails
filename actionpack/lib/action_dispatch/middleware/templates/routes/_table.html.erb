@@ -1,11 +1,23 @@
 <% content_for :style do %>
+  h2, p {
+    padding-left: 30px;
+  }
+
   #route_table {
     margin: 0;
     border-collapse: collapse;
+    word-wrap:break-word;
+    table-layout: fixed;
+    width:100%;
   }
 
   #route_table thead tr {
     border-bottom: 2px solid #ddd;
+  }
+
+  #route_table th {
+    padding-left: 30px;
+    text-align: left;
   }
 
   #route_table thead tr.bottom {
@@ -13,12 +25,21 @@
   }
 
   #route_table thead tr.bottom th {
-    padding: 10px 0;
+    padding: 10px 30px;
     line-height: 15px;
   }
 
-  #route_table thead tr.bottom th input#search {
+  #route_table #search_container {
+    padding: 7px 30px;
+  }
+
+  #route_table thead tr th input#search {
     -webkit-appearance: textfield;
+    width:100%;
+  }
+
+  #route_table thead th.http-verb {
+    width: 10%;
   }
 
   #route_table tbody tr {
@@ -45,11 +66,6 @@
     padding: 4px 30px;
   }
 
-  #path_search {
-    width: 80%;
-    font-size: inherit;
-  }
-
   @media (prefers-color-scheme: dark) {
     #route_table tbody tr:nth-child(odd) {
       background: #282828;
@@ -62,28 +78,22 @@
   }
 <% end %>
 
-<table id='route_table' class='route_table'>
+<table id='route_table'>
   <thead>
     <tr>
-      <th>Helper</th>
-      <th>HTTP Verb</th>
-      <th>Path</th>
-      <th>Controller#Action</th>
-    </tr>
-    <tr class='bottom'>
-      <th><%# Helper %>
-        <%= link_to "Path", "#", 'data-route-helper' => '_path',
+      <th>Helper
+        (<%= link_to "Path", "#", 'data-route-helper' => '_path',
                     title: "Returns a relative path (without the http or domain)" %> /
         <%= link_to "Url", "#", 'data-route-helper' => '_url',
-                    title: "Returns an absolute URL (with the http and domain)"   %>
+                    title: "Returns an absolute URL (with the http and domain)"   %>)
       </th>
-      <th><%# HTTP Verb %>
-      </th>
-      <th><%# Path %>
-        <%= search_field(:path, nil, id: 'search', placeholder: "Path Match") %>
-      </th>
-      <th><%# Controller#action %>
-      </th>
+      <th class="http-verb">HTTP Verb</th>
+      <th>Path</th>
+      <th>Controller#Action</th>
+      <th>Source Location</th>
+    </tr>
+    <tr>
+      <th colspan="5" id="search_container"><%= search_field(:query, nil, id: 'search', placeholder: "Search") %></th>
     </tr>
   </thead>
   <tbody class='exact_matches' id='exact_matches'>
@@ -99,12 +109,12 @@
   // support forEach iterator on NodeList
   NodeList.prototype.forEach = Array.prototype.forEach;
 
-  // Enables path search functionality
-  function setupMatchPaths() {
+  // Enables query search functionality
+  function setupMatchingRoutes() {
     // Check if there are any matched results in a section
-    function checkNoMatch(section, noMatchText) {
+    function checkNoMatch(section, trElement) {
       if (section.children.length <= 1) {
-        section.innerHTML += noMatchText;
+        section.appendChild(trElement);
       }
     }
 
@@ -128,8 +138,8 @@
     }
 
     // remove params or fragments
-    function sanitizePath(path) {
-      return path.replace(/[#?].*/, '');
+    function sanitizeQuery(query) {
+      return query.replace(/[#?].*/, '');
     }
 
     var pathElements = document.querySelectorAll('#route_table [data-route-path]'),
@@ -145,26 +155,34 @@
       }
     }
 
+    function buildTr(string) {
+      var tr = document.createElement('tr');
+      var th = document.createElement('th');
+      th.setAttribute('colspan', 5);
+      tr.appendChild(th);
+      th.innerText = string;
+      return tr;
+    }
+
     // On key press perform a search for matching paths
     delayedKeyup(searchElem, function() {
-      var path = sanitizePath(searchElem.value),
-          defaultExactMatch = '<tr><th colspan="4">Paths Matching (' + path +'):</th></tr>',
-          defaultFuzzyMatch = '<tr><th colspan="4">Paths Containing (' + path +'):</th></tr>',
-          noExactMatch      = '<tr><th colspan="4">No Exact Matches Found</th></tr>',
-          noFuzzyMatch      = '<tr><th colspan="4">No Fuzzy Matches Found</th></tr>';
+      var query = sanitizeQuery(searchElem.value),
+          defaultExactMatch = buildTr("Routes matching '" + query + "':"),
+          defaultFuzzyMatch = buildTr("Routes containing '" + query + "':"),
+          noExactMatch      = buildTr('No exact matches found'),
+          noFuzzyMatch      = buildTr('No fuzzy matches found');
 
-      if (!path)
+      if (!query)
         return searchElem.onblur();
 
-      getJSON('/rails/info/routes?path=' + path, function(matches){
+      getJSON('/rails/info/routes?query=' + query, function(matches){
         // Clear out results section
-        exactSection.innerHTML = defaultExactMatch;
-        fuzzySection.innerHTML = defaultFuzzyMatch;
+        exactSection.replaceChildren(defaultExactMatch);
+        fuzzySection.replaceChildren(defaultFuzzyMatch);
 
         // Display exact matches and fuzzy matches
         pathElements.forEach(function(elem) {
           var elemPath = elem.getAttribute('data-route-path');
-
           if (matches['exact'].indexOf(elemPath) != -1)
             exactSection.appendChild(elem.parentNode.cloneNode(true));
 
@@ -206,7 +224,7 @@
     });
   }
 
-  setupMatchPaths();
+  setupMatchingRoutes();
   setupRouteToggleHelperLinks();
 
   // Focus the search input after page has loaded

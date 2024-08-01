@@ -18,16 +18,18 @@ def run_without_aborting(*tasks)
   abort "Errors running #{errors.join(', ')}" if errors.any?
 end
 
-desc "Run mysql2, sqlite, and postgresql tests by default"
+desc "Run mysql2, trilogy, sqlite, and postgresql tests by default"
 task default: :test
 
 task :package
 
-desc "Run mysql2, sqlite, and postgresql tests"
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
+desc "Run mysql2, trilogy, sqlite, and postgresql tests"
 task :test do
   tasks = defined?(JRUBY_VERSION) ?
     %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
-    %w(test_mysql2 test_sqlite3 test_postgresql)
+    %w(test_mysql2 test_trilogy test_sqlite3 test_postgresql)
   run_without_aborting(*tasks)
 end
 
@@ -35,8 +37,16 @@ namespace :test do
   task :isolated do
     tasks = defined?(JRUBY_VERSION) ?
       %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
-      %w(isolated_test_mysql2 isolated_test_sqlite3 isolated_test_postgresql)
+      %w(isolated_test_mysql2 isolated_test_trilogy isolated_test_sqlite3 isolated_test_postgresql)
     run_without_aborting(*tasks)
+  end
+
+  Rake::TestTask.new(:arel) do |t|
+    t.libs << "test"
+    t.test_files = FileList["test/cases/arel/**/*_test.rb"]
+
+    t.warning = true
+    t.verbose = true
   end
 end
 
@@ -48,15 +58,17 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 trilogy postgresql sqlite3 sqlite3_mem ).each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]
       t.libs << "test"
-      t.test_files = (FileList["test/cases/**/*_test.rb"].reject {
+      files = (FileList["test/cases/**/*_test.rb"].reject {
         |x| x.include?("/adapters/") || x.include?("/encryption/performance")
       } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
+      files = files + FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"] if ["mysql2", "trilogy"].include?(adapter)
 
+      t.test_files = files
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -99,13 +111,14 @@ end
 
         # We need to dance around minitest autorun, though.
         require "minitest"
-        Minitest.instance_eval do
-          alias _original_autorun autorun
+        Minitest.singleton_class.class_eval do
+          alias_method :_original_autorun, :autorun
           def autorun
             # no-op
           end
           require "cases/helper"
-          alias autorun _original_autorun
+          alias_method :autorun, :autorun # suppress redefinition warning
+          alias_method :autorun, :_original_autorun
         end
 
         failing_files = []
@@ -196,39 +209,52 @@ end
 
 namespace :db do
   namespace :mysql do
-    connection_arguments = lambda do |connection_name|
-      config = ARTest.config["connections"]["mysql2"][connection_name]
-      ["--user=#{config["username"]}", ("--password=#{config["password"]}" if config["password"]), ("--host=#{config["host"]}" if config["host"]), ("--socket=#{config["socket"]}" if config["socket"])].join(" ")
+    mysql2_config = ARTest.config["connections"]["mysql2"]
+    mysql2_connection_arguments = lambda do |connection_name|
+      mysql2_connection = mysql2_config[connection_name]
+      ["--user=#{mysql2_connection["username"]}", ("--password=#{mysql2_connection["password"]}" if mysql2_connection["password"]), ("--host=#{mysql2_connection["host"]}" if mysql2_connection["host"]), ("--socket=#{mysql2_connection["socket"]}" if mysql2_connection["socket"])].join(" ")
     end
+
+    trilogy_config = ARTest.config["connections"]["trilogy"]
+    trilogy_connection_arguments = lambda do |connection_name|
+      trilogy_connection = trilogy_config[connection_name]
+      ["--user=#{trilogy_connection["username"]}", ("--password=#{trilogy_connection["password"]}" if trilogy_connection["password"]), ("--host=#{trilogy_connection["host"]}" if trilogy_connection["host"]), ("--socket=#{trilogy_connection["socket"]}" if trilogy_connection["socket"])].join(" ")
+    end
+
+    mysql_configs = [mysql2_config, trilogy_config]
 
     desc "Create the MySQL Rails User"
     task :build_user do
       if ENV["MYSQL_CODESPACES"]
-        mysql_command = "sudo mysql -uroot -proot -e"
+        mysql_command = "mysql -uroot -proot -e"
       else
         mysql_command = "mysql -uroot -e"
       end
 
-      config = ARTest.config["connections"]["mysql2"]
-      %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit"]["username"]}'@'localhost';" )
-      %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit2"]["username"]}'@'localhost';" )
-      %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit"]["database"]}.* to '#{config["arunit"]["username"]}'@'localhost'" )
-      %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit2"]["database"]}.* to '#{config["arunit2"]["username"]}'@'localhost'" )
-      %x( #{mysql_command} "GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to '#{config["arunit"]["username"]}'@'localhost';" )
+      mysql_configs.each do |config|
+        %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit"]["username"]}'@'%';" )
+        %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit2"]["username"]}'@'%';" )
+        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit"]["database"]}.* to '#{config["arunit"]["username"]}'@'%'" )
+        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit2"]["database"]}.* to '#{config["arunit2"]["username"]}'@'%'" )
+        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to '#{config["arunit"]["username"]}'@'%';" )
+      end
     end
 
     desc "Build the MySQL test databases"
     task build: ["db:mysql:build_user"] do
-      config = ARTest.config["connections"]["mysql2"]
-      %x( mysql #{connection_arguments["arunit"]} -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
-      %x( mysql #{connection_arguments["arunit2"]} -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      %x( mysql #{mysql2_connection_arguments["arunit"]} -e "create DATABASE IF NOT EXISTS #{mysql2_config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      %x( mysql #{mysql2_connection_arguments["arunit2"]} -e "create DATABASE IF NOT EXISTS #{mysql2_config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      %x( mysql #{trilogy_connection_arguments["arunit"]} -e "create DATABASE IF NOT EXISTS #{trilogy_config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      %x( mysql #{trilogy_connection_arguments["arunit2"]} -e "create DATABASE IF NOT EXISTS #{trilogy_config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
     end
 
     desc "Drop the MySQL test databases"
-    task :drop do
-      config = ARTest.config["connections"]["mysql2"]
-      %x( mysqladmin #{connection_arguments["arunit"]} -f drop #{config["arunit"]["database"]} )
-      %x( mysqladmin #{connection_arguments["arunit2"]} -f drop #{config["arunit2"]["database"]} )
+    task drop: ["db:mysql:build_user"] do
+      %x( mysql #{mysql2_connection_arguments["arunit"]} -e "drop database IF EXISTS #{mysql2_config["arunit"]["database"]}" )
+      %x( mysql #{mysql2_connection_arguments["arunit2"]} -e "drop database IF EXISTS #{mysql2_config["arunit2"]["database"]}" )
+
+      %x( mysql #{trilogy_connection_arguments["arunit"]} -e "drop database IF EXISTS #{trilogy_config["arunit"]["database"]}" )
+      %x( mysql #{trilogy_connection_arguments["arunit2"]} -e "drop database IF EXISTS #{trilogy_config["arunit2"]["database"]}" )
     end
 
     desc "Rebuild the MySQL test databases"
@@ -239,8 +265,8 @@ namespace :db do
     desc "Build the PostgreSQL test databases"
     task :build do
       config = ARTest.config["connections"]["postgresql"]
-      %x( createdb -E UTF8 -T template0 #{config["arunit"]["database"]} )
-      %x( createdb -E UTF8 -T template0 #{config["arunit2"]["database"]} )
+      %x( createdb -E UTF8 -T template0 #{config["arunit"]["database"]} --lc-collate en_US.UTF-8 )
+      %x( createdb -E UTF8 -T template0 #{config["arunit2"]["database"]} --lc-collate en_US.UTF-8 )
     end
 
     desc "Drop the PostgreSQL test databases"

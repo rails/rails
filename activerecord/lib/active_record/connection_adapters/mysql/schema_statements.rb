@@ -8,45 +8,43 @@ module ActiveRecord
         def indexes(table_name)
           indexes = []
           current_index = nil
-          execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
-            each_hash(result) do |row|
-              if current_index != row[:Key_name]
-                next if row[:Key_name] == "PRIMARY" # skip the primary key
-                current_index = row[:Key_name]
+          internal_exec_query("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA").each do |row|
+            if current_index != row["Key_name"]
+              next if row["Key_name"] == "PRIMARY" # skip the primary key
+              current_index = row["Key_name"]
 
-                mysql_index_type = row[:Index_type].downcase.to_sym
-                case mysql_index_type
-                when :fulltext, :spatial
-                  index_type = mysql_index_type
-                when :btree, :hash
-                  index_using = mysql_index_type
-                end
-
-                indexes << [
-                  row[:Table],
-                  row[:Key_name],
-                  row[:Non_unique].to_i == 0,
-                  [],
-                  lengths: {},
-                  orders: {},
-                  type: index_type,
-                  using: index_using,
-                  comment: row[:Index_comment].presence
-                ]
+              mysql_index_type = row["Index_type"].downcase.to_sym
+              case mysql_index_type
+              when :fulltext, :spatial
+                index_type = mysql_index_type
+              when :btree, :hash
+                index_using = mysql_index_type
               end
 
-              if row[:Expression]
-                expression = row[:Expression]
-                expression = +"(#{expression})" unless expression.start_with?("(")
-                indexes.last[-2] << expression
-                indexes.last[-1][:expressions] ||= {}
-                indexes.last[-1][:expressions][expression] = expression
-                indexes.last[-1][:orders][expression] = :desc if row[:Collation] == "D"
-              else
-                indexes.last[-2] << row[:Column_name]
-                indexes.last[-1][:lengths][row[:Column_name]] = row[:Sub_part].to_i if row[:Sub_part]
-                indexes.last[-1][:orders][row[:Column_name]] = :desc if row[:Collation] == "D"
-              end
+              indexes << [
+                row["Table"],
+                row["Key_name"],
+                row["Non_unique"].to_i == 0,
+                [],
+                lengths: {},
+                orders: {},
+                type: index_type,
+                using: index_using,
+                comment: row["Index_comment"].presence
+              ]
+            end
+
+            if expression = row["Expression"]
+              expression = expression.gsub("\\'", "'")
+              expression = +"(#{expression})" unless expression.start_with?("(")
+              indexes.last[-2] << expression
+              indexes.last[-1][:expressions] ||= {}
+              indexes.last[-1][:expressions][expression] = expression
+              indexes.last[-1][:orders][expression] = :desc if row["Collation"] == "D"
+            else
+              indexes.last[-2] << row["Column_name"]
+              indexes.last[-1][:lengths][row["Column_name"]] = row["Sub_part"].to_i if row["Sub_part"]
+              indexes.last[-1][:orders][row["Column_name"]] = :desc if row["Collation"] == "D"
             end
           end
 
@@ -67,6 +65,12 @@ module ActiveRecord
             end
 
             IndexDefinition.new(*index, **options)
+          end
+        rescue StatementInvalid => e
+          if e.message.match?(/Table '.+' doesn't exist/)
+            []
+          else
+            raise
           end
         end
 
@@ -125,6 +129,10 @@ module ActiveRecord
           256 # https://dev.mysql.com/doc/refman/en/identifiers.html
         end
 
+        def schema_creation # :nodoc:
+          MySQL::SchemaCreation.new(self)
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 
@@ -150,8 +158,8 @@ module ActiveRecord
             @default_row_format
           end
 
-          def schema_creation
-            MySQL::SchemaCreation.new(self)
+          def valid_primary_key_options
+            super + [:unsigned]
           end
 
           def create_table_definition(name, **options)
@@ -171,16 +179,17 @@ module ActiveRecord
             end
           end
 
-          def new_column_from_field(table_name, field)
-            field_name = field.fetch(:Field)
-            type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-            default, default_function = field[:Default], nil
+          def new_column_from_field(table_name, field, _definitions)
+            field_name = field.fetch("Field")
+            type_metadata = fetch_type_metadata(field["Type"], field["Extra"])
+            default, default_function = field["Default"], nil
 
             if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
-              default = "#{default} ON UPDATE #{default}" if /on update CURRENT_TIMESTAMP/i.match?(field[:Extra])
+              default = "#{default} ON UPDATE #{default}" if /on update CURRENT_TIMESTAMP/i.match?(field["Extra"])
               default, default_function = nil, default
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")
+              default = default.gsub("\\'", "'")
               default, default_function = nil, default
             elsif type_metadata.type == :text && default&.start_with?("'")
               # strip and unescape quotes
@@ -192,13 +201,13 @@ module ActiveRecord
             end
 
             MySQL::Column.new(
-              field[:Field],
+              field["Field"],
               default,
               type_metadata,
-              field[:Null] == "YES",
+              field["Null"] == "YES",
               default_function,
-              collation: field[:Collation],
-              comment: field[:Comment].presence
+              collation: field["Collation"],
+              comment: field["Comment"].presence
             )
           end
 

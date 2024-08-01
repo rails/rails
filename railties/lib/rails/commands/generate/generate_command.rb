@@ -7,7 +7,7 @@ module Rails
     class GenerateCommand < Base # :nodoc:
       no_commands do
         def help
-          require_application_and_environment!
+          boot_application!
           load_generators
 
           Rails::Generators.help self.class.command_name
@@ -18,7 +18,7 @@ module Rails
         generator = args.shift
         return help unless generator
 
-        require_application_and_environment!
+        boot_application!
         load_generators
 
         ARGV.replace(args) # set up ARGV for third-party libraries

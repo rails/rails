@@ -4,7 +4,7 @@ require "cases/helper"
 
 class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   test "array delimiters are looked up correctly" do

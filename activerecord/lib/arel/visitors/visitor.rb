@@ -16,8 +16,8 @@ module Arel # :nodoc: all
 
         def self.dispatch_cache
           @dispatch_cache ||= Hash.new do |hash, klass|
-            hash[klass] = "visit_#{(klass.name || '').gsub('::', '_')}"
-          end
+            hash[klass] = :"visit_#{(klass.name || "").gsub("::", "_")}"
+          end.compare_by_identity
         end
 
         def get_dispatch_cache

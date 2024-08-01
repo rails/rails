@@ -121,10 +121,8 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
           if /[a-z]/.match?(version)
             npm_tag = " --tag pre"
           else
-            remote_package_version = `npm view @rails/#{framework}@latest version`.chomp
             local_major_version = version.split(".", 4)[0]
-            remote_major_version = remote_package_version.split(".", 4)[0]
-            npm_tag = remote_major_version <= local_major_version ? " --tag latest" : " --tag v#{local_major_version}"
+            npm_tag = " --tag v#{local_major_version}"
           end
 
           sh "npm publish#{npm_tag}#{npm_otp}"
@@ -212,8 +210,8 @@ namespace :all do
     end
 
     # Replace the generated gemfile entry with the exact version.
-    substitute.call("Gemfile", /^gem 'rails.*/, "gem 'rails', '#{version}'")
-    substitute.call("Gemfile", /^# gem 'image_processing/, "gem 'image_processing")
+    substitute.call("Gemfile", /^gem "rails.*/, %{gem "rails", "#{version}"})
+    substitute.call("Gemfile", /^# gem "image_processing/, 'gem "image_processing')
     sh "bundle"
     sh "rails action_mailbox:install"
     sh "rails action_text:install"
@@ -228,8 +226,8 @@ namespace :all do
       end
     CODE
 
-    substitute.call("app/views/users/_form.html.erb", /text_area :description %>\n  <\/div>/, <<~CODE)
-      rich_text_area :description %>\n  </div>
+    substitute.call("app/views/users/_form.html.erb", /textarea :description %>\n  <\/div>/, <<~CODE)
+      rich_textarea :description %>\n  </div>
 
       <div class="field">
         Avatar: <%= form.file_field :avatar %>
@@ -249,8 +247,9 @@ namespace :all do
     # Permit the avatar param.
     substitute.call("app/controllers/users_controller.rb", /:admin/, ":admin, :avatar")
 
-    if ENV["EDITOR"]
-      `#{ENV["EDITOR"]} #{File.expand_path(app_name)}`
+    editor = ENV["VISUAL"] || ENV["EDITOR"]
+    if editor
+      `#{editor} #{File.expand_path(app_name)}`
     end
 
     puts "Booting a Rails server. Verify the release by:"
@@ -314,7 +313,7 @@ module Announcement
     end
 
     def rc?
-      @version =~ /rc/
+      @version.include?("rc")
     end
   end
 end

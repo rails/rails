@@ -8,7 +8,7 @@ module Arel
     describe "the to_sql visitor" do
       before do
         @conn = FakeRecord::Base.new
-        @visitor = ToSql.new @conn.connection
+        @visitor = ToSql.new @conn.lease_connection
         @table = Table.new(:users)
         @attr = @table[:id]
       end
@@ -67,6 +67,62 @@ module Arel
         function = Nodes::NamedFunction.new("omg", [Arel.star])
         sql = compile(function.eq(nil))
         _(sql).must_be_like %{ omg(*) IS NULL }
+      end
+
+      it "should mark collector as non-retryable when visiting named function" do
+        function = Nodes::NamedFunction.new("ABS", [@table])
+        collector = Collectors::SQLString.new
+        @visitor.accept(function, collector)
+
+        assert_equal false, collector.retryable
+      end
+
+      it "should mark collector as non-retryable when visiting SQL literal" do
+        node = Nodes::SqlLiteral.new("COUNT(*)")
+        collector = Collectors::SQLString.new
+        @visitor.accept(node, collector)
+
+        assert_equal false, collector.retryable
+      end
+
+      it "should mark collector as retryable if SQL literal is marked as retryable" do
+        node = Nodes::SqlLiteral.new("COUNT(*)", retryable: true)
+        collector = Collectors::SQLString.new
+        @visitor.accept(node, collector)
+
+        assert collector.retryable
+      end
+
+      it "should mark collector as non-retryable when visiting bound SQL literal" do
+        node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, 2, 3]], {})
+        collector = Collectors::SQLString.new
+        @visitor.accept(node, collector)
+
+        assert_equal false, collector.retryable
+      end
+
+      it "should mark collector as non-retryable when visiting insert statement node" do
+        statement = Arel::Nodes::InsertStatement.new(@table)
+        collector = Collectors::SQLString.new
+        @visitor.accept(statement, collector)
+
+        assert_equal false, collector.retryable
+      end
+
+      it "should mark collector as non-retryable when visiting update statement node" do
+        statement = Arel::Nodes::UpdateStatement.new(@table)
+        collector = Collectors::SQLString.new
+        @visitor.accept(statement, collector)
+
+        assert_equal false, collector.retryable
+      end
+
+      it "should mark collector as non-retryable when visiting delete statement node" do
+        statement = Arel::Nodes::DeleteStatement.new(@table)
+        collector = Collectors::SQLString.new
+        @visitor.accept(statement, collector)
+
+        assert_equal false, collector.retryable
       end
 
       it "should visit built-in functions" do
@@ -305,7 +361,7 @@ module Arel
       end
 
       it "should visit_Arel_Nodes_Or" do
-        node = Nodes::Or.new @attr.eq(10), @attr.eq(11)
+        node = Nodes::Or.new [@attr.eq(10), @attr.eq(11)]
         _(compile(node)).must_be_like %{
           "users"."id" = 10 OR "users"."id" = 11
         }
@@ -464,6 +520,24 @@ module Arel
             "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
           }
         end
+
+        it "is not preparable when an array" do
+          node = @attr.in [1, 2, 3]
+
+          collector = Collectors::SQLString.new.tap { |c| c.preparable = true }
+          @visitor.accept(node, collector)
+          _(collector.preparable).must_equal false
+        end
+
+        it "is preparable when a subselect" do
+          table = Table.new(:users)
+          subquery = table.project(table[:id]).where(table[:name].eq("Aaron"))
+          node = @attr.in subquery
+
+          collector = Collectors::SQLString.new.tap { |c| c.preparable = true }
+          @visitor.accept(node, collector)
+          _(collector.preparable).must_equal true
+        end
       end
 
       describe "Nodes::InfixOperation" do
@@ -561,6 +635,14 @@ module Arel
           node = Nodes::Union.new Arel.sql("topleft"), subnode
           assert_equal("( topleft UNION left UNION right )", compile(node))
         end
+
+        it "encloses SELECT statements with parentheses" do
+          table = Table.new(:users)
+          left = table.where(table[:name].eq(0)).take(1).ast
+          right = table.where(table[:name].eq(1)).take(1).ast
+          node = Nodes::Union.new left, right
+          assert_match(/LIMIT 1\) UNION \(/, compile(node))
+        end
       end
 
       describe "Nodes::UnionAll" do
@@ -571,6 +653,14 @@ module Arel
           subnode = Nodes::UnionAll.new Arel.sql("left"), Arel.sql("right")
           node = Nodes::UnionAll.new Arel.sql("topleft"), subnode
           assert_equal("( topleft UNION ALL left UNION ALL right )", compile(node))
+        end
+
+        it "encloses SELECT statements with parentheses" do
+          table = Table.new(:users)
+          left = table.where(table[:name].eq(0)).take(1).ast
+          right = table.where(table[:name].eq(1)).take(1).ast
+          node = Nodes::UnionAll.new left, right
+          assert_match(/LIMIT 1\) UNION ALL \(/, compile(node))
         end
       end
 
@@ -626,6 +716,24 @@ module Arel
             "users"."id" NOT IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
           }
         end
+
+        it "is not preparable when an array" do
+          node = @attr.not_in [1, 2, 3]
+
+          collector = Collectors::SQLString.new.tap { |c| c.preparable = true }
+          @visitor.accept(node, collector)
+          _(collector.preparable).must_equal false
+        end
+
+        it "is preparable when a subselect" do
+          table = Table.new(:users)
+          subquery = table.project(table[:id]).where(table[:name].eq("Aaron"))
+          node = @attr.not_in subquery
+
+          collector = Collectors::SQLString.new.tap { |c| c.preparable = true }
+          @visitor.accept(node, collector)
+          _(collector.preparable).must_equal true
+        end
       end
 
       describe "Constants" do
@@ -641,6 +749,113 @@ module Arel
           _(compile(test)).must_be_like %{
             FALSE
           }
+        end
+      end
+
+      describe "Nodes::BoundSqlLiteral" do
+        it "works with positional binds" do
+          node = Nodes::BoundSqlLiteral.new("id = ?", [1], {})
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "works with named binds" do
+          node = Nodes::BoundSqlLiteral.new("id = :id", [], { id: 1 })
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "will only consider named binds starting with a letter" do
+          node = Nodes::BoundSqlLiteral.new("id = :0abc", [], { "0abc": 1 })
+          _(compile(node)).must_be_like %{
+            id = :0abc
+          }
+        end
+
+        it "works with array values" do
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, 2, 3]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?, ?)
+          }
+        end
+
+        it "refuses mixed binds" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id = ? AND name = :name", [1], { name: "Aaron" })
+          end
+        end
+
+        it "requires positional binds to match the placeholders" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (?, ?, ?)", [1, 2], {})
+          end
+
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (?, ?, ?)", [1, 2, 3, 4], {})
+          end
+        end
+
+        it "requires all named bind params to be supplied" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (:foo, :bar)", [], { foo: 1 })
+          end
+        end
+
+        it "ignores excess named parameters" do
+          node = Nodes::BoundSqlLiteral.new("id = :id", [], { foo: 2, id: 1, bar: 3 })
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "quotes nested arrays" do
+          # Two cases to exercise all branches.
+          # For real adapters, quoting arrays may fail in adapter-specific ways.
+
+          inner_literal = Nodes::BoundSqlLiteral.new("? * 2", [4], {})
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, [2, 3], inner_literal]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?, ? * 2)
+          }
+
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, [2, 3]]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?)
+          }
+        end
+
+        it "supports other bound literals as binds" do
+          node = Arel.sql("?", [1, 2, Arel.sql("?", 3)])
+          _(compile(node)).must_be_like %{
+            ?, ?, ?
+          }
+        end
+      end
+
+      describe "Table" do
+        it "should compile node names" do
+          test = Table.new(:users).alias("zomgusers")[:id].eq "3"
+          _(compile(test)).must_be_like %{
+            "zomgusers"."id" = '3'
+          }
+        end
+
+        it "should compile literal SQL"  do
+          test = Table.new Arel.sql("generate_series(4, 2)")
+          _(compile(test)).must_be_like %{ generate_series(4, 2) }
+        end
+
+        it "should compile Arel nodes"  do
+          test = Arel::Nodes::NamedFunction.new("generate_series", [4, 2])
+          _(compile(test)).must_be_like %{ generate_series(4, 2) }
+        end
+
+        it "should compile nodes with bind params" do
+          bp = Nodes::BindParam.new(1)
+          test = Arel::Nodes::NamedFunction.new("generate_series", [4, bp])
+          _(compile(test)).must_be_like %{ generate_series(4, ?) }
         end
       end
 
@@ -755,6 +970,19 @@ module Arel
             WITH expr1 AS (SELECT * FROM "bar"), expr2 AS (SELECT * FROM "baz") SELECT * FROM expr2
           }
         end
+
+        it "handles Cte nodes" do
+          cte = Arel::Nodes::Cte.new("expr1", Table.new(:bar).project(Arel.star))
+          manager = Table.new(:foo).
+            project(Arel.star).
+            with(cte).
+            from(cte.to_table).
+            where(cte.to_table[:score].gt(5))
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH "expr1" AS (SELECT * FROM "bar") SELECT * FROM "expr1" WHERE "expr1"."score" > 5
+          }
+        end
       end
 
       describe "Nodes::WithRecursive" do
@@ -766,6 +994,46 @@ module Arel
           _(compile(manager.ast)).must_be_like %{
             WITH RECURSIVE expr1 AS (SELECT * FROM "bar") SELECT * FROM expr1
           }
+        end
+      end
+
+      describe "Nodes::Cte" do
+        it "handles CTEs with no MATERIALIZED modifier" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star))
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS (SELECT * FROM "bar")
+          }
+        end
+
+        it "handles CTEs with a MATERIALIZED modifier" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: true)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS MATERIALIZED (SELECT * FROM "bar")
+          }
+        end
+
+        it "handles CTEs with a NOT MATERIALIZED modifier" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: false)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS NOT MATERIALIZED (SELECT * FROM "bar")
+          }
+        end
+      end
+
+      describe "Nodes::Fragments" do
+        it "joins subexpressions" do
+          sql = Arel.sql("SELECT foo, bar") + Arel.sql(" FROM customers")
+          _(compile(sql)).must_be_like "SELECT foo, bar FROM customers"
+        end
+
+        it "can be built by adding SQL fragments one at a time" do
+          sql = Arel.sql("SELECT foo, bar")
+          sql += Arel.sql("FROM customers")
+          sql += Arel.sql("GROUP BY foo")
+          _(compile(sql)).must_be_like "SELECT foo, bar FROM customers GROUP BY foo"
         end
       end
     end

@@ -1,22 +1,26 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
-  # This middleware guards from DNS rebinding attacks by explicitly permitting
-  # the hosts a request can be sent to, and is passed the options set in
-  # +config.host_authorization+.
+  # # Action Dispatch HostAuthorization
   #
-  # Requests can opt-out of Host Authorization with +exclude+:
+  # This middleware guards from DNS rebinding attacks by explicitly permitting the
+  # hosts a request can be sent to, and is passed the options set in
+  # `config.host_authorization`.
   #
-  #    config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
+  # Requests can opt-out of Host Authorization with `exclude`:
   #
-  # When a request comes to an unauthorized host, the +response_app+
-  # application will be executed and rendered. If no +response_app+ is given, a
-  # default one will run.
-  # The default response app logs blocked host info with level 'error' and
-  # responds with <tt>403 Forbidden</tt>. The body of the response contains debug info
-  # if +config.consider_all_requests_local+ is set to true, otherwise the body is empty.
+  #     config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
+  #
+  # When a request comes to an unauthorized host, the `response_app` application
+  # will be executed and rendered. If no `response_app` is given, a default one
+  # will run. The default response app logs blocked host info with level 'error'
+  # and responds with `403 Forbidden`. The body of the response contains debug
+  # info if `config.consider_all_requests_local` is set to true, otherwise the
+  # body is empty.
   class HostAuthorization
-    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
     PORT_REGEX = /(?::\d+)/ # :nodoc:
     SUBDOMAIN_REGEX = /(?:[a-z0-9-]+\.)/i # :nodoc:
     IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
@@ -43,8 +47,8 @@ module ActionDispatch
             begin
               allowed === extract_hostname(host)
             rescue
-              # IPAddr#=== raises an error if you give it a hostname instead of
-              # IP. Treat similar errors as blocked access.
+              # IPAddr#=== raises an error if you give it a hostname instead of IP. Treat
+              # similar errors as blocked access.
               false
             end
           else
@@ -96,14 +100,14 @@ module ActionDispatch
         def response_body(request)
           return "" unless request.get_header("action_dispatch.show_detailed_exceptions")
 
-          template = DebugView.new(host: request.host)
+          template = DebugView.new(hosts: request.env["action_dispatch.blocked_hosts"])
           template.render(template: "rescues/blocked_host", layout: "rescues/layout")
         end
 
         def response(format, body)
           [RESPONSE_STATUS,
-           { "Content-Type" => "#{format}; charset=#{Response.default_charset}",
-             "Content-Length" => body.bytesize.to_s },
+           { Rack::CONTENT_TYPE => "#{format}; charset=#{Response.default_charset}",
+             Rack::CONTENT_LENGTH => body.bytesize.to_s },
            [body]]
         end
 
@@ -112,7 +116,7 @@ module ActionDispatch
 
           return unless logger
 
-          logger.error("[#{self.class.name}] Blocked host: #{request.host}")
+          logger.error("[#{self.class.name}] Blocked hosts: #{request.env["action_dispatch.blocked_hosts"].join(", ")}")
         end
 
         def available_logger(request)
@@ -132,21 +136,28 @@ module ActionDispatch
       return @app.call(env) if @permissions.empty?
 
       request = Request.new(env)
+      hosts = blocked_hosts(request)
 
-      if authorized?(request) || excluded?(request)
+      if hosts.empty? || excluded?(request)
         mark_as_authorized(request)
         @app.call(env)
       else
+        env["action_dispatch.blocked_hosts"] = hosts
         @response_app.call(env)
       end
     end
 
     private
-      def authorized?(request)
-        origin_host = request.get_header("HTTP_HOST")
-        forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
+      def blocked_hosts(request)
+        hosts = []
 
-        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+        origin_host = request.get_header("HTTP_HOST")
+        hosts << origin_host unless @permissions.allows?(origin_host)
+
+        forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
+        hosts << forwarded_host unless forwarded_host.blank? || @permissions.allows?(forwarded_host)
+
+        hosts
       end
 
       def excluded?(request)

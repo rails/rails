@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/author"
 require "models/book"
+require "models/category"
 require "models/cart"
 require "models/developer"
 require "models/ship"
@@ -19,6 +20,7 @@ class InsertAllTest < ActiveRecord::TestCase
 
   def setup
     Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+    @original_db_warnings_action = :ignore
   end
 
   def teardown
@@ -63,9 +65,11 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_insert_all_should_handle_empty_arrays
-    assert_raise ArgumentError do
-      Book.insert_all! []
-    end
+    skip unless supports_insert_on_duplicate_update?
+
+    assert_empty Book.insert_all([])
+    assert_empty Book.insert_all!([])
+    assert_empty Book.upsert_all([])
   end
 
   def test_insert_all_raises_on_duplicate_records
@@ -123,6 +127,16 @@ class InsertAllTest < ActiveRecord::TestCase
 
     assert_no_difference "Book.count" do
       Book.insert_all [{ id: 1, name: "Agile Web Development with Rails" }]
+    end
+  end
+
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    def test_insert_all_generates_correct_sql
+      skip unless supports_insert_on_duplicate_skip?
+
+      assert_queries_match(/ON DUPLICATE KEY UPDATE/) do
+        Book.insert_all [{ id: 1, name: "Agile Web Development with Rails" }]
+      end
     end
   end
 
@@ -218,6 +232,18 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_and_upsert_all_finds_index_with_inverted_unique_by_columns
+    skip unless supports_insert_conflict_target?
+
+    columns = [:author_id, :name]
+    assert ActiveRecord::Base.lease_connection.index_exists?(:books, columns)
+
+    assert_difference "Book.count", +2 do
+      Book.insert_all [{ name: "Remote", author_id: 1 }], unique_by: columns.reverse
+      Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: columns.reverse
+    end
+  end
+
   def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_provided
     skip unless supports_insert_conflict_target?
 
@@ -264,6 +290,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_insert_all_and_upsert_all_with_aliased_attributes
+    skip unless supports_insert_on_duplicate_update?
+
     if supports_insert_returning?
       assert_difference "Book.count" do
         result = Book.insert_all [{ title: "Remote", author_id: 1 }], returning: :title
@@ -271,15 +299,33 @@ class InsertAllTest < ActiveRecord::TestCase
       end
     end
 
-    if supports_insert_on_duplicate_update?
-      Book.upsert_all [{ id: 101, title: "Perelandra", author_id: 7, isbn: "1974522598" }]
-      Book.upsert_all [{ id: 101, title: "Perelandra 2", author_id: 6, isbn: "111111" }], update_only: %i[ title isbn ]
+    Book.upsert_all [{ id: 101, title: "Perelandra", author_id: 7, isbn: "1974522598" }]
+    Book.upsert_all [{ id: 101, title: "Perelandra 2", author_id: 6, isbn: "111111" }], update_only: %i[ title isbn ]
 
-      book = Book.find(101)
-      assert_equal "Perelandra 2", book.title, "Should have updated the title"
-      assert_equal "111111", book.isbn, "Should have updated the isbn"
-      assert_equal 7, book.author_id, "Should not have updated the author_id"
+    book = Book.find(101)
+    assert_equal "Perelandra 2", book.title, "Should have updated the title"
+    assert_equal "111111", book.isbn, "Should have updated the isbn"
+    assert_equal 7, book.author_id, "Should not have updated the author_id"
+  end
+
+  def test_insert_all_and_upsert_all_with_sti
+    skip unless supports_insert_on_duplicate_update?
+
+    assert_difference -> { Category.count }, 2 do
+      SpecialCategory.insert_all [{ name: "First" }, { name: "Second", type: nil }]
     end
+
+    first, second = Category.last(2)
+    assert_equal "SpecialCategory", first.type
+    assert_nil second.type
+
+    SpecialCategory.upsert_all [{ id: 103, name: "First" }, { id: 104, name: "Second", type: nil }]
+
+    category3 = Category.find(103)
+    assert_equal "SpecialCategory", category3.type
+
+    category4 = Category.find(104)
+    assert_nil category4.type
   end
 
   def test_upsert_logs_message_including_model_name
@@ -288,6 +334,24 @@ class InsertAllTest < ActiveRecord::TestCase
     capture_log_output do |output|
       Book.upsert({ name: "Remote", author_id: 1 })
       assert_match "Book Upsert", output.string
+    end
+  end
+
+  unless in_memory_db?
+    def test_upsert_and_db_warnings
+      skip unless supports_insert_on_duplicate_update?
+
+      begin
+        with_db_warnings_action(:raise) do
+          assert_nothing_raised do
+            Book.upsert({ id: 1001, name: "Remote", author_id: 1 })
+          end
+        end
+      ensure
+        # We need to explicitly remove the record, because `with_db_warnings_action`
+        # prevents the wrapping transaction to be rolled back.
+        Book.delete(1001)
+      end
     end
   end
 
@@ -410,8 +474,8 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
     Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
 
-    assert_equal Time.now.year, Book.find(101).updated_at.year
-    assert_equal Time.now.year, Book.find(101).updated_on.year
+    assert_equal Time.now.utc.year, Book.find(101).updated_at.year
+    assert_equal Time.now.utc.year, Book.find(101).updated_on.year
   end
 
   def test_upsert_all_respects_updated_at_precision_when_touched_implicitly
@@ -455,10 +519,10 @@ class InsertAllTest < ActiveRecord::TestCase
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
 
       ship = Ship.find(101)
-      assert_equal Time.new.year, ship.created_at.year
-      assert_equal Time.new.year, ship.created_on.year
-      assert_equal Time.new.year, ship.updated_at.year
-      assert_equal Time.new.year, ship.updated_on.year
+      assert_equal Time.new.utc.year, ship.created_at.year
+      assert_equal Time.new.utc.year, ship.created_on.year
+      assert_equal Time.new.utc.year, ship.updated_at.year
+      assert_equal Time.new.utc.year, ship.updated_on.year
     end
   end
 
@@ -497,10 +561,10 @@ class InsertAllTest < ActiveRecord::TestCase
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: true
 
       ship = Ship.find(101)
-      assert_equal Time.now.year, ship.created_at.year
-      assert_equal Time.now.year, ship.created_on.year
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.created_at.year
+      assert_equal Time.now.utc.year, ship.created_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 
@@ -527,8 +591,8 @@ class InsertAllTest < ActiveRecord::TestCase
       ship = Ship.find(101)
       assert_equal 2016, ship.created_at.year
       assert_equal 2016, ship.created_on.year
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 
@@ -575,8 +639,8 @@ class InsertAllTest < ActiveRecord::TestCase
       ship = Ship.find(101)
       assert_nil ship.created_at
       assert_nil ship.created_on
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 
@@ -704,13 +768,60 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "written", Book.find(2).status
   end
 
+  if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+    def test_upsert_all_updates_using_values_function_on_duplicate_raw_sql
+      skip unless supports_insert_on_duplicate_update?
+
+      b1 = Book.create!(name: "Name")
+      b2 = Book.create!(name: nil)
+
+      Book.upsert_all(
+        [{ id: b1.id, name: "No Name" }, { id: b2.id, name: "No Name" }],
+        on_duplicate: Arel.sql("name = IFNULL(name, values(name))")
+      )
+
+      b1.reload
+      b2.reload
+
+      assert_equal "Name", b1.name
+      assert_equal "No Name", b2.name
+    end
+  end
+
+  def test_upsert_all_updates_using_provided_sql_and_unique_by
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
+
+    book = books(:rfr)
+    assert_equal "proposed", book.status
+
+    Book.upsert_all(
+      [{ name: book.name, author_id: book.author_id }],
+      unique_by: [:name, :author_id],
+      on_duplicate: Arel.sql("status = 2")
+    )
+    assert_equal "published", book.reload.status
+  end
+
   def test_upsert_all_with_unique_by_fails_cleanly_for_adapters_not_supporting_insert_conflict_target
     skip if supports_insert_conflict_target?
 
     error = assert_raises ArgumentError do
       Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
     end
-    assert_match "#{ActiveRecord::Base.connection.class} does not support :unique_by", error.message
+    assert_match "#{ActiveRecord::Base.lease_connection.class} does not support :unique_by", error.message
+  end
+
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    def test_insert_all_when_table_name_contains_database
+      database_name = Book.connection_db_config.database
+      Book.table_name = "#{database_name}.books"
+
+      assert_nothing_raised do
+        Book.insert_all! [{ name: "Rework", author_id: 1 }]
+      end
+    ensure
+      Book.table_name = "books"
+    end
   end
 
   private

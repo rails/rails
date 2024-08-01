@@ -5,7 +5,7 @@ require "active_support/core_ext/module/delegation"
 require "json"
 
 module ActiveSupport
-  # Look for and parse json strings that look like ISO 8601 times.
+  # Look for and parse JSON strings that look like ISO 8601 times.
   mattr_accessor :parse_json_times
 
   module JSON

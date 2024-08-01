@@ -19,7 +19,7 @@ module ActionMailbox
       result = @relayer.relay(file_fixture("welcome.eml").read)
       assert_equal "2.0.0", result.status_code
       assert_equal "Successfully relayed message to ingress", result.message
-      assert result.success?
+      assert_predicate result, :success?
       assert_not result.failure?
 
       assert_requested :post, URL, body: file_fixture("welcome.eml").read,
@@ -34,7 +34,7 @@ module ActionMailbox
       assert_equal "4.7.0", result.status_code
       assert_equal "Invalid credentials for ingress", result.message
       assert_not result.success?
-      assert result.failure?
+      assert_predicate result, :failure?
     end
 
     test "unsuccessfully relaying due to an unspecified server error" do
@@ -44,7 +44,7 @@ module ActionMailbox
       assert_equal "4.0.0", result.status_code
       assert_equal "HTTP 500", result.message
       assert_not result.success?
-      assert result.failure?
+      assert_predicate result, :failure?
     end
 
     test "unsuccessfully relaying due to a gateway timeout" do
@@ -54,7 +54,7 @@ module ActionMailbox
       assert_equal "4.0.0", result.status_code
       assert_equal "HTTP 504", result.message
       assert_not result.success?
-      assert result.failure?
+      assert_predicate result, :failure?
     end
 
     test "unsuccessfully relaying due to ECONNRESET" do
@@ -64,7 +64,7 @@ module ActionMailbox
       assert_equal "4.4.2", result.status_code
       assert_equal "Network error relaying to ingress: Connection reset by peer", result.message
       assert_not result.success?
-      assert result.failure?
+      assert_predicate result, :failure?
     end
 
     test "unsuccessfully relaying due to connection failure" do
@@ -74,7 +74,7 @@ module ActionMailbox
       assert_equal "4.4.2", result.status_code
       assert_equal "Network error relaying to ingress: Failed to open TCP connection to example.com:443", result.message
       assert_not result.success?
-      assert result.failure?
+      assert_predicate result, :failure?
     end
 
     test "unsuccessfully relaying due to client-side timeout" do
@@ -84,7 +84,7 @@ module ActionMailbox
       assert_equal "4.4.2", result.status_code
       assert_equal "Timed out relaying to ingress", result.message
       assert_not result.success?
-      assert result.failure?
+      assert_predicate result, :failure?
     end
 
     test "unsuccessfully relaying due to an unhandled exception" do
@@ -94,7 +94,7 @@ module ActionMailbox
       assert_equal "4.0.0", result.status_code
       assert_equal "Error relaying to ingress: Something went wrong", result.message
       assert_not result.success?
-      assert result.failure?
+      assert_predicate result, :failure?
     end
   end
 end

@@ -6,6 +6,8 @@ task default: :test
 
 task :package
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = FileList["#{__dir__}/test/cases/**/*_test.rb"]

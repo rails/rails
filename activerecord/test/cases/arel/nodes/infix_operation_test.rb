@@ -25,7 +25,7 @@ module Arel
         ordering = operation.desc
         assert_kind_of Descending, ordering
         assert_equal operation, ordering.expr
-        assert ordering.descending?
+        assert_predicate ordering, :descending?
       end
 
       def test_equality_with_same_ivars

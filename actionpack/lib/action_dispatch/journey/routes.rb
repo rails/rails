@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Journey # :nodoc:
-    # The Routing table. Contains all routes for a system. Routes can be
-    # added to the table by calling Routes#add_route.
+    # The Routing table. Contains all routes for a system. Routes can be added to
+    # the table by calling Routes#add_route.
     class Routes # :nodoc:
       include Enumerable
 
       attr_reader :routes, :custom_routes, :anchored_routes
 
-      def initialize
-        @routes             = []
+      def initialize(routes = [])
+        @routes             = routes
         @ast                = nil
         @anchored_routes    = []
         @custom_routes      = []

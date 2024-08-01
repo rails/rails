@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "support/etag_helper"
 
 class TestControllerWithExtraEtags < ActionController::Base
   self.view_paths = [ActionView::FixtureResolver.new(
@@ -176,6 +177,11 @@ class TestController < ActionController::Base
 
   def conditional_hello_with_expires_in_with_stale_if_error
     expires_in 1.minute, public: true, stale_if_error: 5.minutes
+    render action: "hello_world"
+  end
+
+  def conditional_hello_with_expires_in_with_immutable
+    expires_in 1.minute, public: true, immutable: true
     render action: "hello_world"
   end
 
@@ -395,9 +401,7 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_dynamic_render
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      assert_deprecated do
-        get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
-      end
+      get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
     end
   end
 
@@ -442,6 +446,11 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_expires_in_header_with_stale_if_error
     get :conditional_hello_with_expires_in_with_stale_if_error
     assert_equal "max-age=60, public, stale-if-error=300", @response.headers["Cache-Control"]
+  end
+
+  def test_expires_in_header_with_immutable
+    get :conditional_hello_with_expires_in_with_immutable
+    assert_equal "max-age=60, public, immutable", @response.headers["Cache-Control"]
   end
 
   def test_expires_in_header_with_additional_headers
@@ -658,6 +667,7 @@ end
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
   include TemplateModificationHelper
+  include EtagHelper
 
   def test_strong_etag
     @request.if_none_match = strong_etag(["strong", "ab", :cde, [:f]])
@@ -730,15 +740,6 @@ class EtagRenderTest < ActionController::TestCase
       assert_not_equal etag, @response.etag
     end
   end
-
-  private
-    def weak_etag(record)
-      "W/#{strong_etag record}"
-    end
-
-    def strong_etag(record)
-      %("#{ActiveSupport::Digest.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
-    end
 end
 
 class NamespacedEtagRenderTest < ActionController::TestCase
@@ -856,20 +857,20 @@ class HeadRenderTest < ActionController::TestCase
   def test_head_created_with_application_json_content_type
     post :head_created_with_application_json_content_type
     assert_predicate @response.body, :blank?
-    assert_equal "application/json", @response.header["Content-Type"]
+    assert_equal "application/json", @response.headers["Content-Type"]
     assert_response :created
   end
 
   def test_head_ok_with_image_png_content_type
     post :head_ok_with_image_png_content_type
     assert_predicate @response.body, :blank?
-    assert_equal "image/png", @response.header["Content-Type"]
+    assert_equal "image/png", @response.headers["Content-Type"]
     assert_response :ok
   end
 
   def test_head_respect_string_content_type
     get :head_ok_with_string_key_content_type
-    assert_equal "application/pdf", @response.header["Content-Type"]
+    assert_equal "application/pdf", @response.headers["Content-Type"]
   end
 
   def test_head_with_location_header
@@ -884,7 +885,7 @@ class HeadRenderTest < ActionController::TestCase
       set.draw do
         resources :customers
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -969,7 +970,7 @@ class HeadRenderTest < ActionController::TestCase
 
   def test_head_default_content_type
     post :head_default_content_type
-    assert_equal "text/html", @response.header["Content-Type"]
+    assert_equal "text/html", @response.headers["Content-Type"]
   end
 end
 
@@ -1002,6 +1003,7 @@ class LiveHeadRenderTest < ActionController::TestCase
 
     @response.stream.on_error { flunk "action should not raise any errors" }
     sleep 0.2
+    pass
   end
 end
 
@@ -1019,7 +1021,7 @@ class HttpCacheForeverTest < ActionController::TestCase
   def test_cache_with_public
     get :cache_me_forever, params: { public: true }
     assert_response :ok
-    assert_equal "max-age=#{100.years}, public", @response.headers["Cache-Control"]
+    assert_equal "max-age=#{100.years}, public, immutable", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
     assert_predicate @response, :weak_etag?
   end
@@ -1027,7 +1029,7 @@ class HttpCacheForeverTest < ActionController::TestCase
   def test_cache_with_private
     get :cache_me_forever
     assert_response :ok
-    assert_equal "max-age=#{100.years}, private", @response.headers["Cache-Control"]
+    assert_equal "max-age=#{100.years}, private, immutable", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
     assert_predicate @response, :weak_etag?
   end

@@ -12,7 +12,7 @@ module ActiveRecord
     #
     #   message.headers.encrypted_data_key # instead of message.headers[:k]
     #
-    # See +Properties#DEFAULT_PROPERTIES+, +Key+, +Message+
+    # See +Properties::DEFAULT_PROPERTIES+, Key, Message
     class Properties
       ALLOWED_VALUE_CLASSES = [String, ActiveRecord::Encryption::Message, Numeric, Integer, Float, BigDecimal, TrueClass, FalseClass, Symbol, NilClass]
 

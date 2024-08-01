@@ -8,7 +8,7 @@ class FormHelperActiveRecordTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
 
   def form_for(*)
-    @output_buffer = super
+    @rendered = super
   end
 
   def setup
@@ -54,7 +54,7 @@ class FormHelperActiveRecordTest < ActionView::TestCase
           '<input id="developer_projects_attributes_abc_id" name="developer[projects_attributes][abc][id]" type="hidden" value="321" autocomplete="off" />'
     end
 
-    assert_dom_equal expected, output_buffer
+    assert_dom_equal expected, @rendered
   end
 
   private

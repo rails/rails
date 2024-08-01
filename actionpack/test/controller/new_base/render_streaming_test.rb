@@ -44,31 +44,27 @@ module RenderStreaming
   end
 
   class StreamingTest < Rack::TestCase
-    def get(path, headers: { "SERVER_PROTOCOL" => "HTTP/1.1", "HTTP_VERSION" => "HTTP/1.1" })
-      super
-    end
-
     test "rendering with streaming enabled at the class level" do
       get "/render_streaming/basic/hello_world"
-      assert_body "b\r\nHello world\r\nb\r\n, I'm here!\r\n0\r\n\r\n"
+      assert_body "Hello world, I'm here!"
       assert_streaming!
     end
 
     test "rendering with streaming given to render" do
       get "/render_streaming/basic/explicit"
-      assert_body "b\r\nHello world\r\nb\r\n, I'm here!\r\n0\r\n\r\n"
+      assert_body "Hello world, I'm here!"
       assert_streaming!
     end
 
     test "rendering with streaming do not override explicit cache control given to render" do
       get "/render_streaming/basic/explicit_cache"
-      assert_body "b\r\nHello world\r\nb\r\n, I'm here!\r\n0\r\n\r\n"
+      assert_body "Hello world, I'm here!"
       assert_streaming! "private"
     end
 
     test "rendering with streaming no layout" do
       get "/render_streaming/basic/no_layout"
-      assert_body "b\r\nHello world\r\n0\r\n\r\n"
+      assert_body "Hello world"
       assert_streaming!
     end
 
@@ -79,13 +75,13 @@ module RenderStreaming
 
     test "rendering with layout exception" do
       get "/render_streaming/basic/layout_exception"
-      assert_body "d\r\n<body class=\"\r\n37\r\n\"><script>window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
+      assert_body "<body class=\"\"><script>window.location = \"/500.html\"</script></html>"
       assert_streaming!
     end
 
     test "rendering with template exception" do
       get "/render_streaming/basic/template_exception"
-      assert_body "37\r\n\"><script>window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
+      assert_body "\"><script>window.location = \"/500.html\"</script></html>"
       assert_streaming!
     end
 
@@ -102,19 +98,9 @@ module RenderStreaming
       end
     end
 
-    test "do not stream on HTTP/1.0" do
-      get "/render_streaming/basic/hello_world", headers: { "HTTP_VERSION" => "HTTP/1.0" }
-      assert_body "Hello world, I'm here!"
-      assert_status 200
-      assert_equal "22", headers["Content-Length"]
-      assert_nil headers["Transfer-Encoding"]
-    end
-
     def assert_streaming!(cache = "no-cache")
       assert_status 200
-      assert_nil headers["Content-Length"]
-      assert_equal "chunked", headers["Transfer-Encoding"]
-      assert_equal cache, headers["Cache-Control"]
+      assert_equal cache, headers["cache-control"]
     end
   end
 end

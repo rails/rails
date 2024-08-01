@@ -5,11 +5,12 @@ module ActiveRecord
     class BatchEnumerator
       include Enumerable
 
-      def initialize(of: 1000, start: nil, finish: nil, relation:, order: :asc, use_ranges: nil) # :nodoc:
+      def initialize(of: 1000, start: nil, finish: nil, relation:, cursor:, order: :asc, use_ranges: nil) # :nodoc:
         @of       = of
         @relation = relation
         @start = start
         @finish = finish
+        @cursor = cursor
         @order = order
         @use_ranges = use_ranges
       end
@@ -52,7 +53,7 @@ module ActiveRecord
       def each_record(&block)
         return to_enum(:each_record) unless block_given?
 
-        @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true, order: @order).each do |relation|
+        @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true, cursor: @cursor, order: @order).each do |relation|
           relation.records.each(&block)
         end
       end
@@ -77,13 +78,26 @@ module ActiveRecord
         end
       end
 
-      # Destroys records in batches.
+      # Touches records in batches. Returns the total number of rows affected.
+      #
+      #   Person.in_batches.touch_all
+      #
+      # See Relation#touch_all for details of how each batch is touched.
+      def touch_all(...)
+        sum do |relation|
+          relation.touch_all(...)
+        end
+      end
+
+      # Destroys records in batches. Returns the total number of rows affected.
       #
       #   Person.where("age < 10").in_batches.destroy_all
       #
       # See Relation#destroy_all for details of how each batch is destroyed.
       def destroy_all
-        each(&:destroy_all)
+        sum do |relation|
+          relation.destroy_all.count(&:destroyed?)
+        end
       end
 
       # Yields an ActiveRecord::Relation object for each batch of records.
@@ -92,7 +106,7 @@ module ActiveRecord
       #     relation.update_all(awesome: true)
       #   end
       def each(&block)
-        enum = @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false, order: @order, use_ranges: @use_ranges)
+        enum = @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false, cursor: @cursor, order: @order, use_ranges: @use_ranges)
         return enum.each(&block) if block_given?
         enum
       end

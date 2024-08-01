@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -26,7 +26,9 @@
 require "active_support"
 require "active_support/rails"
 require "active_model/version"
+require "active_model/deprecator"
 
+# :include: ../README.rdoc
 module ActiveModel
   extend ActiveSupport::Autoload
 
@@ -60,6 +62,7 @@ module ActiveModel
     autoload :RangeError, "active_model/errors"
     autoload :StrictValidationFailed, "active_model/errors"
     autoload :UnknownAttributeError, "active_model/errors"
+    autoload :ValidationError, "active_model/validations"
   end
 
   module Serializers

@@ -12,54 +12,65 @@ module Rails
       class_option :key, aliases: "-k", type: :string,
         default: "config/master.key", desc: "The Rails.root relative path to the encryption key"
 
-      no_commands do
-        def help
-          say "Usage:\n  #{self.class.banner}"
-          say ""
-          say self.class.desc
-        end
+      desc "edit", "Open the decrypted file in `$VISUAL` or `$EDITOR` for editing"
+      def edit(*)
+        load_environment_config!
+
+        ensure_encryption_key_has_been_added
+        ensure_encrypted_configuration_has_been_added
+
+        change_encrypted_configuration_in_system_editor
       end
 
-      def edit(file_path)
-        require_application!
-        encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
+      desc "show", "Show the decrypted contents of the file"
+      def show(*)
+        load_environment_config!
 
-        ensure_editor_available(command: "bin/rails encrypted:edit") || (return)
-        ensure_encryption_key_has_been_added(options[:key]) if encrypted.key.nil?
-        ensure_encrypted_file_has_been_added(file_path, options[:key])
-
-        catch_editing_exceptions do
-          change_encrypted_file_in_system_editor(file_path, options[:key])
-        end
-
-        say "File encrypted and saved."
-      rescue ActiveSupport::MessageEncryptor::InvalidMessage
-        say "Couldn't decrypt #{file_path}. Perhaps you passed the wrong key?"
-      end
-
-      def show(file_path)
-        require_application!
-        encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
-
-        say encrypted.read.presence || missing_encrypted_message(key: encrypted.key, key_path: options[:key], file_path: file_path)
+        say encrypted_configuration.read.presence || missing_encrypted_configuration_message
       end
 
       private
-        def ensure_encryption_key_has_been_added(key_path)
+        def content_path
+          @content_path ||= args[0]
+        end
+
+        def key_path
+          options[:key]
+        end
+
+        def encrypted_configuration
+          @encrypted_configuration ||= Rails.application.encrypted(content_path, key_path: key_path)
+        end
+
+        def ensure_encryption_key_has_been_added
+          return if encrypted_configuration.key?
           encryption_key_file_generator.add_key_file(key_path)
           encryption_key_file_generator.ignore_key_file(key_path)
         end
 
-        def ensure_encrypted_file_has_been_added(file_path, key_path)
-          encrypted_file_generator.add_encrypted_file_silently(file_path, key_path)
+        def ensure_encrypted_configuration_has_been_added
+          encrypted_file_generator.add_encrypted_file_silently(content_path, key_path)
         end
 
-        def change_encrypted_file_in_system_editor(file_path, key_path)
-          Rails.application.encrypted(file_path, key_path: key_path).change do |tmp_path|
-            system("#{ENV["EDITOR"]} #{tmp_path}")
+        def change_encrypted_configuration_in_system_editor
+          using_system_editor do
+            encrypted_configuration.change { |tmp_path| system_editor(tmp_path) }
+            say "File encrypted and saved."
+            warn_if_encrypted_configuration_is_invalid
           end
+        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+          say error.message
+        rescue ActiveSupport::MessageEncryptor::InvalidMessage
+          say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
         end
 
+        def warn_if_encrypted_configuration_is_invalid
+          encrypted_configuration.validate!
+        rescue ActiveSupport::EncryptedConfiguration::InvalidContentError => error
+          say "WARNING: #{error.message}", :red
+          say ""
+          say "Your application will not be able to load '#{content_path}' until the error has been fixed.", :red
+        end
 
         def encryption_key_file_generator
           require "rails/generators"
@@ -75,11 +86,11 @@ module Rails
           Rails::Generators::EncryptedFileGenerator.new
         end
 
-        def missing_encrypted_message(key:, key_path:, file_path:)
-          if key.nil?
-            "Missing '#{key_path}' to decrypt data. See `bin/rails encrypted:help`"
+        def missing_encrypted_configuration_message
+          if !encrypted_configuration.key?
+            "Missing '#{key_path}' to decrypt data. See `#{executable(:help)}`"
           else
-            "File '#{file_path}' does not exist. Use `bin/rails encrypted:edit #{file_path}` to change that."
+            "File '#{content_path}' does not exist. Use `#{executable(:edit)} #{content_path}` to change that."
           end
         end
     end

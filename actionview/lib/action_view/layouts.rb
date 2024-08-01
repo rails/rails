@@ -4,12 +4,14 @@ require "action_view/rendering"
 require "active_support/core_ext/module/redefine_method"
 
 module ActionView
+  # = Action View \Layouts
+  #
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
   # repeated setups. The inclusion pattern has pages that look like this:
   #
-  #   <%= render "shared/header" %>
+  #   <%= render "application/header" %>
   #   Hello World
-  #   <%= render "shared/footer" %>
+  #   <%= render "application/footer" %>
   #
   # This approach is a decent way of keeping common structures isolated from the changing content, but it's verbose
   # and if you ever want to change the structure of these two includes, you'll have to change all the templates.
@@ -150,7 +152,7 @@ module ActionView
   # The template will be looked always in <tt>app/views/layouts/</tt> folder. But you can point
   # <tt>layouts</tt> folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
   #
-  # Setting the layout to +nil+ forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
+  # Setting the layout to +nil+ forces it to be looked up in the filesystem and falls back to the parent behavior if none exists.
   # Setting it to +nil+ is useful to re-enable template lookup overriding a previous configuration set in the parent:
   #
   #     class ApplicationController < ActionController::Base
@@ -162,7 +164,7 @@ module ActionView
   #     end
   #
   #     class CommentsController < ApplicationController
-  #       # Will search for "comments" layout and fallback "application" layout
+  #       # Will search for "comments" layout and fall back to "application" layout
   #       layout nil
   #     end
   #
@@ -207,12 +209,10 @@ module ActionView
 
     included do
       class_attribute :_layout, instance_accessor: false
-      class_attribute :_layout_conditions, instance_accessor: false, default: {}
+      class_attribute :_layout_conditions, instance_accessor: false, instance_reader: true, default: {}
 
       _write_layout_method
     end
-
-    delegate :_layout_conditions, to: :class
 
     module ClassMethods
       def inherited(klass) # :nodoc:
@@ -428,7 +428,7 @@ module ActionView
     end
 
     def _include_layout?(options)
-      (options.keys & [:body, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
+      !options.keys.intersect?([:body, :plain, :html, :inline, :partial]) || options.key?(:layout)
     end
   end
 end

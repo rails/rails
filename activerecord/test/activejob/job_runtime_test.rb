@@ -8,21 +8,21 @@ class JobRuntimeTest < ActiveSupport::TestCase
     include ActiveRecord::Railties::JobRuntime
 
     def perform(*)
-      ActiveRecord::LogSubscriber.runtime += 42
+      ActiveRecord::RuntimeRegistry.sql_runtime += 42.0
     end
   end
 
   test "job notification payload includes db_runtime" do
-    ActiveRecord::LogSubscriber.runtime = 0
+    ActiveRecord::RuntimeRegistry.sql_runtime = 0.0
 
     assert_equal 42, notification_payload[:db_runtime]
   end
 
   test "db_runtime tracks database runtime for job only" do
-    ActiveRecord::LogSubscriber.runtime = 100
+    ActiveRecord::RuntimeRegistry.sql_runtime = 100.0
 
-    assert_equal 42, notification_payload[:db_runtime]
-    assert_equal 142, ActiveRecord::LogSubscriber.runtime
+    assert_equal 42.0, notification_payload[:db_runtime]
+    assert_equal 142.0, ActiveRecord::RuntimeRegistry.sql_runtime
   end
 
   private

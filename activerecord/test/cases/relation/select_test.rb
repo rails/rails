@@ -13,6 +13,76 @@ module ActiveRecord
       assert_equal expected, Post.select(nil).select(:title).to_sql
     end
 
+    def test_select_with_hash_argument
+      post = Post.select(:title, posts: { title: :post_title }).take
+      assert_not_nil post.title
+      assert_not_nil post.post_title
+      assert_equal post.title, post.post_title
+    end
+
+    def test_select_with_one_level_hash_argument
+      post = Post.select(:title, title: :post_title).take
+      assert_not_nil post.title
+      assert_not_nil post.post_title
+      assert_equal post.title, post.post_title
+    end
+
+    def test_select_with_not_exists_field
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(foo: :post_title).take
+      end
+    end
+
+    def test_select_with_hash_with_not_exists_field
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(posts: { boo: :post_title }).take
+      end
+    end
+
+    def test_select_with_hash_array_value_with_not_exists_field
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(posts: [:bar, :id]).take
+      end
+    end
+
+    def test_select_with_hash_and_table_alias
+      post = Post.joins(:comments, :comments_with_extend)
+        .select(
+          :title,
+          posts: { title: :post_title },
+          comments: { body: :comment_body },
+          comments_with_extend: { body: :comment_body_2 }
+        )
+        .take
+
+      assert_equal post.title, post.post_title
+      assert_not_nil post.comment_body
+      assert_not_nil post.comment_body_2
+    end
+
+    def test_select_with_invalid_nested_field
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(posts: { "UPPER(title)" => :post_title }).take
+      end
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(posts: ["UPPER(title)"]).take
+      end
+    end
+
+    def test_select_with_hash_argument_without_aliases
+      post = Post.select(posts: [:title, :id]).take
+      assert_not_nil post.title
+      assert_not_nil post.id
+    end
+
+    def test_select_with_hash_argument_with_few_tables
+      post = Post.joins(:comments).select(:title, posts: { title: :post_title }, comments: { body: :comment_body }).take
+
+      assert_equal post.title, post.post_title
+      assert_not_nil post.comment_body
+      assert_not_nil post.post_title
+    end
+
     def test_reselect
       expected = Post.select(:title).to_sql
       assert_equal expected, Post.select(:title, :body).reselect(:title).to_sql
@@ -22,6 +92,18 @@ module ActiveRecord
       expected = Post.select(:title).to_sql
       actual   = PostWithDefaultSelect.reselect(:title).to_sql
 
+      assert_equal expected, actual
+    end
+
+    def test_reselect_with_hash_argument
+      expected = Post.select(:title, posts: { title: :post_title }).to_sql
+      actual = Post.select(:title, :body).reselect(:title, posts: { title: :post_title }).to_sql
+      assert_equal expected, actual
+    end
+
+    def test_reselect_with_one_level_hash_argument
+      expected = Post.select(:title, title: :post_title).to_sql
+      actual = Post.select(:title, :body).reselect(:title, title: :post_title).to_sql
       assert_equal expected, actual
     end
 
@@ -35,7 +117,7 @@ module ActiveRecord
 
     def assert_non_select_columns_wont_be_loaded(post)
       assert_equal "WELCOME TO THE WEBLOG", post.title
-      assert_raise(ActiveModel::MissingAttributeError) do
+      assert_raise(ActiveModel::MissingAttributeError, match: /attribute 'body' for Post/) do
         post.body
       end
     end

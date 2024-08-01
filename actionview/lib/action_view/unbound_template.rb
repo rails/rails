@@ -18,21 +18,31 @@ module ActionView
     end
 
     def bind_locals(locals)
-      if template = @templates[locals]
-        template
-      else
+      unless template = @templates[locals]
         @write_lock.synchronize do
           normalized_locals = normalize_locals(locals)
 
           # We need ||=, both to dedup on the normalized locals and to check
           # while holding the lock.
-          @templates[normalized_locals] ||= build_template(normalized_locals)
+          template = (@templates[normalized_locals] ||= build_template(normalized_locals))
 
-          # This may have already been assigned, but we've already de-dup'd so
-          # reassignment is fine.
-          @templates[locals.dup] = @templates[normalized_locals]
+          if template.strict_locals?
+            # Under strict locals, we only need one template.
+            # This replaces the @templates Concurrent::Map with a hash which
+            # returns this template for every key.
+            @templates = Hash.new(template).freeze
+          else
+            # This may have already been assigned, but we've already de-dup'd so
+            # reassignment is fine.
+            @templates[locals.dup] = template
+          end
         end
       end
+      template
+    end
+
+    def built_templates # :nodoc:
+      @templates.values
     end
 
     private

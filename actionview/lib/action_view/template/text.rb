@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView # :nodoc:
-  # = Action View Text Template
   class Template # :nodoc:
+    # = Action View Text Template
     class Text # :nodoc:
       attr_accessor :type
 

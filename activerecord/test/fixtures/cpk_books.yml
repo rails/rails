@@ -1,0 +1,21 @@
+_fixture:
+  model_class: Cpk::Book
+
+cpk_great_author_first_book:
+  author: cpk_great_author
+  title: "The first book"
+  revision: 1
+
+cpk_great_author_second_book:
+  author: cpk_great_author
+  title: "The second book"
+  revision: 1
+
+cpk_famous_author_first_book:
+  author: cpk_famous_author
+  title: "Ruby on Rails"
+  revision: 1
+
+cpk_book_with_generated_pk:
+  title: "Generated author's book"
+  revision: 1

@@ -11,7 +11,7 @@ module TestUnit # :nodoc:
       check_class_collision suffix: "ControllerTest"
 
       class_option :api, type: :boolean,
-                         desc: "Generates API functional tests"
+                         desc: "Generate API functional tests"
 
       class_option :system_tests, type: :string,
                          desc: "Skip system test files"
@@ -39,7 +39,11 @@ module TestUnit # :nodoc:
 
       private
         def attributes_string
-          attributes_hash.map { |k, v| "#{k}: #{v}" }.join(", ")
+          if attributes_hash.empty?
+            "{}"
+          else
+            "{ #{attributes_hash.map { |k, v| "#{k}: #{v}" }.join(", ")} }"
+          end
         end
 
         def attributes_hash
@@ -62,6 +66,16 @@ module TestUnit # :nodoc:
         def virtual?(name)
           attribute = attributes.find { |attr| attr.name == name }
           attribute&.virtual?
+        end
+
+        def datetime?(name)
+          attribute = attributes.find { |attr| attr.name == name }
+          attribute&.type == :datetime
+        end
+
+        def time?(name)
+          attribute = attributes.find { |attr| attr.name == name }
+          attribute&.type == :time
         end
     end
   end

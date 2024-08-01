@@ -2,6 +2,8 @@
 
 module ActiveRecord
   module Associations
+    # = Active Record Collection Proxy
+    #
     # Collection proxies in Active Record are middlemen between an
     # <tt>association</tt>, and its <tt>target</tt> result set.
     #
@@ -94,12 +96,12 @@ module ActiveRecord
       # receive:
       #
       #   person.pets.select(:name).first.person_id
-      #   # => ActiveModel::MissingAttributeError: missing attribute: person_id
+      #   # => ActiveModel::MissingAttributeError: missing attribute 'person_id' for Pet
       #
-      # *Second:* You can pass a block so it can be used just like Array#select.
+      # *Second:* You can pass a block so it can be used just like <tt>Array#select</tt>.
       # This builds an array of objects from the database for the scope,
       # converting them into an array and iterating through them using
-      # Array#select.
+      # <tt>Array#select</tt>.
       #
       #   person.pets.select { |pet| /oo/.match?(pet.name) }
       #   # => [
@@ -108,7 +110,7 @@ module ActiveRecord
       #   #    ]
 
       # Finds an object in the collection responding to the +id+. Uses the same
-      # rules as ActiveRecord::Base.find. Returns ActiveRecord::RecordNotFound
+      # rules as ActiveRecord::FinderMethods.find. Returns ActiveRecord::RecordNotFound
       # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base
@@ -260,7 +262,7 @@ module ActiveRecord
       end
 
       # Gives a record (or N records if a parameter is supplied) from the collection
-      # using the same rules as <tt>ActiveRecord::Base.take</tt>.
+      # using the same rules as ActiveRecord::FinderMethods.take.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -382,7 +384,7 @@ module ActiveRecord
       #   # => [#<Pet id: 2, name: "Puff", group: "celebrities", person_id: 1>]
       #
       # If the supplied array has an incorrect association type, it raises
-      # an <tt>ActiveRecord::AssociationTypeMismatch</tt> error:
+      # an ActiveRecord::AssociationTypeMismatch error:
       #
       #   person.pets.replace(["doo", "ggie", "gaga"])
       #   # => ActiveRecord::AssociationTypeMismatch: Pet expected, got String
@@ -926,11 +928,24 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def proxy_association # :nodoc:
+      # Returns the association object for the collection.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.proxy_association
+      #   # => #<ActiveRecord::Associations::HasManyAssociation owner="#<Person:0x00>">
+      #
+      # Returns the same object as <tt>person.association(:pets)</tt>,
+      # allowing you to make calls like <tt>person.pets.proxy_association.owner</tt>.
+      #
+      # See Associations::ClassMethods@Association+extensions for more.
+      def proxy_association
         @association
       end
 
-      # Returns a <tt>Relation</tt> object for the records in this association
+      # Returns a Relation object for the records in this association
       def scope
         @scope ||= @association.scope
       end
@@ -955,10 +970,13 @@ module ActiveRecord
       #   person.pets == other
       #   # => true
       #
+      #
+      # Note that unpersisted records can still be seen as equal:
+      #
       #   other = [Pet.new(id: 1), Pet.new(id: 2)]
       #
       #   person.pets == other
-      #   # => false
+      #   # => true
       def ==(other)
         load_target == other
       end
@@ -1098,6 +1116,11 @@ module ActiveRecord
       end
 
       def inspect # :nodoc:
+        load_target if find_from_target?
+        super
+      end
+
+      def pretty_print(pp) # :nodoc:
         load_target if find_from_target?
         super
       end

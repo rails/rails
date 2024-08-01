@@ -3,6 +3,11 @@
 require "abstract_unit"
 require "action_view/dependency_tracker"
 
+require "action_view/render_parser/prism_render_parser"
+
+require "ripper"
+require "action_view/render_parser/ripper_render_parser"
+
 class NeckbeardTracker
   def self.call(name, template)
     ["foo/#{name}"]
@@ -55,7 +60,7 @@ class DependencyTrackerTest < ActionView::TestCase
   end
 end
 
-# Tests run with both ERBTracker and RipperTracker
+# Tests run with both ERBTracker and RubyTracker
 module SharedTrackerTests
   def test_dependency_of_erb_template_with_number_in_filename
     template = FakeTemplate.new("<%= render 'messages/message123' %>", :erb)
@@ -125,14 +130,14 @@ module SharedTrackerTests
 
   def test_finds_multiple_unrelated_odd_dependencies
     template = FakeTemplate.new("
-      <%= render('shared/header', title: 'Title') %>
+      <%= render('application/header', title: 'Title') %>
       <h2>Section title</h2>
       <%= render@section %>
     ", :erb)
 
     tracker = make_tracker("multiple/_dependencies", template)
 
-    assert_equal ["shared/header", "sections/section"], tracker.dependencies
+    assert_equal ["application/header", "sections/section"], tracker.dependencies
   end
 
   def test_finds_dependencies_for_all_kinds_of_identifiers
@@ -197,6 +202,18 @@ module SharedTrackerTests
     ], tracker.dependencies
   end
 
+  def test_finds_dependencies_with_bare_assoc_hash_on_constant
+    template = FakeTemplate.new(%{
+      <%= render SomeConstant.message(this: "that") %>
+    }, :erb)
+
+    tracker = make_tracker("assoc_hash/const", template)
+
+    assert_equal [
+      "messages/message",
+    ], tracker.dependencies
+  end
+
   def test_dependencies_with_interpolation
     template = FakeTemplate.new(%q{
       <%= render "double/#{quote}" %>
@@ -208,7 +225,7 @@ module SharedTrackerTests
   end
 end
 
-class ERBTrackerTest < Minitest::Test
+class ERBTrackerTest < ActiveSupport::TestCase
   include SharedTrackerTests
 
   def make_tracker(name, template)
@@ -216,11 +233,9 @@ class ERBTrackerTest < Minitest::Test
   end
 end
 
-class RipperTrackerTest < Minitest::Test
-  include SharedTrackerTests
-
+module RubyTrackerTests
   def make_tracker(name, template)
-    ActionView::DependencyTracker::RipperTracker.new(name, template)
+    ActionView::DependencyTracker::RubyTracker.new(name, template, parser_class: parser_class)
   end
 
   def test_dependencies_skip_unknown_options
@@ -248,5 +263,23 @@ class RipperTrackerTest < Minitest::Test
     tracker = make_tracker("messages/show", template)
 
     assert_equal [], tracker.dependencies
+  end
+end
+
+class RipperRubyTrackerTest < ActiveSupport::TestCase
+  include SharedTrackerTests
+  include RubyTrackerTests
+
+  def parser_class
+    ActionView::RenderParser::RipperRenderParser
+  end
+end
+
+class PrismRubyTrackerTest < ActiveSupport::TestCase
+  include SharedTrackerTests
+  include RubyTrackerTests
+
+  def parser_class
+    ActionView::RenderParser::PrismRenderParser
   end
 end

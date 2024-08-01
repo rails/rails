@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \DateTime \Type
+    #
     # Attribute type to represent dates and times. It is registered under the
     # +:datetime+ key.
     #
@@ -39,10 +41,10 @@ module ActiveModel
     #   end
     class DateTime < Value
       include Helpers::Timezone
-      include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
         defaults: { 4 => 0, 5 => 0 }
       )
+      include Helpers::TimeValue
 
       def type
         :datetime

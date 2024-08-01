@@ -15,6 +15,7 @@ class RailtieTest < ActiveModel::TestCase
     @app ||= Class.new(::Rails::Application) do
       config.eager_load = false
       config.logger = fake_logger
+      config.active_support.cache_format_version = 7.1
     end
   end
 

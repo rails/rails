@@ -1,11 +1,7 @@
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-var activestorage = {exports: {}};
-
-(function (module, exports) {
-(function(global, factory) {
-  factory(exports) ;
-})(commonjsGlobal, (function(exports) {
+(function(factory) {
+  typeof define === "function" && define.amd ? define(factory) : factory();
+})((function() {
+  "use strict";
   var sparkMd5 = {
     exports: {}
   };
@@ -506,7 +502,7 @@ var activestorage = {exports: {}};
     }
   }
   class BlobRecord {
-    constructor(file, checksum, url) {
+    constructor(file, checksum, url, customHeaders = {}) {
       this.file = file;
       this.attributes = {
         filename: file.name,
@@ -520,6 +516,9 @@ var activestorage = {exports: {}};
       this.xhr.setRequestHeader("Content-Type", "application/json");
       this.xhr.setRequestHeader("Accept", "application/json");
       this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      Object.keys(customHeaders).forEach((headerKey => {
+        this.xhr.setRequestHeader(headerKey, customHeaders[headerKey]);
+      }));
       const csrfToken = getMetaValue("csrf-token");
       if (csrfToken != undefined) {
         this.xhr.setRequestHeader("X-CSRF-Token", csrfToken);
@@ -599,11 +598,12 @@ var activestorage = {exports: {}};
   }
   let id = 0;
   class DirectUpload {
-    constructor(file, url, delegate) {
+    constructor(file, url, delegate, customHeaders = {}) {
       this.id = ++id;
       this.file = file;
       this.url = url;
       this.delegate = delegate;
+      this.customHeaders = customHeaders;
     }
     create(callback) {
       FileChecksum.create(this.file, ((error, checksum) => {
@@ -611,7 +611,7 @@ var activestorage = {exports: {}};
           callback(error);
           return;
         }
-        const blob = new BlobRecord(this.file, checksum, this.url);
+        const blob = new BlobRecord(this.file, checksum, this.url, this.customHeaders);
         notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
         blob.create((error => {
           if (error) {
@@ -753,9 +753,9 @@ var activestorage = {exports: {}};
     }
   }
   function didClick(event) {
-    const {target: target} = event;
-    if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
-      submitButtonsByForm.set(target.form, target);
+    const button = event.target.closest("button, input");
+    if (button && button.type === "submit" && button.form) {
+      submitButtonsByForm.set(button.form, button);
     }
   }
   function didSubmitForm(event) {
@@ -818,63 +818,45 @@ var activestorage = {exports: {}};
     }
   }
   setTimeout(autostart, 1);
-  exports.DirectUpload = DirectUpload;
-  exports.start = start;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-}));
-}(activestorage, activestorage.exports));
-
-class AttachmentUpload {
-  constructor(attachment, element) {
-    this.attachment = attachment;
-    this.element = element;
-    this.directUpload = new activestorage.exports.DirectUpload(attachment.file, this.directUploadUrl, this);
-  }
-
-  start() {
-    this.directUpload.create(this.directUploadDidComplete.bind(this));
-  }
-
-  directUploadWillStoreFileWithXHR(xhr) {
-    xhr.upload.addEventListener("progress", event => {
-      const progress = event.loaded / event.total * 100;
-      this.attachment.setUploadProgress(progress);
-    });
-  }
-
-  directUploadDidComplete(error, attributes) {
-    if (error) {
-      throw new Error(`Direct upload failed: ${error}`)
+  class AttachmentUpload {
+    constructor(attachment, element) {
+      this.attachment = attachment;
+      this.element = element;
+      this.directUpload = new DirectUpload(attachment.file, this.directUploadUrl, this);
     }
-
-    this.attachment.setAttributes({
-      sgid: attributes.attachable_sgid,
-      url: this.createBlobUrl(attributes.signed_id, attributes.filename)
-    });
+    start() {
+      this.directUpload.create(this.directUploadDidComplete.bind(this));
+    }
+    directUploadWillStoreFileWithXHR(xhr) {
+      xhr.upload.addEventListener("progress", (event => {
+        const progress = event.loaded / event.total * 100;
+        this.attachment.setUploadProgress(progress);
+      }));
+    }
+    directUploadDidComplete(error, attributes) {
+      if (error) {
+        throw new Error(`Direct upload failed: ${error}`);
+      }
+      this.attachment.setAttributes({
+        sgid: attributes.attachable_sgid,
+        url: this.createBlobUrl(attributes.signed_id, attributes.filename)
+      });
+    }
+    createBlobUrl(signedId, filename) {
+      return this.blobUrlTemplate.replace(":signed_id", signedId).replace(":filename", encodeURIComponent(filename));
+    }
+    get directUploadUrl() {
+      return this.element.dataset.directUploadUrl;
+    }
+    get blobUrlTemplate() {
+      return this.element.dataset.blobUrlTemplate;
+    }
   }
-
-  createBlobUrl(signedId, filename) {
-    return this.blobUrlTemplate
-      .replace(":signed_id", signedId)
-      .replace(":filename", encodeURIComponent(filename))
-  }
-
-  get directUploadUrl() {
-    return this.element.dataset.directUploadUrl
-  }
-
-  get blobUrlTemplate() {
-    return this.element.dataset.blobUrlTemplate
-  }
-}
-
-addEventListener("trix-attachment-add", event => {
-  const { attachment, target } = event;
-
-  if (attachment.file) {
-    const upload = new AttachmentUpload(attachment, target);
-    upload.start();
-  }
-});
+  addEventListener("trix-attachment-add", (event => {
+    const {attachment: attachment, target: target} = event;
+    if (attachment.file) {
+      const upload = new AttachmentUpload(attachment, target);
+      upload.start();
+    }
+  }));
+}));

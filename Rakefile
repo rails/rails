@@ -5,6 +5,7 @@ require "net/http"
 $:.unshift __dir__
 require "tasks/release"
 require "railties/lib/rails/api/task"
+require "tools/preview_docs"
 
 desc "Build gem files for all projects"
 task build: "all:build"
@@ -33,11 +34,24 @@ task default: %w(test test:isolated)
 end
 
 desc "Smoke-test all projects"
-task :smoke do
-  (FRAMEWORKS - %w(activerecord)).each do |project|
-    system %(cd #{project} && #{$0} test:isolated --trace)
+task :smoke, [:frameworks, :isolated] do |task, args|
+  frameworks = args[:frameworks] ? args[:frameworks].split(" ") : FRAMEWORKS
+  # The arguments are positional, and users may want to specify only the isolated flag.. so we allow 'all' as a default for the first argument:
+  if frameworks.include?("all")
+    frameworks = FRAMEWORKS
   end
-  system %(cd activerecord && #{$0} sqlite3:isolated_test --trace)
+
+  isolated = args[:isolated].nil? ? true : args[:isolated] == "true"
+  test_task = isolated ? "test:isolated" : "test"
+
+  (frameworks - ["activerecord"]).each do |project|
+    system %(cd #{project} && #{$0} #{test_task} --trace)
+  end
+
+  if frameworks.include? "activerecord"
+    test_task = isolated ? "sqlite3:isolated_test" : "sqlite3:test"
+    system %(cd activerecord && #{$0} #{test_task} --trace)
+  end
 end
 
 desc "Install gems for all projects."
@@ -48,6 +62,20 @@ if ENV["EDGE"]
   Rails::API::EdgeTask.new("rdoc")
 else
   Rails::API::StableTask.new("rdoc")
+end
+
+desc "Generate documentation for previewing"
+task :preview_docs do
+  FileUtils.mkdir_p("preview")
+  PreviewDocs.new.render("preview")
+
+  require "guides/rails_guides"
+  Rake::Task[:rdoc].invoke
+
+  FileUtils.mv("doc/rdoc", "preview/api")
+  FileUtils.mv("guides/output", "preview/guides")
+
+  system("tar -czf preview.tar.gz -C preview .")
 end
 
 desc "Bump all versions to match RAILS_VERSION"

@@ -14,7 +14,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     @contact.preferences = { "shows" => "anime" }
   end
 
-  test "should not include root in json (class method)" do
+  test "should not include root in JSON (class method)" do
     json = @contact.to_json
 
     assert_no_match %r{^\{"contact":\{}, json
@@ -25,7 +25,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_match %r{"preferences":\{"shows":"anime"\}}, json
   end
 
-  test "should include root in json if include_root_in_json is true" do
+  test "should include root in JSON if include_root_in_json is true" do
     original_include_root_in_json = Contact.include_root_in_json
     Contact.include_root_in_json = true
     json = @contact.to_json
@@ -40,19 +40,19 @@ class JsonSerializationTest < ActiveModel::TestCase
     Contact.include_root_in_json = original_include_root_in_json
   end
 
-  test "should include root in json (option) even if the default is set to false" do
+  test "should include root in JSON (option) even if the default is set to false" do
     json = @contact.to_json(root: true)
 
     assert_match %r{^\{"contact":\{}, json
   end
 
-  test "should not include root in json (option)" do
+  test "should not include root in JSON (option)" do
     json = @contact.to_json(root: false)
 
     assert_no_match %r{^\{"contact":\{}, json
   end
 
-  test "should include custom root in json" do
+  test "should include custom root in JSON" do
     json = @contact.to_json(root: "json_contact")
 
     assert_match %r{^\{"json_contact":\{}, json
@@ -179,7 +179,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "custom as_json should be honored when generating json" do
-    def @contact.as_json(options); { name: name, created_at: created_at }; end
+    def @contact.as_json(options = nil); { name: name, created_at: created_at }; end
     json = @contact.to_json
 
     assert_match %r{"name":"Konata Izumi"}, json
@@ -198,7 +198,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_no_match %r{"preferences":}, json
   end
 
-  test "Class.model_name should be json encodable" do
+  test "Class.model_name should be JSON encodable" do
     assert_match %r{"Contact"}, Contact.model_name.to_json
   end
 end

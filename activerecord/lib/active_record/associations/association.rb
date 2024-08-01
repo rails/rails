@@ -19,7 +19,7 @@ module ActiveRecord
     # Associations in Active Record are middlemen between the object that
     # holds the association, known as the <tt>owner</tt>, and the associated
     # result set, known as the <tt>target</tt>. Association metadata is available in
-    # <tt>reflection</tt>, which is an instance of <tt>ActiveRecord::Reflection::AssociationReflection</tt>.
+    # <tt>reflection</tt>, which is an instance of +ActiveRecord::Reflection::AssociationReflection+.
     #
     # For example, given
     #
@@ -33,7 +33,8 @@ module ActiveRecord
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association # :nodoc:
-      attr_reader :owner, :target, :reflection, :disable_joins
+      attr_accessor :owner
+      attr_reader :target, :reflection, :disable_joins
 
       delegate :options, to: :reflection
 
@@ -45,12 +46,13 @@ module ActiveRecord
 
         reset
         reset_scope
+
+        @skip_strict_loading = nil
       end
 
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
-        @target = nil
         @stale_state = nil
       end
 
@@ -61,7 +63,7 @@ module ActiveRecord
       # Reloads the \target and returns +self+ on success.
       # The QueryCache is cleared if +force+ is true.
       def reload(force = false)
-        klass.connection.clear_query_cache if force && klass
+        klass.connection_pool.clear_query_cache if force && klass
         reset
         reset_scope
         load_target
@@ -208,6 +210,12 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
+      # Whether the association represent a single record
+      # or a collection of records.
+      def collection?
+        false
+      end
+
       private
         # Reader and writer methods call this so that consistent errors are presented
         # when the association target class does not exist.
@@ -216,7 +224,7 @@ module ActiveRecord
         end
 
         def find_target
-          if violates_strict_loading? && owner.validation_context.nil?
+          if violates_strict_loading?
             Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
@@ -229,17 +237,31 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) do |record|
-            set_inverse_instance(record)
-            if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
-              record.strict_loading!
-            else
-              record.strict_loading!(false, mode: owner.strict_loading_mode)
+          klass.with_connection do |c|
+            sc.execute(binds, c) do |record|
+              set_inverse_instance(record)
+              if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
+                record.strict_loading!
+              else
+                record.strict_loading!(false, mode: owner.strict_loading_mode)
+              end
             end
           end
         end
 
+        def skip_strict_loading(&block)
+          skip_strict_loading_was = @skip_strict_loading
+          @skip_strict_loading = true
+          yield
+        ensure
+          @skip_strict_loading = skip_strict_loading_was
+        end
+
         def violates_strict_loading?
+          return if @skip_strict_loading
+
+          return unless owner.validation_context.nil?
+
           return reflection.strict_loading? if reflection.options.key?(:strict_loading)
 
           owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
@@ -322,7 +344,8 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          record._has_attribute?(reflection.foreign_key)
+          foreign_key = Array(reflection.foreign_key)
+          foreign_key.all? { |key| record._has_attribute?(key) }
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,

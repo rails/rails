@@ -14,12 +14,26 @@ module("ActionCable.Subscription", () => {
 
   consumerTest("#connected callback", ({server, consumer, assert, done}) => {
     const subscription = consumer.subscriptions.create("chat", {
-      connected() {
+      connected({reconnected}) {
         assert.ok(true)
+        assert.notOk(reconnected)
         done()
       }
     })
 
+    server.broadcastTo(subscription, {message_type: "confirmation"})
+  })
+
+  consumerTest("#connected callback (handling reconnects)", ({server, consumer, connection, monitor, assert, done}) => {
+    const subscription = consumer.subscriptions.create("chat", {
+      connected({reconnected}) {
+        assert.ok(reconnected)
+        done()
+      }
+    })
+
+    monitor.reconnectAttempts = 1
+    server.broadcastTo(subscription, {message_type: "welcome"})
     server.broadcastTo(subscription, {message_type: "confirmation"})
   })
 

@@ -3,9 +3,53 @@
 require "active_support/core_ext/object/try"
 
 module ActiveStorage
+  # = Active Storage \Attached \Model
+  #
   # Provides the class-level DSL for declaring an Active Record model's attachments.
   module Attached::Model
     extend ActiveSupport::Concern
+
+    ##
+    # :method: *_attachment
+    #
+    # Returns the attachment for the +has_one_attached+.
+    #
+    #   User.last.avatar_attachment
+
+    ##
+    # :method: *_attachments
+    #
+    # Returns the attachments for the +has_many_attached+.
+    #
+    #   Gallery.last.photos_attachments
+
+    ##
+    # :method: *_blob
+    #
+    # Returns the blob for the +has_one_attached+ attachment.
+    #
+    #   User.last.avatar_blob
+
+    ##
+    # :method: *_blobs
+    #
+    # Returns the blobs for the +has_many_attached+ attachments.
+    #
+    #   Gallery.last.photos_blobs
+
+    ##
+    # :method: with_attached_*
+    #
+    # Includes the attached blobs in your query to avoid N+1 queries.
+    #
+    # If +ActiveStorage.track_variants+ is enabled, it will also include the
+    # variants record and their attached blobs.
+    #
+    #   User.with_attached_avatar
+    #
+    # Use the plural form for +has_many_attached+:
+    #
+    #   Gallery.with_attached_photos
 
     class_methods do
       # Specifies the relation between a single attachment and the model.
@@ -30,14 +74,22 @@ module ActiveStorage
       # The system has been designed to having you go through the ActiveStorage::Attached::One
       # proxy that provides the dynamic proxy to the associations and factory methods, like +attach+.
       #
-      # If the +:dependent+ option isn't set, the attachment will be purged
-      # (i.e. destroyed) whenever the record is destroyed.
+      # The +:dependent+ option defaults to +:purge_later+. This means the attachment will be
+      # purged (i.e. destroyed) in the background whenever the record is destroyed.
+      # If an ActiveJob::Backend queue adapter is not set in the application set it to
+      # +purge+ instead.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
-      # pass the +:service+ option. For instance:
+      # pass the +:service+ option. For example:
       #
       #   class User < ActiveRecord::Base
       #     has_one_attached :avatar, service: :s3
+      #   end
+      #
+      # +:service+ can also be specified as a proc, and it will be called with the model instance:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_one_attached :avatar, service: ->(user) { user.in_europe_region? ? :s3_europe : :s3_usa }
       #   end
       #
       # If you need to enable +strict_loading+ to prevent lazy loading of attachment,
@@ -47,8 +99,12 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
+      # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
+      # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
+      # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
+      # the corresponding rows.
       def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
-        validate_service_configuration(name, service)
+        ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -59,7 +115,7 @@ module ActiveStorage
 
           def #{name}=(attachable)
             attachment_changes["#{name}"] =
-              if attachable.nil?
+              if attachable.nil? || attachable == ""
                 ActiveStorage::Attached::Changes::DeleteOne.new("#{name}", self)
               else
                 ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
@@ -70,7 +126,16 @@ module ActiveStorage
         has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
         has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
-        scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
+        scope :"with_attached_#{name}", -> {
+          if ActiveStorage.track_variants
+            includes("#{name}_attachment": { blob: {
+              variant_records: { image_attachment: :blob },
+              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+            } })
+          else
+            includes("#{name}_attachment": :blob)
+          end
+        }
 
         after_save { attachment_changes[name.to_s]&.save }
 
@@ -109,14 +174,22 @@ module ActiveStorage
       # The system has been designed to having you go through the ActiveStorage::Attached::Many
       # proxy that provides the dynamic proxy to the associations and factory methods, like +#attach+.
       #
-      # If the +:dependent+ option isn't set, all the attachments will be purged
-      # (i.e. destroyed) whenever the record is destroyed.
+      # The +:dependent+ option defaults to +:purge_later+. This means the attachments will be
+      # purged (i.e. destroyed) in the background whenever the record is destroyed.
+      # If an ActiveJob::Backend queue adapter is not set in the application set it to
+      # +purge+ instead.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
-      # pass the +:service+ option. For instance:
+      # pass the +:service+ option. For example:
       #
       #   class Gallery < ActiveRecord::Base
       #     has_many_attached :photos, service: :s3
+      #   end
+      #
+      # +:service+ can also be specified as a proc, and it will be called with the model instance:
+      #
+      #   class Gallery < ActiveRecord::Base
+      #     has_many_attached :photos, service: ->(gallery) { gallery.personal? ? :personal_s3 : :s3 }
       #   end
       #
       # If you need to enable +strict_loading+ to prevent lazy loading of attachments,
@@ -126,8 +199,12 @@ module ActiveStorage
       #     has_many_attached :photos, strict_loading: true
       #   end
       #
+      # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
+      # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
+      # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
+      # the corresponding rows.
       def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
-        validate_service_configuration(name, service)
+        ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -140,56 +217,23 @@ module ActiveStorage
             attachables = Array(attachables).compact_blank
             pending_uploads = attachment_changes["#{name}"].try(:pending_uploads)
 
-            if ActiveStorage.replace_on_assign_to_many
-              attachment_changes["#{name}"] =
-                if attachables.none?
-                  ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
-                else
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
-                end
+            attachment_changes["#{name}"] = if attachables.none?
+              ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
             else
-              ActiveSupport::Deprecation.warn \
-                "config.active_storage.replace_on_assign_to_many is deprecated and will be removed in Rails 7.1. " \
-                "Make sure that your code works well with config.active_storage.replace_on_assign_to_many set to true before upgrading. " \
-                "To append new attachables to the Active Storage association, prefer using `attach`. " \
-                "Using association setter would result in purging the existing attached attachments and replacing them with new ones."
-
-              if attachables.any?
-                attachment_changes["#{name}"] =
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables, pending_uploads: pending_uploads)
-              end
+              ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
             end
           end
         CODE
 
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading do
-          def purge
-            deprecate(:purge)
-            each(&:purge)
-            reset
-          end
-
-          def purge_later
-            deprecate(:purge_later)
-            each(&:purge_later)
-            reset
-          end
-
-          private
-          def deprecate(action)
-            reflection_name = proxy_association.reflection.name
-            attached_name = reflection_name.to_s.partition("_").first
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Calling `#{action}` from `#{reflection_name}` is deprecated and will be removed in Rails 7.1.
-              To migrate to Rails 7.1's behavior call `#{action}` from `#{attached_name}` instead: `#{attached_name}.#{action}`.
-            MSG
-          end
-        end
+        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
         has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
-            includes("#{name}_attachments": { blob: { variant_records: { image_attachment: :blob } } })
+            includes("#{name}_attachments": { blob: {
+              variant_records: { image_attachment: :blob },
+              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+            } })
           else
             includes("#{name}_attachments": :blob)
           end
@@ -209,23 +253,6 @@ module ActiveStorage
         yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
-
-      private
-        def validate_service_configuration(association_name, service)
-          if service.present?
-            ActiveStorage::Blob.services.fetch(service) do
-              raise ArgumentError, "Cannot configure service :#{service} for #{name}##{association_name}"
-            end
-          else
-            validate_global_service_configuration
-          end
-        end
-
-        def validate_global_service_configuration
-          if connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
-            raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
-          end
-        end
     end
 
     def attachment_changes # :nodoc:

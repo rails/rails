@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionText
   module HtmlConversion
     extend self
@@ -18,7 +20,7 @@ module ActionText
 
     private
       def document
-        Nokogiri::HTML::Document.new.tap { |doc| doc.encoding = "UTF-8" }
+        ActionText.html_document_class.new.tap { |doc| doc.encoding = "UTF-8" }
       end
   end
 end

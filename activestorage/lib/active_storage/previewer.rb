@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveStorage
+  # = Active Storage \Previewer
+  #
   # This is an abstract base class for previewers, which generate images from blobs. See
   # ActiveStorage::Previewer::MuPDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for
   # examples of concrete subclasses.
@@ -65,7 +67,12 @@ module ActiveStorage
       end
 
       def instrument(operation, payload = {}, &block)
-        ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
+        ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload.merge(service: service_name), &block
+      end
+
+      def service_name
+        # ActiveStorage::Service::DiskService => Disk
+        blob.service.class.to_s.split("::").third.remove("Service")
       end
 
       def capture(*argv, to:)

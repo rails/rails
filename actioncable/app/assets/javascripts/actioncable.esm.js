@@ -1,6 +1,6 @@
 var adapters = {
-  logger: self.console,
-  WebSocket: self.WebSocket
+  logger: typeof console !== "undefined" ? console : undefined,
+  WebSocket: typeof WebSocket !== "undefined" ? WebSocket : undefined
 };
 
 var logger = {
@@ -42,12 +42,11 @@ class ConnectionMonitor {
   isRunning() {
     return this.startedAt && !this.stoppedAt;
   }
-  recordPing() {
+  recordMessage() {
     this.pingedAt = now();
   }
   recordConnect() {
     this.reconnectAttempts = 0;
-    this.recordPing();
     delete this.disconnectedAt;
     logger.log("ConnectionMonitor recorded connect");
   }
@@ -123,7 +122,8 @@ var INTERNAL = {
   disconnect_reasons: {
     unauthorized: "unauthorized",
     invalid_request: "invalid_request",
-    server_restart: "server_restart"
+    server_restart: "server_restart",
+    remote: "remote"
   },
   default_mount_path: "/cable",
   protocols: [ "actioncable-v1-json", "actioncable-unsupported" ]
@@ -156,11 +156,12 @@ class Connection {
       logger.log(`Attempted to open WebSocket, but existing socket is ${this.getState()}`);
       return false;
     } else {
-      logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${protocols}`);
+      const socketProtocols = [ ...protocols, ...this.consumer.subprotocols || [] ];
+      logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${socketProtocols}`);
       if (this.webSocket) {
         this.uninstallEventHandlers();
       }
-      this.webSocket = new adapters.WebSocket(this.consumer.url, protocols);
+      this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols);
       this.installEventHandlers();
       this.monitor.start();
       return true;
@@ -202,6 +203,9 @@ class Connection {
   isActive() {
     return this.isState("open", "connecting");
   }
+  triedToReconnect() {
+    return this.monitor.reconnectAttempts > 0;
+  }
   isProtocolSupported() {
     return indexOf.call(supportedProtocols, this.getProtocol()) >= 0;
   }
@@ -239,8 +243,12 @@ Connection.prototype.events = {
       return;
     }
     const {identifier: identifier, message: message, reason: reason, reconnect: reconnect, type: type} = JSON.parse(event.data);
+    this.monitor.recordMessage();
     switch (type) {
      case message_types.welcome:
+      if (this.triedToReconnect()) {
+        this.reconnectAttempted = true;
+      }
       this.monitor.recordConnect();
       return this.subscriptions.reload();
 
@@ -251,11 +259,20 @@ Connection.prototype.events = {
       });
 
      case message_types.ping:
-      return this.monitor.recordPing();
+      return null;
 
      case message_types.confirmation:
       this.subscriptions.confirmSubscription(identifier);
-      return this.subscriptions.notify(identifier, "connected");
+      if (this.reconnectAttempted) {
+        this.reconnectAttempted = false;
+        return this.subscriptions.notify(identifier, "connected", {
+          reconnected: true
+        });
+      } else {
+        return this.subscriptions.notify(identifier, "connected", {
+          reconnected: false
+        });
+      }
 
      case message_types.rejection:
       return this.subscriptions.reject(identifier);
@@ -440,6 +457,7 @@ class Consumer {
     this._url = url;
     this.subscriptions = new Subscriptions(this);
     this.connection = new Connection(this);
+    this.subprotocols = [];
   }
   get url() {
     return createWebSocketURL(this._url);
@@ -459,6 +477,9 @@ class Consumer {
     if (!this.connection.isActive()) {
       return this.connection.open();
     }
+  }
+  addSubProtocol(subprotocol) {
+    this.subprotocols = [ ...this.subprotocols, subprotocol ];
   }
 }
 

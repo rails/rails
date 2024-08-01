@@ -2,6 +2,7 @@
 
 module ActionView
   module Helpers # :nodoc:
+    # = Action View JavaScript \Helpers
     module JavaScriptHelper
       JS_ESCAPE_MAP = {
         "\\"    => "\\\\",

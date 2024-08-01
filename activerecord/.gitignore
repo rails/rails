@@ -1,4 +1,5 @@
 /sqlnet.log
 /test/config.yml
 /test/db/
+/test/storage/
 /test/fixtures/*.sqlite*

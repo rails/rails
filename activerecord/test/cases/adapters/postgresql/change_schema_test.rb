@@ -9,7 +9,7 @@ module ActiveRecord
 
       def setup
         super
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         connection.create_table(:strings) do |t|
           t.string :somedate
         end

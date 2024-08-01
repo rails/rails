@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveJob
-  # == Active Job adapters
+  # = Active Job adapters
   #
   # Active Job has adapters for the following queuing backends:
   #
@@ -114,6 +114,7 @@ module ActiveJob
   module QueueAdapters
     extend ActiveSupport::Autoload
 
+    autoload :AbstractAdapter
     autoload :AsyncAdapter
     autoload :InlineAdapter
     autoload :BackburnerAdapter

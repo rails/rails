@@ -41,7 +41,7 @@ module ApplicationTests
     def assert_file_exists(filename)
       globbed = Dir[filename]
       assert Dir.exist?(File.dirname(filename)), "Directory #{File.dirname(filename)} does not exist"
-      assert globbed.one?, "Found #{globbed.size} files matching #{filename}. All files in the directory: #{Dir.entries(File.dirname(filename)).inspect}"
+      assert_predicate globbed, :one?, "Found #{globbed.size} files matching #{filename}. All files in the directory: #{Dir.entries(File.dirname(filename)).inspect}"
     end
 
     def assert_no_file_exists(filename)
@@ -250,7 +250,6 @@ module ApplicationTests
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/config/manifest.js", "//= link application.js"
-      add_to_env_config "production", "config.public_file_server.enabled = true"
 
       precompile! RAILS_ENV: "production"
 
@@ -263,7 +262,7 @@ module ApplicationTests
 
       # Checking if Uglifier is defined we can know if Sprockets was reached or not
       assert_not defined?(Uglifier)
-      get "/assets/#{asset_path}"
+      get("/assets/#{asset_path}", {}, "HTTPS" => "on")
       assert_match "alert()", last_response.body
       assert_not defined?(Uglifier)
     end
@@ -348,7 +347,7 @@ module ApplicationTests
       # Load app env
       app "production"
 
-      get "/assets/demo.js"
+      get("/assets/demo.js", {}, "HTTPS" => "on")
       assert_equal 404, last_response.status
     end
 
@@ -410,7 +409,7 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       # the debug_assets params isn't used if compile is off
-      get "/posts?debug_assets=true"
+      get("/posts?debug_assets=true", {}, "HTTPS" => "on")
       assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end

@@ -1,0 +1,4 @@
+<%= content_tag 'div', data: { controller: "read-more", 'read-more-more-text-value': "Read more", 'read-more-less-text-value': "Read less" } do %>
+  <%= content_tag('p', 'Content text', class: 'content-class', data: { 'test-name': "content" }) %>
+  <%= content_tag('button', 'Read more', class: 'expand-button', data: { action: 'read-more#toggle'}) %>
+<% end %>

@@ -24,14 +24,22 @@ module ActiveRecord
         # Returns a scope for the model without the previously set scopes.
         #
         #   class Post < ActiveRecord::Base
+        #     belongs_to :user
+        #
         #     def self.default_scope
         #       where(published: true)
         #     end
         #   end
         #
+        #   class User < ActiveRecord::Base
+        #     has_many :posts
+        #   end
+        #
         #   Post.all                                  # Fires "SELECT * FROM posts WHERE published = true"
         #   Post.unscoped.all                         # Fires "SELECT * FROM posts"
         #   Post.where(published: false).unscoped.all # Fires "SELECT * FROM posts"
+        #   User.find(1).posts                        # Fires "SELECT * FROM posts WHERE published = true AND posts.user_id = 1"
+        #   User.find(1).posts.unscoped               # Fires "SELECT * FROM posts"
         #
         # This method also accepts a block. All queries inside the block will
         # not use the previously set scopes.
@@ -67,7 +75,8 @@ module ActiveRecord
           #     default_scope { where(published: true) }
           #   end
           #
-          #   Article.all # => SELECT * FROM articles WHERE published = true
+          #   Article.all
+          #   # SELECT * FROM articles WHERE published = true
           #
           # The #default_scope is also applied while creating/building a record.
           # It is not applied while updating or deleting a record.
@@ -88,7 +97,7 @@ module ActiveRecord
           # queries that return a single object by primary key.
           #
           #   Article.find(1).destroy
-          #   => DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
+          #   # DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
           #
           # (You can also pass any object which responds to +call+ to the
           # +default_scope+ macro, and it will be called when building the
@@ -102,7 +111,8 @@ module ActiveRecord
           #     default_scope { where(rating: 'G') }
           #   end
           #
-          #   Article.all # => SELECT * FROM articles WHERE published = true AND rating = 'G'
+          #   Article.all
+          #   # SELECT * FROM articles WHERE published = true AND rating = 'G'
           #
           # This is also the case with inheritance and module includes where the
           # parent or module defines a #default_scope and the child or including
@@ -162,8 +172,8 @@ module ActiveRecord
           # If all_queries is nil, only execute on select and insert queries.
           #
           # If all_queries is true, check if the default_scope object has
-          # all_queries set, then execute on all queries; select, insert, update
-          # and delete.
+          # all_queries set, then execute on all queries; select, insert, update,
+          # delete, and reload.
           def execute_scope?(all_queries, default_scope_obj)
             all_queries.nil? || all_queries && default_scope_obj.all_queries
           end

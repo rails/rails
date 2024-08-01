@@ -45,7 +45,7 @@ module ContentType
     test "default response is text/plain and UTF8" do
       with_routing do |set|
         set.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller", action: "index"
           end
         end

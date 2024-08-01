@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView
-  # = Action View Cache Helper
   module Helpers # :nodoc:
+    # = Action View Cache \Helpers
     module CacheHelper
       class UncacheableFragmentError < StandardError; end
 
@@ -76,11 +76,11 @@ module ActionView
       #   render 'comments/comments'
       #   render('comments/comments')
       #
-      #   render "header" translates to render("comments/header")
+      #   render "header"        # translates to render("comments/header")
       #
-      #   render(@topic)         translates to render("topics/topic")
-      #   render(topics)         translates to render("topics/topic")
-      #   render(message.topics) translates to render("topics/topic")
+      #   render(@topic)         # translates to render("topics/topic")
+      #   render(topics)         # translates to render("topics/topic")
+      #   render(message.topics) # translates to render("topics/topic")
       #
       # It's not possible to derive all render calls like that, though.
       # Here are a few examples of things that can't be derived:
@@ -281,17 +281,8 @@ module ActionView
         controller.read_fragment(name, options)
       end
 
-      def write_fragment_for(name, options)
-        pos = output_buffer.length
-        yield
-        output_safe = output_buffer.html_safe?
-        # We need to modify the buffer in place to be deal with the view handlers
-        # like `builder` that don't access the buffer through `@output_buffer` but
-        # keep the initial reference.
-        fragment = output_buffer.slice!(pos..-1)
-        if output_safe
-          self.output_buffer = output_buffer.class.new(output_buffer)
-        end
+      def write_fragment_for(name, options, &block)
+        fragment = output_buffer.capture(&block)
         controller.write_fragment(name, fragment, options)
       end
 

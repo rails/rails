@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
+require "active_support/deep_mergeable"
+
 class Hash
+  include ActiveSupport::DeepMergeable
+
+  ##
+  # :method: deep_merge
+  # :call-seq: deep_merge(other_hash, &block)
+  #
   # Returns a new hash with +self+ and +other_hash+ merged recursively.
   #
   #   h1 = { a: true, b: { c: [1, 2, 3] } }
@@ -15,20 +23,20 @@ class Hash
   #   h2 = { b: 250, c: { c1: 200 } }
   #   h1.deep_merge(h2) { |key, this_val, other_val| this_val + other_val }
   #   # => { a: 100, b: 450, c: { c1: 300 } }
-  def deep_merge(other_hash, &block)
-    dup.deep_merge!(other_hash, &block)
-  end
+  #
+  #--
+  # Implemented by ActiveSupport::DeepMergeable#deep_merge.
 
-  # Same as +deep_merge+, but modifies +self+.
-  def deep_merge!(other_hash, &block)
-    merge!(other_hash) do |key, this_val, other_val|
-      if this_val.is_a?(Hash) && other_val.is_a?(Hash)
-        this_val.deep_merge(other_val, &block)
-      elsif block_given?
-        block.call(key, this_val, other_val)
-      else
-        other_val
-      end
-    end
+  ##
+  # :method: deep_merge!
+  # :call-seq: deep_merge!(other_hash, &block)
+  #
+  # Same as #deep_merge, but modifies +self+.
+  #
+  #--
+  # Implemented by ActiveSupport::DeepMergeable#deep_merge!.
+
+  def deep_merge?(other) # :nodoc:
+    other.is_a?(Hash)
   end
 end

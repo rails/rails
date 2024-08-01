@@ -9,7 +9,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:postgresql_infinities) do |t|
       t.float :float
       t.datetime :datetime
@@ -33,7 +33,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
     record = PostgresqlInfinity.new(float: "-Infinity")
     assert_equal(-Float::INFINITY, record.float)
     record = PostgresqlInfinity.new(float: "NaN")
-    assert record.float.nan?, "Expected #{record.float} to be NaN"
+    assert_predicate record.float, :nan?, "Expected #{record.float} to be NaN"
   end
 
   test "update_all with infinity on a float column" do

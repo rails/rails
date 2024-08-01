@@ -4,14 +4,14 @@ module ActiveRecord
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
   # Initializing the cache is done by passing the statement in the create block:
   #
-  #   cache = StatementCache.create(Book.connection) do |params|
+  #   cache = StatementCache.create(ClothingItem.lease_connection) do |params|
   #     Book.where(name: "my book").where("author_id > 3")
   #   end
   #
   # The cached statement is executed by using the
   # {connection.execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute] method:
   #
-  #   cache.execute([], Book.connection)
+  #   cache.execute([], ClothingItem.lease_connection)
   #
   # The relation returned by the block is cached, and for each
   # {execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute]
@@ -20,13 +20,13 @@ module ActiveRecord
   # If you want to cache the statement without the values you can use the +bind+ method of the
   # block parameter.
   #
-  #   cache = StatementCache.create(Book.connection) do |params|
+  #   cache = StatementCache.create(ClothingItem.lease_connection) do |params|
   #     Book.where(name: params.bind)
   #   end
   #
   # And pass the bind values as the first argument of +execute+ call.
   #
-  #   cache.execute(["my book"], Book.connection)
+  #   cache.execute(["my book"], ClothingItem.lease_connection)
   class StatementCache # :nodoc:
     class Substitute; end # :nodoc:
 
@@ -62,7 +62,7 @@ module ActiveRecord
     end
 
     class PartialQueryCollector
-      attr_accessor :preparable
+      attr_accessor :preparable, :retryable
 
       def initialize
         @parts = []
@@ -133,21 +133,21 @@ module ActiveRecord
       relation = (callable || block).call Params.new
       query_builder, binds = connection.cacheable_query(self, relation.arel)
       bind_map = BindMap.new(binds)
-      new(query_builder, bind_map, relation.klass)
+      new(query_builder, bind_map, relation.model)
     end
 
-    def initialize(query_builder, bind_map, klass)
+    def initialize(query_builder, bind_map, model)
       @query_builder = query_builder
       @bind_map = bind_map
-      @klass = klass
+      @model = model
     end
 
-    def execute(params, connection, &block)
-      bind_values = bind_map.bind params
+    def execute(params, connection, allow_retry: false, &block)
+      bind_values = @bind_map.bind params
 
-      sql = query_builder.sql_for bind_values, connection
+      sql = @query_builder.sql_for bind_values, connection
 
-      klass.find_by_sql(sql, bind_values, preparable: true, &block)
+      @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
     rescue ::RangeError
       []
     end
@@ -157,8 +157,5 @@ module ActiveRecord
       when NilClass, Array, Range, Hash, Relation, Base then true
       end
     end
-
-    private
-      attr_reader :query_builder, :bind_map, :klass
   end
 end

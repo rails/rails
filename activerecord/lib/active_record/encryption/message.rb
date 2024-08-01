@@ -7,7 +7,7 @@ module ActiveRecord
     # * An encrypted payload
     # * A list of unencrypted headers
     #
-    # See +Encryptor#encrypt+
+    # See Encryptor#encrypt
     class Message
       attr_accessor :payload, :headers
 

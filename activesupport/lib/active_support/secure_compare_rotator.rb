@@ -4,6 +4,8 @@ require "active_support/security_utils"
 require "active_support/messages/rotator"
 
 module ActiveSupport
+  # = Secure Compare Rotator
+  #
   # The ActiveSupport::SecureCompareRotator is a wrapper around ActiveSupport::SecurityUtils.secure_compare
   # and allows you to rotate a previously defined value to a new one.
   #
@@ -29,23 +31,28 @@ module ActiveSupport
   #   end
   class SecureCompareRotator
     include SecurityUtils
-    prepend Messages::Rotator
 
     InvalidMatch = Class.new(StandardError)
 
-    def initialize(value, **_options)
+    def initialize(value, on_rotation: nil)
       @value = value
+      @rotate_values = []
+      @on_rotation = on_rotation
+    end
+
+    def rotate(previous_value)
+      @rotate_values << previous_value
     end
 
     def secure_compare!(other_value, on_rotation: @on_rotation)
-      secure_compare(@value, other_value) ||
-        run_rotations(on_rotation) { |wrapper| wrapper.secure_compare!(other_value) } ||
-        raise(InvalidMatch)
-    end
-
-    private
-      def build_rotation(previous_value, _options)
-        self.class.new(previous_value)
+      if secure_compare(@value, other_value)
+        true
+      elsif @rotate_values.any? { |value| secure_compare(value, other_value) }
+        on_rotation&.call
+        true
+      else
+        raise InvalidMatch
       end
+    end
   end
 end

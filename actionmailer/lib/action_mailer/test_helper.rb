@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/array/extract_options"
 require "active_job"
 
 module ActionMailer
@@ -33,10 +34,8 @@ module ActionMailer
     #   end
     def assert_emails(number, &block)
       if block_given?
-        original_count = ActionMailer::Base.deliveries.size
-        perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, &block)
-        new_count = ActionMailer::Base.deliveries.size
-        assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
+        diff = capture_emails(&block).length
+        assert_equal number, diff, "#{number} emails expected, but #{diff} were sent"
       else
         assert_equal number, ActionMailer::Base.deliveries.size
       end
@@ -94,16 +93,48 @@ module ActionMailer
     end
 
     # Asserts that a specific email has been enqueued, optionally
-    # matching arguments.
+    # matching arguments and/or params.
     #
     #   def test_email
     #     ContactMailer.welcome.deliver_later
     #     assert_enqueued_email_with ContactMailer, :welcome
     #   end
     #
+    #   def test_email_with_parameters
+    #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, args: { greeting: "Hello" }
+    #   end
+    #
     #   def test_email_with_arguments
     #     ContactMailer.welcome("Hello", "Goodbye").deliver_later
     #     assert_enqueued_email_with ContactMailer, :welcome, args: ["Hello", "Goodbye"]
+    #   end
+    #
+    #   def test_email_with_named_arguments
+    #     ContactMailer.welcome(greeting: "Hello", farewell: "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, args: [{ greeting: "Hello", farewell: "Goodbye" }]
+    #   end
+    #
+    #   def test_email_with_parameters_and_arguments
+    #     ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: ["Cheers", "Goodbye"]
+    #   end
+    #
+    #   def test_email_with_parameters_and_named_arguments
+    #     ContactMailer.with(greeting: "Hello").welcome(farewell: "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: [{farewell: "Goodbye"}]
+    #   end
+    #
+    #   def test_email_with_parameterized_mailer
+    #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
+    #     assert_enqueued_email_with ContactMailer.with(greeting: "Hello"), :welcome
+    #   end
+    #
+    #   def test_email_with_matchers
+    #     ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome,
+    #       params: ->(params) { /hello/i.match?(params[:greeting]) },
+    #       args: ->(args) { /cheers/i.match?(args[0]) }
     #   end
     #
     # If a block is passed, that block should cause the specified email
@@ -123,13 +154,23 @@ module ActionMailer
     #       ContactMailer.with(email: 'user@example.com').welcome.deliver_later
     #     end
     #   end
-    def assert_enqueued_email_with(mailer, method, args: nil, queue: ActionMailer::Base.deliver_later_queue_name || "default", &block)
-      args = if args.is_a?(Hash)
-        [mailer.to_s, method.to_s, "deliver_now", params: args, args: []]
-      else
-        [mailer.to_s, method.to_s, "deliver_now", args: Array(args)]
+    def assert_enqueued_email_with(mailer, method, params: nil, args: nil, queue: nil, &block)
+      if mailer.is_a? ActionMailer::Parameterized::Mailer
+        params = mailer.instance_variable_get(:@params)
+        mailer = mailer.instance_variable_get(:@mailer)
       end
-      assert_enqueued_with(job: mailer.delivery_job, args: args, queue: queue.to_s, &block)
+
+      args = Array(args) unless args.is_a?(Proc)
+      queue ||= mailer.deliver_later_queue_name || ActiveJob::Base.default_queue_name
+
+      expected = ->(job_args) do
+        job_kwargs = job_args.extract_options!
+
+        [mailer.to_s, method.to_s, "deliver_now"] == job_args &&
+          params === job_kwargs[:params] && args === job_kwargs[:args]
+      end
+
+      assert_enqueued_with(job: mailer.delivery_job, args: expected, queue: queue.to_s, &block)
     end
 
     # Asserts that no emails are enqueued for later delivery.
@@ -149,6 +190,68 @@ module ActionMailer
     #   end
     def assert_no_enqueued_emails(&block)
       assert_enqueued_emails 0, &block
+    end
+
+    # Delivers all enqueued emails. If a block is given, delivers all of the emails
+    # that were enqueued throughout the duration of the block. If a block is
+    # not given, delivers all the enqueued emails up to this point in the test.
+    #
+    #   def test_deliver_enqueued_emails
+    #     deliver_enqueued_emails do
+    #       ContactMailer.welcome.deliver_later
+    #     end
+    #
+    #     assert_emails 1
+    #   end
+    #
+    #   def test_deliver_enqueued_emails_without_block
+    #     ContactMailer.welcome.deliver_later
+    #
+    #     deliver_enqueued_emails
+    #
+    #     assert_emails 1
+    #   end
+    #
+    # If the +:queue+ option is specified,
+    # then only the emails(s) enqueued to a specific queue will be performed.
+    #
+    #   def test_deliver_enqueued_emails_with_queue
+    #     deliver_enqueued_emails queue: :external_mailers do
+    #       CustomerMailer.deliver_later_queue_name = :external_mailers
+    #       CustomerMailer.welcome.deliver_later # will be performed
+    #       EmployeeMailer.deliver_later_queue_name = :internal_mailers
+    #       EmployeeMailer.welcome.deliver_later # will not be performed
+    #     end
+    #
+    #     assert_emails 1
+    #   end
+    #
+    # If the +:at+ option is specified, then only delivers emails enqueued to deliver
+    # immediately or before the given time.
+    def deliver_enqueued_emails(queue: nil, at: nil, &block)
+      perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, queue: queue, at: at, &block)
+    end
+
+    # Returns any emails that are sent in the block.
+    #
+    #   def test_emails
+    #     emails = capture_emails do
+    #       ContactMailer.welcome.deliver_now
+    #     end
+    #     assert_equal "Hi there", emails.first.subject
+    #
+    #     emails = capture_emails do
+    #       ContactMailer.welcome.deliver_now
+    #       ContactMailer.welcome.deliver_later
+    #     end
+    #     assert_equal "Hi there", emails.first.subject
+    #   end
+    def capture_emails(&block)
+      original_count = ActionMailer::Base.deliveries.size
+      deliver_enqueued_emails(&block)
+      new_count = ActionMailer::Base.deliveries.size
+      diff = new_count - original_count
+      ActionMailer::Base.deliveries.last(diff)
     end
 
     private

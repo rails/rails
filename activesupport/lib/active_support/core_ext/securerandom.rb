@@ -17,11 +17,7 @@ module SecureRandom
   #   p SecureRandom.base58 # => "4kUgL2pdQMSCQtjE"
   #   p SecureRandom.base58(24) # => "77TMHrHJFvFDwodq8w7Ev2m7"
   def self.base58(n = 16)
-    SecureRandom.random_bytes(n).unpack("C*").map do |byte|
-      idx = byte % 64
-      idx = SecureRandom.random_number(58) if idx >= 58
-      BASE58_ALPHABET[idx]
-    end.join
+    SecureRandom.alphanumeric(n, chars: BASE58_ALPHABET)
   end
 
   # SecureRandom.base36 generates a random base36 string in lowercase.

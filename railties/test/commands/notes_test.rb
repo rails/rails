@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/notes/notes_command"
 
 class Rails::Command::NotesTest < ActiveSupport::TestCase
   setup :build_app
@@ -160,6 +159,12 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
         * [1] [TODO] default tags such as TODO are still present
 
     OUTPUT
+  end
+
+  test "does not pick up notes inside string literals" do
+    app_file "app/models/profile.rb", '"# TODO: do something"'
+
+    assert_empty run_notes_command
   end
 
   private

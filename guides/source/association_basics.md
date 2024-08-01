@@ -5,18 +5,22 @@ Active Record Associations
 
 This guide covers the association features of Active Record.
 
-After reading this guide, you will know:
+After reading this guide, you will know how to:
 
-* How to declare associations between Active Record models.
-* How to understand the various types of Active Record associations.
-* How to use the methods added to your models by creating associations.
+* Declare associations between Active Record models.
+* Understand the various types of Active Record associations.
+* Use the methods added to your models by creating associations.
 
 --------------------------------------------------------------------------------
 
 Why Associations?
 -----------------
 
-In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books. Without associations, the model declarations would look like this:
+In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code.
+
+For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books.
+
+Without associations, the model declarations would look like this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -71,7 +75,9 @@ To learn more about the different types of associations, read the next section o
 The Types of Associations
 -------------------------
 
-Rails supports six types of associations:
+Rails supports six types of associations, each with a particular use-case in mind.
+
+Here is a list of all of the supported types with a link to their API docs for more detailed information on how to use them, their method parameters, etc.
 
 * [`belongs_to`][]
 * [`has_one`][]
@@ -106,7 +112,7 @@ NOTE: `belongs_to` associations _must_ use the singular term. If you used the pl
 The corresponding migration might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[7.1]
+class CreateBooks < ActiveRecord::Migration[7.2]
   def change
     create_table :authors do |t|
       t.string :name
@@ -123,9 +129,9 @@ end
 ```
 
 When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
-To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model.
+To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model, in this case the Author model.
 
-`belongs_to` does not ensure reference consistency, so depending on the use case, you might also need to add a database-level foreign key constraint on the reference column, like this:
+`belongs_to` does not ensure reference consistency if `optional` is set to true, so depending on the use case, you might also need to add a database-level foreign key constraint on the reference column, like this:
 
 ```ruby
 create_table :books do |t|
@@ -153,7 +159,7 @@ The main difference from `belongs_to` is that the link column `supplier_id` is l
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[7.1]
+class CreateSuppliers < ActiveRecord::Migration[7.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -199,7 +205,7 @@ NOTE: The name of the other model is pluralized when declaring a `has_many` asso
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[7.1]
+class CreateAuthors < ActiveRecord::Migration[7.2]
   def change
     create_table :authors do |t|
       t.string :name
@@ -251,7 +257,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[7.1]
+class CreateAppointments < ActiveRecord::Migration[7.2]
   def change
     create_table :physicians do |t|
       t.string :name
@@ -337,7 +343,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAccountHistories < ActiveRecord::Migration[7.1]
+class CreateAccountHistories < ActiveRecord::Migration[7.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -380,7 +386,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAssembliesAndParts < ActiveRecord::Migration[7.1]
+class CreateAssembliesAndParts < ActiveRecord::Migration[7.2]
   def change
     create_table :assemblies do |t|
       t.string :name
@@ -419,7 +425,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[7.1]
+class CreateSuppliers < ActiveRecord::Migration[7.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -476,6 +482,9 @@ The simplest rule of thumb is that you should set up a `has_many :through` relat
 
 You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
 
+While `has_and_belongs_to_many` suggests creating a join table with no primary key via `id: false`, consider using a composite primary key for the join table in the `has_many :through` relationship.
+For example, it's recommended to use `create_table :manifests, primary_key: [:assembly_id, :part_id]` in the example above.
+
 ### Polymorphic Associations
 
 A slightly more advanced twist on associations is the _polymorphic association_. With polymorphic associations, a model can belong to more than one other model, on a single association. For example, you might have a picture model that belongs to either an employee model or a product model. Here's how this could be declared:
@@ -501,7 +510,7 @@ Similarly, you can retrieve `@product.pictures`.
 If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[7.1]
+class CreatePictures < ActiveRecord::Migration[7.2]
   def change
     create_table :pictures do |t|
       t.string  :name
@@ -518,7 +527,7 @@ end
 This migration can be simplified by using the `t.references` form:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[7.1]
+class CreatePictures < ActiveRecord::Migration[7.2]
   def change
     create_table :pictures do |t|
       t.string :name
@@ -529,7 +538,76 @@ class CreatePictures < ActiveRecord::Migration[7.1]
 end
 ```
 
+NOTE: Since polymorphic associations rely on storing class names in the
+database, that data must remain synchronized with the class name used by the
+Ruby code. When renaming a class, make sure to update the data in the
+polymorphic type column.
+
 ![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
+
+### Associations between Models with Composite Primary Keys
+
+Rails is often able to infer the primary key - foreign key information between associated models with composite
+primary keys without needing extra information. Take the following example:
+
+```ruby
+class Order < ApplicationRecord
+  self.primary_key = [:shop_id, :id]
+  has_many :books
+end
+
+class Book < ApplicationRecord
+  belongs_to :order
+end
+```
+
+Here, Rails assumes that the `:id` column should be used as the primary key for the association between an order
+and its books, just as with a regular `has_many` / `belongs_to` association. It will infer that the foreign key column
+on the `books` table is `:order_id`. Accessing a book's order:
+
+```ruby
+order = Order.create!(id: [1, 2], status: "pending")
+book = order.books.create!(title: "A Cool Book")
+
+book.reload.order
+```
+
+will generate the following SQL to access the order:
+
+```sql
+SELECT * FROM orders WHERE id = 2
+```
+
+This only works if the model's composite primary key contains the `:id` column, _and_ the column is unique for
+all records. In order to use the full composite primary key in associations, set the `foreign_key:` option on
+the association. This option specifies a composite foreign key on the association: all columns in the foreign key will
+be used when querying the associated record(s). For example:
+
+```ruby
+class Author < ApplicationRecord
+  self.primary_key = [:first_name, :last_name]
+  has_many :books, foreign_key: [:first_name, :last_name]
+end
+
+class Book < ApplicationRecord
+  belongs_to :author, foreign_key: [:author_first_name, :author_last_name]
+end
+```
+
+Accessing a book's author:
+
+```ruby
+author = Author.create!(first_name: "Jane", last_name: "Doe")
+book = author.books.create!(title: "A Cool Book")
+
+book.reload.author
+```
+
+will use `:first_name` _and_ `:last_name` in the SQL query:
+
+```sql
+SELECT * FROM authors WHERE first_name = 'Jane' AND last_name = 'Doe'
+```
 
 ### Self Joins
 
@@ -549,7 +627,7 @@ With this setup, you can retrieve `@employee.subordinates` and `@employee.manage
 In your migrations/schema, you will add a references column to the model itself.
 
 ```ruby
-class CreateEmployees < ActiveRecord::Migration[7.1]
+class CreateEmployees < ActiveRecord::Migration[7.2]
   def change
     create_table :employees do |t|
       t.references :manager, foreign_key: { to_table: :employees }
@@ -558,6 +636,10 @@ class CreateEmployees < ActiveRecord::Migration[7.1]
   end
 end
 ```
+
+NOTE: The `to_table` option passed to `foreign_key` and more are explained in [`SchemaStatements#add_reference`][connection.add_reference].
+
+[connection.add_reference]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference
 
 Tips, Tricks, and Warnings
 --------------------------
@@ -619,7 +701,7 @@ end
 This declaration needs to be backed up by a corresponding foreign key column in the books table. For a brand new table, the migration might look something like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[7.1]
+class CreateBooks < ActiveRecord::Migration[7.2]
   def change
     create_table :books do |t|
       t.datetime   :published_at
@@ -633,14 +715,16 @@ end
 Whereas for an existing table, it might look like this:
 
 ```ruby
-class AddAuthorToBooks < ActiveRecord::Migration[7.1]
+class AddAuthorToBooks < ActiveRecord::Migration[7.2]
   def change
     add_reference :books, :author
   end
 end
 ```
 
-NOTE: If you wish to [enforce referential integrity at the database level](/active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’ column declarations above.
+NOTE: If you wish to [enforce referential integrity at the database level][foreign_keys], add the `foreign_key: true` option to the ‘reference’ column declarations above.
+
+[foreign_keys]: active_record_migrations.html#foreign-keys
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
@@ -663,7 +747,7 @@ end
 These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.1]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
   def change
     create_table :assemblies_parts, id: false do |t|
       t.bigint :assembly_id
@@ -678,10 +762,10 @@ end
 
 We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
 
-You can also use the method `create_join_table`
+For simplicity, you can also use the method `create_join_table`:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.1]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
   def change
     create_join_table :assemblies, :parts do |t|
       t.index :assembly_id
@@ -709,7 +793,33 @@ module MyApplication
 end
 ```
 
-This will work fine, because both the `Supplier` and the `Account` class are defined within the same scope. But the following will _not_ work, because `Supplier` and `Account` are defined in different scopes:
+This will work fine, because both the `Supplier` and the `Account` class are defined within the same scope (`MyApplication::Business`). This organization allows structuring models into folders based on their scope, without having to explicitly add the scope to every association:
+
+```ruby
+# app/models/my_application/business/supplier.rb
+module MyApplication
+  module Business
+    class Supplier < ApplicationRecord
+      has_one :account
+    end
+  end
+end
+```
+
+```ruby
+# app/models/my_application/business/account.rb
+module MyApplication
+  module Business
+    class Account < ApplicationRecord
+      belongs_to :supplier
+    end
+  end
+end
+```
+
+It is crucial to note that this does not affect the naming of your tables. For instance, if there is a `MyApplication::Business::Supplier` model, there must also be a `my_application_business_suppliers` table.
+
+Note that the following will _not_ work, because `Supplier` and `Account` are defined in different scopes (`MyApplication::Business` and `MyApplication::Billing`):
 
 ```ruby
 module MyApplication
@@ -765,7 +875,7 @@ Active Record will attempt to automatically identify that these two models share
 a bi-directional association based on the association name. This information
 allows Active Record to:
 
-* Prevent needless queries for already-loaded data
+* Prevent needless queries for already-loaded data:
 
     ```irb
     irb> author = Author.first
@@ -776,7 +886,7 @@ allows Active Record to:
     ```
 
 * Prevent inconsistent data (since there is only one copy of the `Author` object
-  loaded)
+  loaded):
 
     ```irb
     irb> author = Author.first
@@ -788,7 +898,7 @@ allows Active Record to:
     => true
     ```
 
-* Autosave associations in more cases
+* Autosave associations in more cases:
 
     ```irb
     irb> author = Author.new
@@ -802,7 +912,7 @@ allows Active Record to:
 
 * Validate the [presence](active_record_validations.html#presence) and
   [absence](active_record_validations.html#absence) of associations in more
-  cases
+  cases:
 
     ```irb
     irb> book = Book.new
@@ -816,13 +926,9 @@ allows Active Record to:
     => true
     ```
 
-Active Record supports automatic identification for most associations with
-standard names. However, Active Record will not automatically identify
-bi-directional associations that contain the `:through` or `:foreign_key`
-options. Custom scopes on the opposite association also prevent automatic
-identification, as do custom scopes on the association itself unless
-[`config.active_record.automatic_scope_inversing`][] is set to true (the default for
-new applications).
+Active Record supports automatic identification for most associations with standard names. However, bi-directional associations that contain the `:through` or `:foreign_key` options will not be automatically identified.
+
+Custom scopes on the opposite association also prevent automatic identification, as do custom scopes on the association itself unless [`config.active_record.automatic_scope_inversing`][] is set to true (the default for new applications).
 
 For example, consider the following model declarations:
 
@@ -839,29 +945,29 @@ end
 Because of the `:foreign_key` option, Active Record will no longer automatically
 recognize the bi-directional association. This can cause your application to:
 
-* Execute needless queries for the same data (in this example causing N+1 queries)
+* Execute needless queries for the same data (in this example causing N+1 queries):
 
     ```irb
     irb> author = Author.first
     irb> author.books.any? do |book|
-    irb>   book.author.equal?(author) # This executes an author query for every book
+    irb>   book.writer.equal?(author) # This executes an author query for every book
     irb> end
     => false
     ```
 
-* Reference multiple copies of a model with inconsistent data
+* Reference multiple copies of a model with inconsistent data:
 
     ```irb
     irb> author = Author.first
     irb> book = author.books.first
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => true
     irb> author.name = "Changed Name"
-    irb> author.name == book.author.name
+    irb> author.name == book.writer.name
     => false
     ```
 
-* Fail to autosave associations
+* Fail to autosave associations:
 
     ```irb
     irb> author = Author.new
@@ -873,7 +979,7 @@ recognize the bi-directional association. This can cause your application to:
     => false
     ```
 
-* Fail to validate presence or absence
+* Fail to validate presence or absence:
 
     ```irb
     irb> author = Author.new
@@ -923,6 +1029,7 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `create_association(attributes = {})`
 * `create_association!(attributes = {})`
 * `reload_association`
+* `reset_association`
 * `association_changed?`
 * `association_previously_changed?`
 
@@ -936,16 +1043,15 @@ end
 
 Each instance of the `Book` model will have these methods:
 
-```ruby
-author
-author=
-build_author
-create_author
-create_author!
-reload_author
-author_changed?
-author_previously_changed?
-```
+* `author`
+* `author=`
+* `build_author`
+* `create_author`
+* `create_author!`
+* `reload_author`
+* `reset_author`
+* `author_changed?`
+* `author_previously_changed?`
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
@@ -961,6 +1067,12 @@ If the associated object has already been retrieved from the database for this o
 
 ```ruby
 @author = @book.reload_author
+```
+
+To unload the cached version of the associated object—causing the next access, if any, to query it from the database—call `#reset_association` on the parent object.
+
+```ruby
+@book.reset_author
 ```
 
 ##### `association=(associate)`
@@ -998,10 +1110,10 @@ Does the same as `create_association` above, but raises `ActiveRecord::RecordInv
 The `association_changed?` method returns true if a new associated object has been assigned and the foreign key will be updated in the next save.
 
 ```ruby
-@book.author # => #<Book author_number: 123, author_name: "John Doe">
+@book.author # => #<Author author_number: 123, author_name: "John Doe">
 @book.author_changed? # => false
 
-@book.author = Author.second # => #<Book author_number: 456, author_name: "Jane Smith">
+@book.author = Author.second # => #<Author author_number: 456, author_name: "Jane Smith">
 @book.author_changed? # => true
 
 @book.save!
@@ -1013,10 +1125,10 @@ The `association_changed?` method returns true if a new associated object has be
 The `association_previously_changed?` method returns true if the previous save updated the association to reference a new associate object.
 
 ```ruby
-@book.author # => #<Book author_number: 123, author_name: "John Doe">
+@book.author # => #<Author author_number: 123, author_name: "John Doe">
 @book.author_previously_changed? # => false
 
-@book.author = Author.second # => #<Book author_number: 456, author_name: "Jane Smith">
+@book.author = Author.second # => #<Author author_number: 456, author_name: "Jane Smith">
 @book.save!
 @book.author_previously_changed? # => true
 ```
@@ -1037,14 +1149,19 @@ The [`belongs_to`][] association supports these options:
 * `:autosave`
 * `:class_name`
 * `:counter_cache`
+* `:default`
 * `:dependent`
+* `:ensuring_owner_was`
 * `:foreign_key`
+* `:foreign_type`
 * `:primary_key`
 * `:inverse_of`
+* `:optional`
 * `:polymorphic`
+* `:required`
+* `:strict_loading`
 * `:touch`
 * `:validate`
-* `:optional`
 
 ##### `:autosave`
 
@@ -1110,8 +1227,14 @@ end
 NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
 side of the association.
 
-Counter cache columns are added to the owner model's list of read-only
-attributes through `attr_readonly`.
+Starting to use counter caches on existing large tables can be troublesome, because the column
+values must be backfilled separately of the column addition (to not lock the table for too long)
+and before the use of `:counter_cache` (otherwise methods like `size`/`any?`/etc, which use
+counter caches internally, can produce incorrect results). To safely backfill the values while
+keeping counter cache columns updated with the child records creation/removal and to avoid the
+mentioned methods use the possibly incorrect counter cache column values and always get the results
+from the database, use `counter_cache: { active: false }`. If you also need to specify a custom
+column name, use `counter_cache: { active: false, column: :my_custom_counter }`.
 
 If for some reason you change the value of an owner model's primary key, and do
 not also update the foreign keys of the counted models, then the counter cache
@@ -1120,19 +1243,29 @@ towards the counter. To fix a stale counter cache, use [`reset_counters`][].
 
 [`reset_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-reset_counters
 
+##### `:default`
+
+When set to `true`, the association will not have its presence validated.
+
 ##### `:dependent`
 
 If you set the `:dependent` option to:
 
 * `:destroy`, when the object is destroyed, `destroy` will be called on its
-associated objects.
+  associated objects.
 * `:delete`, when the object is destroyed, all its associated objects will be
-deleted directly from the database without calling their `destroy` method.
+  deleted directly from the database without calling their `destroy` method.
 * `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob`
-job is enqueued which will call destroy on its associated objects. Active Job must be set up
-for this to work.
+  job is enqueued which will call destroy on its associated objects. Active Job must be set up
+  for this to work. Do not use this option if the association is backed by foreign key
+  constraints in your database. The foreign key constraint actions will occur inside the same
+  transaction that deletes its owner.
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
+
+##### `:ensuring_owner_was`
+
+Specifies an instance method to be called on the owner. The method must return true in order for the associated records to be deleted in a background job.
 
 ##### `:foreign_key`
 
@@ -1146,6 +1279,10 @@ end
 ```
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
+
+##### `:foreign_type`
+
+Specify the column used to store the associated object’s type, if this is a polymorphic association. By default this is guessed to be the name of the association with a “`_type`” suffix. So a class that defines a `belongs_to :taggable, polymorphic: true` association will use “`taggable_type`” as the default `:foreign_type`.
 
 ##### `:primary_key`
 
@@ -1182,9 +1319,25 @@ class Book < ApplicationRecord
 end
 ```
 
+##### `:optional`
+
+If you set the `:optional` option to `true`, then the presence of the associated
+object won't be validated. By default, this option is set to `false`.
+
 ##### `:polymorphic`
 
 Passing `true` to the `:polymorphic` option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
+
+
+##### `:required`
+
+When set to `true`, the association will also have its presence validated. This will validate the association itself, not the id. You can use `:inverse_of` to avoid an extra query during validation.
+
+NOTE: required is set to `true` by default and is deprecated. If you don’t want to have association presence validated, use `optional: true`.
+
+##### `:strict_loading`
+
+Enforces strict loading every time the associated record is loaded through this association.
 
 ##### `:touch`
 
@@ -1211,11 +1364,6 @@ end
 ##### `:validate`
 
 If you set the `:validate` option to `true`, then new associated objects will be validated whenever you save this object. By default, this is `false`: new associated objects will not be validated when this object is saved.
-
-##### `:optional`
-
-If you set the `:optional` option to `true`, then the presence of the associated
-object won't be validated. By default, this option is set to `false`.
 
 #### Scopes for `belongs_to`
 
@@ -1320,6 +1468,7 @@ When you declare a `has_one` association, the declaring class automatically gain
 * `create_association(attributes = {})`
 * `create_association!(attributes = {})`
 * `reload_association`
+* `reset_association`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
@@ -1331,14 +1480,13 @@ end
 
 Each instance of the `Supplier` model will have these methods:
 
-```ruby
-account
-account=
-build_account
-create_account
-create_account!
-reload_account
-```
+* `account`
+* `account=`
+* `build_account`
+* `create_account`
+* `create_account!`
+* `reload_account`
+* `reset_account`
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
@@ -1354,6 +1502,12 @@ If the associated object has already been retrieved from the database for this o
 
 ```ruby
 @account = @supplier.reload_account
+```
+
+To unload the cached version of the associated object—forcing the next access, if any, to query it from the database—call `#reset_association` on the parent object.
+
+```ruby
+@supplier.reset_account
 ```
 
 ##### `association=(associate)`
@@ -1400,11 +1554,16 @@ The [`has_one`][] association supports these options:
 * `:autosave`
 * `:class_name`
 * `:dependent`
+* `:disable_joins`
+* `:ensuring_owner_was`
 * `:foreign_key`
 * `:inverse_of`
 * `:primary_key`
+* `:query_constraints`
+* `:required`
 * `:source`
 * `:source_type`
+* `:strict_loading`
 * `:through`
 * `:touch`
 * `:validate`
@@ -1433,7 +1592,7 @@ Controls what happens to the associated object when its owner is destroyed:
 
 * `:destroy` causes the associated object to also be destroyed
 * `:delete` causes the associated object to be deleted directly from the database (so callbacks will not execute)
-* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob` job is enqueued which will call destroy on its associated objects. Active Job must be set up for this to work.
+* `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob` job is enqueued which will call destroy on its associated objects. Active Job must be set up for this to work. Do not use this option if the association is backed by foreign key constraints in your database. The foreign key constraint actions will occur inside the same transaction that deletes its owner.
 * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type column is also nullified on polymorphic associations. Callbacks are not executed.
 * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError` exception to be raised if there is an associated record
 * `:restrict_with_error` causes an error to be added to the owner if there is an associated object
@@ -1443,6 +1602,10 @@ that have `NOT NULL` database constraints. If you don't set `dependent` to
 destroy such associations you won't be able to change the associated object
 because the initial associated object's foreign key will be set to the
 unallowed `NULL` value.
+
+##### `:disable_joins`
+
+Specifies whether joins should be skipped for an association. If set to `true`, two or more queries will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory due to database limitations. This option is only applicable on `has_one :through` associations as `has_one` alone does not perform a join.
 
 ##### `:foreign_key`
 
@@ -1475,6 +1638,14 @@ end
 
 By convention, Rails assumes that the column used to hold the primary key of this model is `id`. You can override this and explicitly specify the primary key with the `:primary_key` option.
 
+##### `:query_constraints`
+
+Serves as a composite foreign key. Defines the list of columns to be used to query the associated object. This is an optional option. By default Rails will attempt to derive the value automatically. When the value is set the Array size must match associated model’s primary key or query_constraints size.
+
+##### `:required`
+
+When set to `true`, the association will also have its presence validated. This will validate the association itself, not the id. You can use `:inverse_of` to avoid an extra query during validation.
+
 ##### `:source`
 
 The `:source` option specifies the source association name for a `has_one :through` association.
@@ -1502,6 +1673,10 @@ end
 
 class DustJacket < ApplicationRecord; end
 ```
+
+##### `:strict_loading`
+
+Enforces strict loading every time the associated record is loaded through this association.
 
 ##### `:through`
 
@@ -1661,7 +1836,7 @@ end
 
 Each instance of the `Author` model will have these methods:
 
-```ruby
+```
 books
 books<<(object, ...)
 books.delete(object, ...)
@@ -1855,11 +2030,17 @@ The [`has_many`][] association supports these options:
 * `:class_name`
 * `:counter_cache`
 * `:dependent`
+* `:disable_joins`
+* `:ensuring_owner_was`
+* `:extend`
 * `:foreign_key`
+* `:foreign_type`
 * `:inverse_of`
 * `:primary_key`
+* `:query_constraints`
 * `:source`
 * `:source_type`
+* `:strict_loading`
 * `:through`
 * `:validate`
 
@@ -1898,6 +2079,18 @@ Controls what happens to the associated objects when their owner is destroyed:
 
 The `:destroy` and `:delete_all` options also affect the semantics of the `collection.delete` and `collection=` methods by causing them to destroy associated objects when they are removed from the collection.
 
+##### `:disable_joins`
+
+Specifies whether joins should be skipped for an association. If set to true, two or more queries will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory due to database limitations. This option is only applicable on `has_many :through associations` as has_many alone do not perform a join.
+
+##### `:ensuring_owner_was`
+
+Specifies an instance method to be called on the owner. The method must return true in order for the associated records to be deleted in a background job.
+
+##### `:extend`
+
+Specifies a module or array of modules that will be extended into the association object returned. Useful for defining methods on associations, especially when they should be shared between multiple association objects.
+
 ##### `:foreign_key`
 
 By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix `_id` added. The `:foreign_key` option lets you set the name of the foreign key directly:
@@ -1909,6 +2102,10 @@ end
 ```
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
+
+##### `:foreign_type`
+
+Specify the column used to store the associated object’s type, if this is a polymorphic association. By default this is guessed to be the name of the polymorphic association specified on “`as`” option with a “`_type`” suffix. So a class that defines a `has_many :tags, as: :taggable` association will use “`taggable_type`” as the default `:foreign_type`.
 
 ##### `:inverse_of`
 
@@ -1943,6 +2140,10 @@ end
 Now if we execute `@todo = @user.todos.create` then the `@todo`
 record's `user_id` value will be the `guid` value of `@user`.
 
+##### `:query_constraints`
+
+Serves as a composite foreign key. Defines the list of columns to be used to query the associated object. This is an optional option. By default Rails will attempt to derive the value automatically. When the value is set the Array size must match associated model’s primary key or `query_constraints` size.
+
 ##### `:source`
 
 The `:source` option specifies the source association name for a `has_many :through` association. You only need to use this option if the name of the source association cannot be automatically inferred from the association name.
@@ -1964,6 +2165,10 @@ end
 class Hardback < ApplicationRecord; end
 class Paperback < ApplicationRecord; end
 ```
+
+##### `:strict_loading`
+
+When set to true, enforces strict loading every time the associated record is loaded through this association.
 
 ##### `:through`
 
@@ -2232,7 +2437,7 @@ end
 
 Each instance of the `Part` model will have these methods:
 
-```ruby
+```
 assemblies
 assemblies<<(object, ...)
 assemblies.delete(object, ...)
@@ -2356,7 +2561,7 @@ conditions exists in the collection's table.
 The [`collection.build`][] method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will _not_ yet be saved.
 
 ```ruby
-@assembly = @part.assemblies.build({assembly_name: "Transmission housing"})
+@assembly = @part.assemblies.build({ assembly_name: "Transmission housing" })
 ```
 
 ##### `collection.create(attributes = {})`
@@ -2364,7 +2569,7 @@ The [`collection.build`][] method returns a new object of the associated type. T
 The [`collection.create`][] method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 ```ruby
-@assembly = @part.assemblies.create({assembly_name: "Transmission housing"})
+@assembly = @part.assemblies.create({ assembly_name: "Transmission housing" })
 ```
 
 ##### `collection.create!(attributes = {})`
@@ -2397,6 +2602,7 @@ The [`has_and_belongs_to_many`][] association supports these options:
 * `:class_name`
 * `:foreign_key`
 * `:join_table`
+* `:strict_loading`
 * `:validate`
 
 ##### `:association_foreign_key`
@@ -2444,6 +2650,10 @@ end
 ##### `:join_table`
 
 If the default name of the join table, based on lexical ordering, is not what you want, you can use the `:join_table` option to override the default.
+
+##### `:strict_loading`
+
+Enforces strict loading every time an associated record is loaded through this association.
 
 ##### `:validate`
 
@@ -2583,45 +2793,7 @@ class Author < ApplicationRecord
 end
 ```
 
-Rails passes the object being added or removed to the callback.
-
-You can stack callbacks on a single event by passing them as an array:
-
-```ruby
-class Author < ApplicationRecord
-  has_many :books,
-    before_add: [:check_credit_limit, :calculate_shipping_charges]
-
-  def check_credit_limit(book)
-    # ...
-  end
-
-  def calculate_shipping_charges(book)
-    # ...
-  end
-end
-```
-
-If a `before_add` callback throws `:abort`, the object does not get added to
-the collection. Similarly, if a `before_remove` callback throws `:abort`, the
-object does not get removed from the collection:
-
-```ruby
-# book won't be added if the limit has been reached
-def check_credit_limit(book)
-  throw(:abort) if limit_reached?
-end
-```
-NOTE: These callbacks are called only when the associated objects are added or removed through the association collection:
-
-```ruby
-# Triggers `before_add` callback
-author.books << book
-author.books = [book, book2]
-
-# Does not trigger the `before_add` callback
-book.update(author_id: 1)
-```
+Read more about association callbacks in the [Active Record Callbacks Guide](active_record_callbacks.html#association-callbacks)
 
 ### Association Extensions
 
@@ -2660,6 +2832,19 @@ Extensions can refer to the internals of the association proxy using these three
 * `proxy_association.owner` returns the object that the association is a part of.
 * `proxy_association.reflection` returns the reflection object that describes the association.
 * `proxy_association.target` returns the associated object for `belongs_to` or `has_one`, or the collection of associated objects for `has_many` or `has_and_belongs_to_many`.
+
+### Association Scoping using the Association Owner
+
+The owner of the association can be passed as a single argument to the scope
+block in situations where you need even more control over the association
+scope. However, as a caveat, preloading the association will no longer be
+possible.
+
+```ruby
+class Supplier < ApplicationRecord
+  has_one :account, ->(supplier) { where active: supplier.active? }
+end
+```
 
 Single Table Inheritance (STI)
 ------------------------------
@@ -2723,4 +2908,195 @@ will run a query like:
 
 ```sql
 SELECT "vehicles".* FROM "vehicles" WHERE "vehicles"."type" IN ('Car')
+```
+
+### Overriding the inheritance column
+
+There may be cases (like when working with a legacy database) where you need to
+override the name of the inheritance column. This can be achieved with the
+[inheritance_column][] method.
+
+```ruby
+# Schema: vehicles[ id, kind, created_at, updated_at ]
+class Vehicle < ApplicationRecord
+  self.inheritance_column = "kind"
+end
+
+class Car < Vehicle
+end
+
+Car.create
+# => #<Car kind: "Car">
+```
+
+### Disabling the inheritance column
+
+There may be cases (like when working with a legacy database) where you need to
+disable Single Table Inheritance altogether. Otherwise, you'll raise
+[`ActiveRecord::SubclassNotFound`][].
+
+This can be achieved by setting the [inheritance_column][] to `nil`.
+
+```ruby
+# Schema: vehicles[ id, type, created_at, updated_at ]
+class Vehicle < ApplicationRecord
+  self.inheritance_column = nil
+end
+
+Vehicle.create!(type: "Car")
+# => #<Vehicle type: "Car">
+```
+
+[inheritance_column]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-inheritance_column
+[`ActiveRecord::SubclassNotFound`]: https://api.rubyonrails.org/classes/ActiveRecord/SubclassNotFound.html
+
+Delegated Types
+----------------
+
+[`Single Table Inheritance (STI)`](#single-table-inheritance-sti) works best when there is little difference between subclasses and their attributes, but includes all attributes of all subclasses you need to create a single table.
+
+The disadvantage of this approach is that it results in bloat to that table. Since it will even include attributes specific to a subclass that aren't used by anything else.
+
+In the following example, there are two Active Record models that inherit from the same "Entry" class which includes the `subject` attribute.
+
+```ruby
+# Schema: entries[ id, type, subject, created_at, updated_at]
+class Entry < ApplicationRecord
+end
+
+class Comment < Entry
+end
+
+class Message < Entry
+end
+```
+
+Delegated types solves this problem, via `delegated_type`.
+
+In order to use delegated types, we have to model our data in a particular way. The requirements are as follows:
+
+* There is a superclass that stores shared attributes among all subclasses in its table.
+* Each subclass must inherit from the super class, and will have a separate table for any additional attributes specific to it.
+
+This eliminates the need to define attributes in a single table that are unintentionally shared among all subclasses.
+
+In order to apply this to our example above, we need to regenerate our models.
+First, let's generate the base `Entry` model which will act as our superclass:
+
+```bash
+$ bin/rails generate model entry entryable_type:string entryable_id:integer
+```
+
+Then, we will generate new `Message` and `Comment` models for delegation:
+
+```bash
+$ bin/rails generate model message subject:string body:string
+$ bin/rails generate model comment content:string
+```
+
+After running the generators, we should end up with models that look like this:
+
+```ruby
+# Schema: entries[ id, entryable_type, entryable_id, created_at, updated_at ]
+class Entry < ApplicationRecord
+end
+
+# Schema: messages[ id, subject, body, created_at, updated_at ]
+class Message < ApplicationRecord
+end
+
+# Schema: comments[ id, content, created_at, updated_at ]
+class Comment < ApplicationRecord
+end
+```
+
+### Declare `delegated_type`
+
+First, declare a `delegated_type` in the superclass `Entry`.
+
+```ruby
+class Entry < ApplicationRecord
+  delegated_type :entryable, types: %w[ Message Comment ], dependent: :destroy
+end
+```
+
+The `entryable` parameter specifies the field to use for delegation, and include the types `Message` and `Comment` as the delegate classes.
+
+The `Entry` class has `entryable_type` and `entryable_id` fields. This is the field with the `_type`, `_id` suffixes added to the name `entryable` in the `delegated_type` definition.
+`entryable_type` stores the subclass name of the delegatee, and `entryable_id` stores the record id of the delegatee subclass.
+
+Next, we must define a module to implement those delegated types, by declaring the `as: :entryable` parameter to the `has_one` association.
+
+```ruby
+module Entryable
+  extend ActiveSupport::Concern
+
+  included do
+    has_one :entry, as: :entryable, touch: true
+  end
+end
+```
+
+And then include the created module in your subclass.
+
+```ruby
+class Message < ApplicationRecord
+  include Entryable
+end
+
+class Comment < ApplicationRecord
+  include Entryable
+end
+```
+
+With this definition complete, our `Entry` delegator now provides the following methods:
+
+| Method | Return |
+|---|---|
+| `Entry.entryable_types` | ["Message", "Comment"] |
+| `Entry#entryable_class` | Message or Comment |
+| `Entry#entryable_name` | "message" or "comment" |
+| `Entry.messages` | `Entry.where(entryable_type: "Message")` |
+| `Entry#message?` | Returns true when `entryable_type == "Message"` |
+| `Entry#message` | Returns the message record, when `entryable_type == "Message"`, otherwise `nil` |
+| `Entry#message_id` | Returns `entryable_id`, when `entryable_type == "Message"`, otherwise `nil` |
+| `Entry.comments` | `Entry.where(entryable_type: "Comment")` |
+| `Entry#comment?` | Returns true when `entryable_type == "Comment"` |
+| `Entry#comment` | Returns the comment record, when `entryable_type == "Comment"`, otherwise `nil` |
+| `Entry#comment_id` | Returns entryable_id, when `entryable_type == "Comment"`, otherwise `nil` |
+
+### Object creation
+
+When creating a new `Entry` object, we can specify the `entryable` subclass at the same time.
+
+```ruby
+Entry.create! entryable: Message.new(subject: "hello!")
+```
+
+### Adding further delegation
+
+We can expand our `Entry` delegator and enhance it further by defining `delegate` and using polymorphism on the subclasses.
+For example, to delegate the `title` method from `Entry` to it's subclasses:
+
+```ruby
+class Entry < ApplicationRecord
+  delegated_type :entryable, types: %w[ Message Comment ]
+  delegate :title, to: :entryable
+end
+
+class Message < ApplicationRecord
+  include Entryable
+
+  def title
+    subject
+  end
+end
+
+class Comment < ApplicationRecord
+  include Entryable
+
+  def title
+    content.truncate(20)
+  end
+end
 ```

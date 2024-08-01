@@ -38,7 +38,7 @@ Rails needs superuser privileges to disable referential integrity.
           end
         end
 
-        def all_foreign_keys_valid? # :nodoc:
+        def check_all_foreign_keys_valid! # :nodoc:
           sql = <<~SQL
             do $$
               declare r record;
@@ -61,14 +61,8 @@ Rails needs superuser privileges to disable referential integrity.
             $$;
           SQL
 
-          begin
-            transaction(requires_new: true) do
-              execute(sql)
-            end
-
-            true
-          rescue ActiveRecord::StatementInvalid
-            false
+          transaction(requires_new: true) do
+            execute(sql)
           end
         end
       end

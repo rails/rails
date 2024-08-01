@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActionDispatch
@@ -16,10 +18,9 @@ module ActionDispatch
 
       included do
         mattr_accessor :ignore_accept_header, default: false
-        cattr_accessor :return_only_media_type_on_content_type, default: false
       end
 
-      # The MIME type of the HTTP request, such as Mime[:xml].
+      # The MIME type of the HTTP request, such as [Mime](:xml).
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
           v = if get_header("CONTENT_TYPE") =~ /^([^,;]*)/
@@ -30,19 +31,6 @@ module ActionDispatch
           set_header k, v
         rescue ::Mime::Type::InvalidMimeType => e
           raise InvalidType, e.message
-        end
-      end
-
-      def content_type
-        if self.class.return_only_media_type_on_content_type
-          ActiveSupport::Deprecation.warn(
-            "Rails 7.1 will return Content-Type header without modification." \
-            " If you want just the MIME type, please use `#media_type` instead."
-          )
-
-          content_mime_type&.to_s
-        else
-          super
         end
       end
 
@@ -66,13 +54,13 @@ module ActionDispatch
         end
       end
 
-      # Returns the MIME type for the \format used in the request.
+      # Returns the MIME type for the format used in the request.
       #
-      #   GET /posts/5.xml   | request.format => Mime[:xml]
-      #   GET /posts/5.xhtml | request.format => Mime[:html]
-      #   GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
+      #     GET /posts/5.xml   | request.format => Mime[:xml]
+      #     GET /posts/5.xhtml | request.format => Mime[:html]
+      #     GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
       #
-      def format(view_path = [])
+      def format(_view_path = nil)
         formats.first || Mime::NullType.instance
       end
 
@@ -81,7 +69,7 @@ module ActionDispatch
           v = if params_readable?
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
-            accepts
+            accepts.dup
           elsif extension_format = format_from_path_extension
             [extension_format]
           elsif xhr?
@@ -90,7 +78,7 @@ module ActionDispatch
             [Mime[:html]]
           end
 
-          v = v.select do |format|
+          v.select! do |format|
             format.symbol || format.ref == "*/*"
           end
 
@@ -98,7 +86,7 @@ module ActionDispatch
         end
       end
 
-      # Sets the \variant for template.
+      # Sets the variant for template.
       def variant=(variant)
         variant = Array(variant)
 
@@ -113,36 +101,37 @@ module ActionDispatch
         @variant ||= ActiveSupport::ArrayInquirer.new
       end
 
-      # Sets the \format by string extension, which can be used to force custom formats
+      # Sets the format by string extension, which can be used to force custom formats
       # that are not controlled by the extension.
       #
-      #   class ApplicationController < ActionController::Base
-      #     before_action :adjust_format_for_iphone
+      #     class ApplicationController < ActionController::Base
+      #       before_action :adjust_format_for_iphone
       #
-      #     private
-      #       def adjust_format_for_iphone
-      #         request.format = :iphone if request.env["HTTP_USER_AGENT"][/iPhone/]
-      #       end
-      #   end
+      #       private
+      #         def adjust_format_for_iphone
+      #           request.format = :iphone if request.env["HTTP_USER_AGENT"][/iPhone/]
+      #         end
+      #     end
       def format=(extension)
         parameters[:format] = extension.to_s
         set_header "action_dispatch.request.formats", [Mime::Type.lookup_by_extension(parameters[:format])]
       end
 
-      # Sets the \formats by string extensions. This differs from #format= by allowing you
-      # to set multiple, ordered formats, which is useful when you want to have a fallback.
+      # Sets the formats by string extensions. This differs from #format= by allowing
+      # you to set multiple, ordered formats, which is useful when you want to have a
+      # fallback.
       #
-      # In this example, the +:iphone+ format will be used if it's available, otherwise it'll fallback
-      # to the +:html+ format.
+      # In this example, the `:iphone` format will be used if it's available,
+      # otherwise it'll fall back to the `:html` format.
       #
-      #   class ApplicationController < ActionController::Base
-      #     before_action :adjust_format_for_iphone_with_html_fallback
+      #     class ApplicationController < ActionController::Base
+      #       before_action :adjust_format_for_iphone_with_html_fallback
       #
-      #     private
-      #       def adjust_format_for_iphone_with_html_fallback
-      #         request.formats = [ :iphone, :html ] if request.env["HTTP_USER_AGENT"][/iPhone/]
-      #       end
-      #   end
+      #       private
+      #         def adjust_format_for_iphone_with_html_fallback
+      #           request.formats = [ :iphone, :html ] if request.env["HTTP_USER_AGENT"][/iPhone/]
+      #         end
+      #     end
       def formats=(extensions)
         parameters[:format] = extensions.first.to_s
         set_header "action_dispatch.request.formats", extensions.collect { |extension|
@@ -168,8 +157,8 @@ module ActionDispatch
       end
 
       private
-        # We use normal content negotiation unless you include */* in your list,
-        # in which case we assume you're a browser and send HTML.
+        # We use normal content negotiation unless you include **/** in your list, in
+        # which case we assume you're a browser and send HTML.
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
         def params_readable?

@@ -178,25 +178,11 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path) { `bin/rails do_something RAILS_ENV=production` }
-      assert_equal "Answer: 42\n", output
+      assert_equal "Answer: 42\n", output.lines.last
     end
 
     def test_code_statistics
-      assert_match "Code LOC: 62     Test LOC: 5     Code to Test Ratio: 1:0.1",
-        rails("stats")
-    end
-
-    def test_logger_is_flushed_when_exiting_production_rake_tasks
-      add_to_config <<-RUBY
-        rake_tasks do
-          task log_something: :environment do
-            Rails.logger.error("Sample log message")
-          end
-        end
-      RUBY
-
-      rails "log_something", "RAILS_ENV=production"
-      assert_match "Sample log message", File.read("#{app_path}/log/production.log")
+      assert_match(/Code LOC: \d+\s+Test LOC: \d+\s+ Code to Test Ratio: 1:\w+/, rails("stats"))
     end
 
     def test_loading_specific_fixtures

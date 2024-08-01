@@ -53,6 +53,8 @@ module Arel # :nodoc: all
         gteq(other.begin)
       elsif other.exclude_end?
         gteq(other.begin).and(lt(other.end))
+      elsif other.begin == other.end
+        eq(other.begin)
       else
         left = quoted_node(other.begin)
         right = quoted_node(other.end)
@@ -230,7 +232,7 @@ module Arel # :nodoc: all
       def grouping_any(method_id, others, *extras)
         nodes = others.map { |expr| send(method_id, expr, *extras) }
         Nodes::Grouping.new nodes.inject { |memo, node|
-          Nodes::Or.new(memo, node)
+          Nodes::Or.new([memo, node])
         }
       end
 

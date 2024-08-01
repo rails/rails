@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+<%- unless skip_rubocop? -%>
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+          bundler-cache: true
+
+      - name: Lint code for consistent style
+        run: bin/rubocop -f github
+
+<% end -%>
+<% unless options[:skip_test] -%>
+  test:
+    runs-on: ubuntu-latest
+
+    <%- if options[:database] == "sqlite3" -%>
+    # services:
+    #  redis:
+    #    image: redis
+    #    ports:
+    #      - 6379:6379
+    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    <%- else -%>
+    services:
+      <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+      mysql:
+        image: mysql
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      <%- elsif options[:database] == "postgresql" -%>
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+      <%- end -%>
+
+      # redis:
+      #   image: redis
+      #   ports:
+      #     - 6379:6379
+      #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    <%- end -%>
+    steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= dockerfile_base_packages.join(" ") %>
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+          bundler-cache: true
+      <%- if using_bun? -%>
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: <%= dockerfile_bun_version %>
+      <%- end -%>
+
+      - name: Run tests
+        env:
+          RAILS_ENV: test
+          <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+          DATABASE_URL: mysql2://127.0.0.1:3306
+          <%- elsif options[:database] == "postgresql" -%>
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          <%- end -%>
+          # REDIS_URL: redis://localhost:6379/0
+        run: bin/rails <%= test_command %>
+
+      - name: Keep screenshots from failed system tests
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: screenshots
+          path: ${{ github.workspace }}/tmp/screenshots
+          if-no-files-found: ignore
+<% end -%>
+

@@ -119,7 +119,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_match %r|\[Screenshot HTML\].+?tmp/screenshots/1_x\.html|, display_image_actual
   end
 
-  test "take_screenshot allows changing screeenshot display format via RAILS_SYSTEM_TESTING_SCREENSHOT env" do
+  test "take_screenshot allows changing screenshot display format via RAILS_SYSTEM_TESTING_SCREENSHOT env" do
     original_output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
     ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "artifact"
 
@@ -138,7 +138,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
   end
 
-  test "take_screenshot allows changing screeenshot display format via screenshot: kwarg" do
+  test "take_screenshot allows changing screenshot display format via screenshot: kwarg" do
     display_image_actual = nil
 
     Rails.stub :root, Pathname.getwd do
@@ -152,18 +152,34 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_match %r|url=artifact://.+?tmp/screenshots/1_x\.png|, display_image_actual
   end
 
+  test "take_failed_screenshot persists the image path in the test metadata" do
+    Rails.stub :root, Pathname.getwd do
+      @new_test.stub :passed?, false do
+        Capybara::Session.stub :instance_created?, true do
+          @new_test.stub :save_image, nil do
+            @new_test.stub :show, -> (_) { } do
+              @new_test.take_failed_screenshot
+
+              assert_equal @new_test.send(:relative_image_path), @new_test.metadata[:failure_screenshot_path]
+            end
+          end
+        end
+      end
+    end
+  end
+
   test "image path returns the absolute path from root" do
     Rails.stub :root, Pathname.getwd.join("..") do
       assert_equal Rails.root.join("tmp/screenshots/0_x.png").to_s, @new_test.send(:image_path)
     end
   end
 
-  test "slashes and backslashes are replaced with dashes in paths" do
-    slash_test = DrivenBySeleniumWithChrome.new("x/y\\z")
+  test "Non word characters are replaced with dashes in paths" do
+    non_word_chars_test = DrivenBySeleniumWithChrome.new("x/y\\z?<br>-span")
 
     Rails.stub :root, Pathname.getwd do
-      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z.png").to_s, slash_test.send(:image_path)
-      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z.html").to_s, slash_test.send(:html_path)
+      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z-br-span.png").to_s, non_word_chars_test.send(:image_path)
+      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z-br-span.html").to_s, non_word_chars_test.send(:html_path)
     end
   end
 end

@@ -28,7 +28,7 @@ class AbsenceValidationTest < ActiveRecord::TestCase
     assert_equal 1, boy.errors[:face].size, "should only add one error"
 
     boy.face.mark_for_destruction
-    assert boy.valid?, "should be valid if association is marked for destruction"
+    assert_predicate boy, :valid?, "should be valid if association is marked for destruction"
   end
 
   def test_has_many_marked_for_destruction

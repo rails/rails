@@ -74,10 +74,15 @@ class ClientTest < ActionCable::TestCase
   end
 
   def with_puma_server(rack_app = ActionCable.server, port = 3099)
-    server = ::Puma::Server.new(rack_app, ::Puma::Events.strings)
+    opts = { min_threads: 1, max_threads: 4 }
+    server = if Puma::Const::PUMA_VERSION >= "6"
+      opts[:log_writer] = ::Puma::LogWriter.strings
+      ::Puma::Server.new(rack_app, nil, opts)
+    else
+      # Puma >= 5.0.3
+      ::Puma::Server.new(rack_app, ::Puma::Events.strings, opts)
+    end
     server.add_tcp_listener "127.0.0.1", port
-    server.min_threads = 1
-    server.max_threads = 4
 
     thread = server.run
 
@@ -320,7 +325,7 @@ class ClientTest < ActionCable::TestCase
       assert_equal({ "type" => "disconnect", "reason" => "remote", "reconnect" => true }, c.read_message)
 
       c.wait_for_close
-      assert(c.closed?)
+      assert_predicate(c, :closed?)
     end
   end
 
@@ -337,7 +342,7 @@ class ClientTest < ActionCable::TestCase
       assert_equal({ "type" => "disconnect", "reason" => "remote", "reconnect" => false }, c.read_message)
 
       c.wait_for_close
-      assert(c.closed?)
+      assert_predicate(c, :closed?)
     end
   end
 

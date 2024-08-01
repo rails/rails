@@ -55,7 +55,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_add_routes
     run_generator
-    assert_file "config/routes.rb", /^  get 'account\/foo'/, /^  get 'account\/bar'/
+    assert_file "config/routes.rb", /^  get "account\/foo"/, /^  get "account\/bar"/
   end
 
   def test_skip_routes
@@ -94,14 +94,14 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_namespaced_routes_are_created_in_routes
     run_generator ["admin/dashboard", "index"]
     assert_file "config/routes.rb" do |route|
-      assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n  end$/, route)
+      assert_match(/^  namespace :admin do\n    get "dashboard\/index"\n  end$/, route)
     end
   end
 
   def test_namespaced_routes_with_multiple_actions_are_created_in_routes
     run_generator ["admin/dashboard", "index", "show"]
     assert_file "config/routes.rb" do |route|
-      assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n    get 'dashboard\/show'\n  end$/, route)
+      assert_match(/^  namespace :admin do\n    get "dashboard\/index"\n    get "dashboard\/show"\n  end$/, route)
     end
   end
 
@@ -109,6 +109,13 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["admin/dashboard"]
     assert_file "config/routes.rb" do |routes|
       assert_no_match(/namespace :admin/, routes)
+    end
+  end
+
+  def test_controller_parent_param
+    run_generator ["admin/dashboard", "--parent", "admin_controller"]
+    assert_file "app/controllers/admin/dashboard_controller.rb" do |controller|
+      assert_match(/class Admin::DashboardController < AdminController/, controller)
     end
   end
 

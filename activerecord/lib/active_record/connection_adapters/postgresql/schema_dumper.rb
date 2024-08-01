@@ -28,6 +28,17 @@ module ActiveRecord
             end
           end
 
+          def schemas(stream)
+            schema_names = @connection.schema_names - ["public"]
+
+            if schema_names.any?
+              schema_names.sort.each do |name|
+                stream.puts "  create_schema #{name.inspect}"
+              end
+              stream.puts
+            end
+          end
+
           def exclusion_constraints_in_create(table, stream)
             if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
               add_exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
@@ -37,6 +48,7 @@ module ActiveRecord
 
                 parts << "where: #{exclusion_constraint.where.inspect}" if exclusion_constraint.where
                 parts << "using: #{exclusion_constraint.using.inspect}" if exclusion_constraint.using
+                parts << "deferrable: #{exclusion_constraint.deferrable.inspect}" if exclusion_constraint.deferrable
 
                 if exclusion_constraint.export_name_on_schema_dump?
                   parts << "name: #{exclusion_constraint.name.inspect}"
@@ -46,6 +58,26 @@ module ActiveRecord
               end
 
               stream.puts add_exclusion_constraint_statements.sort.join("\n")
+            end
+          end
+
+          def unique_constraints_in_create(table, stream)
+            if (unique_constraints = @connection.unique_constraints(table)).any?
+              add_unique_constraint_statements = unique_constraints.map do |unique_constraint|
+                parts = [
+                  "t.unique_constraint #{unique_constraint.column.inspect}"
+                ]
+
+                parts << "deferrable: #{unique_constraint.deferrable.inspect}" if unique_constraint.deferrable
+
+                if unique_constraint.export_name_on_schema_dump?
+                  parts << "name: #{unique_constraint.name.inspect}"
+                end
+
+                "    #{parts.join(', ')}"
+              end
+
+              stream.puts add_unique_constraint_statements.sort.join("\n")
             end
           end
 

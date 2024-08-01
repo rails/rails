@@ -6,10 +6,20 @@ require "rake/testtask"
 
 task :package
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.pattern = "test/**/*_test.rb"
   t.verbose = true
+end
+
+namespace :test do
+  task :isolated do
+    FileList["test/**/*_test.rb"].exclude("test/dummy/**/*").all? do |file|
+      sh(Gem.ruby, "-w", "-Ilib", "-Itest", file)
+    end || raise("Failures")
+  end
 end
 
 task default: :test

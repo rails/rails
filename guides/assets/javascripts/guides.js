@@ -23,10 +23,7 @@
     for(var i = 0; i < array.length; i++) callback(array[i]);
   }
 
-  // Viewable on local
-  if (window.location.protocol === "file:") Turbolinks.supported = false;
-
-  document.addEventListener("turbolinks:load", function() {
+  document.addEventListener("turbo:load", function() {
     var guidesMenu = document.getElementById("guidesMenu");
     var guides     = document.getElementById("guides");
 
@@ -47,16 +44,38 @@
       }
     });
 
+    var backToTop = createElement("a", "back-to-top");
+    backToTop.setAttribute("href", "#");
+
+    document.body.appendChild(backToTop);
+
+    backToTop.addEventListener("click", function(e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      resetNavPosition();
+    });
+
+    var toggleBackToTop = function() {
+      if (window.scrollY > 300) {
+        backToTop.classList.add("show");
+      } else {
+        backToTop.classList.remove("show");
+      }
+    }
+
+    document.addEventListener("scroll", toggleBackToTop);
+
+    var guidesVersion = document.querySelector("select.guides-version");
+    guidesVersion.addEventListener("change", function(e) {
+      Turbo.visit(e.target.value);
+    });
+
     var guidesIndexItem   = document.querySelector("select.guides-index-item");
     var currentGuidePath  = window.location.pathname;
     guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1) || 'index.html';
 
     guidesIndexItem.addEventListener("change", function(e) {
-      if (Turbolinks.supported) {
-        Turbolinks.visit(e.target.value);
-      } else {
-        window.location = e.target.value;
-      }
+      Turbo.visit(e.target.value);
     });
 
     var moreInfoButton = document.querySelector(".more-info-button");
@@ -84,5 +103,98 @@
       }, 3000);
       e.clearSelection();
     });
+
+    var mainColElems = Array.from(document.getElementById("mainCol").children);
+    var subCol = document.querySelector("#subCol");
+    var navLinks = subCol.querySelectorAll("a");
+    var DESKTOP_THRESHOLD = 1024;
+
+    var matchingNavLink = function (elem) {
+      if(!elem) return;
+      var index = mainColElems.indexOf(elem);
+
+      var match;
+      while (index >= 0 && !match) {
+        var link = mainColElems[index].querySelector(".anchorlink");
+        if (link) {
+          match = subCol.querySelector('[href="' + link.getAttribute("href") + '"]');
+        }
+        index--;
+      }
+      return match;
+    }
+
+    var removeHighlight = function () {
+      for (var i = 0, n = navLinks.length; i < n; i++) {
+        navLinks[i].classList.remove("active");
+      }
+    }
+
+    var updateHighlight = function (elem) {
+      if (window.innerWidth > DESKTOP_THRESHOLD && !elem?.classList.contains("active")) {
+        removeHighlight();
+        if (!elem) return;
+        elem.classList.add("active");
+        elem.scrollIntoView({ block: 'center', inline: 'end' });
+      }
+    }
+
+    var resetNavPosition = function () {
+      var chapters = subCol.querySelector(".chapters");
+      chapters?.scroll({ top: 0 });
+    }
+
+    var belowBottomHalf = function (i) {
+      return i.boundingClientRect.bottom > (i.rootBounds.bottom + i.rootBounds.top) / 2;
+    }
+
+    var prevElem = function (elem) {
+      var index = mainColElems.indexOf(elem);
+      if (index <= 0) {
+        return null;
+      }
+      return mainColElems[index - 1];
+    }
+
+    var PAGE_LOAD_BUFFER = 1000;
+
+    var navHighlight = function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          updateHighlight(matchingNavLink(entry.target));
+        } else if (entry.time >= PAGE_LOAD_BUFFER && belowBottomHalf(entry)) {
+          updateHighlight(matchingNavLink(prevElem(entry.target)));
+        }
+      });
+    }
+
+    var observer = new IntersectionObserver(navHighlight, {
+      threshold: 0,
+      rootMargin: "0% 0px -95% 0px"
+    });
+
+    mainColElems.forEach(function (elem) {
+      observer.observe(elem);
+    })
+
+    observer.observe(document.getElementById("feature"));
+
+    subCol.addEventListener("click", function(e) {
+      var link = e.target.closest("a");
+      if (link) {
+        setTimeout(function() { updateHighlight(link) }, 100);
+      }
+    })
   });
+
+  // Observe the HTML tag for Google Translate CSS class, to swap our lang direction LTR/RTL.
+  var observer = new MutationObserver(function(mutations, _observer) {
+    each(mutations, function(mutation) {
+      if (mutation.type === "attributes" && mutation.attributeName == "class") {
+        mutation.target.dir = mutation.target.classList.contains("translated-rtl") ? "rtl" : "ltr";
+      }
+    })
+  });
+  observer.observe(document.querySelector("html"), { attributeFilter: ["class"] });
+
 }).call(this);

@@ -9,7 +9,7 @@ module RailsGuides
       result = content_tag(:dt, link)
 
       if options[:work_in_progress]
-        result << content_tag(:dd, "Work in progress", class: "work-in-progress")
+        result << content_tag(:dd, "Work in progress", class: "interstitial work-in-progress")
       end
 
       result << content_tag(:dd, capture(&block))
@@ -26,6 +26,15 @@ module RailsGuides
 
     def finished_documents(documents)
       documents.reject { |document| document["work_in_progress"] }
+    end
+
+    def all_images
+      base_path = File.expand_path("../assets", __dir__)
+      images_path = File.join(base_path, "images/**/*")
+      @all_images = Dir.glob(images_path).reject { |f| File.directory?(f) }.map { |item|
+        item.delete_prefix "#{base_path}/"
+      }
+      @all_images
     end
 
     def docs_for_menu(position = nil)

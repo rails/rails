@@ -46,7 +46,7 @@ class Topic < ActiveRecord::Base
     end
   end
 
-  has_many :replies, dependent: :destroy, foreign_key: "parent_id", autosave: true
+  has_many :replies, dependent: :destroy, autosave: true, inverse_of: :topic
   has_many :approved_replies, -> { approved }, class_name: "Reply", foreign_key: "parent_id", counter_cache: "replies_count"
   has_many :open_replies, -> { open }, class_name: "Reply", foreign_key: "parent_id"
 
@@ -144,6 +144,8 @@ end
 
 class TitlePrimaryKeyTopic < Topic
   self.primary_key = :title
+
+  alias_attribute :id_value, :id
 end
 
 module Web

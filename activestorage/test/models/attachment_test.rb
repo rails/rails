@@ -21,7 +21,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
       @user.highlights.attach(blob)
     end
 
-    assert blob.reload.analyzed?
+    assert_predicate blob.reload, :analyzed?
     assert_equal 4104, blob.metadata[:width]
     assert_equal 2736, blob.metadata[:height]
   end
@@ -108,11 +108,28 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id)
   end
 
-  test "fail to find blob within expiration date" do
+  test "fail to find blob within expiration duration" do
     blob = create_blob
     @user.avatar.attach(blob)
 
     signed_id = @user.avatar.signed_id(expires_in: 1.minute)
+    travel 2.minutes
+    assert_nil ActiveStorage::Blob.find_signed(signed_id)
+  end
+
+  test "getting a signed blob ID from an attachment with a expires_at" do
+    blob = create_blob
+    @user.avatar.attach(blob)
+
+    signed_id = @user.avatar.signed_id(expires_at: 1.minute.from_now)
+    assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id)
+  end
+
+  test "fail to find blob within expiration time" do
+    blob = create_blob
+    @user.avatar.attach(blob)
+
+    signed_id = @user.avatar.signed_id(expires_at: 1.minute.from_now)
     travel 2.minutes
     assert_nil ActiveStorage::Blob.find_signed(signed_id)
   end
@@ -142,6 +159,10 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_nothing_raised { attachment.destroy }
   end
 
+  test "can create an attachment with the record having no attachment reflections" do
+    assert_nothing_raised { ActiveStorage::Attachment.create!(name: "whatever", record: @user, blob: create_blob) }
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil
@@ -157,11 +178,11 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     end
 
     def assert_blob_identified_outside_transaction(blob, &block)
-      baseline_transaction_depth = ActiveRecord::Base.connection.open_transactions
+      baseline_transaction_depth = ActiveRecord::Base.lease_connection.open_transactions
       max_transaction_depth = -1
 
       track_transaction_depth = ->(*) do
-        max_transaction_depth = [ActiveRecord::Base.connection.open_transactions, max_transaction_depth].max
+        max_transaction_depth = [ActiveRecord::Base.lease_connection.open_transactions, max_transaction_depth].max
       end
 
       blob.stub(:identify_without_saving, track_transaction_depth, &block)

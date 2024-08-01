@@ -11,6 +11,17 @@ SIGNED_ID_VERIFIER_TEST_SECRET = -> { "This is normally set by the railtie initi
 ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
 
 class SignedIdTest < ActiveRecord::TestCase
+  class GetSignedIDInCallback < ActiveRecord::Base
+    self.table_name = "accounts"
+    after_create :set_signed_id
+    attr_reader :signed_id_from_callback
+
+    private
+      def set_signed_id
+        @signed_id_from_callback = signed_id
+      end
+  end
+
   fixtures :accounts, :toys, :companies
 
   setup do
@@ -67,11 +78,11 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_nil Account.find_signed("this won't find anything")
   end
 
-  test "find signed record within expiration date" do
+  test "find signed record within expiration duration" do
     assert_equal @account, Account.find_signed(@account.signed_id(expires_in: 1.minute))
   end
 
-  test "fail to find signed record within expiration date" do
+  test "fail to find signed record within expiration duration" do
     signed_id = @account.signed_id(expires_in: 1.minute)
     travel 2.minutes
     assert_nil Account.find_signed(signed_id)
@@ -81,6 +92,16 @@ class SignedIdTest < ActiveRecord::TestCase
     signed_id = @account.signed_id(expires_in: 1.minute)
     @account.destroy
     assert_nil Account.find_signed signed_id
+  end
+
+  test "find signed record within expiration time" do
+    assert_equal @account, Account.find_signed(@account.signed_id(expires_at: 1.minute.from_now))
+  end
+
+  test "fail to find signed record within expiration time" do
+    signed_id = @account.signed_id(expires_at: 1.minute.from_now)
+    travel 2.minutes
+    assert_nil Account.find_signed(signed_id)
   end
 
   test "find signed record with purpose" do
@@ -99,11 +120,11 @@ class SignedIdTest < ActiveRecord::TestCase
     end
   end
 
-  test "find signed record with a bang within expiration date" do
+  test "find signed record with a bang within expiration duration" do
     assert_equal @account, Account.find_signed!(@account.signed_id(expires_in: 1.minute))
   end
 
-  test "finding signed record outside expiration date raises on the bang" do
+  test "finding signed record outside expiration duration raises on the bang" do
     signed_id = @account.signed_id(expires_in: 1.minute)
     travel 2.minutes
 
@@ -157,6 +178,11 @@ class SignedIdTest < ActiveRecord::TestCase
     ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
   end
 
+  test "always output url_safe" do
+    signed_id = @account.signed_id(purpose: "~~~~~~~~~")
+    assert_not signed_id.include?("+")
+  end
+
   test "use a custom verifier" do
     old_verifier = Account.signed_id_verifier
     Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("sekret")
@@ -164,5 +190,15 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_equal @account, Account.find_signed(@account.signed_id)
   ensure
     Account.signed_id_verifier = old_verifier
+  end
+
+  test "cannot get a signed ID for a new record" do
+    assert_raises ArgumentError, match: /Cannot get a signed_id for a new record/ do
+      Account.new.signed_id
+    end
+  end
+
+  test "can get a signed ID in an after_create" do
+    assert_not_nil GetSignedIDInCallback.create.signed_id_from_callback
   end
 end

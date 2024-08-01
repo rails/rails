@@ -59,11 +59,18 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dockerfile
+    run_generator
+
+    assert_file "Dockerfile" do |content|
+      assert_no_match(/assets:precompile/, content)
+    end
+  end
+
   def test_generator_if_skip_action_cable_is_given
     run_generator [destination_root, "--api", "--skip-action-cable"]
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "config/cable.yml"
-    assert_no_file "app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/"redis"/, content)
     end
@@ -86,6 +93,18 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "app/views"
   end
 
+  def test_generator_skip_css
+    run_generator [destination_root, "--api", "--css=tailwind"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(%r/gem "tailwindcss-rails"/, content)
+    end
+
+    assert_no_file "app/views/layouts/application.html.erb" do |content|
+      assert_no_match(/tailwind/, content)
+    end
+  end
+
   def test_app_update_does_not_generate_unnecessary_config_files
     run_generator
 
@@ -95,7 +114,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "config/initializers/assets.rb"
     assert_no_file "config/initializers/content_security_policy.rb"
-    assert_no_file "config/initializers/permissions_policy.rb"
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files
@@ -104,23 +122,27 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     generator = Rails::Generators::AppGenerator.new ["rails"],
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.update_bin_files }
+    pass
   end
 
   private
     def default_files
       %w(.gitignore
         .ruby-version
+        .dockerignore
         README.md
         Gemfile
         Rakefile
+        Dockerfile
         config.ru
-        app/channels
         app/controllers
         app/mailers
         app/models
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
+        bin/dev
+        bin/docker-entrypoint
         bin/rails
         bin/rake
         bin/setup
@@ -163,16 +185,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          bin/yarn
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
-         config/initializers/permissions_policy.rb
-         lib/assets
          test/helpers
-         tmp/cache/assets
          public/404.html
          public/422.html
+         public/406-unsupported-browser.html
          public/500.html
-         public/apple-touch-icon-precomposed.png
-         public/apple-touch-icon.png
-         public/favicon.ico
+         public/icon.png
+         public/icon.svg
       )
     end
 end

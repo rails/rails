@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveStorage
+  # = Active Storage \Analyzer
+  #
   # This is an abstract base class for analyzers, which extract metadata from blobs. See
   # ActiveStorage::Analyzer::VideoAnalyzer for an example of a concrete subclass.
   class Analyzer

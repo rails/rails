@@ -59,9 +59,10 @@ module ActiveRecord
 
             attributes = through_scope_attributes
             attributes[source_reflection.name] = record
-            attributes[source_reflection.foreign_type] = options[:source_type] if options[:source_type]
 
-            through_association.build(attributes)
+            through_association.build(attributes).tap do |new_record|
+              new_record.send("#{source_reflection.foreign_type}=", options[:source_type]) if options[:source_type]
+            end
           end
         end
 
@@ -69,9 +70,12 @@ module ActiveRecord
 
         def through_scope_attributes
           scope = through_scope || self.scope
-          scope.where_values_hash(through_association.reflection.name.to_s).
-            except!(through_association.reflection.foreign_key,
-                    through_association.reflection.klass.inheritance_column)
+          attributes = scope.where_values_hash(through_association.reflection.klass.table_name)
+          except_keys = [
+            *Array(through_association.reflection.foreign_key),
+            through_association.reflection.klass.inheritance_column
+          ]
+          attributes.except!(*except_keys)
         end
 
         def save_through_record(record)
@@ -109,7 +113,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          !(through_reflection.belongs_to? && owner[through_reflection.foreign_key].blank?)
+          !(through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? { |foreign_key_column| owner[foreign_key_column].blank? })
         end
 
         def update_through_counter?(method)
@@ -136,7 +140,7 @@ module ActiveRecord
 
           case method
           when :destroy
-            if scope.klass.primary_key
+            if scope.model.primary_key
               count = scope.destroy_all.count(&:destroyed?)
             else
               scope.each(&:_run_destroy_callbacks)

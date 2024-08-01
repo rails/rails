@@ -18,7 +18,7 @@ class SerializationTest < ActiveModel::TestCase
       instance_values.except("address", "friends")
     end
 
-    def method_missing(method_name, *args)
+    def method_missing(method_name, ...)
       if method_name == :bar
         "i_am_bar"
       else

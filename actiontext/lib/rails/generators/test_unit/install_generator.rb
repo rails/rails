@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module TestUnit
   module Generators
     class InstallGenerator < ::Rails::Generators::Base

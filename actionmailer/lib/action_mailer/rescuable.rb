@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 module ActionMailer # :nodoc:
-  # Provides +rescue_from+ for mailers. Wraps mailer action processing,
-  # mail job processing, and mail delivery.
+  # = Action Mailer \Rescuable
+  #
+  # Provides
+  # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from]
+  # for mailers. Wraps mailer action processing, mail job processing, and mail
+  # delivery to handle configured errors.
   module Rescuable
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable

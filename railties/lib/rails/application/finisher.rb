@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "set"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -17,10 +18,15 @@ module Rails
       initializer :setup_main_autoloader do
         autoloader = Rails.autoloaders.main
 
+        # Normally empty, but if the user already defined some, we won't
+        # override them. Important if there are custom namespaces associated.
+        already_configured_dirs = Set.new(autoloader.dirs)
+
         ActiveSupport::Dependencies.autoload_paths.freeze
         ActiveSupport::Dependencies.autoload_paths.uniq.each do |path|
           # Zeitwerk only accepts existing directories in `push_dir`.
           next unless File.directory?(path)
+          next if already_configured_dirs.member?(path.to_s)
 
           autoloader.push_dir(path)
           autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
@@ -72,6 +78,7 @@ module Rails
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           Zeitwerk::Loader.eager_load_all
+          Rails.eager_load!
           config.eager_load_namespaces.each(&:eager_load!)
 
           if config.reloading_enabled?
@@ -87,21 +94,21 @@ module Rails
         ActiveSupport.run_load_hooks(:after_initialize, self)
       end
 
-      class MutexHook
-        def initialize(mutex = Mutex.new)
-          @mutex = mutex
+      class MonitorHook # :nodoc:
+        def initialize(monitor = Monitor.new)
+          @monitor = monitor
         end
 
         def run
-          @mutex.lock
+          @monitor.enter
         end
 
         def complete(_state)
-          @mutex.unlock
+          @monitor.exit
         end
       end
 
-      module InterlockHook
+      module InterlockHook # :nodoc:
         def self.run
           ActiveSupport::Dependencies.interlock.start_running
         end
@@ -116,7 +123,7 @@ module Rails
           # User has explicitly opted out of concurrent request
           # handling: presumably their code is not threadsafe
 
-          app.executor.register_hook(MutexHook.new, outer: true)
+          app.executor.register_hook(MonitorHook.new, outer: true)
 
         elsif config.allow_concurrency == :unsafe
           # Do nothing, even if we know this is dangerous. This is the
@@ -134,14 +141,15 @@ module Rails
       initializer :add_internal_routes do |app|
         if Rails.env.development?
           app.routes.prepend do
-            get "/rails/info/properties" => "rails/info#properties", internal: true
-            get "/rails/info/routes"     => "rails/info#routes",     internal: true
-            get "/rails/info"            => "rails/info#index",      internal: true
+            get "/rails/info/properties", to: "rails/info#properties", internal: true
+            get "/rails/info/routes",     to: "rails/info#routes",     internal: true
+            get "/rails/info/notes",      to: "rails/info#notes",      internal: true
+            get "/rails/info",            to: "rails/info#index",      internal: true
           end
 
           routes_reloader.run_after_load_paths = -> do
             app.routes.append do
-              get "/" => "rails/welcome#index", internal: true
+              get "/", to: "rails/welcome#index", internal: true
             end
           end
         end
@@ -154,6 +162,7 @@ module Rails
         reloader.eager_load = app.config.eager_load
         reloader.execute
         reloaders << reloader
+
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
@@ -166,7 +175,10 @@ module Rails
           # some sort of reloaders dependency support, to be added.
           require_unload_lock!
           reloader.execute
+          ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
+
+        ActiveSupport.run_load_hooks(:after_routes_loaded, self)
       end
 
       # Set clearing dependencies after the finisher hook to ensure paths
@@ -214,6 +226,12 @@ module Rails
           end
         else
           ActiveSupport::DescendantsTracker.disable_clear!
+        end
+      end
+
+      initializer :enable_yjit do
+        if config.yjit && defined?(RubyVM::YJIT.enable)
+          RubyVM::YJIT.enable
         end
       end
     end

@@ -277,12 +277,12 @@ Expected: ["id", "name"]
 
       app_file "lib/tasks/hooks.rake", <<-RUBY
         task :before_hook do
-          has_user_table = ActiveRecord::Base.connection.table_exists?('users')
+          has_user_table = ActiveRecord::Base.lease_connection.table_exists?('users')
           puts "before: " + has_user_table.to_s
         end
 
         task :after_hook do
-          has_user_table = ActiveRecord::Base.connection.table_exists?('users')
+          has_user_table = ActiveRecord::Base.lease_connection.table_exists?('users')
           puts "after: " + has_user_table.to_s
         end
 
@@ -315,6 +315,34 @@ Expected: ["id", "name"]
       output = assert_successful_test_run "models/user_test.rb"
       assert_not_includes output, "before:"
       assert_not_includes output, "after:"
+    end
+
+    test "schema for all the models is loaded when tests are run in eager load context" do
+      output = rails("generate", "model", "user", "name:string")
+      version = output.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: #{version}) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/enable_eager_load.rb", <<-RUBY
+        Rails.application.config.eager_load = true
+      RUBY
+
+      app_file "app/models/user.rb", <<-RUBY
+        class User < ApplicationRecord
+          def self.load_schema!
+            super
+            raise "SCHEMA LOADED!"
+          end
+        end
+      RUBY
+
+      assert_unsuccessful_run "models/user_test.rb", "SCHEMA LOADED!"
     end
 
     private

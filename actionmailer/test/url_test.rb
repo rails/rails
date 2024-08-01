@@ -9,8 +9,8 @@ end
 AppRoutes = ActionDispatch::Routing::RouteSet.new
 
 AppRoutes.draw do
-  get "/welcome" => "foo#bar", as: "welcome"
-  get "/dummy_model" => "foo#baz", as: "dummy_model"
+  get "/welcome", to: "foo#bar", as: "welcome"
+  get "/dummy_model", to: "foo#baz", as: "dummy_model"
   get "/welcome/greeting", to: "welcome#greeting"
   get "/a/b(/:id)", to: "a#b"
 end
@@ -41,7 +41,7 @@ end
 class ActionMailerUrlTest < ActionMailer::TestCase
   class DummyModel
     def self.model_name
-      OpenStruct.new(route_key: "dummy_model")
+      Struct.new(:route_key, :name).new("dummy_model", nil)
     end
 
     def persisted?

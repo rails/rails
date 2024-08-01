@@ -1,6 +1,6 @@
 Description:
     Generates a new controller and its views. Pass the controller name, either
-    CamelCased or under_scored, and a list of views as arguments.
+    CamelCased or under_scored, and a list of actions as arguments.
 
     To create a controller within a module, specify the controller name as a
     path like 'parent_module/controller_name'.
@@ -8,11 +8,19 @@ Description:
     This generates a controller class in app/controllers and invokes helper,
     template engine, assets, and test framework generators.
 
-Example:
-    `bin/rails generate controller CreditCards open debit credit close`
+Examples:
+    `bin/rails generate controller credit_cards open debit credit close`
 
-    CreditCards controller with URLs like /credit_cards/debit.
+    This generates a `CreditCardsController` with routes like /credit_cards/debit.
         Controller: app/controllers/credit_cards_controller.rb
         Test:       test/controllers/credit_cards_controller_test.rb
         Views:      app/views/credit_cards/debit.html.erb [...]
         Helper:     app/helpers/credit_cards_helper.rb
+
+    `bin/rails generate controller users index --skip-routes`
+
+    This generates a `UsersController` with an index action and no routes.
+
+    `bin/rails generate controller admin/dashboard --parent=admin_controller`
+
+    This generates a `Admin::DashboardController` with an `AdminController` parent class.

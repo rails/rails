@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController
+  # # Action Controller Etag With Flash
+  #
   # When you're using the flash, it's generally used as a conditional on the view.
   # This means the content of the view depends on the flash. Which in turn means
   # that the ETag for a response should be computed with the content of the flash
@@ -12,7 +16,7 @@ module ActionController
     include ActionController::ConditionalGet
 
     included do
-      etag { flash unless flash.empty? }
+      etag { flash if request.respond_to?(:flash) && !flash.empty? }
     end
   end
 end

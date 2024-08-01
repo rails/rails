@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2015-2022 Basecamp, LLC
+# Copyright (c) 37signals LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -27,23 +27,33 @@ require "active_support"
 require "active_support/rails"
 require "zeitwerk"
 
+# We compute lib this way instead of using __dir__ because __dir__ gives a real
+# path, while __FILE__ honors symlinks. If the gem is stored under a symlinked
+# directory, this matters.
+lib = File.dirname(__FILE__)
+
 Zeitwerk::Loader.for_gem.tap do |loader|
   loader.ignore(
-    "#{__dir__}/rails", # Contains generators, templates, docs, etc.
-    "#{__dir__}/action_cable/gem_version.rb"
+    "#{lib}/rails", # Contains generators, templates, docs, etc.
+    "#{lib}/action_cable/gem_version.rb",
+    "#{lib}/action_cable/version.rb",
+    "#{lib}/action_cable/deprecator.rb",
   )
 
   loader.do_not_eager_load(
-    "#{__dir__}/action_cable/subscription_adapter", # Adapters are required and loaded on demand.
-    "#{__dir__}/action_cable/test_helper.rb",
-    Dir["#{__dir__}/action_cable/**/test_case.rb"]
+    "#{lib}/action_cable/subscription_adapter", # Adapters are required and loaded on demand.
+    "#{lib}/action_cable/test_helper.rb",
+    Dir["#{lib}/action_cable/**/test_case.rb"]
   )
 
   loader.inflector.inflect("postgresql" => "PostgreSQL")
 end.setup
 
+# :markup: markdown
+# :include: ../README.md
 module ActionCable
   require_relative "action_cable/version"
+  require_relative "action_cable/deprecator"
 
   INTERNAL = {
     message_types: {

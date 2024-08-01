@@ -5,6 +5,8 @@ require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
+  # = Active Support \Rescuable
+  #
   # Rescuable module adds support for easier exception handling.
   module Rescuable
     extend Concern
@@ -30,20 +32,20 @@ module ActiveSupport
       # any.
       #
       #   class ApplicationController < ActionController::Base
-      #     rescue_from User::NotAuthorized, with: :deny_access # self defined exception
-      #     rescue_from ActiveRecord::RecordInvalid, with: :show_errors
+      #     rescue_from User::NotAuthorized, with: :deny_access
+      #     rescue_from ActiveRecord::RecordInvalid, with: :show_record_errors
       #
-      #     rescue_from 'MyAppError::Base' do |exception|
-      #       render xml: exception, status: 500
+      #     rescue_from "MyApp::BaseError" do |exception|
+      #       redirect_to root_url, alert: exception.message
       #     end
       #
       #     private
       #       def deny_access
-      #         ...
+      #         head :forbidden
       #       end
       #
-      #       def show_errors(exception)
-      #         exception.record.new_record? ? ...
+      #       def show_record_errors(exception)
+      #         redirect_back_or_to root_url, alert: exception.record.errors.full_messages.to_sentence
       #       end
       #   end
       #
@@ -79,7 +81,7 @@ module ActiveSupport
       # Be sure to re-raise unhandled exceptions if this is what you expect.
       #
       #     begin
-      #       …
+      #       # ...
       #     rescue => exception
       #       rescue_with_handler(exception) || raise
       #     end

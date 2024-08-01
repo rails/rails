@@ -3,9 +3,10 @@ require:
   - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
+  - rubocop-md
 
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.1
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -16,8 +17,19 @@ AllCops:
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'actionmailbox/test/dummy/**/*'
+    - 'activestorage/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
+    - 'tools/rail_inspector/test/fixtures/*'
+    - guides/source/debugging_rails_applications.md
+    - guides/source/active_support_instrumentation.md
     - '**/node_modules/**/*'
+    - '**/CHANGELOG.md'
+    - '**/2_*_release_notes.md'
+    - '**/3_*_release_notes.md'
+    - '**/4_*_release_notes.md'
+    - '**/5_*_release_notes.md'
+    - '**/6_*_release_notes.md'
+
 
 Performance:
   Exclude:
@@ -43,10 +55,6 @@ Rails/IndexWith:
 Style/AndOr:
   Enabled: true
 
-# Align `when` with `case`.
-Layout/CaseIndentation:
-  Enabled: true
-
 Layout/ClosingHeredocIndentation:
   Enabled: true
 
@@ -55,6 +63,9 @@ Layout/ClosingParenthesisIndentation:
 
 # Align comments with method definitions.
 Layout/CommentIndentation:
+  Enabled: true
+
+Layout/DefEndAlignment:
   Enabled: true
 
 Layout/ElseAlignment:
@@ -95,12 +106,15 @@ Layout/EmptyLinesAroundModuleBody:
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
   Enabled: true
+  EnforcedShorthandSyntax: either
 
 # Method definitions after `private` or `protected` isolated calls need one
 # extra level of indentation.
 Layout/IndentationConsistency:
   Enabled: true
   EnforcedStyle: indented_internal_methods
+  Exclude:
+    - '**/*.md'
 
 # Two spaces, no tabs (for indentation).
 Layout/IndentationWidth:
@@ -158,6 +172,7 @@ Style/FrozenStringLiteralComment:
     - 'activestorage/db/update_migrate/**/*.rb'
     - 'actionmailbox/db/migrate/**/*.rb'
     - 'actiontext/db/migrate/**/*.rb'
+    - '**/*.md'
 
 Style/MapToHash:
   Enabled: true
@@ -208,7 +223,15 @@ Lint/AmbiguousOperator:
 Lint/AmbiguousRegexpLiteral:
   Enabled: true
 
+Lint/Debugger:
+  Enabled: true
+  DebuggerRequires:
+    - debug
+
 Lint/DuplicateRequire:
+  Enabled: true
+
+Lint/DuplicateMagicComment:
   Enabled: true
 
 Lint/DuplicateMethods:
@@ -220,11 +243,23 @@ Lint/ErbNewArguments:
 Lint/EnsureReturn:
   Enabled: true
 
+Lint/MissingCopEnableDirective:
+  Enabled: true
+
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
   Enabled: true
 
+Lint/RedundantCopDisableDirective:
+  Enabled: true
+
+Lint/RedundantCopEnableDirective:
+  Enabled: true
+
 Lint/RedundantStringCoercion:
+  Enabled: true
+
+Lint/RedundantSafeNavigation:
   Enabled: true
 
 Lint/UriEscapeUnescape:
@@ -235,6 +270,19 @@ Lint/UselessAssignment:
 
 Lint/DeprecatedClassMethods:
   Enabled: true
+
+Lint/InterpolationCheck:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
+
+Lint/SafeNavigationChain:
+  Enabled: true
+
+Style/EvalWithLocation:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
 
 Style/ParenthesesAroundCondition:
   Enabled: true
@@ -264,6 +312,19 @@ Style/ColonMethodCall:
   Enabled: true
 
 Style/TrivialAccessors:
+  Enabled: true
+
+# Prefer a = b || c over a = b ? b : c
+Style/RedundantCondition:
+  Enabled: true
+
+Style/RedundantDoubleSplatHashBraces:
+  Enabled: true
+
+Style/OpenStructUse:
+  Enabled: true
+
+Style/ArrayIntersect:
   Enabled: true
 
 Performance/BindCall:
@@ -296,17 +357,47 @@ Performance/ReverseEach:
 Performance/StringReplacement:
   Enabled: true
 
-Performance/UnfreezeString:
-  Enabled: true
-
 Performance/DeletePrefix:
   Enabled: true
 
 Performance/DeleteSuffix:
   Enabled: true
 
-Performance/OpenStruct:
+Performance/InefficientHashSearch:
+  Enabled: true
+
+Performance/ConstantRegexp:
+  Enabled: true
+
+Performance/RedundantStringChars:
+  Enabled: true
+
+Performance/StringInclude:
+  Enabled: true
+
+Minitest/AssertPredicate:
+  Enabled: true
+
+Minitest/AssertRaisesWithRegexpArgument:
+  Enabled: true
+
+Minitest/AssertWithExpectedArgument:
+  Enabled: true
+
+Minitest/LiteralAsActualArgument:
+  Enabled: true
+
+Minitest/NonExecutableTestMethod:
+  Enabled: true
+
+Minitest/SkipEnsure:
   Enabled: true
 
 Minitest/UnreachableAssertion:
   Enabled: true
+
+Markdown:
+  # Whether to run RuboCop against non-valid snippets
+  WarnInvalid: true
+  # Whether to lint codeblocks without code attributes
+  Autodetect: false

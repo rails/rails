@@ -7,7 +7,7 @@ require "concurrent/utility/processor_counter"
 
 module ActiveJob
   module QueueAdapters
-    # == Active Job Async adapter
+    # = Active Job Async adapter
     #
     # The Async adapter runs jobs with an in-process thread pool.
     #
@@ -30,7 +30,7 @@ module ActiveJob
     # The adapter uses a {Concurrent Ruby}[https://github.com/ruby-concurrency/concurrent-ruby] thread pool to schedule and execute
     # jobs. Since jobs share a single thread pool, long-running jobs will block
     # short-lived jobs. Fine for dev/test; bad for production.
-    class AsyncAdapter
+    class AsyncAdapter < AbstractAdapter
       # See {Concurrent::ThreadPoolExecutor}[https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/ThreadPoolExecutor.html] for executor options.
       def initialize(**executor_options)
         @scheduler = Scheduler.new(**executor_options)
@@ -95,7 +95,7 @@ module ActiveJob
 
         def enqueue_at(job, timestamp, queue_name:)
           delay = timestamp - Time.current.to_f
-          if delay > 0
+          if !immediate && delay > 0
             Concurrent::ScheduledTask.execute(delay, args: [job], executor: executor, &:perform)
           else
             enqueue(job, queue_name: queue_name)

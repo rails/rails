@@ -10,7 +10,7 @@ module RenderTemplate
       "locals.html.erb"            => "The secret is <%= secret %>",
       "xml_template.xml.builder"   => "xml.html do\n  xml.p 'Hello'\nend",
       "with_raw.html.erb"          => "Hello <%=raw '<strong>this is raw</strong>' %>",
-      "with_implicit_raw.html.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in an html template",
+      "with_implicit_raw.html.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in an HTML template",
       "with_implicit_raw.text.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in a text template",
       "test/with_json.html.erb"    => "<%= render template: 'test/with_json', formats: [:json] %>",
       "test/with_json.json.erb"    => "<%= render template: 'test/final', formats: [:json]  %>",
@@ -46,8 +46,12 @@ module RenderTemplate
       render template: "locals", locals: { secret: "area51" }
     end
 
-    def with_locals_without_key
-      render "locals", locals: { secret: "area51" }
+    def with_locals_with_slash
+      render template: "/locals", locals: { secret: "area51" }
+    end
+
+    def with_locals_with_slash_without_key
+      render "/locals", locals: { secret: "area51" }
     end
 
     def builder_template
@@ -105,8 +109,13 @@ module RenderTemplate
       assert_response "The secret is area51"
     end
 
-    test "rendering a template with local variables without key" do
-      get :with_locals
+    test "rendering a template with local variables with a leading slash" do
+      get :with_locals_with_slash
+      assert_response "The secret is area51"
+    end
+
+    test "rendering a template with local variables with a slash without key" do
+      get :with_locals_with_slash_without_key
       assert_response "The secret is area51"
     end
 
@@ -123,7 +132,7 @@ module RenderTemplate
 
       get :with_implicit_raw
 
-      assert_body "Hello <strong>this is also raw</strong> in an html template"
+      assert_body "Hello <strong>this is also raw</strong> in an HTML template"
       assert_status 200
 
       get :with_implicit_raw, params: { format: "text" }
@@ -177,7 +186,7 @@ module RenderTemplate
   class TestWithLayout < Rack::TestCase
     test "rendering with implicit layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: :index } }
+        set.draw { ActionDispatch.deprecator.silence { get ":controller", action: :index } }
 
         get "/render_template/with_layout"
 

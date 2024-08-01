@@ -2,6 +2,8 @@
 
 require "set"
 require "fileutils"
+require "nokogiri"
+require "securerandom"
 
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/object/blank"
@@ -10,59 +12,66 @@ require "action_view"
 
 require "rails_guides/markdown"
 require "rails_guides/helpers"
+require "rails_guides/epub"
 
 module RailsGuides
   class Generator
     GUIDES_RE = /\.(?:erb|md)\z/
 
-    def initialize(edge:, version:, all:, only:, kindle:, language:, direction: nil)
+    def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil, lint:)
       @edge      = edge
       @version   = version
       @all       = all
       @only      = only
-      @kindle    = kindle
+      @epub      = epub
       @language  = language
       @direction = direction || "ltr"
+      @lint = lint
+      @warnings = []
 
-      if @kindle
-        check_for_kindlegen
-        register_kindle_mime_types
+      if @epub
+        register_special_mime_types
       end
 
       initialize_dirs
-      create_output_dir_if_needed
+      create_output_dir_if_needed if !dry_run?
       initialize_markdown_renderer
     end
 
     def generate
       generate_guides
-      copy_assets
-      generate_mobi if @kindle
+
+      if @lint && @warnings.any?
+        puts "#{@warnings.join("\n")}"
+        exit 1
+      end
+
+      if !dry_run?
+        process_scss
+        copy_assets
+        generate_epub if @epub
+      end
     end
 
     private
-      def register_kindle_mime_types
+      def dry_run?
+        [@lint].any?
+      end
+
+      def register_special_mime_types
         Mime::Type.register_alias("application/xml", :opf, %w(opf))
         Mime::Type.register_alias("application/xml", :ncx, %w(ncx))
       end
 
-      def check_for_kindlegen
-        if `which kindlegen`.blank?
-          raise "Can't create a kindle version without `kindlegen`."
-        end
+      def generate_epub
+        Epub.generate(@output_dir, epub_filename)
+        puts "Epub generated at: output/epub/#{epub_filename}"
       end
 
-      def generate_mobi
-        require "rails_guides/kindle"
-        out = "#{@output_dir}/kindlegen.out"
-        Kindle.generate(@output_dir, mobi, out)
-        puts "(kindlegen log at #{out})."
-      end
-
-      def mobi
-        mobi = +"ruby_on_rails_guides_#{@version || @edge[0, 7]}"
-        mobi << ".#{@language}" if @language
-        mobi << ".mobi"
+      def epub_filename
+        epub_filename = +"ruby_on_rails_guides_#{@version || @edge[0, 7]}"
+        epub_filename << ".#{@language}" if @language
+        epub_filename << ".epub"
       end
 
       def initialize_dirs
@@ -72,7 +81,7 @@ module RailsGuides
         @source_dir += "/#{@language}" if @language
 
         @output_dir  = "#{@guides_dir}/output"
-        @output_dir += "/kindle"       if @kindle
+        @output_dir += "/epub/OEBPS"       if @epub
         @output_dir += "/#{@language}" if @language
       end
 
@@ -95,10 +104,9 @@ module RailsGuides
       def guides_to_generate
         guides = Dir.entries(@source_dir).grep(GUIDES_RE)
 
-        if @kindle
-          Dir.entries("#{@source_dir}/kindle").grep(GUIDES_RE).map do |entry|
-            next if entry == "KINDLE.md"
-            guides << "kindle/#{entry}"
+        if @epub
+          Dir.entries("#{@source_dir}/epub").grep(GUIDES_RE).map do |entry|
+            guides << "epub/#{entry}"
           end
         end
 
@@ -108,12 +116,20 @@ module RailsGuides
       def select_only(guides)
         prefixes = @only.split(",").map(&:strip)
         guides.select do |guide|
-          guide.start_with?("kindle", *prefixes)
+          guide.start_with?("epub", *prefixes)
         end
       end
 
+      def process_scss
+        system "bundle exec dartsass \
+          #{@guides_dir}/assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style.css \
+          #{@guides_dir}/assets/stylesrc/highlight.scss:#{@output_dir}/stylesheets/highlight.css \
+          #{@guides_dir}/assets/stylesrc/print.scss:#{@output_dir}/stylesheets/print.css"
+      end
+
       def copy_assets
-        FileUtils.cp_r(Dir.glob("#{@guides_dir}/assets/*"), @output_dir)
+        source_files = Dir.glob("#{@guides_dir}/assets/*").reject { |name| name.include?("stylesrc") }
+        FileUtils.cp_r(source_files, @output_dir)
       end
 
       def output_file_for(guide)
@@ -137,15 +153,16 @@ module RailsGuides
       def generate_guide(guide, output_file)
         output_path = output_path_for(output_file)
         puts "Generating #{guide} as #{output_file}"
-        layout = @kindle ? "kindle/layout" : "layout"
+        layout = @epub ? "epub/layout" : "layout"
 
         view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
           edge:     @edge,
           version:  @version,
-          mobi:     "kindle/#{mobi}",
+          epub:     "epub/#{epub_filename}",
           language: @language,
           direction: @direction,
+          uuid:      SecureRandom.uuid
         )
         view.extend(Helpers)
 
@@ -161,15 +178,19 @@ module RailsGuides
             view:    view,
             layout:  layout,
             edge:    @edge,
-            version: @version
+            version: @version,
+            epub:    @epub
           ).render(body)
 
-          warn_about_broken_links(result)
+          broken = warn_about_broken_links(result)
+          if broken.any?
+            @warnings << "[WARN] BROKEN LINK(s): #{guide}: #{broken.join(", ")}"
+          end
         end
 
         File.open(output_path, "w") do |f|
           f.write(result)
-        end
+        end if !dry_run?
       end
 
       def warn_about_broken_links(html)
@@ -182,7 +203,7 @@ module RailsGuides
         anchors = Set.new
         html.scan(/<h\d\s+id="([^"]+)/).flatten.each do |anchor|
           if anchors.member?(anchor)
-            puts "*** DUPLICATE ID: #{anchor}, please make sure that there are no headings with the same name at the same level."
+            puts "*** DUPLICATE ID: '#{anchor}', please make sure that there are no headings with the same name at the same level."
           else
             anchors << anchor
           end
@@ -195,13 +216,18 @@ module RailsGuides
       end
 
       def check_fragment_identifiers(html, anchors)
+        broken_links = []
+
         html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
           next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
           unless anchors.member?(CGI.unescape(fragment_identifier))
             guess = DidYouMean::SpellChecker.new(dictionary: anchors).correct(fragment_identifier).first
             puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
+            broken_links << "##{fragment_identifier}"
           end
         end
+
+        broken_links
       end
   end
 end

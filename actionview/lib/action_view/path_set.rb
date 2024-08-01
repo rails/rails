@@ -13,14 +13,14 @@ module ActionView # :nodoc:
 
     attr_reader :paths
 
-    delegate :[], :include?, :pop, :size, :each, to: :paths
+    delegate :[], :include?, :size, :each, to: :paths
 
     def initialize(paths = [])
-      @paths = typecast paths
+      @paths = typecast(paths).freeze
     end
 
     def initialize_copy(other)
-      @paths = other.paths.dup
+      @paths = other.paths.dup.freeze
       self
     end
 
@@ -32,16 +32,9 @@ module ActionView # :nodoc:
       PathSet.new paths.compact
     end
 
-    def +(array)
+    def +(other)
+      array = Array === other ? other : other.paths
       PathSet.new(paths + array)
-    end
-
-    %w(<< concat push insert unshift).each do |method|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{method}(*args)
-          paths.#{method}(*typecast(args))
-        end
-      METHOD
     end
 
     def find(path, prefixes, partial, details, details_key, locals)
@@ -75,9 +68,15 @@ module ActionView # :nodoc:
         paths.map do |path|
           case path
           when Pathname, String
-            FileSystemResolver.new path.to_s
-          else
+            # This path should only be reached by "direct" users of
+            # ActionView::Base (not using the ViewPaths or Renderer modules).
+            # We can't cache/de-dup the file system resolver in this case as we
+            # don't know which compiled_method_container we'll be rendering to.
+            FileSystemResolver.new(path)
+          when Resolver
             path
+          else
+            raise TypeError, "#{path.inspect} is not a valid path: must be a String, Pathname, or Resolver"
           end
         end
       end

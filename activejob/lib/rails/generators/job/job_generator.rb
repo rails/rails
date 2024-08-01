@@ -7,7 +7,7 @@ module Rails # :nodoc:
     class JobGenerator < Rails::Generators::NamedBase # :nodoc:
       class_option :queue, type: :string, default: "default", desc: "The queue name for the generated job"
 
-      class_option :parent, type: :string, desc: "The parent class for the generated job"
+      class_option :parent, type: :string, default: "ApplicationJob", desc: "The parent class for the generated job"
 
       check_class_collision suffix: "Job"
 
@@ -28,16 +28,8 @@ module Rails # :nodoc:
       end
 
       private
-        def parent
-          options[:parent]
-        end
-
         def parent_class_name
-          if parent
-            parent
-          else
-            "ApplicationJob"
-          end
+          options[:parent]
         end
 
         def file_name
