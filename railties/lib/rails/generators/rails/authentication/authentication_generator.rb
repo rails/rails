@@ -6,8 +6,8 @@ module Rails
       class_option :api, type: :boolean,
         desc: "Generate API-only controllers and models, with no view templates"
 
-      class_option :resets, type: :boolean, default: true,
-        desc: "Generate controller and mailer for password resets"
+      class_option :skip_resets, type: :boolean, default: false,
+        desc: "Skip generating controller and mailer for password resets"
 
       hook_for :template_engine, as: :authentication do |template_engine|
         invoke template_engine unless options.api?
@@ -24,14 +24,14 @@ module Rails
       end
 
       def create_reset_files
-        if options[:resets]
+        unless options[:skip_resets]
           template "controllers/passwords_controller.rb", File.join("app/controllers/passwords_controller.rb")
           template "mailers/passwords_mailer.rb", File.join("app/mailers/passwords_mailer.rb")
 
           template "views/passwords_mailer/reset.html.erb", File.join("app/views/passwords_mailer/reset.html.erb")
           template "views/passwords_mailer/reset.text.erb", File.join("app/views/passwords_mailer/reset.text.erb")
 
-          template "test/mailers/previews/password_reset_mailer.rb", File.join("test/mailers/previews/password_reset_mailer.rb")
+          template "test/mailers/previews/passwords_mailer_preview.rb", File.join("test/mailers/previews/passwords_mailer_preview.rb")
         end
       end
 
@@ -40,7 +40,7 @@ module Rails
       end
 
       def configure_reset_routes
-        if options[:resets]
+        unless options[:skip_resets]
           # FIXME: This shouldn't be necessary. But changing the constraints on resources :passwords isn't working right now
           route 'post "passwords/:token", to: "passwords#update"'
           route "resources :passwords, param: :token"
