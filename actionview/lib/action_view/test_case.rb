@@ -204,8 +204,6 @@ module ActionView
         register_parser :html, -> rendered { Rails::Dom::Testing.html_document_fragment.parse(rendered) }
         register_parser :json, -> rendered { JSON.parse(rendered, object_class: ActiveSupport::HashWithIndifferentAccess) }
 
-        ActiveSupport.run_load_hooks(:action_view_test_case, self)
-
         helper do
           def protect_against_forgery?
             false
@@ -447,3 +445,5 @@ module ActionView
     include Behavior
   end
 end
+
+ActiveSupport.run_load_hooks(:action_view_test_case, ActionView::TestCase)

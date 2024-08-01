@@ -103,7 +103,7 @@ module ActionCable
         config.connection_class.call.identifiers
       end
     end
-
-    ActiveSupport.run_load_hooks(:action_cable, Base.config)
   end
 end
+
+ActiveSupport.run_load_hooks(:action_cable, ActionCable::Server::Base.config)

@@ -151,8 +151,6 @@ module ActionCable
           class_attribute :_connection_class
 
           attr_reader :connection
-
-          ActiveSupport.run_load_hooks(:action_cable_connection_test_case, self)
         end
 
         module ClassMethods
@@ -244,3 +242,5 @@ module ActionCable
     end
   end
 end
+
+ActiveSupport.run_load_hooks(:action_cable_connection_test_case, ActionCable::Connection::TestCase)

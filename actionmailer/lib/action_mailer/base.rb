@@ -1070,7 +1070,7 @@ module ActionMailer
       def _protected_ivars
         PROTECTED_IVARS
       end
-
-      ActiveSupport.run_load_hooks(:action_mailer, self)
   end
 end
+
+ActiveSupport.run_load_hooks(:action_mailer, ActionMailer::Base)

@@ -590,7 +590,6 @@ module ActionController
         include ActionDispatch::Assertions
         class_attribute :_controller_class
         setup :setup_controller_request_and_response
-        ActiveSupport.run_load_hooks(:action_controller_test_case, self)
       end
 
       private
@@ -687,3 +686,5 @@ module ActionController
     include Behavior
   end
 end
+
+ActiveSupport.run_load_hooks(:action_controller_test_case, ActionController::TestCase)
