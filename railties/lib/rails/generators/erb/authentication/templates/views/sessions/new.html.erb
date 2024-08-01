@@ -1,4 +1,4 @@
-<%%= tag.div(flash[:alert], style: "color:red")  %>
+<%%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
 <%%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
 
 <%%= form_with url: session_path do |form| %>
