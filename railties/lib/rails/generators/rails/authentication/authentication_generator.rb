@@ -41,8 +41,6 @@ module Rails
 
       def configure_reset_routes
         unless options[:skip_resets]
-          # FIXME: This shouldn't be necessary. But changing the constraints on resources :passwords isn't working right now
-          route 'post "passwords/:token", to: "passwords#update"'
           route "resources :passwords, param: :token"
         end
       end
