@@ -26,9 +26,9 @@ module ActiveJob
     end
 
     initializer "active_job.enqueue_after_transaction_commit" do |app|
-      ActiveSupport.on_load(:active_record) do
-        ActiveSupport.on_load(:active_job) do
-          include EnqueueAfterTransactionCommit
+      ActiveSupport.on_load(:active_job) do
+        ActiveSupport.on_load(:active_record) do
+          ActiveJob::Base.include EnqueueAfterTransactionCommit
 
           if app.config.active_job.key?(:enqueue_after_transaction_commit)
             ActiveJob::Base.enqueue_after_transaction_commit = app.config.active_job.delete(:enqueue_after_transaction_commit)
