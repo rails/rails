@@ -6,9 +6,6 @@ module Rails
       class_option :api, type: :boolean,
         desc: "Generate API-only controllers and models, with no view templates"
 
-      class_option :skip_resets, type: :boolean, default: false,
-        desc: "Skip generating controller and mailer for password resets"
-
       hook_for :template_engine, as: :authentication do |template_engine|
         invoke template_engine unless options.api?
       end
@@ -20,32 +17,22 @@ module Rails
 
         template "controllers/sessions_controller.rb", File.join("app/controllers/sessions_controller.rb")
         template "controllers/concerns/authentication.rb", File.join("app/controllers/concerns/authentication.rb")
+        template "controllers/passwords_controller.rb", File.join("app/controllers/passwords_controller.rb")
 
-      end
+        template "mailers/passwords_mailer.rb", File.join("app/mailers/passwords_mailer.rb")
 
-      def create_reset_files
-        unless options[:skip_resets]
-          template "controllers/passwords_controller.rb", File.join("app/controllers/passwords_controller.rb")
-          template "mailers/passwords_mailer.rb", File.join("app/mailers/passwords_mailer.rb")
+        template "views/passwords_mailer/reset.html.erb", File.join("app/views/passwords_mailer/reset.html.erb")
+        template "views/passwords_mailer/reset.text.erb", File.join("app/views/passwords_mailer/reset.text.erb")
 
-          template "views/passwords_mailer/reset.html.erb", File.join("app/views/passwords_mailer/reset.html.erb")
-          template "views/passwords_mailer/reset.text.erb", File.join("app/views/passwords_mailer/reset.text.erb")
-
-          template "test/mailers/previews/passwords_mailer_preview.rb", File.join("test/mailers/previews/passwords_mailer_preview.rb")
-        end
+        template "test/mailers/previews/passwords_mailer_preview.rb", File.join("test/mailers/previews/passwords_mailer_preview.rb")
       end
 
       def configure_application_controller
         gsub_file "app/controllers/application_controller.rb", /(class ApplicationController < ActionController::Base)/, "\\1\n  include Authentication"
       end
 
-      def configure_reset_routes
-        unless options[:skip_resets]
-          route "resources :passwords, param: :token"
-        end
-      end
-
       def configure_authentication_routes
+        route "resources :passwords, param: :token"
         route "resource :session"
       end
 
