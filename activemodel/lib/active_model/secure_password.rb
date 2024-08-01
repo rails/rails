@@ -164,7 +164,7 @@ module ActiveModel
             public_send(:"#{attribute}_salt")&.last(10)
           end
 
-          class_eval <<-RUBY
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
             silence_redefinition_of_method :find_by_#{attribute}_reset_token
             def self.find_by_#{attribute}_reset_token(token)
               find_by_token_for("#{attribute}_reset", token)
