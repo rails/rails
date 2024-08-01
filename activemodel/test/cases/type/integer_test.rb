@@ -131,6 +131,18 @@ module ActiveModel
           type.serialize(9999999999999999999999999999999)
         end
       end
+
+      test "serialize_cast_value enforces range" do
+        type = Integer.new
+
+        assert_raises(ActiveModel::RangeError) do
+          type.serialize_cast_value(-2147483649)
+        end
+
+        assert_raises(ActiveModel::RangeError) do
+          type.serialize_cast_value(2147483648)
+        end
+      end
     end
   end
 end

@@ -5,16 +5,17 @@ Action Controller Overview
 
 In this guide, you will learn how controllers work and how they fit into the request cycle in your application.
 
-After reading this guide, you will know:
+After reading this guide, you will know how to:
 
-* How to follow the flow of a request through a controller.
-* How to restrict parameters passed to your controller.
-* How and why to store data in the session or cookies.
-* How to work with filters to execute code during request processing.
-* How to use Action Controller's built-in HTTP authentication.
-* How to stream data directly to the user's browser.
-* How to filter sensitive parameters, so they do not appear in the application's log.
-* How to deal with exceptions that may be raised during request processing.
+* Follow the flow of a request through a controller.
+* Restrict parameters passed to your controller.
+* Store data in the session or cookies, and why.
+* Work with action callbacks to execute code during request processing.
+* Use Action Controller's built-in HTTP authentication.
+* Stream data directly to the user's browser.
+* Filter sensitive parameters, so they do not appear in the application's log.
+* Deal with exceptions that may be raised during request processing.
+* Use the built-in health check end-point for load balancers and uptime monitors.
 
 --------------------------------------------------------------------------------
 
@@ -70,7 +71,7 @@ WARNING: Some method names are reserved by Action Controller. Accidentally redef
 NOTE: If you must use a reserved method as an action name, one workaround is to use a custom route to map the reserved method name to your non-reserved action method.
 
 [`ActionController::Base`]: https://api.rubyonrails.org/classes/ActionController/Base.html
-[Resource Routing]: https://guides.rubyonrails.org/routing.html#resource-routing-the-rails-default
+[Resource Routing]: routing.html#resource-routing-the-rails-default
 
 Parameters
 ----------
@@ -109,7 +110,10 @@ class ClientsController < ApplicationController
 end
 ```
 
+NOTE: The `params` hash is not a plain old Ruby Hash; instead, it is an [`ActionController::Parameters`][] object. While it behaves like Hash, it does not inherit from Hash.
+
 [`params`]: https://api.rubyonrails.org/classes/ActionController/StrongParameters.html#method-i-params
+[`ActionController::Parameters`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html
 
 ### Hash and Array Parameters
 
@@ -142,9 +146,9 @@ When this form is submitted, the value of `params[:client]` will be `{ "name" =>
 
 The `params` object acts like a Hash, but lets you use symbols and strings interchangeably as keys.
 
-### JSON parameters
+### JSON Parameters
 
-If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
+If your application exposes an API, you are likely to be accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -184,6 +188,34 @@ In this case, when a user opens the URL `/clients/active`, `params[:status]` wil
 
 [`controller_name`]: https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-controller_name
 [`action_name`]: https://api.rubyonrails.org/classes/AbstractController/Base.html#method-i-action_name
+
+### Composite Key Parameters
+
+Composite key parameters contain multiple values in one parameter. For this reason, we need to be able to extract each value and pass them to Active Record. We can leverage the `extract_value` method for this use-case.
+
+Given the following controller:
+
+```ruby
+class BooksController < ApplicationController
+  def show
+    # Extract the composite ID value from URL parameters.
+    id = params.extract_value(:id)
+    # Find the book using the composite ID.
+    @book = Book.find(id)
+    # use the default rendering behaviour to render the show view.
+  end
+end
+```
+
+And the following route:
+
+```ruby
+get '/books/:id', to: 'books#show'
+```
+
+When a user opens the URL `/books/4_2`, the controller will extract the composite
+key value `["4", "2"]` and pass it to `Book.find` to render the right record in the view.
+The `extract_value` method may be used to extract arrays out of any delimited parameters.
 
 ### `default_url_options`
 
@@ -446,17 +478,15 @@ Session values are stored using key/value pairs like a hash:
 
 ```ruby
 class ApplicationController < ActionController::Base
-
   private
-
-  # Finds the User with the ID stored in the session with the key
-  # :current_user_id This is a common way to handle user login in
-  # a Rails application; logging in sets the session value and
-  # logging out removes it.
-  def current_user
-    @_current_user ||= session[:current_user_id] &&
-      User.find_by(id: session[:current_user_id])
-  end
+    # Finds the User with the ID stored in the session with the key
+    # :current_user_id This is a common way to handle user login in
+    # a Rails application; logging in sets the session value and
+    # logging out removes it.
+    def current_user
+      @_current_user ||= session[:current_user_id] &&
+        User.find_by(id: session[:current_user_id])
+    end
 end
 ```
 
@@ -486,7 +516,7 @@ class LoginsController < ApplicationController
     session.delete(:current_user_id)
     # Clear the memoized current user
     @_current_user = nil
-    redirect_to root_url
+    redirect_to root_url, status: :see_other
   end
 end
 ```
@@ -508,7 +538,7 @@ class LoginsController < ApplicationController
   def destroy
     session.delete(:current_user_id)
     flash[:notice] = "You have successfully logged out."
-    redirect_to root_url
+    redirect_to root_url, status: :see_other
   end
 end
 ```
@@ -630,33 +660,13 @@ Refer to the [API documentation](https://api.rubyonrails.org/classes/ActionDispa
 for more details.
 
 These special cookie jars use a serializer to serialize the assigned values into
-strings and deserializes them into Ruby objects on read.
+strings and deserialize them into Ruby objects on read. You can specify which
+serializer to use via [`config.action_dispatch.cookies_serializer`][].
 
-You can specify what serializer to use:
-
-```ruby
-Rails.application.config.action_dispatch.cookies_serializer = :json
-```
-
-The default serializer for new applications is `:json`. For compatibility with
-old applications with existing cookies, `:marshal` is used when `serializer`
-option is not specified.
-
-You may also set this option to `:hybrid`, in which case Rails would transparently
-deserialize existing (`Marshal`-serialized) cookies on read and re-write them in
-the `JSON` format. This is useful for migrating existing applications to the
-`:json` serializer.
-
-It is also possible to pass a custom serializer that responds to `load` and
-`dump`:
-
-```ruby
-Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
-```
-
-When using the `:json` or `:hybrid` serializer, you should beware that not all
-Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
-will be serialized as strings, and `Hash`es will have their keys stringified.
+The default serializer for new applications is `:json`. Be aware that JSON has
+limited support for roundtripping Ruby objects. For example, `Date`, `Time`, and
+`Symbol` objects (including `Hash` keys) will be serialized and deserialized
+into `String`s:
 
 ```ruby
 class CookiesController < ApplicationController
@@ -671,19 +681,19 @@ class CookiesController < ApplicationController
 end
 ```
 
-It's advisable that you only store simple data (strings and numbers) in cookies.
-If you have to store complex objects, you would need to handle the conversion
-manually when reading the values on subsequent requests.
+If you need to store these or more complex objects, you may need to manually
+convert their values when reading them in subsequent requests.
 
-If you use the cookie session store, this would apply to the `session` and
+If you use the cookie session store, the above applies to the `session` and
 `flash` hash as well.
 
+[`config.action_dispatch.cookies_serializer`]: configuring.html#config-action-dispatch-cookies-serializer
 [`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
 
-Rendering XML and JSON data
----------------------------
+Rendering
+---------
 
-ActionController makes it extremely easy to render `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
+ActionController makes rendering HTML, XML, or JSON data effortless. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -700,33 +710,35 @@ end
 
 You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
 
-Filters
--------
+You can learn more about rendering in the [Layouts and Rendering
+Guide](layouts_and_rendering.html).
 
-Filters are methods that are run "before", "after" or "around" a controller action.
+Action callbacks
+----------------
 
-Filters are inherited, so if you set a filter on `ApplicationController`, it will be run on every controller in your application.
+Action callbacks are methods that are run "before", "after" or "around" a controller action.
 
-"before" filters are registered via [`before_action`][]. They may halt the request cycle. A common "before" filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
+Action callbacks are inherited, so if you set one on an `ApplicationController`, it will be run on every controller in your application.
+
+"before" action callbacks are registered via [`before_action`][]. They may halt the request cycle. A common "before" action callback is one which requires that a user is logged in for an action to be run. You can define the method this way:
 
 ```ruby
 class ApplicationController < ActionController::Base
   before_action :require_login
 
   private
-
-  def require_login
-    unless logged_in?
-      flash[:error] = "You must be logged in to access this section"
-      redirect_to new_login_url # halts request cycle
+    def require_login
+      unless logged_in?
+        flash[:error] = "You must be logged in to access this section"
+        redirect_to new_login_url # halts request cycle
+      end
     end
-  end
 end
 ```
 
-The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter, they are also cancelled.
+The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" action callback renders or redirects, the controller action will not run. If there are additional action callbacks scheduled to run after that one, they are also cancelled.
 
-In this example, the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with [`skip_before_action`][]:
+In this example, the action callback is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this action callback from running before particular actions with [`skip_before_action`][]:
 
 ```ruby
 class LoginsController < ApplicationController
@@ -734,21 +746,21 @@ class LoginsController < ApplicationController
 end
 ```
 
-Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this filter only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
+Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this action callback only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding action callbacks too, so you can add a callback which only runs for selected actions in the first place.
 
-NOTE: Calling the same filter multiple times with different options will not work,
-since the last filter definition will overwrite the previous ones.
+NOTE: Calling the same action callback multiple times with different options will not work,
+since the last action callback definition will overwrite the previous ones.
 
 [`before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-before_action
 [`skip_before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-skip_before_action
 
-### After Filters and Around Filters
+### After Action and Around Action Callbacks
 
-In addition to "before" filters, you can also run filters after an action has been executed, or both before and after.
+In addition to "before" action callback, you can also run action callbacks after a controller action has been executed, or both before and after.
 
-"after" filters are registered via [`after_action`][]. They are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running. Please note that "after" filters are executed only after a successful action, but not when an exception is raised in the request cycle.
+"after" action callbacks are registered via [`after_action`][]. They are similar to "before" action callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" action callbacks cannot stop the action from running. Please note that "after" action callbacks are executed only after a successful controller action, but not when an exception is raised in the request cycle.
 
-"around" filters are registered via [`around_action`][]. They are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+"around" action callbacks are registered via [`around_action`][]. They are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
 For example, in a website where changes have an approval workflow, an administrator could preview them easily by applying them within a transaction:
 
@@ -757,31 +769,30 @@ class ChangesController < ApplicationController
   around_action :wrap_in_transaction, only: :show
 
   private
-
-  def wrap_in_transaction
-    ActiveRecord::Base.transaction do
-      begin
-        yield
-      ensure
-        raise ActiveRecord::Rollback
+    def wrap_in_transaction
+      ActiveRecord::Base.transaction do
+        begin
+          yield
+        ensure
+          raise ActiveRecord::Rollback
+        end
       end
     end
-  end
 end
 ```
 
-Note that an "around" filter also wraps rendering. In particular, in the example above, if the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
+Note that an "around" action callback also wraps rendering. In particular, in the example above, if the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
-You can choose not to yield and build the response yourself, in which case the action will not be run.
+You can choose not to yield and build the response yourself, in which case the controller action will not be run.
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
 [`around_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
 
-### Other Ways to Use Filters
+### Other Ways to Use Action Callbacks
 
-While the most common way to use filters is by creating private methods and using `before_action`, `after_action`, or `around_action` to add them, there are two other ways to do the same thing.
+While the most common way to use action callbacks is by creating private methods and using `before_action`, `after_action`, or `around_action` to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the `*_action` methods. The block receives the controller as an argument. The `require_login` filter from above could be rewritten to use a block:
+The first is to use a block directly with the `*_action` methods. The block receives the controller as an argument. The `require_login` action callback from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -794,7 +805,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Note that the filter, in this case, uses `send` because the `logged_in?` method is private, and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in simpler cases, it might be useful.
+Note that the action callback, in this case, uses `send` because the `logged_in?` method is private, and the action callback does not run in the scope of the controller. This is not the recommended way to implement this particular action callback, but in simpler cases, it might be useful.
 
 Specifically for `around_action`, the block also yields in the `action`:
 
@@ -802,14 +813,14 @@ Specifically for `around_action`, the block also yields in the `action`:
 around_action { |_controller, action| time(&action) }
 ```
 
-The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
+The second way is to use a class (actually, any object that responds to the right methods will do) to handle the callback action. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login action callback again to use a class:
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_action LoginFilter
+  before_action LoginActionCallback
 end
 
-class LoginFilter
+class LoginActionCallback
   def self.before(controller)
     unless controller.send(:logged_in?)
       controller.flash[:error] = "You must be logged in to access this section"
@@ -819,7 +830,7 @@ class LoginFilter
 end
 ```
 
-Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class must implement a method with the same name as the filter, so for the `before_action` filter, the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
+Again, this is not an ideal example for this action callback, because it's not run in the scope of the controller but gets the controller passed as an argument. The class must implement a method with the same name as the action callback, so for the `before_action` action callback, the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
 
 Request Forgery Protection
 --------------------------
@@ -893,7 +904,7 @@ Rails collects all of the parameters sent along with the request in the `params`
 
 ### The `response` Object
 
-The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
+The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after action callback - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
@@ -925,7 +936,7 @@ Rails comes with three built-in HTTP authentication mechanisms:
 
 ### HTTP Basic Authentication
 
-HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, [`http_basic_authenticate_with`][].
+HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication only requires you to use one method, [`http_basic_authenticate_with`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -933,13 +944,13 @@ class AdminsController < ApplicationController
 end
 ```
 
-With this in place, you can create namespaced controllers that inherit from `AdminsController`. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
+With this in place, you can create namespaced controllers that inherit from `AdminsController`. The action callback will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
 [`http_basic_authenticate_with`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
 
 ### HTTP Digest Authentication
 
-HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, [`authenticate_or_request_with_http_digest`][].
+HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails only requires using one method, [`authenticate_or_request_with_http_digest`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -964,7 +975,7 @@ As seen in the example above, the `authenticate_or_request_with_http_digest` blo
 
 HTTP token authentication is a scheme to enable the usage of Bearer tokens in the HTTP `Authorization` header. There are many token formats available and describing them is outside the scope of this document.
 
-As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails is quite easy and only requires using one method, [`authenticate_or_request_with_http_token`][].
+As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails only requires using one method, [`authenticate_or_request_with_http_token`][].
 
 ```ruby
 class PostsController < ApplicationController
@@ -1046,7 +1057,7 @@ TIP: It is not recommended that you stream static files through Rails if you can
 
 ### RESTful Downloads
 
-While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
+While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides a slick way of doing "RESTful" downloads. Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -1202,7 +1213,8 @@ You can set it to a String, a Regexp, or an array of both.
 config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
 ```
 
-Matching URLs will be marked as '[FILTERED]'.
+Matching URLs will be replaced with '[FILTERED]'. However, if you only wish to filter the parameters, not the whole URLs,
+please take a look at [Parameters Filtering](#parameters-filtering).
 
 Rescue
 ------
@@ -1274,7 +1286,7 @@ NOTE: Certain exceptions are only rescuable from the `ApplicationController` cla
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 
-Force HTTPS protocol
+Force HTTPS Protocol
 --------------------
 
 If you'd like to ensure that communication to your controller is only possible
@@ -1283,3 +1295,25 @@ via HTTPS, you should do so by enabling the [`ActionDispatch::SSL`][] middleware
 
 [`config.force_ssl`]: configuring.html#config-force-ssl
 [`ActionDispatch::SSL`]: https://api.rubyonrails.org/classes/ActionDispatch/SSL.html
+
+Built-in Health Check Endpoint
+------------------------------
+
+Rails also comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 500 status code otherwise.
+
+In production, many applications are required to report their status upstream, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine a pod's health. This health check is designed to be a one-size fits all that will work in many situations.
+
+While any newly generated Rails applications will have the health check at `/up`, you can configure the path to be anything you'd like in your "config/routes.rb":
+
+```ruby
+Rails.application.routes.draw do
+  get "healthz", to: "rails/health#show", as: :rails_health_check
+end
+```
+
+The health check will now be accessible via the `/healthz` path.
+
+NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis cluster. Replace "rails/health#show" with your own controller action if you have application specific needs.
+
+Think carefully about what you want to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
+

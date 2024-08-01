@@ -58,7 +58,7 @@ module Render
     test "render with blank" do
       with_routing do |set|
         set.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller", action: "index"
           end
         end
@@ -73,13 +73,13 @@ module Render
     test "rendering more than once raises an exception" do
       with_routing do |set|
         set.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller", action: "index"
           end
         end
 
         assert_raises(AbstractController::DoubleRenderError) do
-          get "/render/double_render", headers: { "action_dispatch.show_exceptions" => false }
+          get "/render/double_render", headers: { "action_dispatch.show_exceptions" => :none }
         end
       end
     end
@@ -89,13 +89,13 @@ module Render
     # Only public methods on actual controllers are callable actions
     test "raises an exception when a method of Object is called" do
       assert_raises(AbstractController::ActionNotFound) do
-        get "/render/blank_render/clone", headers: { "action_dispatch.show_exceptions" => false }
+        get "/render/blank_render/clone", headers: { "action_dispatch.show_exceptions" => :none }
       end
     end
 
     test "raises an exception when a private method is called" do
       assert_raises(AbstractController::ActionNotFound) do
-        get "/render/blank_render/secretz", headers: { "action_dispatch.show_exceptions" => false }
+        get "/render/blank_render/secretz", headers: { "action_dispatch.show_exceptions" => :none }
       end
     end
   end

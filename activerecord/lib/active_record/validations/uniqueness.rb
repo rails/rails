@@ -25,7 +25,7 @@ module ActiveRecord
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
           if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => record.id_in_database)
+            relation = relation.where.not(finder_class.primary_key => [record.id_in_database])
           else
             raise UnknownPrimaryKey.new(finder_class, "Cannot validate uniqueness for persisted record without primary key.")
           end
@@ -84,10 +84,10 @@ module ActiveRecord
           attributes = scope + [attr]
           attributes = resolve_attributes(record, attributes)
 
-          klass.connection.schema_cache.indexes(klass.table_name).any? do |index|
+          klass.schema_cache.indexes(klass.table_name).any? do |index|
             index.unique &&
               index.where.nil? &&
-              (index.columns - attributes).empty?
+              (Array(index.columns) - attributes).empty?
           end
         end
 
@@ -110,16 +110,20 @@ module ActiveRecord
 
       def build_relation(klass, attribute, value)
         relation = klass.unscoped
-        comparison = relation.bind_attribute(attribute, value) do |attr, bind|
-          return relation.none! if bind.unboundable?
+        # TODO: Add case-sensitive / case-insensitive operators to Arel
+        # to no longer need to checkout a connection here.
+        comparison = klass.with_connection do |connection|
+          relation.bind_attribute(attribute, value) do |attr, bind|
+            return relation.none! if bind.unboundable?
 
-          if !options.key?(:case_sensitive) || bind.nil?
-            klass.connection.default_uniqueness_comparison(attr, bind)
-          elsif options[:case_sensitive]
-            klass.connection.case_sensitive_comparison(attr, bind)
-          else
-            # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-            klass.connection.case_insensitive_comparison(attr, bind)
+            if !options.key?(:case_sensitive) || bind.nil?
+              connection.default_uniqueness_comparison(attr, bind)
+            elsif options[:case_sensitive]
+              connection.case_sensitive_comparison(attr, bind)
+            else
+              # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
+              connection.case_insensitive_comparison(attr, bind)
+            end
           end
         end
 
@@ -265,7 +269,7 @@ module ActiveRecord
       # When the database catches such a duplicate insertion,
       # {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will raise an ActiveRecord::StatementInvalid
       # exception. You can either choose to let this error propagate (which
-      # will result in the default Rails exception page being shown), or you
+      # will result in the default \Rails exception page being shown), or you
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking them to re-enter the title).
       # This technique is also known as
@@ -280,6 +284,7 @@ module ActiveRecord
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       #
       # * ActiveRecord::ConnectionAdapters::Mysql2Adapter.
+      # * ActiveRecord::ConnectionAdapters::TrilogyAdapter.
       # * ActiveRecord::ConnectionAdapters::SQLite3Adapter.
       # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.
       def validates_uniqueness_of(*attr_names)

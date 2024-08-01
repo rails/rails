@@ -32,6 +32,14 @@ module Another
       redirect_to "http://secret.foo.bar/"
     end
 
+    def filterable_redirector_with_params
+      redirect_to "http://secret.foo.bar?username=repinel&password=1234"
+    end
+
+    def filterable_redirector_bad_uri
+      redirect_to " s:/invalid-string0uri"
+    end
+
     def data_sender
       send_data "cool data", filename: "file.txt"
     end
@@ -194,6 +202,13 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_match(/Completed 200 OK in \d+ms/, logs[1])
   end
 
+  def test_process_action_with_path
+    @request.env["action_dispatch.parameter_filter"] = [:password]
+    get :show, params: { password: "test" }
+    wait
+    assert_match(/\/show\?password=\[FILTERED\]/, @controller.last_payload[:path])
+  end
+
   def test_process_action_with_throw
     catch(:halt) do
       get :with_throw
@@ -253,6 +268,42 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_filter_redirect_url_by_regexp
     @request.env["action_dispatch.redirect_filter"] = [/secret\.foo.+/]
     get :filterable_redirector
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[1]
+  end
+
+  def test_does_not_filter_redirect_params_by_default
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=1234", logs[1]
+  end
+
+  def test_filter_redirect_params_by_string
+    @request.env["action_dispatch.parameter_filter"] = ["password"]
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
+  end
+
+  def test_filter_redirect_params_by_regexp
+    @request.env["action_dispatch.parameter_filter"] = [/pass.+/]
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
+  end
+
+  def test_filter_redirect_bad_uri
+    @request.env["action_dispatch.parameter_filter"] = [/pass.+/]
+
+    get :filterable_redirector_bad_uri
     wait
 
     assert_equal 3, logs.size

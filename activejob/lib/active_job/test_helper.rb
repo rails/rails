@@ -34,13 +34,18 @@ module ActiveJob
       end
     end
 
-    ActiveJob::Base.include(TestQueueAdapter)
+    ActiveSupport.on_load(:active_job) do
+      ActiveJob::Base.include(TestQueueAdapter)
+    end
 
     def before_setup # :nodoc:
-      test_adapter = queue_adapter_for_test
-
+      queue_adapter_specific_to_this_test_class = queue_adapter_for_test
       queue_adapter_changed_jobs.each do |klass|
-        klass.enable_test_adapter(test_adapter)
+        if queue_adapter_specific_to_this_test_class
+          klass.enable_test_adapter(queue_adapter_specific_to_this_test_class)
+        elsif klass._queue_adapter.nil?
+          klass.enable_test_adapter(ActiveJob::QueueAdapters::TestAdapter.new)
+        end
       end
 
       clear_enqueued_jobs
@@ -54,17 +59,11 @@ module ActiveJob
       queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
-    # Specifies the queue adapter to use with all Active Job test helpers.
-    #
-    # Returns an instance of the queue adapter and defaults to
-    # ActiveJob::QueueAdapters::TestAdapter.
-    #
-    # Note: The adapter provided by this method must provide some additional
-    # methods from those expected of a standard ActiveJob::QueueAdapter
-    # in order to be used with the active job test helpers. Refer to
-    # ActiveJob::QueueAdapters::TestAdapter.
+    # Returns a queue adapter instance to use with all Active Job test helpers.
+    # By default, returns an instance of ActiveJob::QueueAdapters::TestAdapter.
+    # Override this method to specify a different adapter. The adapter must
+    # implement the same interface as ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
-      ActiveJob::QueueAdapters::TestAdapter.new
     end
 
     # Asserts that the number of enqueued jobs matches the given number.
@@ -121,6 +120,8 @@ module ActiveJob
     #     end
     #   end
     def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_enqueued_jobs")
+
       if block_given?
         original_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -183,6 +184,8 @@ module ActiveJob
     #
     #   assert_enqueued_jobs 0, &block
     def assert_no_enqueued_jobs(only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_no_enqueued_jobs")
+
       assert_enqueued_jobs 0, only: only, except: except, queue: queue, &block
     end
 
@@ -273,6 +276,8 @@ module ActiveJob
     #       end
     #     end
     def assert_performed_jobs(number, only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_performed_jobs")
+
       if block_given?
         original_count = performed_jobs.size
 
@@ -341,6 +346,8 @@ module ActiveJob
     #
     #   assert_performed_jobs 0, &block
     def assert_no_performed_jobs(only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_no_performed_jobs")
+
       assert_performed_jobs 0, only: only, except: except, queue: queue, &block
     end
 
@@ -352,6 +359,13 @@ module ActiveJob
     #
     #     MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
     #     assert_enqueued_with(at: Date.tomorrow.noon, queue: "my_queue")
+    #   end
+    #
+    # For keyword arguments, specify them as a hash inside an array:
+    #
+    #   def test_assert_enqueued_with_keyword_arguments
+    #     MyJob.perform_later(arg1: 'value1', arg2: 'value2')
+    #     assert_enqueued_with(job: MyJob, args: [{ arg1: 'value1', arg2: 'value2' }])
     #   end
     #
     # The given arguments may also be specified as matcher procs that return a
@@ -390,6 +404,8 @@ module ActiveJob
     #     end
     #   end
     def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      require_active_job_test_adapter!("assert_enqueued_with")
+
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
@@ -492,6 +508,8 @@ module ActiveJob
     #     end
     #   end
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      require_active_job_test_adapter!("assert_performed_with")
+
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
@@ -593,10 +611,19 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    # If the +:at+ option is specified, then only run jobs enqueued to run
-    # immediately or before the given time
+    # If the +:at+ option is specified, then only jobs that have been enqueued
+    # to run at or before the given time will be performed. This includes jobs
+    # that have been enqueued without a time.
+    #
+    # If queue_adapter_for_test is overridden to return a different adapter,
+    # +perform_enqueued_jobs+ will merely execute the block.
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
-      return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
+      unless block_given?
+        require_active_job_test_adapter!("perform_enqueued_jobs (without a block)")
+        return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at)
+      end
+
+      return _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block) unless using_test_adapter?
 
       validate_option(only: only, except: except)
 
@@ -636,12 +663,22 @@ module ActiveJob
     end
 
     private
+      def require_active_job_test_adapter!(method)
+        unless using_test_adapter?
+          raise ArgumentError.new("#{method} requires the Active Job test adapter, you're using #{queue_adapter.class.name}.")
+        end
+      end
+
+      def using_test_adapter?
+        queue_adapter.is_a?(ActiveJob::QueueAdapters::TestAdapter)
+      end
+
       def clear_enqueued_jobs
-        enqueued_jobs.clear
+        enqueued_jobs.clear if using_test_adapter?
       end
 
       def clear_performed_jobs
-        performed_jobs.clear
+        performed_jobs.clear if using_test_adapter?
       end
 
       def jobs_with(jobs, only: nil, except: nil, queue: nil, at: nil)
@@ -694,6 +731,10 @@ module ActiveJob
 
       def prepare_args_for_assertion(args)
         args.dup.tap do |arguments|
+          if arguments[:queue].is_a?(Symbol)
+            arguments[:queue] = arguments[:queue].to_s
+          end
+
           if arguments[:at].acts_like?(:time)
             at_range = arguments[:at] - 1..arguments[:at] + 1
             arguments[:at] = ->(at) { at_range.cover?(at) }

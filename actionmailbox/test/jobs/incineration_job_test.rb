@@ -3,7 +3,7 @@
 require "test_helper"
 
 class ActionMailbox::IncinerationJobTest < ActiveJob::TestCase
-  setup { @inbound_email = receive_inbound_email_from_fixture("welcome.eml") }
+  setup { @inbound_email = create_inbound_email_from_fixture("welcome.eml") }
 
   test "ignoring a missing inbound email" do
     @inbound_email.destroy!

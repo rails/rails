@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def shard_names
-        @role_to_shard_mapping.values.flat_map { |shard_map| shard_map.keys }
+        @role_to_shard_mapping.values.flat_map { |shard_map| shard_map.keys }.uniq
       end
 
       def role_names
@@ -20,6 +20,16 @@ module ActiveRecord
           @role_to_shard_mapping[role].values
         else
           @role_to_shard_mapping.flat_map { |_, shard_map| shard_map.values }
+        end
+      end
+
+      def each_pool_config(role = nil, &block)
+        if role
+          @role_to_shard_mapping[role].each_value(&block)
+        else
+          @role_to_shard_mapping.each_value do |shard_map|
+            shard_map.each_value(&block)
+          end
         end
       end
 

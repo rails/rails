@@ -136,7 +136,7 @@ module ActionMailbox
       assert_raises(ActionMailbox::Router::RoutingError) do
         @router.route inbound_email
       end
-      assert inbound_email.bounced?
+      assert_predicate inbound_email, :bounced?
     end
 
     test "invalid address" do

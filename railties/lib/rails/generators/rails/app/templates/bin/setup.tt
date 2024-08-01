@@ -1,10 +1,10 @@
 require "fileutils"
 
-# path to your application root.
 APP_ROOT = File.expand_path("..", __dir__)
+APP_NAME = "<%= app_name.dasherize %>"
 
 def system!(*args)
-  system(*args) || abort("\n== Command #{args} failed ==")
+  system(*args, exception: true)
 end
 
 FileUtils.chdir APP_ROOT do
@@ -15,12 +15,15 @@ FileUtils.chdir APP_ROOT do
   puts "== Installing dependencies =="
   system! "gem install bundler --conservative"
   system("bundle check") || system!("bundle install")
-<% if ["webpack", "esbuild", "rollup"].include?(options.javascript) -%>
+<% if using_node? -%>
 
   # Install JavaScript dependencies
-  system("yarn check --check-files") || system!("yarn install")
-<% end -%>
+  system("yarn install --check-files")
+<% elsif using_bun? -%>
 
+  # Install JavaScript dependencies
+  system!("bun install")
+<% end -%>
 <% unless options.skip_active_record? -%>
 
   # puts "\n== Copying sample files =="
@@ -37,4 +40,8 @@ FileUtils.chdir APP_ROOT do
 
   puts "\n== Restarting application server =="
   system! "bin/rails restart"
+
+  # puts "\n== Configuring puma-dev =="
+  # system "ln -nfs #{APP_ROOT} ~/.puma-dev/#{APP_NAME}"
+  # system "curl -Is https://#{APP_NAME}.test/up | head -n 1"
 end

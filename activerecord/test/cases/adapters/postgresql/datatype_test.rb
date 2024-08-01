@@ -16,10 +16,8 @@ class PostgresqlLtree < ActiveRecord::Base
 end
 
 class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
-  self.use_transactional_tests = false
-
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
@@ -46,6 +44,13 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal (-21.day), @first_time.scaled_time_interval
   end
 
+  def test_update_large_time_in_seconds
+    @first_time.scaled_time_interval = 70.years.to_f
+    assert @first_time.save
+    assert @first_time.reload
+    assert_equal 70.years, @first_time.scaled_time_interval
+  end
+
   def test_oid_values
     assert_equal 1234, @first_oid.obj_id
   end
@@ -70,7 +75,7 @@ class PostgresqlInternalDataTypeTest < ActiveRecord::PostgreSQLTestCase
   include DdlHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def test_name_column_type

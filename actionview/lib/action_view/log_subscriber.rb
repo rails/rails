@@ -5,7 +5,7 @@ require "active_support/log_subscriber"
 module ActionView
   # = Action View Log Subscriber
   #
-  # Provides functionality so that Rails can output logs from Action View.
+  # Provides functionality so that \Rails can output logs from Action View.
   class LogSubscriber < ActiveSupport::LogSubscriber
     VIEWS_PATTERN = /^app\/views\//
 
@@ -18,26 +18,29 @@ module ActionView
       info do
         message = +"  Rendered #{from_rails_root(event.payload[:identifier])}"
         message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
-        message << " (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
+        message << " (Duration: #{event.duration.round(1)}ms | GC: #{event.gc_time.round(1)}ms)"
       end
     end
+    subscribe_log_level :render_template, :debug
 
     def render_partial(event)
       debug do
         message = +"  Rendered #{from_rails_root(event.payload[:identifier])}"
         message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
-        message << " (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
+        message << " (Duration: #{event.duration.round(1)}ms | GC: #{event.gc_time.round(1)}ms)"
         message << " #{cache_message(event.payload)}" unless event.payload[:cache_hit].nil?
         message
       end
     end
+    subscribe_log_level :render_partial, :debug
 
     def render_layout(event)
       info do
         message = +"  Rendered layout #{from_rails_root(event.payload[:identifier])}"
-        message << " (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
+        message << " (Duration: #{event.duration.round(1)}ms | GC: #{event.gc_time.round(1)}ms)"
       end
     end
+    subscribe_log_level :render_layout, :info
 
     def render_collection(event)
       identifier = event.payload[:identifier] || "templates"
@@ -45,10 +48,11 @@ module ActionView
       debug do
         message = +"  Rendered collection of #{from_rails_root(identifier)}"
         message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
-        message << " #{render_count(event.payload)} (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
+        message << " #{render_count(event.payload)} (Duration: #{event.duration.round(1)}ms | GC: #{event.gc_time.round(1)}ms)"
         message
       end
     end
+    subscribe_log_level :render_collection, :debug
 
     module Utils # :nodoc:
       def logger
@@ -91,6 +95,10 @@ module ActionView
       end
 
       def finish(name, id, payload)
+      end
+
+      def silenced?(_)
+        logger.nil? || !logger.debug?
       end
     end
 

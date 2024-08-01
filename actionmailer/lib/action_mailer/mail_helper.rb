@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionMailer
+  # = Action Mailer \MailHelper
+  #
   # Provides helper methods for ActionMailer::Base that can be used for easily
   # formatting messages, accessing mailer or message instances, and the
   # attachments list.

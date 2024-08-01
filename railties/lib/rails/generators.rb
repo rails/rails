@@ -23,6 +23,7 @@ module Rails
     autoload :NamedBase,       "rails/generators/named_base"
     autoload :ResourceHelpers, "rails/generators/resource_helpers"
     autoload :TestCase,        "rails/generators/test_case"
+    autoload :Devcontainer,    "rails/generators/devcontainer"
 
     mattr_accessor :namespace
 
@@ -90,7 +91,7 @@ module Rails
       end
 
       # Hold configured generators fallbacks. If a plugin developer wants a
-      # generator group to fallback to another group in case of missing generators,
+      # generator group to fall back to another group in case of missing generators,
       # they can add a fallback.
       #
       # For example, shoulda is considered a test_framework and is an extension
@@ -163,7 +164,8 @@ module Rails
 
       # Show help message with available generators.
       def help(command = "generate")
-        puts "Usage: rails #{command} GENERATOR [args] [options]"
+        puts "Usage:"
+        puts "  bin/rails #{command} GENERATOR [args] [options]"
         puts
         puts "General options:"
         puts "  -h, [--help]     # Print generator's options and usage"
@@ -201,7 +203,6 @@ module Rails
         rails.map! { |n| n.delete_prefix("rails:") }
         rails.delete("app")
         rails.delete("plugin")
-        rails.delete("encrypted_secrets")
         rails.delete("encrypted_file")
         rails.delete("encryption_key_file")
         rails.delete("master_key")
@@ -261,16 +262,10 @@ module Rails
           run_after_generate_callback if config[:behavior] == :invoke
         else
           options = sorted_groups.flat_map(&:last)
-          error   = Command::Base::CorrectableError.new("Could not find generator '#{namespace}'.", namespace, options)
-
-          if error.respond_to?(:detailed_message)
-            formatted_message = error.detailed_message
-          else
-            formatted_message = error.message
-          end
+          error = Command::CorrectableNameError.new("Could not find generator '#{namespace}'.", namespace, options)
 
           puts <<~MSG
-            #{formatted_message}
+            #{error.detailed_message}
             Run `bin/rails generate --help` for more options.
           MSG
         end

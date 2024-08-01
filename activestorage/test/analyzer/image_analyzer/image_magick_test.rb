@@ -65,7 +65,7 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
 
       yield
     rescue LoadError
-      ENV["CI"] ? raise : skip("Variant processor image_magick is not installed")
+      ENV["BUILDKITE"] ? raise : skip("Variant processor image_magick is not installed")
     ensure
       ActiveStorage.variant_processor = previous_processor
     end

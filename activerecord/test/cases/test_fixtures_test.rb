@@ -6,6 +6,8 @@ require "fileutils"
 require "models/zine"
 
 class TestFixturesTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   setup do
     @klass = Class.new
     @klass.include(ActiveRecord::TestFixtures)
@@ -21,6 +23,17 @@ class TestFixturesTest < ActiveRecord::TestCase
     assert_equal "foobar", @klass.use_transactional_tests
   end
 
+  def test_inclusion_runs_active_record_fixtures_load_hook
+    ActiveSupport.on_load(:active_record_fixtures) do
+      self.fixture_paths << "test/fixtures"
+    end
+    klass = Class.new
+
+    klass.include(ActiveRecord::TestFixtures)
+
+    assert_includes klass.fixture_paths, "test/fixtures"
+  end
+
   unless in_memory_db?
     def test_doesnt_rely_on_active_support_test_case_specific_methods
       tmp_dir = Dir.mktmpdir
@@ -32,7 +45,7 @@ class TestFixturesTest < ActiveRecord::TestCase
       klass = Class.new(Minitest::Test) do
         include ActiveRecord::TestFixtures
 
-        self.fixture_path = tmp_dir
+        self.fixture_paths = [tmp_dir]
         self.use_transactional_tests = true
 
         fixtures :all
@@ -42,6 +55,9 @@ class TestFixturesTest < ActiveRecord::TestCase
           assert_equal("Hello", zines(:going_out).title)
         end
       end
+
+      ActiveSupport::Notifications.unsubscribe(@connection_subscriber)
+      @connection_subscriber = nil
 
       old_handler = ActiveRecord::Base.connection_handler
       ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new

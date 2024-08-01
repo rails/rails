@@ -185,7 +185,7 @@ class ActiveRecord::Relation
       other_clause = WhereClause.new([table["name"].eq(bind_param("Sean"))])
       expected_ast =
         Arel::Nodes::Grouping.new(
-          Arel::Nodes::Or.new(table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean")))
+          Arel::Nodes::Or.new([table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))])
         )
 
       assert_equal expected_ast.to_sql, where_clause.or(other_clause).ast.to_sql

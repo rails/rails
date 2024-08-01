@@ -4,8 +4,6 @@
 #   gem install pg
 # On macOS with Homebrew:
 #   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
-# On macOS with MacPorts:
-#   gem install pg -- --with-pg-config=/opt/local/lib/postgresql84/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -20,18 +18,25 @@ default: &default
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+<% if devcontainer? -%>
+  <%% if ENV["DB_HOST"] %>
+  host: <%%= ENV["DB_HOST"] %>
+  username: postgres
+  password: postgres
+  <%% end %>
+<% end %>
 
 development:
   <<: *default
   database: <%= app_name %>_development
 
-  # The specified database role being used to connect to postgres.
-  # To create additional roles in postgres see `$ createuser --help`.
-  # When left blank, postgres will use the default role. This is
+  # The specified database role being used to connect to PostgreSQL.
+  # To create additional roles in PostgreSQL see `$ createuser --help`.
+  # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
   #username: <%= app_name %>
 
-  # The password associated with the postgres role (username).
+  # The password associated with the PostgreSQL role (username).
   #password:
 
   # Connect on a TCP socket. Omitted by default since the client uses a

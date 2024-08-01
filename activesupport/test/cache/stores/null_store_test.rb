@@ -61,4 +61,14 @@ class NullStoreTest < ActiveSupport::TestCase
     end
     assert_nil @cache.read("name")
   end
+
+  def test_local_store_repeated_reads
+    @cache.with_local_cache do
+      @cache.read("foo")
+      assert_nil @cache.read("foo")
+
+      @cache.read_multi("foo", "bar")
+      assert_equal({ "foo" => nil, "bar" => nil }, @cache.read_multi("foo", "bar"))
+    end
+  end
 end

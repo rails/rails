@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# = Active Storage \Filename
+#
 # Encapsulates a string representing a filename to provide convenient access to parts of it and sanitization.
 # A Filename instance is returned by ActiveStorage::Blob#filename, and is comparable so it can be used for sorting.
 class ActiveStorage::Filename
@@ -64,10 +66,6 @@ class ActiveStorage::Filename
   end
 
   def as_json(*)
-    to_s
-  end
-
-  def to_json
     to_s
   end
 

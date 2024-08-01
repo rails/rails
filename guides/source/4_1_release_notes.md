@@ -66,7 +66,7 @@ Spring is running:
 ```
 
 Have a look at the
-[Spring README](https://github.com/rails/spring/blob/master/README.md) to
+[Spring README](https://github.com/rails/spring/blob/main/README.md) to
 see all available features.
 
 See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#spring)
@@ -496,7 +496,7 @@ for detailed changes.
   map to integers in the database, but can be queried by
   name. ([Commit](https://github.com/rails/rails/commit/db41eb8a6ea88b854bf5cd11070ea4245e1639c5))
 
-* Type cast json values on write, so that the value is consistent with reading
+* Type cast JSON values on write, so that the value is consistent with reading
   from the database. ([Pull Request](https://github.com/rails/rails/pull/12643))
 
 * Type cast hstore values on write, so that the value is consistent
@@ -507,7 +507,7 @@ for detailed changes.
 
 * Calling `update_attributes` will now throw an `ArgumentError` whenever it
   gets a `nil` argument. More specifically, it will throw an error if the
-  argument that it gets passed does not respond to to
+  argument that it gets passed does not respond to
   `stringify_keys`. ([Pull Request](https://github.com/rails/rails/pull/9860))
 
 * `CollectionAssociation#first`/`#last` (e.g. `has_many`) use a `LIMIT`ed

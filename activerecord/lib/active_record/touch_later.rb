@@ -24,9 +24,13 @@ module ActiveRecord
       @_new_record_before_last_commit ||= false
 
       # touch the parents as we are not calling the after_save callbacks
-      self.class.reflect_on_all_associations(:belongs_to).each do |r|
+      self.class.reflect_on_all_associations.each do |r|
         if touch = r.options[:touch]
-          ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, changes_to_save, r.foreign_key, r.name, touch, :touch_later)
+          if r.macro == :belongs_to
+            ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, changes_to_save, r.foreign_key, r.name, touch)
+          elsif r.macro == :has_one
+            ActiveRecord::Associations::Builder::HasOne.touch_record(self, r.name, touch)
+          end
         end
       end
     end
@@ -42,6 +46,11 @@ module ActiveRecord
     end
 
     private
+      def init_internals
+        super
+        @_defer_touch_attrs = nil
+      end
+
       def surreptitiously_touch(attr_names)
         attr_names.each do |attr_name|
           _write_attribute(attr_name, @_touch_time)
@@ -55,11 +64,7 @@ module ActiveRecord
       end
 
       def has_defer_touch_attrs?
-        defined?(@_defer_touch_attrs) && @_defer_touch_attrs.present?
-      end
-
-      def belongs_to_touch_method
-        :touch_later
+        @_defer_touch_attrs.present?
       end
   end
 end

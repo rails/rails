@@ -3,15 +3,15 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if supports_datetime_with_precision?
-  class TimePrecisionTest < ActiveRecord::TestCase
+class TimePrecisionTest < ActiveRecord::TestCase
+  if supports_datetime_with_precision?
     include SchemaDumpingHelper
     self.use_transactional_tests = false
 
     class Foo < ActiveRecord::Base; end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       Foo.reset_column_information
     end
 
@@ -45,7 +45,7 @@ if supports_datetime_with_precision?
       assert_equal 123456000, foo.finish.nsec
     end
 
-    unless current_adapter?(:Mysql2Adapter)
+    unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_no_time_precision_isnt_truncated_on_assignment
         @connection.create_table(:foos, force: true)
         @connection.add_column :foos, :start,  :time
@@ -110,7 +110,7 @@ if supports_datetime_with_precision?
       assert_match %r{t\.time\s+"finish",\s+precision: 6$}, output
     end
 
-    if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter)
+    if current_adapter?(:PostgreSQLAdapter)
       def test_time_precision_with_zero_should_be_dumped
         @connection.create_table(:foos, force: true) do |t|
           t.time :start,  precision: 0

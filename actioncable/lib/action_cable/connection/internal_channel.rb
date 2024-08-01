@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionCable
   module Connection
-    # Makes it possible for the RemoteConnection to disconnect a specific connection.
+    # # Action Cable InternalChannel
+    #
+    # Makes it possible for the RemoteConnection to disconnect a specific
+    # connection.
     module InternalChannel
       extend ActiveSupport::Concern
 

@@ -37,13 +37,12 @@ class ConnectionMonitor {
     return this.startedAt && !this.stoppedAt
   }
 
-  recordPing() {
+  recordMessage() {
     this.pingedAt = now()
   }
 
   recordConnect() {
     this.reconnectAttempts = 0
-    this.recordPing()
     delete this.disconnectedAt
     logger.log("ConnectionMonitor recorded connect")
   }

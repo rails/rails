@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/core_ext/object/with"
 require "active_support/encrypted_file"
 
 class EncryptedFileTest < ActiveSupport::TestCase
   setup do
+    @original_env_content_key = ENV["CONTENT_KEY"]
+    ENV["CONTENT_KEY"] = nil
+
     @content = "One little fox jumped over the hedge"
 
     @tmpdir = Dir.mktmpdir("encrypted-file-test-")
     @content_path = File.join(@tmpdir, "content.txt.enc")
 
+    @key = ActiveSupport::EncryptedFile.generate_key
     @key_path = File.join(@tmpdir, "content.txt.key")
-    File.write(@key_path, ActiveSupport::EncryptedFile.generate_key)
+    File.write(@key_path, @key)
 
     @encrypted_file = encrypted_file(@content_path)
   end
@@ -20,19 +25,17 @@ class EncryptedFileTest < ActiveSupport::TestCase
     FileUtils.rm_rf @content_path
     FileUtils.rm_rf @key_path
     FileUtils.rm_rf @tmpdir
+
+    ENV["CONTENT_KEY"] = @original_env_content_key
   end
 
   test "reading content by env key" do
     FileUtils.rm_rf @key_path
 
-    begin
-      ENV["CONTENT_KEY"] = ActiveSupport::EncryptedFile.generate_key
-      @encrypted_file.write @content
+    ENV["CONTENT_KEY"] = @key
+    @encrypted_file.write @content
 
-      assert_equal @content, @encrypted_file.read
-    ensure
-      ENV["CONTENT_KEY"] = nil
-    end
+    assert_equal @content, @encrypted_file.read
   end
 
   test "reading content by key file" do
@@ -49,6 +52,14 @@ class EncryptedFileTest < ActiveSupport::TestCase
     assert_equal "#{@content} and went by the lake", @encrypted_file.read
   end
 
+  test "change sets restricted permissions" do
+    @encrypted_file.write(@content)
+    @encrypted_file.change do |file|
+      assert_predicate file, :owned?
+      assert_equal "100600", file.stat.mode.to_s(8), "Incorrect mode for #{file}"
+    end
+  end
+
   test "raise MissingKeyError when key is missing" do
     assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
       encrypted_file(@content_path, key_path: "", env_key: "").read
@@ -58,16 +69,45 @@ class EncryptedFileTest < ActiveSupport::TestCase
   test "raise MissingKeyError when env key is blank" do
     FileUtils.rm_rf @key_path
 
-    begin
-      ENV["CONTENT_KEY"] = ""
-      raised = assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
-        @encrypted_file.write @content
-        @encrypted_file.read
-      end
+    ENV["CONTENT_KEY"] = ""
+    raised = assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
+      @encrypted_file.write @content
+      @encrypted_file.read
+    end
 
-      assert_match(/Missing encryption key to decrypt file/, raised.message)
-    ensure
-      ENV["CONTENT_KEY"] = nil
+    assert_match(/Missing encryption key to decrypt file/, raised.message)
+  end
+
+  test "key can be added after MissingKeyError raised" do
+    FileUtils.rm_rf @key_path
+
+    assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
+      @encrypted_file.key
+    end
+
+    File.write(@key_path, @key)
+
+    assert_nothing_raised do
+      assert_equal @key, @encrypted_file.key
+    end
+  end
+
+  test "key? is true when key file exists" do
+    assert_predicate @encrypted_file, :key?
+  end
+
+  test "key? is true when env key is present" do
+    FileUtils.rm_rf @key_path
+    ENV["CONTENT_KEY"] = @key
+
+    assert_predicate @encrypted_file, :key?
+  end
+
+  test "key? is false and does not raise when the key is missing" do
+    FileUtils.rm_rf @key_path
+
+    assert_nothing_raised do
+      assert_not @encrypted_file.key?
     end
   end
 
@@ -111,6 +151,16 @@ class EncryptedFileTest < ActiveSupport::TestCase
     assert_equal @content, @encrypted_file.read
   ensure
     FileUtils.rm_rf symlink_path
+  end
+
+  test "can read encrypted file after changing default_serializer" do
+    ActiveSupport::Messages::Codec.with(default_serializer: :marshal) do
+      encrypted_file(@content_path).write(@content)
+    end
+
+    ActiveSupport::Messages::Codec.with(default_serializer: :json) do
+      assert_equal @content, encrypted_file(@content_path).read
+    end
   end
 
   private

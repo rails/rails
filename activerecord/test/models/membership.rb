@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 class Membership < ActiveRecord::Base
-  enum type: %i(Membership CurrentMembership SuperMembership SelectedMembership TenantMembership)
+  enum :type, %i(Membership CurrentMembership SuperMembership SelectedMembership TenantMembership)
   belongs_to :member
   belongs_to :club
 end
 
 class CurrentMembership < Membership
   belongs_to :member
-  belongs_to :club
+  belongs_to :club, inverse_of: :membership
 end
 
 class SuperMembership < Membership

@@ -26,8 +26,7 @@ module Rails
       end
 
       def add_key_file_silently(key_path, key = nil)
-        create_file key_path, key || ActiveSupport::EncryptedFile.generate_key
-        key_path.chmod 0600
+        create_file key_path, key || ActiveSupport::EncryptedFile.generate_key, perm: 0600
       end
 
       def ignore_key_file(key_path, ignore: key_ignore(key_path))

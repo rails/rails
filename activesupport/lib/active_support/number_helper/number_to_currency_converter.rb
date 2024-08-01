@@ -10,13 +10,13 @@ module ActiveSupport
       def convert
         format = options[:format]
 
-        number_f = valid_float?
-        if number_f
-          if number_f.negative?
-            number_f = number_f.abs
-            format = options[:negative_format] if (number_f * 10**options[:precision]) >= 0.5
+        number_d = valid_bigdecimal
+        if number_d
+          if number_d.negative?
+            number_d = number_d.abs
+            format = options[:negative_format] if (number_d * 10**options[:precision]) >= 0.5
           end
-          number_s = NumberToRoundedConverter.convert(number_f, options)
+          number_s = NumberToRoundedConverter.convert(number_d, options)
         else
           number_s = number.to_s.strip
           format = options[:negative_format] if number_s.sub!(/^-/, "")

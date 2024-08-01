@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \Boolean \Type
+    #
     # A class that behaves like a boolean type, including rules for coercion of
     # user input.
     #
@@ -27,6 +29,10 @@ module ActiveModel
 
       def serialize(value) # :nodoc:
         cast(value)
+      end
+
+      def serialize_cast_value(value) # :nodoc:
+        value
       end
 
       private

@@ -7,6 +7,7 @@ class Numeric
   TERABYTE = GIGABYTE * 1024
   PETABYTE = TERABYTE * 1024
   EXABYTE  = PETABYTE * 1024
+  ZETTABYTE = EXABYTE * 1024
 
   # Enables the use of byte calculations and declarations, like 45.bytes + 2.6.megabytes
   #
@@ -63,4 +64,12 @@ class Numeric
     self * EXABYTE
   end
   alias :exabyte :exabytes
+
+  # Returns the number of bytes equivalent to the zettabytes provided.
+  #
+  #   2.zettabytes # => 2_361_183_241_434_822_606_848
+  def zettabytes
+    self * ZETTABYTE
+  end
+  alias :zettabyte :zettabytes
 end

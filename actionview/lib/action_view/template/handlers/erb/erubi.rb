@@ -16,20 +16,14 @@ module ActionView
 
             properties[:bufvar]     ||= "@output_buffer"
             properties[:preamble]   ||= ""
-            properties[:postamble]  ||= "#{properties[:bufvar]}.to_s"
+            properties[:postamble]  ||= "#{properties[:bufvar]}"
+
+            # Tell Eruby that whether template will be compiled with `frozen_string_literal: true`
+            properties[:freeze_template_literals] = !Template.frozen_string_literal
 
             properties[:escapefunc] = ""
 
             super
-          end
-
-          def evaluate(action_view_erb_handler_context)
-            src = @src
-            view = Class.new(ActionView::Base) {
-              include action_view_erb_handler_context._routes.url_helpers
-              class_eval("define_method(:_template) { |local_assigns, output_buffer| #{src} }", defined?(@filename) ? @filename : "(erubi)", 0)
-            }.empty
-            view._run(:_template, nil, {}, ActionView::OutputBuffer.new)
           end
 
         private
@@ -39,30 +33,32 @@ module ActionView
             if text == "\n"
               @newline_pending += 1
             else
-              src << bufvar << ".safe_append='"
-              src << "\n" * @newline_pending if @newline_pending > 0
-              src << text.gsub(/['\\]/, '\\\\\&')
-              src << "'.freeze;"
-
+              with_buffer do
+                src << ".safe_append='"
+                src << "\n" * @newline_pending if @newline_pending > 0
+                src << text.gsub(/['\\]/, '\\\\\&') << @text_end
+              end
               @newline_pending = 0
             end
           end
 
-          BLOCK_EXPR = /\s*((\s+|\))do|\{)(\s*\|[^|]*\|)?\s*\Z/
+          BLOCK_EXPR = /((\s|\))do|\{)(\s*\|[^|]*\|)?\s*\Z/
 
           def add_expression(indicator, code)
             flush_newline_if_pending(src)
 
-            if (indicator == "==") || @escape
-              src << bufvar << ".safe_expr_append="
-            else
-              src << bufvar << ".append="
-            end
+            with_buffer do
+              if (indicator == "==") || @escape
+                src << ".safe_expr_append="
+              else
+                src << ".append="
+              end
 
-            if BLOCK_EXPR.match?(code)
-              src << " " << code
-            else
-              src << "(" << code << ");"
+              if BLOCK_EXPR.match?(code)
+                src << " " << code
+              else
+                src << "(" << code << ")"
+              end
             end
           end
 
@@ -78,7 +74,7 @@ module ActionView
 
           def flush_newline_if_pending(src)
             if @newline_pending > 0
-              src << bufvar << ".safe_append='#{"\n" * @newline_pending}'.freeze;"
+              with_buffer { src << ".safe_append='#{"\n" * @newline_pending}" << @text_end }
               @newline_pending = 0
             end
           end

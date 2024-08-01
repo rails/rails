@@ -1,6 +1,12 @@
-*   Fix an issue that caused the content layout to render multiple times when a
-    rich_text field was updated.
+*   Rename `rich_text_area` methods into `rich_textarea`
 
-    *Jacob Herrington*
+    Old names are still available as aliases.
 
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actiontext/CHANGELOG.md) for previous changes.
+    *Sean Doyle*
+
+
+*   Only sanitize `content` attribute when present in attachments.
+
+    *Petrik de Heus*
+
+Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actiontext/CHANGELOG.md) for previous changes.

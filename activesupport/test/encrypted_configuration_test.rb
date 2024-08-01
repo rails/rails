@@ -45,6 +45,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_not @credentials.something.bad
     assert_equal "bar", @credentials.dig(:something, :nested, :foo)
     assert_equal "bar", @credentials.something.nested.foo
+    assert_equal [:something], @credentials.keys
     assert_equal [:good, :bad, :nested], @credentials.something.keys
     assert_equal ({ good: true, bad: false, nested: { foo: "bar" } }), @credentials.something
   end
@@ -52,7 +53,17 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "reading comment-only configuration" do
     @credentials.write("# comment")
 
-    assert_equal @credentials.config, {}
+    assert_equal({}, @credentials.config)
+  end
+
+  test "writing with element assignment and reading with element reference" do
+    @credentials[:foo] = 42
+    assert_equal 42, @credentials[:foo]
+  end
+
+  test "writing with dynamic accessor and reading with element reference" do
+    @credentials.foo = 42
+    assert_equal 42, @credentials[:foo]
   end
 
   test "change configuration by key file" do
@@ -66,15 +77,32 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal "things", @credentials[:new]
   end
 
-  test "raise error when writing an invalid format value" do
-    assert_raise(Psych::SyntaxError) do
-      @credentials.change do |config_file|
-        config_file.write "login: *login\n  username: dummy"
-      end
+  test "raises helpful error when loading invalid content" do
+    @credentials.write("key: value\nbad")
+
+    assert_raise(ActiveSupport::EncryptedConfiguration::InvalidContentError) do
+      @credentials.config
+    end
+  end
+
+  test "raises helpful error when validating invalid content" do
+    @credentials.write("key: value\nbad")
+
+    assert_raise(ActiveSupport::EncryptedConfiguration::InvalidContentError) do
+      @credentials.validate!
     end
   end
 
   test "raises key error when accessing config via bang method" do
     assert_raise(KeyError) { @credentials.something! }
+  end
+
+  test "inspect does not show unencrypted attributes" do
+    secret = "something secret"
+    @credentials.write({ secret: secret }.to_yaml)
+    @credentials.config
+
+    assert_no_match(/#{secret}/, @credentials.inspect)
+    assert_match(/\A#<ActiveSupport::EncryptedConfiguration:0x[0-9a-f]+>\z/, @credentials.inspect)
   end
 end

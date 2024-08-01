@@ -6,6 +6,8 @@ require "openssl"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
+  # = Active Storage \Disk \Service
+  #
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service

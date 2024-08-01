@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-gem "redis", ">= 3", "< 5"
+# :markup: markdown
+
+gem "redis", ">= 4", "< 6"
 require "redis"
 
 require "active_support/core_ext/hash/except"
@@ -10,8 +12,9 @@ module ActionCable
     class Redis < Base # :nodoc:
       prepend ChannelPrefix
 
-      # Overwrite this factory method for Redis connections if you want to use a different Redis library than the redis gem.
-      # This is needed, for example, when using Makara proxies for distributed Redis.
+      # Overwrite this factory method for Redis connections if you want to use a
+      # different Redis library than the redis gem. This is needed, for example, when
+      # using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
         ::Redis.new(config.except(:adapter, :channel_prefix))
       end
@@ -44,7 +47,7 @@ module ActionCable
 
       private
         def listener
-          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
+          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, config_options, @server.event_loop) }
         end
 
         def redis_connection_for_broadcasts
@@ -54,11 +57,15 @@ module ActionCable
         end
 
         def redis_connection
-          self.class.redis_connector.call(@server.config.cable.merge(id: identifier))
+          self.class.redis_connector.call(config_options)
+        end
+
+        def config_options
+          @config_options ||= @server.config.cable.deep_symbolize_keys.merge(id: identifier)
         end
 
         class Listener < SubscriberMap
-          def initialize(adapter, event_loop)
+          def initialize(adapter, config_options, event_loop)
             super()
 
             @adapter = adapter
@@ -67,7 +74,12 @@ module ActionCable
             @subscribe_callbacks = Hash.new { |h, k| h[k] = [] }
             @subscription_lock = Mutex.new
 
-            @raw_client = nil
+            @reconnect_attempt = 0
+            # Use the same config as used by Redis conn
+            @reconnect_attempts = config_options.fetch(:reconnect_attempts, 1)
+            @reconnect_attempts = Array.new(@reconnect_attempts, 0) if @reconnect_attempts.is_a?(Integer)
+
+            @subscribed_client = nil
 
             @when_connected = []
 
@@ -76,13 +88,14 @@ module ActionCable
 
           def listen(conn)
             conn.without_reconnect do
-              original_client = conn.respond_to?(:_client) ? conn._client : conn.client
+              original_client = extract_subscribed_client(conn)
 
               conn.subscribe("_action_cable_internal") do |on|
                 on.subscribe do |chan, count|
                   @subscription_lock.synchronize do
                     if count == 1
-                      @raw_client = original_client
+                      @reconnect_attempt = 0
+                      @subscribed_client = original_client
 
                       until @when_connected.empty?
                         @when_connected.shift.call
@@ -104,7 +117,7 @@ module ActionCable
                 on.unsubscribe do |chan, count|
                   if count == 0
                     @subscription_lock.synchronize do
-                      @raw_client = nil
+                      @subscribed_client = nil
                     end
                   end
                 end
@@ -117,8 +130,8 @@ module ActionCable
               return if @thread.nil?
 
               when_connected do
-                send_command("unsubscribe")
-                @raw_client = nil
+                @subscribed_client.unsubscribe
+                @subscribed_client = nil
               end
             end
 
@@ -129,13 +142,13 @@ module ActionCable
             @subscription_lock.synchronize do
               ensure_listener_running
               @subscribe_callbacks[channel] << on_success
-              when_connected { send_command("subscribe", channel) }
+              when_connected { @subscribed_client.subscribe(channel) }
             end
           end
 
           def remove_channel(channel)
             @subscription_lock.synchronize do
-              when_connected { send_command("unsubscribe", channel) }
+              when_connected { @subscribed_client.unsubscribe(channel) }
             end
           end
 
@@ -148,28 +161,93 @@ module ActionCable
               @thread ||= Thread.new do
                 Thread.current.abort_on_exception = true
 
-                conn = @adapter.redis_connection_for_subscriptions
-                listen conn
+                begin
+                  conn = @adapter.redis_connection_for_subscriptions
+                  listen conn
+                rescue ConnectionError
+                  reset
+                  if retry_connecting?
+                    when_connected { resubscribe }
+                    retry
+                  end
+                end
               end
             end
 
             def when_connected(&block)
-              if @raw_client
+              if @subscribed_client
                 block.call
               else
                 @when_connected << block
               end
             end
 
-            def send_command(*command)
-              @raw_client.write(command)
+            def retry_connecting?
+              @reconnect_attempt += 1
 
-              very_raw_connection =
-                @raw_client.connection.instance_variable_defined?(:@connection) &&
-                @raw_client.connection.instance_variable_get(:@connection)
+              return false if @reconnect_attempt > @reconnect_attempts.size
 
-              if very_raw_connection && very_raw_connection.respond_to?(:flush)
-                very_raw_connection.flush
+              sleep_t = @reconnect_attempts[@reconnect_attempt - 1]
+
+              sleep(sleep_t) if sleep_t > 0
+
+              true
+            end
+
+            def resubscribe
+              channels = @sync.synchronize do
+                @subscribers.keys
+              end
+              @subscribed_client.subscribe(*channels) unless channels.empty?
+            end
+
+            def reset
+              @subscription_lock.synchronize do
+                @subscribed_client = nil
+                @subscribe_callbacks.clear
+                @when_connected.clear
+              end
+            end
+
+            if ::Redis::VERSION < "5"
+              ConnectionError = ::Redis::BaseConnectionError
+
+              class SubscribedClient
+                def initialize(raw_client)
+                  @raw_client = raw_client
+                end
+
+                def subscribe(*channel)
+                  send_command("subscribe", *channel)
+                end
+
+                def unsubscribe(*channel)
+                  send_command("unsubscribe", *channel)
+                end
+
+                private
+                  def send_command(*command)
+                    @raw_client.write(command)
+
+                    very_raw_connection =
+                      @raw_client.connection.instance_variable_defined?(:@connection) &&
+                      @raw_client.connection.instance_variable_get(:@connection)
+
+                    if very_raw_connection && very_raw_connection.respond_to?(:flush)
+                      very_raw_connection.flush
+                    end
+                    nil
+                  end
+              end
+
+              def extract_subscribed_client(conn)
+                SubscribedClient.new(conn._client)
+              end
+            else
+              ConnectionError = RedisClient::ConnectionError
+
+              def extract_subscribed_client(conn)
+                conn
               end
             end
         end

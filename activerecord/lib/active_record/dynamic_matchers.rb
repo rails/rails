@@ -12,12 +12,12 @@ module ActiveRecord
         end
       end
 
-      def method_missing(name, *arguments, &block)
+      def method_missing(name, ...)
         match = Method.match(self, name)
 
         if match && match.valid?
           match.define
-          send(name, *arguments, &block)
+          send(name, ...)
         else
           super
         end

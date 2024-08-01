@@ -6,13 +6,13 @@ const {module, test} = QUnit
 module("ActionCable", () => {
   module("Adapters", () => {
     module("WebSocket", () => {
-      test("default is self.WebSocket", assert => {
+      test("default is WebSocket", assert => {
         assert.equal(ActionCable.adapters.WebSocket, self.WebSocket)
       })
     })
 
     module("logger", () => {
-      test("default is self.console", assert => {
+      test("default is console", assert => {
         assert.equal(ActionCable.adapters.logger, self.console)
       })
     })

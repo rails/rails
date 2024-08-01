@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Hack to load json gem first so we can override its to_json.
+# Hack to load JSON gem first so we can override its to_json.
 require "json"
 require "bigdecimal"
 require "ipaddr"
@@ -29,7 +29,7 @@ require "active_support/core_ext/date/conversions"
 # It should be noted that when using ::JSON.{generate,dump} directly, ActiveSupport's encoder is
 # bypassed completely. This means that as_json won't be invoked and the JSON gem will simply
 # ignore any options it does not natively understand. This also means that ::JSON.{generate,dump}
-# should give exactly the same results with or without active support.
+# should give exactly the same results with or without Active Support.
 
 module ActiveSupport
   module ToJsonWithActiveSupportEncoder # :nodoc:
@@ -46,7 +46,7 @@ module ActiveSupport
 end
 
 [Enumerable, Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].reverse_each do |klass|
-  klass.prepend(ActiveSupport::ToJsonWithActiveSupportEncoder)
+  klass.include(ActiveSupport::ToJsonWithActiveSupportEncoder)
 end
 
 class Module
@@ -65,9 +65,17 @@ class Object
   end
 end
 
+if RUBY_VERSION >= "3.2"
+  class Data # :nodoc:
+    def as_json(options = nil)
+      to_h.as_json(options)
+    end
+  end
+end
+
 class Struct # :nodoc:
   def as_json(options = nil)
-    Hash[members.zip(values)].as_json(options)
+    to_h.as_json(options)
   end
 end
 
@@ -97,7 +105,7 @@ end
 
 class Symbol
   def as_json(options = nil) # :nodoc:
-    to_s
+    name
   end
 end
 

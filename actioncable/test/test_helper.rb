@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/strict_warnings"
 require "action_cable"
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"

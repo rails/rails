@@ -66,26 +66,13 @@ class ReloaderTest < ActiveSupport::TestCase
     reloader.to_complete { |*args| j += 1 }
 
     app = middleware(lambda { |env| [200, {}, []] }, reloader)
+    env = Rack::MockRequest.env_for("", {})
     5.times do
-      resp = app.call({})
+      resp = app.call(env)
       resp[2].close
     end
     assert_equal 3, i
     assert_equal 3, j
-  end
-
-  def test_returned_body_object_behaves_like_underlying_object
-    body = call_and_return_body do
-      b = MyBody.new
-      b << "hello"
-      b << "world"
-      [200, { "Content-Type" => "text/html" }, b]
-    end
-    assert_equal 2, body.size
-    assert_equal "hello", body[0]
-    assert_equal "world", body[1]
-    assert_equal "foo", body.foo
-    assert_equal "bar", body.bar
   end
 
   def test_it_calls_close_on_underlying_object_when_close_is_called_on_body
@@ -94,20 +81,10 @@ class ReloaderTest < ActiveSupport::TestCase
       b = MyBody.new do
         close_called = true
       end
-      [200, { "Content-Type" => "text/html" }, b]
+      [200, { "content-type" => "text/html" }, b]
     end
     body.close
     assert close_called
-  end
-
-  def test_returned_body_object_responds_to_all_methods_supported_by_underlying_object
-    body = call_and_return_body do
-      [200, { "Content-Type" => "text/html" }, MyBody.new]
-    end
-    assert_respond_to body, :size
-    assert_respond_to body, :each
-    assert_respond_to body, :foo
-    assert_respond_to body, :bar
   end
 
   def test_complete_callbacks_are_called_when_body_is_closed
@@ -148,13 +125,14 @@ class ReloaderTest < ActiveSupport::TestCase
 
   private
     def call_and_return_body(&block)
-      app = middleware(block || proc { [200, {}, "response"] })
-      _, _, body = app.call("rack.input" => StringIO.new(""))
+      app = block || proc { [200, {}, "response"] }
+      env = Rack::MockRequest.env_for("", {})
+      _, _, body = middleware(app).call(env)
       body
     end
 
     def middleware(inner_app, reloader = reloader())
-      ActionDispatch::Reloader.new(inner_app, reloader)
+      Rack::Lint.new(ActionDispatch::Reloader.new(Rack::Lint.new(inner_app), reloader))
     end
 
     def reloader(check = lambda { true })

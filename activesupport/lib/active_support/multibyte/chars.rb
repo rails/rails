@@ -7,6 +7,8 @@ require "active_support/core_ext/module/delegation"
 
 module ActiveSupport # :nodoc:
   module Multibyte # :nodoc:
+    # = Active Support \Multibyte \Chars
+    #
     # Chars enables you to work transparently with UTF-8 encoding in the Ruby
     # String class without having extensive knowledge about the encoding. A
     # Chars object accepts a string upon initialization and proxies String
@@ -57,8 +59,8 @@ module ActiveSupport # :nodoc:
       end
 
       # Forward all undefined methods to the wrapped string.
-      def method_missing(method, *args, &block)
-        result = @wrapped_string.__send__(method, *args, &block)
+      def method_missing(method, ...)
+        result = @wrapped_string.__send__(method, ...)
         if method.end_with?("!")
           self if result
         else

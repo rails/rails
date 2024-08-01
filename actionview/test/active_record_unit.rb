@@ -44,7 +44,7 @@ class ActiveRecordTestConnector
 
     def reconnect
       return unless able_to_connect
-      ActiveRecord::Base.connection.reconnect!
+      ActiveRecord::Base.lease_connection.reconnect!
       load_schema
     end
 
@@ -52,13 +52,12 @@ class ActiveRecordTestConnector
       def setup_connection
         if Object.const_defined?(:ActiveRecord)
           defaults = { database: ":memory:" }
-          adapter = defined?(JRUBY_VERSION) ? "jdbcsqlite3" : "sqlite3"
-          options = defaults.merge adapter: adapter, timeout: 500
+          options = defaults.merge adapter: "sqlite3", timeout: 500
           ActiveRecord::Base.establish_connection(options)
           ActiveRecord::Base.configurations = { "sqlite3_ar_integration" => options }
-          ActiveRecord::Base.connection
+          ActiveRecord::Base.lease_connection
 
-          Object.const_set :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name("type") unless Object.const_defined?(:QUOTED_TYPE)
+          Object.const_set :QUOTED_TYPE, ActiveRecord::Base.lease_connection.quote_column_name("type") unless Object.const_defined?(:QUOTED_TYPE)
         else
           raise "Can't setup connection since ActiveRecord isn't loaded."
         end
@@ -67,7 +66,7 @@ class ActiveRecordTestConnector
       # Load actionpack sqlite3 tables
       def load_schema
         File.read(File.expand_path("fixtures/db_definitions/sqlite.sql", __dir__)).split(";").each do |sql|
-          ActiveRecord::Base.connection.execute(sql) unless sql.blank?
+          ActiveRecord::Base.lease_connection.execute(sql) unless sql.blank?
         end
       end
 
@@ -94,7 +93,7 @@ class ActiveRecordTestCase < ActionController::TestCase
 
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
-    self.fixture_path = [FIXTURE_LOAD_PATH]
+    self.fixture_paths = [FIXTURE_LOAD_PATH]
     self.use_transactional_tests = false
   end
 
@@ -105,6 +104,32 @@ class ActiveRecordTestCase < ActionController::TestCase
   def run(*args)
     super if ActiveRecordTestConnector.connected
   end
+
+  def capture_sql
+    ActiveRecord::Base.lease_connection.materialize_transactions
+    SQLCounter.clear_log
+    yield
+    SQLCounter.log.dup
+  end
+
+  class SQLCounter
+    class << self
+      attr_accessor :log, :log_all
+      def clear_log; self.log = []; self.log_all = []; end
+    end
+
+    clear_log
+
+    def call(name, start, finish, message_id, values)
+      return if values[:cached]
+
+      sql = values[:sql]
+      self.class.log_all << sql
+      self.class.log << sql unless ["SCHEMA", "TRANSACTION"].include? values[:name]
+    end
+  end
+
+  ActiveSupport::Notifications.subscribe("sql.active_record", SQLCounter.new)
 end
 
 ActiveRecordTestConnector.setup

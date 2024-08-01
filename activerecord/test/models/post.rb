@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require "models/tag"
+require "models/tagging"
+require "models/comment"
+require "models/category"
+
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"
@@ -234,6 +239,7 @@ class FirstPost < ActiveRecord::Base
 
   has_many :comments, foreign_key: :post_id
   has_one  :comment,  foreign_key: :post_id
+  has_one  :comment_with_inverse, class_name: "Comment", inverse_of: :post_with_inverse
 end
 
 class PostWithDefaultSelect < ActiveRecord::Base
@@ -328,6 +334,15 @@ end
 class SubConditionalStiPost < ConditionalStiPost
 end
 
+class PostWithDestroyCallback < ActiveRecord::Base
+  self.inheritance_column = :disabled
+  self.table_name = "posts"
+
+  before_destroy do
+    throw :abort if id == 1
+  end
+end
+
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
@@ -336,8 +351,12 @@ class FakeKlass
       ActiveRecord::Scoping::ScopeRegistry.instance
     end
 
-    def connection
-      Post.connection
+    def adapter_class
+      Post.adapter_class
+    end
+
+    def lease_connection
+      Post.lease_connection
     end
 
     def table_name
@@ -378,6 +397,9 @@ class FakeKlass
 
     def base_class?
       true
+    end
+
+    def deterministic_encrypted_attributes
     end
   end
 

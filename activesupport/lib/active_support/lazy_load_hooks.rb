@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 module ActiveSupport
-  # LazyLoadHooks allows Rails to lazily load a lot of components and thus
+  # = Lazy Load Hooks
+  #
+  # LazyLoadHooks allows \Rails to lazily load a lot of components and thus
   # making the app boot faster. Because of this feature now there is no need to
-  # require <tt>ActiveRecord::Base</tt> at boot time purely to apply
+  # require +ActiveRecord::Base+ at boot time purely to apply
   # configuration. Instead a hook is registered that applies configuration once
-  # <tt>ActiveRecord::Base</tt> is loaded. Here <tt>ActiveRecord::Base</tt> is
+  # +ActiveRecord::Base+ is loaded. Here +ActiveRecord::Base+ is
   # used as example but this feature can be applied elsewhere too.
   #
   # Here is an example where on_load method is called to register a hook.
@@ -47,7 +49,7 @@ module ActiveSupport
       end
     end
 
-    # Declares a block that will be executed when a Rails component is fully
+    # Declares a block that will be executed when a \Rails component is fully
     # loaded. If the component has already loaded, the block is executed
     # immediately.
     #
@@ -66,7 +68,7 @@ module ActiveSupport
     # Executes all blocks registered to +name+ via on_load, using +base+ as the
     # evaluation context.
     #
-    #  ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
+    #   ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
     #
     # In the case of the above example, it will execute all hooks registered
     # for +:active_record+ within the class +ActiveRecord::Base+.

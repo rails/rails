@@ -9,7 +9,7 @@ module ActionView
     extend ActiveSupport::Autoload
 
     autoload :ERBTracker
-    autoload :RipperTracker
+    autoload :RubyTracker
 
     @trackers = Concurrent::Map.new
 

@@ -45,7 +45,7 @@ The Executor consists of two callbacks: `to_run` and `to_complete`. The Run
 callback is called before the application code, and the Complete callback is
 called after.
 
-### Default callbacks
+### Default Callbacks
 
 In a default Rails application, the Executor callbacks are used to:
 
@@ -60,7 +60,7 @@ directly wrapping code with methods like
 `ActiveRecord::Base.connection_pool.with_connection`. The Executor replaces
 these with a single more abstract interface.
 
-### Wrapping application code
+### Wrapping Application Code
 
 If you're writing a library or component that will invoke application code, you
 should wrap it with a call to the executor:

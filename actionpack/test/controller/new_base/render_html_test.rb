@@ -90,7 +90,7 @@ module RenderHtml
 
     test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: "index" } }
+        set.draw { ActionDispatch.deprecator.silence { get ":controller", action: "index" } }
 
         get "/render_html/simple"
         assert_body "hello david"
@@ -100,7 +100,7 @@ module RenderHtml
 
     test "rendering text from an action with default options renders the text without the layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: "index" } }
+        set.draw { ActionDispatch.deprecator.silence { get ":controller", action: "index" } }
 
         get "/render_html/with_layout"
 
@@ -165,14 +165,14 @@ module RenderHtml
       assert_status 200
     end
 
-    test "rendering html should escape the string if it is not html safe" do
+    test "rendering HTML should escape the string if it is not HTML safe" do
       get "/render_html/with_layout/with_unsafe_html_tag"
 
       assert_body "&lt;p&gt;hello world&lt;/p&gt;"
       assert_status 200
     end
 
-    test "rendering html should not escape the string if it is html safe" do
+    test "rendering HTML should not escape the string if it is HTML safe" do
       get "/render_html/with_layout/with_safe_html_tag"
 
       assert_body "<p>hello world</p>"

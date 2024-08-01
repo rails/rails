@@ -5,7 +5,69 @@ require "active_support/multibyte/chars"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
+    # = Active Record Connection Adapters \Quoting
     module Quoting
+      extend ActiveSupport::Concern
+
+      module ClassMethods # :nodoc:
+        # Regexp for column names (with or without a table name prefix).
+        # Matches the following:
+        #
+        #   "#{table_name}.#{column_name}"
+        #   "#{column_name}"
+        def column_name_matcher
+          /
+            \A
+            (
+              (?:
+                # table_name.column_name | function(one or no argument)
+                ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
+              )
+              (?:(?:\s+AS)?\s+\w+)?
+            )
+            (?:\s*,\s*\g<1>)*
+            \z
+          /ix
+        end
+
+        # Regexp for column names with order (with or without a table name prefix,
+        # with or without various order modifiers). Matches the following:
+        #
+        #   "#{table_name}.#{column_name}"
+        #   "#{table_name}.#{column_name} #{direction}"
+        #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
+        #   "#{table_name}.#{column_name} NULLS LAST"
+        #   "#{column_name}"
+        #   "#{column_name} #{direction}"
+        #   "#{column_name} #{direction} NULLS FIRST"
+        #   "#{column_name} NULLS LAST"
+        def column_name_with_order_matcher
+          /
+            \A
+            (
+              (?:
+                # table_name.column_name | function(one or no argument)
+                ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
+              )
+              (?:\s+ASC|\s+DESC)?
+              (?:\s+NULLS\s+(?:FIRST|LAST))?
+            )
+            (?:\s*,\s*\g<1>)*
+            \z
+          /ix
+        end
+
+        # Quotes the column name. Must be implemented by subclasses
+        def quote_column_name(column_name)
+          raise NotImplementedError
+        end
+
+        # Quotes the table name. Defaults to column name quoting.
+        def quote_table_name(table_name)
+          quote_column_name(table_name)
+        end
+      end
+
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
@@ -17,7 +79,7 @@ module ActiveRecord
         when nil        then "NULL"
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s("F")
-        when Numeric, ActiveSupport::Duration then value.to_s
+        when Numeric then value.to_s
         when Type::Binary::Data then quoted_binary(value)
         when Type::Time::Value then "'#{quoted_time(value)}'"
         when Date, Time then "'#{quoted_date(value)}'"
@@ -44,11 +106,11 @@ module ActiveRecord
         end
       end
 
-      # Quote a value to be used as a bound parameter of unknown type. For example,
+      # Cast a value to be used as a bound parameter of unknown type. For example,
       # MySQL might perform dangerous castings when comparing a string to a number,
       # so this method will cast numbers to string.
-      def quote_bound_value(value)
-        quote(value)
+      def cast_bound_value(value) # :nodoc:
+        value
       end
 
       # If you are having to call this function, you are likely doing something
@@ -70,20 +132,20 @@ module ActiveRecord
         s.gsub("\\", '\&\&').gsub("'", "''") # ' (for ruby-mode)
       end
 
-      # Quotes the column name. Defaults to no quoting.
+      # Quotes the column name.
       def quote_column_name(column_name)
-        column_name.to_s
+        self.class.quote_column_name(column_name)
       end
 
-      # Quotes the table name. Defaults to column name quoting.
+      # Quotes the table name.
       def quote_table_name(table_name)
-        quote_column_name(table_name)
+        self.class.quote_table_name(table_name)
       end
 
       # Override to return the quoted table name for assignment. Defaults to
       # table quoting.
       #
-      # This works for mysql2 where table.column can be used to
+      # This works for MySQL where table.column can be used to
       # resolve ambiguity.
       #
       # We override this in the sqlite3 and postgresql adapters to use only
@@ -146,65 +208,21 @@ module ActiveRecord
       end
 
       def sanitize_as_sql_comment(value) # :nodoc:
-        value.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
+        # Sanitize a string to appear within a SQL comment
+        # For compatibility, this also surrounding "/*+", "/*", and "*/"
+        # charcacters, possibly with single surrounding space.
+        # Then follows that by replacing any internal "*/" or "/ *" with
+        # "* /" or "/ *"
+        comment = value.to_s.dup
+        comment.gsub!(%r{\A\s*/\*\+?\s?|\s?\*/\s*\Z}, "")
+        comment.gsub!("*/", "* /")
+        comment.gsub!("/*", "/ *")
+        comment
       end
-
-      def column_name_matcher # :nodoc:
-        COLUMN_NAME
-      end
-
-      def column_name_with_order_matcher # :nodoc:
-        COLUMN_NAME_WITH_ORDER
-      end
-
-      # Regexp for column names (with or without a table name prefix).
-      # Matches the following:
-      #
-      #   "#{table_name}.#{column_name}"
-      #   "#{column_name}"
-      COLUMN_NAME = /
-        \A
-        (
-          (?:
-            # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
-          )
-          (?:(?:\s+AS)?\s+\w+)?
-        )
-        (?:\s*,\s*\g<1>)*
-        \z
-      /ix
-
-      # Regexp for column names with order (with or without a table name prefix,
-      # with or without various order modifiers). Matches the following:
-      #
-      #   "#{table_name}.#{column_name}"
-      #   "#{table_name}.#{column_name} #{direction}"
-      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
-      #   "#{table_name}.#{column_name} NULLS LAST"
-      #   "#{column_name}"
-      #   "#{column_name} #{direction}"
-      #   "#{column_name} #{direction} NULLS FIRST"
-      #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_WITH_ORDER = /
-        \A
-        (
-          (?:
-            # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
-          )
-          (?:\s+ASC|\s+DESC)?
-          (?:\s+NULLS\s+(?:FIRST|LAST))?
-        )
-        (?:\s*,\s*\g<1>)*
-        \z
-      /ix
-
-      private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
 
       private
         def type_casted_binds(binds)
-          binds.map do |value|
+          binds&.map do |value|
             if ActiveModel::Attribute === value
               type_cast(value.value_for_database)
             else

@@ -27,7 +27,7 @@ end
 class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
-    ActiveSupport::Deprecation.silence do
+    ActionDispatch.deprecator.silence do
       get ":controller(/:action(/:id))"
     end
   end

@@ -5,9 +5,9 @@ require "active_support/option_merger"
 class Object
   # An elegant way to factor duplication out of options passed to a series of
   # method calls. Each method called in the block, with the block variable as
-  # the receiver, will have its options merged with the default +options+ hash
-  # provided. Each method called on the block variable must take an options
-  # hash as its final argument.
+  # the receiver, will have its options merged with the default +options+
+  # <tt>Hash</tt> or <tt>Hash</tt>-like object provided. Each method called on
+  # the block variable must take an options hash as its final argument.
   #
   # Without <tt>with_options</tt>, this code contains duplication:
   #
@@ -64,11 +64,11 @@ class Object
   #
   # Hence the inherited default for +if+ key is ignored.
   #
-  # NOTE: You cannot call class methods implicitly inside of with_options.
+  # NOTE: You cannot call class methods implicitly inside of +with_options+.
   # You can access these methods using the class name instead:
   #
   #   class Phone < ActiveRecord::Base
-  #     enum phone_number_type: { home: 0, office: 1, mobile: 2 }
+  #     enum :phone_number_type, { home: 0, office: 1, mobile: 2 }
   #
   #     with_options presence: true do
   #       validates :phone_number_type, inclusion: { in: Phone.phone_number_types.keys }
@@ -83,11 +83,11 @@ class Object
   #     end
   #   end
   #
-  #   # styled.link_to "I'm red", "/"
-  #   # #=> <a href="/" style="color: red;">I'm red</a>
+  #   styled.link_to "I'm red", "/"
+  #   # => <a href="/" style="color: red;">I'm red</a>
   #
-  #   # styled.button_tag "I'm red too!"
-  #   # #=> <button style="color: red;">I'm red too!</button>
+  #   styled.button_tag "I'm red too!"
+  #   # => <button style="color: red;">I'm red too!</button>
   #
   def with_options(options, &block)
     option_merger = ActiveSupport::OptionMerger.new(self, options)

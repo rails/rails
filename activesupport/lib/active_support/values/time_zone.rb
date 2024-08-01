@@ -4,18 +4,20 @@ require "tzinfo"
 require "concurrent/map"
 
 module ActiveSupport
-  # The TimeZone class serves as a wrapper around <tt>TZInfo::Timezone</tt> instances.
+  # = Active Support \Time Zone
+  #
+  # The TimeZone class serves as a wrapper around +TZInfo::Timezone+ instances.
   # It allows us to do the following:
   #
   # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
-  # * Lazily load <tt>TZInfo::Timezone</tt> instances only when they're needed.
+  # * Lazily load +TZInfo::Timezone+ instances only when they're needed.
   # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
   #   +parse+, +at+, and +now+ methods.
   #
-  # If you set <tt>config.time_zone</tt> in the Rails Application, you can
+  # If you set <tt>config.time_zone</tt> in the \Rails Application, you can
   # access this TimeZone object via <tt>Time.zone</tt>:
   #
   #   # application.rb:
@@ -27,7 +29,7 @@ module ActiveSupport
   #   Time.zone.name # => "Eastern Time (US & Canada)"
   #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
   class TimeZone
-    # Keys are Rails TimeZone names, values are TZInfo identifiers.
+    # Keys are \Rails TimeZone names, values are TZInfo identifiers.
     MAPPING = {
       "International Date Line West" => "Etc/GMT+12",
       "Midway Island"                => "Pacific/Midway",
@@ -132,10 +134,10 @@ module ActiveSupport
       "Mumbai"                       => "Asia/Kolkata",
       "New Delhi"                    => "Asia/Kolkata",
       "Kathmandu"                    => "Asia/Kathmandu",
-      "Astana"                       => "Asia/Dhaka",
       "Dhaka"                        => "Asia/Dhaka",
       "Sri Jayawardenepura"          => "Asia/Colombo",
       "Almaty"                       => "Asia/Almaty",
+      "Astana"                       => "Asia/Almaty",
       "Novosibirsk"                  => "Asia/Novosibirsk",
       "Rangoon"                      => "Asia/Rangoon",
       "Bangkok"                      => "Asia/Bangkok",
@@ -159,7 +161,7 @@ module ActiveSupport
       "Yakutsk"                      => "Asia/Yakutsk",
       "Darwin"                       => "Australia/Darwin",
       "Adelaide"                     => "Australia/Adelaide",
-      "Canberra"                     => "Australia/Melbourne",
+      "Canberra"                     => "Australia/Canberra",
       "Melbourne"                    => "Australia/Melbourne",
       "Sydney"                       => "Australia/Sydney",
       "Brisbane"                     => "Australia/Brisbane",
@@ -206,7 +208,7 @@ module ActiveSupport
         TZInfo::Timezone.get(MAPPING[name] || name)
       end
 
-      alias_method :create, :new
+      alias_method :create, :new # :nodoc:
 
       # Returns a TimeZone instance with the given name, or +nil+ if no
       # such TimeZone instance exists. (This exists to support the use of
@@ -294,15 +296,22 @@ module ActiveSupport
     attr_reader :name
     attr_reader :tzinfo
 
+    ##
+    # :singleton-method: create
+    # :call-seq: create(name, utc_offset = nil, tzinfo = nil)
+    #
     # Create a new TimeZone object with the given name and offset. The
     # offset is the number of seconds that this time zone is offset from UTC
     # (GMT). Seconds were chosen as the offset unit because that is the unit
     # that Ruby uses to represent time zone offsets (see Time#utc_offset).
+
+    # :stopdoc:
     def initialize(name, utc_offset = nil, tzinfo = nil)
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
     end
+    # :startdoc:
 
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
@@ -543,20 +552,24 @@ module ActiveSupport
       tzinfo.local_to_utc(time, dst)
     end
 
-    # Available so that TimeZone instances respond like <tt>TZInfo::Timezone</tt>
-    # instances.
-    def period_for_utc(time)
+    def period_for_utc(time) # :nodoc:
       tzinfo.period_for_utc(time)
     end
 
-    # Available so that TimeZone instances respond like <tt>TZInfo::Timezone</tt>
-    # instances.
-    def period_for_local(time, dst = true)
+    def period_for_local(time, dst = true) # :nodoc:
       tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
     def periods_for_local(time) # :nodoc:
       tzinfo.periods_for_local(time)
+    end
+
+    def abbr(time) # :nodoc:
+      tzinfo.abbr(time)
+    end
+
+    def dst?(time) # :nodoc:
+      tzinfo.dst?(time)
     end
 
     def init_with(coder) # :nodoc:

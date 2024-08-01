@@ -5,56 +5,43 @@ begin
   require "redis"
   require "redis/distributed"
 rescue LoadError
-  warn "The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem \"redis\", \"~> 4.0\"`"
+  warn "The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem \"redis\", \">= 4.0.1\"`"
   raise
 end
 
-# Prefer the hiredis driver but don't require it.
-begin
-  require "redis/connection/hiredis"
-rescue LoadError
-end
-
 require "connection_pool"
+require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
 module ActiveSupport
   module Cache
-    module ConnectionPoolLike
-      def with
-        yield self
-      end
-    end
-
-    ::Redis.include(ConnectionPoolLike)
-    ::Redis::Distributed.include(ConnectionPoolLike)
-
-    # Redis cache store.
+    # = Redis \Cache \Store
     #
-    # Deployment note: Take care to use a *dedicated Redis cache* rather
-    # than pointing this at your existing Redis server. It won't cope well
-    # with mixed usage patterns and it won't expire cache entries by default.
+    # Deployment note: Take care to use a <b>dedicated Redis cache</b> rather
+    # than pointing this at a persistent Redis server (for example, one used as
+    # an Active Job queue). Redis won't cope well with mixed usage patterns and it
+    # won't expire cache entries by default.
     #
     # Redis cache server setup guide: https://redis.io/topics/lru-cache
     #
-    # * Supports vanilla Redis, hiredis, and Redis::Distributed.
-    # * Supports Memcached-like sharding across Redises with Redis::Distributed.
+    # * Supports vanilla Redis, hiredis, and +Redis::Distributed+.
+    # * Supports Memcached-like sharding across Redises with +Redis::Distributed+.
     # * Fault tolerant. If the Redis server is unavailable, no exceptions are
     #   raised. Cache fetches are all misses and writes are dropped.
     # * Local cache. Hot in-memory primary cache within block/middleware scope.
-    # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use Redis::Distributed
-    #   4.0.1+ for distributed mget support.
+    # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use
+    #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
     # * +delete_matched+ support for Redis KEYS globs.
     class RedisCacheStore < Store
-      # Keys are truncated with the ActiveSupport digest if they exceed 1kB
+      # Keys are truncated with the Active Support digest if they exceed 1kB
       MAX_KEY_BYTESIZE = 1024
 
       DEFAULT_REDIS_OPTIONS = {
-        connect_timeout:    20,
+        connect_timeout:    1,
         read_timeout:       1,
         write_timeout:      1,
-        reconnect_attempts: 0,
       }
 
       DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
@@ -99,9 +86,11 @@ module ActiveSupport
           elsif redis
             redis
           elsif urls.size > 1
-            build_redis_distributed_client urls: urls, **redis_options
+            build_redis_distributed_client(urls: urls, **redis_options)
+          elsif urls.empty?
+            build_redis_client(**redis_options)
           else
-            build_redis_client url: urls.first, **redis_options
+            build_redis_client(url: urls.first, **redis_options)
           end
         end
 
@@ -112,18 +101,21 @@ module ActiveSupport
             end
           end
 
-          def build_redis_client(url:, **redis_options)
-            ::Redis.new DEFAULT_REDIS_OPTIONS.merge(redis_options.merge(url: url))
+          def build_redis_client(**redis_options)
+            ::Redis.new(DEFAULT_REDIS_OPTIONS.merge(redis_options))
           end
       end
 
-      attr_reader :redis_options
       attr_reader :max_key_bytesize
+      attr_reader :redis
 
       # Creates a new Redis cache store.
       #
-      # Handles four options: :redis block, :redis instance, single :url
-      # string, and multiple :url strings.
+      # There are four ways to provide the Redis client used by the cache: the
+      # +:redis+ param can be a Redis instance or a block that returns a Redis
+      # instance, or the +:url+ param can be a string or an array of strings
+      # which will be used to create a Redis instance or a +Redis::Distributed+
+      # instance.
       #
       #   Option  Class       Result
       #   :redis  Proc    ->  options[:redis].call
@@ -146,7 +138,7 @@ module ActiveSupport
       #
       # Race condition TTL is not set by default. This can be used to avoid
       # "thundering herd" cache writes when hot cache entries are expired.
-      # See <tt>ActiveSupport::Cache::Store#fetch</tt> for more.
+      # See ActiveSupport::Cache::Store#fetch for more.
       #
       # Setting <tt>skip_nil: true</tt> will not cache nil results:
       #
@@ -154,33 +146,23 @@ module ActiveSupport
       #   cache.fetch('bar', skip_nil: true) { nil }
       #   cache.exist?('foo') # => true
       #   cache.exist?('bar') # => false
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, skip_nil: false, **redis_options)
-        @redis_options = redis_options
+      def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+        universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
+
+        if pool_options = self.class.send(:retrieve_pool_options, redis_options)
+          @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
+        else
+          @redis = self.class.build_redis(**redis_options)
+        end
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
 
-        super namespace: namespace,
-          compress: compress, compress_threshold: compress_threshold,
-          expires_in: expires_in, race_condition_ttl: race_condition_ttl,
-          coder: coder, skip_nil: skip_nil
-      end
-
-      def redis
-        @redis ||= begin
-          pool_options = self.class.send(:retrieve_pool_options, redis_options)
-
-          if pool_options.any?
-            ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
-          else
-            self.class.build_redis(**redis_options)
-          end
-        end
+        super(universal_options)
       end
 
       def inspect
-        instance = @redis || @redis_options
-        "#<#{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
+        "#<#{self.class} options=#{options.inspect} redis=#{redis.inspect}>"
       end
 
       # Cache Store API implementation.
@@ -188,14 +170,13 @@ module ActiveSupport
       # Read multiple values at once. Returns a hash of requested keys ->
       # fetched values.
       def read_multi(*names)
-        if mget_capable?
-          instrument(:read_multi, names, options) do |payload|
-            read_multi_mget(*names).tap do |results|
-              payload[:hits] = results.keys
-            end
+        return {} if names.empty?
+
+        options = names.extract_options!
+        instrument_multi(:read_multi, names, options) do |payload|
+          read_multi_entries(names, **options).tap do |results|
+            payload[:hits] = results.keys
           end
-        else
-          super
         end
       end
 
@@ -215,12 +196,13 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def delete_matched(matcher, options = nil)
-        instrument :delete_matched, matcher do
-          unless String === matcher
-            raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
-          end
-          redis.with do |c|
-            pattern = namespace_key(matcher, options)
+        unless String === matcher
+          raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
+        end
+        pattern = namespace_key(matcher, options)
+
+        instrument :delete_matched, pattern do
+          redis.then do |c|
             cursor = "0"
             # Fetch keys in batches using SCAN to avoid blocking the Redis server.
             nodes = c.respond_to?(:nodes) ? c.nodes : [c]
@@ -253,16 +235,12 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
-        instrument :increment, name, amount: amount do
-          failsafe :increment do
-            options = merged_options(options)
-            key = normalize_key(name, options)
+        options = merged_options(options)
+        key = normalize_key(name, options)
 
-            redis.with do |c|
-              c.incrby(key, amount).tap do
-                write_key_expiry(c, key, options)
-              end
-            end
+        instrument :increment, key, amount: amount do
+          failsafe :increment do
+            change_counter(key, amount, options)
           end
         end
       end
@@ -270,7 +248,7 @@ module ActiveSupport
       # Decrement a cached integer value using the Redis decrby atomic operator.
       # Returns the updated value.
       #
-      # If the key is unset or has expired, it will be set to -amount:
+      # If the key is unset or has expired, it will be set to +-amount+:
       #
       #   cache.decrement("foo") # => -1
       #
@@ -284,16 +262,12 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
-        instrument :decrement, name, amount: amount do
-          failsafe :decrement do
-            options = merged_options(options)
-            key = normalize_key(name, options)
+        options = merged_options(options)
+        key = normalize_key(name, options)
 
-            redis.with do |c|
-              c.decrby(key, amount).tap do
-                write_key_expiry(c, key, options)
-              end
-            end
+        instrument :decrement, key, amount: amount do
+          failsafe :decrement do
+            change_counter(key, -amount, options)
           end
         end
       end
@@ -315,36 +289,27 @@ module ActiveSupport
           if namespace = merged_options(options)[:namespace]
             delete_matched "*", namespace: namespace
           else
-            redis.with { |c| c.flushdb }
+            redis.then { |c| c.flushdb }
           end
         end
       end
 
       # Get info from redis servers.
       def stats
-        redis.with { |c| c.info }
-      end
-
-      def mget_capable? # :nodoc:
-        set_redis_capabilities unless defined? @mget_capable
-        @mget_capable
-      end
-
-      def mset_capable? # :nodoc:
-        set_redis_capabilities unless defined? @mset_capable
-        @mset_capable
+        redis.then { |c| c.info }
       end
 
       private
-        def set_redis_capabilities
-          case redis
-          when Redis::Distributed
-            @mget_capable = true
-            @mset_capable = false
-          else
-            @mget_capable = true
-            @mset_capable = true
-          end
+        def pipeline_entries(entries, &block)
+          redis.then { |c|
+            if c.is_a?(Redis::Distributed)
+              entries.group_by { |k, _v| c.node_for(k) }.each do |node, sub_entries|
+                node.pipelined { |pipe| yield(pipe, sub_entries) }
+              end
+            else
+              c.pipelined { |pipe| yield(pipe, entries) }
+            end
+          }
         end
 
         # Store provider interface:
@@ -355,35 +320,29 @@ module ActiveSupport
 
         def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
-            redis.with { |c| c.get(key) }
+            redis.then { |c| c.get(key) }
           end
         end
 
         def read_multi_entries(names, **options)
-          if mget_capable?
-            read_multi_mget(*names, **options)
-          else
-            super
-          end
-        end
-
-        def read_multi_mget(*names)
-          options = names.extract_options!
           options = merged_options(options)
           return {} if names == []
           raw = options&.fetch(:raw, false)
 
           keys = names.map { |name| normalize_key(name, options) }
 
-          values = failsafe(:read_multi_mget, returning: {}) do
-            redis.with { |c| c.mget(*keys) }
+          values = failsafe(:read_multi_entries, returning: {}) do
+            redis.then { |c| c.mget(*keys) }
           end
 
           names.zip(values).each_with_object({}) do |(name, value), results|
             if value
               entry = deserialize_entry(value, raw: raw)
               unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
-                results[name] = entry.value
+                begin
+                  results[name] = entry.value
+                rescue DeserializationError
+                end
               end
             end
           end
@@ -396,7 +355,7 @@ module ActiveSupport
           write_serialized_entry(key, serialize_entry(entry, raw: raw, **options), raw: raw, **options)
         end
 
-        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, **options)
+        def write_serialized_entry(key, payload, raw: false, unless_exist: false, expires_in: nil, race_condition_ttl: nil, pipeline: nil, **options)
           # If race condition TTL is in use, ensure that cache entries
           # stick around a bit longer after they would have expired
           # so we can purposefully serve stale entries.
@@ -410,41 +369,40 @@ module ActiveSupport
             modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
           end
 
-          failsafe :write_entry, returning: false do
-            redis.with { |c| c.set key, payload, **modifiers }
-          end
-        end
-
-        def write_key_expiry(client, key, options)
-          if options[:expires_in] && client.ttl(key).negative?
-            client.expire key, options[:expires_in].to_i
+          if pipeline
+            pipeline.set(key, payload, **modifiers)
+          else
+            failsafe :write_entry, returning: nil do
+              redis.then { |c| !!c.set(key, payload, **modifiers) }
+            end
           end
         end
 
         # Delete an entry from the cache.
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           failsafe :delete_entry, returning: false do
-            redis.with { |c| c.del key }
+            redis.then { |c| c.del(key) == 1 }
           end
         end
 
         # Deletes multiple entries in the cache. Returns the number of entries deleted.
         def delete_multi_entries(entries, **_options)
-          redis.with { |c| c.del(entries) }
+          failsafe :delete_multi_entries, returning: 0 do
+            redis.then { |c| c.del(entries) }
+          end
         end
 
         # Nonstandard store provider API to write multiple values at once.
-        def write_multi_entries(entries, expires_in: nil, race_condition_ttl: nil, **options)
-          if entries.any?
-            if mset_capable? && expires_in.nil? && race_condition_ttl.nil?
-              failsafe :write_multi_entries do
-                payload = serialize_entries(entries, **options)
-                redis.with do |c|
-                  c.mapped_mset(payload)
-                end
+        def write_multi_entries(entries, **options)
+          return if entries.empty?
+
+          failsafe :write_multi_entries do
+            pipeline_entries(entries) do |pipeline, sharded_entries|
+              options = options.dup
+              options[:pipeline] = pipeline
+              sharded_entries.each do |key, entry|
+                write_entry key, entry, **options
               end
-            else
-              super
             end
           end
         end
@@ -484,6 +442,40 @@ module ActiveSupport
           entries.transform_values do |entry|
             serialize_entry(entry, **options)
           end
+        end
+
+        def change_counter(key, amount, options)
+          redis.then do |c|
+            c = c.node_for(key) if c.is_a?(Redis::Distributed)
+
+            expires_in = options[:expires_in]
+
+            if expires_in
+              if supports_expire_nx?
+                count, _ = c.pipelined do |pipeline|
+                  pipeline.incrby(key, amount)
+                  pipeline.call(:expire, key, expires_in.to_i, "NX")
+                end
+              else
+                count, ttl = c.pipelined do |pipeline|
+                  pipeline.incrby(key, amount)
+                  pipeline.ttl(key)
+                end
+                c.expire(key, expires_in.to_i) if ttl < 0
+              end
+            else
+              count = c.incrby(key, amount)
+            end
+
+            count
+          end
+        end
+
+        def supports_expire_nx?
+          return @supports_expire_nx if defined?(@supports_expire_nx)
+
+          redis_versions = redis.then { |c| Array.wrap(c.info("server")).pluck("redis_version") }
+          @supports_expire_nx = redis_versions.all? { |v| Gem::Version.new(v) >= Gem::Version.new("7.0.0") }
         end
 
         def failsafe(method, returning: nil)

@@ -45,9 +45,9 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_distinct_through_count
     author = authors(:mary)
     assert_not_predicate authors(:mary).unique_categorized_posts, :loaded?
-    assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count }
-    assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count(:title) }
-    assert_queries(1) { assert_equal 0, author.unique_categorized_posts.where(title: nil).count(:title) }
+    assert_queries_count(1) { assert_equal 1, author.unique_categorized_posts.count }
+    assert_queries_count(1) { assert_equal 1, author.unique_categorized_posts.count(:title) }
+    assert_queries_count(1) { assert_equal 0, author.unique_categorized_posts.where(title: nil).count(:title) }
     assert_not_predicate authors(:mary).unique_categorized_posts, :loaded?
   end
 
@@ -478,7 +478,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     new_tag = Tag.new(name: "new")
 
     saved_post.tags << new_tag
-    assert new_tag.persisted? # consistent with habtm!
+    assert_predicate new_tag, :persisted? # consistent with habtm!
     assert_predicate saved_post, :persisted?
     assert_includes saved_post.tags, new_tag
 
@@ -732,7 +732,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     david.reload
     assert_not_predicate david.categories, :loaded?
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_includes david.categories, category
     end
     assert_not_predicate david.categories, :loaded?

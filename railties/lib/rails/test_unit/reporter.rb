@@ -6,7 +6,14 @@ require "minitest"
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
     class_attribute :app_root
-    class_attribute :executable, default: "rails test"
+    class_attribute :executable, default: "bin/rails test"
+
+    def prerecord(test_class, test_name)
+      super
+      if options[:verbose]
+        io.print "%s#%s = " % [test_class.name, test_name]
+      end
+    end
 
     def record(result)
       super
@@ -52,7 +59,11 @@ module Rails
     end
 
     def relative_path_for(file)
-      file.sub(/^#{app_root}\/?/, "")
+      if app_root
+        file.sub(/^#{app_root}\/?/, "")
+      else
+        file
+      end
     end
 
     private
@@ -65,8 +76,7 @@ module Rails
       end
 
       def format_line(result)
-        klass = result.respond_to?(:klass) ? result.klass : result.class
-        "%s#%s = %.2f s = %s" % [klass, result.name, result.time, result.result_code]
+        "%.2f s = %s" % [result.time, result.result_code]
       end
 
       def format_rerun_snippet(result)

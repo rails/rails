@@ -9,4 +9,3 @@ https://rubyonrails.org/conduct
 For a history of updates, see the page history here:
 
 https://github.com/rails/website/commits/main/_pages/conduct.html
-

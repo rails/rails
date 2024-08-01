@@ -89,7 +89,7 @@ module RenderAction
 
     test "rendering with layout => true" do
       assert_raise(ArgumentError) do
-        get "/render_action/basic/hello_world_with_layout", headers: { "action_dispatch.show_exceptions" => false }
+        get "/render_action/basic/hello_world_with_layout", headers: { "action_dispatch.show_exceptions" => :none }
       end
     end
 
@@ -109,7 +109,7 @@ module RenderAction
 
     test "rendering with layout => 'greetings'" do
       assert_raise(ActionView::MissingTemplate) do
-        get "/render_action/basic/hello_world_with_custom_layout", headers: { "action_dispatch.show_exceptions" => false }
+        get "/render_action/basic/hello_world_with_custom_layout", headers: { "action_dispatch.show_exceptions" => :none }
       end
     end
   end

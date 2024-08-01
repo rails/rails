@@ -1,16 +1,20 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rack/utils"
 
 module ActionDispatch
-  # This middleware serves static files from disk, if available.
-  # If no file is found, it hands off to the main app.
+  # # Action Dispatch Static
   #
-  # In Rails apps, this middleware is configured to serve assets from
-  # the +public/+ directory.
+  # This middleware serves static files from disk, if available. If no file is
+  # found, it hands off to the main app.
   #
-  # Only GET and HEAD requests are served. POST and other HTTP methods
-  # are handed off to the main app.
+  # In Rails apps, this middleware is configured to serve assets from the
+  # `public/` directory.
+  #
+  # Only GET and HEAD requests are served. POST and other HTTP methods are handed
+  # off to the main app.
   #
   # Only files in the root directory are served; path traversal is denied.
   class Static
@@ -24,36 +28,38 @@ module ActionDispatch
     end
   end
 
-  # This endpoint serves static files from disk using Rack::File.
+  # # Action Dispatch FileHandler
   #
-  # URL paths are matched with static files according to expected
-  # conventions: +path+, +path+.html, +path+/index.html.
+  # This endpoint serves static files from disk using `Rack::Files`.
   #
-  # Precompressed versions of these files are checked first. Brotli (.br)
-  # and gzip (.gz) files are supported. If +path+.br exists, this
-  # endpoint returns that file with a <tt>Content-Encoding: br</tt> header.
+  # URL paths are matched with static files according to expected conventions:
+  # `path`, `path`.html, `path`/index.html.
   #
-  # If no matching file is found, this endpoint responds 404 Not Found.
+  # Precompressed versions of these files are checked first. Brotli (.br) and gzip
+  # (.gz) files are supported. If `path`.br exists, this endpoint returns that
+  # file with a `content-encoding: br` header.
   #
-  # Pass the +root+ directory to search for matching files, an optional
-  # <tt>index: "index"</tt> to change the default +path+/index.html, and optional
-  # additional response headers.
+  # If no matching file is found, this endpoint responds `404 Not Found`.
+  #
+  # Pass the `root` directory to search for matching files, an optional `index:
+  # "index"` to change the default `path`/index.html, and optional additional
+  # response headers.
   class FileHandler
-    # Accept-Encoding value -> file extension
+    # `Accept-Encoding` value -> file extension
     PRECOMPRESSED = {
       "br" => ".br",
       "gzip" => ".gz",
       "identity" => nil
     }
 
-    def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript)/)
+    def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript|image\/svg\+xml)/)
       @root = root.chomp("/").b
       @index = index
 
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
       @compressible_content_types = compressible_content_types
 
-      @file_server = ::Rack::File.new(@root, headers)
+      @file_server = ::Rack::Files.new(@root, headers)
     end
 
     def call(env)
@@ -76,7 +82,7 @@ module ActionDispatch
           request.path_info, ::Rack::Utils.escape_path(filepath).b
 
         @file_server.call(request.env).tap do |status, headers, body|
-          # Omit Content-Encoding/Type/etc headers for 304 Not Modified
+          # Omit content-encoding/type/etc headers for 304 Not Modified
           if status != 304
             headers.update(content_headers)
           end
@@ -87,11 +93,11 @@ module ActionDispatch
 
       # Match a URI path to a static file to be served.
       #
-      # Used by the +Static+ class to negotiate a servable file in the
-      # +public/+ directory (see Static#call).
+      # Used by the `Static` class to negotiate a servable file in the `public/`
+      # directory (see Static#call).
       #
-      # Checks for +path+, +path+.html, and +path+/index.html files,
-      # in that order, including .br and .gzip compressed extensions.
+      # Checks for `path`, `path`.html, and `path`/index.html files, in that order,
+      # including .br and .gzip compressed extensions.
       #
       # If a matching file is found, the path and necessary response headers
       # (Content-Type, Content-Encoding) are returned.
@@ -104,7 +110,7 @@ module ActionDispatch
       end
 
       def try_files(filepath, content_type, accept_encoding:)
-        headers = { "Content-Type" => content_type }
+        headers = { Rack::CONTENT_TYPE => content_type }
 
         if compressible? content_type
           try_precompressed_files filepath, headers, accept_encoding: accept_encoding
@@ -116,18 +122,18 @@ module ActionDispatch
       def try_precompressed_files(filepath, headers, accept_encoding:)
         each_precompressed_filepath(filepath) do |content_encoding, precompressed_filepath|
           if file_readable? precompressed_filepath
-            # Identity encoding is default, so we skip Accept-Encoding
-            # negotiation and needn't set Content-Encoding.
+            # Identity encoding is default, so we skip Accept-Encoding negotiation and
+            # needn't set Content-Encoding.
             #
-            # Vary header is expected when we've found other available
-            # encodings that Accept-Encoding ruled out.
+            # Vary header is expected when we've found other available encodings that
+            # Accept-Encoding ruled out.
             if content_encoding == "identity"
               return precompressed_filepath, headers
             else
-              headers["Vary"] = "Accept-Encoding"
+              headers[ActionDispatch::Constants::VARY] = "accept-encoding"
 
               if accept_encoding.any? { |enc, _| /\b#{content_encoding}\b/i.match?(enc) }
-                headers["Content-Encoding"] = content_encoding
+                headers[ActionDispatch::Constants::CONTENT_ENCODING] = content_encoding
                 return precompressed_filepath, headers
               end
             end
@@ -160,9 +166,9 @@ module ActionDispatch
         content_type = ::Rack::Mime.mime_type(ext, nil)
         yield path, content_type || "text/plain"
 
-        # Tack on .html and /index.html only for paths that don't have
-        # an explicit, resolvable file extension. No need to check
-        # for foo.js.html and foo.js/index.html.
+        # Tack on .html and /index.html only for paths that don't have an explicit,
+        # resolvable file extension. No need to check for foo.js.html and
+        # foo.js/index.html.
         unless content_type
           default_ext = ::ActionController::Base.default_static_extension
           if ext != default_ext

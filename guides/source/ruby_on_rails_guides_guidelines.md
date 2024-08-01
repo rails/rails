@@ -27,7 +27,7 @@ Headings
 
 The title of every guide uses an `h1` heading; guide sections use `h2` headings; subsections use `h3` headings; etc. Note that the generated HTML output will use heading tags starting with `<h2>`.
 
-```
+```markdown
 Guide Title
 ===========
 
@@ -39,7 +39,7 @@ Section
 
 When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":
 
-```
+```markdown
 #### Assertions and Testing Jobs inside Components
 #### Middleware Stack is an Array
 #### When are Objects Saved?
@@ -47,7 +47,7 @@ When writing headings, capitalize all words except for prepositions, conjunction
 
 Use the same inline formatting as regular text:
 
-```
+```markdown
 ##### The `:content_type` Option
 ```
 
@@ -92,6 +92,10 @@ https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
 
 Please don't link to `edgeapi.rubyonrails.org` manually.
 
+Column Wrapping
+---------------
+
+Do not reformat old guides just to wrap columns. But new sections and guides should wrap at 80 columns.
 
 API Documentation Guidelines
 ----------------------------
@@ -99,7 +103,7 @@ API Documentation Guidelines
 The guides and the API should be coherent and consistent where appropriate. In particular, these sections of the [API Documentation Guidelines](api_documentation_guidelines.html) also apply to the guides:
 
 * [Wording](api_documentation_guidelines.html#wording)
-* [English](api_documentation_guidelines.html#english)
+* [English](api_documentation_guidelines.html#american-english)
 * [Example Code](api_documentation_guidelines.html#example-code)
 * [Filenames](api_documentation_guidelines.html#file-names)
 * [Fonts](api_documentation_guidelines.html#fonts)
@@ -108,10 +112,9 @@ HTML Guides
 -----------
 
 Before generating the guides, make sure that you have the latest version of
-Bundler installed on your system. You can find the latest Bundler version
-[here](https://rubygems.org/gems/bundler). As of this writing, it's v1.17.1.
+Bundler installed on your system. To install the latest version of Bundler, run `gem install bundler`.
 
-To install the latest version of Bundler, run `gem install bundler`.
+If you already have Bundler installed, you can update with `gem update bundler`.
 
 ### Generation
 

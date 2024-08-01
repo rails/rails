@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators/app_base"
+require "rails/generators/rails/devcontainer/devcontainer_generator"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -15,14 +16,14 @@ module Rails
       %w(template copy_file directory empty_directory inside
          empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)
-            @generator.send(:#{method}, *args, &block)
+          def #{method}(...)
+            @generator.send(:#{method}, ...)
           end
         RUBY
       end
 
-      def method_missing(meth, *args, &block)
-        @generator.send(meth, *args, &block)
+      def method_missing(...)
+        @generator.send(...)
       end
   end
 
@@ -54,6 +55,10 @@ module Rails
       template "ruby-version", ".ruby-version"
     end
 
+    def node_version
+      template "node-version", ".node-version"
+    end
+
     def gemfile
       template "Gemfile"
     end
@@ -68,6 +73,24 @@ module Rails
 
     def gitattributes
       template "gitattributes", ".gitattributes"
+    end
+
+    def dockerfiles
+      template "Dockerfile"
+      template "dockerignore", ".dockerignore"
+
+      template "docker-entrypoint", "bin/docker-entrypoint"
+      chmod "bin/docker-entrypoint", 0755 & ~File.umask, verbose: false
+    end
+
+    def cifiles
+      empty_directory ".github/workflows"
+      template "github/ci.yml", ".github/workflows/ci.yml"
+      template "github/dependabot.yml", ".github/dependabot.yml"
+    end
+
+    def rubocop
+      template "rubocop.yml", ".rubocop.yml"
     end
 
     def version_control
@@ -86,7 +109,8 @@ module Rails
     end
 
     def bin
-      directory "bin" do |content|
+      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
@@ -100,16 +124,16 @@ module Rails
       empty_directory "config"
 
       inside "config" do
-        template "routes.rb" unless options[:updating]
+        template "routes.rb" unless options[:update]
         template "application.rb"
         template "environment.rb"
-        template "cable.yml" unless options[:updating] || options[:skip_action_cable]
-        template "puma.rb"   unless options[:updating]
-        template "storage.yml" unless options[:updating] || skip_active_storage?
+        template "cable.yml" unless options[:update] || options[:skip_action_cable]
+        template "puma.rb"
+        template "storage.yml" unless options[:update] || skip_active_storage?
 
         directory "environments"
         directory "initializers"
-        directory "locales" unless options[:updating]
+        directory "locales" unless options[:update]
       end
     end
 
@@ -121,7 +145,6 @@ module Rails
       asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
-      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -155,14 +178,6 @@ module Rails
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
         end
-
-        unless permissions_policy_config_exist
-          remove_file "config/initializers/permissions_policy.rb"
-        end
-      end
-
-      if !skip_sprockets?
-        insert_into_file "config/application.rb", %(require "sprockets/railtie"), after: /require\(["']rails\/all["']\)\n/
       end
     end
 
@@ -179,13 +194,15 @@ module Rails
       return if options[:pretend] || options[:dummy_app]
 
       require "rails/generators/rails/credentials/credentials_generator"
-      Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file
+      Rails::Generators::CredentialsGenerator.new([], quiet: true).add_credentials_file
     end
 
     def credentials_diff_enroll
-      return if options[:skip_decrypted_diffs] || options[:skip_git] || options[:dummy_app] || options[:pretend]
+      return if options[:skip_decrypted_diffs] || options[:dummy_app] || options[:pretend]
 
-      rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+      @generator.shell.mute do
+        rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+      end
     end
 
     def database_yml
@@ -199,7 +216,6 @@ module Rails
     def lib
       empty_directory "lib"
       empty_directory_with_keep_file "lib/tasks"
-      empty_directory_with_keep_file "lib/assets"
     end
 
     def log
@@ -208,6 +224,10 @@ module Rails
 
     def public_directory
       directory "public", "public", recursive: false
+    end
+
+    def script
+      empty_directory_with_keep_file "script"
     end
 
     def storage
@@ -223,7 +243,6 @@ module Rails
       empty_directory_with_keep_file "test/helpers"
       empty_directory_with_keep_file "test/integration"
 
-      template "test/channels/application_cable/connection_test.rb"
       template "test/test_helper.rb"
     end
 
@@ -236,8 +255,6 @@ module Rails
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory_with_keep_file "tmp/pids"
-      empty_directory "tmp/cache"
-      empty_directory "tmp/cache/assets"
     end
 
     def vendor
@@ -245,7 +262,21 @@ module Rails
     end
 
     def config_target_version
-      defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
+      @config_target_version || Rails::VERSION::STRING.to_f
+    end
+
+    def devcontainer
+      devcontainer_options = {
+        database: options[:database],
+        redis: !(options[:skip_action_cable] && options[:skip_active_job]),
+        system_test: depends_on_system_test?,
+        active_storage: !options[:skip_active_storage],
+        dev: options[:dev],
+        node: using_node?,
+        app_name: app_name
+      }
+
+      Rails::Generators::DevcontainerGenerator.new([], devcontainer_options).invoke_all
     end
   end
 
@@ -263,16 +294,14 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails, desc: "Show Rails version number and quit"
       class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
-      class_option :javascript, type: :string, aliases: ["-j", "--js"], default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
-      class_option :css, type: :string, aliases: "-c", desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
+      class_option :javascript, type: :string, aliases: ["-j", "--js"], default: "importmap", enum: JAVASCRIPT_OPTIONS, desc: "Choose JavaScript approach"
+      class_option :css, type: :string, aliases: "-c", enum: CSS_OPTIONS, desc: "Choose CSS processor. Check https://github.com/rails/cssbundling-rails for more options"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: nil, desc: "Don't run bundle install"
       class_option :skip_decrypted_diffs, type: :boolean, default: nil, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 
-      def initialize(*args)
-        super
-
-        imply_options({
-          **OPTION_IMPLICATIONS,
+      OPTION_IMPLICATIONS = # :nodoc:
+        AppBase::OPTION_IMPLICATIONS.merge(
+          skip_git: [:skip_decrypted_diffs],
           minimal: [
             :skip_action_cable,
             :skip_action_mailbox,
@@ -291,11 +320,24 @@ module Rails
             :skip_asset_pipeline,
             :skip_javascript,
           ],
-        }, meta_options: [:minimal])
-
-        if !options[:skip_active_record] && !DATABASES.include?(options[:database])
-          raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
+        ) do |option, implications, more_implications|
+          implications + more_implications
         end
+
+      META_OPTIONS = [:minimal] # :nodoc:
+
+      def self.apply_rails_template(template, destination) # :nodoc:
+        generator = new([destination], { template: template }, { destination_root: destination })
+        generator.set_default_accessors!
+        generator.apply_rails_template
+        generator.run_bundle
+        generator.run_after_bundle_callbacks
+      end
+
+      def initialize(*args)
+        super
+
+        imply_options(OPTION_IMPLICATIONS, meta_options: META_OPTIONS)
 
         @after_bundle_callbacks = []
       end
@@ -308,6 +350,7 @@ module Rails
       def create_root_files
         build(:readme)
         build(:rakefile)
+        build(:node_version) if using_node?
         build(:ruby_version)
         build(:configru)
 
@@ -340,6 +383,21 @@ module Rails
       end
       remove_task :update_active_storage
 
+      def create_dockerfiles
+        return if options[:skip_docker] || options[:dummy_app]
+        build(:dockerfiles)
+      end
+
+      def create_rubocop_file
+        return if skip_rubocop?
+        build(:rubocop)
+      end
+
+      def create_cifiles
+        return if skip_ci?
+        build(:cifiles)
+      end
+
       def create_config_files
         build(:config)
       end
@@ -357,11 +415,6 @@ module Rails
         build(:credentials)
         build(:credentials_diff_enroll)
       end
-
-      def display_upgrade_guide_info
-        say "\nAfter this, check Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
-      end
-      remove_task :display_upgrade_guide_info
 
       def create_boot_file
         template "config/boot.rb"
@@ -389,6 +442,11 @@ module Rails
         build(:public_directory)
       end
 
+      def create_script_folder
+        return if options[:dummy_app]
+        build(:script)
+      end
+
       def create_tmp_files
         build(:tmp)
       end
@@ -406,14 +464,17 @@ module Rails
       end
 
       def create_storage_files
-        build(:storage) unless skip_active_storage?
+        build(:storage) unless skip_storage?
+      end
+
+      def create_devcontainer_files
+        return if skip_devcontainer? || options[:dummy_app]
+        build(:devcontainer)
       end
 
       def delete_app_assets_if_api_option
         if options[:api]
           remove_dir "app/assets"
-          remove_dir "lib/assets"
-          remove_dir "tmp/cache/assets"
         end
       end
 
@@ -437,11 +498,11 @@ module Rails
       def delete_public_files_if_api_option
         if options[:api]
           remove_file "public/404.html"
+          remove_file "public/406-unsupported-browser.html"
           remove_file "public/422.html"
           remove_file "public/500.html"
-          remove_file "public/apple-touch-icon-precomposed.png"
-          remove_file "public/apple-touch-icon.png"
-          remove_file "public/favicon.ico"
+          remove_file "public/icon.png"
+          remove_file "public/icon.svg"
         end
       end
 
@@ -482,15 +543,12 @@ module Rails
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
           remove_dir "app/javascript/channels"
-          remove_dir "app/channels"
-          remove_dir "test/channels"
         end
       end
 
       def delete_non_api_initializers_if_api_option
         if options[:api]
           remove_file "config/initializers/content_security_policy.rb"
-          remove_file "config/initializers/permissions_policy.rb"
         end
       end
 
@@ -510,11 +568,14 @@ module Rails
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :run_bundle
+      public_task :apply_rails_template
+      public_task :run_bundle
+      public_task :add_bundler_platforms
       public_task :generate_bundler_binstub
       public_task :run_javascript
       public_task :run_hotwire
       public_task :run_css
+      public_task :run_kamal
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
@@ -611,7 +672,7 @@ module Rails
         end
 
         def read_rc_file(railsrc)
-          extra_args = File.readlines(railsrc).flat_map(&:split)
+          extra_args = File.readlines(railsrc).flat_map.each { |line| line.split("#", 2).first.split }
           puts "Using #{extra_args.join(" ")} from #{railsrc}"
           extra_args
         end

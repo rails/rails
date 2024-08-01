@@ -3,10 +3,13 @@
 require "openssl"
 require "base64"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/messages/codec"
+require "active_support/messages/rotator"
 require "active_support/message_verifier"
-require "active_support/messages/metadata"
 
 module ActiveSupport
+  # = Active Support Message Encryptor
+  #
   # MessageEncryptor is a simple way to encrypt values which get stored
   # somewhere you don't trust.
   #
@@ -24,7 +27,7 @@ module ActiveSupport
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
   #
   # The +decrypt_and_verify+ method will raise an
-  # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
+  # +ActiveSupport::MessageEncryptor::InvalidMessage+ exception if the data
   # provided cannot be decrypted or verified.
   #
   #   crypt.decrypt_and_verify('not encrypted data') # => ActiveSupport::MessageEncryptor::InvalidMessage
@@ -84,11 +87,10 @@ module ActiveSupport
   # the above should be combined into:
   #
   #   crypt.rotate old_secret, cipher: "aes-256-cbc"
-  class MessageEncryptor
-    prepend Messages::Rotator::Encryptor
+  class MessageEncryptor < Messages::Codec
+    prepend Messages::Rotator
 
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
-    cattr_accessor :default_message_encryptor_serializer, instance_accessor: false, default: :marshal
 
     class << self
       def default_cipher # :nodoc:
@@ -110,16 +112,6 @@ module ActiveSupport
       end
     end
 
-    module NullVerifier # :nodoc:
-      def self.verify(value)
-        value
-      end
-
-      def self.generate(value)
-        value
-      end
-    end
-
     class InvalidMessage < StandardError; end
     OpenSSLCipherError = OpenSSL::Cipher::CipherError
 
@@ -132,47 +124,128 @@ module ActiveSupport
     # key by using ActiveSupport::KeyGenerator or a similar key
     # derivation function.
     #
-    # First additional parameter is used as the signature key for MessageVerifier.
-    # This allows you to specify keys to encrypt and sign data.
+    # The first additional parameter is used as the signature key for
+    # MessageVerifier. This allows you to specify keys to encrypt and sign
+    # data. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     #
     #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')
     #
-    # Options:
-    # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
-    #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-gcm'.
-    # * <tt>:digest</tt> - String of digest to use for signing. Default is
-    #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
-    # * <tt>:serializer</tt> - Object serializer to use. Default is +JSON+.
-    # * <tt>:url_safe</tt> - Whether to encode messages using a URL-safe
-    #   encoding. Default is +false+ for backward compatibility.
-    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, url_safe: false)
+    # ==== Options
+    #
+    # [+:cipher+]
+    #   Cipher to use. Can be any cipher returned by +OpenSSL::Cipher.ciphers+.
+    #   Default is 'aes-256-gcm'.
+    #
+    # [+:digest+]
+    #   Digest used for signing. Ignored when using an AEAD cipher like
+    #   'aes-256-gcm'.
+    #
+    # [+:serializer+]
+    #   The serializer used to serialize message data. You can specify any
+    #   object that responds to +dump+ and +load+, or you can choose from
+    #   several preconfigured serializers: +:marshal+, +:json_allow_marshal+,
+    #   +:json+, +:message_pack_allow_marshal+, +:message_pack+.
+    #
+    #   The preconfigured serializers include a fallback mechanism to support
+    #   multiple deserialization formats. For example, the +:marshal+ serializer
+    #   will serialize using +Marshal+, but can deserialize using +Marshal+,
+    #   ActiveSupport::JSON, or ActiveSupport::MessagePack. This makes it easy
+    #   to migrate between serializers.
+    #
+    #   The +:marshal+, +:json_allow_marshal+, and +:message_pack_allow_marshal+
+    #   serializers support deserializing using +Marshal+, but the others do
+    #   not. Beware that +Marshal+ is a potential vector for deserialization
+    #   attacks in cases where a message signing secret has been leaked. <em>If
+    #   possible, choose a serializer that does not support +Marshal+.</em>
+    #
+    #   The +:message_pack+ and +:message_pack_allow_marshal+ serializers use
+    #   ActiveSupport::MessagePack, which can roundtrip some Ruby types that are
+    #   not supported by JSON, and may provide improved performance. However,
+    #   these require the +msgpack+ gem.
+    #
+    #   When using \Rails, the default depends on +config.active_support.message_serializer+.
+    #   Otherwise, the default is +:marshal+.
+    #
+    # [+:url_safe+]
+    #   By default, MessageEncryptor generates RFC 4648 compliant strings
+    #   which are not URL-safe. In other words, they can contain "+" and "/".
+    #   If you want to generate URL-safe strings (in compliance with "Base 64
+    #   Encoding with URL and Filename Safe Alphabet" in RFC 4648), you can
+    #   pass +true+.
+    #
+    # [+:force_legacy_metadata_serializer+]
+    #   Whether to use the legacy metadata serializer, which serializes the
+    #   message first, then wraps it in an envelope which is also serialized. This
+    #   was the default in \Rails 7.0 and below.
+    #
+    #   If you don't pass a truthy value, the default is set using
+    #   +config.active_support.use_message_serializer_for_metadata+.
+    def initialize(secret, sign_secret = nil, **options)
+      super(**options)
       @secret = secret
-      @sign_secret = sign_secret
-      @cipher = cipher || self.class.default_cipher
+      @cipher = options[:cipher] || self.class.default_cipher
       @aead_mode = new_cipher.authenticated?
-      @digest = digest || "SHA1" unless aead_mode?
-      @serializer = serializer ||
-        if @@default_message_encryptor_serializer.equal?(:marshal)
-          Marshal
-        elsif @@default_message_encryptor_serializer.equal?(:hybrid)
-          JsonWithMarshalFallback
-        elsif @@default_message_encryptor_serializer.equal?(:json)
-          JSON
-        end
-      @url_safe = url_safe
-      @verifier = resolve_verifier
+      @verifier = if !@aead_mode
+        MessageVerifier.new(sign_secret || secret, **options, serializer: NullSerializer)
+      end
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
     # padding attacks. Reference: https://www.limited-entropy.com/padding-oracle-attacks/.
-    def encrypt_and_sign(value, expires_at: nil, expires_in: nil, purpose: nil)
-      verifier.generate(_encrypt(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose))
+    #
+    # ==== Options
+    #
+    # [+:expires_at+]
+    #   The datetime at which the message expires. After this datetime,
+    #   verification of the message will fail.
+    #
+    #     message = encryptor.encrypt_and_sign("hello", expires_at: Time.now.tomorrow)
+    #     encryptor.decrypt_and_verify(message) # => "hello"
+    #     # 24 hours later...
+    #     encryptor.decrypt_and_verify(message) # => nil
+    #
+    # [+:expires_in+]
+    #   The duration for which the message is valid. After this duration has
+    #   elapsed, verification of the message will fail.
+    #
+    #     message = encryptor.encrypt_and_sign("hello", expires_in: 24.hours)
+    #     encryptor.decrypt_and_verify(message) # => "hello"
+    #     # 24 hours later...
+    #     encryptor.decrypt_and_verify(message) # => nil
+    #
+    # [+:purpose+]
+    #   The purpose of the message. If specified, the same purpose must be
+    #   specified when verifying the message; otherwise, verification will fail.
+    #   (See #decrypt_and_verify.)
+    def encrypt_and_sign(value, **options)
+      create_message(value, **options)
     end
 
     # Decrypt and verify a message. We need to verify the message in order to
     # avoid padding attacks. Reference: https://www.limited-entropy.com/padding-oracle-attacks/.
-    def decrypt_and_verify(data, purpose: nil, **)
-      _decrypt(verifier.verify(data), purpose)
+    #
+    # ==== Options
+    #
+    # [+:purpose+]
+    #   The purpose that the message was generated with. If the purpose does not
+    #   match, +decrypt_and_verify+ will return +nil+.
+    #
+    #     message = encryptor.encrypt_and_sign("hello", purpose: "greeting")
+    #     encryptor.decrypt_and_verify(message, purpose: "greeting") # => "hello"
+    #     encryptor.decrypt_and_verify(message)                      # => nil
+    #
+    #     message = encryptor.encrypt_and_sign("bye")
+    #     encryptor.decrypt_and_verify(message)                      # => "bye"
+    #     encryptor.decrypt_and_verify(message, purpose: "greeting") # => nil
+    #
+    def decrypt_and_verify(message, **options)
+      catch_and_raise :invalid_message_format, as: InvalidMessage do
+        catch_and_raise :invalid_message_serialization, as: InvalidMessage do
+          catch_and_ignore :invalid_message_content do
+            read_message(message, **options)
+          end
+        end
+      end
     end
 
     # Given a cipher, returns the key length of the cipher to help generate the key of desired size
@@ -180,24 +253,28 @@ module ActiveSupport
       OpenSSL::Cipher.new(cipher).key_len
     end
 
+    def create_message(value, **options) # :nodoc:
+      sign(encrypt(serialize_with_metadata(value, **options)))
+    end
+
+    def read_message(message, **options) # :nodoc:
+      deserialize_with_metadata(decrypt(verify(message)), **options)
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    end
+
     private
-      def serialize(value)
-        @serializer.dump(value)
+      def sign(data)
+        @verifier ? @verifier.create_message(data) : data
       end
 
-      def deserialize(value)
-        @serializer.load(value)
+      def verify(data)
+        @verifier ? @verifier.read_message(data) : data
       end
 
-      def encode(data)
-        @url_safe ? ::Base64.urlsafe_encode64(data, padding: false) : ::Base64.strict_encode64(data)
-      end
-
-      def decode(data)
-        @url_safe ? ::Base64.urlsafe_decode64(data) : ::Base64.strict_decode64(data)
-      end
-
-      def _encrypt(value, **metadata_options)
+      def encrypt(data)
         cipher = new_cipher
         cipher.encrypt
         cipher.key = @secret
@@ -206,23 +283,25 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(Messages::Metadata.wrap(serialize(value), **metadata_options))
+        encrypted_data = cipher.update(data)
         encrypted_data << cipher.final
 
         parts = [encrypted_data, iv]
         parts << cipher.auth_tag(AUTH_TAG_LENGTH) if aead_mode?
 
-        parts.map! { |part| encode(part) }.join(SEPARATOR)
+        join_parts(parts)
       end
 
-      def _decrypt(encrypted_message, purpose)
+      def decrypt(encrypted_message)
         cipher = new_cipher
         encrypted_data, iv, auth_tag = extract_parts(encrypted_message)
 
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
         # https://github.com/ruby/openssl/issues/63
-        raise InvalidMessage if aead_mode? && auth_tag.bytesize != AUTH_TAG_LENGTH
+        if aead_mode? && auth_tag.bytesize != AUTH_TAG_LENGTH
+          throw :invalid_message_format, "truncated auth_tag"
+        end
 
         cipher.decrypt
         cipher.key = @secret
@@ -234,11 +313,8 @@ module ActiveSupport
 
         decrypted_data = cipher.update(encrypted_data)
         decrypted_data << cipher.final
-
-        message = Messages::Metadata.verify(decrypted_data, purpose)
-        deserialize(message) if message
-      rescue OpenSSLCipherError, TypeError, ArgumentError, ::JSON::ParserError
-        raise InvalidMessage
+      rescue OpenSSLCipherError => error
+        throw :invalid_message_format, error
       end
 
       def length_after_encode(length_before_encode)
@@ -257,13 +333,17 @@ module ActiveSupport
         @length_of_encoded_auth_tag ||= length_after_encode(AUTH_TAG_LENGTH)
       end
 
+      def join_parts(parts)
+        parts.map! { |part| encode(part) }.join(SEPARATOR)
+      end
+
       def extract_part(encrypted_message, rindex, length)
         index = rindex - length
 
         if encrypted_message[index - SEPARATOR.length, SEPARATOR.length] == SEPARATOR
           encrypted_message[index, length]
         else
-          raise InvalidMessage
+          throw :invalid_message_format, "missing separator"
         end
       end
 
@@ -288,15 +368,7 @@ module ActiveSupport
         OpenSSL::Cipher.new(@cipher)
       end
 
-      attr_reader :verifier, :aead_mode
+      attr_reader :aead_mode
       alias :aead_mode? :aead_mode
-
-      def resolve_verifier
-        if aead_mode?
-          NullVerifier
-        else
-          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer, url_safe: @url_safe)
-        end
-      end
   end
 end

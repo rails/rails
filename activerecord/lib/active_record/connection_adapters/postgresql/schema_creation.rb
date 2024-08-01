@@ -5,21 +5,27 @@ module ActiveRecord
     module PostgreSQL
       class SchemaCreation < SchemaCreation # :nodoc:
         private
+          delegate :quoted_include_columns_for_index, to: :@conn
+
           def visit_AlterTable(o)
             sql = super
             sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
             sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
             sql << o.exclusion_constraint_drops.map { |con| visit_DropExclusionConstraint con }.join(" ")
+            sql << o.unique_constraint_adds.map { |con| visit_AddUniqueConstraint con }.join(" ")
+            sql << o.unique_constraint_drops.map { |con| visit_DropUniqueConstraint con }.join(" ")
           end
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
-              if o.deferrable
-                sql << " DEFERRABLE"
-                sql << " INITIALLY #{o.deferrable.to_s.upcase}" unless o.deferrable == true
-              end
-
+              sql << " DEFERRABLE INITIALLY #{o.options[:deferrable].to_s.upcase}" if o.deferrable
               sql << " NOT VALID" unless o.validate?
+            end
+          end
+
+          def visit_ForeignKeyDefinition(o)
+            super.dup.tap do |sql|
+              sql << " DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
             end
           end
 
@@ -33,11 +39,32 @@ module ActiveRecord
 
           def visit_ExclusionConstraintDefinition(o)
             sql = ["CONSTRAINT"]
-            sql << o.name
+            sql << quote_column_name(o.name)
             sql << "EXCLUDE"
             sql << "USING #{o.using}" if o.using
             sql << "(#{o.expression})"
             sql << "WHERE (#{o.where})" if o.where
+            sql << "DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
+
+            sql.join(" ")
+          end
+
+          def visit_UniqueConstraintDefinition(o)
+            column_name = Array(o.column).map { |column| quote_column_name(column) }.join(", ")
+
+            sql = ["CONSTRAINT"]
+            sql << quote_column_name(o.name)
+            sql << "UNIQUE"
+
+            if o.using_index
+              sql << "USING INDEX #{quote_column_name(o.using_index)}"
+            else
+              sql << "(#{column_name})"
+            end
+
+            if o.deferrable
+              sql << "DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}"
+            end
 
             sql.join(" ")
           end
@@ -47,6 +74,14 @@ module ActiveRecord
           end
 
           def visit_DropExclusionConstraint(name)
+            "DROP CONSTRAINT #{quote_column_name(name)}"
+          end
+
+          def visit_AddUniqueConstraint(o)
+            "ADD #{accept(o)}"
+          end
+
+          def visit_DropUniqueConstraint(name)
             "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 
@@ -86,6 +121,15 @@ module ActiveRecord
             change_column_sql
           end
 
+          def visit_ChangeColumnDefaultDefinition(o)
+            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} "
+            if o.default.nil?
+              sql << "DROP DEFAULT"
+            else
+              sql << "SET DEFAULT #{quote_default_expression(o.default, o.column)}"
+            end
+          end
+
           def add_column_options!(sql, options)
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""
@@ -104,6 +148,10 @@ module ActiveRecord
               end
             end
             super
+          end
+
+          def quoted_include_columns(o)
+            String === o ? o : quoted_include_columns_for_index(o)
           end
 
           # Returns any SQL string to go between CREATE and TABLE. May be nil.

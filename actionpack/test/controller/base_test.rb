@@ -14,9 +14,16 @@ class EmptyController < ActionController::Base
 end
 
 class SimpleController < ActionController::Base
+  def status
+    head :ok
+  end
+
   def hello
     self.response_body = "hello"
   end
+end
+
+class ChildController < SimpleController
 end
 
 class NonEmptyController < ActionController::Base
@@ -83,14 +90,14 @@ class ControllerClassTests < ActiveSupport::TestCase
     record.save
 
     dom_id = nil
-    assert_not_deprecated do
+    assert_not_deprecated(ActionController.deprecator) do
       dom_id = RecordIdentifierIncludedController.new.dom_id(record)
     end
 
     assert_equal "comment_1", dom_id
 
     dom_class = nil
-    assert_not_deprecated do
+    assert_not_deprecated(ActionController.deprecator) do
       dom_class = RecordIdentifierIncludedController.new.dom_class(record)
     end
     assert_equal "comment", dom_class
@@ -112,10 +119,16 @@ class ControllerInstanceTests < ActiveSupport::TestCase
     assert_predicate @empty, :performed?
   end
 
-  def test_action_methods
+  def test_empty_controller_action_methods
     @empty_controllers.each do |c|
       assert_equal Set.new, c.class.action_methods, "#{c.controller_path} should be empty!"
     end
+  end
+
+  def test_action_methods_with_inherited_shadowed_internal_method
+    assert_includes ActionController::Base.instance_methods, :status
+    assert_equal Set.new(["status", "hello"]), SimpleController.action_methods
+    assert_equal Set.new(["status", "hello"]), ChildController.action_methods
   end
 
   def test_temporary_anonymous_controllers
@@ -202,7 +215,7 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_for_query_params_included
     rs = ActionDispatch::Routing::RouteSet.new
     rs.draw do
-      get "home" => "pages#home"
+      get "home", to: "pages#home"
     end
 
     options = {
@@ -220,7 +233,7 @@ class UrlOptionsTest < ActionController::TestCase
       set.draw do
         get "from_view", to: "url_options#from_view", as: :from_view
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -257,7 +270,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       set.draw do
         get "from_view", to: "default_url_options#from_view", as: :from_view
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -277,7 +290,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
           resources :descriptions
         end
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -303,7 +316,7 @@ class OptionalDefaultUrlOptionsControllerTest < ActionController::TestCase
   def test_default_url_options_override_missing_positional_arguments
     with_routing do |set|
       set.draw do
-        get "/things/:id(.:format)" => "things#show", :as => :thing
+        get "/things/:id(.:format)", to: "things#show", as: :thing
       end
       assert_equal "/things/1.atom", thing_path("1")
       assert_equal "/things/default-id.atom", thing_path
@@ -335,5 +348,17 @@ class EmptyUrlOptionsTest < ActionController::TestCase
 
       assert_equal "/things", @controller.things_path
     end
+  end
+end
+
+class BaseTest < ActiveSupport::TestCase
+  def test_included_modules_are_tracked
+    base_content = File.read("#{__dir__}/../../lib/action_controller/base.rb")
+    included_modules = base_content.scan(/(?<=include )[A-Z].*/)
+
+    assert_equal(
+      ActionController::Base::MODULES.map { |m| m.to_s.delete_prefix("ActionController::") },
+      included_modules
+    )
   end
 end

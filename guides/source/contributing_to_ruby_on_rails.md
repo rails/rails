@@ -25,31 +25,31 @@ Reporting an Issue
 
 Ruby on Rails uses [GitHub Issue Tracking](https://github.com/rails/rails/issues) to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account to submit an issue, comment on issues, or create pull requests.
 
-NOTE: Bugs in the most recent released version of Ruby on Rails will likely get the most attention. Additionally, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide, you'll find out how to get edge Rails for testing. See our [maintenance policy](https://guides.rubyonrails.org/maintenance_policy.html) for information on which versions are supported. Never report a security issue on the GitHub issues tracker.
+NOTE: Bugs in the most recent released version of Ruby on Rails will likely get the most attention. Additionally, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide, you'll find out how to get edge Rails for testing. See our [maintenance policy](maintenance_policy.html) for information on which versions are supported. Never report a security issue on the GitHub issues tracker.
 
 ### Creating a Bug Report
 
 If you've found a problem in Ruby on Rails that is not a security risk, search the [Issues](https://github.com/rails/rails/issues) on GitHub, in case it has already been reported. If you cannot find any open GitHub issues addressing the problem you found, your next step will be to [open a new issue](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-We've provided an issue template for you so that when creating an issue you include all the information needed to determine whether there is a bug in the framework. Each issue needs to include a title and clear description of the problem. Make sure to include as much relevant information as possible including a code sample or failing test that demonstrates the expected behavior, as well as your system configuration. Your goal should be to make it easy for yourself - and others - to reproduce the bug and figure out a fix.
+We've provided an issue template for you so that when creating an issue you include all the information needed to determine whether there is a bug in the framework. Each issue needs to include a title and clear description of the problem. Make sure to include as much relevant information as possible, including a code sample or failing test that demonstrates the expected behavior, as well as your system configuration. Your goal should be to make it easy for yourself - and others - to reproduce the bug and figure out a fix.
 
-Once you open an issue it may or may not see activity right away unless it is a "Code Red, Mission Critical, the World is Coming to an End" kind of bug. That doesn't mean we don't care about your bug, just that there are a lot of issues and pull requests to get through. Other people with the same problem can find your issue and confirm the bug and may collaborate with you on fixing it. If you know how to fix the bug, go ahead and open a pull request.
+Once you open an issue, it may or may not see activity right away unless it is a "Code Red, Mission Critical, the World is Coming to an End" kind of bug. That doesn't mean we don't care about your bug, just that there are a lot of issues and pull requests to get through. Other people with the same problem can find your issue, and confirm the bug, and may collaborate with you on fixing it. If you know how to fix the bug, go ahead and open a pull request.
 
 ### Create an Executable Test Case
 
 Having a way to reproduce your issue will help people confirm, investigate, and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
 
-* Template for Active Record (models, database) issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_main.rb)
-* Template for testing Active Record (migration) issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations_main.rb)
-* Template for Action Pack (controllers, routing) issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller_main.rb)
-* Template for Active Job issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job_main.rb)
-* Template for Active Storage issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage_main.rb)
-* Template for Action Mailbox issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox_main.rb)
-* Generic template for other issues: [gem](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic_gem.rb) / [main](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic_main.rb)
+* Template for Active Record (models, database) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
+* Template for testing Active Record (migration) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
+* Template for Action Pack (controllers, routing) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
+* Template for Action View (views, helpers) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
+* Template for Active Job issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
+* Template for Active Storage issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
+* Template for Action Mailer issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
+* Template for Action Mailbox issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
+* Generic template for other issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
-These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_main.rb`).
-
-Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
+These templates include the boilerplate code to set up a test case. Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
 
 You can then share your executable test case as a [gist](https://gist.github.com) or paste the content into the issue description.
 
@@ -85,7 +85,7 @@ discussions new features require.
 Helping to Resolve Existing Issues
 ----------------------------------
 
-Beyond reporting issues, you can help the core team resolve existing ones by providing feedback about them. If you are new to Rails core development providing feedback will help you get familiar with the codebase and the processes.
+Beyond reporting issues, you can help the core team resolve existing ones by providing feedback about them. If you are new to Rails core development, providing feedback will help you get familiar with the codebase and the processes.
 
 If you check the [issues list](https://github.com/rails/rails/issues) in GitHub Issues, you'll find lots of issues already requiring attention. What can you do about these? Quite a bit, actually:
 
@@ -139,6 +139,16 @@ You can help improve the Rails guides or the API reference by making them more c
 
 To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/main/guides/source) on GitHub) or RDoc comments in source code. Then open a pull request to apply your changes to the main branch.
 
+Use `[ci skip]` in your pull request title to avoid running the CI build for documentation changes.
+
+Once you open a PR, a preview of the documentation will be deployed for easy review and collaboration. At the bottom of the Pull Request page, you should see a list of status checks, look for the `buildkite/docs-preview` and click "details".
+
+![GitHub rails/rails Pull Request status checks](images/docs_preview/status_checks.png)
+
+This will bring you to the Buildkite build page, if the job was successful there will be an annotation with links to the generated API and Guides above the job list.
+
+![Buildkite rails/docs-preview annotation API & Guides links](images/docs_preview/annotation.png)
+
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
 Translating Rails Guides
@@ -157,7 +167,7 @@ To generate the guides in HTML format, you will need to install the guides depen
 
 ```bash
 # only install gems necessary for the guides. To undo run: bundle config --delete without
-$ bundle install --without job cable storage ujs test db
+$ bundle install --without job cable storage test db
 $ cd guides/
 $ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
 ```
@@ -165,21 +175,6 @@ $ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
 This will generate the guides in an *output* directory.
 
 NOTE: The Redcarpet Gem doesn't work with JRuby.
-
-Translation efforts we know about (various versions):
-
-* **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
-* **Spanish**: [https://github.com/latinadeveloper/railsguides.es](https://github.com/latinadeveloper/railsguides.es)
-* **Polish**: [https://github.com/apohllo/docrails](https://github.com/apohllo/docrails)
-* **French** : [https://github.com/railsfrance/docrails](https://github.com/railsfrance/docrails)
-* **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
-* **Turkish** : [https://github.com/ujk/docrails](https://github.com/ujk/docrails)
-* **Korean** : [https://github.com/rorlakr/rails-guides](https://github.com/rorlakr/rails-guides)
-* **Simplified Chinese** : [https://github.com/ruby-china/guides](https://github.com/ruby-china/guides)
-* **Traditional Chinese** : [https://github.com/docrails-tw/guides](https://github.com/docrails-tw/guides)
-* **Russian** : [https://github.com/morsbox/rusrails](https://github.com/morsbox/rusrails)
-* **Japanese** : [https://github.com/yasslab/railsguides.jp](https://github.com/yasslab/railsguides.jp)
-* **Brazilian Portuguese** : [https://github.com/campuscode/rails-guides-pt-BR](https://github.com/campuscode/rails-guides-pt-BR)
 
 Contributing to the Rails Code
 ------------------------------
@@ -195,6 +190,17 @@ If you're a member of an organization that has codespaces enabled, you can fork 
 #### Using VS Code Remote Containers
 
 If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](https://www.docker.com) installed, you can use the [VS Code remote containers plugin](https://code.visualstudio.com/docs/remote/containers-tutorial). The plugin will read the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration in the repository and build the Docker container locally.
+
+#### Using Dev Container CLI
+
+Alternatively, with [Docker](https://www.docker.com) and [npm](https://github.com/npm/cli) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to utilize the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration from the command line.
+
+```bash
+$ npm install -g @devcontainers/cli
+$ cd rails
+$ devcontainer up --workspace-folder .
+$ devcontainer exec --workspace-folder . bash
+```
 
 #### Using rails-dev-box
 
@@ -252,7 +258,7 @@ $ yarn link "@rails/activestorage"
 
 ### Write Your Code
 
-Now it's time to write some code! When making changes for Rails here are some things to keep in mind:
+Now it's time to write some code! When making changes for Rails, here are some things to keep in mind:
 
 * Follow Rails style and conventions.
 * Use Rails idioms and helpers.
@@ -288,32 +294,6 @@ Inspecting 1 file
 .
 
 1 file inspected, no offenses detected
-```
-
-For `rails-ujs` CoffeeScript and JavaScript files, you can run `npm run lint` in `actionview` folder.
-
-#### Spell Checking
-
-We are running [misspell](https://github.com/client9/misspell) which is mainly written in
-[Golang](https://golang.org/) to check spelling with [GitHub Actions](https://github.com/rails/rails/blob/main/.github/workflows/lint.yml). Correct
-commonly misspelled English words quickly with `misspell`. `misspell` is different from most other spell checkers
-because it doesn't use a custom dictionary. You can run `misspell` locally against all files with:
-
-```bash
-find . -type f | xargs ./misspell -i 'aircrafts,devels,invertions' -error
-```
-
-Notable `misspell` help options or flags are:
-
-- `-i` string: ignore the following corrections, comma separated
-- `-w`: Overwrite file with corrections (default is just to display)
-
-We also run [codespell](https://github.com/codespell-project/codespell) with GitHub Actions to check spelling and
-[codespell](https://pypi.org/project/codespell/) runs against a [small custom dictionary](https://github.com/rails/rails/blob/main/codespell.txt).
-`codespell` is written in [Python](https://www.python.org/) and you can run it with:
-
-```bash
-codespell --ignore-words=codespell.txt
 ```
 
 ### Benchmark Your Code
@@ -396,6 +376,15 @@ $ cd actionmailer
 $ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
+#### For a Specific Line
+
+Figuring out the name is not always easy, but if you know the line number your test starts at, this option is for you:
+
+```bash
+$ cd railties
+$ bin/test test/application/asset_debugging_test.rb:69
+```
+
 #### Running Tests with a Specific Seed
 
 Test execution is randomized with a randomization seed. If you are experiencing random
@@ -437,6 +426,7 @@ For MySQL and PostgreSQL, it is sufficient to run:
 $ cd activerecord
 $ bundle exec rake db:mysql:build
 ```
+
 Or:
 
 ```bash
@@ -457,6 +447,7 @@ You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
 $ bundle exec rake test:mysql2
+$ bundle exec rake test:trilogy
 $ bundle exec rake test:postgresql
 ```
 
@@ -482,9 +473,21 @@ $ bundle exec rake TEST=test/cases/associations/has_many_associations_test.rb
 
 You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests.
 
+#### Using Debuggers with Test
+
+To use an external debugger (pry, byebug, etc), install the debugger and use it as normal.  If debugger issues occur, run tests in serial by setting `PARALLEL_WORKERS=1` or run a single test with `-n test_long_test_name`.
+
+If running tests against generators you will need to set `RAILS_LOG_TO_STDOUT=true` in order for debugging tools to work.
+
+```sh
+RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
+```
+
 ### Warnings
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
+
+Rails CI will raise if warnings are introduced. To implement the same behavior locally set `RAILS_STRICT_WARNINGS=1` when running the test suite.
 
 ### Updating the Documentation
 
@@ -492,17 +495,17 @@ The Ruby on Rails [guides](https://guides.rubyonrails.org/) provide a high-level
 
 If your PR adds a new feature, or changes how an existing feature behaves, check the relevant documentation, and update it or add to it as necessary.
 
-For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](https://edgeguides.rubyonrails.org/active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
+For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
 
 ### Updating the CHANGELOG
 
 The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
 
-You should add an entry **to the top** of the CHANGELOG of the framework you modified if you're adding or removing a feature, committing a bug fix, or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
+You should add an entry **to the top** of the CHANGELOG of the framework you modified if you're adding or removing a feature, or adding deprecation notices. Refactorings, minor bug fixes, and documentation changes generally should not go to the CHANGELOG.
 
 A CHANGELOG entry should summarize what was changed and should end with the author's name. You can use multiple lines if you need more space, and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach the issue's number. Here is an example CHANGELOG entry:
 
-```
+```markdown
 *   Summary of a change that briefly describes what was changed. You can use multiple
     lines and wrap them at around 80 characters. Code examples are ok, too, if needed:
 
@@ -519,8 +522,99 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
     *Your Name*
 ```
 
-Your name can be added directly after the last word if there are no code
-examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
+### Breaking Changes
+
+Anytime a change could break existing applications it's considered a breaking
+change. To ease upgrading Rails applications, breaking changes require a
+deprecation cycle.
+
+#### Removing Behavior
+
+If your breaking change removes existing behavior, you'll first need to add a
+deprecation warning while keeping the existing behavior.
+
+As an example, let's say you want to remove a public method on
+`ActiveRecord::Base`. If the main branch points to the unreleased 7.0 version,
+Rails 7.0 will need to show a deprecation warning. This makes sure anyone
+upgrading to any Rails 7.0 version will see the deprecation warning.
+In Rails 7.1 the method can be deleted.
+
+You could add the following deprecation warning:
+
+```ruby
+def deprecated_method
+  ActiveRecord.deprecator.warn(<<-MSG.squish)
+    `ActiveRecord::Base.deprecated_method` is deprecated and will be removed in Rails 7.1.
+  MSG
+  # Existing behavior
+end
+```
+
+#### Changing Behavior
+
+If your breaking change changes existing behavior, you'll need to add a
+framework default. Framework defaults ease Rails upgrades by allowing apps
+to switch to the new defaults one by one.
+
+To implement a new framework default, first create a configuration by adding an
+accessor on the target framework. Set the default value to the existing
+behavior to make sure nothing breaks during an upgrade.
+
+```ruby
+module ActiveJob
+  mattr_accessor :existing_behavior, default: true
+end
+```
+
+The new configuration allows you to conditionally implement the new behavior:
+
+```ruby
+def changed_method
+  if ActiveJob.existing_behavior
+    # Existing behavior
+  else
+    # New behavior
+  end
+end
+```
+
+To set the new framework default, set the new value in
+`Rails::Application::Configuration#load_defaults`:
+
+```ruby
+def load_defaults(target_version)
+  case target_version.to_s
+  when "7.1"
+    # ...
+    if respond_to?(:active_job)
+      active_job.existing_behavior = false
+    end
+    # ...
+  end
+end
+```
+
+To ease the upgrade it's required to add the new default to the
+`new_framework_defaults` template. Add a commented out section, setting the new
+value:
+
+```ruby
+# new_framework_defaults_8_0.rb.tt
+
+# Rails.application.config.active_job.existing_behavior = false
+```
+
+As a last step add the new configuration to configuration guide in
+`configuration.md`:
+
+```markdown
+#### `config.active_job.existing_behavior
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
+```
 
 ### Ignoring Files Created by Your Editor / IDE
 
@@ -546,7 +640,7 @@ understanding why the change was made, so please take the time to write it.
 
 A good commit message looks like this:
 
-```
+```markdown
 Short summary (ideally 50 characters or less)
 
 More detailed description, if necessary. Each line should wrap at
@@ -654,7 +748,7 @@ Ensure the changesets you introduced are included. Fill in some details about
 your potential patch, using the pull request template provided. When finished, click "Create
 pull request".
 
-### Get some Feedback
+### Get Some Feedback
 
 Most pull requests will go through a few iterations before they get merged.
 Different contributors will sometimes have different opinions, and often
@@ -667,15 +761,18 @@ a pull request. Don't despair! Sometimes it's quick; sometimes it's slow. Such
 is the open source life.
 
 If it's been over a week, and you haven't heard anything, you might want to try
-and nudge things along. You can use the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
-leave another comment on the pull request.
+and nudge things along. You can use the *contributions* channel in the [Ruby on Rails Discord server](https://discord.gg/d8N68BCw49),
+or the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this.
+You can also leave another comment on the pull request. It's best to avoid pinging
+individual maintainers directly as we have limited bandwidth and may not
+be able to look at your PR.
 
 While you're waiting for feedback on your pull request, open up a few other
 pull requests and give someone else some! They'll appreciate it in
 the same way that you appreciate feedback on your patches.
 
 Note that only the Core and Committers teams are permitted to merge code changes.
-If someone gives feedback and "approves" your changes they may not have the ability
+If someone gives feedback and "approves" your changes, they may not have the ability
 or final say to merge your change.
 
 ### Iterate as Necessary

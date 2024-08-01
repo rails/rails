@@ -53,6 +53,7 @@ module ApplicationTests
       assert_path @paths["config/environments"], "config/environments/development.rb"
       assert_path @paths["config/routes.rb"],    "config/routes.rb"
       assert_path @paths["config/routes"],       "config/routes"
+      assert_path @paths["test/mailers/previews"], "test/mailers/previews"
 
       assert_equal root("app", "controllers"), @paths["app/controllers"].expanded.first
     end

@@ -45,6 +45,13 @@ module ActiveModel
       #     validates_with MyValidator, MyOtherValidator, on: :create
       #   end
       #
+      # There is no default error message for +validates_with+. You must
+      # manually add errors to the record's errors collection in the validator
+      # class.
+      #
+      # To implement the validate method, you must have a +record+ parameter
+      # defined, which is the record to be validated.
+      #
       # Configuration options:
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol

@@ -1,41 +1,47 @@
-*   Support infinite ranges for `LengthValidator`s `:in`/`:within` options
+*   Add a load hook `active_model_translation` for `ActiveModel::Translation`.
+
+    *Shouichi Kamiya*
+
+*   Add `raise_on_missing_translations` option to `ActiveModel::Translation`.
+    When the option is set, `human_attribute_name` raises an error if a translation of the given attribute is missing.
 
     ```ruby
-    validates_length_of :first_name, in: ..30
+    # ActiveModel::Translation.raise_on_missing_translations = false
+    Post.human_attribute_name("title")
+    => "Title"
+
+    # ActiveModel::Translation.raise_on_missing_translations = true
+    Post.human_attribute_name("title")
+    => Translation missing. Options considered were: (I18n::MissingTranslationData)
+        - en.activerecord.attributes.post.title
+        - en.attributes.title
+
+                raise exception.respond_to?(:to_exception) ? exception.to_exception : exception
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     ```
 
-    *fatkodima*
+    *Shouichi Kamiya*
 
-*   Add support for beginless ranges to inclusivity/exclusivity validators:
+*   Introduce `ActiveModel::AttributeAssignment#attribute_writer_missing`
+
+    Provide instances with an opportunity to gracefully handle assigning to an
+    unknown attribute:
 
     ```ruby
-    validates_inclusion_of :birth_date, in: -> { (..Date.today) }
+    class Rectangle
+      include ActiveModel::AttributeAssignment
+
+      attr_accessor :length, :width
+
+      def attribute_writer_missing(name, value)
+        Rails.logger.warn "Tried to assign to unknown attribute #{name}"
+      end
+    end
+
+    rectangle = Rectangle.new
+    rectangle.assign_attributes(height: 10) # => Logs "Tried to assign to unknown attribute 'height'"
     ```
 
-    *Bo Jeanes*
+    *Sean Doyle*
 
-*   Make validators accept lambdas without record argument
-
-    ```ruby
-    # Before
-    validates_comparison_of :birth_date, less_than_or_equal_to: ->(_record) { Date.today }
-
-    # After
-    validates_comparison_of :birth_date, less_than_or_equal_to: -> { Date.today }
-    ```
-
-    *fatkodima*
-
-*   Fix casting long strings to `Date`, `Time` or `DateTime`
-
-    *fatkodima*
-
-*   Use different cache namespace for proxy calls
-
-    Models can currently have different attribute bodies for the same method
-    names, leading to conflicts. Adding a new namespace `:active_model_proxy`
-    fixes the issue.
-
-    *Chris Salzberg*
-
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activemodel/CHANGELOG.md) for previous changes.

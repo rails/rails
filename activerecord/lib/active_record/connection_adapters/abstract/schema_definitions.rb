@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid
 
       def initialize(
         table, name,
@@ -18,6 +19,8 @@ module ActiveRecord
         where: nil,
         type: nil,
         using: nil,
+        include: nil,
+        nulls_not_distinct: nil,
         comment: nil,
         valid: true
       )
@@ -31,6 +34,8 @@ module ActiveRecord
         @where = where
         @type = type
         @using = using
+        @include = include
+        @nulls_not_distinct = nulls_not_distinct
         @comment = comment
         @valid = valid
       end
@@ -47,11 +52,14 @@ module ActiveRecord
         }
       end
 
-      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, **options)
+        columns = options[:column] if columns.blank?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
-          (valid.nil? || self.valid == valid)
+          (valid.nil? || self.valid == valid) &&
+          (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
+          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
       end
 
       private
@@ -69,11 +77,24 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
+      self::OPTION_NAMES = [
+        :limit,
+        :precision,
+        :scale,
+        :default,
+        :null,
+        :collation,
+        :comment,
+        :primary_key,
+        :if_exists,
+        :if_not_exists
+      ]
+
       def primary_key?
         options[:primary_key]
       end
 
-      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+      (self::OPTION_NAMES - [:primary_key]).each do |option_name|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{option_name}
             options[:#{option_name}]
@@ -93,6 +114,8 @@ module ActiveRecord
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
     ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
+
+    ChangeColumnDefaultDefinition = Struct.new(:column, :default) # :nodoc:
 
     CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
@@ -138,8 +161,8 @@ module ActiveRecord
 
       def defined_for?(to_table: nil, validate: nil, **options)
         (to_table.nil? || to_table.to_s == self.to_table) &&
-          (validate.nil? || validate == options.fetch(:validate, validate)) &&
-          options.all? { |k, v| self.options[k].to_s == v.to_s }
+          (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
+          options.all? { |k, v| Array(self.options[k]).map(&:to_s) == Array(v).map(&:to_s) }
       end
 
       private
@@ -160,6 +183,12 @@ module ActiveRecord
 
       def export_name_on_schema_dump?
         !ActiveRecord::SchemaDumper.chk_ignore_pattern.match?(name) if name
+      end
+
+      def defined_for?(name:, expression: nil, validate: nil, **options)
+        self.name == name.to_s &&
+          (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
+          options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
     end
 
@@ -311,13 +340,15 @@ module ActiveRecord
       end
     end
 
+    # = Active Record Connection Adapters \Table \Definition
+    #
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[7.1]
+    #   class SomeMigration < ActiveRecord::Migration[8.0]
     #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
@@ -333,7 +364,6 @@ module ActiveRecord
       include ColumnMethods
 
       attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints
-      attr_accessor :ddl
 
       def initialize(
         conn,
@@ -460,20 +490,7 @@ module ActiveRecord
         name = name.to_s
         type = type.to_sym if type
 
-        if @columns_hash[name]
-          if @columns_hash[name].primary_key?
-            raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
-          else
-            raise ArgumentError, "you can't define an already defined column '#{name}'."
-          end
-        end
-
-        if @conn.supports_datetime_with_precision?
-          if type == :datetime && !options.key?(:precision)
-            options[:precision] = 6
-          end
-        end
-
+        raise_on_duplicate_column(name)
         @columns_hash[name] = new_column_definition(name, type, **options)
 
         if index
@@ -540,6 +557,13 @@ module ActiveRecord
           type = integer_like_primary_key_type(type, options)
         end
         type = aliased_types(type.to_s, type)
+
+        if @conn.supports_datetime_with_precision?
+          if type == :datetime && !options.key?(:precision)
+            options[:precision] = 6
+          end
+        end
+
         options[:primary_key] ||= type == :primary_key
         options[:null] = false if options[:primary_key]
         create_column_definition(name, type, options)
@@ -559,7 +583,15 @@ module ActiveRecord
       end
 
       private
+        def valid_column_definition_options
+          @conn.valid_column_definition_options
+        end
+
         def create_column_definition(name, type, options)
+          unless options[:_skip_validate_options]
+            options.except(:_uses_legacy_reference_index_name, :_skip_validate_options).assert_valid_keys(valid_column_definition_options)
+          end
+
           ColumnDefinition.new(name, type, options)
         end
 
@@ -573,6 +605,16 @@ module ActiveRecord
 
         def integer_like_primary_key_type(type, options)
           type
+        end
+
+        def raise_on_duplicate_column(name)
+          if @columns_hash[name]
+            if @columns_hash[name].primary_key?
+              raise ArgumentError, "you can't redefine the primary key column '#{name}' on '#{@name}'. To define a custom primary key, pass { id: false } to create_table."
+            else
+              raise ArgumentError, "you can't define an already defined column '#{name}' on '#{@name}'."
+            end
+          end
         end
     end
 
@@ -615,6 +657,8 @@ module ActiveRecord
       end
     end
 
+    # = Active Record Connection Adapters \Table
+    #
     # Represents an SQL table in an abstract way for updating a table.
     # Also see TableDefinition and {connection.create_table}[rdoc-ref:SchemaStatements#create_table]
     #
@@ -884,6 +928,17 @@ module ActiveRecord
       # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
       def remove_check_constraint(*args, **options)
         @base.remove_check_constraint(name, *args, **options)
+      end
+
+      # Checks if a check_constraint exists on a table.
+      #
+      #  unless t.check_constraint_exists?(name: "price_check")
+      #    t.check_constraint("price > 0", name: "price_check")
+      #  end
+      #
+      # See {connection.check_constraint_exists?}[rdoc-ref:SchemaStatements#check_constraint_exists?]
+      def check_constraint_exists?(*args, **options)
+        @base.check_constraint_exists?(name, *args, **options)
       end
 
       private

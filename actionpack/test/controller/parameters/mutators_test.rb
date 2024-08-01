@@ -124,6 +124,25 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_predicate @params.deep_transform_keys! { |k| k }, :permitted?
   end
 
+  test "deep_transform_keys! transforms nested keys" do
+    @params.permit!
+    @params.deep_transform_keys!(&:upcase)
+
+    expected_hash = { "PERSON" => { "AGE" => "32", "NAME" => { "FIRST" => "David", "LAST" => "Heinemeier Hansson" }, "ADDRESSES" => [{ "CITY" => "Chicago", "STATE" => "Illinois" }] } }
+    assert_equal @params.to_hash, expected_hash
+  end
+
+  test "deep_transform_keys transforms nested keys" do
+    original_hash = @params.to_unsafe_h
+    @params.permit!
+    new_params = @params.deep_transform_keys(&:upcase)
+
+    assert_equal @params.to_hash, original_hash
+
+    expected_hash = { "PERSON" => { "AGE" => "32", "NAME" => { "FIRST" => "David", "LAST" => "Heinemeier Hansson" }, "ADDRESSES" => [{ "CITY" => "Chicago", "STATE" => "Illinois" }] } }
+    assert_equal new_params.to_hash, expected_hash
+  end
+
   test "deep_transform_keys! retains unpermitted status" do
     assert_not_predicate @params.deep_transform_keys! { |k| k }, :permitted?
   end
@@ -181,7 +200,7 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
     params.permit!
     params_hash = params.to_h { |key, value| [:"#{key}_modified", value] }
-    assert_equal params_hash.keys, %w(name_modified age_modified location_modified)
+    assert_equal %w(name_modified age_modified location_modified), params_hash.keys
   end
   # rubocop:enable Style/HashTransformKeys
 
@@ -190,7 +209,7 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
     params.permit!
     params_hash = params.to_h { |key, value| [key, value.is_a?(String) ? "#{value}_modified" : value] }
-    assert_equal params_hash.values, %w(Alex_modified 40_modified Beijing_modified)
+    assert_equal %w(Alex_modified 40_modified Beijing_modified), params_hash.values
   end
   # rubocop:enable Style/HashTransformValues
 

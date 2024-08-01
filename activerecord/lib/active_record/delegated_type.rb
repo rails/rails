@@ -3,7 +3,7 @@
 require "active_support/core_ext/string/inquiry"
 
 module ActiveRecord
-  # == Delegated types
+  # = Delegated types
   #
   # Class hierarchies can map to relational database tables in many ways. Active Record, for example, offers
   # purely abstract classes, where the superclass doesn't persist any attributes, and single-table inheritance,
@@ -36,7 +36,7 @@ module ActiveRecord
   #
   # Let's look at that entry/message/comment example using delegated types:
   #
-  #   # Schema: entries[ id, account_id, creator_id, created_at, updated_at, entryable_type, entryable_id ]
+  #   # Schema: entries[ id, account_id, creator_id, entryable_type, entryable_id, created_at, updated_at ]
   #   class Entry < ApplicationRecord
   #     belongs_to :account
   #     belongs_to :creator
@@ -51,12 +51,12 @@ module ActiveRecord
   #     end
   #   end
   #
-  #   # Schema: messages[ id, subject, body ]
+  #   # Schema: messages[ id, subject, body, created_at, updated_at ]
   #   class Message < ApplicationRecord
   #     include Entryable
   #   end
   #
-  #   # Schema: comments[ id, content ]
+  #   # Schema: comments[ id, content, created_at, updated_at ]
   #   class Comment < ApplicationRecord
   #     include Entryable
   #   end
@@ -102,16 +102,36 @@ module ActiveRecord
   # You create a new record that uses delegated typing by creating the delegator and delegatee at the same time,
   # like so:
   #
-  #   Entry.create! entryable: Comment.new(content: "Hello!"), creator: Current.user
+  #   Entry.create! entryable: Comment.new(content: "Hello!"), creator: Current.user, account: Current.account
   #
   # If you need more complicated composition, or you need to perform dependent validation, you should build a factory
   # method or class to take care of the complicated needs. This could be as simple as:
   #
   #   class Entry < ApplicationRecord
-  #     def self.create_with_comment(content, creator: Current.user)
-  #       create! entryable: Comment.new(content: content), creator: creator
+  #     def self.create_with_comment(content, creator: Current.user, account: Current.account)
+  #       create! entryable: Comment.new(content: content), creator: creator, account: account
   #     end
   #   end
+  #
+  # == Querying across records
+  #
+  # A consequence of delegated types is that querying attributes spread across multiple classes becomes slightly more
+  # tricky, but not impossible.
+  #
+  # The simplest method is to join the "superclass" to the "subclass" and apply the query parameters (i.e. <tt>#where</tt>)
+  # in appropriate places:
+  #
+  #   Comment.joins(:entry).where(comments: { content: 'Hello!' }, entry: { creator: Current.user } )
+  #
+  # For convenience, add a scope on the concern. Now all classes that implement the concern will automatically include
+  # the method:
+  #
+  #   # app/models/concerns/entryable.rb
+  #   scope :with_entry, ->(attrs) { joins(:entry).where(entry: attrs) }
+  #
+  # Now the query can be shortened significantly:
+  #
+  #   Comment.where(content: 'Hello!').with_entry(creator: Current.user)
   #
   # == Adding further delegation
   #
@@ -136,9 +156,9 @@ module ActiveRecord
   #     end
   #   end
   #
-  # Now you can list a bunch of entries, call +Entry#title+, and polymorphism will provide you with the answer.
+  # Now you can list a bunch of entries, call <tt>Entry#title</tt>, and polymorphism will provide you with the answer.
   #
-  # == Nested Attributes
+  # == Nested \Attributes
   #
   # Enabling nested attributes on a delegated_type association allows you to
   # create the entry and message in one go:
@@ -192,6 +212,11 @@ module ActiveRecord
     #   +role+ with an "_id" suffix. So a class that defines a
     #   <tt>delegated_type :entryable, types: %w[ Message Comment ]</tt> association will use "entryable_id" as
     #   the default <tt>:foreign_key</tt>.
+    # [:foreign_type]
+    #   Specify the column used to store the associated object's type. By default this is inferred to be the passed
+    #   +role+ with a "_type" suffix. A class that defines a
+    #   <tt>delegated_type :entryable, types: %w[ Message Comment ]</tt> association will use "entryable_type" as
+    #   the default <tt>:foreign_type</tt>.
     # [:primary_key]
     #   Specify the method that returns the primary key of associated object used for the convenience methods.
     #   By default this is +id+.
@@ -211,11 +236,15 @@ module ActiveRecord
     private
       def define_delegated_type_methods(role, types:, options:)
         primary_key = options[:primary_key] || "id"
-        role_type = "#{role}_type"
+        role_type = options[:foreign_type] || "#{role}_type"
         role_id   = options[:foreign_key] || "#{role}_id"
 
+        define_singleton_method "#{role}_types" do
+          types.map(&:to_s)
+        end
+
         define_method "#{role}_class" do
-          public_send("#{role}_type").constantize
+          public_send(role_type).constantize
         end
 
         define_method "#{role}_name" do

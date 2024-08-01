@@ -6,11 +6,11 @@ require "models/topic"
 class PostgresqlDateTest < ActiveRecord::PostgreSQLTestCase
   def test_load_infinity_and_beyond
     topic = Topic.find_by_sql("SELECT 'infinity'::date AS last_read").first
-    assert topic.last_read.infinite?, "timestamp should be infinite"
+    assert_predicate topic.last_read, :infinite?, "timestamp should be infinite"
     assert_operator topic.last_read, :>, 0
 
     topic = Topic.find_by_sql("SELECT '-infinity'::date AS last_read").first
-    assert topic.last_read.infinite?, "timestamp should be infinite"
+    assert_predicate topic.last_read, :infinite?, "timestamp should be infinite"
     assert_operator topic.last_read, :<, 0
   end
 

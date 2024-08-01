@@ -31,7 +31,7 @@ module ActionView
 
     module ObjectRendering # :nodoc:
       PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
-        h[k] = Concurrent::Map.new
+        h.compute_if_absent(k) { Concurrent::Map.new }
       end
 
       def initialize(lookup_context, options)
@@ -79,7 +79,7 @@ module ActionView
           path = if object.respond_to?(:to_partial_path)
             object.to_partial_path
           else
-            raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
+            raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement #to_partial_path.")
           end
 
           if view.prefix_partial_path_with_controller_namespace
@@ -142,7 +142,7 @@ module ActionView
       attr_reader :body, :template
 
       def initialize(body, template)
-        @body = body.to_s
+        @body = body
         @template = template
       end
 

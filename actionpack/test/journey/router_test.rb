@@ -110,11 +110,11 @@ module ActionDispatch
         assert_no_match(/missing required keys: \[\]/, error.message)
       end
 
-      def test_X_Cascade
+      def test_x_cascade
         get "/messages(.:format)", to: "foo#bar"
         resp = router.serve(rails_env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/lol"))
         assert_equal ["Not Found"], resp.last
-        assert_equal "pass", resp[1]["X-Cascade"]
+        assert_equal "pass", resp[1][Constants::X_CASCADE]
         assert_equal 404, resp.first
       end
 
@@ -499,13 +499,13 @@ module ActionDispatch
         end
 
         def get(*args)
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             mapper.get(*args)
           end
         end
 
         def match(*args)
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             mapper.match(*args)
           end
         end

@@ -5,15 +5,19 @@ require "minitest/mock"
 require "rails/command"
 require "rails/commands/dbconsole/dbconsole_command"
 require "active_record/database_configurations"
+require "active_support/testing/method_call_assertions"
+require "active_record/connection_adapters/sqlite3_adapter"
 
 class Rails::DBConsoleTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   def setup
     Rails::DBConsole.const_set("APP_PATH", "rails/all")
   end
 
   def teardown
     Rails::DBConsole.send(:remove_const, "APP_PATH")
-    %w[PGUSER PGHOST PGPORT PGPASSWORD DATABASE_URL].each { |key| ENV.delete(key) }
+    %w[DATABASE_URL].each { |key| ENV.delete(key) }
   end
 
   def test_config_with_db_config_only
@@ -106,117 +110,17 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
   end
 
-  def test_mysql
-    start(adapter: "mysql2", database: "db")
-    assert_not aborted
-    assert_equal [%w[mysql mysql5], "db"], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_mysql_full
-    start(adapter: "mysql2", database: "db", host: "localhost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
-    assert_not aborted
-    assert_equal [%w[mysql mysql5], "--host=localhost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_mysql_include_password
-    start({ adapter: "mysql2", database: "db", username: "user", password: "qwerty" }, ["-p"])
-    assert_not aborted
-    assert_equal [%w[mysql mysql5], "--user=user", "--password=qwerty", "db"], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_postgresql
-    start(adapter: "postgresql", database: "db")
-    assert_not aborted
-    assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_postgresql_full
-    start(adapter: "postgresql", database: "db", username: "user", password: "q1w2e3", host: "host", port: 5432)
-    assert_not aborted
-    assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
-    assert_equal "user", ENV["PGUSER"]
-    assert_equal "host", ENV["PGHOST"]
-    assert_equal "5432", ENV["PGPORT"]
-    assert_not_equal "q1w2e3", ENV["PGPASSWORD"]
-  end
-
-  def test_postgresql_with_ssl
-    start(adapter: "postgresql", database: "db", sslmode: "verify-full", sslcert: "client.crt", sslkey: "client.key", sslrootcert: "root.crt")
-    assert_not aborted
-    assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
-    assert_equal "verify-full", ENV["PGSSLMODE"]
-    assert_equal "client.crt", ENV["PGSSLCERT"]
-    assert_equal "client.key", ENV["PGSSLKEY"]
-    assert_equal "root.crt", ENV["PGSSLROOTCERT"]
-  end
-
-  def test_postgresql_include_password
-    start({ adapter: "postgresql", database: "db", username: "user", password: "q1w2e3" }, ["-p"])
-    assert_not aborted
-    assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
-    assert_equal "user", ENV["PGUSER"]
-    assert_equal "q1w2e3", ENV["PGPASSWORD"]
-  end
-
-  def test_postgresql_include_variables
-    start(adapter: "postgresql", database: "db", variables: { search_path: "my_schema, default, \\my_schema", statement_timeout: 5000, lock_timeout: ":default" })
-    assert_not aborted
-    assert_equal "-c search_path=my_schema,\\ default,\\ \\\\my_schema -c statement_timeout=5000", ENV["PGOPTIONS"]
-  end
-
-  def test_sqlite3
-    start(adapter: "sqlite3", database: "db.sqlite3")
-    assert_not aborted
-    assert_equal ["sqlite3", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_sqlite3_mode
-    start({ adapter: "sqlite3", database: "db.sqlite3" }, ["--mode", "html"])
-    assert_not aborted
-    assert_equal ["sqlite3", "-html", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_sqlite3_header
-    start({ adapter: "sqlite3", database: "db.sqlite3" }, ["--header"])
-    assert_equal ["sqlite3", "-header", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_sqlite3_db_absolute_path
-    start(adapter: "sqlite3", database: "/tmp/db.sqlite3")
-    assert_not aborted
-    assert_equal ["sqlite3", "/tmp/db.sqlite3"], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_sqlite3_db_without_defined_rails_root
-    Rails.stub(:respond_to?, false) do
-      start(adapter: "sqlite3", database: "config/db.sqlite3")
-      assert_not aborted
-      assert_equal ["sqlite3", Rails.root.join("../config/db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
+  def test_start
+    assert_called_with(ActiveRecord::ConnectionAdapters::SQLite3Adapter, :exec, [/sqlite3/, /db\.sqlite3/]) do
+      start(adapter: "sqlite3", database: "db.sqlite3")
     end
-  end
-
-  def test_oracle
-    start(adapter: "oracle", database: "db", username: "user", password: "secret")
     assert_not aborted
-    assert_equal ["sqlplus", "user@db"], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_oracle_include_password
-    start({ adapter: "oracle", database: "db", username: "user", password: "secret" }, ["-p"])
-    assert_not aborted
-    assert_equal ["sqlplus", "user/secret@db"], dbconsole.find_cmd_and_exec_args
-  end
-
-  def test_sqlserver
-    start(adapter: "sqlserver", database: "db", username: "user", password: "secret", host: "localhost", port: 1433)
-    assert_not aborted
-    assert_equal ["sqlcmd", "-d", "db", "-U", "user", "-P", "secret", "-S", "tcp:localhost,1433"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_unknown_command_line_client
     start(adapter: "unknown", database: "db")
     assert aborted
-    assert_match(/Unknown command-line client for db/, output)
+    assert_match(/Database configuration specifies nonexistent 'unknown' adapter/, output)
   end
 
   def test_primary_is_automatically_picked_with_3_level_configuration
@@ -249,9 +153,10 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
     sample_config = {
       "test" => {
-        "primary" => {},
+        "primary" => { "adapter" => "sqlite3" },
         "primary_replica" => {
-          "replica" => true
+          "adapter" => "sqlite3",
+          "replica" => true,
         }
       }
     }
@@ -285,14 +190,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["-h"])
     end
-    assert_match(/rails dbconsole \[options\]/, stdout)
+    assert_match %r"bin/rails dbconsole", stdout
   end
 
   def test_print_help_long
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["--help"])
     end
-    assert_match(/rails dbconsole \[options\]/, stdout)
+    assert_match %r"bin/rails dbconsole", stdout
   end
 
   attr_reader :aborted, :output
@@ -303,23 +208,12 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       Rails.application.config.stub(:database_configuration, results || {}, &block)
     end
 
-    def make_dbconsole
-      Class.new(Rails::DBConsole) do
-        attr_reader :find_cmd_and_exec_args
-
-        def find_cmd_and_exec(*args)
-          @find_cmd_and_exec_args = args
-        end
-      end
-    end
-
     attr_reader :dbconsole
 
     def start(config = {}, argv = [])
-      hash_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config)
-
-      @dbconsole = make_dbconsole.new(parse_arguments(argv))
-      @dbconsole.stub(:db_config, hash_config) do
+      @dbconsole = Rails::DBConsole.new(parse_arguments(argv))
+      hash_config = nil
+      @dbconsole.stub(:db_config, -> { hash_config ||= ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config) }) do
         capture_abort { @dbconsole.start }
       end
     end
@@ -352,21 +246,6 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
 
     def parse_arguments(args)
-      Rails::Command::DbconsoleCommand.class_eval do
-        alias_method :old_perform, :perform
-        define_method(:perform) do
-          extract_environment_option_from_argument
-
-          options
-        end
-      end
-
-      Rails::Command.invoke(:dbconsole, args)
-    ensure
-      Rails::Command::DbconsoleCommand.class_eval do
-        undef_method :perform
-        alias_method :perform, :old_perform
-        undef_method :old_perform
-      end
+      Rails::Command::DbconsoleCommand.new([], args).options
     end
 end

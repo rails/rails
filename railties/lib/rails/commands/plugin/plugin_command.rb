@@ -5,6 +5,8 @@ module Rails
     class PluginCommand < Base # :nodoc:
       hide_command!
 
+      self.bin = "rails"
+
       def help
         run_plugin_generator %w( --help )
       end

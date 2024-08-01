@@ -202,19 +202,49 @@ module ActiveRecord
           options[:where]
         end
 
+        def deferrable
+          options[:deferrable]
+        end
+
         def export_name_on_schema_dump?
           !ActiveRecord::SchemaDumper.excl_ignore_pattern.match?(name) if name
         end
       end
 
+      UniqueConstraintDefinition = Struct.new(:table_name, :column, :options) do
+        def name
+          options[:name]
+        end
+
+        def deferrable
+          options[:deferrable]
+        end
+
+        def using_index
+          options[:using_index]
+        end
+
+        def export_name_on_schema_dump?
+          !ActiveRecord::SchemaDumper.unique_ignore_pattern.match?(name) if name
+        end
+
+        def defined_for?(name: nil, column: nil, **options)
+          (name.nil? || self.name == name.to_s) &&
+            (column.nil? || Array(self.column) == Array(column).map(&:to_s)) &&
+            options.all? { |k, v| self.options[k].to_s == v.to_s }
+        end
+      end
+
+      # = Active Record PostgreSQL Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
-        attr_reader :exclusion_constraints, :unlogged
+        attr_reader :exclusion_constraints, :unique_constraints, :unlogged
 
         def initialize(*, **)
           super
           @exclusion_constraints = []
+          @unique_constraints = []
           @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
         end
 
@@ -222,9 +252,18 @@ module ActiveRecord
           exclusion_constraints << new_exclusion_constraint_definition(expression, options)
         end
 
+        def unique_constraint(column_name, **options)
+          unique_constraints << new_unique_constraint_definition(column_name, options)
+        end
+
         def new_exclusion_constraint_definition(expression, options) # :nodoc:
           options = @conn.exclusion_constraint_options(name, expression, options)
           ExclusionConstraintDefinition.new(name, expression, options)
+        end
+
+        def new_unique_constraint_definition(column_name, options) # :nodoc:
+          options = @conn.unique_constraint_options(name, column_name, options)
+          UniqueConstraintDefinition.new(name, column_name, options)
         end
 
         def new_column_definition(name, type, **options) # :nodoc:
@@ -237,6 +276,10 @@ module ActiveRecord
         end
 
         private
+          def valid_column_definition_options
+            super + [:array, :using, :cast_as, :as, :type, :enum_type, :stored]
+          end
+
           def aliased_types(name, fallback)
             fallback
           end
@@ -250,6 +293,7 @@ module ActiveRecord
           end
       end
 
+      # = Active Record PostgreSQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
 
@@ -270,16 +314,57 @@ module ActiveRecord
         def remove_exclusion_constraint(*args)
           @base.remove_exclusion_constraint(name, *args)
         end
+
+        # Adds a unique constraint.
+        #
+        #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred)
+        #
+        # See {connection.add_unique_constraint}[rdoc-ref:SchemaStatements#add_unique_constraint]
+        def unique_constraint(*args)
+          @base.add_unique_constraint(name, *args)
+        end
+
+        # Removes the given unique constraint from the table.
+        #
+        #  t.remove_unique_constraint(name: "unique_position")
+        #
+        # See {connection.remove_unique_constraint}[rdoc-ref:SchemaStatements#remove_unique_constraint]
+        def remove_unique_constraint(*args)
+          @base.remove_unique_constraint(name, *args)
+        end
+
+        # Validates the given constraint on the table.
+        #
+        #  t.check_constraint("price > 0", name: "price_check", validate: false)
+        #  t.validate_constraint "price_check"
+        #
+        # See {connection.validate_constraint}[rdoc-ref:SchemaStatements#validate_constraint]
+        def validate_constraint(*args)
+          @base.validate_constraint(name, *args)
+        end
+
+        # Validates the given check constraint on the table
+        #
+        #  t.check_constraint("price > 0", name: "price_check", validate: false)
+        #  t.validate_check_constraint name: "price_check"
+        #
+        # See {connection.validate_check_constraint}[rdoc-ref:SchemaStatements#validate_check_constraint]
+        def validate_check_constraint(*args)
+          @base.validate_check_constraint(name, *args)
+        end
       end
 
+      # = Active Record PostgreSQL Adapter Alter \Table
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
-        attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops
+        attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops, :unique_constraint_adds, :unique_constraint_drops
 
         def initialize(td)
           super
           @constraint_validations = []
           @exclusion_constraint_adds = []
           @exclusion_constraint_drops = []
+          @unique_constraint_adds = []
+          @unique_constraint_drops = []
         end
 
         def validate_constraint(name)
@@ -292,6 +377,14 @@ module ActiveRecord
 
         def drop_exclusion_constraint(constraint_name)
           @exclusion_constraint_drops << constraint_name
+        end
+
+        def add_unique_constraint(column_name, options)
+          @unique_constraint_adds << @td.new_unique_constraint_definition(column_name, options)
+        end
+
+        def drop_unique_constraint(unique_constraint_name)
+          @unique_constraint_drops << unique_constraint_name
         end
       end
     end

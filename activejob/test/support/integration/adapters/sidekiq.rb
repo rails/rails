@@ -9,8 +9,8 @@ module SidekiqJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sidekiq
     unless can_run?
-      puts "Cannot run integration tests for sidekiq. To be able to run integration tests for sidekiq you need to install and start redis.\n"
-      status = ENV["CI"] ? false : true
+      puts "Cannot run integration tests for Sidekiq. To be able to run integration tests for Sidekiq you need to install and start Redis.\n"
+      status = ENV["BUILDKITE"] ? false : true
       exit status
     end
   end
@@ -25,6 +25,7 @@ module SidekiqJobsManager
     death_read, death_write = IO.pipe
 
     @pid = fork do
+      Sidekiq.redis_pool.reload(&:close)
       continue_read.close
       death_write.close
 
@@ -36,7 +37,7 @@ module SidekiqJobsManager
       $stderr.sync = true
 
       logfile = Rails.root.join("log/sidekiq.log").to_s
-      Sidekiq.logger = Sidekiq::Logger.new(logfile)
+      set_logger(Sidekiq::Logger.new(logfile))
 
       self_read, self_write = IO.pipe
       trap "TERM" do
@@ -53,7 +54,18 @@ module SidekiqJobsManager
 
       require "sidekiq/cli"
       require "sidekiq/launcher"
-      if Sidekiq.respond_to?(:[]=)
+      if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("7")
+        config = Sidekiq.default_configuration
+        config.queues = ["integration_tests"]
+        config.concurrency = 1
+        config.average_scheduled_poll_interval = 0.5
+        config.merge!(
+          environment: "test",
+          timeout: 1,
+          poll_interval_average: 1
+        )
+      elsif Sidekiq.respond_to?(:[]=)
+        # Sidekiq 6.5
         config = Sidekiq
         config[:queues] = ["integration_tests"]
         config[:environment] = "test"
@@ -64,12 +76,12 @@ module SidekiqJobsManager
           queues: ["integration_tests"],
           environment: "test",
           concurrency: 1,
-          timeout: 1
+          timeout: 1,
+          average_scheduled_poll_interval: 0.5,
+          poll_interval_average: 1
         }
       end
       sidekiq = Sidekiq::Launcher.new(config)
-      Sidekiq.average_scheduled_poll_interval = 0.5
-      Sidekiq.options[:poll_interval_average] = 1
       begin
         sidekiq.run
         continue_write.puts "started"
@@ -100,10 +112,22 @@ module SidekiqJobsManager
   def can_run?
     begin
       Sidekiq.redis(&:info)
-      Sidekiq.logger = nil
-    rescue
-      return false
+    rescue => e
+      if e.class.to_s.include?("CannotConnectError")
+        return false
+      else
+        raise
+      end
     end
+    set_logger(nil)
     true
+  end
+
+  def set_logger(logger)
+    if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("7")
+      Sidekiq.default_configuration.logger = logger
+    else
+      Sidekiq.logger = logger
+    end
   end
 end

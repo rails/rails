@@ -61,7 +61,6 @@
         Active Model also helps build custom ORMs for use outside of
         the Rails framework. This guide provides you with all you need to get
         started using Active Model classes.
-      work_in_progress: true
 -
   name: Views
   documents:
@@ -71,7 +70,6 @@
       description: >
         Action View is responsible for generating the HTML for web responses.
         This guide provides an introduction to Action View.
-      work_in_progress: true
     -
       name: Layouts and Rendering in Rails
       url: layouts_and_rendering.html
@@ -83,7 +81,6 @@
         Action View has helpers for handling everything from formatting dates
         and linking to images, to sanitizing and localizing content. This guide
         introduces a few of the more common Action View helpers.
-      work_in_progress: true
     -
       name: Action View Form Helpers
       url: form_helpers.html
@@ -130,12 +127,10 @@
         emails from your application, and many internals of Action Mailer.
     -
       name: Action Mailbox Basics
-      work_in_progress: true
       url: action_mailbox_basics.html
       description: This guide describes how to use Action Mailbox to receive emails.
     -
       name: Action Text Overview
-      work_in_progress: true
       url: action_text_overview.html
       description: This guide describes how to use Action Text to handle rich text content.
     -
@@ -162,13 +157,6 @@
         the same style and form as the rest of your Rails application. This
         guide explains how Action Cable works, and how to use WebSockets to
         create real-time features.
-    -
-      name: Webpacker
-      url: webpacker.html
-      description: >
-        This guide will show you how to install and use Webpacker to package
-        JavaScript, CSS, and other assets for the client-side of your Rails
-        application.
 -
   name: Digging Deeper
   documents:
@@ -184,6 +172,10 @@
       name: Securing Rails Applications
       url: security.html
       description: This guide describes common security problems in web applications and how to avoid them with Rails.
+    -
+      name: Error Reporting in Rails Applications
+      url: error_reporting.html
+      description: This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
     -
       name: Debugging Rails Applications
       url: debugging_rails_applications.html
@@ -222,13 +214,9 @@
         Rails. It is an extremely in-depth guide and recommended for advanced
         Rails developers.
     -
-      name: Autoloading and Reloading Constants
+      name: Autoloading and Reloading
       url: autoloading_and_reloading_constants.html
-      description: This guide documents how autoloading and reloading constants work (Zeitwerk mode).
-    -
-      name: "Classic to Zeitwerk HOWTO"
-      url: "classic_to_zeitwerk_howto.html"
-      description: "This guide documents how to migrate Rails applications from `classic` to `zeitwerk` mode."
+      description: This guide documents how autoloading and reloading constants work.
     -
       name: "Caching with Rails: An Overview"
       url: caching_with_rails.html
@@ -243,12 +231,20 @@
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
     -
+      name: Tuning Performance for Deployment
+      url: tuning_performance_for_deployment.html
+      description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
+
+-
+  name: Advanced Active Record
+  documents:
+    -
       name: Active Record and PostgreSQL
       work_in_progress: true
       url: active_record_postgresql.html
       description: This guide covers PostgreSQL specific usage of Active Record.
     -
-      name: Multiple Databases with Active Record
+      name: Multiple Databases
       url: active_record_multiple_databases.html
       description: This guide covers using multiple databases in your application.
     -
@@ -256,6 +252,10 @@
       work_in_progress: true
       url: active_record_encryption.html
       description: This guide covers encrypting your database information using Active Record.
+    -
+      name: Composite Primary Keys
+      url: active_record_composite_primary_keys.html
+      description: This guide is an introduction to composite primary keys for database tables.
 
 -
   name: Extending Rails
@@ -283,6 +283,15 @@
         application.
       work_in_progress: true
     -
+      name: Rails Application Templates
+      url: rails_application_templates.html
+      description: >
+        Application templates are simple Ruby files containing DSL for adding
+        gems, initializers, etc. to your freshly created Rails project or an
+        existing Rails project.
+      work_in_progress: true
+
+    -
       name: Threading and Code Execution in Rails
       url: threading_and_code_execution.html
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
@@ -302,6 +311,9 @@
       name: Guides Guidelines
       url: ruby_on_rails_guides_guidelines.html
       description: This guide documents the Ruby on Rails guides guidelines.
+    - name: Installing Rails Core Development Dependencies
+      url: development_dependencies_install.html
+      description: This guide covers how to set up an environment for Ruby on Rails core development.
 -
   name: Policies
   documents:
@@ -319,10 +331,18 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
-      name: Version 7.1 - ?
+      name: Version 8.0 - ?
+      url: 8_0_release_notes.html
+      description: Release notes for Rails 8.0.
+      work_in_progress: true
+    -
+      name: Version 7.2 - ?
+      url: 7_2_release_notes.html
+      description: Release notes for Rails 7.2.
+    -
+      name: Version 7.1 - October 2023
       url: 7_1_release_notes.html
       description: Release notes for Rails 7.1.
-      work_in_progress: true
     -
       name: Version 7.0 - December 2021
       url: 7_0_release_notes.html

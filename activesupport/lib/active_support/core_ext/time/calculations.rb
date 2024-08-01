@@ -42,20 +42,20 @@ class Time
 
     # Layers additional behavior on Time.at so that ActiveSupport::TimeWithZone and DateTime
     # instances can be used when called with a single argument
-    def at_with_coercion(*args, **kwargs)
-      return at_without_coercion(*args, **kwargs) if args.size != 1 || !kwargs.empty?
-
-      # Time.at can be called with a time or numerical value
-      time_or_number = args.first
-
-      if time_or_number.is_a?(ActiveSupport::TimeWithZone)
-        at_without_coercion(time_or_number.to_r).getlocal
-      elsif time_or_number.is_a?(DateTime)
-        at_without_coercion(time_or_number.to_f).getlocal
+    def at_with_coercion(time_or_number, *args)
+      if args.empty?
+        if time_or_number.is_a?(ActiveSupport::TimeWithZone)
+          at_without_coercion(time_or_number.to_r).getlocal
+        elsif time_or_number.is_a?(DateTime)
+          at_without_coercion(time_or_number.to_f).getlocal
+        else
+          at_without_coercion(time_or_number)
+        end
       else
-        at_without_coercion(time_or_number)
+        at_without_coercion(time_or_number, *args)
       end
     end
+    ruby2_keywords :at_with_coercion
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
 
@@ -108,21 +108,6 @@ class Time
     subsec
   end
 
-  unless Time.method_defined?(:floor)
-    def floor(precision = 0)
-      change(nsec: 0) + subsec.floor(precision)
-    end
-  end
-
-  # Restricted Ruby version due to a bug in `Time#ceil`
-  # See https://bugs.ruby-lang.org/issues/17025 for more details
-  if RUBY_VERSION <= "2.8"
-    remove_possible_method :ceil
-    def ceil(precision = 0)
-      change(nsec: 0) + subsec.ceil(precision)
-    end
-  end
-
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
@@ -159,10 +144,33 @@ class Time
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
     elsif utc?
       ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec)
-    elsif zone&.respond_to?(:utc_to_local)
-      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, zone)
+    elsif zone.respond_to?(:utc_to_local)
+      new_time = ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, zone)
+
+      # Some versions of Ruby have a bug where Time.new with a zone object and
+      # fractional seconds will end up with a broken utc_offset.
+      # This is fixed in Ruby 3.3.1 and 3.2.4
+      unless new_time.utc_offset.integer?
+        new_time += 0
+      end
+
+      # When there are two occurrences of a nominal time due to DST ending,
+      # `Time.new` chooses the first chronological occurrence (the one with a
+      # larger UTC offset). However, for `change`, we want to choose the
+      # occurrence that matches this time's UTC offset.
+      #
+      # If the new time's UTC offset is larger than this time's UTC offset, the
+      # new time might be a first chronological occurrence. So we add the offset
+      # difference to fast-forward the new time, and check if the result has the
+      # desired UTC offset (i.e. is the second chronological occurrence).
+      offset_difference = new_time.utc_offset - utc_offset
+      if offset_difference > 0 && (new_time_2 = new_time + offset_difference).utc_offset == utc_offset
+        new_time_2
+      else
+        new_time
+      end
     elsif zone
-      ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec)
+      ::Time.local(new_sec, new_min, new_hour, new_day, new_month, new_year, nil, nil, isdst, nil)
     else
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, utc_offset)
     end
@@ -179,6 +187,10 @@ class Time
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(hours: 1)   # => 2015-08-01 15:35:00 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(days: 1)    # => 2015-08-02 14:35:00 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(weeks: 1)   # => 2015-08-08 14:35:00 -0700
+  #
+  # Just like Date#advance, increments are applied in order of time units from
+  # largest to smallest. This order can affect the result around the end of a
+  # month.
   def advance(options)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
@@ -212,8 +224,13 @@ class Time
   # Returns a new Time representing the time a number of seconds since the instance time
   def since(seconds)
     self + seconds
-  rescue
-    to_datetime.since(seconds)
+  rescue TypeError
+    result = to_datetime.since(seconds)
+    ActiveSupport.deprecator.warn(
+      "Passing an instance of #{seconds.class} to #{self.class}#since is deprecated. This behavior will raise " \
+      "a `TypeError` in Rails 8.1."
+    )
+    result
   end
   alias :in :since
 
@@ -314,7 +331,12 @@ class Time
     if other.class == Time
       compare_without_coercion(other)
     elsif other.is_a?(Time)
-      compare_without_coercion(other.to_time)
+      # also avoid ActiveSupport::TimeWithZone#to_time before Rails 8.0
+      if other.respond_to?(:comparable_time)
+        compare_without_coercion(other.comparable_time)
+      else
+        compare_without_coercion(other.to_time)
+      end
     else
       to_datetime <=> other
     end

@@ -2,9 +2,12 @@
 
 module ActiveModel
   module Type
+    # = Active Model \Value \Type
+    #
     # The base class for all attribute types. This class also serves as the
     # default type for attributes that do not specify a type.
     class Value
+      include SerializeCastValue
       attr_reader :precision, :scale, :limit
 
       # Initializes a type with three basic configuration settings: precision,
@@ -12,6 +15,7 @@ module ActiveModel
       # these settings. It uses them for equality comparison and hash key
       # generation only.
       def initialize(precision: nil, limit: nil, scale: nil)
+        super()
         @precision = precision
         @scale = scale
         @limit = limit
@@ -127,6 +131,18 @@ module ActiveModel
       end
 
       def assert_valid_value(_)
+      end
+
+      def serialized? # :nodoc:
+        false
+      end
+
+      def mutable? # :nodoc:
+        false
+      end
+
+      def as_json(*)
+        raise NoMethodError
       end
 
       private

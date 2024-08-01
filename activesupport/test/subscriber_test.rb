@@ -127,4 +127,25 @@ class SubscriberTest < ActiveSupport::TestCase
   ensure
     TestSubscriber.detach_from :doodle
   end
+
+  def test_publish_event_preserve_units
+    event = ActiveSupport::Notifications::Event.new("publish_event.test", nil, nil, 42, {})
+    event.record { sleep 0.1 }
+
+    computed_duration = nil
+    callback = -> (_, start, finish, _, _) { computed_duration = finish - start }
+
+    ActiveSupport::Notifications.subscribed(callback, "publish_event.test") do
+      ActiveSupport::Notifications.publish_event(event)
+    end
+
+    # Event#duration is in milliseconds, start and finish in seconds
+    assert_in_delta event.duration / 1_000.0, computed_duration, 0.05
+
+    ActiveSupport::Notifications.subscribed(callback, "publish_event.test", monotonic: true) do
+      ActiveSupport::Notifications.publish_event(event)
+    end
+
+    assert_in_delta event.duration / 1_000.0, computed_duration, 0.05
+  end
 end

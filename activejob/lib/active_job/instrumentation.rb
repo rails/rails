@@ -1,6 +1,18 @@
 # frozen_string_literal: true
 
 module ActiveJob
+  class << self
+    private
+      def instrument_enqueue_all(queue_adapter, jobs)
+        payload = { adapter: queue_adapter, jobs: jobs }
+        ActiveSupport::Notifications.instrument("enqueue_all.active_job", payload) do
+          result = yield payload
+          payload[:enqueued_count] = result
+          result
+        end
+      end
+  end
+
   module Instrumentation # :nodoc:
     extend ActiveSupport::Concern
 

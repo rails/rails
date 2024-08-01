@@ -7,11 +7,11 @@ module ActionMailer
     extend ActiveSupport::Concern
 
     included do
-      # Set the location of mailer previews through app configuration:
+      # Add the location of mailer previews through app configuration:
       #
-      #     config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+      #     config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
       #
-      mattr_accessor :preview_path, instance_writer: false
+      mattr_accessor :preview_paths, instance_writer: false, default: []
 
       # Enable or disable mailer previews through app configuration:
       #
@@ -79,7 +79,7 @@ module ActionMailer
       # Returns all mailer preview classes.
       def all
         load_previews if descendants.empty?
-        descendants
+        descendants.sort_by { |mailer| mailer.name.titleize }
       end
 
       # Returns the mail object for the given email name. The registered preview
@@ -119,13 +119,13 @@ module ActionMailer
 
       private
         def load_previews
-          if preview_path
-            Dir["#{preview_path}/**/*_preview.rb"].sort.each { |file| require_dependency file }
+          preview_paths.each do |preview_path|
+            Dir["#{preview_path}/**/*_preview.rb"].sort.each { |file| require file }
           end
         end
 
-        def preview_path
-          Base.preview_path
+        def preview_paths
+          Base.preview_paths
         end
 
         def show_previews

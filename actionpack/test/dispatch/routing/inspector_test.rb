@@ -32,7 +32,7 @@ module ActionDispatch
 
         output = draw do
           get "/custom/assets", to: "custom_assets#show"
-          mount engine => "/blog", :as => "blog"
+          mount engine, at: "/blog", as: "blog"
         end
 
         assert_equal [
@@ -55,7 +55,7 @@ module ActionDispatch
         end
 
         output = draw do
-          mount engine => "/blog", as: "blog"
+          mount engine, at: "/blog", as: "blog"
         end
 
         assert_equal [
@@ -130,7 +130,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_dynamic_action_route
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get "api/:action" => "api"
           end
         end
@@ -143,7 +143,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_controller_and_action_only_route
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller/:action"
           end
         end
@@ -156,7 +156,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_controller_and_action_route_with_constraints
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller(/:action(/:id))", id: /\d+/
           end
         end
@@ -169,7 +169,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_route_with_defaults
         output = draw do
-          get "photos/:id" => "photos#show", :defaults => { format: "jpg" }
+          get "photos/:id", to: "photos#show", defaults: { format: "jpg" }
         end
 
         assert_equal [
@@ -180,7 +180,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_route_with_constraints
         output = draw do
-          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
+          get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -191,7 +191,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_routes_with_dashes
         output = draw do
-          get "about-us" => "pages#about_us"
+          get "about-us", to: "pages#about_us"
           get "our-work/latest"
 
           resources :photos, only: [:show] do
@@ -214,7 +214,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_route_with_rack_app
         output = draw do
-          get "foo/:id" => MountedRackApp, :id => /[A-Z]\d{5}/
+          get "foo/:id", to: MountedRackApp, id: /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -225,7 +225,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_named_route_with_mounted_rack_app
         output = draw do
-          mount MountedRackApp => "/foo"
+          mount MountedRackApp, at: "/foo"
         end
 
         assert_equal [
@@ -236,7 +236,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_overridden_named_route_with_mounted_rack_app_with_name
         output = draw do
-          mount MountedRackApp => "/foo", as: "blog"
+          mount MountedRackApp, at: "/foo", as: "blog"
         end
 
         assert_equal [
@@ -254,7 +254,7 @@ module ActionDispatch
 
         output = draw do
           scope constraint: constraint.new do
-            mount MountedRackApp => "/foo"
+            mount MountedRackApp, at: "/foo"
           end
         end
 
@@ -266,7 +266,7 @@ module ActionDispatch
 
       def test_rails_routes_dont_show_app_mounted_in_assets_prefix
         output = draw do
-          get "/sprockets" => MountedRackApp
+          get "/sprockets", to: MountedRackApp
         end
         assert_no_match(/MountedRackApp/, output.first)
         assert_no_match(/\/sprockets/, output.first)
@@ -275,7 +275,7 @@ module ActionDispatch
       def test_rails_routes_shows_route_defined_in_under_assets_prefix
         output = draw do
           scope "/sprockets" do
-            get "/foo" => "foo#bar"
+            get "/foo", to: "foo#bar"
           end
         end
         assert_equal [
@@ -286,9 +286,9 @@ module ActionDispatch
 
       def test_redirect
         output = draw do
-          get "/foo"    => redirect("/foo/bar"), :constraints => { subdomain: "admin" }
-          get "/bar"    => redirect(path: "/foo/bar", status: 307)
-          get "/foobar" => redirect { "/foo/bar" }
+          get "/foo",    to: redirect("/foo/bar"), constraints: { subdomain: "admin" }
+          get "/bar",    to: redirect(path: "/foo/bar", status: 307)
+          get "/foobar", to: redirect { "/foo/bar" }
         end
 
         assert_equal [
@@ -317,11 +317,14 @@ module ActionDispatch
       end
 
       def test_routes_when_expanded
+        ActionDispatch::Routing::Mapper.route_source_locations = true
         engine = Class.new(Rails::Engine) do
           def self.inspect
             "Blog::Engine"
           end
         end
+        file_name = ActiveSupport::BacktraceCleaner.new.clean([__FILE__]).first
+        lineno = __LINE__
         engine.routes.draw do
           get "/cart", to: "cart#show"
         end
@@ -329,36 +332,44 @@ module ActionDispatch
         output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new(width: 23)) do
           get "/custom/assets", to: "custom_assets#show"
           get "/custom/furnitures", to: "custom_furnitures#show"
-          mount engine => "/blog", :as => "blog"
+          mount engine, at: "/blog", as: "blog"
         end
 
-        assert_equal ["--[ Route 1 ]----------",
-                      "Prefix            | custom_assets",
-                      "Verb              | GET",
-                      "URI               | /custom/assets(.:format)",
-                      "Controller#Action | custom_assets#show",
-                      "--[ Route 2 ]----------",
-                      "Prefix            | custom_furnitures",
-                      "Verb              | GET",
-                      "URI               | /custom/furnitures(.:format)",
-                      "Controller#Action | custom_furnitures#show",
-                      "--[ Route 3 ]----------",
-                      "Prefix            | blog",
-                      "Verb              | ",
-                      "URI               | /blog",
-                      "Controller#Action | Blog::Engine",
-                      "",
-                      "[ Routes for Blog::Engine ]",
-                      "--[ Route 1 ]----------",
-                      "Prefix            | cart",
-                      "Verb              | GET",
-                      "URI               | /cart(.:format)",
-                      "Controller#Action | cart#show"], output
+        expected = ["--[ Route 1 ]----------",
+                     "Prefix            | custom_assets",
+                     "Verb              | GET",
+                     "URI               | /custom/assets(.:format)",
+                     "Controller#Action | custom_assets#show",
+                     "Source Location   | #{file_name}:#{lineno + 6}",
+                     "--[ Route 2 ]----------",
+                     "Prefix            | custom_furnitures",
+                     "Verb              | GET",
+                     "URI               | /custom/furnitures(.:format)",
+                     "Controller#Action | custom_furnitures#show",
+                     "Source Location   | #{file_name}:#{lineno + 7}",
+                     "--[ Route 3 ]----------",
+                     "Prefix            | blog",
+                     "Verb              | ",
+                     "URI               | /blog",
+                     "Controller#Action | Blog::Engine",
+                     "Source Location   | #{file_name}:#{lineno + 8}",
+                     "",
+                     "[ Routes for Blog::Engine ]",
+                     "--[ Route 1 ]----------",
+                     "Prefix            | cart",
+                     "Verb              | GET",
+                     "URI               | /cart(.:format)",
+                     "Controller#Action | cart#show",
+                     "Source Location   | #{file_name}:#{lineno + 2}"]
+
+        assert_equal expected, output
+      ensure
+        ActionDispatch::Routing::Mapper.route_source_locations = false
       end
 
       def test_no_routes_matched_filter_when_expanded
         output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
-          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
+          get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -400,7 +411,7 @@ module ActionDispatch
 
       def test_regression_route_with_controller_regexp
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller(/:action)", controller: /api\/[^\/]+/, format: false
           end
         end
@@ -409,22 +420,9 @@ module ActionDispatch
                       "       GET  /:controller(/:action) :controller#:action"], output
       end
 
-      def test_inspect_routes_shows_resources_route_when_assets_disabled
-        @set = ActionDispatch::Routing::RouteSet.new
-
-        output = draw do
-          get "/cart", to: "cart#show"
-        end
-
-        assert_equal [
-          "Prefix Verb URI Pattern     Controller#Action",
-          "  cart GET  /cart(.:format) cart#show"
-        ], output
-      end
-
       def test_routes_with_undefined_filter
         output = draw(controller: "Rails::MissingController") do
-          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
+          get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -435,7 +433,7 @@ module ActionDispatch
 
       def test_no_routes_matched_filter
         output = draw(grep: "rails/dummy") do
-          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
+          get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -470,7 +468,7 @@ module ActionDispatch
 
         output = draw do
           get "/custom/assets", to: "custom_assets#show"
-          mount engine => "/blog", as: "blog", internal: true
+          mount engine, at: "/blog", as: "blog", internal: true
         end
 
         assert_equal [

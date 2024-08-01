@@ -7,7 +7,7 @@ require "active_record/relation/merger"
 module ActiveRecord
   module SpawnMethods
     def spawn # :nodoc:
-      already_in_scope?(klass.scope_registry) ? klass.all : clone
+      already_in_scope?(model.scope_registry) ? model.all : clone
     end
 
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
@@ -27,6 +27,9 @@ module ActiveRecord
     #   # => Post.where(published: true).joins(:comments)
     #
     # This is mainly intended for sharing common conditions between multiple associations.
+    #
+    # For conditions that exist in both relations, those from <tt>other</tt> will take precedence.
+    # To find the intersection of two relations, use QueryMethods#and.
     def merge(other, *rest)
       if other.is_a?(Array)
         records & other
@@ -38,11 +41,10 @@ module ActiveRecord
     end
 
     def merge!(other, *rest) # :nodoc:
-      options = rest.extract_options!
       if other.is_a?(Hash)
-        Relation::HashMerger.new(self, other, options[:rewhere]).merge
+        Relation::HashMerger.new(self, other).merge
       elsif other.is_a?(Relation)
-        Relation::Merger.new(self, other, options[:rewhere]).merge
+        Relation::Merger.new(self, other).merge
       elsif other.respond_to?(:to_proc)
         instance_exec(&other)
       else

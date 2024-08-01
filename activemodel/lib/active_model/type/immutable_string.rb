@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \ImmutableString \Type
+    #
     # Attribute type to represent immutable strings. It casts incoming values to
     # frozen strings.
     #
@@ -50,6 +52,10 @@ module ActiveModel
         when false then @false
         else super
         end
+      end
+
+      def serialize_cast_value(value) # :nodoc:
+        value
       end
 
       private

@@ -195,13 +195,13 @@ class InclusionValidationTest < ActiveModel::TestCase
     p = Person.new
     p.karma = %w(Lifo monkey)
 
-    assert p.invalid?
+    assert_predicate p, :invalid?
     assert_equal ["is not included in the list"], p.errors[:karma]
 
     p = Person.new
     p.karma = %w(abe monkey)
 
-    assert p.valid?
+    assert_predicate p, :valid?
   ensure
     Person.clear_validators!
   end

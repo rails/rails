@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
+  # = Active Record \Suppressor
+  #
   # ActiveRecord::Suppressor prevents the receiver from being saved during
   # a given block.
   #
@@ -32,7 +34,7 @@ module ActiveRecord
 
     class << self
       def registry # :nodoc:
-        ActiveSupport::IsolatedExecutionState[:active_record_suppresor_registry] ||= {}
+        ActiveSupport::IsolatedExecutionState[:active_record_suppressor_registry] ||= {}
       end
     end
 

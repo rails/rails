@@ -21,64 +21,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582, 10, 15), Date.new(1582, 10, 4).tomorrow
   end
 
-  def test_to_s
-    date = Date.new(2005, 2, 21)
-    assert_equal "2005-02-21",          date.to_s
-    assert_deprecated do
-      assert_equal "21 Feb",              date.to_s(:short)
-    end
-    assert_deprecated do
-      assert_equal "February 21, 2005",   date.to_s(:long)
-    end
-    assert_deprecated do
-      assert_equal "February 21st, 2005", date.to_s(:long_ordinal)
-    end
-    assert_deprecated do
-      assert_equal "2005-02-21",          date.to_s(:db)
-    end
-    assert_deprecated do
-      assert_equal "2005-02-21",          date.to_s(:inspect)
-    end
-    assert_deprecated do
-      assert_equal "21 Feb 2005",         date.to_s(:rfc822)
-    end
-    assert_deprecated do
-      assert_equal "2005-02-21",          date.to_s(:iso8601)
-    end
-    assert_deprecated do
-      assert_equal "2005-02-21",          date.to_s(:not_existent)
-    end
-  end
-
-  def test_to_s_with_single_digit_day
-    date = Date.new(2005, 2, 1)
-    assert_equal "2005-02-01",          date.to_s
-    assert_deprecated do
-      assert_equal "01 Feb",              date.to_s(:short)
-    end
-    assert_deprecated do
-      assert_equal "February 01, 2005",   date.to_s(:long)
-    end
-    assert_deprecated do
-      assert_equal "February 1st, 2005",  date.to_s(:long_ordinal)
-    end
-    assert_deprecated do
-      assert_equal "2005-02-01",          date.to_s(:db)
-    end
-    assert_deprecated do
-      assert_equal "2005-02-01",          date.to_s(:inspect)
-    end
-    assert_deprecated do
-      assert_equal "01 Feb 2005",         date.to_s(:rfc822)
-    end
-    assert_deprecated do
-      assert_equal "2005-02-01",          date.to_s(:iso8601)
-    end
-    assert_deprecated do
-      assert_equal "2005-02-01",          date.to_s(:not_existent)
-    end
-  end
-
   def test_to_fs
     date = Date.new(2005, 2, 21)
     assert_equal "21 Feb",              date.to_fs(:short)
@@ -87,7 +29,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "2005-02-21",          date.to_fs(:db)
     assert_equal "2005-02-21",          date.to_fs(:inspect)
     assert_equal "21 Feb 2005",         date.to_fs(:rfc822)
+    assert_equal "21 Feb 2005",         date.to_fs(:rfc2822)
     assert_equal "2005-02-21",          date.to_fs(:iso8601)
+    assert_equal date.to_s,             date.to_fs(:doesnt_exist)
     assert_equal "21 Feb",              date.to_formatted_s(:short)
   end
 

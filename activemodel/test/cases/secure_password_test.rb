@@ -62,12 +62,22 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal ["can't be blank"], @user.errors[:password]
   end
 
-  test "create a new user with validation and password length greater than 72" do
+  test "create a new user with validation and password length greater than 72 characters" do
     @user.password = "a" * 73
     @user.password_confirmation = "a" * 73
     assert_not @user.valid?(:create), "user should be invalid"
     assert_equal 1, @user.errors.count
-    assert_equal ["is too long (maximum is 72 characters)"], @user.errors[:password]
+    assert_equal ["is too long"], @user.errors[:password]
+  end
+
+  test "create a new user with validation and password byte size greater than 72 bytes" do
+    # Create a password with 73 bytes by using a 3-byte Unicode character (e.g., "あ") 24 times, followed by a 1-byte character "a".
+    # This will result in a password length of 25 characters, but with a byte size of 73.
+    @user.password = "あ" * 24 + "a"
+    @user.password_confirmation = "あ" * 24 + "a"
+    assert_not @user.valid?(:create), "user should be invalid"
+    assert_equal 1, @user.errors.count
+    assert_equal ["is too long"], @user.errors[:password]
   end
 
   test "create a new user with validation and a blank password confirmation" do
@@ -142,7 +152,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @existing_user.password_confirmation = "a" * 73
     assert_not @existing_user.valid?(:update), "user should be invalid"
     assert_equal 1, @existing_user.errors.count
-    assert_equal ["is too long (maximum is 72 characters)"], @existing_user.errors[:password]
+    assert_equal ["is too long"], @existing_user.errors[:password]
   end
 
   test "updating an existing user with validation and a blank password confirmation" do
@@ -263,6 +273,21 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "authenticate should return false and not raise when password digest is blank" do
     @user.password_digest = " "
     assert_equal false, @user.authenticate(" ")
+  end
+
+  test "password_salt" do
+    @user.password = "secret"
+    assert_equal @user.password_digest.salt, @user.password_salt
+  end
+
+  test "password_salt should return nil when password is nil" do
+    @user.password = nil
+    assert_nil @user.password_salt
+  end
+
+  test "password_salt should return nil when password digest is nil" do
+    @user.password_digest = nil
+    assert_nil @user.password_salt
   end
 
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do

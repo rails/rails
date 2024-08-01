@@ -36,10 +36,10 @@ module ApplicationTests
         <%= params[:id] %>
       RUBY
 
-      get "/pages/foo"
+      get("/pages/foo", {}, "HTTPS" => "on")
       assert_equal 200, last_response.status
 
-      get "/pages/foo.bar"
+      get("/pages/foo.bar", {}, "HTTPS" => "on")
       assert_equal 200, last_response.status
     end
 
@@ -82,7 +82,7 @@ module ApplicationTests
         end
       RUBY
 
-      get "/"
+      get("/", {}, "HTTPS" => "on")
       assert_equal 200, last_response.status
       assert_equal "{:format=>:awesome, :handler=>RubbyHandler}", last_response.body
     end

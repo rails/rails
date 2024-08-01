@@ -101,7 +101,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], local)
 
     assert_equal local.nsec, with_zone.nsec
-    assert_equal with_zone.nsec, 999999999
+    assert_equal 999999999, with_zone.nsec
   end
 
   def test_strftime
@@ -146,22 +146,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31 19:00:00.000000000 -0500", @twz.to_fs(:inspect)
   end
 
-  def test_to_s_db
-    assert_deprecated do
-      assert_equal "2000-01-01 00:00:00", @twz.to_s(:db)
-    end
-  end
-
-  def test_to_s_inspect
-    assert_deprecated do
-      assert_equal "1999-12-31 19:00:00.000000000 -0500", @twz.to_s(:inspect)
-    end
-  end
-
-  def test_to_s_not_existent
-    assert_deprecated do
-      assert_equal "1999-12-31 19:00:00 -0500", @twz.to_s(:not_existent)
-    end
+  def test_to_fs_not_existent
+    assert_equal "1999-12-31 19:00:00 -0500", @twz.to_fs(:not_existent)
   end
 
   def test_xmlschema
@@ -206,7 +192,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     EOF
 
     # TODO: Remove assertion in Rails 7.1
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal(yaml, @twz.to_yaml)
     end
   end
@@ -222,7 +208,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     EOF
 
     # TODO: Remove assertion in Rails 7.1
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal(yaml, { "twz" => @twz }.to_yaml)
     end
   end
@@ -408,9 +394,26 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(1999, 12, 31, 19, 0, 5), (twz + 5).time
   end
 
-  def test_plus_when_crossing_time_class_limit
-    twz = ActiveSupport::TimeWithZone.new(Time.utc(2038, 1, 19), @time_zone)
-    assert_equal [0, 0, 19, 19, 1, 2038], (twz + 86_400).to_a[0, 6]
+  def test_no_limit_on_times
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), @time_zone)
+    assert_equal [0, 0, 19, 31, 12, 11999], (twz + 10_000.years).to_a[0, 6]
+    assert_equal [0, 0, 19, 31, 12, -8001], (twz - 10_000.years).to_a[0, 6]
+  end
+
+  def test_plus_two_time_instances_raises_deprecation_warning
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), @time_zone)
+    assert_deprecated(ActiveSupport.deprecator) do
+      twz + 10.days.ago
+    end
+  end
+
+  def test_plus_with_invalid_argument
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), @time_zone)
+    assert_not_deprecated(ActiveSupport.deprecator) do
+      assert_raises TypeError do
+        twz + Object.new
+      end
+    end
   end
 
   def test_plus_with_duration
@@ -445,6 +448,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
     twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"])
     assert_equal 86_400.0,  twz2 - twz1
+  end
+
+  def test_minus_with_time_with_zone_without_preserve_configured
+    with_preserve_timezone(nil) do
+      twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
+      twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"])
+
+      difference = assert_not_deprecated(ActiveSupport.deprecator) { twz2 - twz1 }
+      assert_equal 86_400.0, difference
+    end
   end
 
   def test_minus_with_time_with_zone_precision
@@ -531,7 +544,34 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal time, Time.at(time)
   end
 
-  def test_to_time_with_preserve_timezone
+  def test_to_time_with_preserve_timezone_using_zone
+    with_preserve_timezone(:zone) do
+      time = @twz.to_time
+      local_time = with_env_tz("US/Eastern") { Time.local(1999, 12, 31, 19) }
+
+      assert_equal Time, time.class
+      assert_equal time.object_id, @twz.to_time.object_id
+      assert_equal local_time, time
+      assert_equal local_time.utc_offset, time.utc_offset
+      assert_equal @time_zone, time.zone
+    end
+  end
+
+  def test_to_time_with_preserve_timezone_using_offset
+    with_preserve_timezone(:offset) do
+      with_env_tz "US/Eastern" do
+        time = @twz.to_time
+
+        assert_equal Time, time.class
+        assert_equal time.object_id, @twz.to_time.object_id
+        assert_equal Time.local(1999, 12, 31, 19), time
+        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+        assert_nil time.zone
+      end
+    end
+  end
+
+  def test_to_time_with_preserve_timezone_using_true
     with_preserve_timezone(true) do
       with_env_tz "US/Eastern" do
         time = @twz.to_time
@@ -540,6 +580,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         assert_equal time.object_id, @twz.to_time.object_id
         assert_equal Time.local(1999, 12, 31, 19), time
         assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+        assert_nil time.zone
       end
     end
   end
@@ -553,6 +594,23 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         assert_equal time.object_id, @twz.to_time.object_id
         assert_equal Time.local(1999, 12, 31, 19), time
         assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+        assert_equal Time.local(1999, 12, 31, 19).zone, time.zone
+      end
+    end
+  end
+
+  def test_to_time_without_preserve_timezone_configured
+    with_preserve_timezone(nil) do
+      with_env_tz "US/Eastern" do
+        time = assert_deprecated(ActiveSupport.deprecator) { @twz.to_time }
+
+        assert_equal Time, time.class
+        assert_equal time.object_id, @twz.to_time.object_id
+        assert_equal Time.local(1999, 12, 31, 19), time
+        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+        assert_equal Time.local(1999, 12, 31, 19).zone, time.zone
+
+        assert_equal false, ActiveSupport.to_time_preserves_timezone
       end
     end
   end
@@ -591,13 +649,6 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_kind_of Time, @twz
     assert_kind_of Time, @twz
     assert_kind_of ActiveSupport::TimeWithZone, @twz
-  end
-
-  def test_class_name
-    # TODO: Remove assertion in Rails 7.1 and change expected value
-    assert_deprecated("ActiveSupport::TimeWithZone.name has been deprecated") do
-      assert_equal "Time", ActiveSupport::TimeWithZone.name
-    end
   end
 
   def test_method_missing_with_time_return_value
@@ -647,6 +698,12 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     time = @twz.time
     def time.foo; "bar"; end
     assert_equal "bar", @twz.foo
+  end
+
+  def test_method_missing_works_with_kwargs
+    time = @twz.time
+    def time.method_with_kwarg(foo:); foo; end
+    assert_equal "bar", @twz.method_with_kwarg(foo: "bar")
   end
 
   def test_date_part_value_methods
@@ -1092,12 +1149,10 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_no_method_error_has_proper_context
-    rubinius_skip "Error message inconsistency"
-
     e = assert_raises(NoMethodError) {
       @twz.this_method_does_not_exist
     }
-    assert_match "undefined method `this_method_does_not_exist' for Fri, 31 Dec 1999 19:00:00.000000000 EST -05:00:ActiveSupport::TimeWithZone", e.message
+    assert_match(/undefined method [`']this_method_does_not_exist' for.*ActiveSupport::TimeWithZone/, e.message)
     assert_no_match "rescue", e.backtrace.first
   end
 end

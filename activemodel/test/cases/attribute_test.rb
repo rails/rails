@@ -4,52 +4,69 @@ require "cases/helper"
 
 module ActiveModel
   class AttributeTest < ActiveModel::TestCase
-    setup do
-      @type = Minitest::Mock.new
+    class InscribingType
+      def changed_in_place?(raw_old_value, new_value)
+        false
+      end
+
+      def cast(value)
+        "cast(#{value})"
+      end
+
+      def serialize(value)
+        "serialize(#{value})"
+      end
+
+      def deserialize(value)
+        "deserialize(#{value})"
+      end
     end
 
-    teardown do
-      assert @type.verify
+    setup do
+      @type = InscribingType.new
     end
 
     test "from_database + read type casts from database" do
-      @type.expect(:deserialize, "type cast from database", ["a value"])
       attribute = Attribute.from_database(nil, "a value", @type)
 
-      type_cast_value = attribute.value
-
-      assert_equal "type cast from database", type_cast_value
+      assert_equal "deserialize(a value)", attribute.value
     end
 
     test "from_user + read type casts from user" do
-      @type.expect(:cast, "type cast from user", ["a value"])
       attribute = Attribute.from_user(nil, "a value", @type)
 
-      type_cast_value = attribute.value
-
-      assert_equal "type cast from user", type_cast_value
+      assert_equal "cast(a value)", attribute.value
     end
 
     test "reading memoizes the value" do
-      @type.expect(:deserialize, "from the database", ["whatever"])
+      count = 0
+      @type.define_singleton_method(:deserialize) do |value|
+        count += 1
+        value
+      end
+
       attribute = Attribute.from_database(nil, "whatever", @type)
 
-      type_cast_value = attribute.value
-      second_read = attribute.value
-
-      assert_equal "from the database", type_cast_value
-      assert_same type_cast_value, second_read
+      attribute.value
+      attribute.value
+      assert_equal 1, count
     end
 
     test "reading memoizes falsy values" do
-      @type.expect(:deserialize, false, ["whatever"])
+      count = 0
+      @type.define_singleton_method(:deserialize) do |value|
+        count += 1
+        false
+      end
+
       attribute = Attribute.from_database(nil, "whatever", @type)
 
       attribute.value
       attribute.value
+      assert_equal 1, count
     end
 
-    test "read_before_typecast returns the given value" do
+    test "value_before_type_cast returns the given value" do
       attribute = Attribute.from_database(nil, "raw value", @type)
 
       raw_value = attribute.value_before_type_cast
@@ -57,48 +74,87 @@ module ActiveModel
       assert_equal "raw value", raw_value
     end
 
-    test "from_database + read_for_database type casts to and from database" do
-      @type.expect(:deserialize, "read from database", ["whatever"])
-      @type.expect(:serialize, "ready for database", ["read from database"])
+    test "from_database + value_for_database type casts to and from database" do
       attribute = Attribute.from_database(nil, "whatever", @type)
 
-      serialize = attribute.value_for_database
-
-      assert_equal "ready for database", serialize
+      assert_equal "serialize(deserialize(whatever))", attribute.value_for_database
     end
 
-    test "from_user + read_for_database type casts from the user to the database" do
-      @type.expect(:cast, "read from user", ["whatever"])
-      @type.expect(:serialize, "ready for database", ["read from user"])
+    test "from_user + value_for_database type casts from the user to the database" do
       attribute = Attribute.from_user(nil, "whatever", @type)
 
-      serialize = attribute.value_for_database
+      assert_equal "serialize(cast(whatever))", attribute.value_for_database
+    end
 
-      assert_equal "ready for database", serialize
+    test "from_user + value_for_database uses serialize_cast_value when possible" do
+      @type = Class.new(InscribingType) do
+        include Type::SerializeCastValue
+
+        def serialize_cast_value(value)
+          "serialize_cast_value(#{value})"
+        end
+      end.new
+
+      attribute = Attribute.from_user(nil, "whatever", @type)
+
+      assert_equal "serialize_cast_value(cast(whatever))", attribute.value_for_database
+    end
+
+    test "value_for_database is memoized" do
+      count = 0
+      @type.define_singleton_method(:serialize) do |value|
+        count += 1
+        nil
+      end
+
+      attribute = Attribute.from_user(nil, "whatever", @type)
+
+      attribute.value_for_database
+      attribute.value_for_database
+      assert_equal 1, count
+    end
+
+    test "value_for_database is recomputed when value changes in place" do
+      count = 0
+      @type.define_singleton_method(:serialize) do |value|
+        count += 1
+        nil
+      end
+      @type.define_singleton_method(:changed_in_place?) do |*|
+        true
+      end
+
+      attribute = Attribute.from_user(nil, "whatever", @type)
+
+      attribute.value_for_database
+      attribute.value_for_database
+      assert_equal 2, count
     end
 
     test "duping dups the value" do
-      @type.expect(:deserialize, +"type cast", ["a value"])
       attribute = Attribute.from_database(nil, "a value", @type)
 
-      value_from_orig = attribute.value
-      value_from_clone = attribute.dup.value
-      value_from_orig << " foo"
-
-      assert_equal "type cast foo", value_from_orig
-      assert_equal "type cast", value_from_clone
+      assert_not_same attribute.value, attribute.dup.value
     end
 
     test "duping does not dup the value if it is not dupable" do
-      @type.expect(:deserialize, false, ["a value"])
-      attribute = Attribute.from_database(nil, "a value", @type)
+      @type.define_singleton_method(:deserialize) { |value| value }
+      attribute = Attribute.from_database(nil, false, @type)
 
       assert_same attribute.value, attribute.dup.value
     end
 
     test "duping does not eagerly type cast if we have not yet type cast" do
-      attribute = Attribute.from_database(nil, "a value", @type)
+      deserialize_called = false
+      deserialize_called_with = nil
+      @type.define_singleton_method(:deserialize) do |value|
+        deserialize_called_with = value
+        deserialize_called = true
+      end
+      attribute = Attribute.from_database(nil, "my_attribute_value", @type)
+
       attribute.dup
+      assert_not deserialize_called, "deserialize should not have been called, but was called with #{deserialize_called_with}"
     end
 
     class MyType
@@ -225,8 +281,29 @@ module ActiveModel
       changed = attribute.with_value_from_user("foo")
       forgotten = changed.forgetting_assignment
 
-      assert changed.changed? # Check to avoid a false positive
+      assert_predicate changed, :changed? # Check to avoid a false positive
       assert_not_predicate forgotten, :changed?
+    end
+
+    test "#forgetting_assignment on an unchanged .from_database attribute re-deserializes its value" do
+      deserialized_value_class = Struct.new(:id) do
+        def initialize_dup(*)
+          self.id = nil # a la ActiveRecord::Base#dup
+        end
+      end
+
+      type = Type::Value.new
+      type.define_singleton_method(:deserialize) do |value|
+        deserialized_value_class.new(value)
+      end
+
+      original = Attribute.from_database(:foo, 123, type)
+      assert_equal 123, original.value.id
+
+      forgotten = original.forgetting_assignment
+      assert_equal 123, forgotten.value.id
+
+      assert_not_same original.value, forgotten.value
     end
 
     test "with_value_from_user validates the value" do

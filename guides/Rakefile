@@ -10,17 +10,35 @@ namespace :guides do
       ruby "-Eutf-8:utf-8", "rails_guides.rb"
     end
 
-    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
+    desc "Generate .mobi file"
     task :kindle do
-      require "kindlerb"
-      unless Kindlerb.kindlegen_available?
-        abort "Please run `setupkindlerb` to install kindlegen"
-      end
-      unless /convert/.match?(`convert`)
-        abort "Please install ImageMagick"
-      end
-      ENV["KINDLE"] = "1"
+      warn("DEPRECATION WARNING: The guides:generate:kindle rake task is deprecated and will be removed in 7.2. Run rake guides:generate:epub instead.")
+      Rake::Task["guides:generate:epub"].invoke
+    end
+
+    desc "Generate .epub file"
+    task :epub do
+      ENV["EPUB"] = "1"
       Rake::Task["guides:generate:html"].invoke
+    end
+  end
+
+  desc "Lint guides, using `mdl` and check for broken links"
+  task lint: ["lint:check_links", "lint:mdl"]
+
+  namespace :lint do
+    desc "Check links in generated HTML guides"
+    task :check_links do
+      ENV["GUIDES_LINT"] = "1"
+      ruby "-Eutf-8:utf-8", "rails_guides.rb"
+    end
+
+    desc "Run mdl to check Markdown files for style guide violations and lint errors"
+    task :mdl do
+      require "mdl"
+      all = Dir.glob("#{__dir__}/source/*.md")
+      files = all - Dir.glob("#{__dir__}/**/*_release_notes.md") # Ignore release notes
+      MarkdownLint.run files
     end
   end
 
@@ -28,6 +46,19 @@ namespace :guides do
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
   task :validate do
     ruby "w3c_validator.rb"
+  end
+
+  task :vendor_javascript do
+    require "importmap-rails"
+    require "importmap/packager"
+
+    packager = Importmap::Packager.new(vendor_path: "assets/javascripts")
+    imports = packager.import("@hotwired/turbo", from: "unpkg")
+    imports.each do |package, url|
+      umd_url = url.gsub("esm.js", "umd.js")
+      puts %(Vendoring "#{package}" to #{packager.vendor_path}/#{package}.js via download from #{umd_url})
+      packager.download(package, umd_url)
+    end
   end
 
   desc "Show help"
@@ -68,7 +99,7 @@ Some arguments may be passed via environment variables:
 Examples:
   $ rake guides:generate ALL=1 RAILS_VERSION=v5.1.0
   $ rake guides:generate ONLY=migrations
-  $ rake guides:generate:kindle
+  $ rake guides:generate:epub
   $ rake guides:generate GUIDES_LANGUAGE=es
 HELP
   end

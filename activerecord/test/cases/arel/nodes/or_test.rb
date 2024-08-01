@@ -22,12 +22,12 @@ module Arel
 
       describe "equality" do
         it "is equal with equal ivars" do
-          array = [Or.new("foo", "bar"), Or.new("foo", "bar")]
+          array = [Or.new(["foo", "bar"]), Or.new(["foo", "bar"])]
           assert_equal 1, array.uniq.size
         end
 
         it "is not equal with different ivars" do
-          array = [Or.new("foo", "bar"), Or.new("foo", "baz")]
+          array = [Or.new(["foo", "bar"]), Or.new(["foo", "baz"])]
           assert_equal 2, array.uniq.size
         end
       end

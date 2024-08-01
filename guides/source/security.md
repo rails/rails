@@ -19,7 +19,7 @@ After reading this guide, you will know:
 Introduction
 ------------
 
-Web application frameworks are made to help developers build web applications. Some of them also help you with securing the web application. In fact one framework is not more secure than another: If you use it correctly, you will be able to build secure apps with many frameworks. Ruby on Rails has some clever helper methods, for example against SQL injection, so that this is hardly a problem.
+Web application frameworks are made to help developers build web applications. Some of them also help you with securing the web application. In fact one framework is not more secure than another: If you use it correctly, you will be able to build secure apps with many frameworks. Ruby on Rails has some clever helper methods, for example against SQL injection, so this is hardly a problem.
 
 In general there is no such thing as plug-n-play security. Security depends on the people using the framework, and sometimes on the development method. And it depends on all layers of a web application environment: The back-end storage, the web server, and the web application itself (and possibly other layers or applications).
 
@@ -63,8 +63,6 @@ Hence, the cookie serves as temporary authentication for the web application. An
 * Many cross-site scripting (XSS) exploits aim at obtaining the user's cookie. You'll read [more about XSS](#cross-site-scripting-xss) later.
 
 * Instead of stealing a cookie unknown to the attacker, they fix a user's session identifier (in the cookie) known to them. Read more about this so-called session fixation later.
-
-The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from 0.5%-10% of account balance, $0.5-$30 for credit card numbers ($20-$60 with full details), $0.1-$1.5 for identities (Name, SSN, and DOB), $20-$50 for retailer accounts, and $6-$10 for cloud service provider accounts, according to the [Symantec Internet Security Threat Report (2017)](https://docs.broadcom.com/docs/istr-22-2017-en).
 
 ### Session Storage
 
@@ -115,7 +113,7 @@ In test and development applications get a `secret_key_base` derived from the ap
 secret_key_base: 492f...
 ```
 
-WARNING: If your application's secrets may have been exposed, strongly consider changing them. Changing `secret_key_base` will expire currently active sessions.
+WARNING: If your application's secrets may have been exposed, strongly consider changing them. Note that changing `secret_key_base` will expire currently active sessions and require all users to log in again. In addition to session data: encrypted cookies, signed cookies, and Active Storage files may also be affected.
 
 ### Rotating Encrypted and Signed Cookies Configurations
 
@@ -216,7 +214,7 @@ One possibility is to set the expiry time-stamp of the cookie with the session I
 ```ruby
 class Session < ApplicationRecord
   def self.sweep(time = 1.hour)
-    where("updated_at < ?", time.ago.to_fs(:db)).delete_all
+    where(updated_at: ...time.ago).delete_all
   end
 end
 ```
@@ -224,7 +222,7 @@ end
 The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a `created_at` column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:
 
 ```ruby
-where("updated_at < ? OR created_at < ?", time.ago.to_fs(:db), 2.days.ago.to_fs(:db)).delete_all
+where(updated_at: ...time.ago).or(where(created_at: ...2.days.ago)).delete_all
 ```
 
 Cross-Site Request Forgery (CSRF)
@@ -249,6 +247,8 @@ CSRF appears very rarely in CVE (Common Vulnerabilities and Exposures) - less th
 ### CSRF Countermeasures
 
 NOTE: _First, as is required by the W3C, use GET and POST appropriately. Secondly, a security token in non-GET requests will protect your application from CSRF._
+
+#### Use GET and POST Appropriately
 
 The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
 
@@ -287,21 +287,52 @@ There are many other possibilities, like using a `<script>` tag to make a cross-
 
 NOTE: We can't distinguish a `<script>` tag's origin—whether it's a tag on your own site or on some other malicious site—so we must block all `<script>` across the board, even if it's actually a safe same-origin script served from your own site. In these cases, explicitly skip CSRF protection on actions that serve JavaScript meant for a `<script>` tag.
 
+#### Required Security Token
+
 To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is done automatically when [`config.action_controller.default_protect_from_forgery`][] is set to `true`, which is the default for newly created Rails applications. You can also do it manually by adding the following to your application controller:
 
 ```ruby
 protect_from_forgery with: :exception
 ```
 
-This will include a security token in all forms and Ajax requests generated by Rails. If the security token doesn't match what was expected, an exception will be thrown.
+This will include a security token in all forms generated by Rails. If the
+security token doesn't match what was expected, an exception will be thrown.
 
-NOTE: By default, Rails includes an [unobtrusive scripting adapter](https://github.com/rails/rails/blob/main/actionview/app/assets/javascripts),
-which adds a header called `X-CSRF-Token` with the security token on every non-GET
-Ajax call. Without this header, non-GET Ajax requests won't be accepted by Rails.
-When using another library to make Ajax calls, it is necessary to add the security
-token as a default header for Ajax calls in your library. To get the token, have
-a look at `<meta name='csrf-token' content='THE-TOKEN'>` tag printed by
-`<%= csrf_meta_tags %>` in your application view.
+When submitting forms with [Turbo](https://turbo.hotwired.dev/) the security
+token is required as well. Turbo looks for the token in the `csrf` meta tags of
+your application layout and adds it to request in the `X-CSRF-Token` request
+header. These meta tags are created with the [`csrf_meta_tags`][] helper
+method:
+
+```erb
+<head>
+  <%= csrf_meta_tags %>
+</head>
+```
+
+which results in:
+
+```html
+<head>
+  <meta name="csrf-param" content="authenticity_token" />
+  <meta name="csrf-token" content="THE-TOKEN" />
+</head>
+```
+
+When making your own non-GET requests from JavaScript the security token is
+required as well. [Rails Request.JS](https://github.com/rails/request.js) is a
+JavaScript library that encapsulates the logic of adding the required request
+headers.
+
+When using another library to make Ajax calls, it is necessary to add the
+security token as a default header yourself. To get the token from the meta tag
+you could do something like:
+
+```javascript
+document.head.querySelector("meta[name=csrf-token]")?.content
+```
+
+#### Clearing Persistent Cookies
 
 It is common to use persistent cookies to store user information, with `cookies.permanent` for example. In this case, the cookies will not be cleared and the out of the box CSRF protection will not be effective. If you are using a different cookie store than the session for this information, you must handle what to do with it yourself:
 
@@ -316,6 +347,7 @@ The above method can be placed in the `ApplicationController` and will be called
 Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so they can read the CSRF security token from a form or directly submit the form. Read [more about XSS](#cross-site-scripting-xss) later.
 
 [`config.action_controller.default_protect_from_forgery`]: configuring.html#config-action-controller-default-protect-from-forgery
+[`csrf_meta_tags`]: https://api.rubyonrails.org/classes/ActionView/Helpers/CsrfHelper.html#method-i-csrf_meta_tags
 
 Redirection and Files
 ---------------------
@@ -330,7 +362,7 @@ Whenever the user is allowed to pass (parts of) the URL for redirection, it is p
 
 ```ruby
 def legacy
-  redirect_to(params.update(action:'main'))
+  redirect_to(params.update(action: 'main'))
 end
 ```
 
@@ -363,10 +395,10 @@ def sanitize_filename(filename)
   filename.strip.tap do |name|
     # NOTE: File.basename doesn't work right with Windows paths on Unix
     # get only the filename, not the whole path
-    name.sub! /\A.*(\\|\/)/, ''
+    name.sub!(/\A.*(\\|\/)/, '')
     # Finally, replace all non alphanumeric, underscore
     # or periods with underscore
-    name.gsub! /[^\w\.\-]/, '_'
+    name.gsub!(/[^\w.-]/, '_')
   end
 end
 ```
@@ -398,45 +430,11 @@ Simply pass a file name like "../../../etc/passwd" to download the server's logi
 ```ruby
 basename = File.expand_path('../../files', __dir__)
 filename = File.expand_path(File.join(basename, @file.public_filename))
-raise if basename !=
-     File.expand_path(File.join(File.dirname(filename), '../../../'))
+raise if basename != File.expand_path(File.dirname(filename))
 send_file filename, disposition: 'inline'
 ```
 
 Another (additional) approach is to store the file names in the database and name the files on the disk after the ids in the database. This is also a good approach to avoid possible code in an uploaded file to be executed. The `attachment_fu` plugin does this in a similar way.
-
-Intranet and Admin Security
----------------------------
-
-Intranet and administration interfaces are popular attack targets, because they allow privileged access. Although this would require several extra-security measures, the opposite is the case in the real world.
-
-In 2007 there was the first tailor-made trojan which stole information from an Intranet, namely the "Monster for employers" website of Monster.com, an online recruitment web application. Tailor-made Trojans are very rare, so far, and the risk is quite low, but it is certainly a possibility and an example of how the security of the client host is important, too. However, the highest threat to Intranet and Admin applications are XSS and CSRF.
-
-**XSS** If your application re-displays malicious user input from the extranet, the application will be vulnerable to XSS. User names, comments, spam reports, order addresses are just a few uncommon examples, where there can be XSS.
-
-Having one single place in the admin interface or Intranet, where the input has not been sanitized, makes the entire application vulnerable. Possible exploits include stealing the privileged administrator's cookie, injecting an iframe to steal the administrator's password or installing malicious software through browser security holes to take over the administrator's computer.
-
-Refer to the Injection section for countermeasures against XSS.
-
-**CSRF** Cross-Site Request Forgery (CSRF), also known as Cross-Site Reference Forgery (XSRF), is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
-
-A real-world example is a [router reconfiguration by CSRF](http://www.h-online.com/security/news/item/Symantec-reports-first-active-attack-on-a-DSL-router-735883.html). The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for the user, but it also contained an image tag that resulted in an HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake website and had their credentials stolen.
-
-Another example changed Google Adsense's e-mail address and password. If the victim was logged into Google Adsense, the administration interface for Google advertisement campaigns, an attacker could change the credentials of the victim.
-
-Another popular attack is to spam your web application, your blog, or forum to propagate malicious XSS. Of course, the attacker has to know the URL structure, but most Rails URLs are quite straightforward or they will be easy to find out, if it is an open-source application's admin interface. The attacker may even do 1,000 lucky guesses by just including malicious IMG-tags which try every possible combination.
-
-For _countermeasures against CSRF in administration interfaces and Intranet applications, refer to the countermeasures in the CSRF section_.
-
-### Additional Precautions
-
-The common admin interface works like this: it's located at www.example.com/admin, may be accessed only if the admin flag is set in the User model, re-displays user input and allows the admin to delete/add/edit whatever data desired. Here are some thoughts about this:
-
-* It is very important to _think about the worst case_: What if someone really got hold of your cookies or user credentials. You could _introduce roles_ for the admin interface to limit the possibilities of the attacker. Or how about _special login credentials_ for the admin interface, other than the ones used for the public part of the application. Or a _special password for very serious actions_?
-
-* Does the admin really have to access the interface from everywhere in the world? Think about _limiting the login to a bunch of source IP addresses_. Examine request.remote_ip to find out about the user's IP address. This is not bullet-proof, but a great barrier. Remember that there might be a proxy in use, though.
-
-* _Put the admin interface to a special subdomain_ such as admin.application.com and make it a separate application with its own user management. This makes stealing an admin cookie from the usual domain, www.application.com, impossible. This is because of the same origin policy in your browser: An injected (XSS) script on www.application.com may not read the cookie for admin.application.com and vice-versa.
 
 User Management
 ---------------
@@ -527,7 +525,7 @@ INFO: _A common pitfall in Ruby's regular expressions is to match the string's b
 Ruby uses a slightly different approach than many other languages to match the end and the beginning of a string. That is why even many Ruby and Rails books get this wrong. So how is this a security threat? Say you wanted to loosely validate a URL field and you used a simple regular expression like this:
 
 ```ruby
-  /^https?:\/\/[^\n]+$/i
+/^https?:\/\/[^\n]+$/i
 ```
 
 This may work fine in some languages. However, _in Ruby `^` and `$` match the **line** beginning and line end_. And thus a URL like this passes the filter without problems:
@@ -541,7 +539,7 @@ http://hi.com
 This URL passes the filter because the regular expression matches - the second line, the rest does not matter. Now imagine we had a view that showed the URL like this:
 
 ```ruby
-  link_to "Homepage", @user.homepage
+link_to "Homepage", @user.homepage
 ```
 
 The link looks innocent to visitors, but when it's clicked, it will execute the JavaScript function "exploit_code" or any other JavaScript the attacker provides.
@@ -549,14 +547,14 @@ The link looks innocent to visitors, but when it's clicked, it will execute the 
 To fix the regular expression, `\A` and `\z` should be used instead of `^` and `$`, like so:
 
 ```ruby
-  /\Ahttps?:\/\/[^\n]+\z/i
+/\Ahttps?:\/\/[^\n]+\z/i
 ```
 
 Since this is a frequent mistake, the format validator (validates_format_of) now raises an exception if the provided regular expression starts with ^ or ends with $. If you do need to use ^ and $ instead of \A and \z (which is rare), you can set the :multiline option to true, like so:
 
 ```ruby
-  # content should include a line "Meanwhile" anywhere in the string
-  validates :content, format: { with: /^Meanwhile$/, multiline: true }
+# content should include a line "Meanwhile" anywhere in the string
+validates :content, format: { with: /^Meanwhile$/, multiline: true }
 ```
 
 Note that this only protects you against the most common mistake when using the format validator - you always need to keep in mind that ^ and $ match the **line** beginning and line end in Ruby, and not the beginning and end of a string.
@@ -579,7 +577,7 @@ This is alright for some web applications, but certainly not if the user is not 
 
 Depending on your web application, there will be many more parameters the user can tamper with. As a rule of thumb, _no user input data is secure, until proven otherwise, and every parameter from the user is potentially manipulated_.
 
-Don't be fooled by security by obfuscation and JavaScript security. Developer tools let you review and change every form's hidden fields. _JavaScript can be used to validate user input data, but certainly not to prevent attackers from sending malicious requests with unexpected values_. The Firebug addon for Mozilla Firefox logs every request and may repeat and change them. That is an easy way to bypass any JavaScript validations. And there are even client-side proxies that allow you to intercept any request and response from and to the Internet.
+Don't be fooled by security by obfuscation and JavaScript security. Developer tools let you review and change every form's hidden fields. _JavaScript can be used to validate user input data, but certainly not to prevent attackers from sending malicious requests with unexpected values_. DevTools log every request and may repeat and change them. That is an easy way to bypass any JavaScript validations. And there are even client-side proxies that allow you to intercept any request and response from and to the Internet.
 
 Injection
 ---------
@@ -588,7 +586,7 @@ INFO: _Injection is a class of attacks that introduce malicious code or paramete
 
 Injection is very tricky, because the same code or parameter can be malicious in one context, but totally harmless in another. A context can be a scripting, query, or programming language, the shell, or a Ruby/Rails method. The following sections will cover all important contexts where injection attacks may happen. The first section, however, covers an architectural decision in connection with Injection.
 
-### Permitted lists versus Restricted lists
+### Permitted Lists Versus Restricted Lists
 
 NOTE: _When sanitizing, protecting, or verifying something, prefer permitted lists over restricted lists._
 
@@ -614,10 +612,10 @@ SQL injection attacks aim at influencing database queries by manipulating web ap
 Project.where("name = '#{params[:name]}'")
 ```
 
-This could be in a search action and the user may enter a project's name that they want to find. If a malicious user enters `' OR 1 --`, the resulting SQL query will be:
+This could be in a search action and the user may enter a project's name that they want to find. If a malicious user enters `' OR 1) --`, the resulting SQL query will be:
 
 ```sql
-SELECT * FROM projects WHERE name = '' OR 1 --'
+SELECT * FROM projects WHERE (name = '' OR 1) --')
 ```
 
 The two dashes start a comment ignoring everything after it. So the query returns all records from the projects table including those blind to the user. This is because the condition is true for all records.
@@ -661,7 +659,8 @@ SELECT * FROM projects WHERE (name = '') UNION
 
 The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
-Also, the second query renames some columns with the AS statement so that the web application displays the values from the user table. Be sure to update your Rails [to at least 2.1.1](https://rorsecurity.info/journal/2008/09/08/sql-injection-issue-in-limit-and-offset-parameter.html).
+Also, the second query renames some columns with the AS statement so that the
+Web application displays the values from the user table.
 
 #### Countermeasures
 
@@ -673,7 +672,7 @@ Instead of passing a string, you can use positional handlers to sanitize tainted
 Model.where("zip_code = ? AND quantity >= ?", entered_zip_code, entered_quantity).first
 ```
 
-The first parameter is a SQL fragment with question marks. The second and third
+The first parameter is an SQL fragment with question marks. The second and third
 parameter will replace the question marks with the value of the variables.
 
 You can also use named handlers, the values will be taken from the hash used:
@@ -690,8 +689,10 @@ Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity)
 ```
 
 Note the previous mentioned countermeasures are only available in model instances. You can
-try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences
+try [`sanitize_sql`][] elsewhere. _Make it a habit to think about the security consequences
 when using an external string in SQL_.
+
+[`sanitize_sql`]: https://api.rubyonrails.org/classes/ActiveRecord/Sanitization/ClassMethods.html#method-i-sanitize_sql
 
 ### Cross-Site Scripting (XSS)
 
@@ -705,7 +706,7 @@ The most common entry points are message posts, user comments, and guest books, 
 
 XSS attacks work like this: An attacker injects some code, the web application saves it and displays it on a page, later presented to a victim. Most XSS examples simply display an alert box, but it is more powerful than that. XSS can steal the cookie, hijack the session, redirect the victim to a fake website, display advertisements for the benefit of the attacker, change elements on the website to get confidential information or install malicious software through security holes in the web browser.
 
-During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The Symantec Global Internet Security threat report also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](https://www.pandasecurity.com/en/mediacenter/malware/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit a SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high profile targets.
+During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The Symantec Global Internet Security threat report also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](https://www.pandasecurity.com/en/mediacenter/malware/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit an SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high profile targets.
 
 #### HTML/JavaScript Injection
 
@@ -720,7 +721,7 @@ Here is the most straightforward test to check for XSS:
 This JavaScript code will simply display an alert box. The next examples do exactly the same, only in very uncommon places:
 
 ```html
-<img src=javascript:alert('Hello')>
+<img src="javascript:alert('Hello')">
 <table background="javascript:alert('Hello')">
 ```
 
@@ -748,7 +749,7 @@ You can mitigate these attacks (in the obvious way) by adding the **httpOnly** f
 
 ##### Defacement
 
-With web page defacement an attacker can do a lot of things, for example, present false information or lure the victim on the attackers website to steal the cookie, login credentials, or other sensitive data. The most popular way is to include code from external sources by iframes:
+With web page defacement an attacker can do a lot of things, for example, present false information or lure the victim on the attacker's website to steal the cookie, login credentials, or other sensitive data. The most popular way is to include code from external sources by iframes:
 
 ```html
 <iframe name="StatPage" src="http://58.xx.xxx.xxx" width=5 height=5 style="display:none"></iframe>
@@ -786,7 +787,9 @@ s = sanitize(user_input, tags: tags, attributes: %w(href title))
 
 This allows only the given tags and does a good job, even against all kinds of tricks and malformed tags.
 
-As a second step, _it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _Use `escapeHTML()` (or its alias `h()`) method_ to replace the HTML input characters `&`, `"`, `<`, and `>` by their uninterpreted representations in HTML (`&amp;`, `&quot;`, `&lt;`, and `&gt;`).
+Both Action View and Action Text build their [sanitization helpers](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html) on top of the [rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
+
+As a second step, _it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _Use `html_escape()` (or its alias `h()`) method_ to replace the HTML input characters `&`, `"`, `<`, and `>` by their uninterpreted representations in HTML (`&amp;`, `&quot;`, `&lt;`, and `&gt;`).
 
 ##### Obfuscation and Encoding Injection
 
@@ -859,9 +862,10 @@ This example, again, showed that a restricted list filter is never complete. How
 
 ### Textile Injection
 
-If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. [RedCloth](http://redcloth.org/) is such a language for Ruby, but without precautions, it is also vulnerable to XSS.
+If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. [RedCloth](https://github.com/jgarber/redcloth) is such a language for Ruby, but without precautions, it is also vulnerable to XSS.
 
-For example, RedCloth translates `_test_` to `<em>test<em>`, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the [all-new version 4](http://www.redcloth.org) that removed serious bugs. However, even that version has [some security bugs](https://rorsecurity.info/journal/2008/10/13/new-redcloth-security.html), so the countermeasures still apply. Here is an example for version 3.0.4:
+For example, RedCloth translates `_test_` to `<em>test<em>`, which makes the
+text italic. However, RedCloth doesn’t filter unsafe html tags by default:
 
 ```ruby
 RedCloth.new('<script>alert(1)</script>').to_html
@@ -907,11 +911,11 @@ system("/bin/echo #{user_input}")
 A countermeasure is to _use the `system(command, parameters)` method which passes command line parameters safely_.
 
 ```ruby
-system("/bin/echo","hello; rm *")
+system("/bin/echo", "hello; rm *")
 # prints "hello; rm *" and does not delete files
 ```
 
-#### Kernel#open's vulnerability
+#### Kernel#open's Vulnerability
 
 `Kernel#open` executes OS command if the argument starts with a vertical bar (`|`).
 
@@ -980,7 +984,7 @@ Rails.application.config.hosts << "product.com"
 
 Rails.application.config.host_authorization = {
   # Exclude requests for the /healthcheck/ path from host checking
-  exclude: ->(request) { request.path =~ /healthcheck/ }
+  exclude: ->(request) { request.path.include?("healthcheck") },
   # Add custom Rack application for the response
   response_app: -> env do
     [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
@@ -1061,7 +1065,7 @@ HTTP Security Headers
 ---------------------
 
 To improve the security of your application, Rails can be configured to return
-HTTP security headers. Some headers are configured by default, others need to
+HTTP security headers. Some headers are configured by default; others need to
 be explicitly configured.
 
 ### Default Security Headers
@@ -1069,36 +1073,42 @@ be explicitly configured.
 By default Rails is configured to return the following response headers. Your
 application returns these headers for every HTTP response.
 
-#### X-Frame-Options
+#### `X-Frame-Options`
 
-This header indicates if a browser can render the page in a `<frame>`,
+The [`X-Frame-Options`][] header indicates if a browser can render the page in a `<frame>`,
 `<iframe>`, `<embed>` or `<object>` tag. This header is set to `SAMEORIGIN` by
 default to allow framing on the same domain only. Set it to `DENY` to deny
 framing at all, or remove this header completely if you want to allow framing on
 all domains.
 
-#### X-XSS-Protection
+[`X-Frame-Options`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+
+#### `X-XSS-Protection`
 
 A [deprecated legacy
 header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to
 `0` in Rails by default to disable problematic legacy XSS auditors.
 
-#### X-Content-Type-Options
+#### `X-Content-Type-Options`
 
-This header is set to `nosniff` in Rails by default. It stops the browser from
-guessing the MIME type of a file.
+The [`X-Content-Type-Options`][] header is set to `nosniff` in Rails by default.
+It stops the browser from guessing the MIME type of a file.
 
-#### X-Permitted-Cross-Domain-Policies
+[`X-Content-Type-Options`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+
+#### `X-Permitted-Cross-Domain-Policies`
 
 This header is set to `none` in Rails by default. It disallows Adobe Flash and
 PDF clients from embedding your page on other domains.
 
-#### Referrer-Policy
+#### `Referrer-Policy`
 
-This header is set to `strict-origin-when-cross-origin` in Rails by default.
-For cross-origin request this only sends the origin in the Referer header. This
+The [`Referrer-Policy`][] header is set to `strict-origin-when-cross-origin` in Rails by default.
+For cross-origin requests, this only sends the origin in the Referer header. This
 prevents leaks of private data that may be accessible from other parts of the
-full URL such as the path and query string.
+full URL, such as the path and query string.
+
+[`Referrer-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
 
 #### Configuring the Default Headers
 
@@ -1127,25 +1137,24 @@ Or you can remove them:
 config.action_dispatch.default_headers.clear
 ```
 
-### Strict-Transport-Security Header
+### `Strict-Transport-Security` Header
 
-The HTTP
-[Strict-Transport-Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)
-(HTST) response header makes sure the browser automatically upgrades to HTTPS
-for current and future connections.
+The HTTP [`Strict-Transport-Security`][] (HSTS) response header makes sure the
+browser automatically upgrades to HTTPS for current and future connections.
 
 The header is added to the response when enabling the `force_ssl` option:
 
 ```ruby
-  config.force_ssl = true
+config.force_ssl = true
 ```
 
-### Content-Security-Policy Header
+[`Strict-Transport-Security`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+
+### `Content-Security-Policy` Header
 
 To help protect against XSS and injection attacks, it is recommended to define a
-[Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
-response header for your application. Rails provides a DSL that allows you to
-configure the header.
+[`Content-Security-Policy`][] response header for your application. Rails
+provides a DSL that allows you to configure the header.
 
 Define the security policy in the appropriate initializer:
 
@@ -1193,11 +1202,11 @@ class PostsController < ApplicationController
 end
 ```
 
+[`Content-Security-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+
 #### Reporting Violations
 
-Enable the
-[report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
-directive to report violations to the specified URI:
+Enable the [`report-uri`][] directive to report violations to the specified URI:
 
 ```ruby
 Rails.application.config.content_security_policy do |policy|
@@ -1206,8 +1215,7 @@ end
 ```
 
 When migrating legacy content, you might want to report violations without
-enforcing the policy. Set the
-[Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
+enforcing the policy. Set the [`Content-Security-Policy-Report-Only`][]
 response header to only report violations:
 
 ```ruby
@@ -1222,11 +1230,14 @@ class PostsController < ApplicationController
 end
 ```
 
+[`Content-Security-Policy-Report-Only`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
+[`report-uri`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri
+
 #### Adding a Nonce
 
-If you are considering 'unsafe-inline', consider using nonces instead. [Nonces
+If you are considering `'unsafe-inline'`, consider using nonces instead. [Nonces
 provide a substantial improvement](https://www.w3.org/TR/CSP3/#security-nonces)
-over 'unsafe-inline' when implementing a Content Security Policy on top
+over `'unsafe-inline'` when implementing a Content Security Policy on top
 of existing code.
 
 ```ruby
@@ -1241,7 +1252,7 @@ Rails.application.config.content_security_policy_nonce_generator = -> request { 
 There are a few tradeoffs to consider when configuring the nonce generator.
 Using `SecureRandom.base64(16)` is a good default value, because it will
 generate a new random nonce for each request. However, this method is
-incompatible with [Conditional GET caching](caching_with_rails.html#conditional-get-caching)
+incompatible with [conditional GET caching](caching_with_rails.html#conditional-get-support)
 because new nonces will result in new ETag values for every request. An
 alternative to per-request random nonces would be to use the session id:
 
@@ -1270,10 +1281,11 @@ can be added to script tags by passing `nonce: true` as part of `html_options`:
 <% end -%>
 ```
 
-The same works with `javascript_include_tag`:
+The same works with `javascript_include_tag` and the `stylesheet_link_tag`:
 
 ```html+erb
 <%= javascript_include_tag "script", nonce: true %>
+<%= stylesheet_link_tag "style.css", nonce: true %>
 ```
 
 Use [`csp_meta_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
@@ -1289,16 +1301,15 @@ for allowing inline `<script>` tags.
 This is used by the Rails UJS helper to create dynamically
 loaded inline `<script>` elements.
 
-### Feature-Policy Header
+### `Feature-Policy` Header
 
-NOTE: The Feature-Policy header has been renamed to Permissions-Policy.
-The Permissions-Policy requires a different implementation and isn't
+NOTE: The `Feature-Policy` header has been renamed to `Permissions-Policy`.
+The `Permissions-Policy` requires a different implementation and isn't
 yet supported by all browsers. To avoid having to rename this
-middleware in the future we use the new name for the middleware but
+middleware in the future, we use the new name for the middleware but
 keep the old header name and implementation for now.
 
-To allow or block the use of browser features you can define a
-[Feature-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
+To allow or block the use of browser features, you can define a [`Feature-Policy`][]
 response header for your application. Rails provides a DSL that allows you to
 configure the header.
 
@@ -1325,6 +1336,78 @@ class PagesController < ApplicationController
   end
 end
 ```
+
+[`Feature-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
+
+### Cross-Origin Resource Sharing
+
+Browsers restrict cross-origin HTTP requests initiated from scripts. If you
+want to run Rails as an API, and run a frontend app on a separate domain, you
+need to enable [Cross-Origin Resource
+Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) (CORS).
+
+You can use the [Rack CORS](https://github.com/cyu/rack-cors) middleware for
+handling CORS. If you've generated your application with the `--api` option,
+Rack CORS has probably already been configured and you can skip the following
+steps.
+
+To get started, add the rack-cors gem to your Gemfile:
+
+```ruby
+gem "rack-cors"
+```
+
+Next, add an initializer to configure the middleware:
+
+```ruby
+# config/initializers/cors.rb
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    origins 'example.com'
+
+    resource '*',
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+  end
+end
+```
+
+Intranet and Admin Security
+---------------------------
+
+Intranet and administration interfaces are popular attack targets, because they allow privileged access. Although this would require several extra-security measures, the opposite is the case in the real world.
+
+In 2007 there was the first tailor-made trojan which stole information from an Intranet, namely the "Monster for employers" website of Monster.com, an online recruitment web application. Tailor-made Trojans are very rare, so far, and the risk is quite low, but it is certainly a possibility and an example of how the security of the client host is important, too. However, the highest threat to Intranet and Admin applications are XSS and CSRF.
+
+### Cross-Site Scripting
+
+If your application re-displays malicious user input from the extranet, the application will be vulnerable to XSS. User names, comments, spam reports, order addresses are just a few uncommon examples, where there can be XSS.
+
+Having one single place in the admin interface or Intranet, where the input has not been sanitized, makes the entire application vulnerable. Possible exploits include stealing the privileged administrator's cookie, injecting an iframe to steal the administrator's password or installing malicious software through browser security holes to take over the administrator's computer.
+
+Refer to the Injection section for countermeasures against XSS.
+
+### Cross-Site Request Forgery
+
+Cross-Site Request Forgery (CSRF), also known as Cross-Site Reference Forgery (XSRF), is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
+
+A real-world example is a [router reconfiguration by CSRF](http://www.h-online.com/security/news/item/Symantec-reports-first-active-attack-on-a-DSL-router-735883.html). The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for the user, but it also contained an image tag that resulted in an HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake website and had their credentials stolen.
+
+Another example changed Google Adsense's e-mail address and password. If the victim was logged into Google Adsense, the administration interface for Google advertisement campaigns, an attacker could change the credentials of the victim.
+
+Another popular attack is to spam your web application, your blog, or forum to propagate malicious XSS. Of course, the attacker has to know the URL structure, but most Rails URLs are quite straightforward or they will be easy to find out, if it is an open-source application's admin interface. The attacker may even do 1,000 lucky guesses by just including malicious IMG-tags which try every possible combination.
+
+For _countermeasures against CSRF in administration interfaces and Intranet applications, refer to the countermeasures in the CSRF section_.
+
+### Additional Precautions
+
+The common admin interface works like this: it's located at www.example.com/admin, may be accessed only if the admin flag is set in the User model, re-displays user input and allows the admin to delete/add/edit whatever data desired. Here are some thoughts about this:
+
+* It is very important to _think about the worst case_: What if someone really got hold of your cookies or user credentials. You could _introduce roles_ for the admin interface to limit the possibilities of the attacker. Or how about _special login credentials_ for the admin interface, other than the ones used for the public part of the application. Or a _special password for very serious actions_?
+
+* Does the admin really have to access the interface from everywhere in the world? Think about _limiting the login to a bunch of source IP addresses_. Examine request.remote_ip to find out about the user's IP address. This is not bullet-proof, but a great barrier. Remember that there might be a proxy in use, though.
+
+* _Put the admin interface to a special subdomain_ such as admin.application.com and make it a separate application with its own user management. This makes stealing an admin cookie from the usual domain, www.application.com, impossible. This is because of the same origin policy in your browser: An injected (XSS) script on www.application.com may not read the cookie for admin.application.com and vice-versa.
 
 Environmental Security
 ----------------------
@@ -1374,7 +1457,6 @@ Additional Resources
 
 The security landscape shifts and it is important to keep up to date, because missing a new vulnerability can be catastrophic. You can find additional resources about (Rails) security here:
 
-* Subscribe to the Rails security [mailing list](https://groups.google.com/forum/#!forum/rubyonrails-security).
-* [Brakeman - Rails Security Scanner](https://brakemanscanner.org/) - To perform static security analysis for Rails applications.
+* Subscribe to the Rails security [mailing list](https://discuss.rubyonrails.org/c/security-announcements/9).
 * [Mozilla's Web Security Guidelines](https://infosec.mozilla.org/guidelines/web_security.html) - Recommendations on topics covering Content Security Policy, HTTP headers, Cookies, TLS configuration, etc.
 * A [good security blog](https://owasp.org/) including the [Cross-Site scripting Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md).

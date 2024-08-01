@@ -51,6 +51,10 @@ module ActionView
       def length
         @collection.respond_to?(:length) ? @collection.length : size
       end
+
+      def preload!
+        # no-op
+      end
     end
 
     class SameCollectionIterator < CollectionIterator # :nodoc:
@@ -84,8 +88,12 @@ module ActionView
 
       def each_with_info
         return super unless block_given?
-        @relation.preload_associations(@collection)
+        preload!
         super
+      end
+
+      def preload!
+        @relation.preload_associations(@collection)
       end
     end
 
@@ -186,7 +194,7 @@ module ActionView
 
           _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
 
-          content = _template.render(view, locals)
+          content = _template.render(view, locals, implicit_locals: [counter, iteration])
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
           build_rendered_template(content, _template)

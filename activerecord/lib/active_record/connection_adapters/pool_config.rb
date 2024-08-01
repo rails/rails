@@ -3,10 +3,15 @@
 module ActiveRecord
   module ConnectionAdapters
     class PoolConfig # :nodoc:
-      include Mutex_m
+      include MonitorMixin
 
       attr_reader :db_config, :role, :shard
-      attr_accessor :schema_cache, :connection_class
+      attr_writer :schema_reflection, :server_version
+      attr_accessor :connection_class
+
+      def schema_reflection
+        @schema_reflection ||= SchemaReflection.new(db_config.lazy_schema_cache_path)
+      end
 
       INSTANCES = ObjectSpace::WeakMap.new
       private_constant :INSTANCES
@@ -15,16 +20,25 @@ module ActiveRecord
         def discard_pools!
           INSTANCES.each_key(&:discard_pool!)
         end
+
+        def disconnect_all!
+          INSTANCES.each_key { |c| c.disconnect!(automatic_reconnect: true) }
+        end
       end
 
       def initialize(connection_class, db_config, role, shard)
         super()
+        @server_version = nil
         @connection_class = connection_class
         @db_config = db_config
         @role = role
         @shard = shard
         @pool = nil
         INSTANCES[self] = self
+      end
+
+      def server_version(connection)
+        @server_version || synchronize { @server_version ||= connection.get_database_version }
       end
 
       def connection_name
@@ -35,15 +49,13 @@ module ActiveRecord
         end
       end
 
-      def disconnect!
-        ActiveSupport::ForkTracker.check!
-
+      def disconnect!(automatic_reconnect: false)
         return unless @pool
 
         synchronize do
           return unless @pool
 
-          @pool.automatic_reconnect = false
+          @pool.automatic_reconnect = automatic_reconnect
           @pool.disconnect!
         end
 
@@ -51,8 +63,6 @@ module ActiveRecord
       end
 
       def pool
-        ActiveSupport::ForkTracker.check!
-
         @pool || synchronize { @pool ||= ConnectionAdapters::ConnectionPool.new(self) }
       end
 

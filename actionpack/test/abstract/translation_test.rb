@@ -47,16 +47,6 @@ module AbstractController
         assert_respond_to @controller, :l
       end
 
-      def test_raises_missing_translation_message_with_raise_config_option
-        AbstractController::Translation.raise_on_missing_translations = true
-
-        assert_raise(I18n::MissingTranslationData) do
-          @controller.t("translations.missing")
-        end
-      ensure
-        AbstractController::Translation.raise_on_missing_translations = false
-      end
-
       def test_raises_missing_translation_message_with_raise_option
         assert_raise(I18n::MissingTranslationData) do
           @controller.t(:"translations.missing", raise: true)
@@ -90,6 +80,38 @@ module AbstractController
         @controller.stub :action_name, :index do
           assert_equal "bar", @controller.t("one.two")
           assert_equal "baz", @controller.t(".twoz", default: ["baz", :twoz])
+        end
+      end
+
+      def test_default_translation_as_unsafe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".twoz", default: ["<tag>"])
+          assert_equal "<tag>", translation
+          assert_equal false, translation.html_safe?
+        end
+      end
+
+      def test_default_translation_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".twoz_html", default: ["<tag>"])
+          assert_equal "&lt;tag&gt;", translation
+          assert_equal true, translation.html_safe?
+        end
+      end
+
+      def test_default_translation_with_raise_as_unsafe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".twoz", raise: true, default: ["<tag>"])
+          assert_equal "<tag>", translation
+          assert_equal false, translation.html_safe?
+        end
+      end
+
+      def test_default_translation_with_raise_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".twoz_html", raise: true, default: ["<tag>"])
+          assert_equal "&lt;tag&gt;", translation
+          assert_equal true, translation.html_safe?
         end
       end
 
@@ -134,6 +156,25 @@ module AbstractController
           translation = @controller.t(".interpolated_html", word: word_struct.new("<World>"))
           assert_equal "<a>Hello &lt;World&gt;</a>", translation
           assert_equal true, translation.html_safe?
+        end
+      end
+
+      def test_translate_marks_translation_with_missing_html_key_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t("<tag>.html")
+          assert_equal false, translation.html_safe?
+          assert_equal "Translation missing: en.<tag>.html", translation
+        end
+      end
+      def test_translate_marks_translation_with_missing_nested_html_key_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".<tag>.html")
+          assert_equal false, translation.html_safe?
+          assert_equal(<<~MSG.strip, translation)
+            Translation missing. Options considered were:
+            - en.abstract_controller.testing.translation.index.<tag>.html
+            - en.abstract_controller.testing.translation.<tag>.html
+          MSG
         end
       end
     end

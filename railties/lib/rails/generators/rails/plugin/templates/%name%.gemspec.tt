@@ -3,14 +3,14 @@ require_relative "lib/<%= namespaced_name %>/version"
 Gem::Specification.new do |spec|
   spec.name        = <%= name.inspect %>
   spec.version     = <%= camelized_modules %>::VERSION
-  spec.authors     = [<%= author.inspect %>]
-  spec.email       = [<%= email.inspect %>]
+  spec.authors     = [ <%= author.inspect %> ]
+  spec.email       = [ <%= email.inspect %> ]
   spec.homepage    = "TODO"
   spec.summary     = "TODO: Summary of <%= camelized_modules %>."
   spec.description = "TODO: Description of <%= camelized_modules %>."
-  <% unless inside_application? -%>
+  <%- unless inside_application? -%>
   spec.license     = "MIT"
-  <% end -%>
+  <%- end -%>
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
   # to allow pushing to a single host or delete this section to allow pushing to any host.

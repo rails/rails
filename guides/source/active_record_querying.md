@@ -44,7 +44,7 @@ class Book < ApplicationRecord
 
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
-  scope :old, -> { where('year_published < ?', 50.years.ago )}
+  scope :old, -> { where(year_published: ...50.years.ago.year) }
   scope :out_of_print_and_expensive, -> { out_of_print.where('price > 500') }
   scope :costs_more_than, ->(amount) { where('price > ?', amount) }
 end
@@ -64,7 +64,7 @@ class Order < ApplicationRecord
 
   enum :status, [:shipped, :being_packed, :complete, :cancelled]
 
-  scope :created_before, ->(time) { where('created_at < ?', time) }
+  scope :created_before, ->(time) { where(created_at: ...time) }
 end
 ```
 
@@ -117,6 +117,7 @@ The methods are:
 * [`references`][]
 * [`reorder`][]
 * [`reselect`][]
+* [`regroup`][]
 * [`reverse_order`][]
 * [`select`][]
 * [`where`][]
@@ -155,6 +156,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 [`references`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-references
 [`reorder`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reorder
 [`reselect`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reselect
+[`regroup`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-regroup
 [`reverse_order`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reverse_order
 [`select`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-select
 [`where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
@@ -196,6 +198,34 @@ SELECT * FROM customers WHERE (customers.id IN (1,10))
 ```
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
+
+If your table uses a composite primary key, you'll need to pass find an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+# Find the customer with store_id 3 and id 17
+irb> customers = Customer.find([3, 17])
+=> #<Customer store_id: 3, id: 17, first_name: "Magda">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers WHERE store_id = 3 AND id = 17
+```
+
+To find multiple customers with composite IDs, you would pass an array of arrays:
+
+```irb
+# Find the customers with primary keys [1, 8] and [7, 15].
+irb> customers = Customer.find([[1, 8], [7, 15]]) # OR Customer.find([1, 8], [7, 15])
+=> [#<Customer store_id: 1, id: 8, first_name: "Pat">, #<Customer store_id: 7, id: 15, first_name: "Chris">]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers WHERE (store_id = 1 AND id = 8 OR store_id = 7 AND id = 15)
+```
 
 #### `take`
 
@@ -266,6 +296,20 @@ The SQL equivalent of the above is:
 SELECT * FROM customers ORDER BY customers.id ASC LIMIT 3
 ```
 
+Models with composite primary keys will use the full composite primary key for ordering.
+For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.first
+=> #<Customer id: 2, store_id: 1, first_name: "Lifo">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers ORDER BY customers.store_id ASC, customers.id ASC LIMIT 1
+```
+
 On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`.
 
 ```irb
@@ -300,6 +344,20 @@ SELECT * FROM customers ORDER BY customers.id DESC LIMIT 1
 ```
 
 The `last` method returns `nil` if no matching record is found and no exception will be raised.
+
+Models with composite primary keys will use the full composite primary key for ordering.
+For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 221, store_id: 1, first_name: "Lifo">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers ORDER BY customers.store_id DESC, customers.id DESC LIMIT 1
+```
 
 If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `last` will return the last record according to this ordering.
 
@@ -375,6 +433,36 @@ Customer.where(first_name: 'does not exist').take!
 
 [`find_by`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find_by
 [`find_by!`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find_by-21
+
+##### Conditions with `:id`
+
+When specifying conditions on methods like [`find_by`][] and [`where`][], the use of `id` will match against
+an `:id` attribute on the model. This is different from [`find`][], where the ID passed in should be a primary key value.
+
+Take caution when using `find_by(id:)` on models where `:id` is not the primary key, such as composite primary key models.
+For example, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+irb> Customer.find_by(id: customer.id) # Customer.find_by(id: [5, 10])
+=> #<Customer id: 5, store_id: 3, first_name: "Bob">
+```
+
+Here, we might intend to search for a single record with the composite primary key `[5, 10]`, but Active Record will
+search for a record with an `:id` column of _either_ 5 or 10, and may return the wrong record.
+
+TIP: The [`id_value`][] method can be used to fetch the value of the `:id` column for a record, for use in finder
+methods such as `find_by` and `where`. See example below:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+irb> Customer.find_by(id: customer.id_value) # Customer.find_by(id: 10)
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+```
+
+[`id_value`]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-i-id_value
 
 ### Retrieving Multiple Objects in Batches
 
@@ -472,6 +560,16 @@ appropriate `:start` and `:finish` options on each worker.
 
 Overrides the application config to specify if an error should be raised when an
 order is present in the relation.
+
+**`:order`**
+
+Specifies the primary key order (can be `:asc` or `:desc`). Defaults to `:asc`.
+
+```ruby
+Customer.find_each(order: :desc) do |customer|
+  NewsMailer.weekly(customer).deliver_now
+end
+```
 
 #### `find_in_batches`
 
@@ -643,6 +741,23 @@ Book.where(author: author)
 Author.joins(:books).where(books: { author: author })
 ```
 
+Hash conditions may also be specified in a tuple-like syntax, where the key is an array of columns and the value is
+an array of tuples:
+
+```ruby
+Book.where([:author_id, :id] => [[15, 1], [15, 2]])
+```
+
+This syntax can be useful for querying relations where the table uses a composite primary key:
+
+```ruby
+class Book < ApplicationRecord
+  self.primary_key = [:author_id, :id]
+end
+
+Book.where(Book.primary_key => [[2, 1], [3, 1]])
+```
+
 #### Range Conditions
 
 ```ruby
@@ -674,7 +789,7 @@ SELECT * FROM books WHERE books.created_at >= '2008-12-21 00:00:00'
 If you want to find records using the `IN` expression you can pass an array to the conditions hash:
 
 ```ruby
-Customer.where(orders_count: [1,3,5])
+Customer.where(orders_count: [1, 3, 5])
 ```
 
 This code will generate SQL like this:
@@ -688,7 +803,7 @@ SELECT * FROM customers WHERE (customers.orders_count IN (1,3,5))
 `NOT` SQL queries can be built by [`where.not`][]:
 
 ```ruby
-Customer.where.not(orders_count: [1,3,5])
+Customer.where.not(orders_count: [1, 3, 5])
 ```
 
 In other words, this query can be generated by calling `where` with no argument, then immediately chain with `not` passing `where` conditions.  This will generate SQL like this:
@@ -702,11 +817,12 @@ If a query has a hash condition with non-nil values on a nullable column, the re
 ```ruby
 Customer.create!(nullable_country: nil)
 Customer.where.not(nullable_country: "UK")
-=> []
+# => []
+
 # But
 Customer.create!(nullable_country: "UK")
 Customer.where.not(nullable_country: nil)
-=> [#<Customer id: 2, nullable_country: "UK">]
+# => [#<Customer id: 2, nullable_country: "UK">]
 ```
 
 [`where.not`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods/WhereChain.html#method-i-not
@@ -717,7 +833,7 @@ Customer.where.not(nullable_country: nil)
 relation, and passing the second one as an argument.
 
 ```ruby
-Customer.where(last_name: 'Smith').or(Customer.where(orders_count: [1,3,5]))
+Customer.where(last_name: 'Smith').or(Customer.where(orders_count: [1, 3, 5]))
 ```
 
 ```sql
@@ -731,7 +847,7 @@ SELECT * FROM customers WHERE (customers.last_name = 'Smith' OR customers.orders
 `AND` conditions can be built by chaining `where` conditions.
 
 ```ruby
-Customer.where(last_name: 'Smith').where(orders_count: [1,3,5]))
+Customer.where(last_name: 'Smith').where(orders_count: [1, 3, 5])
 ```
 
 ```sql
@@ -796,6 +912,14 @@ irb> Book.order("title ASC").order("created_at DESC")
 SELECT * FROM books ORDER BY title ASC, created_at DESC
 ```
 
+You can also order from a joined table
+
+```ruby
+Book.includes(:author).order(books: { print_year: :desc }, authors: { name: :asc })
+# OR
+Book.includes(:author).order('books.print_year desc', 'authors.name asc')
+```
+
 WARNING: In most database systems, on selecting fields with `distinct` from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
 
 Selecting Specific Fields
@@ -822,7 +946,7 @@ SELECT isbn, out_of_print FROM books
 Be careful because this also means you're initializing a model object with only the fields that you've selected. If you attempt to access a field that is not in the initialized record you'll receive:
 
 ```
-ActiveModel::MissingAttributeError: missing attribute: <attribute>
+ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 ```
 
 Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
@@ -878,8 +1002,8 @@ will return instead a maximum of 5 customers beginning with the 31st. The SQL lo
 SELECT * FROM customers LIMIT 5 OFFSET 30
 ```
 
-Group
------
+Grouping
+--------
 
 To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the [`group`][] method.
 
@@ -899,7 +1023,7 @@ FROM orders
 GROUP BY created_at
 ```
 
-### Total of grouped items
+### Total of Grouped Items
 
 To get the total of grouped items on a single query, call [`count`][] after the `group`.
 
@@ -918,15 +1042,14 @@ GROUP BY status
 
 [`count`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-count
 
-Having
-------
+### HAVING Conditions
 
 SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the [`having`][] method to the find.
 
 For example:
 
 ```ruby
-Order.select("created_at, sum(total) as total_price").
+Order.select("created_at as ordered_date, sum(total) as total_price").
   group("created_at").having("sum(total) > ?", 200)
 ```
 
@@ -1125,6 +1248,36 @@ SELECT * FROM books WHERE out_of_print = 1 AND out_of_print = 0
 
 [`rewhere`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-rewhere
 
+
+### `regroup`
+
+The [`regroup`][] method overrides an existing, named `group` condition. For example:
+
+```ruby
+Book.group(:author).regroup(:id)
+```
+
+The SQL that would be executed:
+
+```sql
+SELECT * FROM books GROUP BY id
+```
+
+If the `regroup` clause is not used, the group clauses are combined together:
+
+```ruby
+Book.group(:author).group(:id)
+```
+
+the SQL executed would be:
+
+```sql
+SELECT * FROM books GROUP BY author, id
+```
+
+[`regroup`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-regroup
+
+
 Null Relation
 -------------
 
@@ -1160,7 +1313,7 @@ Active Record provides the [`readonly`][] method on a relation to explicitly dis
 ```ruby
 customer = Customer.readonly.first
 customer.visits += 1
-customer.save
+customer.save # Raises an ActiveRecord::ReadOnlyRecord
 ```
 
 As `customer` is explicitly set to be a readonly object, the above code will raise an `ActiveRecord::ReadOnlyRecord` exception when calling `customer.save` with an updated value of _visits_.
@@ -1314,7 +1467,7 @@ SELECT books.* FROM books
   INNER JOIN reviews ON reviews.book_id = books.id
 ```
 
-Or, in English: "return all books with their author that have at least one review". Note again that books with multiple reviews will show up multiple times.
+Or, in English: "return all books that have an author and at least one review". Note again that books with multiple reviews will show up multiple times.
 
 ##### Joining Nested Associations (Single Level)
 
@@ -1335,13 +1488,13 @@ Or, in English: "return all books that have a review by a customer."
 ##### Joining Nested Associations (Multiple Level)
 
 ```ruby
-Author.joins(books: [{ reviews: { customer: :orders } }, :supplier] )
+Author.joins(books: [{ reviews: { customer: :orders } }, :supplier])
 ```
 
 This produces:
 
 ```sql
-SELECT * FROM authors
+SELECT authors.* FROM authors
   INNER JOIN books ON books.author_id = authors.id
   INNER JOIN reviews ON reviews.book_id = books.id
   INNER JOIN customers ON customers.id = reviews.customer_id
@@ -1409,13 +1562,50 @@ LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id GROUP BY customers
 Which means: "return all customers with their count of reviews, whether or not they
 have any reviews at all"
 
+### `where.associated` and `where.missing`
+
+The `associated` and `missing` query methods let you select a set of records
+based on the presence or absence of an association.
+
+To use `where.associated`:
+
+```ruby
+Customer.where.associated(:reviews)
+```
+
+Produces:
+
+```sql
+SELECT customers.* FROM customers
+INNER JOIN reviews ON reviews.customer_id = customers.id
+WHERE reviews.id IS NOT NULL
+```
+
+Which means "return all customers that have made at least one review".
+
+To use `where.missing`:
+
+```ruby
+Customer.where.missing(:reviews)
+```
+
+Produces:
+
+```sql
+SELECT customers.* FROM customers
+LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
+WHERE reviews.id IS NULL
+```
+
+Which means "return all customers that have not made any reviews".
+
 
 Eager Loading Associations
 --------------------------
 
 Eager loading is the mechanism for loading the associated records of the objects returned by `Model.find` using as few queries as possible.
 
-**N + 1 queries problem**
+### N + 1 Queries Problem
 
 Consider the following code, which finds 10 books and prints their authors' last_name:
 
@@ -1429,7 +1619,7 @@ end
 
 This code looks fine at the first sight. But the problem lies within the total number of queries executed. The above code executes 1 (to find 10 books) + 10 (one per each book to load the author) = **11** queries in total.
 
-**Solution to N + 1 queries problem**
+#### Solution to N + 1 Queries Problem
 
 Active Record lets you specify in advance all the associations that are going to be loaded.
 
@@ -1439,7 +1629,7 @@ The methods are:
 * [`preload`][]
 * [`eager_load`][]
 
-### includes
+### `includes`
 
 With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
@@ -1458,14 +1648,14 @@ The above code will execute just **2** queries, as opposed to the **11** queries
 ```sql
 SELECT books.* FROM books LIMIT 10
 SELECT authors.* FROM authors
-  WHERE authors.book_id IN (1,2,3,4,5,6,7,8,9,10)
+  WHERE authors.id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
 #### Eager Loading Multiple Associations
 
 Active Record lets you eager load any number of associations with a single `Model.find` call by using an array, hash, or a nested hash of array/hash with the `includes` method.
 
-#### Array of Multiple Associations
+##### Array of Multiple Associations
 
 ```ruby
 Customer.includes(:orders, :reviews)
@@ -1476,7 +1666,7 @@ This loads all the customers and the associated orders and reviews for each.
 ##### Nested Associations Hash
 
 ```ruby
-Customer.includes(orders: {books: [:supplier, :author]}).find(1)
+Customer.includes(orders: { books: [:supplier, :author] }).find(1)
 ```
 
 This will find the customer with id 1 and eager load all of the associated orders for it, the books for all of the orders, and the author and supplier for each of the books.
@@ -1515,7 +1705,7 @@ returned.
 NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not be present on the loaded models.
 This is because it is ambiguous whether they should appear on the parent record, or the child.
 
-### preload
+### `preload`
 
 With `preload`, Active Record loads each specified association using one query per association.
 
@@ -1535,12 +1725,12 @@ The above code will execute just **2** queries, as opposed to the **11** queries
 ```sql
 SELECT books.* FROM books LIMIT 10
 SELECT authors.* FROM authors
-  WHERE authors.book_id IN (1,2,3,4,5,6,7,8,9,10)
+  WHERE authors.id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
 NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for preloaded associations.
 
-### eager_load
+### `eager_load`
 
 With `eager_load`, Active Record loads all specified associations using a `LEFT OUTER JOIN`.
 
@@ -1554,16 +1744,75 @@ books.each do |book|
 end
 ```
 
-The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
+The above code will execute just **1** query, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT DISTINCT books.id FROM books LEFT OUTER JOIN authors ON authors.book_id = books.id LIMIT 10
-SELECT books.id AS t0_r0, books.last_name AS t0_r1, ...
-  FROM books LEFT OUTER JOIN authors ON authors.book_id = books.id
-  WHERE books.id IN (1,2,3,4,5,6,7,8,9,10)
+SELECT "books"."id" AS t0_r0, "books"."title" AS t0_r1, ... FROM "books"
+  LEFT OUTER JOIN "authors" ON "authors"."id" = "books"."author_id"
+  LIMIT 10
 ```
 
 NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
+
+### `strict_loading`
+
+Eager loading can prevent N + 1 queries but you might still be lazy loading
+some associations. To make sure no associations are lazy loaded you can enable
+[`strict_loading`][].
+
+By enabling strict loading mode on a relation, an
+`ActiveRecord::StrictLoadingViolationError` will be raised if the record tries
+to lazily load any association:
+
+```ruby
+user = User.strict_loading.first
+user.address.city # raises an ActiveRecord::StrictLoadingViolationError
+user.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
+```
+
+To enable for all relations, change the
+[`config.active_record.strict_loading_by_default`][] flag to `true`.
+
+To send violations to the logger instead, change
+[`config.active_record.action_on_strict_loading_violation`][] to `:log`.
+
+[`strict_loading`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-strict_loading
+[`config.active_record.strict_loading_by_default`]: configuring.html#config-active-record-strict-loading-by-default
+[`config.active_record.action_on_strict_loading_violation`]: configuring.html#config-active-record-action-on-strict-loading-violation
+
+### `strict_loading!`
+
+We can also enable strict loading on the record itself by calling [`strict_loading!`][]:
+
+```ruby
+user = User.first
+user.strict_loading!
+user.address.city # raises an ActiveRecord::StrictLoadingViolationError
+user.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
+```
+
+`strict_loading!` also takes a `:mode` argument. Setting it to `:n_plus_one_only`
+will only raise an error if an association that will lead to an N + 1 query is
+lazily loaded:
+
+```ruby
+user.strict_loading!(mode: :n_plus_one_only)
+user.address.city # => "Tatooine"
+user.comments.to_a # => [#<Comment:0x00...]
+user.comments.first.likes.to_a # raises an ActiveRecord::StrictLoadingViolationError
+```
+
+[`strict_loading!`]: https://api.rubyonrails.org/classes/ActiveRecord/Core.html#method-i-strict_loading-21
+
+### `strict_loading` option on an association
+
+We can also enable strict loading for a single association by providing the `strict_loading` option:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books, strict_loading: true
+end
+```
 
 Scopes
 ------
@@ -1604,7 +1853,7 @@ end
 
 [`scope`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html#method-i-scope
 
-### Passing in arguments
+### Passing in Arguments
 
 Your scope can take arguments:
 
@@ -1636,13 +1885,13 @@ These methods will still be accessible on the association objects:
 irb> author.books.costs_more_than(100.10)
 ```
 
-### Using conditionals
+### Using Conditionals
 
 Your scope can utilize conditionals:
 
 ```ruby
 class Order < ApplicationRecord
-  scope :created_before, ->(time) { where("created_at < ?", time) if time.present? }
+  scope :created_before, ->(time) { where(created_at: ...time) if time.present? }
 end
 ```
 
@@ -1651,14 +1900,14 @@ Like the other examples, this will behave similarly to a class method.
 ```ruby
 class Order < ApplicationRecord
   def self.created_before(time)
-    where("created_at < ?", time) if time.present?
+    where(created_at: ...time) if time.present?
   end
 end
 ```
 
 However, there is one important caveat: A scope will always return an `ActiveRecord::Relation` object, even if the conditional evaluates to `false`, whereas a class method, will return `nil`. This can cause `NoMethodError` when chaining class methods with conditionals, if any of the conditionals return `false`.
 
-### Applying a default scope
+### Applying a Default Scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
 [`default_scope`][] method within the model itself.
@@ -1720,7 +1969,7 @@ irb> Book.new
 
 [`default_scope`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-default_scope
 
-### Merging of scopes
+### Merging of Scopes
 
 Just like `where` clauses, scopes are merged using `AND` conditions.
 
@@ -1729,8 +1978,8 @@ class Book < ApplicationRecord
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
 
-  scope :recent, -> { where('year_published >= ?', Date.current.year - 50 )}
-  scope :old, -> { where('year_published < ?', Date.current.year - 50 )}
+  scope :recent, -> { where(year_published: 50.years.ago.year..) }
+  scope :old, -> { where(year_published: ...50.years.ago.year) }
 end
 ```
 
@@ -1743,7 +1992,7 @@ We can mix and match `scope` and `where` conditions and the final SQL
 will have all conditions joined with `AND`.
 
 ```irb
-irb> Book.in_print.where('price < 100')
+irb> Book.in_print.where(price: ...100)
 SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
 ```
 
@@ -1760,7 +2009,7 @@ One important caveat is that `default_scope` will be prepended in
 
 ```ruby
 class Book < ApplicationRecord
-  default_scope { where('year_published >= ?', Date.current.year - 50 )}
+  default_scope { where(year_published: 50.years.ago.year..) }
 
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
@@ -1807,7 +2056,7 @@ SELECT books.* FROM books
 
 ```irb
 irb> Book.unscoped { Book.out_of_print }
-SELECT books.* FROM books WHERE books.out_of_print
+SELECT books.* FROM books WHERE books.out_of_print = true
 ```
 
 [`unscoped`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
@@ -1821,7 +2070,7 @@ you get the instance method `find_by_first_name` for free from Active Record.
 If you also have a `locked` field on the `Customer` model, you also get `find_by_locked` method.
 
 You can specify an exclamation point (`!`) on the end of the dynamic finders
-to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_name!("Ryan")`
+to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_first_name!("Ryan")`
 
 If you want to find both by `first_name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields.
 For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
@@ -1895,7 +2144,7 @@ There are some examples below. This guide won't cover all the possibilities, jus
 When an Active Record method is called, the query is not immediately generated and sent to the database.
 The query is sent only when the data is actually needed. So each example below generates a single query.
 
-### Retrieving filtered data from multiple tables
+### Retrieving Filtered Data from Multiple Tables
 
 ```ruby
 Customer
@@ -1914,7 +2163,7 @@ INNER JOIN reviews
 WHERE (reviews.created_at > '2019-01-08')
 ```
 
-### Retrieving specific data from multiple tables
+### Retrieving Specific Data from Multiple Tables
 
 ```ruby
 Book
@@ -2072,7 +2321,7 @@ irb> Customer.connection.select_all("SELECT first_name, created_at FROM customer
 
 ### `pluck`
 
-[`pluck`][] can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
+[`pluck`][] can be used to pick the value(s) from the named column(s) in the current relation. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```irb
 irb> Book.where(out_of_print: true).pluck(:id)
@@ -2161,6 +2410,25 @@ irb> assoc.unscope(:includes).pluck(:id)
 
 [`pluck`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-pluck
 
+### `pick`
+
+[`pick`][] can be used to pick the value(s) from the named column(s) in the current relation. It accepts a list of column names as an argument and returns the first row of the specified column values ​​with corresponding data type.
+`pick` is a short-hand for `relation.limit(1).pluck(*column_names).first`, which is primarily useful when you already have a relation that is limited to one row.
+
+`pick` makes it possible to replace code like:
+
+```ruby
+Customer.where(id: 1).pluck(:id).first
+```
+
+with:
+
+```ruby
+Customer.where(id: 1).pick(:id)
+```
+
+[`pick`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-pick
+
 ### `ids`
 
 [`ids`][] can be used to pluck all the IDs for the relation using the table's primary key.
@@ -2198,7 +2466,7 @@ The `exists?` method also takes multiple values, but the catch is that it will r
 one of those records exists.
 
 ```ruby
-Customer.exists?(id: [1,2,3])
+Customer.exists?(id: [1, 2, 3])
 # or
 Customer.exists?(first_name: ['Jane', 'Sergei'])
 ```
@@ -2223,15 +2491,15 @@ You can also use `any?` and `many?` to check for existence on a model or relatio
 ```ruby
 # via a model
 Order.any?
-# => SELECT 1 FROM orders LIMIT 1
+# SELECT 1 FROM orders LIMIT 1
 Order.many?
-# => SELECT COUNT(*) FROM (SELECT 1 FROM orders LIMIT 2)
+# SELECT COUNT(*) FROM (SELECT 1 FROM orders LIMIT 2)
 
 # via a named scope
 Order.shipped.any?
-# => SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 1
+# SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 1
 Order.shipped.many?
-# => SELECT COUNT(*) FROM (SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 2)
+# SELECT COUNT(*) FROM (SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 2)
 
 # via a relation
 Book.where(out_of_print: true).any?
@@ -2279,14 +2547,14 @@ SELECT COUNT(DISTINCT customers.id) FROM customers
 
 assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
 
-### Count
+### `count`
 
 If you want to see how many records are in your model's table you could call `Customer.count` and that will return the number.
 If you want to be more specific and find all the customers with a title present in the database you can use `Customer.count(:title)`.
 
 For options, please see the parent section, [Calculations](#calculations).
 
-### Average
+### `average`
 
 If you want to see the average of a certain number in one of your tables you can call the [`average`][] method on the class that relates to the table. This method call will look something like this:
 
@@ -2300,7 +2568,7 @@ For options, please see the parent section, [Calculations](#calculations).
 
 [`average`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-average
 
-### Minimum
+### `minimum`
 
 If you want to find the minimum value of a field in your table you can call the [`minimum`][] method on the class that relates to the table. This method call will look something like this:
 
@@ -2312,7 +2580,7 @@ For options, please see the parent section, [Calculations](#calculations).
 
 [`minimum`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-minimum
 
-### Maximum
+### `maximum`
 
 If you want to find the maximum value of a field in your table you can call the [`maximum`][] method on the class that relates to the table. This method call will look something like this:
 
@@ -2324,7 +2592,7 @@ For options, please see the parent section, [Calculations](#calculations).
 
 [`maximum`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-maximum
 
-### Sum
+### `sum`
 
 If you want to find the sum of a field for all records in your table you can call the [`sum`][] method on the class that relates to the table. This method call will look something like this:
 
@@ -2341,16 +2609,16 @@ Running EXPLAIN
 
 You can run [`explain`][] on a relation. EXPLAIN output varies for each database.
 
-For example, running
+For example, running:
 
 ```ruby
 Customer.where(id: 1).joins(:orders).explain
 ```
 
-may yield
+may yield this for MySQL and MariaDB:
 
-```
-EXPLAIN for: SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
+```sql
+EXPLAIN SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
 +----+-------------+------------+-------+---------------+
 | id | select_type | table      | type  | possible_keys |
 +----+-------------+------------+-------+---------------+
@@ -2367,14 +2635,12 @@ EXPLAIN for: SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `order
 2 rows in set (0.00 sec)
 ```
 
-under MySQL and MariaDB.
-
 Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
-PostgreSQL adapter would yield instead
+PostgreSQL adapter would yield instead:
 
-```
-EXPLAIN for: SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
+```sql
+EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
                                   QUERY PLAN
 ------------------------------------------------------------------------------
  Nested Loop  (cost=4.33..20.85 rows=4 width=164)
@@ -2389,7 +2655,7 @@ EXPLAIN for: SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "order
 
 Eager loading may trigger more than one query under the hood, and some queries
 may need the results of previous ones. Because of that, `explain` actually
-executes the query, and then asks for the query plans. For example,
+executes the query, and then asks for the query plans. For example, running:
 
 ```ruby
 Customer.where(id: 1).includes(:orders).explain
@@ -2397,8 +2663,8 @@ Customer.where(id: 1).includes(:orders).explain
 
 may yield this for MySQL and MariaDB:
 
-```
-EXPLAIN for: SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
+```sql
+EXPLAIN SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
 +----+-------------+-----------+-------+---------------+
 | id | select_type | table     | type  | possible_keys |
 +----+-------------+-----------+-------+---------------+
@@ -2412,7 +2678,7 @@ EXPLAIN for: SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
 
 1 row in set (0.00 sec)
 
-EXPLAIN for: SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1)
+EXPLAIN SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1)
 +----+-------------+--------+------+---------------+
 | id | select_type | table  | type | possible_keys |
 +----+-------------+--------+------+---------------+
@@ -2430,10 +2696,10 @@ EXPLAIN for: SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1
 
 and may yield this for PostgreSQL:
 
-```
+```sql
   Customer Load (0.3ms)  SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1  [["id", 1]]
   Order Load (0.3ms)  SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = $1  [["customer_id", 1]]
-=> EXPLAIN for: SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1 [["id", 1]]
+=> EXPLAIN SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1 [["id", 1]]
                                     QUERY PLAN
 ----------------------------------------------------------------------------------
  Index Scan using customers_pkey on customers  (cost=0.15..8.17 rows=1 width=164)
@@ -2442,6 +2708,62 @@ and may yield this for PostgreSQL:
 ```
 
 [`explain`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-explain
+
+### Explain Options
+
+For databases and adapters which support them (currently PostgreSQL, MySQL, and MariaDB), options can be passed to provide deeper analysis.
+
+Using PostgreSQL, the following:
+
+```ruby
+Customer.where(id: 1).joins(:orders).explain(:analyze, :verbose)
+```
+
+yields:
+
+```sql
+EXPLAIN (ANALYZE, VERBOSE) SELECT "shop_accounts".* FROM "shop_accounts" INNER JOIN "customers" ON "customers"."id" = "shop_accounts"."customer_id" WHERE "shop_accounts"."id" = $1 [["id", 1]]
+                                                                   QUERY PLAN
+------------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=0.30..16.37 rows=1 width=24) (actual time=0.003..0.004 rows=0 loops=1)
+   Output: shop_accounts.id, shop_accounts.customer_id, shop_accounts.customer_carrier_id
+   Inner Unique: true
+   ->  Index Scan using shop_accounts_pkey on public.shop_accounts  (cost=0.15..8.17 rows=1 width=24) (actual time=0.003..0.003 rows=0 loops=1)
+         Output: shop_accounts.id, shop_accounts.customer_id, shop_accounts.customer_carrier_id
+         Index Cond: (shop_accounts.id = '1'::bigint)
+   ->  Index Only Scan using customers_pkey on public.customers  (cost=0.15..8.17 rows=1 width=8) (never executed)
+         Output: customers.id
+         Index Cond: (customers.id = shop_accounts.customer_id)
+         Heap Fetches: 0
+ Planning Time: 0.063 ms
+ Execution Time: 0.011 ms
+(12 rows)
+```
+
+Using MySQL or MariaDB, the following:
+
+```ruby
+Customer.where(id: 1).joins(:orders).explain(:analyze)
+```
+
+yields:
+
+```sql
+ANALYZE SELECT `shop_accounts`.* FROM `shop_accounts` INNER JOIN `customers` ON `customers`.`id` = `shop_accounts`.`customer_id` WHERE `shop_accounts`.`id` = 1
++----+-------------+-------+------+---------------+------+---------+------+------+--------+----------+------------+--------------------------------+
+| id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | r_rows | filtered | r_filtered | Extra                          |
++----+-------------+-------+------+---------------+------+---------+------+------+--------+----------+------------+--------------------------------+
+|  1 | SIMPLE      | NULL  | NULL | NULL          | NULL | NULL    | NULL | NULL | NULL   | NULL     | NULL       | no matching row in const table |
++----+-------------+-------+------+---------------+------+---------+------+------+--------+----------+------------+--------------------------------+
+1 row in set (0.00 sec)
+```
+
+NOTE: EXPLAIN and ANALYZE options vary across MySQL and MariaDB versions.
+([MySQL 5.7][MySQL5.7-explain], [MySQL 8.0][MySQL8-explain], [MariaDB][MariaDB-explain])
+
+[MySQL5.7-explain]: https://dev.mysql.com/doc/refman/5.7/en/explain.html
+[MySQL8-explain]: https://dev.mysql.com/doc/refman/8.0/en/explain.html
+[MariaDB-explain]: https://mariadb.com/kb/en/analyze-and-explain-statements/
 
 ### Interpreting EXPLAIN
 

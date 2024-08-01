@@ -2,7 +2,7 @@
 
 module Rails
   module Generators
-    # ActiveModel is a class to be implemented by each ORM to allow Rails to
+    # ActiveModel is a class to be implemented by each ORM to allow \Rails to
     # generate customized controller code.
     #
     # The API has the same methods as ActiveRecord, but each method returns a
@@ -32,21 +32,27 @@ module Rails
         @name = name
       end
 
-      # GET index
+      # Used for:
+      #
+      # * GET +index+
       def self.all(klass)
         "#{klass}.all"
       end
 
-      # GET show
-      # GET edit
-      # PATCH/PUT update
-      # DELETE destroy
+      # Used for:
+      #
+      # * GET +show+
+      # * GET +edit+
+      # * PATCH / PUT +update+
+      # * DELETE +destroy+
       def self.find(klass, params = nil)
         "#{klass}.find(#{params})"
       end
 
-      # GET new
-      # POST create
+      # Used for:
+      #
+      # * GET +new+
+      # * POST +create+
       def self.build(klass, params = nil)
         if params
           "#{klass}.new(#{params})"
@@ -55,23 +61,31 @@ module Rails
         end
       end
 
-      # POST create
+      # Used for:
+      #
+      # * POST +create+
       def save
         "#{name}.save"
       end
 
-      # PATCH/PUT update
+      # Used for:
+      #
+      # * PATCH / PUT +update+
       def update(params = nil)
         "#{name}.update(#{params})"
       end
 
-      # POST create
-      # PATCH/PUT update
+      # Used for:
+      #
+      # * POST +create+
+      # * PATCH / PUT +update+
       def errors
         "#{name}.errors"
       end
 
-      # DELETE destroy
+      # Used for:
+      #
+      # * DELETE +destroy+
       def destroy
         "#{name}.destroy!"
       end
