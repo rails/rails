@@ -1,9 +1,6 @@
 class PasswordsController < ApplicationController
   allow_unauthenticated_access
-
-  rescue_from "ActiveSupport::MessageVerifier::InvalidSignature" do
-    redirect_to new_password_url, alert: "Password reset link is invalid or has expired."
-  end
+  before_action :set_user_by_token, only: %i[ edit update ]
 
   def new
   end
@@ -17,11 +14,10 @@ class PasswordsController < ApplicationController
   end
 
   def edit
-    @user = find_user_by_token
   end
 
   def update
-    if find_user_by_token.update(params.permit(:password, :password_confirmation))
+    if @user.update(params.permit(:password, :password_confirmation))
       redirect_to new_session_url, notice: "Password has been reset."
     else
       redirect_to edit_password_url(params[:token]), alert: "Passwords did not match."
@@ -29,8 +25,10 @@ class PasswordsController < ApplicationController
   end
 
   private
-    def find_user_by_token
-      User.find_signed!(params[:token], purpose: "password")
+    def set_user_by_token
+      @user = User.find_by_password_reset_token!(params[:token])
+    rescue ActiveSupport::MessageVerifier::InvalidSignature
+      redirect_to new_password_url, alert: "Password reset link is invalid or has expired."
     end
 end
 
