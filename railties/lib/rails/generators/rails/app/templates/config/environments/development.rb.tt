@@ -14,6 +14,16 @@ Rails.application.configure do
   # Show full error reports.
   config.consider_all_requests_local = true
 
+  <%- unless options.skip_docker? || options.skip_dev_gems? -%>
+  # Allow access to web_console when running in Docker.
+  # common ranges include "172.16.0.0/12", "192.168.0.0/16", but there may be
+  # custom ranges defined by different Docker engines and by developers at the
+  # application level.
+  if ENV["WEB_CONSOLE_ALLOWED_IPS"]
+    config.web_console.allowed_ips = ENV["WEB_CONSOLE_ALLOWED_IPS"].split(",")
+  end
+  <%- end -%>
+
   # Enable server timing.
   config.server_timing = true
 
