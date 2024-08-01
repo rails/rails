@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Pilot
   include ActiveModel::Attributes
   include ActiveModel::SecurePassword
