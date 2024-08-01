@@ -1,3 +1,9 @@
+*   The new `bin/rails boot` command boots the application and exits. Supports the
+    standard `-e/--environment` options.
+
+    *Xavier Noria*
+
+
 ## Rails 7.2.0.beta3 (July 11, 2024) ##
 
 *   No changes.
