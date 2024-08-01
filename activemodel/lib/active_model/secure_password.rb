@@ -167,12 +167,12 @@ module ActiveModel
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             silence_redefinition_of_method :find_by_#{attribute}_reset_token
             def self.find_by_#{attribute}_reset_token(token)
-              find_by_token_for("#{attribute}_reset", token)
+              find_by_token_for(:#{attribute}_reset, token)
             end
 
             silence_redefinition_of_method :find_by_#{attribute}_reset_token!
             def self.find_by_#{attribute}_reset_token!(token)
-              find_by_token_for!("#{attribute}_reset", token)
+              find_by_token_for!(:#{attribute}_reset, token)
             end
           RUBY
         end
@@ -222,7 +222,7 @@ module ActiveModel
         if reset_token
           # Returns the class-level configured reset token for the password.
           define_method("#{attribute}_reset_token") do
-            generate_token_for("#{attribute}_reset")
+            generate_token_for(:"#{attribute}_reset")
           end
         end
       end
