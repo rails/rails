@@ -1921,6 +1921,18 @@ class PerformedJobsTest < ActiveJob::TestCase
       end
     end
 
+    def test_assert_performed_with_with_at_option_with_second_level_precision
+      assert_performed_with(job: HelloJob, at: Date.tomorrow.noon) do
+        HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+      end
+
+      assert_raise ActiveSupport::TestCase::Assertion do
+        assert_performed_with(job: HelloJob, at: Time.new("1989-12-31T12:00:01")) do
+          HelloJob.set(wait_until: Time.new("1989-12-31T12:00:02")).perform_later
+        end
+      end
+    end
+
     def test_assert_performed_with_with_relative_at_option
       assert_performed_with(job: HelloJob, at: 5.minutes.from_now) do
         HelloJob.set(wait: 5.minutes).perform_later
