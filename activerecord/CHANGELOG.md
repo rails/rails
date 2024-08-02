@@ -1,3 +1,22 @@
+*   Disable validations for record.
+
+    ```ruby
+    user = User.new
+    user.save(validate: false)
+
+    user.skip_validations
+
+    user.update(age: 13)
+    # validation errors do not occur
+
+    user.reset_validations
+
+    user.update(age: 14)
+    # validation errors occur
+    ```
+
+    *Adrian Marin*
+
 *   Support batching using custom columns.
 
     ```ruby
