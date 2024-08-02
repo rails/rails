@@ -55,6 +55,7 @@ module ActiveRecord
         :add_exclusion_constraint, :remove_exclusion_constraint,
         :add_unique_constraint, :remove_unique_constraint,
         :create_enum, :drop_enum, :rename_enum, :add_enum_value, :rename_enum_value,
+        :create_schema, :drop_schema,
       ]
       include JoinTable
 
@@ -163,7 +164,8 @@ module ActiveRecord
               add_exclusion_constraint: :remove_exclusion_constraint,
               add_unique_constraint: :remove_unique_constraint,
               enable_extension:  :disable_extension,
-              create_enum:       :drop_enum
+              create_enum:       :drop_enum,
+              create_schema:     :drop_schema,
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
