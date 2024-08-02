@@ -54,6 +54,14 @@ module ActiveRecord
       perform_validations(options) ? super : raise_validation_error
     end
 
+    def skip_validations
+      @skip_validations = true
+    end
+
+    def reset_validations
+      @skip_validations = false
+    end
+
     # Runs all the validations within the specified context. Returns +true+ if
     # no errors are found, +false+ otherwise.
     #
@@ -67,6 +75,7 @@ module ActiveRecord
     # \Validations with no <tt>:on</tt> option will run no matter the context. \Validations with
     # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil)
+      return true if @skip_validations
       context ||= default_validation_context
       output = super(context)
       errors.empty? && output
