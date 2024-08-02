@@ -720,8 +720,8 @@ response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 
 Caching in Development
 ----------------------
-By default, caching is *enabled* in development mode, Rails uses
-[`:memory_store`](#activesupport-cache-memorystore) for caching.
+By default, caching is *enabled* in development mode with
+[`:memory_store`](#activesupport-cache-memorystore).
 
 Rails also provides the rails command `dev:cache` to
 easily toggle action controller caching on/off.
