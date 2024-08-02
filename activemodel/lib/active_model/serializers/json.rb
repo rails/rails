@@ -13,6 +13,92 @@ module ActiveModel
         extend ActiveModel::Naming
 
         class_attribute :include_root_in_json, instance_writer: false, default: false
+        class_attribute :json_key_formatters, instance_writer: false, default: Hash.new { KeyFormatter::Identity.new }
+      end
+
+      module ClassMethods
+        # Configures key formatting when constructing an instance from JSON or
+        # serializing an instance to JSON. Formatting is applied to all keys.
+        #
+        # By default, key names are derived directly from attribute names
+        # without modification.
+        #
+        # The <tt>:from_json</tt> option specifies formatting to be applied to
+        # the keys prior to attribute assignment during <tt>#from_json</tt>.
+        #
+        # It accepts a method name to be called on the key. For
+        # example, :underscore will deeply transform keys to snake_case.
+        # Callables may be passed for more complex transformations.
+        #
+        #   class User
+        #     include ActiveModel::API
+        #     include ActiveModel::Serializers::JSON
+        #
+        #     key_format from_json: :underscore
+        #
+        #     attr_accessor :name, :born_on
+        #
+        #     def attributes
+        #       { name: name, born_on: born_on }
+        #     end
+        #   end
+        #
+        #   json = { name: "Ruby on Rails", bornOn: "2004-11-24" }.to_json
+        #
+        #   user = User.new.from_json(json)
+        #   user.name     # => "Ruby on Rails"
+        #   user.born_on  # => "2004-11-24"
+        #
+        # The <tt>:to_json</tt> option specifies formatting to be applied to the
+        # keys of the value returned by <tt>#serializable_hash</tt> invoked when
+        # serializing an instance to JSON.
+        #
+        # It also accepts the a name of a method to be called on the
+        # key. Methods that accept arguments can be invoked as a hash pair. For
+        # example, <tt>{ camelize: :lower }</tt> will deeply transform keys to
+        # camelCase. Callables may be passed for more complex transformations.
+        #
+        #   class User
+        #     include ActiveModel::API
+        #     include ActiveModel::Serializers::JSON
+        #
+        #     key_format to_json: { camelize: :lower }
+        #
+        #     attr_accessor :name, :born_on
+        #
+        #     def attributes
+        #       { name: name, born_on: born_on }
+        #     end
+        #   end
+        #
+        #   user = User.new name: "Ruby on Rails", born_on: "2004-11-24"
+        #   user.as_json # => { "name" => "Ruby on Rails", "bornOn" => "2004-11-24" }
+        #   user.to_json # => "{\"name\":\"Ruby on Rails\",\"bornOn\":\"2004-11-24\"}"
+        #
+        # Both configuration options can be passed at once.
+        #
+        #   class User
+        #     include ActiveModel::API
+        #     include ActiveModel::Serializers::JSON
+        #
+        #     key_format from_json: ->(key) { key.underscore },
+        #                to_json: ->(key) { key.camelize :lower }
+        #
+        #     attr_accessor :name, :born_on
+        #
+        #     def attributes
+        #       { name: name, born_on: born_on }
+        #     end
+        #   end
+        #
+        def key_format(to_json: nil, from_json: nil)
+          raise ArgumentError.new("must pass either :to_json or :from_json") unless to_json.present? || from_json.present?
+
+          self.json_key_formatters = json_key_formatters.dup
+
+          json_key_formatters[:to_json] = KeyFormatter.new(*to_json) if to_json
+          json_key_formatters[:from_json] = KeyFormatter.new(*from_json) if from_json
+        end
       end
 
       # Returns a hash representing the model. Some configuration can be
@@ -100,7 +186,10 @@ module ActiveModel
           include_root_in_json
         end
 
-        hash = serializable_hash(options).as_json
+        hash = serializable_hash(options)
+        hash = json_key_formatters[:to_json].format_keys!(hash)
+        hash = hash.as_json
+
         if root
           root = model_name.element if root == true
           { root => hash }
@@ -146,8 +235,45 @@ module ActiveModel
       def from_json(json, include_root = include_root_in_json)
         hash = ActiveSupport::JSON.decode(json)
         hash = hash.values.first if include_root
+        hash = json_key_formatters[:from_json].format_keys!(hash)
         self.attributes = hash
         self
+      end
+
+      class KeyFormatter # :nodoc:
+        class Identity
+          def format_keys!(hash)
+            hash
+          end
+        end
+
+        def initialize(*args, **options)
+          @format = {}
+          @cache = {}
+
+          args.each do |name|
+            @format[name] = []
+          end
+          options.each do |name, parameters|
+            @format[name] = parameters
+          end
+        end
+
+        def format_keys!(hash)
+          hash.deep_transform_keys! do |key|
+            format(key)
+          end
+        end
+
+        def format(key)
+          @cache[key] ||= @format.inject(key.to_s) do |result, (func, args)|
+            if func in ::Proc
+              func.call(result, *args)
+            else
+              result.send(*func, *args)
+            end
+          end
+        end
       end
     end
   end
