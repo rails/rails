@@ -4633,8 +4633,8 @@ module ApplicationTests
       assert_includes last_response.body, "rescued missing translation error from view"
     end
 
-    test "raise_on_missing_translations affects human_attribute_name in model" do
-      add_to_config "config.i18n.raise_on_missing_translations = true"
+    test "raise_on_missing_translations = :strict affects human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = :strict"
 
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
@@ -4644,6 +4644,21 @@ module ApplicationTests
       app "development"
 
       assert_raises I18n::MissingTranslationData do
+        Post.human_attribute_name("title")
+      end
+    end
+
+    test "raise_on_missing_translations = true does not affect human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+
+      assert_nothing_raised do
         Post.human_attribute_name("title")
       end
     end
