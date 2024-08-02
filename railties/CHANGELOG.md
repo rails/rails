@@ -1,8 +1,3 @@
-*   The new `bin/rails boot` command boots the application and exits. Supports the
-    standard `-e/--environment` options.
-
-    *Xavier Noria*
-
 *   Generate form helpers to use `textarea*` methods instead of `text_area*` methods
 
     *Sean Doyle*
