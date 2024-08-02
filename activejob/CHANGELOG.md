@@ -1,5 +1,4 @@
-
-*  Support second-level precision for `assert_enqueued_with`
+*   Support second-level precision for `assert_enqueued_with`
 
     Fixes #52478.
 
