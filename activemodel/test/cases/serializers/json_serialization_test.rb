@@ -39,18 +39,9 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_equal json, model.to_json
   end
 
-  test ".key_format with proc :to_json option" do
+  test ".key_format with Proc :to_json option" do
     model_class = Class.new(Contact) do
       key_format to_json: proc { |key| key.dasherize }
-    end
-    model = model_class.new created_at: Time.utc(2006, 8, 1)
-
-    assert_equal({ "created-at" => "2006-08-01T00:00:00.000Z" }.to_json, model.to_json)
-  end
-
-  test ".key_format with lambda :to_json option" do
-    model_class = Class.new(Contact) do
-      key_format to_json: ->(key) { key.dasherize }
     end
     model = model_class.new created_at: Time.utc(2006, 8, 1)
 
@@ -66,31 +57,9 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_equal({ "created-at" => "2006-08-01T00:00:00.000Z" }.to_json, model.to_json)
   end
 
-  test ".key_format with Hash :to_json option" do
-    model_class = Class.new(Contact) do
-      key_format to_json: { camelize: :lower }
-    end
-    model = model_class.new created_at: Time.utc(2006, 8, 1)
-
-    to_json = model.to_json
-
-    assert_equal({ "createdAt" => "2006-08-01T00:00:00.000Z" }.to_json, to_json)
-  end
-
-  test ".key_format with proc :from_json option" do
+  test ".key_format with Proc :from_json option" do
     model_class = Class.new(Contact) do
       key_format from_json: proc { |key| key.underscore }
-    end
-    json = { createdAt: "2006-08-01T00:00:00.000Z" }.to_json
-
-    model = model_class.new.from_json(json)
-
-    assert_equal "2006-08-01T00:00:00.000Z", model.created_at
-  end
-
-  test ".key_format with lambda :from_json option" do
-    model_class = Class.new(Contact) do
-      key_format from_json: ->(key) { key.underscore }
     end
     json = { createdAt: "2006-08-01T00:00:00.000Z" }.to_json
 
@@ -108,19 +77,6 @@ class JsonSerializationTest < ActiveModel::TestCase
     model = model_class.new.from_json(json)
 
     assert_equal "2006-08-01T00:00:00.000Z", model.created_at
-  end
-
-  test ".key_format with Hash :from_json option" do
-    model_class = Class.new(Contact) do
-      key_format from_json: { camelize: :lower }
-
-      attr_accessor :createdAt
-    end
-    json = { created_at: "2006-08-01T00:00:00.000Z" }.to_json
-
-    model = model_class.new.from_json(json)
-
-    assert_equal "2006-08-01T00:00:00.000Z", model.createdAt
   end
 
   test ".key_format without arguments raises an ArgumentError" do

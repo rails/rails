@@ -13,7 +13,8 @@ module ActiveModel
         extend ActiveModel::Naming
 
         class_attribute :include_root_in_json, instance_writer: false, default: false
-        class_attribute :json_key_formatters, instance_writer: false, default: Hash.new { KeyFormatter::Identity.new }
+        class_attribute :_to_json_formatter, instance_writer: false, default: KeyFormatter::Identity.new
+        class_attribute :_from_json_formatter, instance_writer: false, default: KeyFormatter::Identity.new
       end
 
       module ClassMethods
@@ -53,16 +54,15 @@ module ActiveModel
         # keys of the value returned by <tt>#serializable_hash</tt> invoked when
         # serializing an instance to JSON.
         #
-        # It also accepts the a name of a method to be called on the
-        # key. Methods that accept arguments can be invoked as a hash pair. For
-        # example, <tt>{ camelize: :lower }</tt> will deeply transform keys to
-        # camelCase. Callables may be passed for more complex transformations.
+        # It accepts a method name to be called on the key. For
+        # example, :underscore will deeply transform keys to snake_case.
+        # Callables may be passed for more complex transformations.
         #
         #   class User
         #     include ActiveModel::API
         #     include ActiveModel::Serializers::JSON
         #
-        #     key_format to_json: { camelize: :lower }
+        #     key_format to_json: -> { _1.camelize: :lower }
         #
         #     attr_accessor :name, :born_on
         #
@@ -81,7 +81,7 @@ module ActiveModel
         #     include ActiveModel::API
         #     include ActiveModel::Serializers::JSON
         #
-        #     key_format from_json: ->(key) { key.underscore },
+        #     key_format from_json: :underscore,
         #                to_json: ->(key) { key.camelize :lower }
         #
         #     attr_accessor :name, :born_on
@@ -94,10 +94,8 @@ module ActiveModel
         def key_format(to_json: nil, from_json: nil)
           raise ArgumentError.new("must pass either :to_json or :from_json") unless to_json.present? || from_json.present?
 
-          self.json_key_formatters = json_key_formatters.dup
-
-          json_key_formatters[:to_json] = KeyFormatter.new(*to_json) if to_json
-          json_key_formatters[:from_json] = KeyFormatter.new(*from_json) if from_json
+          self._to_json_formatter = KeyFormatter.new(*to_json) if to_json
+          self._from_json_formatter = KeyFormatter.new(*from_json) if from_json
         end
       end
 
@@ -187,7 +185,7 @@ module ActiveModel
         end
 
         hash = serializable_hash(options)
-        hash = json_key_formatters[:to_json].format_keys!(hash)
+        hash = _to_json_formatter.format_keys!(hash)
         hash = hash.as_json
 
         if root
@@ -235,7 +233,7 @@ module ActiveModel
       def from_json(json, include_root = include_root_in_json)
         hash = ActiveSupport::JSON.decode(json)
         hash = hash.values.first if include_root
-        hash = json_key_formatters[:from_json].format_keys!(hash)
+        hash = _from_json_formatter.format_keys!(hash)
         self.attributes = hash
         self
       end
@@ -247,33 +245,19 @@ module ActiveModel
           end
         end
 
-        def initialize(*args, **options)
-          @format = {}
+        def initialize(*arguments)
+          @format = arguments.map(&:to_proc).reduce(&:<<)
           @cache = {}
-
-          args.each do |name|
-            @format[name] = []
-          end
-          options.each do |name, parameters|
-            @format[name] = parameters
-          end
         end
 
         def format_keys!(hash)
-          hash.deep_transform_keys! do |key|
-            format(key)
-          end
+          hash.deep_transform_keys! { format _1 }
         end
 
-        def format(key)
-          @cache[key] ||= @format.inject(key.to_s) do |result, (func, args)|
-            if func in ::Proc
-              func.call(result, *args)
-            else
-              result.send(*func, *args)
-            end
+        private
+          def format(key)
+            @cache[key] ||= @format.call(key.to_s)
           end
-        end
       end
     end
   end
