@@ -1,5 +1,5 @@
 Description:
-    Generates a basic authentication system with users and sessions.
+    Generates a basic authentication system with users, sessions, and password reset.
 
 Example:
     `bin/rails generate authentication`

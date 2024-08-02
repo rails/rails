@@ -1,3 +1,9 @@
+*   Make `create_schema` / `drop_schema` reversible in migrations.
+
+    Previously, `create_schema` and `drop_schema` were irreversible migration operations.
+
+    *Tony Novak*
+
 *   Support batching using custom columns.
 
     ```ruby

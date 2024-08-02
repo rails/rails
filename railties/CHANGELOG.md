@@ -2,7 +2,7 @@
 
     *Sean Doyle*
 
-*   Add authentication generator to give a basic start to an authentication system using database-tracked sessions.
+*   Add authentication generator to give a basic start to an authentication system using database-tracked sessions and password reset.
 
     Generate with...
 
@@ -17,9 +17,16 @@
     app/models/user.rb
     app/models/session.rb
     app/controllers/sessions_controller.rb
+    app/controllers/passwords_controller.rb
+    app/mailers/passwords_mailer.rb
     app/views/sessions/new.html.erb
+    app/views/passwords/new.html.erb
+    app/views/passwords/edit.html.erb
+    app/views/passwords_mailer/reset.html.erb
+    app/views/passwords_mailer/reset.text.erb
     db/migrate/xxxxxxx_create_users.rb
     db/migrate/xxxxxxx_create_sessions.rb
+    test/mailers/previews/passwords_mailer_preview.rb
     ```
 
     *DHH*
