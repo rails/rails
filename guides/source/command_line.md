@@ -668,6 +668,7 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 * `bin/rails stats` is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
 * `bin/rails secret` will give you a pseudo-random key to use for your session secret.
 * `bin/rails time:zones:all` lists all the timezones Rails knows about.
+* `bin/rails boot` boots the application and exits.
 
 ### Custom Rake Tasks
 

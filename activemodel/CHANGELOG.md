@@ -1,3 +1,23 @@
+*   Add a default token generator for password reset tokens when using `has_secure_password`.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_secure_password
+    end
+
+    user = User.create!(name: "david", password: "123", password_confirmation: "123")
+    token = user.password_reset_token
+    User.find_by_password_reset_token(token) # returns user
+
+    # 16 minutes later...
+    User.find_by_password_reset_token(token) # returns nil
+
+    # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
+    User.find_by_password_reset_token!(token)
+    ```
+
+    *DHH*
+
 *   Add a load hook `active_model_translation` for `ActiveModel::Translation`.
 
     *Shouichi Kamiya*
