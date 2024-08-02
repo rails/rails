@@ -234,7 +234,7 @@ class ValidationsTest < ActiveRecord::TestCase
       self.table_name = "posts"
 
       def self.name
-        'Post'
+        "Post"
       end
     end
 
