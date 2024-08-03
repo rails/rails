@@ -1,3 +1,35 @@
+*   Allow each model to decide whether to raise an error on missing translations.
+
+    `ActiveModel::Translation` now allows each model to decide whether to raise
+    an error on missing translations by defining class method
+    `raise_on_missing_translations`.
+
+    ```ruby
+    class ApplicationRecord < ActiveRecord::Base
+      def self.raise_on_missing_translations = true
+    end
+
+    class Post < ApplicationRecord
+    end
+
+    class User < ApplicationRecord
+      def self.raise_on_missing_translations = false
+    end
+
+    Post.human_attribute_name(:title)
+    # => Translation missing. Options considered were: (I18n::MissingTranslationData)
+    #     - en.activerecord.attributes.post.title
+    #     - en.attributes.title
+    #
+    #             raise exception.respond_to?(:to_exception) ? exception.to_exception : exception
+    #                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    User.human_attribute_name(:name)
+    # => "Name"
+    ```
+
+    *Shouichi Kamiya*
+
 *   Add a default token generator for password reset tokens when using `has_secure_password`.
 
     ```ruby
