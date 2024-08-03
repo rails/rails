@@ -128,10 +128,28 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal({ default: "Cool gender" }, options)
   end
 
-  def test_raise_on_missing_translations
+  def test_raise_on_missing_translations_global
     ActiveModel::Translation.with(raise_on_missing_translations: true) do
       assert_raises I18n::MissingTranslationData do
         Person.human_attribute_name("name")
+      end
+
+      assert_raises I18n::MissingTranslationData do
+        Person::Gender.human_attribute_name("name")
+      end
+    end
+  end
+
+  def test_raise_on_missing_translations_per_model
+    Person.with(raise_on_missing_translations: true) do
+      assert_raises I18n::MissingTranslationData do
+        Child.human_attribute_name("name")
+      end
+
+      assert_nothing_raised do
+        Child.with(raise_on_missing_translations: false) do
+          Child.human_attribute_name("name")
+        end
       end
     end
   end
