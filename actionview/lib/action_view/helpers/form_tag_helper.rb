@@ -531,6 +531,30 @@ module ActionView
         tag :input, tag_options
       end
 
+      # Creates a reset button with the text "Reset" or alternative text provided.
+      # The reset button allows users to clear form fields and return them to their default values.
+      #
+      # ==== Options
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
+      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input
+      # * Any other key creates standard HTML attributes for the tag
+      #
+      # ==== Examples
+      #   reset_tag
+      #   # => <input type="reset" name="reset" value="Reset" />
+      #
+      #   reset_tag('Reset Form')
+      #   # => <input type="reset" name="reset" value="Reset Form" />
+      #
+      #   reset_tag('Reset', class: 'form-button')
+      #   # => <input type="reset" name="reset" value="Reset" class="form-button" />
+      #
+      def reset_tag(value = "Reset", options = {})
+        options = options.deep_stringify_keys
+        tag_options = { "type" => "reset", "name" => "reset", "value" => value }.update(options)
+        tag :input, tag_options
+      end
+
       # Creates a button element that defines a <tt>submit</tt> button,
       # <tt>reset</tt> button or a generic button which can be used in
       # JavaScript, for example. You can use the button tag as a regular

@@ -762,6 +762,41 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_reset_tag_basic
+    assert_dom_equal(
+      '<input type="reset" name="reset" value="Reset" />',
+      reset_tag
+    )
+  end
+
+  def test_reset_tag_with_custom_value
+    assert_dom_equal(
+      '<input type="reset" name="reset" value="Clear Form" />',
+      reset_tag("Clear Form")
+    )
+  end
+
+  def test_reset_tag_with_custom_options
+    assert_dom_equal(
+      '<input type="reset" name="reset" value="Reset" class="btn" id="reset-btn" />',
+      reset_tag("Reset", class: "btn", id: "reset-btn")
+    )
+  end
+
+  def test_reset_tag_with_custom_name
+    assert_dom_equal(
+      '<input type="reset" name="clear_form" value="Reset" />',
+      reset_tag("Reset", name: "clear_form")
+    )
+  end
+
+  def test_reset_tag_disabled
+    assert_dom_equal(
+      '<input type="reset" name="reset" value="Reset" disabled="disabled" />',
+      reset_tag("Reset", disabled: true)
+    )
+  end
+
   def test_button_tag
     assert_dom_equal(
       %(<button name="button" type="submit">Button</button>),
