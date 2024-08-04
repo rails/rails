@@ -141,6 +141,14 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
     end
   end
 
+  def test_mysql_config_isolation_level
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(isolation_level: :read_committed))
+      result = ActiveRecord::Base.lease_connection.select_value("SELECT @@SESSION.transaction_isolation")
+      assert_equal("READ-COMMITTED", result)
+    end
+  end
+
   unless current_adapter?(:TrilogyAdapter)
     def test_passing_arbitrary_flags_to_adapter
       run_without_connection do |orig_connection|
