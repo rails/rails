@@ -1244,9 +1244,9 @@ module ActiveRecord
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
         #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
-        # [:index_errors]
+        # [+:index_errors+]
         #   Allows differentiation of multiple validation errors from the association records, by including
-        #   an index in the error attribute name, e.g. `roles[2].level`.
+        #   an index in the error attribute name, e.g. +roles[2].level+.
         #   When set to +true+, the index is based on association order, i.e. database order, with yet to be
         #   persisted new records placed at the end.
         #   When set to +:nested_attributes_order+, the index is based on the record order received by
