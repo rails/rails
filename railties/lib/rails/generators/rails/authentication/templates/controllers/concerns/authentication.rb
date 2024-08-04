@@ -30,7 +30,7 @@ module Authentication
 
     def find_session_by_cookie
       if token = cookies.signed[:session_token]
-        Session.find_by(token: token)
+        Session.find_signed(token)
       end
     end
 
@@ -53,7 +53,7 @@ module Authentication
 
     def set_current_session(session)
       Current.session = session
-      cookies.signed.permanent[:session_token] = { value: session.token, httponly: true, same_site: :lax }
+      cookies.signed.permanent[:session_token] = { value: session.signed_id, httponly: true, same_site: :lax }
     end
 
     def terminate_session
