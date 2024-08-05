@@ -220,6 +220,145 @@ end
 
 This ensures that even if `optional: true` allows `author_id` to be NULL, when it is not NULL, it must point to a valid record in the authors table.
 
+#### Methods Added by `belongs_to`
+
+In database terms, the `belongs_to` association says that this model's table contains a column which represents a reference to another table.
+This can be used to set up one-to-one or one-to-many relations, depending on the setup.
+If the table of the other class contains the reference in a one-to-one relation, then you should use `has_one` instead.
+
+When you declare a `belongs_to` association, the declaring class automatically gains numerous methods related to the association. Some of these include:
+
+* `association=(associate)`
+* `build_association(attributes = {})`
+* `create_association(attributes = {})`
+* `create_association!(attributes = {})`
+* `reload_association`
+* `reset_association`
+* `association_changed?`
+* `association_previously_changed?`
+
+We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to).
+
+In all of the above methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
+
+```ruby
+# app/models/book.rb
+class Book < ApplicationRecord
+  belongs_to :author
+end
+
+# app/models/author.rb
+class Author < ApplicationRecord
+  has_many :books
+  validates :name, presence: true
+end
+```
+
+An instance of the `Book` model will have the following methods:
+
+* `author`
+* `author=`
+* `build_author`
+* `create_author`
+* `create_author!`
+* `reload_author`
+* `reset_author`
+* `author_changed?`
+* `author_previously_changed?`
+
+NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
+
+##### Retrieving the association
+
+The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
+
+```ruby
+@author = @book.author
+```
+
+If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload_association` on the parent object.
+
+```ruby
+@author = @book.reload_author
+```
+
+To unload the cached version of the associated object—causing the next access, if any, to query it from the database—call `#reset_association` on the parent object.
+
+```ruby
+@book.reset_author
+```
+
+##### Assigning the Association
+
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associated object and setting this object's foreign key to the same value.
+
+```ruby
+@book.author = @author
+```
+
+
+The `build_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
+
+```ruby
+@author = @book.build_author(author_number: 123,
+                             author_name: "John Doe")
+```
+
+The `create_association` method takes it a step further and also saves the associated object once it passes all of the validations specified on the associated model.
+
+```ruby
+@author = @book.create_author(author_number: 123,
+                              author_name: "John Doe")
+```
+
+Finally, `create_association!` does the same, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+```ruby
+# This will raise ActiveRecord::RecordInvalid because the name is blank
+begin
+  @book.create_author!(author_number: 123, name: "")
+rescue ActiveRecord::RecordInvalid => e
+  puts e.message
+end
+```
+
+```irb
+irb> raise_validation_error: Validation failed: Name can't be blank (ActiveRecord::RecordInvalid)
+```
+
+##### Checking for Association Changes
+
+The `association_changed?` method returns true if a new associated object has been assigned and the foreign key will be updated in the next save.
+
+The `association_previously_changed?` method returns true if the previous save updated the association to reference a new associate object.
+
+```ruby
+@book.author # => #<Author author_number: 123, author_name: "John Doe">
+@book.author_changed? # => false
+@book.author_previously_changed? # => false
+
+@book.author = Author.second # => #<Author author_number: 456, author_name: "Jane Smith">
+@book.author_changed? # => true
+
+@book.save!
+@book.author_changed? # => false
+@book.author_previously_changed? # => true
+```
+
+##### Checking for Existing Associations
+
+You can see if any associated objects exist by using the `association.nil?` method:
+
+```ruby
+if @book.author.nil?
+  @msg = "No author found for this book"
+end
+```
+
+##### Saving Behavior of Associated Objects
+
+Assigning an object to a `belongs_to` association does _not_ automatically save the object. It does not save the associated object either.
+
 ### `has_one`
 
 A [`has_one`][] association indicates that one other model has a reference to this model. That model can be fetched through this association.
@@ -1567,147 +1706,6 @@ Detailed Association References
 ------------------------------
 
 ### References
-
-#### `belongs_to` Association Reference
-
-In database terms, the `belongs_to` association says that this model's table contains a column which represents a reference to another table.
-This can be used to set up one-to-one or one-to-many relations, depending on the setup.
-If the table of the other class contains the reference in a one-to-one relation, then you should use `has_one` instead.
-
-##### Methods Added by `belongs_to`
-
-When you declare a `belongs_to` association, the declaring class automatically gains numerous methods related to the association. Some of these include:
-
-* `association=(associate)`
-* `build_association(attributes = {})`
-* `create_association(attributes = {})`
-* `create_association!(attributes = {})`
-* `reload_association`
-* `reset_association`
-* `association_changed?`
-* `association_previously_changed?`
-
-We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-belongs_to).
-
-In all of the above methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
-
-```ruby
-# app/models/book.rb
-class Book < ApplicationRecord
-  belongs_to :author
-end
-
-# app/models/author.rb
-class Author < ApplicationRecord
-  has_many :books
-  validates :name, presence: true
-end
-```
-
-An instance of the `Book` model will have the following methods:
-
-* `author`
-* `author=`
-* `build_author`
-* `create_author`
-* `create_author!`
-* `reload_author`
-* `reset_author`
-* `author_changed?`
-* `author_previously_changed?`
-
-NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
-
-###### Retrieving the association
-
-The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
-
-```ruby
-@author = @book.author
-```
-
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload_association` on the parent object.
-
-```ruby
-@author = @book.reload_author
-```
-
-To unload the cached version of the associated object—causing the next access, if any, to query it from the database—call `#reset_association` on the parent object.
-
-```ruby
-@book.reset_author
-```
-
-###### Assigning the Association
-
-The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associated object and setting this object's foreign key to the same value.
-
-```ruby
-@book.author = @author
-```
-
-
-The `build_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
-
-```ruby
-@author = @book.build_author(author_number: 123,
-                             author_name: "John Doe")
-```
-
-The `create_association` method takes it a step further and also saves the associated object once it passes all of the validations specified on the associated model.
-
-```ruby
-@author = @book.create_author(author_number: 123,
-                              author_name: "John Doe")
-```
-
-Finally, `create_association!` does the same, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
-
-```ruby
-# This will raise ActiveRecord::RecordInvalid because the name is blank
-begin
-  @book.create_author!(author_number: 123, name: "")
-rescue ActiveRecord::RecordInvalid => e
-  puts e.message
-end
-```
-
-```irb
-irb> raise_validation_error: Validation failed: Name can't be blank (ActiveRecord::RecordInvalid)
-```
-
-###### `association_changed?` and `association_previously_changed?`
-
-The `association_changed?` method returns true if a new associated object has been assigned and the foreign key will be updated in the next save.
-
-The `association_previously_changed?` method returns true if the previous save updated the association to reference a new associate object.
-
-```ruby
-@book.author # => #<Author author_number: 123, author_name: "John Doe">
-@book.author_changed? # => false
-@book.author_previously_changed? # => false
-
-@book.author = Author.second # => #<Author author_number: 456, author_name: "Jane Smith">
-@book.author_changed? # => true
-
-@book.save!
-@book.author_changed? # => false
-@book.author_previously_changed? # => true
-```
-
-##### Checking for Existing Associations
-
-You can see if any associated objects exist by using the `association.nil?` method:
-
-```ruby
-if @book.author.nil?
-  @msg = "No author found for this book"
-end
-```
-
-##### Saving Behavior of Associated Objects
-
-Assigning an object to a `belongs_to` association does _not_ automatically save the object. It does not save the associated object either.
 
 #### `has_one` Association Reference
 
