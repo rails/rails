@@ -1844,7 +1844,6 @@ The `association=` method assigns an associated object to this object. Behind th
 @supplier.account = @account
 ```
 
-###### `build_association(attributes = {})`, `create_association(attributes = {})` and `create_association!(attributes = {})`
 
 The `build_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this objects foreign key will be set, but the associated object will _not_ yet be saved.
 
