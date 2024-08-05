@@ -55,6 +55,7 @@ class CreateAuthors < ActiveRecord::Migration[7.2]
     end
   end
 end
+```
 
 ```ruby
 class Author < ApplicationRecord
