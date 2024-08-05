@@ -2678,6 +2678,22 @@ at the same time:
 person.articles << article unless person.articles.include?(article)
 ```
 
+#### Using the Association Owner
+
+You can pass the owner of the association as a single argument to the scope block for even more control over the association scope. However, be aware that doing this will make preloading the association impossible.
+
+For example:
+
+```ruby
+class Supplier < ApplicationRecord
+  has_one :account, ->(supplier) { where active: supplier.active? }
+end
+```
+
+In this example, the `account` association of the `Supplier` model is scoped based on the `active` status of the supplier.
+
+By utilizing association extensions and scoping with the association owner, you can create more dynamic and context-aware associations in your Rails applications.
+
 ### Counter Cache
 
 The `:counter_cache` option in Rails helps improve the efficiency of finding the number of associated objects. Consider the following models:
@@ -2832,19 +2848,3 @@ end
 ```
 
 In this example, the `find_and_log` method performs a query on the association and logs the query details using the owner's logger. The method accesses the owner's logger via `proxy_association.owner` and the association's name via `proxy_association.reflection`.name.
-
-### Scoping using the Association Owner
-
-You can pass the owner of the association as a single argument to the scope block for even more control over the association scope. However, be aware that doing this will make preloading the association impossible.
-
-For example:
-
-```ruby
-class Supplier < ApplicationRecord
-  has_one :account, ->(supplier) { where active: supplier.active? }
-end
-```
-
-In this example, the `account` association of the `Supplier` model is scoped based on the `active` status of the supplier.
-
-By utilizing association extensions and scoping with the association owner, you can create more dynamic and context-aware associations in your Rails applications.
