@@ -192,9 +192,17 @@ module ActiveRecord
 
               seed = true
             end
+          end
+        end
 
-            migrate
-            dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+        each_current_environment(env) do |environment|
+          db_configs_with_versions(environment).sort.each do |version, db_configs|
+            db_configs.each do |db_config|
+              with_temporary_pool(db_config) do
+                migrate(version)
+                dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+              end
+            end
           end
         end
 
@@ -255,10 +263,10 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def db_configs_with_versions # :nodoc:
+      def db_configs_with_versions(environment = env) # :nodoc:
         db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
-        with_temporary_pool_for_each do |pool|
+        with_temporary_pool_for_each(env: environment) do |pool|
           db_config = pool.db_config
           versions_to_run = pool.migration_context.pending_migration_versions
           target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
@@ -580,16 +588,19 @@ module ActiveRecord
         end
 
         def each_current_configuration(environment, name = nil)
-          environments = [environment]
-          environments << "test" if environment == "development" && !ENV["SKIP_TEST_DATABASE"] && !ENV["DATABASE_URL"]
-
-          environments.each do |env|
+          each_current_environment(environment) do |env|
             configs_for(env_name: env).each do |db_config|
               next if name && name != db_config.name
 
               yield db_config
             end
           end
+        end
+
+        def each_current_environment(environment, &block)
+          environments = [environment]
+          environments << "test" if environment == "development" && !ENV["SKIP_TEST_DATABASE"] && !ENV["DATABASE_URL"]
+          environments.each(&block)
         end
 
         def each_local_configuration
