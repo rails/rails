@@ -1,40 +1,4 @@
-default_connection: <%= defined?(JRUBY_VERSION) ? 'jdbcsqlite3' : 'sqlite3' %>
-
 connections:
-  jdbcderby:
-    arunit:  activerecord_unittest
-    arunit2: activerecord_unittest2
-
-  jdbch2:
-    arunit:  activerecord_unittest
-    arunit2: activerecord_unittest2
-
-  jdbchsqldb:
-    arunit:  activerecord_unittest
-    arunit2: activerecord_unittest2
-
-  jdbcmysql:
-    arunit:
-      username: rails
-      encoding: utf8
-    arunit2:
-      username: rails
-      encoding: utf8
-
-  jdbcpostgresql:
-    arunit:
-      username: <%= ENV['user'] || 'rails' %>
-    arunit2:
-      username: <%= ENV['user'] || 'rails' %>
-
-  jdbcsqlite3:
-    arunit:
-      database: <%= FIXTURES_ROOT %>/fixture_database.sqlite3
-      timeout:  5000
-    arunit2:
-      database: <%= FIXTURES_ROOT %>/fixture_database_2.sqlite3
-      timeout:  5000
-
   mysql2:
     arunit:
       username: rails
@@ -90,20 +54,6 @@ connections:
     <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
     <% end %>
-
-  oracle:
-     arunit:
-       adapter: oracle_enhanced
-       database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
-       username: <%= ENV['ARUNIT_USER_NAME'] || 'arunit' %>
-       password: <%= ENV['ARUNIT_PASSWORD'] || 'arunit' %>
-       emulate_oracle_adapter: true
-     arunit2:
-       adapter: oracle_enhanced
-       database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
-       username: <%= ENV['ARUNIT2_USER_NAME'] || 'arunit2' %>
-       password: <%= ENV['ARUNIT2_PASSWORD'] || 'arunit2' %>
-       emulate_oracle_adapter: true
 
   postgresql:
     arunit:

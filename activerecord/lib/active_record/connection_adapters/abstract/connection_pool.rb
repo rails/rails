@@ -74,7 +74,7 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling.connection].
+    # 1. Simply use {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling#lease_connection].
     #    When you're done with the connection(s) and wish it to be returned to the pool, you call
     #    {ActiveRecord::Base.connection_handler.clear_active_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_active_connections!].
     #    This is the default behavior for Active Record when used in conjunction with
@@ -253,6 +253,7 @@ module ActiveRecord
 
         @available = ConnectionLeasingQueue.new self
         @pinned_connection = nil
+        @pinned_connections_depth = 0
 
         @async_executor = build_async_executor
 
@@ -260,6 +261,13 @@ module ActiveRecord
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
+      end
+
+      def inspect # :nodoc:
+        name_field = " name=#{db_config.name.inspect}" unless db_config.name == "primary"
+        shard_field = " shard=#{@shard.inspect}" unless @shard == :default
+
+        "#<#{self.class.name} env_name=#{db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
       end
 
       def schema_cache
@@ -305,15 +313,15 @@ module ActiveRecord
       def connection
         ActiveRecord.deprecator.warn(<<~MSG)
           ActiveRecord::ConnectionAdapters::ConnectionPool#connection is deprecated
-          and will be removed in Rails 7.3. Use #lease_connection instead.
+          and will be removed in Rails 8.0. Use #lease_connection instead.
         MSG
         lease_connection
       end
 
       def pin_connection!(lock_thread) # :nodoc:
-        raise "There is already a pinned connection" if @pinned_connection
+        @pinned_connection ||= (connection_lease&.connection || checkout)
+        @pinned_connections_depth += 1
 
-        @pinned_connection = (connection_lease&.connection || checkout)
         # Any leased connection must be in @connections otherwise
         # some methods like #connected? won't behave correctly
         unless @connections.include?(@pinned_connection)
@@ -330,7 +338,10 @@ module ActiveRecord
 
         clean = true
         @pinned_connection.lock.synchronize do
-          connection, @pinned_connection = @pinned_connection, nil
+          @pinned_connections_depth -= 1
+          connection = @pinned_connection
+          @pinned_connection = nil if @pinned_connections_depth.zero?
+
           if connection.transaction_open?
             connection.rollback_transaction
           else
@@ -338,8 +349,11 @@ module ActiveRecord
             clean = false
             connection.reset!
           end
-          connection.lock_thread = nil
-          checkin(connection)
+
+          if @pinned_connection.nil?
+            connection.lock_thread = nil
+            checkin(connection)
+          end
         end
 
         clean
@@ -527,12 +541,14 @@ module ActiveRecord
       # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
         if @pinned_connection
-          synchronize do
-            @pinned_connection.verify!
-            # Any leased connection must be in @connections otherwise
-            # some methods like #connected? won't behave correctly
-            unless @connections.include?(@pinned_connection)
-              @connections << @pinned_connection
+          @pinned_connection.lock.synchronize do
+            synchronize do
+              @pinned_connection.verify!
+              # Any leased connection must be in @connections otherwise
+              # some methods like #connected? won't behave correctly
+              unless @connections.include?(@pinned_connection)
+                @connections << @pinned_connection
+              end
             end
           end
           @pinned_connection

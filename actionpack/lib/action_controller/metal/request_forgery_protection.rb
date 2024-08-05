@@ -265,7 +265,7 @@ module ActionController # :nodoc:
         end
 
         private
-          class NullSessionHash < Rack::Session::Abstract::SessionHash # :nodoc:
+          class NullSessionHash < Rack::Session::Abstract::SessionHash
             def initialize(req)
               super(nil, req)
               @data = {}
@@ -284,7 +284,7 @@ module ActionController # :nodoc:
             end
           end
 
-          class NullCookieJar < ActionDispatch::Cookies::CookieJar # :nodoc:
+          class NullCookieJar < ActionDispatch::Cookies::CookieJar
             def write(*)
               # nothing
             end
@@ -396,7 +396,7 @@ module ActionController # :nodoc:
         end
       end
 
-      def handle_unverified_request # :doc:
+      def handle_unverified_request
         protection_strategy = forgery_protection_strategy.new(self)
 
         if protection_strategy.respond_to?(:warning_message)
@@ -406,7 +406,7 @@ module ActionController # :nodoc:
         protection_strategy.handle_unverified_request
       end
 
-      def unverified_request_warning_message # :nodoc:
+      def unverified_request_warning_message
         if valid_request_origin?
           "Can't verify CSRF token authenticity."
         else
@@ -414,7 +414,6 @@ module ActionController # :nodoc:
         end
       end
 
-      # :nodoc:
       CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
         "<script> tag on another site requested protected JavaScript. " \
         "If you know what you're doing, go ahead and disable forgery " \
@@ -653,15 +652,15 @@ module ActionController # :nodoc:
         uri.path.chomp("/")
       end
 
-      def generate_csrf_token # :nodoc:
+      def generate_csrf_token
         SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH)
       end
 
-      def encode_csrf_token(csrf_token) # :nodoc:
+      def encode_csrf_token(csrf_token)
         Base64.urlsafe_encode64(csrf_token, padding: false)
       end
 
-      def decode_csrf_token(encoded_csrf_token) # :nodoc:
+      def decode_csrf_token(encoded_csrf_token)
         Base64.urlsafe_decode64(encoded_csrf_token)
       end
   end

@@ -3,8 +3,6 @@
 require "erb"
 require "cgi"
 
-puts "required tools/preview_docs"
-
 # How to test:
 #
 #   export BUILDKITE_COMMIT="c8b601a225"

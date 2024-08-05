@@ -34,5 +34,11 @@ task :stats do
   stat_directories = STATS_DIRECTORIES.collect do |name, dir|
     [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
   end.select { |name, dir| File.directory?(dir) }
+
+  $stderr.puts Rails.deprecator.warn(<<~MSG, caller_locations(0..1))
+  `bin/rails stats` as rake task has been deprecated and will be removed in Rails 8.0.
+  Please use `bin/rails stats` as Rails command instead.\n
+  MSG
+
   CodeStatistics.new(*stat_directories).to_s
 end

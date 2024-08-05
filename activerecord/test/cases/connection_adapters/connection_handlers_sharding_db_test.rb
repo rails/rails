@@ -21,7 +21,7 @@ module ActiveRecord
             ActiveRecord::Base.establish_connection(db_config)
             assert_nothing_raised { Person.first }
 
-            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:get_pool_manager, "ActiveRecord::Base").shard_names
+            assert_equal [:default, :shard_one].sort, ActiveRecord::Base.connection_handler.send(:get_pool_manager, "ActiveRecord::Base").shard_names.sort
           end
         end
 
@@ -233,13 +233,51 @@ module ActiveRecord
             default: { writing: :arunit, reading: :arunit }
           })
 
-          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          error = assert_raises ActiveRecord::ConnectionNotDefined do
             ActiveRecord::Base.connected_to(role: :reading, shard: :foo) do
               Person.first
             end
           end
 
-          assert_equal "No connection pool for 'ActiveRecord::Base' found for the 'foo' shard.", error.message
+          assert_equal "No database connection defined for 'foo' shard and 'reading' role.", error.message
+          assert_equal "ActiveRecord::Base", error.connection_name
+          assert_equal :foo, error.shard
+          assert_equal :reading, error.role
+        end
+
+        def test_calling_connected_to_on_a_non_existent_role_for_shard_raises
+          ActiveRecord::Base.connects_to(shards: {
+            default: { writing: :arunit, reading: :arunit },
+            shard_one: { writing: :arunit, reading: :arunit }
+          })
+
+          error = assert_raises ActiveRecord::ConnectionNotDefined do
+            ActiveRecord::Base.connected_to(role: :non_existent, shard: :shard_one) do
+              Person.first
+            end
+          end
+
+          assert_equal "No database connection defined for 'shard_one' shard and 'non_existent' role.", error.message
+          assert_equal "ActiveRecord::Base", error.connection_name
+          assert_equal :shard_one, error.shard
+          assert_equal :non_existent, error.role
+        end
+
+        def test_calling_connected_to_on_a_default_role_for_non_existent_shard_raises
+          ActiveRecord::Base.connects_to(shards: {
+            default: { writing: :arunit, reading: :arunit }
+          })
+
+          error = assert_raises ActiveRecord::ConnectionNotDefined do
+            ActiveRecord::Base.connected_to(shard: :foo) do
+              Person.first
+            end
+          end
+
+          assert_equal "No database connection defined for 'foo' shard.", error.message
+          assert_equal "ActiveRecord::Base", error.connection_name
+          assert_equal :foo, error.shard
+          assert_equal :writing, error.role
         end
 
         def test_cannot_swap_shards_while_prohibited

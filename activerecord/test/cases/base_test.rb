@@ -151,13 +151,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
 
     quoted = conn.quote_column_name "foo#{badchar}bar"
-    if current_adapter?(:OracleAdapter)
-      # Oracle does not allow double quotes in table and column names at all
-      # therefore quoting removes them
-      assert_equal("#{badchar}foobar#{badchar}", quoted)
-    else
-      assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
-    end
+    assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
   end
 
   def test_columns_should_obey_set_primary_key
@@ -545,39 +539,27 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(topic.id)
     assert_predicate topic, :approved?
     assert_nil topic.last_read
+  end
 
-    # Oracle has some funky default handling, so it requires a bit of
-    # extra testing. See ticket #2788.
-    if current_adapter?(:OracleAdapter)
-      test = TestOracleDefault.new
-      assert_equal "X", test.test_char
-      assert_equal "hello", test.test_string
-      assert_equal 3, test.test_int
+  def test_utc_as_time_zone
+    with_timezone_config default: :utc do
+      attributes = { "bonus_time" => "5:42:00AM" }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
     end
   end
 
-  # Oracle does not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter)
-    def test_utc_as_time_zone
-      with_timezone_config default: :utc do
-        attributes = { "bonus_time" => "5:42:00AM" }
-        topic = Topic.find(1)
-        topic.attributes = attributes
-        assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
-      end
-    end
-
-    def test_utc_as_time_zone_and_new
-      with_timezone_config default: :utc do
-        attributes = { "bonus_time(1i)" => "2000",
-          "bonus_time(2i)" => "1",
-          "bonus_time(3i)" => "1",
-          "bonus_time(4i)" => "10",
-          "bonus_time(5i)" => "35",
-          "bonus_time(6i)" => "50" }
-        topic = Topic.new(attributes)
-        assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
-      end
+  def test_utc_as_time_zone_and_new
+    with_timezone_config default: :utc do
+      attributes = { "bonus_time(1i)" => "2000",
+        "bonus_time(2i)" => "1",
+        "bonus_time(3i)" => "1",
+        "bonus_time(4i)" => "10",
+        "bonus_time(5i)" => "35",
+        "bonus_time(6i)" => "50" }
+      topic = Topic.new(attributes)
+      assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
     end
   end
 
@@ -922,9 +904,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle does not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter)
-
     with_timezone_config default: :local do
       attributes = {
         "bonus_time" => "5:42:00AM"
@@ -939,9 +918,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time_with_invalid_time
-    # Oracle does not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter)
-
     attributes = {
       "bonus_time" => "not a time"
     }

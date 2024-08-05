@@ -1426,8 +1426,9 @@ You can add validations using some of the following methods:
   Validates each attribute against a block.
 
 Some of the options below can be used with certain validators. To determine if
-the option you're using can be used with a specific validator, read through the
-documentation [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html).
+the option you're using can be used with a specific validator, read through [the
+validation
+documentation](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html).
 
 - `:on`: Specifies the context in which to add the validation. You can pass a
   symbol or an array of symbols. (e.g. `on: :create` or `on:
@@ -1520,8 +1521,9 @@ Objects you pass in are expected to return a compliant object from a call to
     end
     ```
 
-You can find the test methods
-[here](https://api.rubyonrails.org/classes/ActiveModel/Lint/Tests.html).
+See [the test methods
+documentation](https://api.rubyonrails.org/classes/ActiveModel/Lint/Tests.html)
+for more details.
 
 To run the tests you can use the following command:
 

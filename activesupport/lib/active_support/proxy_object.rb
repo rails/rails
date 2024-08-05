@@ -12,7 +12,7 @@ module ActiveSupport
 
     def self.inherited(_subclass)
       ::ActiveSupport.deprecator.warn(<<~MSG)
-        ActiveSupport::ProxyObject is deprecated and will be removed in Rails 7.3.
+        ActiveSupport::ProxyObject is deprecated and will be removed in Rails 8.0.
         Use Ruby's built-in BasicObject instead.
       MSG
     end

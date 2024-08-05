@@ -345,45 +345,6 @@ Expected: ["id", "name"]
       assert_unsuccessful_run "models/user_test.rb", "SCHEMA LOADED!"
     end
 
-    def test_actionable_command_line_error_with_tty
-      rails "generate", "scaffold", "user", "name:string"
-      app_file "config/initializers/thor_yes.rb", <<-RUBY
-        Rails::Command::Base.class_eval <<-INITIALIZER
-          def yes?(statement, color = nil)
-            raise ArgumentError unless statement == "Run pending migrations? [Yn]"
-            true
-          end
-
-          def tty?
-            true
-          end
-        INITIALIZER
-      RUBY
-
-      run_test_file("models/user_test.rb").tap do |output|
-        assert_match "Migrations are pending. To resolve this issue, run:", output
-        assert_match "CreateUsers: migrating", output
-        assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
-      end
-    end
-
-    def test_actionable_command_line_without_tty
-      rails "generate", "scaffold", "user", "name:string"
-      app_file "config/initializers/thor_yes.rb", <<-RUBY
-        Rails::Command::Base.class_eval <<-INITIALIZER
-          def tty?
-            false
-          end
-        INITIALIZER
-      RUBY
-
-      run_test_file("models/user_test.rb").tap do |output|
-        assert_match "Migrations are pending. To resolve this issue, run:", output
-        assert_no_match "CreateUsers: migrating", output
-        assert_no_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
-      end
-    end
-
     private
       def assert_unsuccessful_run(name, message)
         result = run_test_file(name)

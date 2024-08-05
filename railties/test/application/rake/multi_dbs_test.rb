@@ -566,6 +566,35 @@ module ApplicationTests
         end
       end
 
+      test "db:prepare respects timestamp ordering across databases" do
+        require "#{app_path}/config/environment"
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/04_four_migration.rb", <<-MIGRATION
+        class FourMigration < ActiveRecord::Migration::Current
+        end
+        MIGRATION
+
+        app_file "db/migrate/03_three_migration.rb", <<-MIGRATION
+          class ThreeMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        Dir.chdir(app_path) do
+          output = rails "db:prepare"
+          entries = output.scan(/^== (\d+).+migrated/).map(&:first).map(&:to_i)
+          assert_equal [1, 2, 3, 4] * 2, entries # twice because for test env too
+        end
+      end
+
       test "migrations in different directories can have the same timestamp" do
         require "#{app_path}/config/environment"
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
@@ -1261,24 +1290,107 @@ module ApplicationTests
         YAML
 
         Dir.chdir(app_path) do
-          animals_db_exists = lambda { rails("runner", "puts !!(AnimalsBase.lease_connection rescue false)").strip }
-
           generate_models_for_animals
 
-          assert_equal "true", animals_db_exists.call
-
-          assert_not File.exist?("db/animals_schema.yml")
+          assert_not File.exist?("storage/development_animals.sqlite3")
+          assert_not File.exist?("db/animals_schema.rb")
 
           error = assert_raises do
             rails "db:migrate:animals" ### Task not defined
           end
           assert_includes error.message, "Unrecognized command"
 
-          rails "db:schema:dump"
-          assert_not File.exist?("db/animals_schema.yml")
+          rails "db:migrate"
+          assert File.exist?("storage/default.sqlite3")
+          assert_not File.exist?("storage/development_animals.sqlite3")
+          assert File.exist?("db/schema.rb")
+          assert_not File.exist?("db/animals_schema.rb")
 
           rails "db:drop"
-          assert_equal "true", animals_db_exists.call
+          assert_not File.exist?("storage/default.sqlite3")
+          assert_not File.exist?("storage/development_animals.sqlite3")
+        end
+      end
+
+      test "when database_tasks is false on 'primary', then run the database tasks on other dbs" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: storage/development.sqlite3
+              adapter: sqlite3
+              database_tasks: false
+            animals:
+              database: storage/development_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+        YAML
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+
+          assert_not File.exist?("storage/development.sqlite3")
+          assert_not File.exist?("storage/development_animals.sqlite3")
+
+          assert_not File.exist?("db/schema.rb")
+          assert_not File.exist?("db/animals_schema.rb")
+
+          error = assert_raises do
+            rails "db:migrate:animals" ### Task not defined
+          end
+          assert_includes error.message, "Unrecognized command"
+
+          rails "db:migrate"
+          assert_not File.exist?("storage/development.sqlite3")
+          assert File.exist?("storage/development_animals.sqlite3")
+          assert_not File.exist?("db/schema.rb")
+          assert File.exist?("db/animals_schema.rb")
+
+          rails "db:drop"
+
+          assert_not File.exist?("storage/development.sqlite3")
+          assert_not File.exist?("storage/development_animals.sqlite3")
+        end
+      end
+
+      test "when database_tasks is false on the implicit primary database, then run the database tasks on other dbs" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            main:
+              database: storage/development.sqlite3
+              adapter: sqlite3
+              database_tasks: false
+            animals:
+              database: storage/development_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+        YAML
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+
+          assert_not File.exist?("storage/development.sqlite3")
+          assert_not File.exist?("storage/development_animals.sqlite3")
+
+          assert_not File.exist?("db/schema.rb")
+          assert_not File.exist?("db/animals_schema.rb")
+
+          error = assert_raises do
+            rails "db:migrate:animals" ### Task not defined
+          end
+          assert_includes error.message, "Unrecognized command"
+
+          rails "db:migrate"
+          assert_not File.exist?("storage/development.sqlite3")
+          assert File.exist?("storage/development_animals.sqlite3")
+          assert_not File.exist?("db/schema.rb")
+          assert File.exist?("db/animals_schema.rb")
+
+          rails "db:drop"
+
+          assert_not File.exist?("storage/development.sqlite3")
+          assert_not File.exist?("storage/development_animals.sqlite3")
         end
       end
 

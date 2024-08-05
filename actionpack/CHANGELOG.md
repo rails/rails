@@ -1,135 +1,70 @@
-*   Fix `Mime::Type.parse` handling type parameters for HTTP Accept headers.
-
-    *Taylor Chaparro*
-
-*   Fix the error page that is displayed when a view template is missing to account for nested controller paths in the
-    suggested correct location for the missing template.
-
-    *Joshua Young*
-
-*   Add `save_and_open_page` helper to IntegrationTest
-    `save_and_open_page` is a helpful helper to keep a short feedback loop when working on system tests.
-    A similar helper with matching signature has been added to integration tests.
-
-    *Joé Dupuis*
-
-*   Fix a regression in 7.1.3 passing a `to:` option without a controller when the controller is already defined by a scope.
+*   Deprecate drawing routes with hash key paths to make routing faster.
 
     ```ruby
-    Rails.application.routes.draw do
-      controller :home do
-        get "recent", to: "recent_posts"
-      end
-    end
+    # Before
+    get "/users" => "users#index"
+    post "/logout" => :sessions
+    mount MyApp => "/my_app"
+
+    # After
+    get "/users", to: "users#index"
+    post "/logout", to: "sessions#logout"
+    mount MyApp, at: "/my_app"
     ```
-
-    *Étienne Barrié*
-
-*   Request Forgery takes relative paths into account.
-
-    *Stefan Wienert*
-
-*   Add ".test" as a default allowed host in development to ensure smooth golden-path setup with puma.dev.
-
-    *DHH*
-
-*   Add `allow_browser` to set minimum browser versions for the application.
-
-    A browser that's blocked will by default be served the file in `public/406-unsupported-browser.html` with a HTTP status code of "406 Not Acceptable".
-
-    ```ruby
-    class ApplicationController < ActionController::Base
-      # Allow only browsers natively supporting webp images, web push, badges, import maps, CSS nesting + :has
-      allow_browser versions: :modern
-    end
-
-    class ApplicationController < ActionController::Base
-      # All versions of Chrome and Opera will be allowed, but no versions of "internet explorer" (ie). Safari needs to be 16.4+ and Firefox 121+.
-      allow_browser versions: { safari: 16.4, firefox: 121, ie: false }
-    end
-
-    class MessagesController < ApplicationController
-      # In addition to the browsers blocked by ApplicationController, also block Opera below 104 and Chrome below 119 for the show action.
-      allow_browser versions: { opera: 104, chrome: 119 }, only: :show
-    end
-    ```
-
-    *DHH*
-
-*   Add rate limiting API.
-
-    ```ruby
-    class SessionsController < ApplicationController
-      rate_limit to: 10, within: 3.minutes, only: :create
-    end
-
-    class SignupsController < ApplicationController
-      rate_limit to: 1000, within: 10.seconds,
-        by: -> { request.domain }, with: -> { redirect_to busy_controller_url, alert: "Too many signups!" }, only: :new
-    end
-    ```
-
-    *DHH*, *Jean Boussier*
-
-*   Add `image/svg+xml` to the compressible content types of ActionDispatch::Static
-
-    *Georg Ledermann*
-
-*   Add instrumentation for ActionController::Live#send_stream
-
-    Allows subscribing to `send_stream` events. The event payload contains the filename, disposition, and type.
-
-    *Hannah Ramadan*
-
-*   Add support for `with_routing` test helper in `ActionDispatch::IntegrationTest`
 
     *Gannon McGibbon*
 
-*   Remove deprecated support to set `Rails.application.config.action_dispatch.show_exceptions` to `true` and `false`.
+*   Deprecate drawing routes with multiple paths to make routing faster.
+    You may use `with_options` or a loop to make drawing multiple paths easier.
 
-    *Rafael Mendonça França*
+    ```ruby
+    # Before
+    get "/users", "/other_path", to: "users#index"
 
-*   Remove deprecated `speaker`, `vibrate`, and `vr` permissions policy directives.
+    # After
+    get "/users", to: "users#index"
+    get "/other_path", to: "users#index"
+    ```
 
-    *Rafael Mendonça França*
+    *Gannon McGibbon*
 
-*   Remove deprecated `Rails.application.config.action_dispatch.return_only_request_media_type_on_content_type`.
+*   Make `http_cache_forever` use `immutable: true`
 
-    *Rafael Mendonça França*
+    *Nate Matykiewicz*
 
-*   Deprecate `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
+*   Add `config.action_dispatch.strict_freshness`.
 
-    *Rafael Mendonça França*
+    When set to `true`, the `ETag` header takes precedence over the `Last-Modified` header when both are present,
+    as specified by RFC 7232, Section 6.
 
-*   Remove deprecated comparison between `ActionController::Parameters` and `Hash`.
+    Defaults to `false` to maintain compatibility with previous versions of Rails, but is enabled as part of
+    Rails 8.0 defaults.
 
-    *Rafael Mendonça França*
+    *heka1024*
 
-*   Remove deprecated constant `AbstractController::Helpers::MissingHelperError`.
+*   Support `immutable` directive in Cache-Control
 
-    *Rafael Mendonça França*
+    ```ruby
+    expires_in 1.minute, public: true, immutable: true
+    # Cache-Control: public, max-age=60, immutable
+    ```
 
-*   Fix a race condition that could cause a `Text file busy - chromedriver`
-    error with parallel system tests
+    *heka1024*
 
-    *Matt Brictson*
+*   Add `:wasm_unsafe_eval` mapping for `content_security_policy`
 
-*   Add `racc` as a dependency since it will become a bundled gem in Ruby 3.4.0
+    ```ruby
+    # Before
+    policy.script_src "'wasm-unsafe-eval'"
 
-    *Hartley McGuire*
-*   Remove deprecated constant `ActionDispatch::IllegalStateError`.
+    # After
+    policy.script_src :wasm_unsafe_eval
+    ```
 
-    *Rafael Mendonça França*
+    *Joe Haig*
 
-*   Add parameter filter capability for redirect locations.
+*   Add `display_capture` and `keyboard_map` in `permissions_policy`
 
-    It uses the `config.filter_parameters` to match what needs to be filtered.
-    The result would be like this:
+    *Cyril Blaecke*
 
-        Redirected to http://secret.foo.bar?username=roque&password=[FILTERED]
-
-    Fixes #14055.
-
-    *Roque Pinel*, *Trevor Turk*, *tonytonyjan*
-
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionpack/CHANGELOG.md) for previous changes.
+Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actionpack/CHANGELOG.md) for previous changes.

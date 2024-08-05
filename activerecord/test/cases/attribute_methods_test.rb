@@ -692,23 +692,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "typecast attribute from select to false" do
     Topic.create(title: "Budget")
-    # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter)
-      topic = Topic.all.merge!(select: "topics.*, 0 as is_test").first
-    else
-      topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
-    end
+    topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
     assert_not_predicate topic, :is_test?
   end
 
   test "typecast attribute from select to true" do
     Topic.create(title: "Budget")
-    # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter)
-      topic = Topic.all.merge!(select: "topics.*, 1 as is_test").first
-    else
-      topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
-    end
+    topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
     assert_predicate topic, :is_test?
   end
 
@@ -1227,11 +1217,32 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     alias_attribute :subject, :title
   end
 
+  test "#alias_attribute override methods defined in parent models" do
+    parent_model = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+
+      def subject
+        "Abstract Subject"
+      end
+    end
+
+    subclass = Class.new(parent_model) do
+      self.table_name = "topics"
+      alias_attribute :subject, :title
+    end
+
+    obj = subclass.new
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+  end
+
   test "aliases to the same attribute name do not conflict with each other" do
     first_model_object = ToBeLoadedFirst.new(author_name: "author 1")
     assert_equal("author 1", first_model_object.subject)
+    assert_equal([nil, "author 1"], first_model_object.subject_change)
     second_model_object = ToBeLoadedSecond.new(title: "foo")
     assert_equal("foo", second_model_object.subject)
+    assert_equal([nil, "foo"], second_model_object.subject_change)
   end
 
   test "#alias_attribute with an overridden original method does not use the overridden original method" do

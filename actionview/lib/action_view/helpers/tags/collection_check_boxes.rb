@@ -10,12 +10,13 @@ module ActionView
         include FormOptionsHelper
 
         class CheckBoxBuilder < Builder # :nodoc:
-          def check_box(extra_html_options = {})
+          def checkbox(extra_html_options = {})
             html_options = extra_html_options.merge(@input_html_options)
             html_options[:multiple] = true
             html_options[:skip_default_ids] = false
-            @template_object.check_box(@object_name, @method_name, html_options, @value, nil)
+            @template_object.checkbox(@object_name, @method_name, html_options, @value, nil)
           end
+          alias_method :check_box, :checkbox
         end
 
         def render(&block)
@@ -24,7 +25,7 @@ module ActionView
 
         private
           def render_component(builder)
-            builder.check_box + builder.label
+            builder.checkbox + builder.label
           end
 
           def hidden_field_name

@@ -77,6 +77,13 @@ module ActiveRecord
         # alias attributes in Active Record are lazily generated
       end
 
+      def generate_alias_attribute_methods(code_generator, new_name, old_name) # :nodoc:
+        attribute_method_patterns.each do |pattern|
+          alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+        end
+        attribute_method_patterns_cache.clear
+      end
+
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
         old_name = old_name.to_s
 
@@ -84,12 +91,7 @@ module ActiveRecord
           raise ArgumentError, "#{self.name} model aliases `#{old_name}`, but `#{old_name}` is not an attribute. " \
             "Use `alias_method :#{new_name}, :#{old_name}` or define the method manually."
         else
-          method_name = pattern.method_name(new_name).to_s
-          parameters = pattern.parameters
-
-          define_proxy_call(code_generator, method_name, pattern.proxy_target, parameters, old_name,
-            namespace: :proxy_alias_attribute
-          )
+          define_attribute_method_pattern(pattern, old_name, owner: code_generator, as: new_name, override: true)
         end
       end
 

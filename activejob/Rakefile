@@ -10,6 +10,8 @@ task test: "test:default"
 
 task :package
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 namespace :test do
   desc "Run all adapter tests"
   task :default do

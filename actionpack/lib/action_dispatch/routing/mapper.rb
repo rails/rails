@@ -636,6 +636,7 @@ module ActionDispatch
             options = app
             app, path = options.find { |k, _| k.respond_to?(:call) }
             options.delete(app) if app
+            hash_key_app = true
           end
 
           raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
@@ -645,6 +646,10 @@ module ActionDispatch
               mount SomeRackApp, at: "some_route"
               or
               mount(SomeRackApp => "some_route")
+          MSG
+          ActionDispatch.deprecator.warn(<<-MSG.squish) if hash_key_app
+            Mounting an engine with a hash key name is deprecated and
+            will be removed in Rails 8.1. Please use the at: option instead.
           MSG
 
           rails_app = rails_app? app
@@ -714,7 +719,7 @@ module ActionDispatch
               def optimize_routes_generation?; false; end
 
               define_method :find_script_name do |options|
-                if options.key? :script_name
+                if options.key?(:script_name) && options[:script_name].present?
                   super(options)
                 else
                   script_namer.call(options)
@@ -1682,6 +1687,12 @@ module ActionDispatch
 
             raise ArgumentError, "Route path not specified" if path.nil?
 
+            ActionDispatch.deprecator.warn(<<-MSG.squish)
+              Drawing a route with a hash key name is deprecated and
+              will be removed in Rails 8.1. Please use the to: option with
+              "controller#action" syntax instead.
+            MSG
+
             case to
             when Symbol
               options[:action] = to
@@ -1934,6 +1945,11 @@ module ActionDispatch
           end
 
           def map_match(paths, options)
+            ActionDispatch.deprecator.warn(<<-MSG.squish) if paths.count > 1
+              Mapping a route with multiple paths is deprecated and
+              will be removed in Rails 8.1. Please use multiple method calls instead.
+            MSG
+
             if (on = options[:on]) && !VALID_ON_OPTIONS.include?(on)
               raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
             end

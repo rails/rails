@@ -926,14 +926,12 @@ module ActiveRecord
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
-          assert_called(statement, :columns, returns: []) do
-            assert_called(statement, :close) do
-              ::SQLite3::Statement.stub(:new, statement) do
-                error = assert_raises ActiveRecord::StatementInvalid do
-                  @conn.exec_query "select * from statement_test"
-                end
-                assert_equal @conn.pool, error.connection_pool
+          assert_called(statement, :close) do
+            ::SQLite3::Statement.stub(:new, statement) do
+              error = assert_raises ActiveRecord::StatementInvalid do
+                @conn.exec_query "select * from statement_test"
               end
+              assert_equal @conn.pool, error.connection_pool
             end
           end
         end
@@ -1001,7 +999,7 @@ module ActiveRecord
           error = assert_raises(StandardError) do
             conn.add_index :testings, :non_existent2
           end
-          assert_match(/no such column: non_existent2/, error.message)
+          assert_match(/no such column: "?non_existent2"?/, error.message)
           assert_equal conn.pool, error.connection_pool
         end
       end
@@ -1013,7 +1011,7 @@ module ActiveRecord
         error = assert_raises(StandardError) do
           conn.add_index :testings, :non_existent
         end
-        assert_match(/no such column: non_existent/, error.message)
+        assert_match(/no such column: "?non_existent"?/, error.message)
         assert_equal conn.pool, error.connection_pool
 
         with_strict_strings_by_default do
@@ -1023,7 +1021,7 @@ module ActiveRecord
           error = assert_raises(StandardError) do
             conn.add_index :testings, :non_existent2
           end
-          assert_match(/no such column: non_existent2/, error.message)
+          assert_match(/no such column: "?non_existent2"?/, error.message)
           assert_equal conn.pool, error.connection_pool
         end
       end

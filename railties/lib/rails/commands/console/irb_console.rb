@@ -10,7 +10,7 @@ module Rails
     end
 
     class ControllerHelper < RailsHelperBase
-      description "Gets the helper methods available to the controller."
+      description "Gets helper methods available to ApplicationController."
 
       # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
       def execute
@@ -19,7 +19,7 @@ module Rails
     end
 
     class ControllerInstance < RailsHelperBase
-      description "Gets a new instance of a controller object."
+      description "Gets a new instance of ApplicationController."
 
       # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
       def execute
@@ -28,7 +28,7 @@ module Rails
     end
 
     class NewSession < RailsHelperBase
-      description "Create a new session. If a block is given, the new session will be yielded to the block before being returned."
+      description "[Deprecated] Please use `app(true)` instead."
 
       def execute(*)
         app = Rails.application
@@ -43,7 +43,7 @@ module Rails
     end
 
     class AppInstance < NewSession
-      description "Reference the global 'app' instance, created on demand. To recreate the instance, pass a non-false value as the parameter."
+      description "Creates a new ActionDispatch::Integration::Session and memoizes it. Use `app(true)` to create a new instance."
 
       def execute(create = false)
         @app_integration_instance = nil if create
@@ -55,7 +55,7 @@ module Rails
       include ConsoleMethods
 
       category "Rails console"
-      description "Reloads the environment."
+      description "Reloads the Rails application."
 
       def execute(*)
         puts "Reloading..."
@@ -90,7 +90,8 @@ module Rails
 
         env = colorized_env
         app_name = @app.class.module_parent_name.underscore.dasherize
-        prompt_prefix = "#{app_name}(#{env})"
+        prompt_prefix = "%N(#{env})"
+        IRB.conf[:IRB_NAME] = app_name
 
         IRB.conf[:PROMPT][:RAILS_PROMPT] = {
           PROMPT_I: "#{prompt_prefix}> ",

@@ -64,7 +64,7 @@ $ bin/rails app:update
     conflict  config/application.rb
 Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
        force  config/application.rb
-      create  config/initializers/new_framework_defaults_7_2.rb
+      create  config/initializers/new_framework_defaults_8_0.rb
 ...
 ```
 
@@ -75,6 +75,11 @@ Don't forget to review the difference, to see if there were any unexpected chang
 The new Rails version might have different configuration defaults than the previous version. However, after following the steps described above, your application would still run with configuration defaults from the *previous* Rails version. That's because the value for `config.load_defaults` in `config/application.rb` has not been changed yet.
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X.Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
+
+Upgrading from Rails 7.2 to Rails 8.0
+-------------------------------------
+
+For more information on changes made to Rails 8.0 please see the [release notes](8_0_release_notes.html).
 
 Upgrading from Rails 7.1 to Rails 7.2
 -------------------------------------
@@ -96,6 +101,18 @@ Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 
 For more information on changes made to Rails 7.1 please see the [release notes](7_1_release_notes.html).
+
+### Development and test environments secret_key_base file changed
+
+In development and test environments, the file from which Rails reads the `secret_key_base` has been renamed from `tmp/development_secret.txt` to `tmp/local_secret.txt`.
+
+You can simply rename the previous file to `local_secret.txt` to continue using the same secret, or copy the key from the previous file to the new one.
+
+Failure to do so will cause Rails to generate a new secret key in the new file `tmp/local_secret.txt` when the app loads.
+
+This will invalidate all existing sessions/cookies in development and test environments, and also cause other signatures derived from `secret_key_base` to break, such as Active Storage/Action Text attachments.
+
+Production and other environments are not affected.
 
 ### Autoloaded paths are no longer in $LOAD_PATH
 

@@ -5,6 +5,6 @@ module Cpk
     self.table_name = :cpk_chapters
     self.primary_key = [:author_id, :id]
 
-    belongs_to :book, query_constraints: [:author_id, :book_id], class_name: "Cpk::BookDestroyAsync"
+    belongs_to :book, foreign_key: [:author_id, :book_id], class_name: "Cpk::BookDestroyAsync"
   end
 end

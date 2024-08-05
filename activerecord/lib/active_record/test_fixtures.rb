@@ -96,6 +96,14 @@ module ActiveRecord
       end
     end
 
+    # Generic fixture accessor for fixture names that may conflict with other methods.
+    #
+    #   assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+    #   assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    def fixture(fixture_set_name, *fixture_names)
+      active_record_fixture(fixture_set_name, *fixture_names)
+    end
+
     private
       def run_in_transaction?
         use_transactional_tests &&
@@ -255,7 +263,7 @@ module ActiveRecord
 
       def method_missing(method, ...)
         if fixture_sets.key?(method.name)
-          _active_record_fixture(method, ...)
+          active_record_fixture(method, ...)
         else
           super
         end
@@ -269,14 +277,13 @@ module ActiveRecord
         end
       end
 
-      def _active_record_fixture(fixture_set_name, *fixture_names)
+      def active_record_fixture(fixture_set_name, *fixture_names)
         if fs_name = fixture_sets[fixture_set_name.name]
           access_fixture(fs_name, *fixture_names)
         else
           raise StandardError, "No fixture set named '#{fixture_set_name.inspect}'"
         end
       end
-      alias_method :fixture, :_active_record_fixture
 
       def access_fixture(fs_name, *fixture_names)
         force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload

@@ -33,8 +33,8 @@ module ActiveSupport
 
     private
       def read(content_path)
-        require "yaml"
-        require "erb"
+        require "yaml" unless defined?(YAML)
+        require "erb" unless defined?(ERB)
 
         File.read(content_path).tap do |content|
           if content.include?("\u00A0")

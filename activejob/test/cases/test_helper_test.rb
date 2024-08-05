@@ -806,6 +806,24 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 end
 
+class QueueAdapterTest < ActiveJob::TestCase
+  class JobWithAnAdapter < ActiveJob::Base
+    self.queue_adapter = :async
+
+    def perform; end
+  end
+
+  def queue_adapter_for_test
+    ActiveJob::QueueAdapters::TestAdapter.new
+  end
+
+  test "assert_enqueued_with enqueues a job with a queue_adapter and queue_adapter_for_test" do
+    assert_enqueued_with(job: JobWithAnAdapter) do
+      JobWithAnAdapter.perform_later
+    end
+  end
+end
+
 class PerformedJobsTest < ActiveJob::TestCase
   if adapter_is?(:test)
     include DoNotPerformEnqueuedJobs

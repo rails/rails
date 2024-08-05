@@ -13,7 +13,6 @@ require "action_view"
 require "rails_guides/markdown"
 require "rails_guides/helpers"
 require "rails_guides/epub"
-require "debug"
 
 module RailsGuides
   class Generator

@@ -55,11 +55,13 @@ class OrderTest < ActiveRecord::TestCase
     assert_equal(author_then_book_name, Book.includes(:author).order("authors.name", books: { name: :asc }))
     assert_equal(author_then_book_name, Book.includes(:author).order("authors.name", "books.name"))
     assert_equal(author_then_book_name, Book.includes(:author).order({ authors: { name: :asc } }, Book.arel_table[:name]))
+    assert_equal(author_then_book_name, Book.includes(:author).order(Author.arel_table[:name], Book.arel_table[:name]))
 
     author_desc_then_book_name = [y, x, z]
 
     assert_equal(author_desc_then_book_name, Book.includes(:author).order(authors: { name: :desc }, books: { name: :asc }))
     assert_equal(author_desc_then_book_name, Book.includes(:author).order("authors.name desc", books: { name: :asc }))
+    assert_equal(author_desc_then_book_name, Book.includes(:author).order(Author.arel_table[:name].desc, books: { name: :asc }))
     assert_equal(author_desc_then_book_name, Book.includes(:author).order({ authors: { name: :desc } }, :name))
   end
 end

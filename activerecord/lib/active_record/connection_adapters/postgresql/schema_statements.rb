@@ -209,8 +209,16 @@ module ActiveRecord
         end
 
         # Creates a schema for the given schema name.
-        def create_schema(schema_name)
-          execute "CREATE SCHEMA #{quote_schema_name(schema_name)}"
+        def create_schema(schema_name, force: nil, if_not_exists: nil)
+          if force && if_not_exists
+            raise ArgumentError, "Options `:force` and `:if_not_exists` cannot be used simultaneously."
+          end
+
+          if force
+            drop_schema(schema_name, if_exists: true)
+          end
+
+          execute("CREATE SCHEMA#{' IF NOT EXISTS' if if_not_exists} #{quote_schema_name(schema_name)}")
         end
 
         # Drops the schema for the given schema name.
@@ -242,7 +250,7 @@ module ActiveRecord
 
         # Set the client message level.
         def client_min_messages=(level)
-          internal_execute("SET client_min_messages TO '#{level}'")
+          internal_execute("SET client_min_messages TO '#{level}'", "SCHEMA")
         end
 
         # Returns the sequence name for a table's primary key or some other specified key.

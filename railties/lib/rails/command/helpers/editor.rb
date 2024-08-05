@@ -16,7 +16,7 @@ module Rails
             if editor.to_s.empty?
               say "No $VISUAL or $EDITOR to open file in. Assign one like this:"
               say ""
-              say %(VISUAL="mate --wait" #{executable(current_subcommand)})
+              say %(VISUAL="code --wait" #{executable(current_subcommand)})
               say ""
               say "For editors that fork and exit immediately, it's important to pass a wait flag;"
               say "otherwise, the file will be saved immediately with no chance to edit."

@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "logger"
 
 class TestERBTemplate < ActiveSupport::TestCase
   ERBHandler = ActionView::Template::Handlers::ERB.new
@@ -237,6 +236,11 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_rails_injected_locals_can_be_specified
     @template = new_template("<%# locals: (message: 'Hello') -%>\n<%= message %>")
     assert_equal "Hello", render(message: "Hello", implicit_locals: %i[message])
+  end
+
+  def test_rails_local_assigns_and_strict_locals
+    @template = new_template("<%# locals: (class: ) -%>\n<%= local_assigns[:class] %>")
+    assert_equal "some-class", render(class: "some-class", implicit_locals: %i[message])
   end
 
   def test_rails_injected_locals_can_be_specified_as_kwargs

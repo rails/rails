@@ -139,7 +139,7 @@ A short rundown of some of the major features:
 
 * Database agnostic schema management with Migrations.
 
-    class AddSystemSettings < ActiveRecord::Migration[7.2]
+    class AddSystemSettings < ActiveRecord::Migration[8.0]
       def up
         create_table :system_settings do |t|
           t.string  :name

@@ -131,6 +131,32 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "test_schema3"
   end
 
+  def test_force_create_schema
+    @connection.create_schema "test_schema3"
+    assert_queries_match(/DROP SCHEMA IF EXISTS "test_schema3"/) do
+      @connection.create_schema "test_schema3", force: true
+    end
+    assert @connection.schema_names.include?("test_schema3")
+  ensure
+    @connection.drop_schema "test_schema3"
+  end
+
+  def test_create_schema_if_not_exists
+    @connection.create_schema "test_schema3"
+    assert_queries_match('CREATE SCHEMA IF NOT EXISTS "test_schema3"') do
+      @connection.create_schema "test_schema3", if_not_exists: true
+    end
+    assert @connection.schema_names.include?("test_schema3")
+  ensure
+    @connection.drop_schema "test_schema3"
+  end
+
+  def test_create_schema_raises_if_both_force_and_if_not_exists_provided
+    assert_raises(ArgumentError, match: "Options `:force` and `:if_not_exists` cannot be used simultaneously.") do
+      @connection.create_schema "test_schema3", force: true, if_not_exists: true
+    end
+  end
+
   def test_drop_schema
     begin
       @connection.create_schema "test_schema3"

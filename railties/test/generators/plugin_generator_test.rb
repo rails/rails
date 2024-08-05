@@ -8,11 +8,15 @@ require "rails/engine/updater"
 
 DEFAULT_PLUGIN_FILES = %w(
   .git
+  .github/dependabot.yml
+  .github/workflows/ci.yml
   .gitignore
+  .rubocop.yml
   Gemfile
   MIT-LICENSE
   README.md
   Rakefile
+  bin/rubocop
   bin/test
   bukkits.gemspec
   lib/bukkits.rb
@@ -23,8 +27,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/Rakefile
   test/dummy/app/assets/images/.keep
   test/dummy/app/assets/stylesheets/application.css
-  test/dummy/app/channels/application_cable/channel.rb
-  test/dummy/app/channels/application_cable/connection.rb
   test/dummy/app/controllers/application_controller.rb
   test/dummy/app/controllers/concerns/.keep
   test/dummy/app/helpers/application_helper.rb
@@ -37,6 +39,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/app/views/layouts/mailer.text.erb
   test/dummy/app/views/pwa/manifest.json.erb
   test/dummy/app/views/pwa/service-worker.js
+  test/dummy/bin/dev
   test/dummy/bin/rails
   test/dummy/bin/rake
   test/dummy/bin/setup
@@ -50,15 +53,12 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/environments/production.rb
   test/dummy/config/environments/test.rb
   test/dummy/config/initializers/content_security_policy.rb
-  test/dummy/config/initializers/enable_yjit.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
-  test/dummy/config/initializers/permissions_policy.rb
   test/dummy/config/locales/en.yml
   test/dummy/config/puma.rb
   test/dummy/config/routes.rb
   test/dummy/config/storage.yml
-  test/dummy/lib/assets/.keep
   test/dummy/log/.keep
   test/dummy/public/404.html
   test/dummy/public/406-unsupported-browser.html
@@ -235,24 +235,13 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_default_database_dependency_is_sqlite
     run_generator
     assert_file "test/dummy/config/database.yml", /sqlite/
-    if defined?(JRUBY_VERSION)
-      assert_gem "activerecord-jdbcsqlite3-adapter"
-    else
-      assert_gem "sqlite3"
-    end
+    assert_gem "sqlite3"
   end
 
   def test_custom_database_dependency
     run_generator [destination_root, "-d", "mysql"]
     assert_file "test/dummy/config/database.yml", /mysql/
     assert_file "Gemfile", /mysql/
-  end
-
-  def test_skip_database_dependency
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "Gemfile" do |contents|
-      assert_no_match(/sqlite/, contents)
-    end
   end
 
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
@@ -660,15 +649,19 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_dummy_application_configures_asset_pipeline_when_mountable
     run_generator [destination_root, "--mountable"]
 
-    assert_gem "sprockets-rails"
-    assert_file "test/dummy/app/assets/config/manifest.js"
+    assert_gem "propshaft"
+    assert_file "test/dummy/config/initializers/assets.rb"
   end
 
   def test_dummy_application_configures_asset_pipeline_when_full
     run_generator [destination_root, "--full"]
 
-    assert_gem "sprockets-rails"
-    assert_file "test/dummy/app/assets/config/manifest.js"
+    assert_gem "propshaft"
+    assert_no_gem "sprockets-rails"
+    assert_file "test/dummy/config/initializers/assets.rb"
+    assert_file "test/dummy/config/environments/development.rb" do |content|
+      assert_no_match "config.assets", content
+    end
   end
 
   def test_dummy_application_skips_asset_pipeline_when_flag_skip_asset_pipeline
@@ -682,20 +675,16 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_dummy_application_respects_asset_pipeline_gem_choice
-    run_generator [destination_root, "--mountable", "--asset-pipeline=propshaft"]
+    run_generator [destination_root, "--mountable", "--asset-pipeline=sprockets"]
 
-    assert_gem "propshaft"
-    assert_no_gem "sprockets-rails"
-    assert_file "test/dummy/config/initializers/assets.rb"
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match "config.assets", content
-    end
+    assert_gem "sprockets-rails"
+    assert_file "test/dummy/app/assets/config/manifest.js"
   end
 
   def test_no_asset_pipeline_gem_when_no_dummy_application
     run_generator [destination_root, "--mountable", "--skip-test"]
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_directory "test/dummy"
   end
 

@@ -9,8 +9,8 @@ end
 AppRoutes = ActionDispatch::Routing::RouteSet.new
 
 AppRoutes.draw do
-  get "/welcome" => "foo#bar", as: "welcome"
-  get "/dummy_model" => "foo#baz", as: "dummy_model"
+  get "/welcome", to: "foo#bar", as: "welcome"
+  get "/dummy_model", to: "foo#baz", as: "dummy_model"
   get "/welcome/greeting", to: "welcome#greeting"
   get "/a/b(/:id)", to: "a#b"
 end
