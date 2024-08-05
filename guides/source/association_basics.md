@@ -1043,6 +1043,193 @@ If the join table for a `has_and_belongs_to_many` association has additional col
 
 WARNING: The use of extra attributes on the join table in a `has_and_belongs_to_many` association is deprecated. If you require this sort of complex behavior on the table that joins two models in a many-to-many relationship, you should use a `has_many :through` association instead of `has_and_belongs_to_many`.
 
+#### Methods Added by `has_and_belongs_to_many`
+
+The `has_and_belongs_to_many` association creates a many-to-many relationship with another model. In database terms, this associates two classes via an intermediate join table that includes foreign keys referring to each of the classes.
+
+When you declare a `has_and_belongs_to_many` association, the declaring class gains numerous methods related to the association. Some of these include:
+
+* `collection`
+* [`collection<<(object, ...)`][`collection<<`]
+* [`collection.delete(object, ...)`][`collection.delete`]
+* [`collection.destroy(object, ...)`][`collection.destroy`]
+* `collection=(objects)`
+* `collection_singular_ids`
+* `collection_singular_ids=(ids)`
+* [`collection.clear`][]
+* [`collection.empty?`][]
+* [`collection.size`][]
+* [`collection.find(...)`][`collection.find`]
+* [`collection.where(...)`][`collection.where`]
+* [`collection.exists?(...)`][`collection.exists?`]
+* [`collection.build(attributes = {})`][`collection.build`]
+* [`collection.create(attributes = {})`][`collection.create`]
+* [`collection.create!(attributes = {})`][`collection.create!`]
+* [`collection.reload`][]
+
+We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_and_belongs_to_many).
+
+In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
+
+```ruby
+class Part < ApplicationRecord
+  has_and_belongs_to_many :assemblies
+end
+```
+
+An instance of the `Part` model can have the following methods:
+
+```
+assemblies
+assemblies<<(object, ...)
+assemblies.delete(object, ...)
+assemblies.destroy(object, ...)
+assemblies=(objects)
+assembly_ids
+assembly_ids=(ids)
+assemblies.clear
+assemblies.empty?
+assemblies.size
+assemblies.find(...)
+assemblies.where(...)
+assemblies.exists?(...)
+assemblies.build(attributes = {}, ...)
+assemblies.create(attributes = {})
+assemblies.create!(attributes = {})
+assemblies.reload
+```
+
+##### `collection`
+
+The `collection` method returns a Relation of all of the associated objects. If there are no associated objects, it returns an empty Relation.
+
+```ruby
+@assemblies = @part.assemblies
+```
+
+##### `collection<<(object, ...)`
+
+The [`collection<<`][] method adds one or more objects to the collection by creating records in the join table.
+
+```ruby
+@part.assemblies << @assembly1
+```
+
+NOTE: This method is aliased as `collection.concat` and `collection.push`.
+
+##### `collection.delete(object, ...)`
+
+The [`collection.delete`][] method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
+
+```ruby
+@part.assemblies.delete(@assembly1)
+```
+
+##### `collection.destroy(object, ...)`
+
+The [`collection.destroy`][] method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
+
+```ruby
+@part.assemblies.destroy(@assembly1)
+```
+
+##### `collection=(objects)`
+
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
+
+##### `collection_singular_ids`
+
+The `collection_singular_ids` method returns an array of the ids of the objects in the collection.
+
+```ruby
+@assembly_ids = @part.assembly_ids
+```
+
+##### `collection_singular_ids=(ids)`
+
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
+
+##### `collection.clear`
+
+The [`collection.clear`][] method removes every object from the collection by deleting the rows from the joining table. This does not destroy the associated objects.
+
+##### `collection.empty?`
+
+The [`collection.empty?`][] method returns `true` if the collection does not contain any associated objects.
+
+```html+erb
+<% if @part.assemblies.empty? %>
+  This part is not used in any assemblies
+<% end %>
+```
+
+##### `collection.size`
+
+The [`collection.size`][] method returns the number of objects in the collection.
+
+```ruby
+@assembly_count = @part.assemblies.size
+```
+
+##### `collection.find(...)`
+
+The [`collection.find`][] method finds objects within the collection's table.
+
+```ruby
+@assembly = @part.assemblies.find(1)
+```
+
+##### `collection.where(...)`
+
+The [`collection.where`][] method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed.
+
+```ruby
+@new_assemblies = @part.assemblies.where("created_at > ?", 2.days.ago)
+```
+
+##### `collection.exists?(...)`
+
+The [`collection.exists?`][] method checks whether an object meeting the supplied
+conditions exists in the collection's table.
+
+##### `collection.build(attributes = {})`
+
+The [`collection.build`][] method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will _not_ yet be saved.
+
+```ruby
+@assembly = @part.assemblies.build({ assembly_name: "Transmission housing" })
+```
+
+##### `collection.create(attributes = {})`
+
+The [`collection.create`][] method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
+
+```ruby
+@assembly = @part.assemblies.create({ assembly_name: "Transmission housing" })
+```
+
+##### `collection.create!(attributes = {})`
+
+Does the same as `collection.create`, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+##### `collection.reload`
+
+The [`collection.reload`][] method returns a Relation of all of the associated objects, forcing a database read. If there are no associated objects, it returns an empty Relation.
+
+```ruby
+@assemblies = @part.assemblies.reload
+```
+
+##### When are Objects Saved?
+
+When you assign an object to a `has_and_belongs_to_many` association, that object is automatically saved (in order to update the join table). If you assign multiple objects in one statement, then they are all saved.
+
+If any of these saves fails due to validation errors, then the assignment statement returns `false` and the assignment itself is cancelled.
+
+If the parent object (the one declaring the `has_and_belongs_to_many` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved when they are added. All unsaved members of the association will automatically be saved when the parent is saved.
+
+If you want to assign an object to a `has_and_belongs_to_many` association without saving the object, use the `collection.build` method.
+
 Choosing an Association
 -----------------------
 
@@ -2049,195 +2236,6 @@ Detailed Association References
 ------------------------------
 
 ### References
-
-#### `has_and_belongs_to_many` Association Reference
-
-The `has_and_belongs_to_many` association creates a many-to-many relationship with another model. In database terms, this associates two classes via an intermediate join table that includes foreign keys referring to each of the classes.
-
-##### Methods Added by `has_and_belongs_to_many`
-
-When you declare a `has_and_belongs_to_many` association, the declaring class gains numerous methods related to the association. Some of these include:
-
-* `collection`
-* [`collection<<(object, ...)`][`collection<<`]
-* [`collection.delete(object, ...)`][`collection.delete`]
-* [`collection.destroy(object, ...)`][`collection.destroy`]
-* `collection=(objects)`
-* `collection_singular_ids`
-* `collection_singular_ids=(ids)`
-* [`collection.clear`][]
-* [`collection.empty?`][]
-* [`collection.size`][]
-* [`collection.find(...)`][`collection.find`]
-* [`collection.where(...)`][`collection.where`]
-* [`collection.exists?(...)`][`collection.exists?`]
-* [`collection.build(attributes = {})`][`collection.build`]
-* [`collection.create(attributes = {})`][`collection.create`]
-* [`collection.create!(attributes = {})`][`collection.create!`]
-* [`collection.reload`][]
-
-We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_and_belongs_to_many).
-
-In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
-
-```ruby
-class Part < ApplicationRecord
-  has_and_belongs_to_many :assemblies
-end
-```
-
-An instance of the `Part` model can have the following methods:
-
-```
-assemblies
-assemblies<<(object, ...)
-assemblies.delete(object, ...)
-assemblies.destroy(object, ...)
-assemblies=(objects)
-assembly_ids
-assembly_ids=(ids)
-assemblies.clear
-assemblies.empty?
-assemblies.size
-assemblies.find(...)
-assemblies.where(...)
-assemblies.exists?(...)
-assemblies.build(attributes = {}, ...)
-assemblies.create(attributes = {})
-assemblies.create!(attributes = {})
-assemblies.reload
-```
-
-###### `collection`
-
-The `collection` method returns a Relation of all of the associated objects. If there are no associated objects, it returns an empty Relation.
-
-```ruby
-@assemblies = @part.assemblies
-```
-
-###### `collection<<(object, ...)`
-
-The [`collection<<`][] method adds one or more objects to the collection by creating records in the join table.
-
-```ruby
-@part.assemblies << @assembly1
-```
-
-NOTE: This method is aliased as `collection.concat` and `collection.push`.
-
-###### `collection.delete(object, ...)`
-
-The [`collection.delete`][] method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
-
-```ruby
-@part.assemblies.delete(@assembly1)
-```
-
-###### `collection.destroy(object, ...)`
-
-The [`collection.destroy`][] method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
-
-```ruby
-@part.assemblies.destroy(@assembly1)
-```
-
-###### `collection=(objects)`
-
-The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
-
-###### `collection_singular_ids`
-
-The `collection_singular_ids` method returns an array of the ids of the objects in the collection.
-
-```ruby
-@assembly_ids = @part.assembly_ids
-```
-
-###### `collection_singular_ids=(ids)`
-
-The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
-
-###### `collection.clear`
-
-The [`collection.clear`][] method removes every object from the collection by deleting the rows from the joining table. This does not destroy the associated objects.
-
-###### `collection.empty?`
-
-The [`collection.empty?`][] method returns `true` if the collection does not contain any associated objects.
-
-```html+erb
-<% if @part.assemblies.empty? %>
-  This part is not used in any assemblies
-<% end %>
-```
-
-###### `collection.size`
-
-The [`collection.size`][] method returns the number of objects in the collection.
-
-```ruby
-@assembly_count = @part.assemblies.size
-```
-
-###### `collection.find(...)`
-
-The [`collection.find`][] method finds objects within the collection's table.
-
-```ruby
-@assembly = @part.assemblies.find(1)
-```
-
-###### `collection.where(...)`
-
-The [`collection.where`][] method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed.
-
-```ruby
-@new_assemblies = @part.assemblies.where("created_at > ?", 2.days.ago)
-```
-
-###### `collection.exists?(...)`
-
-The [`collection.exists?`][] method checks whether an object meeting the supplied
-conditions exists in the collection's table.
-
-###### `collection.build(attributes = {})`
-
-The [`collection.build`][] method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will _not_ yet be saved.
-
-```ruby
-@assembly = @part.assemblies.build({ assembly_name: "Transmission housing" })
-```
-
-###### `collection.create(attributes = {})`
-
-The [`collection.create`][] method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
-
-```ruby
-@assembly = @part.assemblies.create({ assembly_name: "Transmission housing" })
-```
-
-###### `collection.create!(attributes = {})`
-
-Does the same as `collection.create`, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
-
-###### `collection.reload`
-
-The [`collection.reload`][] method returns a Relation of all of the associated objects, forcing a database read. If there are no associated objects, it returns an empty Relation.
-
-```ruby
-@assemblies = @part.assemblies.reload
-```
-
-##### When are Objects Saved?
-
-When you assign an object to a `has_and_belongs_to_many` association, that object is automatically saved (in order to update the join table). If you assign multiple objects in one statement, then they are all saved.
-
-If any of these saves fails due to validation errors, then the assignment statement returns `false` and the assignment itself is cancelled.
-
-If the parent object (the one declaring the `has_and_belongs_to_many` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved when they are added. All unsaved members of the association will automatically be saved when the parent is saved.
-
-If you want to assign an object to a `has_and_belongs_to_many` association without saving the object, use the `collection.build` method.
 
 ### Options
 
