@@ -410,6 +410,127 @@ end
 
 This relation can be [bi-directional](#bi-directional-associations) when used in combination with `belongs_to` on the other model.
 
+#### Methods Added by [`has_one`](#has-one)
+
+The `has_one` association creates a one-to-one match with another model. In database terms, this association says that the other class contains the foreign key. If this class contains the foreign key, then you should use `belongs_to` instead.
+
+When you declare a `has_one` association,  the declaring class automatically gains numerous methods related to the association. Some of these include:
+
+* `association`
+* `association=(associate)`
+* `build_association(attributes = {})`
+* `create_association(attributes = {})`
+* `create_association!(attributes = {})`
+* `reload_association`
+* `reset_association`
+
+We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one).
+
+Like with [the `belongs_to` reference](#belongs-to-association-reference), in all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
+
+```ruby
+# app/models/supplier.rb
+class Supplier < ApplicationRecord
+  has_one :account
+end
+
+# app/models/account.rb
+class Account < ApplicationRecord
+  validates :terms, presence: true
+  belongs_to :supplier
+end
+```
+
+Each instance of the `Supplier` model will have these methods:
+
+* `account`
+* `account=`
+* `build_account`
+* `create_account`
+* `create_account!`
+* `reload_account`
+* `reset_account`
+
+NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
+
+##### Retrieving the association
+
+The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
+
+```ruby
+@account = @supplier.account
+```
+
+If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload_association` on the parent object.
+
+```ruby
+@account = @supplier.reload_account
+```
+
+To unload the cached version of the associated object—forcing the next access, if any, to query it from the database—call `#reset_association` on the parent object.
+
+```ruby
+@supplier.reset_account
+```
+
+##### Assigning the Association
+
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associated object's foreign key to the same value.
+
+```ruby
+@supplier.account = @account
+```
+
+
+The `build_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this objects foreign key will be set, but the associated object will _not_ yet be saved.
+
+```ruby
+@account = @supplier.build_account(terms: "Net 30")
+```
+
+The `create_association` method takes it a step further and also saves the associated object once it passes all of the validations specified on the associated model.
+
+```ruby
+@account = @supplier.create_account(terms: "Net 30")
+```
+
+Finally, `create_association!` does the same, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+`create_association!` does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+```ruby
+# This will raise ActiveRecord::RecordInvalid because the terms is blank
+begin
+  @supplier.create_account!(terms: "")
+rescue ActiveRecord::RecordInvalid => e
+  puts e.message
+end
+```
+
+```irb
+irb> raise_validation_error: Validation failed: Terms can't be blank (ActiveRecord::RecordInvalid)
+```
+
+##### Checking for Existing Associations
+
+You can see if any associated objects exist by using the `association.nil?` method:
+
+```ruby
+if @supplier.account.nil?
+  @msg = "No account found for this supplier"
+end
+```
+
+##### Saving Behavior of Associated Objects
+
+When you assign an object to a `has_one` association, that object is automatically saved (in order to update its foreign key). In addition, any object being replaced is also automatically saved, because its foreign key will change too.
+
+If either of these saves fails due to validation errors, then the assignment statement returns `false` and the assignment itself is cancelled.
+
+If the parent object (the one declaring the `has_one` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved. They will automatically when the parent object is saved.
+
+If you want to assign an object to a `has_one` association without saving the object, use the `build_association` method.
+
 ### `has_many`
 
 A [`has_many`][] association is similar to `has_one`, but indicates a one-to-many connection with another model. You'll often find this association on the "other side" of a `belongs_to` association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing authors and books, the author model could be declared like this:
@@ -477,6 +598,228 @@ end
 ```
 
 This relation can be [bi-directional](#bi-directional-associations) when used in combination with `belongs_to` on the other model.
+
+#### Methods Added by `has_many`
+
+The `has_many` association creates a one-to-many relationship with another model. In database terms, this association says that the other class will have a foreign key that refers to instances of this class.
+
+When you declare a `has_many` association, the declaring class gains numerous methods related to the association. Some of these include:
+
+* `collection`
+* [`collection<<(object, ...)`][`collection<<`]
+* [`collection.delete(object, ...)`][`collection.delete`]
+* [`collection.destroy(object, ...)`][`collection.destroy`]
+* `collection=(objects)`
+* `collection_singular_ids`
+* `collection_singular_ids=(ids)`
+* [`collection.clear`][]
+* [`collection.empty?`][]
+* [`collection.size`][]
+* [`collection.find(...)`][`collection.find`]
+* [`collection.where(...)`][`collection.where`]
+* [`collection.exists?(...)`][`collection.exists?`]
+* [`collection.build(attributes = {})`][`collection.build`]
+* [`collection.create(attributes = {})`][`collection.create`]
+* [`collection.create!(attributes = {})`][`collection.create!`]
+* [`collection.reload`][]
+
+We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_many).
+
+In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books
+end
+```
+
+An instance of the `Author` model can have the following methods:
+
+```
+books
+books<<(object, ...)
+books.delete(object, ...)
+books.destroy(object, ...)
+books=(objects)
+book_ids
+book_ids=(ids)
+books.clear
+books.empty?
+books.size
+books.find(...)
+books.where(...)
+books.exists?(...)
+books.build(attributes = {}, ...)
+books.create(attributes = {})
+books.create!(attributes = {})
+books.reload
+```
+
+[`collection<<`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-3C-3C
+[`collection.build`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-build
+[`collection.clear`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-clear
+[`collection.create`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-create
+[`collection.create!`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-create-21
+[`collection.delete`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-delete
+[`collection.destroy`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-destroy
+[`collection.empty?`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-empty-3F
+[`collection.exists?`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F
+[`collection.find`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-find
+[`collection.reload`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-reload
+[`collection.size`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-size
+[`collection.where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
+
+##### `collection`
+
+The `collection` method returns a Relation of all of the associated objects. If there are no associated objects, it returns an empty Relation.
+
+```ruby
+@books = @author.books
+```
+
+##### `collection<<(object, ...)`
+
+The [`collection<<`][] method adds one or more objects to the collection by setting their foreign keys to the primary key of the calling model.
+
+```ruby
+@author.books << @book1
+```
+
+##### `collection.delete(object, ...)`
+
+The [`collection.delete`][] method removes one or more objects from the collection by setting their foreign keys to `NULL`.
+
+```ruby
+@author.books.delete(@book1)
+```
+
+WARNING: Additionally, objects will be destroyed if they're associated with `dependent: :destroy`, and deleted if they're associated with `dependent: :delete_all`.
+
+##### `collection.destroy(object, ...)`
+
+The [`collection.destroy`][] method removes one or more objects from the collection by running `destroy` on each object.
+
+```ruby
+@author.books.destroy(@book1)
+```
+
+WARNING: Objects will _always_ be removed from the database, ignoring the `:dependent` option.
+
+##### `collection=(objects)`
+
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
+
+##### `collection_singular_ids`
+
+The `collection_singular_ids` method returns an array of the ids of the objects in the collection.
+
+```ruby
+@book_ids = @author.book_ids
+```
+
+##### `collection_singular_ids=(ids)`
+
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
+
+##### `collection.clear`
+
+The [`collection.clear`][] method removes all objects from the collection according to the strategy specified by the `dependent` option. If no option is given, it follows the default strategy. The default strategy for `has_many :through` associations is `delete_all`, and for `has_many` associations is to set the foreign keys to `NULL`.
+
+```ruby
+@author.books.clear
+```
+
+WARNING: Objects will be deleted if they're associated with `dependent: :destroy` or `dependent: :destroy_async`,
+just like `dependent: :delete_all`.
+
+##### `collection.empty?`
+
+The [`collection.empty?`][] method returns `true` if the collection does not contain any associated objects.
+
+```erb
+<% if @author.books.empty? %>
+  No Books Found
+<% end %>
+```
+
+##### `collection.size`
+
+The [`collection.size`][] method returns the number of objects in the collection.
+
+```ruby
+@book_count = @author.books.size
+```
+
+##### `collection.find(...)`
+
+The [`collection.find`][] method finds objects within the collection's table.
+
+```ruby
+@available_book = @author.books.find(1)
+```
+
+##### `collection.where(...)`
+
+The [`collection.where`][] method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed.
+
+```ruby
+@available_books = @author.books.where(available: true) # No query yet
+@available_book = @available_books.first # Now the database will be queried
+```
+
+##### `collection.exists?(...)`
+
+The [`collection.exists?`][] method checks whether an object meeting the supplied
+conditions exists in the collection's table.
+
+##### `collection.build(attributes = {})`
+
+The [`collection.build`][] method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
+
+```ruby
+@book = @author.books.build(published_at: Time.now,
+                            book_number: "A12345")
+
+@books = @author.books.build([
+  { published_at: Time.now, book_number: "A12346" },
+  { published_at: Time.now, book_number: "A12347" }
+])
+```
+
+##### `collection.create(attributes = {})`
+
+The [`collection.create`][] method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
+
+```ruby
+@book = @author.books.create(published_at: Time.now,
+                             book_number: "A12345")
+
+@books = @author.books.create([
+  { published_at: Time.now, book_number: "A12346" },
+  { published_at: Time.now, book_number: "A12347" }
+])
+```
+
+##### `collection.create!(attributes = {})`
+
+Does the same as `collection.create` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+##### `collection.reload`
+
+The [`collection.reload`][] method returns a Relation of all of the associated objects, forcing a database read. If there are no associated objects, it returns an empty Relation.
+
+```ruby
+@books = @author.books.reload
+```
+##### When are Objects Saved?
+
+When you assign an object to a `has_many` association, that object is automatically saved (in order to update its foreign key). If you assign multiple objects in one statement, then they are all saved.
+
+If any of these saves fails due to validation errors, then the assignment statement returns `false` and the assignment itself is cancelled.
+
+If the parent object (the one declaring the `has_many` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved when they are added. All unsaved members of the association will automatically be saved when the parent is saved.
+
+If you want to assign an object to a `has_many` association without saving the object, use the `collection.build` method.
 
 ### `has_many :through`
 
@@ -1706,353 +2049,6 @@ Detailed Association References
 ------------------------------
 
 ### References
-
-#### `has_one` Association Reference
-
-The `has_one` association creates a one-to-one match with another model. In database terms, this association says that the other class contains the foreign key. If this class contains the foreign key, then you should use `belongs_to` instead.
-
-##### Methods Added by [`has_one`](#has-one)
-
-When you declare a `has_one` association,  the declaring class automatically gains numerous methods related to the association. Some of these include:
-
-* `association`
-* `association=(associate)`
-* `build_association(attributes = {})`
-* `create_association(attributes = {})`
-* `create_association!(attributes = {})`
-* `reload_association`
-* `reset_association`
-
-We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one).
-
-Like with [the `belongs_to` reference](#belongs-to-association-reference), in all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
-
-```ruby
-# app/models/supplier.rb
-class Supplier < ApplicationRecord
-  has_one :account
-end
-
-# app/models/account.rb
-class Account < ApplicationRecord
-  validates :terms, presence: true
-  belongs_to :supplier
-end
-```
-
-Each instance of the `Supplier` model will have these methods:
-
-* `account`
-* `account=`
-* `build_account`
-* `create_account`
-* `create_account!`
-* `reload_account`
-* `reset_account`
-
-NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
-
-###### Retrieving the association
-
-The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
-
-```ruby
-@account = @supplier.account
-```
-
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload_association` on the parent object.
-
-```ruby
-@account = @supplier.reload_account
-```
-
-To unload the cached version of the associated object—forcing the next access, if any, to query it from the database—call `#reset_association` on the parent object.
-
-```ruby
-@supplier.reset_account
-```
-
-###### Assigning the Association
-
-The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associated object's foreign key to the same value.
-
-```ruby
-@supplier.account = @account
-```
-
-
-The `build_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this objects foreign key will be set, but the associated object will _not_ yet be saved.
-
-```ruby
-@account = @supplier.build_account(terms: "Net 30")
-```
-
-The `create_association` method takes it a step further and also saves the associated object once it passes all of the validations specified on the associated model.
-
-```ruby
-@account = @supplier.create_account(terms: "Net 30")
-```
-
-Finally, `create_association!` does the same, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
-
-`create_association!` does the same as `create_association` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
-
-```ruby
-# This will raise ActiveRecord::RecordInvalid because the terms is blank
-begin
-  @supplier.create_account!(terms: "")
-rescue ActiveRecord::RecordInvalid => e
-  puts e.message
-end
-```
-
-```irb
-irb> raise_validation_error: Validation failed: Terms can't be blank (ActiveRecord::RecordInvalid)
-```
-
-##### Checking for Existing Associations
-
-You can see if any associated objects exist by using the `association.nil?` method:
-
-```ruby
-if @supplier.account.nil?
-  @msg = "No account found for this supplier"
-end
-```
-
-##### Saving Behavior of Associated Objects
-
-When you assign an object to a `has_one` association, that object is automatically saved (in order to update its foreign key). In addition, any object being replaced is also automatically saved, because its foreign key will change too.
-
-If either of these saves fails due to validation errors, then the assignment statement returns `false` and the assignment itself is cancelled.
-
-If the parent object (the one declaring the `has_one` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved. They will automatically when the parent object is saved.
-
-If you want to assign an object to a `has_one` association without saving the object, use the `build_association` method.
-
-#### `has_many` Association Reference
-
-The `has_many` association creates a one-to-many relationship with another model. In database terms, this association says that the other class will have a foreign key that refers to instances of this class.
-
-##### Methods Added by `has_many`
-
-When you declare a `has_many` association, the declaring class gains numerous methods related to the association. Some of these include:
-
-* `collection`
-* [`collection<<(object, ...)`][`collection<<`]
-* [`collection.delete(object, ...)`][`collection.delete`]
-* [`collection.destroy(object, ...)`][`collection.destroy`]
-* `collection=(objects)`
-* `collection_singular_ids`
-* `collection_singular_ids=(ids)`
-* [`collection.clear`][]
-* [`collection.empty?`][]
-* [`collection.size`][]
-* [`collection.find(...)`][`collection.find`]
-* [`collection.where(...)`][`collection.where`]
-* [`collection.exists?(...)`][`collection.exists?`]
-* [`collection.build(attributes = {})`][`collection.build`]
-* [`collection.create(attributes = {})`][`collection.create`]
-* [`collection.create!(attributes = {})`][`collection.create!`]
-* [`collection.reload`][]
-
-We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_many).
-
-In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
-
-```ruby
-class Author < ApplicationRecord
-  has_many :books
-end
-```
-
-An instance of the `Author` model can have the following methods:
-
-```
-books
-books<<(object, ...)
-books.delete(object, ...)
-books.destroy(object, ...)
-books=(objects)
-book_ids
-book_ids=(ids)
-books.clear
-books.empty?
-books.size
-books.find(...)
-books.where(...)
-books.exists?(...)
-books.build(attributes = {}, ...)
-books.create(attributes = {})
-books.create!(attributes = {})
-books.reload
-```
-
-[`collection<<`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-3C-3C
-[`collection.build`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-build
-[`collection.clear`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-clear
-[`collection.create`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-create
-[`collection.create!`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-create-21
-[`collection.delete`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-delete
-[`collection.destroy`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-destroy
-[`collection.empty?`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-empty-3F
-[`collection.exists?`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F
-[`collection.find`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-find
-[`collection.reload`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-reload
-[`collection.size`]: https://api.rubyonrails.org/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-size
-[`collection.where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
-
-###### `collection`
-
-The `collection` method returns a Relation of all of the associated objects. If there are no associated objects, it returns an empty Relation.
-
-```ruby
-@books = @author.books
-```
-
-###### `collection<<(object, ...)`
-
-The [`collection<<`][] method adds one or more objects to the collection by setting their foreign keys to the primary key of the calling model.
-
-```ruby
-@author.books << @book1
-```
-
-###### `collection.delete(object, ...)`
-
-The [`collection.delete`][] method removes one or more objects from the collection by setting their foreign keys to `NULL`.
-
-```ruby
-@author.books.delete(@book1)
-```
-
-WARNING: Additionally, objects will be destroyed if they're associated with `dependent: :destroy`, and deleted if they're associated with `dependent: :delete_all`.
-
-###### `collection.destroy(object, ...)`
-
-The [`collection.destroy`][] method removes one or more objects from the collection by running `destroy` on each object.
-
-```ruby
-@author.books.destroy(@book1)
-```
-
-WARNING: Objects will _always_ be removed from the database, ignoring the `:dependent` option.
-
-###### `collection=(objects)`
-
-The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
-
-###### `collection_singular_ids`
-
-The `collection_singular_ids` method returns an array of the ids of the objects in the collection.
-
-```ruby
-@book_ids = @author.book_ids
-```
-
-###### `collection_singular_ids=(ids)`
-
-The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
-
-###### `collection.clear`
-
-The [`collection.clear`][] method removes all objects from the collection according to the strategy specified by the `dependent` option. If no option is given, it follows the default strategy. The default strategy for `has_many :through` associations is `delete_all`, and for `has_many` associations is to set the foreign keys to `NULL`.
-
-```ruby
-@author.books.clear
-```
-
-WARNING: Objects will be deleted if they're associated with `dependent: :destroy` or `dependent: :destroy_async`,
-just like `dependent: :delete_all`.
-
-###### `collection.empty?`
-
-The [`collection.empty?`][] method returns `true` if the collection does not contain any associated objects.
-
-```erb
-<% if @author.books.empty? %>
-  No Books Found
-<% end %>
-```
-
-###### `collection.size`
-
-The [`collection.size`][] method returns the number of objects in the collection.
-
-```ruby
-@book_count = @author.books.size
-```
-
-###### `collection.find(...)`
-
-The [`collection.find`][] method finds objects within the collection's table.
-
-```ruby
-@available_book = @author.books.find(1)
-```
-
-###### `collection.where(...)`
-
-The [`collection.where`][] method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed.
-
-```ruby
-@available_books = @author.books.where(available: true) # No query yet
-@available_book = @available_books.first # Now the database will be queried
-```
-
-###### `collection.exists?(...)`
-
-The [`collection.exists?`][] method checks whether an object meeting the supplied
-conditions exists in the collection's table.
-
-###### `collection.build(attributes = {})`
-
-The [`collection.build`][] method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
-
-```ruby
-@book = @author.books.build(published_at: Time.now,
-                            book_number: "A12345")
-
-@books = @author.books.build([
-  { published_at: Time.now, book_number: "A12346" },
-  { published_at: Time.now, book_number: "A12347" }
-])
-```
-
-###### `collection.create(attributes = {})`
-
-The [`collection.create`][] method returns a single or array of new objects of the associated type. The object(s) will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
-
-```ruby
-@book = @author.books.create(published_at: Time.now,
-                             book_number: "A12345")
-
-@books = @author.books.create([
-  { published_at: Time.now, book_number: "A12346" },
-  { published_at: Time.now, book_number: "A12347" }
-])
-```
-
-###### `collection.create!(attributes = {})`
-
-Does the same as `collection.create` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
-
-###### `collection.reload`
-
-The [`collection.reload`][] method returns a Relation of all of the associated objects, forcing a database read. If there are no associated objects, it returns an empty Relation.
-
-```ruby
-@books = @author.books.reload
-```
-##### When are Objects Saved?
-
-When you assign an object to a `has_many` association, that object is automatically saved (in order to update its foreign key). If you assign multiple objects in one statement, then they are all saved.
-
-If any of these saves fails due to validation errors, then the assignment statement returns `false` and the assignment itself is cancelled.
-
-If the parent object (the one declaring the `has_many` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved when they are added. All unsaved members of the association will automatically be saved when the parent is saved.
-
-If you want to assign an object to a `has_many` association without saving the object, use the `collection.build` method.
 
 #### `has_and_belongs_to_many` Association Reference
 
