@@ -1618,7 +1618,7 @@ An instance of the `Book` model will have the following methods:
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-###### Retreiving the association
+###### Retrieving the association
 
 The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
@@ -1754,7 +1754,7 @@ Each instance of the `Supplier` model will have these methods:
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-###### Retreiving the association
+###### Retrieving the association
 
 The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
