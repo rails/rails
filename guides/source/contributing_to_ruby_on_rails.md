@@ -385,6 +385,15 @@ $ cd railties
 $ bin/test test/application/asset_debugging_test.rb:69
 ```
 
+#### For a Specific Line Range
+
+Similar tests are often defined in nearby locations. You can run tests in a specific line range.
+
+```bash
+$ cd railties
+$ bin/test test/application/asset_debugging_test.rb:69-100
+```
+
 #### Running Tests with a Specific Seed
 
 Test execution is randomized with a randomization seed. If you are experiencing random
