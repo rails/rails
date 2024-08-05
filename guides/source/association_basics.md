@@ -1837,7 +1837,7 @@ To unload the cached version of the associated object—forcing the next access,
 @supplier.reset_account
 ```
 
-###### `association=(associate)`
+###### Assigning the Association
 
 The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associated object's foreign key to the same value.
 
