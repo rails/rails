@@ -18,12 +18,10 @@ After reading this guide, you will know:
 The Purpose of the Rails Router
 -------------------------------
 
-The Rails router
-matches incoming HTTP requests to specific controller actions in your Rails
-application based on the URL path. (It can also forward to a
-[Rack](rails_on_rack.html) application.) It also generates path and URL helpers
-that can be used in your application (instead of hard-coding strings) based on
-the resources configured in the router.
+The Rails router matches incoming HTTP requests to specific controller actions
+in your Rails application based on the URL path. (It can also forward to a
+[Rack](rails_on_rack.html) application.) The router also generates path and URL
+helpers based on the resources configured in the router.
 
 ### Routing Incoming URLs to Code
 
@@ -51,9 +49,9 @@ NOTE: Rails uses snake_case for controller names when specifying routes. For exa
 
 ### Generating Paths and URLs from Code
 
-The Router automatically generates paths and URLs that can be used throughout your application, such as `user_path` and `user_url` in the example below.
+The Router automatically generates paths and URLs that can be used throughout your application, instead of hard-coded strings.
 
-Given the route above is modified to be:
+For example, `user_path` and `user_url` helpers in the route below.
 
 ```ruby
 get '/users/:id', to: 'users#show', as: 'user'
@@ -73,7 +71,7 @@ and this in the corresponding view:
 <%= link_to 'User Record', user_path(@user) %>
 ```
 
-then the router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views.
+The router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views.
 
 It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url like `/users/17`, `user_url` generates an absolute url something like `https://yourdomain.com/users/17` in the above example.
 
@@ -93,9 +91,11 @@ Rails.application.routes.draw do
 end
 ```
 
-Since this is a regular Ruby source file you can use all of Ruby's features to help you define your routes. (Be careful with variable names as they can clash with the DSL methods of the router.)
+Since this is a regular Ruby source file you can use all of Ruby's features to help you define your routes.
 
-NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL and must not be deleted.
+NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL (Domain Specific Language) and must not be deleted.
+
+NOTE: Be careful with variable names in `routes.rb` as they can clash with the DSL methods of the router.
 
 Resource Routing: the Rails Default
 -----------------------------------
@@ -120,7 +120,7 @@ it asks the router to map it to a controller action. If the first matching route
 resources :photos
 ```
 
-Rails would dispatch that request to the `destroy` action on the `photos` controller with `{ id: '17' }` in `params`.
+Rails would dispatch that request to the `destroy` action on the `PhotosController` with `{ id: '17' }` in `params`.
 
 ### CRUD, Verbs, and Actions
 
@@ -133,7 +133,7 @@ the routing file, such as:
 resources :photos
 ```
 
-creates seven different routes in your application, all mapping to the `Photos` controller:
+creates seven different routes in your application, all mapping to the `PhotosController` actions:
 
 | HTTP Verb | Path             | Controller#Action | Used to                                     |
 | --------- | ---------------- | ----------------- | -------------------------------------------- |
@@ -147,13 +147,13 @@ creates seven different routes in your application, all mapping to the `Photos` 
 
 Since the router uses the HTTP verb *and* path to match inbound requests, four URLs can map to seven different controller actions. For example, the same `photos/` path matches to `photos#index` when the verb is `GET` and `photos#create` when the verb is `POST`.
 
-NOTE: Order matters in the `routes.rb` file. Rails routes are matched in the order they are specified. For example, if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. . If you want the `photos/poll` route to match first, you'll need to move the `get` line **above** the `resources` line.
+NOTE: Order matters in the `routes.rb` file. Rails routes are matched in the order they are specified. For example, if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. If you want the `photos/poll` route to match first, you'll need to move the `get` line **above** the `resources` line.
 
 ### Path and URL Helpers
 
 Creating a resourceful route will also expose a number of helpers to controllers and views in your application.
 
-For example, adding `resources :photos` to the route files will generate these `_path` helpers:
+For example, adding `resources :photos` to the route file will generate these `_path` helpers:
 
 | Path Helper | Returns URL |
 | --------- | ---------------- |
@@ -240,11 +240,11 @@ This will create a number of routes for each of the `articles` and `comments` co
 | PATCH/PUT | /admin/articles/:id      | admin/articles#update  | admin_article_path(:id)      |
 | DELETE    | /admin/articles/:id      | admin/articles#destroy | admin_article_path(:id)      |
 
-Note that in the above example all of the paths have a `/admin` prefix by default convention for `namespace`.
+Note that in the above example all of the paths have a `/admin` prefix per the default convention for `namespace`.
 
 #### Using Module
 
-If instead you want to route `/articles` (without the prefix `/admin`) to `Admin::ArticlesController`, you can specify the module with a [`scope`][] block:
+If you want to route `/articles` (without the prefix `/admin`) to `Admin::ArticlesController`, you can specify the module with a [`scope`][] block:
 
 ```ruby
 scope module: 'admin' do
@@ -307,7 +307,7 @@ class Ad < ApplicationRecord
 end
 ```
 
-Nested routes allow you to capture this relationship in your routing. If you can add this nested route declaration:
+Nested routes allow you to capture this relationship in your routing. If you add this nested route declaration:
 
 ```ruby
 resources :magazines do
@@ -586,8 +586,8 @@ end
 An incoming GET request to `/photos/1/preview` will route to the `preview` action of `PhotosController`. The resource id value will be available in `params[:id]` . It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the `member` block, each route definition specifies the HTTP verb (`get`
-in the above example with `get 'preview'`). In addition to [`get`][], you can use
-[`patch`][], [`put`][], [`post`][], or [`delete`][].
+in the above example with `get 'preview'`). In addition to [`get`][], you can
+use [`patch`][], [`put`][], [`post`][], or [`delete`][].
 
 If you don't have multiple `member` routes, you can also
 pass `:on` to a route, eliminating the block:
