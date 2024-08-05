@@ -405,7 +405,7 @@ module ActiveRecord
       end
 
       def set_standard_conforming_strings
-        internal_execute("SET standard_conforming_strings = on")
+        internal_execute("SET standard_conforming_strings = on", "SCHEMA")
       end
 
       def supports_ddl_transactions?
@@ -841,9 +841,8 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
           load_types_queries(initializer, oids) do |query|
-            execute_and_clear(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false) do |records|
-              initializer.run(records)
-            end
+            records = internal_execute(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+            initializer.run(records)
           end
         end
 
@@ -864,73 +863,6 @@ module ActiveRecord
 
         FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
-        def execute_and_clear(sql, name, binds, prepare: false, async: false, allow_retry: false, materialize_transactions: true)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          if !prepare || without_prepared_statement?(binds)
-            result = exec_no_cache(sql, name, binds, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
-          else
-            result = exec_cache(sql, name, binds, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
-          end
-          begin
-            ret = yield result
-          ensure
-            result.clear
-          end
-          ret
-        end
-
-        def exec_no_cache(sql, name, binds, async:, allow_retry:, materialize_transactions:)
-          mark_transaction_written_if_write(sql)
-
-          # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-          # made since we established the connection
-          update_typemap_for_default_timezone
-
-          type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              result = conn.exec_params(sql, type_casted_binds)
-              verified!
-              notification_payload[:row_count] = result.count
-              result
-            end
-          end
-        end
-
-        def exec_cache(sql, name, binds, async:, allow_retry:, materialize_transactions:)
-          mark_transaction_written_if_write(sql)
-
-          update_typemap_for_default_timezone
-
-          with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-            stmt_key = prepare_statement(sql, binds, conn)
-            type_casted_binds = type_casted_binds(binds)
-
-            log(sql, name, binds, type_casted_binds, stmt_key, async: async) do |notification_payload|
-              result = conn.exec_prepared(stmt_key, type_casted_binds)
-              verified!
-              notification_payload[:row_count] = result.count
-              result
-            end
-          end
-        rescue ActiveRecord::StatementInvalid => e
-          raise unless is_cached_plan_failure?(e)
-
-          # Nothing we can do if we are in a transaction because all commands
-          # will raise InFailedSQLTransaction
-          if in_transaction?
-            raise ActiveRecord::PreparedStatementCacheExpired.new(e.cause.message, connection_pool: @pool)
-          else
-            @lock.synchronize do
-              # outside of transactions we can simply flush this query and retry
-              @statements.delete sql_key(sql)
-            end
-            retry
-          end
-        end
-
         # Annoyingly, the code for prepared statements whose return value may
         # have changed is FEATURE_NOT_SUPPORTED.
         #
@@ -940,8 +872,7 @@ module ActiveRecord
         #
         # Check here for more details:
         # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-        def is_cached_plan_failure?(e)
-          pgerror = e.cause
+        def is_cached_plan_failure?(pgerror)
           pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE) == FEATURE_NOT_SUPPORTED &&
             pgerror.result.result_error_field(PG::PG_DIAG_SOURCE_FUNCTION) == "RevalidateCachedQuery"
         rescue
@@ -1020,16 +951,16 @@ module ActiveRecord
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          internal_execute("SET intervalstyle = iso_8601")
+          internal_execute("SET intervalstyle = iso_8601", "SCHEMA")
 
           # SET statements from :variables config hash
           # https://www.postgresql.org/docs/current/static/sql-set.html
           variables.map do |k, v|
             if v == ":default" || v == :default
               # Sets the value to the global or compile default
-              internal_execute("SET SESSION #{k} TO DEFAULT")
+              internal_execute("SET SESSION #{k} TO DEFAULT", "SCHEMA")
             elsif !v.nil?
-              internal_execute("SET SESSION #{k} TO #{quote(v)}")
+              internal_execute("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
             end
           end
 
@@ -1050,9 +981,9 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
-            internal_execute("SET SESSION timezone TO 'UTC'")
+            raw_execute("SET SESSION timezone TO 'UTC'", "SCHEMA")
           else
-            internal_execute("SET SESSION timezone TO DEFAULT")
+            raw_execute("SET SESSION timezone TO DEFAULT", "SCHEMA")
           end
         end
 
@@ -1119,9 +1050,8 @@ module ActiveRecord
                     AND castsource = #{quote column.sql_type}::regtype
                 )
               SQL
-              execute_and_clear(sql, "SCHEMA", [], allow_retry: true, materialize_transactions: false) do |result|
-                result.getvalue(0, 0)
-              end
+              result = internal_execute(sql, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+              result.getvalue(0, 0)
             end
           end
         end
@@ -1177,9 +1107,8 @@ module ActiveRecord
             FROM pg_type as t
             WHERE t.typname IN (%s)
           SQL
-          coders = execute_and_clear(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false) do |result|
-            result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
-          end
+          result = internal_execute(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+          coders = result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
 
           map = PG::TypeMapByOid.new
           coders.each { |coder| map.add_coder(coder) }

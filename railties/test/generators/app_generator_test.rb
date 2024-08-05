@@ -32,6 +32,7 @@ DEFAULT_APP_FILES = %w(
   app/views/pwa/manifest.json.erb
   app/views/pwa/service-worker.js
   bin/brakeman
+  bin/dev
   bin/docker-entrypoint
   bin/rails
   bin/rake
@@ -57,7 +58,6 @@ DEFAULT_APP_FILES = %w(
   config/routes.rb
   config/storage.yml
   db/seeds.rb
-  lib/assets/.keep
   lib/tasks/.keep
   log/.keep
   public/404.html
@@ -1042,7 +1042,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       app/controllers/concerns
       app/models/concerns
       lib/tasks
-      lib/assets
       log
       script
       test/fixtures/files

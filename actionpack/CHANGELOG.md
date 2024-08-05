@@ -1,3 +1,19 @@
+*   Deprecate drawing routes with hash key paths to make routing faster.
+
+    ```ruby
+    # Before
+    get "/users" => "users#index"
+    post "/logout" => :sessions
+    mount MyApp => "/my_app"
+
+    # After
+    get "/users", to: "users#index"
+    post "/logout", to: "sessions#logout"
+    mount MyApp, at: "/my_app"
+    ```
+
+    *Gannon McGibbon*
+
 *   Deprecate drawing routes with multiple paths to make routing faster.
     You may use `with_options` or a loop to make drawing multiple paths easier.
 

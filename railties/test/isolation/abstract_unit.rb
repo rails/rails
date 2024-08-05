@@ -265,12 +265,13 @@ module TestHelpers
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :error
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+      @app.config.active_support.to_time_preserves_timezone = :zone
 
       yield @app if block_given?
       @app.initialize!
 
       @app.routes.draw do
-        get "/" => "omg#index"
+        get "/", to: "omg#index"
       end
 
       require "rack/test"

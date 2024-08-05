@@ -141,15 +141,15 @@ module Rails
       initializer :add_internal_routes do |app|
         if Rails.env.development?
           app.routes.prepend do
-            get "/rails/info/properties" => "rails/info#properties", internal: true
-            get "/rails/info/routes"     => "rails/info#routes",     internal: true
-            get "/rails/info/notes"      => "rails/info#notes",      internal: true
-            get "/rails/info"            => "rails/info#index",      internal: true
+            get "/rails/info/properties", to: "rails/info#properties", internal: true
+            get "/rails/info/routes",     to: "rails/info#routes",     internal: true
+            get "/rails/info/notes",      to: "rails/info#notes",      internal: true
+            get "/rails/info",            to: "rails/info#index",      internal: true
           end
 
           routes_reloader.run_after_load_paths = -> do
             app.routes.append do
-              get "/" => "rails/welcome#index", internal: true
+              get "/", to: "rails/welcome#index", internal: true
             end
           end
         end

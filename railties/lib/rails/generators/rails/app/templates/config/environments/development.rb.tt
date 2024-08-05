@@ -23,15 +23,14 @@ Rails.application.configure do
     <%- unless options.api? -%>
     config.action_controller.perform_caching = true
     config.action_controller.enable_fragment_cache_logging = true
-
     <%- end -%>
-    config.cache_store = :memory_store
     config.public_file_server.headers = { "Cache-Control" => "public, max-age=#{2.days.to_i}" }
   else
     config.action_controller.perform_caching = false
-
-    config.cache_store = :null_store
   end
+
+  # Change this to :null_store to avoid any caching
+  config.cache_store = :memory_store
   <%- unless skip_active_storage? -%>
 
   # Store uploaded files on the local file system (see config/storage.yml for options).

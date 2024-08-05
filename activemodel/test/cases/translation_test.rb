@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/with"
 require "cases/helper"
 require "models/person"
 
@@ -125,5 +126,13 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     options = { default: "Cool gender" }
     Person.human_attribute_name("gender", options)
     assert_equal({ default: "Cool gender" }, options)
+  end
+
+  def test_raise_on_missing_translations
+    ActiveModel::Translation.with(raise_on_missing_translations: true) do
+      assert_raises I18n::MissingTranslationData do
+        Person.human_attribute_name("name")
+      end
+    end
   end
 end

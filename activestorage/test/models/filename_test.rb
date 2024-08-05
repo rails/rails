@@ -22,7 +22,7 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
   end
 
   test "sanitize" do
-    "%$|:;/\t\r\n\\".each_char do |character|
+    "%$|:;/<>?*\"\t\r\n\\".each_char do |character|
       filename = ActiveStorage::Filename.new("foo#{character}bar.pdf")
       assert_equal "foo-bar.pdf", filename.sanitized
       assert_equal "foo-bar.pdf", filename.to_s

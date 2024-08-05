@@ -117,7 +117,7 @@ module ActiveSupport
   def self.to_time_preserves_timezone=(value)
     if !value
       ActiveSupport.deprecator.warn(
-        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.0." \
+        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.0. " \
         "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
       )
     elsif value != :zone

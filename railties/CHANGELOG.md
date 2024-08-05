@@ -1,29 +1,48 @@
-*   Add sessions generator to give a basic start to an authentication system using database-tracked sessions.
+*   Generate form helpers to use `textarea*` methods instead of `text_area*` methods
 
+    *Sean Doyle*
 
-    # Generate with...
-    bin/rails generate sessions
+*   Add authentication generator to give a basic start to an authentication system using database-tracked sessions and password reset.
 
-    # Generated files
+    Generate with...
+
+    ```
+    bin/rails generate authentication
+    ```
+
+    Generated files:
+
+    ```
     app/models/current.rb
     app/models/user.rb
     app/models/session.rb
     app/controllers/sessions_controller.rb
+    app/controllers/passwords_controller.rb
+    app/mailers/passwords_mailer.rb
     app/views/sessions/new.html.erb
+    app/views/passwords/new.html.erb
+    app/views/passwords/edit.html.erb
+    app/views/passwords_mailer/reset.html.erb
+    app/views/passwords_mailer/reset.text.erb
     db/migrate/xxxxxxx_create_users.rb
     db/migrate/xxxxxxx_create_sessions.rb
-
+    test/mailers/previews/passwords_mailer_preview.rb
+    ```
 
     *DHH*
 
 
 *   Add not-null type modifier to migration attributes.
 
+    Generating with...
 
-    # Generating with...
+    ```
     bin/rails generate migration CreateUsers email_address:string!:uniq password_digest:string!
+    ```
 
-    # Produces:
+    Produces:
+
+    ```ruby
     class CreateUsers < ActiveRecord::Migration[8.0]
       def change
         create_table :users do |t|
@@ -35,22 +54,28 @@
         add_index :users, :email_address, unique: true
       end
     end
-
+    ```
 
     *DHH*
 
-*   Add script folder and generator
+*   Add a `script` folder to applications, and a scripts generator.
 
-    Add a new script default folder to hold your one-off or general purpose
-    scripts, such as data migration scripts, cleanup scripts, etc.
+    The new `script` folder is meant to hold one-off or general purpose scripts,
+    such as data migration scripts, cleanup scripts, etc.
 
     A new script generator allows you to create such scripts:
 
-      `rails generate script my_script`
+    ```
+    bin/rails generate script my_script
+    bin/rails generate script data/backfill
+    ```
 
     You can run the generated script using:
 
-      `ruby script/my_script.rb`
+    ```
+    bundle exec ruby script/my_script.rb
+    bundle exec ruby script/data/backfill.rb
+    ```
 
     *Jerome Dalbert*, *Haroon Ahmed*
 

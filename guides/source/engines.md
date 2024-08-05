@@ -515,7 +515,7 @@ directory at `app/views/blorgh/comments` and in it a new file called
 <%= form_with model: [@article, @article.comments.build] do |form| %>
   <p>
     <%= form.label :text %><br>
-    <%= form.text_area :text %>
+    <%= form.textarea :text %>
   </p>
   <%= form.submit %>
 <% end %>

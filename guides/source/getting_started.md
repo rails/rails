@@ -175,7 +175,7 @@ of the files and folders that Rails creates by default:
 
 | File/Folder | Purpose |
 | ----------- | ------- |
-|app/|Contains the controllers, models, views, helpers, mailers, channels, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|app/|Contains the controllers, models, views, helpers, mailers, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |bin/|Contains the `rails` script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.|
 |config/|Contains configuration for your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack-based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
@@ -839,7 +839,7 @@ Let's create `app/views/articles/new.html.erb` with the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </div>
 
   <div>
@@ -982,7 +982,7 @@ display any error messages for `title` and `body`:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %><br>
+    <%= form.textarea :body %><br>
     <% @article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
@@ -1146,7 +1146,7 @@ the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %><br>
+    <%= form.textarea :body %><br>
     <% article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
@@ -1492,7 +1492,7 @@ So first, we'll wire up the Article show template
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1572,7 +1572,7 @@ add that to the `app/views/articles/show.html.erb`.
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1637,7 +1637,7 @@ following:
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1664,7 +1664,7 @@ create a file `app/views/comments/_form.html.erb` containing:
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>

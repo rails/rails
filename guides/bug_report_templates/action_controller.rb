@@ -21,7 +21,7 @@ class TestApp < Rails::Application
   Rails.logger  = config.logger
 
   routes.draw do
-    get "/" => "test#index"
+    get "/", to: "test#index"
   end
 end
 

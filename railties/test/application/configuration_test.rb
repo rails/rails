@@ -790,7 +790,7 @@ module ApplicationTests
 
     test "application will generate secret_key_base in tmp file if blank in development" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.credentials.secret_key_base = nil
+        Rails.application.config.secret_key_base = nil
       RUBY
 
       # For test that works even if tmp dir does not exist.
@@ -804,7 +804,7 @@ module ApplicationTests
 
     test "application will generate secret_key_base in tmp file if blank in test" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.credentials.secret_key_base = nil
+        Rails.application.config.secret_key_base = nil
       RUBY
 
       # For test that works even if tmp dir does not exist.
@@ -4631,6 +4631,21 @@ module ApplicationTests
 
       get "foo/view"
       assert_includes last_response.body, "rescued missing translation error from view"
+    end
+
+    test "raise_on_missing_translations affects human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+
+      assert_raises I18n::MissingTranslationData do
+        Post.human_attribute_name("title")
+      end
     end
 
     test "dom testing uses the HTML5 parser in new apps if it is supported" do

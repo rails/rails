@@ -141,6 +141,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
+        bin/dev
         bin/docker-entrypoint
         bin/rails
         bin/rake
@@ -184,7 +185,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          bin/yarn
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
-         lib/assets
          test/helpers
          public/404.html
          public/422.html

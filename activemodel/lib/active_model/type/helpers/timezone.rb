@@ -7,7 +7,11 @@ module ActiveModel
     module Helpers # :nodoc: all
       module Timezone
         def is_utc?
-          ::Time.zone_default.nil? || ::Time.zone_default.match?("UTC")
+          if default = ::Time.zone_default
+            default.name == "UTC"
+          else
+            true
+          end
         end
 
         def default_timezone

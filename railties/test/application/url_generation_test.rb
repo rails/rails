@@ -35,7 +35,7 @@ module ApplicationTests
       end
 
       MyApp.routes.draw do
-        get "/" => "omg#index", as: :omg
+        get "/", to: "omg#index", as: :omg
       end
 
       require "rack/test"

@@ -303,12 +303,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_on_invalid_columns_raises
-    e = assert_raises(ActiveRecord::StatementInvalid) {
+    error = assert_raises(ActiveRecord::StatementInvalid) do
       Account.select("credit_limit, firm_name").count
-    }
+    end
 
-    assert_match %r{accounts}i, e.sql
-    assert_match "credit_limit, firm_name", e.sql
+    assert_match %r{accounts}i, error.sql
+    assert_match "credit_limit, firm_name", error.sql
   end
 
   def test_apply_distinct_in_count

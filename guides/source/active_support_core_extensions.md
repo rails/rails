@@ -2921,7 +2921,7 @@ In case of key collision, the value will be the one most recently inserted into 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionView::Helpers::FormHelper` defines:
 
 ```ruby
-def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
+def to_checkbox_tag(options = {}, checked_value = "1", unchecked_value = "0")
   options = options.stringify_keys
   options["type"] = "checkbox"
   # ...
@@ -2967,7 +2967,7 @@ In case of key collision, the value will be the one most recently inserted into 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionText::TagHelper` defines
 
 ```ruby
-def rich_text_area_tag(name, value = nil, options = {})
+def rich_textarea_tag(name, value = nil, options = {})
   options = options.symbolize_keys
 
   options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}"

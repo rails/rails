@@ -393,24 +393,24 @@ module ActionView
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
-      #   text_area_tag 'post'
+      #   textarea_tag 'post'
       #   # => <textarea id="post" name="post"></textarea>
       #
-      #   text_area_tag 'bio', @user.bio
+      #   textarea_tag 'bio', @user.bio
       #   # => <textarea id="bio" name="bio">This is my biography.</textarea>
       #
-      #   text_area_tag 'body', nil, rows: 10, cols: 25
+      #   textarea_tag 'body', nil, rows: 10, cols: 25
       #   # => <textarea cols="25" id="body" name="body" rows="10"></textarea>
       #
-      #   text_area_tag 'body', nil, size: "25x10"
+      #   textarea_tag 'body', nil, size: "25x10"
       #   # => <textarea name="body" id="body" cols="25" rows="10"></textarea>
       #
-      #   text_area_tag 'description', "Description goes here.", disabled: true
+      #   textarea_tag 'description', "Description goes here.", disabled: true
       #   # => <textarea disabled="disabled" id="description" name="description">Description goes here.</textarea>
       #
-      #   text_area_tag 'comment', nil, class: 'comment_input'
+      #   textarea_tag 'comment', nil, class: 'comment_input'
       #   # => <textarea class="comment_input" id="comment" name="comment"></textarea>
-      def text_area_tag(name, content = nil, options = {})
+      def textarea_tag(name, content = nil, options = {})
         options = options.stringify_keys
 
         if size = options.delete("size")
@@ -422,12 +422,13 @@ module ActionView
 
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
       end
+      alias_method :text_area_tag, :textarea_tag
 
       ##
       # :call-seq:
-      #   check_box_tag(name, options = {})
-      #   check_box_tag(name, value, options = {})
-      #   check_box_tag(name, value, checked, options = {})
+      #   checkbox_tag(name, options = {})
+      #   checkbox_tag(name, value, options = {})
+      #   checkbox_tag(name, value, checked, options = {})
       #
       # Creates a check box form input tag.
       #
@@ -438,21 +439,21 @@ module ActionView
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
-      #   check_box_tag 'accept'
+      #   checkbox_tag 'accept'
       #   # => <input id="accept" name="accept" type="checkbox" value="1" />
       #
-      #   check_box_tag 'rock', 'rock music'
+      #   checkbox_tag 'rock', 'rock music'
       #   # => <input id="rock" name="rock" type="checkbox" value="rock music" />
       #
-      #   check_box_tag 'receive_email', 'yes', true
+      #   checkbox_tag 'receive_email', 'yes', true
       #   # => <input checked="checked" id="receive_email" name="receive_email" type="checkbox" value="yes" />
       #
-      #   check_box_tag 'tos', 'yes', false, class: 'accept_tos'
+      #   checkbox_tag 'tos', 'yes', false, class: 'accept_tos'
       #   # => <input class="accept_tos" id="tos" name="tos" type="checkbox" value="yes" />
       #
-      #   check_box_tag 'eula', 'accepted', false, disabled: true
+      #   checkbox_tag 'eula', 'accepted', false, disabled: true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
-      def check_box_tag(name, *args)
+      def checkbox_tag(name, *args)
         if args.length >= 4
           raise ArgumentError, "wrong number of arguments (given #{args.length + 1}, expected 1..4)"
         end
@@ -462,6 +463,7 @@ module ActionView
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
+      alias_method :check_box_tag, :checkbox_tag
 
       ##
       # :call-seq:

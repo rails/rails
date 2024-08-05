@@ -723,7 +723,7 @@ module ActionView
       #   end
       #
       # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
+      #   collection_checkboxes(:post, :author_ids, Author.all, :id, :name_with_initial)
       #
       # If <tt>@post.author_ids</tt> is already <tt>[1]</tt>, this would return:
       #   <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
@@ -736,8 +736,8 @@ module ActionView
       #
       # It is also possible to customize the way the elements will be shown by
       # giving a block to the method:
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
-      #     b.label { b.check_box }
+      #   collection_checkboxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #     b.label { b.checkbox }
       #   end
       #
       # The argument passed to the block is a special kind of builder for this
@@ -746,17 +746,17 @@ module ActionView
       # Using it, you can change the label and check box display order or even
       # use the label as wrapper, as in the example above.
       #
-      # The builder methods <tt>label</tt> and <tt>check_box</tt> also accept
+      # The builder methods <tt>label</tt> and <tt>checkbox</tt> also accept
       # extra HTML options:
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
-      #     b.label(class: "check_box") { b.check_box(class: "check_box") }
+      #   collection_checkboxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #     b.label(class: "checkbox") { b.checkbox(class: "checkbox") }
       #   end
       #
       # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and
       # <tt>value</tt>, which are the current item being rendered, its text and value methods,
       # respectively. You can use them like this:
-      #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
-      #      b.label(:"data-value" => b.value) { b.check_box + b.text }
+      #   collection_checkboxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
+      #      b.label(:"data-value" => b.value) { b.checkbox + b.text }
       #   end
       #
       # ==== Gotcha
@@ -779,9 +779,10 @@ module ActionView
       #
       # In the rare case you don't want this hidden field, you can pass the
       # <tt>include_hidden: false</tt> option to the helper method.
-      def collection_check_boxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+      def collection_checkboxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         Tags::CollectionCheckBoxes.new(object, method, self, collection, value_method, text_method, options, html_options).render(&block)
       end
+      alias_method :collection_check_boxes, :collection_checkboxes
 
       private
         def option_html_attributes(element)
@@ -897,17 +898,18 @@ module ActionView
         @template.weekday_select(@object_name, method, objectify_options(options), @default_html_options.merge(html_options))
       end
 
-      # Wraps ActionView::Helpers::FormOptionsHelper#collection_check_boxes for form builders:
+      # Wraps ActionView::Helpers::FormOptionsHelper#collection_checkboxes for form builders:
       #
       #   <%= form_for @post do |f| %>
-      #     <%= f.collection_check_boxes :author_ids, Author.all, :id, :name_with_initial %>
+      #     <%= f.collection_checkboxes :author_ids, Author.all, :id, :name_with_initial %>
       #     <%= f.submit %>
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.
-      def collection_check_boxes(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
-        @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
+      def collection_checkboxes(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+        @template.collection_checkboxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
+      alias_method :collection_check_boxes, :collection_checkboxes
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_radio_buttons for form builders:
       #

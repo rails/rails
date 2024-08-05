@@ -376,6 +376,16 @@ module ActiveRecord
         assert_equal [:enable_extension, ["uuid-ossp"], nil], enable
       end
 
+      def test_invert_create_schema
+        disable = @recorder.inverse_of :create_schema, ["myschema"]
+        assert_equal [:drop_schema, ["myschema"], nil], disable
+      end
+
+      def test_invert_drop_schema
+        enable = @recorder.inverse_of :drop_schema, ["myschema"]
+        assert_equal [:create_schema, ["myschema"], nil], enable
+      end
+
       def test_invert_add_foreign_key
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people]
         assert_equal [:remove_foreign_key, [:dogs, :people], nil], enable
