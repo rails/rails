@@ -45,27 +45,6 @@ module ActiveModel
       extend  HelperMethods
       include HelperMethods
 
-      ##
-      # :method: validation_context
-      # Returns the context when running validations.
-      #
-      # This is useful when running validations except a certain context (opposite to the +on+ option).
-      #
-      #   class Person
-      #     include ActiveModel::Validations
-      #
-      #     attr_accessor :name
-      #     validates :name, presence: true, if: -> { validation_context != :custom }
-      #   end
-      #
-      #   person = Person.new
-      #   person.valid?          #=> false
-      #   person.valid?(:new)    #=> false
-      #   person.valid?(:custom) #=> true
-
-      ##
-      attr_accessor :validation_context
-      private :validation_context=
       define_callbacks :validate, scope: :name
 
       class_attribute :_validators, instance_writer: false, default: Hash.new { |h, k| h[k] = [] }
@@ -361,14 +340,22 @@ module ActiveModel
     #   person.valid?       # => true
     #   person.valid?(:new) # => false
     def valid?(context = nil)
-      current_context, self.validation_context = validation_context, context
+      current_context = validation_context
+      context_for_validation.context = context
       errors.clear
       run_validations!
     ensure
-      self.validation_context = current_context
+      context_for_validation.context = current_context
     end
 
     alias_method :validate, :valid?
+
+    def freeze
+      errors
+      context_for_validation
+
+      super
+    end
 
     # Performs the opposite of <tt>valid?</tt>. Returns +true+ if errors were
     # added, +false+ otherwise.
@@ -430,7 +417,34 @@ module ActiveModel
     #   end
     alias :read_attribute_for_validation :send
 
+    # Returns the context when running validations.
+    #
+    # This is useful when running validations except a certain context (opposite to the +on+ option).
+    #
+    #   class Person
+    #     include ActiveModel::Validations
+    #
+    #     attr_accessor :name
+    #     validates :name, presence: true, if: -> { validation_context != :custom }
+    #   end
+    #
+    #   person = Person.new
+    #   person.valid?          #=> false
+    #   person.valid?(:new)    #=> false
+    #   person.valid?(:custom) #=> true
+    def validation_context
+      context_for_validation.context
+    end
+
   private
+    def validation_context=(context)
+      context_for_validation.context = context
+    end
+
+    def context_for_validation
+      @context_for_validation ||= ValidationContext.new
+    end
+
     def init_internals
       super
       @errors = nil
@@ -465,6 +479,10 @@ module ActiveModel
       errors = @model.errors.full_messages.join(", ")
       super(I18n.t(:"#{@model.class.i18n_scope}.errors.messages.model_invalid", errors: errors, default: :"errors.messages.model_invalid"))
     end
+  end
+
+  class ValidationContext # :nodoc:
+    attr_accessor :context
   end
 end
 
