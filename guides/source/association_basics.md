@@ -1700,7 +1700,7 @@ To unload the cached version of the associated object—causing the next access,
 @book.reset_author
 ```
 
-###### `association=(associate)`
+###### Assigning the Association
 
 The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associated object and setting this object's foreign key to the same value.
 
