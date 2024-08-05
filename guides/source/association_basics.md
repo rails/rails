@@ -2235,8 +2235,6 @@ the initial examples above.
 Detailed Association References
 ------------------------------
 
-### References
-
 ### Options
 
 While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the association references. Such customizations can be accomplished by passing options blocks when you create the association. For example, this association uses two such options:
