@@ -271,6 +271,15 @@ class PostWithDefaultScope < ActiveRecord::Base
   default_scope { order(:title) }
 end
 
+class PostWithWhereDefaultScope < ActiveRecord::Base
+  self.inheritance_column = :disabled
+  self.table_name = "posts"
+  default_scope { where(deleted_at: nil) }
+
+  belongs_to :author
+  has_many :comments, -> { unscope(where: :deleted_at) }, class_name: "CommentOnPostWithWhereDefaultScope", foreign_key: :post_id
+end
+
 class PostWithPreloadDefaultScope < ActiveRecord::Base
   self.table_name = "posts"
 

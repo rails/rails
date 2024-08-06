@@ -1412,6 +1412,28 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, post.lazy_people_unscope_skimmers.to_a.size
   end
 
+  def test_has_many_through_unscope_respects_join_model_default_scope
+    author = authors(:david)
+
+    active_post = PostWithWhereDefaultScope.create!(
+      author: author,
+      title: "test post",
+      body: "this is an active post"
+    )
+    deleted_post = PostWithWhereDefaultScope.create!(
+      author: author,
+      title: "test post 2",
+      body: "this is a deleted post",
+      deleted_at: Time.now
+    )
+
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: active_post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: active_post, deleted_at: Time.now)
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: deleted_post, deleted_at: Time.now)
+
+    assert_equal 2, author.comments_on_posts_with_where_default_scope.count
+  end
+
   def test_has_many_through_add_with_sti_middle_relation
     club = SuperClub.create!(name: "Fight Club")
     member = Member.create!(name: "Tyler Durden")

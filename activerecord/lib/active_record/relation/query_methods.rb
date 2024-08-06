@@ -835,6 +835,26 @@ module ActiveRecord
       self
     end
 
+    def table_name_qualified_unscope_values
+      self.unscope_values.map do |scope|
+        case scope
+        when Hash
+          scope.transform_values do |target_value|
+            case target_value
+            when Array
+              target_value.map { |value| qualify_attribute_with_table_name(value) }
+            when Symbol, String
+              qualify_attribute_with_table_name(target_value)
+            else
+              target_value
+            end
+          end
+        else
+          scope
+        end
+      end
+    end
+
     # Performs JOINs on +args+. The given symbol(s) should match the name of
     # the association(s).
     #
@@ -2150,6 +2170,10 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def qualify_attribute_with_table_name(attr)
+        attr.to_s.include?(".") ? attr : predicate_builder.resolve_arel_attribute(table_name, attr)
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some
