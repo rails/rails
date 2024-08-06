@@ -1,3 +1,5 @@
+## Rails 7.2.0.rc1 (August 06, 2024) ##
+
 *   Handle commas in Sqlite3 default function definitions.
 
     *Stephen Margheim*

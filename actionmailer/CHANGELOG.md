@@ -1,3 +1,8 @@
+## Rails 7.2.0.rc1 (August 06, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.2.0.beta3 (July 11, 2024) ##
 
 *   No changes.

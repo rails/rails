@@ -1,3 +1,5 @@
+## Rails 7.2.0.rc1 (August 06, 2024) ##
+
 *   Fix `delegate_missing_to allow_nil: true` when called with implict self
 
     ```ruby
