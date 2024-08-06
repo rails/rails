@@ -1581,7 +1581,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render plain: params.require(:post).permit(:name)
+          render plain: params.expect(post: [:name])
         end
       end
       RUBY

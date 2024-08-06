@@ -274,7 +274,7 @@ class PeopleController < ActionController::Base
     # permit list between create and update. Also, you can specialize
     # this method with per-user checking of permissible attributes.
     def person_params
-      params.require(:person).permit(:name, :age)
+      params.expect(person: [:name, :age])
     end
 end
 ```
@@ -366,7 +366,7 @@ parameters:
 
 ```ruby
 # permit :id and :_destroy
-params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
+params.expect(author: [:name, { books_attributes: [:title, :id, :_destroy] }])
 ```
 
 Hashes with integer keys are treated differently, and you can declare
@@ -380,7 +380,7 @@ with a `has_many` association:
 #             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
 #                                        "2" => {"title" => "Second Chapter"}}}}
 
-params.require(:book).permit(:title, chapters_attributes: [:title])
+params.expect(book: [:title, { chapters_attributes: [:title] }])
 ```
 
 Imagine a scenario where you have parameters representing a product
@@ -390,7 +390,7 @@ data hash:
 
 ```ruby
 def product_params
-  params.require(:product).permit(:name, data: {})
+  params.expect(product: [:name, { data: {} }])
 end
 ```
 

@@ -55,7 +55,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_match(/def user_params/, content)
-      assert_match(/params\.require\(:user\)\.permit\(:name, :age\)/, content)
+      assert_match(/params\.expect\(user: \[:name, :age\]\)/, content)
     end
   end
 
@@ -73,7 +73,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/line_items_controller.rb" do |content|
       assert_match(/def line_item_params/, content)
-      assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :cart_id\)/, content)
+      assert_match(/params\.expect\(line_item: \[:product_id, :cart_id\]\)/, content)
     end
   end
 
@@ -82,7 +82,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/line_items_controller.rb" do |content|
       assert_match(/def line_item_params/, content)
-      assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :product_type\)/, content)
+      assert_match(/params\.expect\(line_item: \[:product_id, :product_type\]\)/, content)
     end
   end
 
@@ -91,7 +91,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_match(/def message_params/, content)
-      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
+      assert_match(/params\.expect\(message: \[:video, photos: \[\]\]\)/, content)
     end
   end
 
@@ -100,7 +100,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_match(/def message_params/, content)
-      assert_match(/params\.require\(:message\)\.permit\(photos: \[\]\)/, content)
+      assert_match(/params\.expect\(message: \[\{ photos: \[\]\}\)/, content)
     end
   end
 

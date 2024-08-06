@@ -686,7 +686,7 @@ module ActionView
       # if a +User+ model has a +category_id+ field and in the form no category is selected, no +category_id+ parameter is sent. So,
       # any strong parameters idiom like:
       #
-      #   params.require(:user).permit(...)
+      #   params.expect(user: [...])
       #
       # will raise an error since no <tt>{user: ...}</tt> will be present.
       #

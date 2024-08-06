@@ -56,7 +56,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(request_params, context)
 
     assert_logged("Unpermitted parameters: :title, :author. Context: { action: my_action, controller: my_controller }") do
-      params.require(:book).permit(:pages)
+      params.expect(book: :pages)
     end
   end
 
