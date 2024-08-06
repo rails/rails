@@ -12,6 +12,7 @@ After reading this guide, you will know how to:
 * Choose the right association type for your models.
 * Use Single Table Inheritance.
 * Setting up and using Delegated Types.
+
 --------------------------------------------------------------------------------
 
 Associations Overview
@@ -950,6 +951,7 @@ an empty Relation.
 ```ruby
 @books = @author.books.reload
 ```
+
 ##### When are Objects Saved?
 
 When you assign an object to a `has_many` association, that object is
@@ -1620,6 +1622,7 @@ class Product < ApplicationRecord
   has_many :pictures, as: :imageable
 end
 ```
+
 ![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
 In the context above, `imageable` is a name chosen for the association. It's a
@@ -1991,6 +1994,7 @@ end
 Car.create
 # => #<Car kind: "Car", color: "Red", price: 10000>
 ```
+
 In this setup, Rails will use the `kind` column to store the model type,
 allowing STI to function correctly with the custom column name.
 
@@ -2693,7 +2697,7 @@ Each association supports numerous options which you can read more about in
 API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html).
 We'll discuss some of the common use cases below.
 
-##### `:class_name`
+#### `:class_name`
 
 If the name of the other model cannot be derived from the association name, you
 can use the `:class_name` option to supply the model name. For example, if a
@@ -2706,7 +2710,7 @@ class Book < ApplicationRecord
 end
 ```
 
-##### `:dependent`
+#### `:dependent`
 
 Controls what happens to the associated object when its owner is destroyed:
 
@@ -2763,7 +2767,7 @@ association. To manage deletions of join table records, handle them manually or
 switch to a `has_many :through` association, which provides more flexibility and
 supports the `:dependent` option.
 
-##### `:foreign_key`
+#### `:foreign_key`
 
 By convention, Rails assumes that the column used to hold the foreign key on
 this model is the name of the association with the suffix `_id` added. The
@@ -2778,7 +2782,7 @@ end
 NOTE: Rails does not create foreign key columns for you. You need to explicitly
 define them in your migrations.
 
-##### `:primary_key`
+#### `:primary_key`
 
 By default, Rails uses the `id` column as the primary key for its tables. The
 `:primary_key` option allows you to specify a different column as the primary
@@ -2807,7 +2811,7 @@ with has_many `:through` association, which gives more flexibility and supports
 the `:primary_key` option. You can read more about this in the [`has_many
 :through` section](#has-many-through).
 
-##### `:touch`
+#### `:touch`
 
 If you set the `:touch` option to `true`, then the `updated_at` or `updated_on`
 timestamp on the associated object will be set to the current time whenever this
@@ -2838,7 +2842,7 @@ association, you can achieve similar functionality by using a join table with
 `has_many :through` association. You can read more about this in the [`has_many
 :through` section](#has-many-through).
 
-##### `:validate`
+#### `:validate`
 
 If you set the `:validate` option to `true`, then new associated objects will be
 validated whenever you save this object. By default, this is `false`: new
@@ -2850,7 +2854,7 @@ has_many `:through` association. You can read more about this in the [`has_many
 :through` section](#has-many-through).
 
 
-##### `:inverse_of`
+#### `:inverse_of`
 
 The `:inverse_of` option specifies the name of the `belongs_to` association that
 is the inverse of this association. See the [bi-directional
@@ -2866,7 +2870,7 @@ class Account < ApplicationRecord
 end
 ```
 
-##### `:source_type`
+#### `:source_type`
 
 The `:source_type` option specifies the source association type for a `has_many
 :through` association that proceeds through a [polymorphic
@@ -2886,12 +2890,12 @@ class Hardback < ApplicationRecord; end
 class Paperback < ApplicationRecord; end
 ```
 
-##### `:strict_loading`
+#### `:strict_loading`
 
 Enforces strict loading every time an associated record is loaded through this
 association.
 
-##### `:association_foreign_key`
+#### `:association_foreign_key`
 
 The `:association_foreign_key` can be found on a `has_and_belongs_to_many`
 relationship. By convention, Rails assumes that the column in the join table
@@ -2911,7 +2915,7 @@ end
 TIP: The `:foreign_key` and `:association_foreign_key` options are useful when
 setting up a many-to-many self-join.
 
-##### `:join_table`
+#### `:join_table`
 
 The `:join_table` can be found on a `has_and_belongs_to_many` relationship. If
 the default name of the join table, based on lexical ordering, is not what you
