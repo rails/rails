@@ -38,6 +38,7 @@ DEFAULT_APP_FILES = %w(
   bin/rake
   bin/rubocop
   bin/setup
+  bin/thrust
   config.ru
   config/application.rb
   config/boot.rb
@@ -554,6 +555,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     else
       assert_gem "debug"
     end
+  end
+
+  def test_inclusion_of_thruster
+    run_generator
+    assert_gem "thruster"
+  end
+
+  def test_thruster_is_skipped_if_required
+    run_generator [destination_root, "--skip-thruster"]
+
+    assert_no_gem "thruster"
+    assert_no_file "bin/thrust"
   end
 
   def test_inclusion_of_rubocop
