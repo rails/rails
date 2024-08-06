@@ -110,6 +110,22 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     @primary.puts "quit"
   end
 
+  def test_prompt_is_properly_set
+    options = "-e test -- --verbose"
+    spawn_console(options)
+
+    write_prompt "a = 1", "a = 1", prompt: "app-template(test)>"
+  end
+
+  def test_prompt_allows_changing_irb_name
+    options = "-e test -- --verbose"
+    spawn_console(options)
+
+    write_prompt "conf.irb_name = 'foo'"
+    write_prompt "a = 1", "a = 1", prompt: "foo(test)>"
+    @primary.puts "quit"
+  end
+
   def test_environment_option_and_irb_option
     options = "-e test -- --verbose"
     spawn_console(options)
@@ -199,8 +215,31 @@ class FullStackConsoleTest < ActiveSupport::TestCase
 
     spawn_console("-e development", wait_for_prompt: false)
 
+    line_number = 0
+    app = File.readlines("#{app_path}/config/application.rb")
+    app.each_with_index do |line, index|
+      if line.include?("Rails::ConsoleMethods.include(MyConsole)")
+        line_number = index + 1
+      end
+    end
+
     assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
+    assert_output "(called from block in <class:Application> at #{app_path}/config/application.rb:#{line_number})", @primary, 30
     write_prompt "foo", "=> \"this is foo\""
+  end
+
+  def test_rails_console_app_and_helpers_files_kept_with_deprecation_for_backward_compatibility
+    add_to_config <<-RUBY
+      console do
+        require "rails/console/app"
+        require "rails/console/helpers"
+      end
+    RUBY
+
+    spawn_console("-e development", wait_for_prompt: false)
+
+    assert_output "`rails/console/app` has been deprecated", @primary, 30
+    assert_output "`rails/console/helpers` has been deprecated", @primary, 30
   end
 
   def test_rails_console_methods_patch_backward_compatibility_with_module_reopening

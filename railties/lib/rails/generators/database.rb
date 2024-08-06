@@ -46,14 +46,6 @@ module Rails
         raise NotImplementedError
       end
 
-      def docker_base
-        raise NotImplementedError
-      end
-
-      def docker_build
-        raise NotImplementedError
-      end
-
       def base_package
         raise NotImplementedError
       end
@@ -125,14 +117,6 @@ module Rails
           ["mysql2", ["~> 0.5"]]
         end
 
-        def docker_base
-          "curl default-mysql-client libvips"
-        end
-
-        def docker_build
-          "build-essential default-libmysqlclient-dev git"
-        end
-
         def base_package
           "default-mysql-client"
         end
@@ -170,14 +154,6 @@ module Rails
 
         def gem
           ["pg", ["~> 1.1"]]
-        end
-
-        def docker_base
-          "curl libvips postgresql-client"
-        end
-
-        def docker_build
-          "build-essential git libpq-dev"
         end
 
         def base_package
@@ -220,14 +196,6 @@ module Rails
           ["trilogy", ["~> 2.7"]]
         end
 
-        def docker_base
-          "curl libvips"
-        end
-
-        def docker_build
-          "build-essential git"
-        end
-
         def base_package
           nil
         end
@@ -258,14 +226,6 @@ module Rails
           ["sqlite3", [">= 1.4"]]
         end
 
-        def docker_base
-          "curl libsqlite3-0 libvips"
-        end
-
-        def docker_build
-          "build-essential git"
-        end
-
         def base_package
           "libsqlite3-0"
         end
@@ -284,8 +244,6 @@ module Rails
         def service; end
         def port; end
         def volume; end
-        def docker_base; end
-        def docker_build; end
         def base_package; end
         def build_package; end
         def feature_name; end

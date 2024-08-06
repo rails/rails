@@ -226,7 +226,7 @@ module ActiveRecord
 
       ActiveRecord.deprecator.warn(<<~MSG)
         Defining enums with keyword arguments is deprecated and will be removed
-        in Rails 7.3. Positional arguments should be used instead:
+        in Rails 8.0. Positional arguments should be used instead:
 
         #{definitions.map { |name, values| "enum :#{name}, #{values}" }.join("\n")}
       MSG

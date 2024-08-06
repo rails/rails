@@ -110,7 +110,10 @@ class ClientsController < ApplicationController
 end
 ```
 
+NOTE: The `params` hash is not a plain old Ruby Hash; instead, it is an [`ActionController::Parameters`][] object. While it behaves like Hash, it does not inherit from Hash.
+
 [`params`]: https://api.rubyonrails.org/classes/ActionController/StrongParameters.html#method-i-params
+[`ActionController::Parameters`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html
 
 ### Hash and Array Parameters
 
@@ -1304,7 +1307,7 @@ While any newly generated Rails applications will have the health check at `/up`
 
 ```ruby
 Rails.application.routes.draw do
-  get "healthz" => "rails/health#show", as: :rails_health_check
+  get "healthz", to: "rails/health#show", as: :rails_health_check
 end
 ```
 

@@ -934,6 +934,66 @@ module ActiveRecord
         assert_equal false, @pool.unpin_connection!
       end
 
+      def test_pin_connection_nesting
+        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
+        @pool.pin_connection!(true)
+        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        @pool.pin_connection!(true)
+        assert_instance_of SavepointTransaction, @pool.lease_connection.current_transaction
+        @pool.unpin_connection!
+        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        @pool.unpin_connection!
+        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
+
+        assert_raises(RuntimeError, match: /There isn't a pinned connection/) do
+          @pool.unpin_connection!
+        end
+      end
+
+      def test_pin_connection_nesting_lock
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+
+        @pool.pin_connection!(true)
+        actual_lock = @pool.lease_connection.lock
+        assert_not_equal ActiveSupport::Concurrency::NullLock, actual_lock
+
+        @pool.pin_connection!(false)
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
+      def test_pin_connection_nesting_lock_inverse
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+
+        @pool.pin_connection!(false)
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+
+        @pool.pin_connection!(true)
+        actual_lock = @pool.lease_connection.lock
+        assert_not_equal ActiveSupport::Concurrency::NullLock, actual_lock
+
+        @pool.unpin_connection!
+        assert_same actual_lock, @pool.lease_connection.lock # The lock persist until full unpin
+
+        @pool.unpin_connection!
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
+      def test_inspect_does_not_show_secrets
+        assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:writing>/, @pool.inspect)
+
+        db_config = ActiveRecord::Base.connection_pool.db_config
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :reading, :shard_one)
+        pool = ConnectionPool.new(pool_config)
+
+        assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:reading shard=:shard_one>/, pool.inspect)
+      end
+
       private
         def active_connections(pool)
           pool.connections.find_all(&:in_use?)

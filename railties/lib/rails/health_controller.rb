@@ -18,7 +18,7 @@ module Rails
   # <tt>"config/routes.rb"</tt>:
   #
   #   Rails.application.routes.draw do
-  #     get "healthz" => "rails/health#show", as: :rails_health_check
+  #     get "healthz", to: "rails/health#show", as: :rails_health_check
   #   end
   #
   # The health check will now be accessible via the +/healthz+ path.

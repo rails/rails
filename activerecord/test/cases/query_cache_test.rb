@@ -493,7 +493,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_not_predicate Task, :connected?
 
     Task.cache do
-      assert_queries_count(1) { Task.find(1); Task.find(1) }
+      assert_queries_count(1) { Task.find(1) }
+      assert_no_queries { Task.find(1) }
     ensure
       ActiveRecord::Base.establish_connection(original_connection)
     end
@@ -1066,5 +1067,52 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     thread_a.join
 
     assert_equal @connection_1, @connection_2
+  end
+end
+
+class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
+  # We need current_transaction to return the null transaction.
+  self.use_transactional_tests = false
+
+  def test_payload_without_open_transaction
+    asserted = false
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      if event.payload[:cached]
+        assert_nil event.payload.fetch(:transaction)
+        asserted = true
+      end
+    end
+    Task.cache do
+      2.times { Task.count }
+    end
+
+    assert asserted
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_payload_with_open_transaction
+    asserted = false
+    expected_transaction = nil
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      if event.payload[:cached]
+        assert_same expected_transaction, event.payload[:transaction]
+        asserted = true
+      end
+    end
+
+    Task.transaction do |transaction|
+      expected_transaction = transaction
+
+      Task.cache do
+        2.times { Task.count }
+      end
+    end
+
+    assert asserted
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
   end
 end

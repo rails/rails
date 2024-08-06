@@ -2029,6 +2029,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
   end
 
+  def test_included_in_collection_for_composite_keys
+    great_author = cpk_authors(:cpk_great_author)
+    book = great_author.books.first
+
+    assert great_author.books.include?(book)
+  end
+
   def test_included_in_collection_for_new_records
     client = Client.create(name: "Persisted")
     assert_nil client.client_of
@@ -3232,6 +3239,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Association Cpk::BrokenOrderWithNonCpkBooks#books primary key [\"shop_id\", \"status\"]
     doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
+  end
+
+  def test_ids_reader_on_preloaded_association_with_composite_primary_key
+    great_author = cpk_authors(:cpk_great_author)
+
+    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
   end
 
   private

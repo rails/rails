@@ -12,7 +12,6 @@ require "active_support/core_ext/array/extract_options"
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
-      include Devcontainer
       include AppName
 
       NODE_LTS_VERSION = "20.11.1"
@@ -75,7 +74,7 @@ module Rails
 
         class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil
 
-        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
+        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "propshaft",
                                            enum: ASSET_PIPELINE_OPTIONS,
                                            desc: "Choose your asset pipeline"
 
@@ -112,14 +111,14 @@ module Rails
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
-        class_option :skip_devcontainer,   type: :boolean, default: false,
-                                           desc: "Skip devcontainer files"
-
         class_option :skip_kamal,          type: :boolean, default: false,
                                            desc: "Skip Kamal setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
+
+        class_option :devcontainer,        type: :boolean, default: false,
+                                           desc: "Generate devcontainer files"
 
         class_option :edge,                type: :boolean, default: nil,
                                            desc: "Set up the #{name} with a Gemfile pointing to the #{edge_branch} branch on the Rails repository"
@@ -369,6 +368,10 @@ module Rails
         options[:skip_active_storage]
       end
 
+      def skip_storage? # :doc:
+        skip_active_storage? && !sqlite3?
+      end
+
       def skip_action_cable? # :doc:
         options[:skip_action_cable]
       end
@@ -414,7 +417,11 @@ module Rails
       end
 
       def skip_devcontainer?
-        options[:skip_devcontainer]
+        !options[:devcontainer]
+      end
+
+      def devcontainer?
+        options[:devcontainer]
       end
 
       def skip_kamal?
@@ -455,10 +462,6 @@ module Rails
             *options.map { |key, value| ", #{key}: #{value.inspect}" },
           ].compact.join
         end
-      end
-
-      def gem_ruby_version
-        Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
       end
 
       def rails_prerelease?
@@ -738,6 +741,7 @@ module Rails
         bundle_command "binstubs kamal"
         bundle_command "exec kamal init"
 
+        remove_file ".env"
         template "env.erb", ".env.erb"
         template "config/deploy.yml", force: true
       end
@@ -790,7 +794,7 @@ module Rails
       def dockerfile_chown_directories
         directories = %w(log tmp)
 
-        directories << "storage" unless skip_active_storage? && !sqlite3?
+        directories << "storage" unless skip_storage?
         directories << "db" unless skip_active_record?
 
         directories.sort

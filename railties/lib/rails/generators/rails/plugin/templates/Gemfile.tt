@@ -7,6 +7,11 @@ gemspec
 <% gemfile_entries.each do |gemfile_entry| %>
 <%= gemfile_entry %>
 <% end -%>
+<%- unless options.skip_rubocop? -%>
+
+# Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
+gem "rubocop-rails-omakase", require: false
+<%- end -%>
 <% if RUBY_ENGINE == "ruby" -%>
 
 # Start debugger with binding.b [https://github.com/ruby/debug]

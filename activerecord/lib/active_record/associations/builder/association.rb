@@ -30,10 +30,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       reflection = create_reflection(model, name, scope, options, &block)
-      define_accessors model, reflection
-      define_callbacks model, reflection
-      define_validations model, reflection
-      define_change_tracking_methods model, reflection
+      define_accessors(model, reflection)
+      define_callbacks(model, reflection)
+      define_validations(model, reflection)
+      define_change_tracking_methods(model, reflection)
       reflection
     end
 
@@ -71,6 +71,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.define_extensions(model, name)
+      # noop
     end
 
     def self.define_callbacks(model, reflection)
@@ -81,7 +82,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       Association.extensions.each do |extension|
-        extension.build model, reflection
+        extension.build(model, reflection)
       end
     end
 
@@ -131,7 +132,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         err_message = "A valid destroy_association_async_job is required to use `dependent: :destroy_async` on associations"
         raise ActiveRecord::ConfigurationError, err_message
       end
-      unless valid_dependent_options.include? dependent
+      unless valid_dependent_options.include?(dependent)
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
       end
     end

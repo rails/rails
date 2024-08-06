@@ -215,7 +215,7 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_for_query_params_included
     rs = ActionDispatch::Routing::RouteSet.new
     rs.draw do
-      get "home" => "pages#home"
+      get "home", to: "pages#home"
     end
 
     options = {
@@ -316,7 +316,7 @@ class OptionalDefaultUrlOptionsControllerTest < ActionController::TestCase
   def test_default_url_options_override_missing_positional_arguments
     with_routing do |set|
       set.draw do
-        get "/things/:id(.:format)" => "things#show", :as => :thing
+        get "/things/:id(.:format)", to: "things#show", as: :thing
       end
       assert_equal "/things/1.atom", thing_path("1")
       assert_equal "/things/default-id.atom", thing_path
@@ -348,5 +348,17 @@ class EmptyUrlOptionsTest < ActionController::TestCase
 
       assert_equal "/things", @controller.things_path
     end
+  end
+end
+
+class BaseTest < ActiveSupport::TestCase
+  def test_included_modules_are_tracked
+    base_content = File.read("#{__dir__}/../../lib/action_controller/base.rb")
+    included_modules = base_content.scan(/(?<=include )[A-Z].*/)
+
+    assert_equal(
+      ActionController::Base::MODULES.map { |m| m.to_s.delete_prefix("ActionController::") },
+      included_modules
+    )
   end
 end

@@ -67,7 +67,6 @@ If you wish to skip some files from being generated or skip some libraries, you 
 | `--skip-bootsnap`       | Skip bootsnap gem                                        |
 | `--skip-dev-gems`       | Skip adding development gems                             |
 | `--skip-rubocop`        | Skip RuboCop setup                                       |
-| `--skip-devcontainer`   | Skip Dev Container setup                                 |
 
 These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
 
@@ -669,6 +668,7 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 * `bin/rails stats` is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
 * `bin/rails secret` will give you a pseudo-random key to use for your session secret.
 * `bin/rails time:zones:all` lists all the timezones Rails knows about.
+* `bin/rails boot` boots the application and exits.
 
 ### Custom Rake Tasks
 

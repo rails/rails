@@ -385,6 +385,15 @@ $ cd railties
 $ bin/test test/application/asset_debugging_test.rb:69
 ```
 
+#### For a Specific Line Range
+
+Similar tests are often defined in nearby locations. You can run tests in a specific line range.
+
+```bash
+$ cd railties
+$ bin/test test/application/asset_debugging_test.rb:69-100
+```
+
 #### Running Tests with a Specific Seed
 
 Test execution is randomized with a randomization seed. If you are experiencing random
@@ -763,7 +772,9 @@ is the open source life.
 If it's been over a week, and you haven't heard anything, you might want to try
 and nudge things along. You can use the *contributions* channel in the [Ruby on Rails Discord server](https://discord.gg/d8N68BCw49),
 or the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this.
-You can also leave another comment on the pull request.
+You can also leave another comment on the pull request. It's best to avoid pinging
+individual maintainers directly as we have limited bandwidth and may not
+be able to look at your PR.
 
 While you're waiting for feedback on your pull request, open up a few other
 pull requests and give someone else some! They'll appreciate it in

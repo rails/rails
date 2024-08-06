@@ -187,7 +187,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       if config.active_record.warn_on_records_fetched_greater_than
         ActiveRecord.deprecator.warn <<~MSG.squish
           `config.active_record.warn_on_records_fetched_greater_than` is deprecated and will be
-          removed in Rails 7.3.
+          removed in Rails 8.0.
           Please subscribe to `sql.active_record` notifications and access the row count field to
           detect large result set sizes.
         MSG
@@ -217,6 +217,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.postgresql_adapter_decode_dates" do
+      config.after_initialize do
+        if config.active_record.postgresql_adapter_decode_dates
+          ActiveSupport.on_load(:active_record_postgresqladapter) do
+            self.decode_dates = true
+          end
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
@@ -231,8 +241,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       ActiveSupport.on_load(:active_record) do
-        # Configs used in other initializers
-        configs = configs.except(
+        configs_used_in_other_initializers = configs.except(
           :migration_error,
           :database_selector,
           :database_resolver,
@@ -245,10 +254,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :cache_query_log_tags,
           :sqlite3_adapter_strict_strings_by_default,
           :check_schema_cache_dump_version,
-          :use_schema_cache_dump
+          :use_schema_cache_dump,
+          :postgresql_adapter_decode_dates,
         )
 
-        configs.each do |k, v|
+        configs_used_in_other_initializers.each do |k, v|
           next if k == :encryption
           setter = "#{k}="
           # Some existing initializers might rely on Active Record configuration
@@ -375,7 +385,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       config.after_initialize do
         if app.config.active_record.query_log_tags_enabled
           ActiveRecord.query_transformers << ActiveRecord::QueryLogs
-          ActiveRecord::QueryLogs.taggings.merge!(
+          ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
             application:  Rails.application.class.name.split("::").first,
             pid:          -> { Process.pid.to_s },
             socket:       ->(context) { context[:connection].pool.db_config.socket },
@@ -390,7 +400,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           end
 
           if app.config.active_record.query_log_tags_format
-            ActiveRecord::QueryLogs.update_formatter(app.config.active_record.query_log_tags_format)
+            ActiveRecord::QueryLogs.tags_formatter = app.config.active_record.query_log_tags_format
           end
 
           if app.config.active_record.cache_query_log_tags

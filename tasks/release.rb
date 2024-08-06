@@ -226,8 +226,8 @@ namespace :all do
       end
     CODE
 
-    substitute.call("app/views/users/_form.html.erb", /text_area :description %>\n  <\/div>/, <<~CODE)
-      rich_text_area :description %>\n  </div>
+    substitute.call("app/views/users/_form.html.erb", /textarea :description %>\n  <\/div>/, <<~CODE)
+      rich_textarea :description %>\n  </div>
 
       <div class="field">
         Avatar: <%= form.file_field :avatar %>

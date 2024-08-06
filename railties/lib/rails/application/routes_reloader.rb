@@ -7,7 +7,7 @@ module Rails
     class RoutesReloader
       include ActiveSupport::Callbacks
 
-      attr_reader :route_sets, :paths, :external_routes, :loaded
+      attr_reader :route_sets, :paths, :external_routes
       attr_accessor :eager_load
       attr_writer :run_after_load_paths # :nodoc:
       delegate :execute_if_updated, :execute, :updated?, to: :updater
@@ -17,24 +17,15 @@ module Rails
         @route_sets = []
         @external_routes = []
         @eager_load = false
-        @loaded = false
       end
 
       def reload!
-        @loaded = true
         clear!
         load_paths
         finalize!
         route_sets.each(&:eager_load!) if eager_load
       ensure
         revert
-      end
-
-      def execute_unless_loaded
-        unless @loaded
-          execute
-          true
-        end
       end
 
     private

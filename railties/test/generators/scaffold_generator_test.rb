@@ -170,8 +170,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/controllers/product_lines_controller_test.rb" do |content|
       assert_match(/class ProductLinesControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post product_lines_url, params: \{ product_line: \{  \} \}/, content)
-      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{  \} \}/, content)
+      assert_match(/post product_lines_url, params: \{ product_line: \{\} \}/, content)
+      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{\} \}/, content)
     end
   end
 
@@ -493,7 +493,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/messages/_form.html.erb" do |content|
-      assert_match(/^\W{4}<%= form\.rich_text_area :content %>/, content)
+      assert_match(/^\W{4}<%= form\.rich_textarea :content %>/, content)
     end
 
     assert_file "test/system/messages_test.rb" do |content|

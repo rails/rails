@@ -48,48 +48,51 @@ module ActionView
         include CaptureHelper
         include OutputSafetyHelper
 
-        def self.define_element(name, code_generator:, method_name: name.to_s.underscore)
-          code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
-            batch.push(<<~RUBY) unless instance_methods.include?(method_name.to_sym)
-              def #{method_name}(content = nil, escape: true, **options, &block)
-                tag_string("#{name}", content, options, escape: escape, &block)
-              end
-            RUBY
+        def deprecated_void_content(name)
+          ActionView.deprecator.warn <<~TEXT
+            Putting content inside a void element (#{name}) is invalid
+            according to the HTML5 spec, and so it is being deprecated
+            without replacement. In Rails 8.0, passing content as a
+            positional argument will raise, and using a block will have
+            no effect.
+          TEXT
+        end
+
+        def self.define_element(name, code_generator:, method_name: name)
+          return if method_defined?(name)
+
+          code_generator.class_eval do |batch|
+            batch << "\n" <<
+              "def #{method_name}(content = nil, escape: true, **options, &block)" <<
+              "  tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "end"
           end
         end
 
-        def self.define_void_element(name, code_generator:, method_name: name.to_s.underscore)
-          code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
-            batch.push(<<~RUBY)
-              def #{method_name}(content = nil, escape: true, **options, &block)
-                if content || block
-                  ActionView.deprecator.warn <<~TEXT
-                    Putting content inside a void element (#{name}) is invalid
-                    according to the HTML5 spec, and so it is being deprecated
-                    without replacement. In Rails 7.3, passing content as a
-                    positional argument will raise, and using a block will have
-                    no effect.
-                  TEXT
-                  tag_string("#{name}", content, options, escape: escape, &block)
-                else
-                  self_closing_tag_string("#{name}", options, escape, ">")
-                end
-              end
-            RUBY
+        def self.define_void_element(name, code_generator:, method_name: name)
+          code_generator.class_eval do |batch|
+            batch << "\n" <<
+              "def #{method_name}(content = nil, escape: true, **options, &block)" <<
+              "  p :called; if content || block" <<
+              "    deprecated_void_content(#{name.inspect})" <<
+              "    tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "  else" <<
+              "    self_closing_tag_string(#{name.inspect}, options, escape, '>')" <<
+              "  end" <<
+              "end"
           end
         end
 
-        def self.define_self_closing_element(name, code_generator:, method_name: name.to_s.underscore)
-          code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
-            batch.push(<<~RUBY)
-              def #{method_name}(content = nil, escape: true, **options, &block)
-                if content || block
-                  tag_string("#{name}", content, options, escape: escape, &block)
-                else
-                  self_closing_tag_string("#{name}", options, escape)
-                end
-              end
-            RUBY
+        def self.define_self_closing_element(name, code_generator:, method_name: name)
+          code_generator.class_eval do |batch|
+            batch << "\n" <<
+              "def #{method_name}(content = nil, escape: true, **options, &block)" <<
+              "  if content || block" <<
+              "    tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "  else" <<
+              "   self_closing_tag_string(#{name.inspect}, options, escape)" <<
+              "  end" <<
+              "end"
           end
         end
 
@@ -110,8 +113,8 @@ module ActionView
           define_void_element :wbr, code_generator: code_generator
 
           define_self_closing_element :animate, code_generator: code_generator
-          define_self_closing_element :animateMotion, code_generator: code_generator
-          define_self_closing_element :animateTransform, code_generator: code_generator
+          define_self_closing_element :animateMotion, code_generator: code_generator, method_name: :animate_motion
+          define_self_closing_element :animateTransform, code_generator: code_generator, method_name: :animate_transform
           define_self_closing_element :circle, code_generator: code_generator
           define_self_closing_element :ellipse, code_generator: code_generator
           define_self_closing_element :line, code_generator: code_generator

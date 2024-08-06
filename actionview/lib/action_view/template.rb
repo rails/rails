@@ -439,9 +439,9 @@ module ActionView
         method_arguments =
           if set_strict_locals
             if set_strict_locals.include?("&")
-              "output_buffer, #{set_strict_locals}"
+              "local_assigns, output_buffer, #{set_strict_locals}"
             else
-              "output_buffer, #{set_strict_locals}, &_"
+              "local_assigns, output_buffer, #{set_strict_locals}, &_"
             end
           else
             "local_assigns, output_buffer, &_"
@@ -500,11 +500,12 @@ module ActionView
 
         return unless strict_locals?
 
-        parameters = mod.instance_method(method_name).parameters - [[:req, :output_buffer]]
+        parameters = mod.instance_method(method_name).parameters
+        parameters -= [[:req, :local_assigns], [:req, :output_buffer]]
+
         # Check compiled method parameters to ensure that only kwargs
         # were provided as strict locals, preventing `locals: (foo, *foo)` etc
         # and allowing `locals: (foo:)`.
-
         non_kwarg_parameters = parameters.select do |parameter|
           ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0])
         end

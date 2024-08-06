@@ -123,7 +123,7 @@ module ActionController
         app.config.active_record.query_log_tags |= [:action]
 
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings.merge!(
+          ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
             namespaced_controller: ->(context) {

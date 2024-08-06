@@ -21,24 +21,22 @@ module ActiveRecord
         super
       end
 
-      unless current_adapter?(:OracleAdapter)
-        def test_rename_table_should_work_with_reserved_words
-          renamed = false
+      def test_rename_table_should_work_with_reserved_words
+        renamed = false
 
-          connection.rename_table :references, :old_references
-          connection.rename_table :test_models, :references
+        connection.rename_table :references, :old_references
+        connection.rename_table :test_models, :references
 
-          renamed = true
+        renamed = true
 
-          # Using explicit id in insert for compatibility across all databases
-          table_name = connection.quote_table_name("references")
-          connection.execute "INSERT INTO #{table_name} (id, url) VALUES (123, 'http://rubyonrails.com')"
-          assert_equal "http://rubyonrails.com", connection.select_value("SELECT url FROM #{table_name} WHERE id=123")
-        ensure
-          if renamed
-            connection.rename_table :references, :test_models
-            connection.rename_table :old_references, :references
-          end
+        # Using explicit id in insert for compatibility across all databases
+        table_name = connection.quote_table_name("references")
+        connection.execute "INSERT INTO #{table_name} (id, url) VALUES (123, 'http://rubyonrails.com')"
+        assert_equal "http://rubyonrails.com", connection.select_value("SELECT url FROM #{table_name} WHERE id=123")
+      ensure
+        if renamed
+          connection.rename_table :references, :test_models
+          connection.rename_table :old_references, :references
         end
       end
 

@@ -134,7 +134,7 @@ module ActiveRecord
           @logger = ActiveRecord::Base.logger
 
           if deprecated_logger || deprecated_connection_options || deprecated_config
-            raise ArgumentError, "when initializing an ActiveRecord adapter with a config hash, that should be the only argument"
+            raise ArgumentError, "when initializing an Active Record adapter with a config hash, that should be the only argument"
           end
         else
           # Soft-deprecated for now; we'll probably warn in future.
@@ -170,6 +170,13 @@ module ActiveRecord
 
         @raw_connection_dirty = false
         @verified = false
+      end
+
+      def inspect # :nodoc:
+        name_field = " name=#{pool.db_config.name.inspect}" unless pool.db_config.name == "primary"
+        shard_field = " shard=#{shard.inspect}" unless shard == :default
+
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} env_name=#{pool.db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
       end
 
       def lock_thread=(lock_thread) # :nodoc:
@@ -1037,7 +1044,8 @@ module ActiveRecord
         end
 
         def retryable_connection_error?(exception)
-          exception.is_a?(ConnectionNotEstablished) || exception.is_a?(ConnectionFailed)
+          (exception.is_a?(ConnectionNotEstablished) && !exception.is_a?(ConnectionNotDefined)) ||
+            exception.is_a?(ConnectionFailed)
         end
 
         def invalidate_transaction(exception)
@@ -1098,38 +1106,33 @@ module ActiveRecord
           end
         end
 
-        def translate_exception_class(e, sql, binds)
-          message = "#{e.class.name}: #{e.message}"
+        def translate_exception_class(native_error, sql, binds)
+          return native_error if native_error.is_a?(ActiveRecordError)
 
-          exception = translate_exception(
-            e, message: message, sql: sql, binds: binds
+          message = "#{native_error.class.name}: #{native_error.message}"
+
+          active_record_error = translate_exception(
+            native_error, message: message, sql: sql, binds: binds
           )
-          exception.set_backtrace e.backtrace
-          exception
+          active_record_error.set_backtrace(native_error.backtrace)
+          active_record_error
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil, async: false, &block) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
             name:              name,
             binds:             binds,
             type_casted_binds: type_casted_binds,
-            statement_name:    statement_name,
             async:             async,
             connection:        self,
+            transaction:       current_transaction.user_transaction.presence,
             row_count:         0,
             &block
           )
         rescue ActiveRecord::StatementInvalid => ex
           raise ex.set_query(sql, binds)
-        end
-
-        def transform_query(sql)
-          ActiveRecord.query_transformers.each do |transformer|
-            sql = transformer.call(sql, self)
-          end
-          sql
         end
 
         def translate_exception(exception, message:, sql:, binds:)
@@ -1143,7 +1146,7 @@ module ActiveRecord
         end
 
         def without_prepared_statement?(binds)
-          !prepared_statements || binds.empty?
+          !prepared_statements || binds.nil? || binds.empty?
         end
 
         def column_for(table_name, column_name)

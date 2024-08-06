@@ -1,0 +1,37 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ruby
+{
+  "name": "<%= options[:app_name] %>",
+  "dockerComposeFile": "compose.yaml",
+  "service": "rails-app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    <%= features.map { |key, value| "\"#{key}\": #{value.as_json}" }.join(",\n    ") %>
+  },
+
+<%- if !container_env.empty? -%>
+  "containerEnv": {
+    <%= container_env.map { |key, value| "\"#{key}\": \"#{value}\"" }.join(",\n    ") %>
+  },
+<%- end -%>
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": <%= forward_ports.as_json %>,
+
+  // Configure tool-specific properties.
+  // "customizations": {},
+
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root",
+
+<%- if !mounts.empty? -%>
+  "mounts": [
+    <%= mounts.map { |mount| "{\n      " + mount.map { |key, value| "\"#{key}\": \"#{value}\"" }.join(",\n      ") + "\n    }" }.join(",\n    ") %>
+  ],
+<%- end -%>
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "bin/setup"
+}

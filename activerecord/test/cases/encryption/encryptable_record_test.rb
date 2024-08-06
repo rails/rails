@@ -413,6 +413,11 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_equal json_bytes, EncryptedBookWithSerializedBinary.create!(logo: json_bytes).logo
   end
 
+  test "can compress data with custom compressor" do
+    name = "a" * 141
+    assert EncryptedBookWithCustomCompressor.create!(name: name).name.start_with?("[compressed]")
+  end
+
   private
     def build_derived_key_provider_with(hash_digest_class)
       ActiveRecord::Encryption.with_encryption_context(key_generator: ActiveRecord::Encryption::KeyGenerator.new(hash_digest_class: hash_digest_class)) do

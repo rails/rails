@@ -79,6 +79,12 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
+  test "to_trix_html sanitizes action-text HTML content attachment" do
+    attachment = ActionText::Content.new("<action-text-attachment content-type=\"text/html\" content=\"<img src=. onerror='alert(location)' />\"></action-text-attachment>")
+
+    assert_equal "<figure data-trix-attachment=\"{&quot;contentType&quot;:&quot;text/html&quot;,&quot;content&quot;:&quot;<img src=\\&quot;.\\&quot;>&quot;}\"></figure>", attachment.to_trix_html
+  end
+
   test "defaults trix partial to model partial" do
     attachable = Page.create! title: "Homepage"
     assert_equal "pages/page", attachable.to_trix_content_attachment_partial_path
