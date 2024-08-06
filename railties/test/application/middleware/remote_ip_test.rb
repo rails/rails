@@ -60,7 +60,12 @@ module ApplicationTests
 
     test "remote_ip works with HTTP_X_FORWARDED_FOR" do
       make_basic_app
-      assert_equal "4.2.42.42", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42")
+      assert_equal "4.2.42.42", remote_ip("REMOTE_ADDR" => "10.0.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42")
+    end
+
+    test "remote_ip does not trust HTTP_X_FORWARDED_FOR for untrusted REMOTE_ADDR" do
+      make_basic_app
+      assert_equal "4.2.42.1", remote_ip("REMOTE_ADDR" => "4.2.42.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42")
     end
 
     test "the user can set trusted proxies with an enumerable of case equality comparable values" do
@@ -80,7 +85,7 @@ module ApplicationTests
       end
 
       assert_equal "10.0.0.0",
-                   remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
+                   remote_ip("REMOTE_ADDR" => "4.2.42.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
     end
 
     test "setting trusted proxies to a single value (deprecated) adds value to default trusted proxies" do
