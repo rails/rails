@@ -57,7 +57,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :set_product_line, content do |m|
-        assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
+        assert_match(/@product_line = ProductLine\.find\(params\.expect\(:id\)\)/, m)
       end
     end
 
@@ -260,7 +260,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :set_admin_role, content do |m|
-        assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
+        assert_match(/@admin_role = Admin::Role\.find\(params\.expect\(:id\)\)/, m)
       end
     end
 
@@ -430,7 +430,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/accounts_controller.rb" do |content|
       assert_instance_method :account_params, content do |m|
-        assert_match(/permit\(:name, :currency_id, :user_id\)/, m)
+        assert_match(/expect\(account: \[:name, :currency_id, :user_id\]\)/, m)
       end
     end
 
@@ -461,7 +461,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_instance_method :message_params, content do |m|
-        assert_match(/permit\(:video, photos: \[\], images: \[\]\)/, m)
+        assert_match(/expect\(message: \[:video, photos: \[\], images: \[\]\]\)/, m)
       end
     end
 
@@ -488,7 +488,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_instance_method :message_params, content do |m|
-        assert_match(/permit\(:content\)/, m)
+        assert_match(/expect\(message: \[:content\]\)/, m)
       end
     end
 
@@ -536,7 +536,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/users_controller.rb" do |content|
       assert_instance_method :user_params, content do |m|
-        assert_match(/permit\(:name, :password, :password_confirmation\)/, m)
+        assert_match(/expect\(user: \[:name, :password, :password_confirmation\]\)/, m)
       end
     end
 

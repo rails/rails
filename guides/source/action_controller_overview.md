@@ -274,7 +274,7 @@ class PeopleController < ActionController::Base
     # permit list between create and update. Also, you can specialize
     # this method with per-user checking of permissible attributes.
     def person_params
-      params.require(:person).permit(:name, :age)
+      params.expect(person: [:name, :age])
     end
 end
 ```
@@ -315,50 +315,80 @@ but be careful because this opens the door to arbitrary input. In this
 case, `permit` ensures values in the returned structure are permitted
 scalars and filters out anything else.
 
-To permit an entire hash of parameters, the [`permit!`][] method can be
-used:
+[`expect`][] provides a concise and safe way to require and permit parameters.
 
 ```ruby
-params.require(:log_entry).permit!
+id = params.expect(:id)
+```
+
+`expect` ensures that the type returned is not vulnerable to param tampering.
+The above expect will always return a scalar value and not an array or hash.
+When expecting params from a form, use `expect` to ensure that the root key
+is present and the attributes are permitted.
+
+```ruby
+user_params = params.expect(user: [:username, :password])
+user_params.has_key?(:username) # => true
+```
+
+`expect` will raise an error and return a 400 Bad Request response
+when the user key is not a nested hash with the expected keys.
+
+To require and permit an entire hash of parameters, [`expect`][] can be
+used in this way.
+
+```ruby
+params.expect(log_entry: {})
 ```
 
 This marks the `:log_entry` parameters hash and any sub-hash of it as
 permitted and does not check for permitted scalars, anything is accepted.
-Extreme care should be taken when using `permit!`, as it will allow all current
-and future model attributes to be mass-assigned.
+Extreme care should be taken when using [`permit!`][] or calling `expect`
+with an empty hash, as it will allow all current and future model
+attributes to be mass-assigned with external user-controlled params.
 
 [`permit`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit
 [`permit!`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit-21
+[`expect`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-expect
+[`allow`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-allow
 
 #### Nested Parameters
 
-You can also use `permit` on nested parameters, like:
+You can also use `expect` (or `permit`) on nested parameters, like:
 
 ```ruby
-params.permit(:name, { emails: [] },
-              friends: [ :name,
-                         { family: [ :name ], hobbies: [] }])
+# Given the example expected params:
+params = ActionController::Parameters.new(
+  name: "Martin",
+  emails: ["me@example.com"],
+  friends: [
+    { name: "André", family: { name: "RubyGems" }, hobbies: ["keyboards", "card games"] },
+    { name: "Kewe", family: { name: "Baroness" }, hobbies: ["video games"] },
+  ]
+)
+# the following expect will ensure the params are permitted
+name, emails, friends = params.expect(
+  :name,                 # permitted scalar
+  emails: [],            # array of permitted scalars
+  friends: [[            # array of permitted Parameter hashes
+    :name,               # permitted scalar
+    family: [:name],     # family: { name: "permitted scalar" }
+    hobbies: []          # array of permitted scalars
+  ]]
+)
+
 ```
 
-This declaration permits the `name`, `emails`, and `friends`
-attributes. It is expected that `emails` will be an array of permitted
-scalar values, and that `friends` will be an array of resources with
-specific attributes: they should have a `name` attribute (any
-permitted scalar values allowed), a `hobbies` attribute as an array of
-permitted scalar values, and a `family` attribute which is restricted
-to having a `name` (any permitted scalar values allowed here, too).
+This declaration permits the `name`, `emails`, and `friends` attributes and
+returns them each. It is expected that `emails` will be an array of permitted
+scalar values, and that `friends` will be an array of resources (note the new
+double array syntax to explicitly require an array) with specific
+attributes: they should have a `name` attribute (any permitted scalar values
+allowed), a `hobbies` attribute as an array of permitted scalar values, and a
+`family` attribute which is restricted to a hash with only a `name` key and
+any permitted scalar value.
 
 #### More Examples
-
-You may want to also use the permitted attributes in your `new`
-action. This raises the problem that you can't use [`require`][] on the
-root key because, normally, it does not exist when calling `new`:
-
-```ruby
-# using `fetch` you can supply a default and use
-# the Strong Parameters API from there.
-params.fetch(:blog, {}).permit(:title, :author)
-```
 
 The model class method `accepts_nested_attributes_for` allows you to
 update and destroy associated records. This is based on the `id` and `_destroy`
@@ -366,7 +396,7 @@ parameters:
 
 ```ruby
 # permit :id and :_destroy
-params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
+params.expect(author: [ :name, books_attributes: [[ :title, :id, :_destroy ]] ])
 ```
 
 Hashes with integer keys are treated differently, and you can declare
@@ -380,7 +410,7 @@ with a `has_many` association:
 #             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
 #                                        "2" => {"title" => "Second Chapter"}}}}
 
-params.require(:book).permit(:title, chapters_attributes: [:title])
+params.expect(book: [ :title, chapters_attributes: [[ :title ]] ])
 ```
 
 Imagine a scenario where you have parameters representing a product
@@ -390,7 +420,7 @@ data hash:
 
 ```ruby
 def product_params
-  params.require(:product).permit(:name, data: {})
+  params.expect(product: [ :name, data: {} ])
 end
 ```
 
