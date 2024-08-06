@@ -1674,6 +1674,31 @@ end
 class DustJacket < ApplicationRecord; end
 ```
 
+`:source_type` will look for the associated model within the current module's scope. E.g.
+
+```ruby
+class User < ApplicationRecord
+  has_one :favorite
+  has_one :favorite_device,
+    through: :favorite,
+    source: :favorable,
+    source_type: "Device"
+end
+
+class User::Favorite < ApplicationRecord
+  belongs_to :user
+  belongs_to :favorable, polymorphic: true
+end
+
+class Device < ApplicationRecord
+end
+
+class User::Device < ApplicationRecord
+end
+```
+
+The `favorite_device` association will return a `User::Device` record. To get back a `Device` record you have to pass `class_name: "::Device"` in addition to `source_type: "Device"`.
+
 ##### `:strict_loading`
 
 Enforces strict loading every time the associated record is loaded through this association.
@@ -2165,6 +2190,34 @@ end
 class Hardback < ApplicationRecord; end
 class Paperback < ApplicationRecord; end
 ```
+
+`:source_type` will look for the associated model within the current module's scope. E.g.
+
+```ruby
+class User < ApplicationRecord
+  has_many :devices
+  has_many :favorites
+  has_many :favorite_devices,
+    through: :favorites,
+    source: :favorable,
+    source_type: "Device"
+end
+
+class User::Favorite < ApplicationRecord
+  belongs_to :user
+  belongs_to :favorable, polymorphic: true
+end
+
+class Device < ApplicationRecord
+end
+
+class User::Device < ApplicationRecord
+  belongs_to :user
+end
+```
+
+The `favorite_devices` association will return `User::Device` records. To get back `Device` records you have to pass `class_name: "::Device"` in addition to `source_type: "Device"`.
+
 
 ##### `:strict_loading`
 

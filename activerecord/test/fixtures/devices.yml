@@ -1,0 +1,7 @@
+washing_machine:
+  id: 1
+  name: $LABEL
+
+vacuum_cleaner:
+  id: 2
+  name: $LABEL
