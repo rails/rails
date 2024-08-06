@@ -55,7 +55,7 @@ information.
 ### API Applications
 
 Rails can now be used to create slimmed down API only applications.
-This is useful for creating and serving APIs similar to [Twitter](https://dev.twitter.com) or [GitHub](https://developer.github.com) API,
+This is useful for creating and serving APIs similar to [X](https://developer.x.com) or [GitHub](https://developer.github.com) API,
 that can be used to serve public-facing, as well as, for custom applications.
 
 You can generate a new api Rails app using:
