@@ -426,7 +426,7 @@ When you declare a `has_one` association,  the declaring class automatically gai
 
 We'll discuss some of the common methods, but you can find an exhaustive list in the [ActiveRecord Associations API](https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#method-i-has_one).
 
-Like with [the `belongs_to` reference](#belongs-to-association-reference), in all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
+Like with the [`belongs_to` references](#methods-added-by-belongs-to), in all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
 ```ruby
 # app/models/supplier.rb
@@ -893,7 +893,7 @@ class CreateAppointments < ActiveRecord::Migration[7.2]
 end
 ```
 
-The collection of join models in a `has_many :through` association can be managed using standard [`has_many` association methods](#has-many-association-reference). For example, if you assign a list of patients to a physician like this:
+The collection of join models in a `has_many :through` association can be managed using standard [`has_many` association methods](#methods-added-by-has-many). For example, if you assign a list of patients to a physician like this:
 
 ```ruby
 physician.patients = patients
@@ -1271,8 +1271,8 @@ class CreateSuppliers < ActiveRecord::Migration[7.2]
     end
 
     create_table :accounts do |t|
-      t.belongs_to  :supplier_id
-      t.string  :account_number
+      t.belongs_to :supplier_id
+      t.string :account_number
       t.timestamps
     end
 
@@ -1787,19 +1787,19 @@ end
 
 With this definition complete, our `Entry` delegator now provides the following methods:
 
-| Method | Return |
-|---|---|
-| `Entry.entryable_types` | ["Message", "Comment"] |
-| `Entry#entryable_class` | Message or Comment |
-| `Entry#entryable_name` | "message" or "comment" |
-| `Entry.messages` | `Entry.where(entryable_type: "Message")` |
-| `Entry#message?` | Returns true when `entryable_type == "Message"` |
-| `Entry#message` | Returns the message record, when `entryable_type == "Message"`, otherwise `nil` |
-| `Entry#message_id` | Returns `entryable_id`, when `entryable_type == "Message"`, otherwise `nil` |
-| `Entry.comments` | `Entry.where(entryable_type: "Comment")` |
-| `Entry#comment?` | Returns true when `entryable_type == "Comment"` |
-| `Entry#comment` | Returns the comment record, when `entryable_type == "Comment"`, otherwise `nil` |
-| `Entry#comment_id` | Returns entryable_id, when `entryable_type == "Comment"`, otherwise `nil` |
+| Method                  | Return                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `Entry.entryable_types` | ["Message", "Comment"]                                                          |
+| `Entry#entryable_class` | Message or Comment                                                              |
+| `Entry#entryable_name`  | "message" or "comment"                                                          |
+| `Entry.messages`        | `Entry.where(entryable_type: "Message")`                                        |
+| `Entry#message?`        | Returns true when `entryable_type == "Message"`                                 |
+| `Entry#message`         | Returns the message record, when `entryable_type == "Message"`, otherwise `nil` |
+| `Entry#message_id`      | Returns `entryable_id`, when `entryable_type == "Message"`, otherwise `nil`     |
+| `Entry.comments`        | `Entry.where(entryable_type: "Comment")`                                        |
+| `Entry#comment?`        | Returns true when `entryable_type == "Comment"`                                 |
+| `Entry#comment`         | Returns the comment record, when `entryable_type == "Comment"`, otherwise `nil` |
+| `Entry#comment_id`      | Returns entryable_id, when `entryable_type == "Comment"`, otherwise `nil`       |
 
 ### Object creation
 
