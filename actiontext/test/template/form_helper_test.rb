@@ -2,18 +2,16 @@
 
 require "test_helper"
 
-class ActionText::FormHelperTest < ActionView::TestCase
-  tests ActionText::TagHelper
-
+module ActionText::FormHelperTestHelper
   def form_with(*, **)
     @output_buffer = super
   end
 
-  teardown do
+  def teardown
     I18n.backend.reload!
   end
 
-  setup do
+  def setup
     I18n.backend.store_translations("placeholder",
       activerecord: {
         attributes: {
@@ -24,6 +22,11 @@ class ActionText::FormHelperTest < ActionView::TestCase
       }
     )
   end
+end
+
+class ActionText::FormHelperTest < ActionView::TestCase
+  tests ActionText::TagHelper
+  include ActionText::FormHelperTestHelper
 
   test "#rich_textarea_tag helper" do
     message = Message.new
@@ -209,6 +212,70 @@ class ActionText::FormHelperTest < ActionView::TestCase
   test "form with rich text area with data[blob_url_template]" do
     form_with model: Message.new, scope: :message do |form|
       form.rich_textarea :content, data: { blob_url_template: "http://test.host/blobs/:signed_id/:filename" }
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" autocomplete="off" />' \
+        '<trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/blobs/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
+end
+
+class ActionText::FormHelperWithStorageProxyTest < ActionView::TestCase
+  tests ActionText::TagHelper
+  include ActionText::FormHelperTestHelper
+
+  teardown do
+    Rails.application.config.active_storage.resolve_model_to_route = @_before_resolve_model_to_route
+  end
+
+  setup do
+    @_before_resolve_model_to_route = Rails.application.config.active_storage.resolve_model_to_route
+    Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
+  end
+
+  test "#rich_text_area_tag helper" do
+    message = Message.new
+
+    concat rich_text_area_tag :content, message.content, { input: "trix_input_1" }
+
+    assert_dom_equal \
+      '<input type="hidden" name="content" id="trix_input_1" autocomplete="off" />' \
+      '<trix-editor input="trix_input_1" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/proxy/:signed_id/:filename">' \
+      "</trix-editor>",
+      output_buffer
+  end
+
+  test "#rich_text_area helper" do
+    concat rich_text_area :message, :content, input: "trix_input_1"
+
+    assert_dom_equal \
+      '<input type="hidden" name="message[content]" id="trix_input_1" autocomplete="off" />' \
+      '<trix-editor id="message_content" input="trix_input_1" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/proxy/:signed_id/:filename">' \
+      "</trix-editor>",
+      output_buffer
+  end
+
+  test "form with rich text area with data[direct_upload_url]" do
+    form_with model: Message.new, scope: :message do |form|
+      form.rich_text_area :content, data: { direct_upload_url: "http://test.host/direct_uploads" }
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<input type="hidden" name="message[content]" id="message_content_trix_input_message" autocomplete="off" />' \
+        '<trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/proxy/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
+
+  test "form with rich text area with data[blob_url_template]" do
+    form_with model: Message.new, scope: :message do |form|
+      form.rich_text_area :content, data: { blob_url_template: "http://test.host/blobs/:signed_id/:filename" }
     end
 
     assert_dom_equal \
