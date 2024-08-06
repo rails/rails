@@ -646,6 +646,16 @@ module ActionController
     #     params.permit(person: { '0': [:email], '1': [:phone]}).to_h
     #     # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"phone"=>"555-6789"}}}
     def permit(*filters)
+      actionable_permit(*filters)
+    end
+
+    # Same as permit, but always raises on unpermitted parameters regardless of ActionController::Parameters.action_on_unpermitted_parameters
+    def permit_only(*filters)
+      actionable_permit(*filters, action_on_unpermitted_parameters: :raise)
+    end
+
+    # Same as permit, but allows to declare action_on_unpermitted_parameters
+    def actionable_permit(*filters, action_on_unpermitted_parameters: self.class.action_on_unpermitted_parameters)
       params = self.class.new
 
       filters.flatten.each do |filter|
@@ -653,13 +663,33 @@ module ActionController
         when Symbol, String
           permitted_scalar_filter(params, filter)
         when Hash
-          hash_filter(params, filter)
+          hash_filter(params, filter, action_on_unpermitted_parameters:)
         end
       end
 
-      unpermitted_parameters!(params) if self.class.action_on_unpermitted_parameters
+      unpermitted_parameters!(params, action_on_unpermitted_parameters:) if action_on_unpermitted_parameters
 
       params.permit!
+    end
+
+    #
+    def expect(*filters)
+      apply_safe_filter(*filters, enable_root_fallback: false, always_raise_on_unpermitted_parameters: false)
+    end
+
+    # Same as expect, but raises on unpermitted parameters, regardless of ActionController::Parameters.action_on_unpermitted_parameters
+    def expect_only(*filters)
+      apply_safe_filter(*filters, enable_root_fallback: false, always_raise_on_unpermitted_parameters: true)
+    end
+
+    #
+    def allow(*filters)
+      apply_safe_filter(*filters, enable_root_fallback: true, always_raise_on_unpermitted_parameters: false)
+    end
+
+    # Same as allow, but raises on unpermitted parameters, regardless of ActionController::Parameters.action_on_unpermitted_parameters
+    def allow_only(*filters)
+      apply_safe_filter(*filters, enable_root_fallback: true, always_raise_on_unpermitted_parameters: true)
     end
 
     # Returns a parameter for the given `key`. If not found, returns `nil`.
@@ -1000,6 +1030,41 @@ module ActionController
       end
 
     private
+      # underlying method used by expect, expect_only, allow, allow_only
+      def apply_safe_filter(*filters, enable_root_fallback:, always_raise_on_unpermitted_parameters:)
+        action_on_unpermitted_parameters = always_raise_on_unpermitted_parameters ? :raise : self.class.action_on_unpermitted_parameters
+        flattened_filters = filters.flatten
+        # ignore root, if all params are nested, and there are no scalars or arrays on root to filter for
+        ignore_root = flattened_filters.all? { |f| f.is_a?(Hash) && !f.value?(EMPTY_ARRAY) }
+        if ignore_root
+          values = flattened_filters.flat_map do |filter|
+            filter.map do |key, value|
+              nested_params = enable_root_fallback ? fetch(key) { self.class.new } : require(key)
+              raise ParameterMissing.new(key) unless nested_params.is_a?(self.class)
+              value == EMPTY_HASH ? permit_any_in_parameters(nested_params).permit! : nested_params.actionable_permit(value, action_on_unpermitted_parameters:)
+            end
+          end
+        else
+          params = actionable_permit(flattened_filters, action_on_unpermitted_parameters:)
+          if enable_root_fallback
+            values = flattened_filters.flat_map do |filter|
+              case filter
+              when Symbol, String
+                params.fetch(filter, nil)
+              when Hash
+                filter.map do |key, value|
+                  params.fetch(key) { value == EMPTY_ARRAY ? [] : self.class.new.permit! }
+                end
+              end
+            end
+          else
+            keys = flattened_filters.flat_map { |f| f.is_a?(Hash) ? f.keys : f }
+            values = params.require(keys)
+          end
+        end
+        values.size == 1 ? values.first : values
+      end
+
       def new_instance_with_inherited_permitted_status(hash)
         self.class.new(hash, @logging_context).tap do |new_instance|
           new_instance.permitted = @permitted
@@ -1101,10 +1166,10 @@ module ActionController
         end
       end
 
-      def unpermitted_parameters!(params)
+      def unpermitted_parameters!(params, action_on_unpermitted_parameters:)
         unpermitted_keys = unpermitted_keys(params)
         if unpermitted_keys.any?
-          case self.class.action_on_unpermitted_parameters
+          case action_on_unpermitted_parameters
           when :log
             name = "unpermitted_parameters.action_controller"
             ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys, context: @logging_context)
@@ -1186,7 +1251,7 @@ module ActionController
 
       EMPTY_ARRAY = [] # :nodoc:
       EMPTY_HASH  = {} # :nodoc:
-      def hash_filter(params, filter)
+      def hash_filter(params, filter, action_on_unpermitted_parameters:)
         filter = filter.with_indifferent_access
 
         # Slicing filters out non-declared keys.
@@ -1207,7 +1272,7 @@ module ActionController
           elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value, filter[key]) do |element|
-              element.permit(*Array.wrap(filter[key]))
+              element.actionable_permit(*Array.wrap(filter[key]), action_on_unpermitted_parameters:)
             end
           end
         end
