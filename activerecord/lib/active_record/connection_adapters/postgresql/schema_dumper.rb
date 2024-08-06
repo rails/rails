@@ -5,6 +5,23 @@ module ActiveRecord
     module PostgreSQL
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
+          attr_accessor :schema_name
+
+          def initialize(connection, options = {})
+            super
+
+            @dump_schemas =
+              case ActiveRecord.dump_schemas
+              when :schema_search_path
+                connection.current_schemas
+              when String
+                schema_names = ActiveRecord.dump_schemas.split(",").map(&:strip)
+                schema_names & connection.schema_names
+              else
+                connection.schema_names
+              end
+          end
+
           def extensions(stream)
             extensions = @connection.extensions
             if extensions.any?
@@ -17,19 +34,21 @@ module ActiveRecord
           end
 
           def types(stream)
-            types = @connection.enum_types
-            if types.any?
-              stream.puts "  # Custom types defined in this database."
-              stream.puts "  # Note that some types may not work with other database engines. Be careful if changing database."
-              types.sort.each do |name, values|
-                stream.puts "  create_enum #{name.inspect}, #{values.split(",").inspect}"
+            within_each_schema do
+              types = @connection.enum_types
+              if types.any?
+                stream.puts "  # Custom types defined in this database."
+                stream.puts "  # Note that some types may not work with other database engines. Be careful if changing database."
+                types.sort.each do |name, values|
+                  stream.puts "  create_enum #{relation_name(name).inspect}, #{values.split(",").inspect}"
+                end
+                stream.puts
               end
-              stream.puts
             end
           end
 
           def schemas(stream)
-            schema_names = @connection.schema_names - ["public"]
+            schema_names = @dump_schemas - ["public"]
 
             if schema_names.any?
               schema_names.sort.each do |name|
@@ -37,6 +56,10 @@ module ActiveRecord
               end
               stream.puts
             end
+          end
+
+          def tables(*)
+            within_each_schema { super }
           end
 
           def exclusion_constraints_in_create(table, stream)
@@ -120,6 +143,26 @@ module ActiveRecord
 
           def extract_expression_for_virtual_column(column)
             column.default_function.inspect
+          end
+
+          def within_each_schema
+            @dump_schemas.each do |schema_name|
+              old_search_path = @connection.schema_search_path
+              @connection.schema_search_path = schema_name
+              self.schema_name = schema_name
+              yield
+            ensure
+              self.schema_name = nil
+              @connection.schema_search_path = old_search_path
+            end
+          end
+
+          def relation_name(name)
+            if @dump_schemas.size == 1
+              name
+            else
+              "#{schema_name}.#{name}"
+            end
           end
       end
     end

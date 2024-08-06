@@ -182,6 +182,14 @@ module ActiveRecord
           query_value("SELECT current_schema", "SCHEMA")
         end
 
+        # Returns an array of the names of all schemas presently in the effective search path,
+        # in their priority order.
+        def current_schemas # :nodoc:
+          schemas = query_value("SELECT current_schemas(false)", "SCHEMA")
+          decoder = PG::TextDecoder::Array.new
+          decoder.decode(schemas)
+        end
+
         # Returns the current database encoding format.
         def encoding
           query_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA")
