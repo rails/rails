@@ -790,7 +790,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_select_no_prompt_when_select_has_value
+  def test_select_no_prompt_when_attribute_has_non_blank_string_value
     @post = Post.new
     @post.category = "<mus>"
     assert_dom_equal(
@@ -799,12 +799,30 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_select_with_given_prompt
+  def test_select_no_prompt_when_attribute_has_false_value
+    @post = Post.new
+    @post.allow_comments = false
+    assert_dom_equal(
+      "<select id=\"post_allow_comments\" name=\"post[allow_comments]\"><option value=\"false\" selected=\"selected\">false</option>\n<option value=\"true\">true</option></select>",
+      select("post", "allow_comments", [false, true], prompt: true)
+    )
+  end
+
+  def test_select_with_given_prompt_for_blank_string_value
     @post = Post.new
     @post.category = ""
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">The prompt</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
       select("post", "category", %w( abe <mus> hest), prompt: "The prompt")
+    )
+  end
+
+  def test_select_with_given_prompt_for_nil_value
+    @post = Post.new
+    @post.allow_comments = nil
+    assert_dom_equal(
+      "<select id=\"post_allow_comments\" name=\"post[allow_comments]\"><option value=\"\">The prompt</option>\n<option value=\"false\">false</option>\n<option value=\"true\">true</option></select>",
+      select("post", "allow_comments", [false, true], prompt: "The prompt")
     )
   end
 
