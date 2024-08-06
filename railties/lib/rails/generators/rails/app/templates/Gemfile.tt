@@ -26,7 +26,7 @@ gem "kamal", require: false
 <% end -%>
 <% unless options.skip_thruster? -%>
 
-# Add HTTP/2, HTTP asset caching/compression, Let's Encrypt auto-certificates to Puma [https://github.com/basecamp/thruster/]
+# Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
 <% end -%>
 <% unless skip_active_storage? -%>
