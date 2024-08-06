@@ -23,17 +23,26 @@ tag     = "v#{version}"
 
 directory "pkg"
 
+major, minor, tiny, pre = version.split(".", 4)
+
 # This "npm-ifies" the current version number
 # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
 # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
-
-# "5.0.1"     --> "5.0.1"
-# "5.0.1.1"   --> "5.0.1-1" *
+# "5.0.0"     --> "5.0.0"
+# "5.0.1"     --> "5.0.100"
+# "5.0.0.1"   --> "5.0.1"
+# "5.0.1.1"   --> "5.0.101"
 # "5.0.0.rc1" --> "5.0.0-rc1"
-#
-# * This makes it a prerelease. That's bad, but we haven't come up with
-# a better solution at the moment.
-npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
+if pre
+  pre_release = pre.match?(/rc|beta|alpha/) ? pre : nil
+  npm_pre = pre.to_i
+else
+  npm_pre = 0
+  pre_release = nil
+end
+
+npm_version = "#{major}.#{minor}.#{(tiny.to_i * 100) + npm_pre}#{pre_release ? "-#{pre_release}" : ""}"
+pre = pre ? pre.inspect : "nil"
 
 (FRAMEWORKS + ["rails"]).each do |framework|
   namespace framework do
@@ -55,9 +64,6 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
       file = Dir[glob].first
       ruby = File.read(file)
-
-      major, minor, tiny, pre = version.split(".", 4)
-      pre = pre ? pre.inspect : "nil"
 
       ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
       raise "Could not insert MAJOR in #{file}" unless $1
