@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/concern"
 
 module ActionDispatch
   module Http
