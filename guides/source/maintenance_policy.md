@@ -103,4 +103,6 @@ Due to a constraint with npm, we are unable to use the 4th digit for security
 releases of [npm packages][] provided by Rails. This means that instead of the
 equivalent gem version `7.0.1.4`, the npm package will be versioned `7.0.104`.
 
+The version will be calculated as `X.Y.Z0A`, where `A` is the security release.
+
 [npm packages]: https://www.npmjs.com/org/rails
