@@ -215,8 +215,7 @@ module ActiveSupport
       elsif formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
-        # Change to to_s when deprecation is gone.
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}"
+        to_s
       end
     end
     alias_method :to_formatted_s, :to_fs
