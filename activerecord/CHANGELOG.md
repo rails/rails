@@ -1,3 +1,8 @@
+*   Fix `ActiveRecord::Encryption::EncryptedAttributeType#type` to return
+    actual cast type.
+
+    *Vasiliy Ermolovich*
+
 *   Make `create_schema` / `drop_schema` reversible in migrations.
 
     Previously, `create_schema` and `drop_schema` were irreversible migration operations.
