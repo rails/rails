@@ -1,3 +1,7 @@
+*   Speed up `ActionDispatch::Routing::Mapper::Scope#[]` by merging frame hashes.
+
+    *Gannon McGibbon*
+
 *   Allow bots to ignore `allow_browser`.
 
     *Matthew Nguyen*
