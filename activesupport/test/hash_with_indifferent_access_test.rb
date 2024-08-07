@@ -231,27 +231,37 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     hash[:a] = "a"
     hash["b"] = "b"
 
-    updated_with_strings = hash.update(@strings)
-    updated_with_symbols = hash.update(@symbols)
-    updated_with_mixed = hash.update(@mixed)
+    assert_equal(hash.object_id, hash.update(@strings).object_id)
 
-    assert_equal 1, updated_with_strings[:a]
-    assert_equal 1, updated_with_strings["a"]
-    assert_equal 2, updated_with_strings["b"]
+    hash.update(@symbols)
+    hash.update(@mixed)
+    hash.update(@mixed.with_indifferent_access)
 
-    assert_equal 1, updated_with_symbols[:a]
-    assert_equal 2, updated_with_symbols["b"]
-    assert_equal 2, updated_with_symbols[:b]
+    assert_equal(["a", "b"], hash.keys)
 
-    assert_equal 1, updated_with_mixed[:a]
-    assert_equal 2, updated_with_mixed["b"]
+    assert_equal 1, hash[:a]
+    assert_equal 1, hash["a"]
+    assert_equal 2, hash[:b]
+    assert_equal 2, hash["b"]
+  end
 
-    assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
+  def test_update_with_block
+    h1 = { "a" => 1, "b" => "x" }.with_indifferent_access
+    h2 = { a: 2, b: "y" }
+
+    merged_hash = h1.update(h2) { |k, v1, v2| [k, v1, v2].join }
+
+    assert_equal(["a", "b"], merged_hash.keys)
+    assert_equal("a12", merged_hash[:a])
+    assert_equal("bxy", merged_hash[:b])
   end
 
   def test_update_with_multiple_arguments
     hash = HashWithIndifferentAccess.new
-    hash.update({ "a" => 1 }, { "b" => 2 })
+    hash.update(
+      { "a" => 1 }.with_indifferent_access,
+      { "b" => 2 }
+    )
 
     assert_equal 1, hash["a"]
     assert_equal 2, hash["b"]
@@ -579,6 +589,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal "1234", roundtrip.default
+
+    # Should preserve the default proc
+    mixed_with_default = @mixed.dup
+    _proc = ->(h, k) { 1 }
+    mixed_with_default.default_proc = _proc
+    roundtrip = mixed_with_default.with_indifferent_access.to_hash
+    assert_equal _proc, roundtrip.default_proc
 
     # Ensure nested hashes are not HashWithIndifferentAccess
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash
