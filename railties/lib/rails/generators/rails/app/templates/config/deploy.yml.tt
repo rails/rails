@@ -30,7 +30,7 @@ env:
     - RAILS_MASTER_KEY
   clear:
     # Set this to the number of cores you wish the application to use on each server.
-    # If not set, app will attempt to use all available cores (but may guess wrong on some cloud hosts!)
+    # You can use "auto" and the app will attempt to use all available cores (but may guess wrong on some cloud hosts!)
     WEB_CONCURRENCY: 1
 
     # Match this to the database server to configure Active Record correctly

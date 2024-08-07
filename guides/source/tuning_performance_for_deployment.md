@@ -121,8 +121,17 @@ If you use more than one thread per process, then it should be set to how many 
 or if the server is running multiple applications, to how many cores you want the application to use.
 If you only use one thread per worker, then you can increase it to above one per process to account for when workers are
 idle waiting for I/O operations.
-In the default generated configuration, it is set to use all the available processor cores on the server via the
-`Concurrent.available_processor_count` helper. You can also modify it by setting the `WEB_CONCURRENCY` environment variable.
+
+In the default generated configuration, it is set to use 1 worker.
+You can also modify it by setting the `WEB_CONCURRENCY` environment variable.
+
+* Setting `WEB_CONCURRENCY` to a specific number will configure Puma to use that many workers.
+* Setting `WEB_CONCURRENCY` to "auto" will make Puma use all available processor cores on the server, as determined by
+  the `Concurrent.available_processor_count` helper.
+
+Please note that using "auto" might result in incorrect configurations on some cloud hosts with shared CPUs or platforms
+that inaccurately report CPU counts.
+
 
 ### YJIT
 
