@@ -227,8 +227,12 @@ module ActiveRecord
       def begin_isolated_db_transaction(isolation) # :nodoc:
         # From MySQL manual: The [SET TRANSACTION] statement applies only to the next single transaction performed within the session.
         # So we don't need to implement #reset_isolation_level
-        internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
-        begin_db_transaction
+        execute_batch(
+          ["SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "BEGIN"],
+          "TRANSACTION",
+          allow_retry: true,
+          materialize_transactions: false,
+        )
       end
 
       def commit_db_transaction # :nodoc:
@@ -565,7 +569,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        query_value("SELECT @@#{name}", "SCHEMA")
+        query_value("SELECT @@#{name}", "SCHEMA", materialize_transactions: false, allow_retry: true)
       rescue ActiveRecord::StatementInvalid
         nil
       end
