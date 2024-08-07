@@ -178,7 +178,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body, :published)
+      params.expect(article: [:title, :body, :published])
     end
 end
 ```

@@ -43,7 +43,10 @@ module Rails
         def permitted_params
           attachments, others = attributes_names.partition { |name| attachments?(name) }
           params = others.map { |name| ":#{name}" }
-          params += attachments.map { |name| "#{name}: []" }
+          if attachments.any?
+            attachment_params = attachments.map { |name| "#{name}: []" }
+            params += "{ #{attachment_params.join(", ")} }"
+          end
           params.join(", ")
         end
 

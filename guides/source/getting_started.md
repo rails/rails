@@ -927,7 +927,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1105,7 +1105,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1262,7 +1262,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1516,7 +1516,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body)
+      params.expect(comment: [:commenter, :body])
     end
 end
 ```
@@ -1739,7 +1739,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 
   private
     def article_params
-      params.require(:article).permit(:title, :body, :status)
+      params.expect(article: [:title, :body, :status])
     end
 ```
 
@@ -1749,7 +1749,7 @@ and in `app/controllers/comments_controller.rb`:
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.expect(comment: [:commenter, :body, :status])
     end
 ```
 
@@ -1995,7 +1995,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.expect(comment: [:commenter, :body, :status])
     end
 end
 ```

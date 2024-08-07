@@ -1,3 +1,41 @@
+*   Introduce `params.expect` as the recommended way to filter params.
+    `params.expect` combines the usage of `params.permit` and `params.require`
+    to ensure url params are filtered with consideration for the expected
+    types of values, improving handling of manipulated params.
+
+    In the following example, each version returns the same result with
+    unaltered params, but the first example will raise generic NoMethodError,
+    causing the server to return 500 and potentially sending exception notices.
+
+    ```ruby
+    # If the url is altered to ?person=hacked
+    # Before
+    params.require(:person).permit(:name, :age, pie: [:flavor])
+    # raises NoMethodError, causing a 500 and potential error reporting
+    params.permit(person: [:name, :age, { pie: [:flavor] }]).require(:person)
+    # raises ActionController::ParameterMissing, correctly returning a 400 error
+
+    # After
+    params.expect(person: [:name, :age, { address: [:city, :state] }])
+    # raises ActionController::ParameterMissing, correctly returning a 400 error
+    ```
+
+    We suggest replacing `params.require(:person).permit(:name, :age)`
+    with the direct replacement `params.expect(person: [:name, :age])`
+    to prevent external users from manipulating params to trigger 500 errors.
+
+    Usage of `params.require` should likewise be replaced with `params.expect`.
+
+    ```ruby
+    # Before
+    User.find(params.require(:id)) # will allow an array, altering behavior
+
+    # After
+    User.find(params.expect(:id)) # only returns non-blank permitted scalars (excludes Hash, Array, nil, "", etc)
+    ```
+
+    *Martin Emde*
+
 *   Deprecate drawing routes with hash key paths to make routing faster.
 
     ```ruby

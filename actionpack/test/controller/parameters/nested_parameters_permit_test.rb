@@ -221,7 +221,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
         }
       })
 
-    permitted = params.require(:book).permit(authors_attributes: { '1': [:name] })
+    permitted = params.expect(book: { authors_attributes: { '1': [:name] } })
 
     assert_equal(
       { "authors_attributes" => { "1" => { "name" => "Unattributed Assistant" } } },
@@ -271,7 +271,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
           "1" => "prop1"
         }
       })
-    params = params.require(:product).permit(properties: ["0"])
+    params = params.expect(product: { properties: ["0"] })
     assert_not_nil        params[:properties]["0"]
     assert_nil            params[:properties]["1"]
     assert_equal "prop0", params[:properties]["0"]
