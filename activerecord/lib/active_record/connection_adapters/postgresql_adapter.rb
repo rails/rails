@@ -479,6 +479,7 @@ module ActiveRecord
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
       def disable_extension(name, force: false)
+        _schema, name = name.to_s.split(".").values_at(-2, -1)
         internal_exec_query("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}").tap {
           reload_type_map
         }
