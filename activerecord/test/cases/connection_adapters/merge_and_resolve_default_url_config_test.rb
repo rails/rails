@@ -489,6 +489,16 @@ module ActiveRecord
 
         assert_equal expected, actual.configuration_hash
       end
+
+      def test_protocol_adapter_mapping_handles_missing_scheme_in_url
+        ENV["DATABASE_URL"] = "//localhost/exampledb"
+        ENV["RAILS_ENV"] = "production"
+
+        actual = resolve_db_config(:production, { "production" => { "adapter" => "abstract" } })
+        expected = { adapter: "abstract", database: "exampledb", host: "localhost" }
+
+        assert_equal expected, actual.configuration_hash
+      end
     end
   end
 end
