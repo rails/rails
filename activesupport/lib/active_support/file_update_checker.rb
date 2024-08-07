@@ -146,7 +146,7 @@ module ActiveSupport
         return if hash.empty?
 
         globs = hash.map do |key, value|
-          "#{escape(key)}/**/*#{compile_ext(value)}"
+          "#{escape(key)}/**{,/*/**}/*#{compile_ext(value)}"
         end
         "{#{globs.join(",")}}"
       end
