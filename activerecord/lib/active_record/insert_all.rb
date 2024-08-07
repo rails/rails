@@ -15,33 +15,49 @@ module ActiveRecord
       end
     end
 
-    def initialize(relation, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
+    def column_mode?
+      @column_mode
+    end
+
+    def initialize(relation, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil, columns: nil)
       @relation = relation
-      @model, @connection, @inserts = relation.model, connection, inserts.map(&:stringify_keys)
+      @model, @connection = relation.model, connection
+      @column_mode = !!columns
+      if @column_mode
+        @keys = columns.map(&:to_s).to_set
+        @inserts = inserts
+      else
+        @inserts = inserts.map(&:stringify_keys)
+      end
+
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
       disallow_raw_sql!(on_duplicate)
       disallow_raw_sql!(returning)
 
-      if @inserts.empty?
-        @keys = []
-      else
-        resolve_sti
-        resolve_attribute_aliases
-        @keys = @inserts.first.keys
-      end
+      unless @column_mode
+        if @inserts.empty?
+          @keys = []
+        else
+          resolve_sti
+          resolve_attribute_aliases
+          @keys = @inserts.first.keys
+        end
 
-      @scope_attributes = relation.scope_for_create.except(@model.inheritance_column)
-      @keys |= @scope_attributes.keys
-      @keys = @keys.to_set
+        @scope_attributes = relation.scope_for_create.except(@model.inheritance_column)
+        @keys |= @scope_attributes.keys
+        @keys = @keys.to_set
+      end
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @unique_by = find_unique_index_for(@unique_by)
+      unless @column_mode
+        @unique_by = find_unique_index_for(@unique_by)
+        configure_on_duplicate_update_logic
+      end
 
-      configure_on_duplicate_update_logic
       ensure_valid_options_for_connection!
     end
 
@@ -90,6 +106,8 @@ module ActiveRecord
 
     # TODO: Consider renaming this method, as it only conditionally extends keys, not always
     def keys_including_timestamps
+      return keys if column_mode?
+
       @keys_including_timestamps ||= if record_timestamps?
         keys + model.all_timestamp_attributes_in_model
       else
@@ -236,11 +254,20 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_from_columns_on(model.table_name, keys: keys_including_timestamps)
+          if insert_all.column_mode?
+            insert_all.inserts.each do |row|
+              if row.length != keys_including_timestamps.length
+                raise ArgumentError, "Number of columns (#{row.length}) does not match number of keys (#{keys_including_timestamps.length})"
+              end
+            end
+            values_list = insert_all.inserts
+          else
+            types = extract_types_from_columns_on(model.table_name, keys: keys_including_timestamps)
 
-          values_list = insert_all.map_key_with_value do |key, value|
-            next value if Arel::Nodes::SqlLiteral === value
-            connection.with_yaml_fallback(types[key].serialize(value))
+            values_list = insert_all.map_key_with_value do |key, value|
+              next value if Arel::Nodes::SqlLiteral === value
+              connection.with_yaml_fallback(types[key].serialize(value))
+            end
           end
 
           connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
