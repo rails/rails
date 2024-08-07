@@ -226,4 +226,31 @@ class ValidationsTest < ActiveRecord::TestCase
       klass.validates_acceptance_of(:foo)
     end
   end
+
+  def test_skip_validations
+    klass = Class.new(ActiveRecord::Base) do
+      attribute :name
+      validates :name, presence: true
+      self.table_name = "posts"
+
+      def self.name
+        "Post"
+      end
+    end
+
+    obj = klass.new title: "foo", body: "..."
+    obj.skip_validations
+    obj.save!
+
+    assert_equal true, obj.persisted?
+    assert_nil obj.name
+
+    obj.reset_validations
+
+    error = assert_raises ActiveRecord::RecordInvalid do
+      obj.save!
+    end
+
+    assert_match "Validation failed: Name can't be blank", error.message
+  end
 end

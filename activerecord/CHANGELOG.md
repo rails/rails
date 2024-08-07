@@ -1,3 +1,22 @@
+*   Disable validations
+
+    ```ruby
+    user = User.new
+    user.save(validate: false)
+
+    user.skip_validations
+
+    user.update(age: 13)
+    # validation errors do not occur
+
+    user.reset_validations
+
+    user.update(age: 14)
+    # validation errors occur
+    ```
+
+    *Adrian Marin*
+
 *   Make `create_schema` / `drop_schema` reversible in migrations.
 
     Previously, `create_schema` and `drop_schema` were irreversible migration operations.
