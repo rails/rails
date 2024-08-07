@@ -844,3 +844,40 @@ class InsertAllTest < ActiveRecord::TestCase
       model.record_timestamps = original
     end
 end
+
+if ActiveRecord::Base.connection.supports_json?
+  class UpsertAllWithJSON < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    class Foo < ActiveRecord::Base
+    end
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table :foos do |t|
+        t.json :json_data
+        t.timestamps
+      end
+    end
+
+    def teardown
+      @connection.drop_table :foos, if_exists: true
+    end
+
+    def test_upsert_all_for_json_column_with_record_timestamps
+      skip unless supports_insert_on_duplicate_update?
+
+      foo = Foo.create(json_data: { "bar" => 1 })
+
+      Foo.upsert_all(
+        [{ id: foo.id, json_data: { "bar" => 2 } }],
+        record_timestamps: true
+      )
+
+      updated_foo = Foo.find(foo.id)
+
+      assert_equal({ "bar" => 2 }, updated_foo.json_data)
+      assert_not_equal(foo.updated_at, updated_foo.updated_at)
+    end
+  end
+end
