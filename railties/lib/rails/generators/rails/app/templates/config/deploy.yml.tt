@@ -28,11 +28,7 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
-  clear:
-    # Set this to the number of cores you wish the application to use on each server.
-    # You can use "auto" and the app will attempt to use all available cores (but may guess wrong on some cloud hosts!)
-    WEB_CONCURRENCY: 1
-
+  # clear:
     # Match this to the database server to configure Active Record correctly
     # DB_HOST: 192.168.0.2
 
