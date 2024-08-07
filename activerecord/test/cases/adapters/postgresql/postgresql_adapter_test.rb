@@ -671,7 +671,7 @@ module ActiveRecord
 
       def test_disable_extension_with_schema
         @connection.execute("CREATE SCHEMA custom_schema")
-        @connection.execute("CREATE EXTENSION hstore SCHEMA custom_schema")
+        @connection.execute("CREATE EXTENSION IF NOT EXISTS hstore SCHEMA custom_schema")
         result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
         assert_equal [["hstore"]], result.to_a
 
@@ -684,7 +684,7 @@ module ActiveRecord
       end
 
       def test_disable_extension_without_schema
-        @connection.execute("CREATE EXTENSION hstore")
+        @connection.execute("CREATE EXTENSION IF NOT EXISTS hstore")
         result = @connection.query("SELECT extname FROM pg_extension")
         assert_includes result.to_a, ["hstore"]
 
