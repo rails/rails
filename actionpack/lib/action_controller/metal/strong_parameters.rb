@@ -675,7 +675,7 @@ module ActionController
     #     params.permit(person: { '0': [:email], '1': [:phone]}).to_h
     #     # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"phone"=>"555-6789"}}}
     def permit(*filters)
-      permit_only(filters, &method(:unpermitted_parameters))
+      permit_only(*filters, &method(:unpermitted_parameters))
     end
 
     # Same as permit, but raises on unpermitted parameters by default.
@@ -684,21 +684,12 @@ module ActionController
     # If a block is given, it is called with the unpermitted keys.
     def permit_only(*filters, &block)
       block ||= method(:raise_unpermitted_parameters)
-      params = self.class.new
+      params = permit_filters(filters, &block)
 
-      filters.flatten.each do |filter|
-        case filter
-        when Symbol, String
-          permitted_scalar_filter(params, filter)
-        when Hash
-          hash_filter(params, filter, &block)
-        end
-      end
+      unpermitted = unpermitted_keys(params)
+      block.call(unpermitted) if unpermitted.any?
 
-      unpermitted_keys = unpermitted_keys(params)
-      block.call(unpermitted_keys) if unpermitted_keys.any?
-
-      params.permit!
+      params
     end
 
     # `expect` is the preferred way to require and permit parameters and work
@@ -834,12 +825,27 @@ module ActionController
     # Same as expect, but raises on unpermitted parameters, regardless of ActionController::Parameters.action_on_unpermitted_parameters
     def expect_only(*filters, &block)
       block ||= method(:raise_unpermitted_parameters)
-      params = permit_only(filters, &block)
+      params = permit_filters(filters, &block)
       keys = filters.flatten.flat_map { |f| f.is_a?(Hash) ? f.keys : f }
       values = params.require(keys)
       values.size == 1 ? values.first : values
     end
 
+    # The 'allow' method provides a way to expect optional nested params in a way
+    # that is safe from user input. It is similar to `expect`, but it does not
+    # raise an error if the parameter is missing or the value is empty.
+    #
+    # `allow` is a preferred substitute for the following:
+    #
+    #     params.fetch(:user, {}).permit(:name, :age)
+    #
+    # `allaw` will substitute nil, an empty hash, or array depending on
+    # what was expected by the given filters.
+    #
+    #     params = ActionController::Parameters.new({ id: 1 })
+    #     person_params = params.allow(person: [:name, :age])
+    #     person_params[:name] # => nil
+    #     person_params[:age]  # => nil
     #
     def allow(*filters)
       allow_only filters, &method(:unpermitted_parameters)
@@ -848,7 +854,7 @@ module ActionController
     # Same as allow, but raises on unpermitted parameters, regardless of ActionController::Parameters.action_on_unpermitted_parameters
     def allow_only(*filters, &block)
       block ||= method(:raise_unpermitted_parameters)
-      params = permit_only(filters, &block)
+      params = permit_filters(filters, &block)
       values = filters.flatten.flat_map do |filter|
         case filter
         when Symbol, String
@@ -1301,6 +1307,10 @@ module ActionController
         end
       end
 
+      def unpermitted_keys(params)
+        keys - params.keys - always_permitted_parameters
+      end
+
       def unpermitted_parameters(unpermitted_keys)
         case self.class.action_on_unpermitted_parameters
         when :log
@@ -1317,10 +1327,6 @@ module ActionController
 
       def raise_unpermitted_parameters(unpermitted_keys)
         raise ActionController::UnpermittedParameters.new(unpermitted_keys)
-      end
-
-      def unpermitted_keys(params)
-        keys - params.keys - always_permitted_parameters
       end
 
       #
@@ -1352,6 +1358,22 @@ module ActionController
 
       def permitted_scalar?(value)
         PERMITTED_SCALAR_TYPES.any? { |type| value.is_a?(type) }
+      end
+
+      # Filters params given the set of filters.
+      def permit_filters(filters, &block)
+        params = self.class.new
+
+        filters.flatten.each do |filter|
+          case filter
+          when Symbol, String
+            permitted_scalar_filter(params, filter)
+          when Hash
+            hash_filter(params, filter, &block)
+          end
+        end
+
+        params.permit!
       end
 
       # Adds existing keys to the params if their values are scalar.
