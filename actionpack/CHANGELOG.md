@@ -1,3 +1,7 @@
+*   Allow bots to ignore `allow_browser`.
+
+    *Matthew Nguyen*
+
 *   Deprecate drawing routes with hash key paths to make routing faster.
 
     ```ruby
