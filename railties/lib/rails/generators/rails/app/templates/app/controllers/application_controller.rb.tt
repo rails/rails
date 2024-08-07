@@ -1,6 +1,10 @@
 class ApplicationController < ActionController::<%= options.api? ? "API" : "Base" %>
 <%- unless options.api? -%>
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
+  # Note: When using a desktop browser's developer tools to simulate a phone, it may be identifying itself as an older browser which
+  # is not allowed by :modern. You can customize the user agent to meet the version requirements of :modern. Instructions for Chrome:
+  #   https://developer.chrome.com/docs/devtools/device-mode
+  # The required browser versions for :modern are defined in ActionController::AllowBrowser::BrowserBlocker::SETS
   allow_browser versions: :modern
 <% end -%>
 end
