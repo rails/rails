@@ -782,6 +782,16 @@ module ActionDispatch
           map_method(:options, args, &block)
         end
 
+        # Define a route that recognizes HTTP CONNECT (and GET) requests. More
+        # specifically this recognizes HTTP/1 protocol upgrade requests and HTTP/2
+        # CONNECT requests with the protocol pseudo header. For supported arguments,
+        # see [match](rdoc-ref:Base#match)
+        #
+        #     connect 'live', to: 'live#index'
+        def connect(*args, &block)
+          map_method([:get, :connect], args, &block)
+        end
+
         private
           def map_method(method, args, &block)
             options = args.extract_options!

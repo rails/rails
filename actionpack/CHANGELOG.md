@@ -71,4 +71,8 @@
 
     *Cyril Blaecke*
 
+*   Add `connect` route helper.
+
+    *Samuel Williams*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actionpack/CHANGELOG.md) for previous changes.
