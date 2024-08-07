@@ -28,8 +28,13 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
-  # clear:
-  #   DB_HOST: 192.168.0.2
+  clear:
+    # Set this to the number of cores you wish the application to use on each server.
+    # If not set, app will attempt to use all available cores (but may guess wrong on some cloud hosts!)
+    WEB_CONCURRENCY: 1
+
+    # Match this to the database server to configure Active Record correctly
+    # DB_HOST: 192.168.0.2
 
 <% unless skip_storage? %>
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
