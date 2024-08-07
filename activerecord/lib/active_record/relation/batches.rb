@@ -260,12 +260,12 @@ module ActiveRecord
       cursor = Array(cursor).map(&:to_s)
       ensure_valid_options_for_batching!(cursor, start, finish, order)
 
-      unless block
-        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, cursor: cursor, order: order, use_ranges: use_ranges)
-      end
-
       if arel.orders.present?
         act_on_ignored_order(error_on_ignore)
+      end
+
+      unless block
+        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, cursor: cursor, order: order, use_ranges: use_ranges)
       end
 
       batch_limit = of

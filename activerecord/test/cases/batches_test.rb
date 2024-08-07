@@ -318,6 +318,16 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_should_error_on_ignore_the_order
+    assert_raise(ArgumentError, match: "Scoped order is ignored") do
+      PostWithDefaultScope.in_batches(error_on_ignore: true) { }
+    end
+
+    assert_raise(ArgumentError, match: "Scoped order is ignored") do
+      PostWithDefaultScope.in_batches(error_on_ignore: true).delete_all
+    end
+  end
+
   def test_in_batches_has_attribute_readers
     enumerator = Post.no_comments.in_batches(of: 2, start: 42, finish: 84)
     assert_equal Post.no_comments, enumerator.relation
