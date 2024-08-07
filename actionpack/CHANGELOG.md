@@ -1,3 +1,8 @@
+*   Allow bots to ignore `allow_browser`.
+
+    *Matthew Nguyen*
+
+
 ## Rails 7.2.0.rc1 (August 06, 2024) ##
 
 *   No changes.

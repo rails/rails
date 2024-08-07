@@ -23,6 +23,7 @@ class AllowBrowserTest < ActionController::TestCase
   FIREFOX_114   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0"
   IE_11         = "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko"
   OPERA_106     = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0"
+  GOOGLE_BOT    = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
 
   test "blocked browser below version limit" do
     get_with_agent :hello, FIREFOX_114
@@ -56,6 +57,14 @@ class AllowBrowserTest < ActionController::TestCase
     assert_response :ok
 
     get_with_agent :modern, OPERA_106
+    assert_response :ok
+  end
+
+  test "bots" do
+    get_with_agent :hello, GOOGLE_BOT
+    assert_response :ok
+
+    get_with_agent :modern, GOOGLE_BOT
     assert_response :ok
   end
 
