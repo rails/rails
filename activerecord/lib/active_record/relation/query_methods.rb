@@ -1107,13 +1107,19 @@ module ActiveRecord
 
     # Checks whether the given relation is structurally compatible with this relation, to determine
     # if it's possible to use the #and and #or methods without raising an error. Structurally
-    # compatible is defined as: they must be scoping the same model, and they must differ only by
-    # #where (if no #group has been defined) or #having (if a #group is present).
+    # compatible is defined as: the given relation must be scoping the same model, and it must differ
+    # from the current relation only by #where (if no #group has been defined) or #having (if a #group is present).
     #
     #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
     #    # => true
     #
     #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    # => true
+    #
+    #    Post.joins(:comments).structurally_compatible?(Post.joins(:comments).where("id = 1"))
+    #    # => true
+    #
+    #    Post.where("id = 1").structurally_compatible?(Post.joins(:comments))
     #    # => false
     #
     def structurally_compatible?(other)
@@ -1123,9 +1129,9 @@ module ActiveRecord
     # Returns a new relation, which is the logical intersection of this relation and the one passed
     # as an argument.
     #
-    # The two relations must be structurally compatible: they must be scoping the same model, and
-    # they must differ only by #where (if no #group has been defined) or #having (if a #group is
-    # present).
+    # The two relations must be structurally compatible: the given relation must be scoping the same model,
+    # and it must differ from the current relation only by #where (if no #group has been defined) or
+    # #having (if a #group is present).
     #
     #    Post.where(id: [1, 2]).and(Post.where(id: [2, 3]))
     #    # SELECT `posts`.* FROM `posts` WHERE `posts`.`id` IN (1, 2) AND `posts`.`id` IN (2, 3)
@@ -1155,9 +1161,9 @@ module ActiveRecord
     # Returns a new relation, which is the logical union of this relation and the one passed as an
     # argument.
     #
-    # The two relations must be structurally compatible: they must be scoping the same model, and
-    # they must differ only by #where (if no #group has been defined) or #having (if a #group is
-    # present).
+    # The two relations must be structurally compatible: the given relation must be scoping the same model,
+    # and it must differ from the current relation only by #where (if no #group has been defined) or
+    # #having (if a #group is present).
     #
     #    Post.where("id = 1").or(Post.where("author_id = 3"))
     #    # SELECT `posts`.* FROM `posts` WHERE ((id = 1) OR (author_id = 3))
