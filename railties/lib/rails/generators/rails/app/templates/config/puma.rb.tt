@@ -32,19 +32,6 @@ environment rails_env
 
 case rails_env
 when "production"
-  # If you are running more than 1 thread per process, the workers count
-  # should be equal to the number of processors (CPU cores) in production.
-  #
-  # Automatically detect the number of available processors in production
-  # when WEB_CONCURRENCY is set to "auto".
-  require "concurrent-ruby"
-  workers_count = if ENV["WEB_CONCURRENCY"] == "auto"
-                    Concurrent.available_processor_count
-                  else
-                    Integer(ENV.fetch("WEB_CONCURRENCY", 1))
-                  end
-  workers workers_count if workers_count > 1
-
   preload_app!
 when "development"
   # Specifies a very generous `worker_timeout` so that the worker
