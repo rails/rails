@@ -157,24 +157,32 @@ module ActionView
         end
       end
 
-      # Like <tt>distance_of_time_in_words</tt>, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
+      # Like <tt>distance_of_time_in_words</tt>, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>
+      # and prepended by in or appended by ago.
       #
-      #   time_ago_in_words(3.minutes.from_now)                 # => 3 minutes
-      #   time_ago_in_words(3.minutes.ago)                      # => 3 minutes
-      #   time_ago_in_words(Time.now - 15.hours)                # => about 15 hours
-      #   time_ago_in_words(Time.now)                           # => less than a minute
-      #   time_ago_in_words(Time.now, include_seconds: true) # => less than 5 seconds
+      #   time_ago_in_words(3.minutes.from_now)                 # => in 3 minutes
+      #   time_ago_in_words(3.minutes.ago)                      # => 3 minutes ago
+      #   time_ago_in_words(Time.now - 15.hours)                # => about 15 hours ago
+      #   time_ago_in_words(Time.now)                           # => less than a minute ago
+      #   time_ago_in_words(Time.now, include_seconds: true) # => less than 5 seconds ago
       #
       #   from_time = Time.now - 3.days - 14.minutes - 25.seconds
-      #   time_ago_in_words(from_time)      # => 3 days
+      #   time_ago_in_words(from_time)      # => 3 days ago
       #
       #   from_time = (3.days + 14.minutes + 25.seconds).ago
-      #   time_ago_in_words(from_time)      # => 3 days
+      #   time_ago_in_words(from_time)      # => 3 days ago
       #
       # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
       #
       def time_ago_in_words(from_time, options = {})
-        distance_of_time_in_words(from_time, Time.now, options)
+        options = {
+          scope: :'datetime.distance_in_words'
+        }.merge!(options)
+
+        I18n.with_options locale: options[:locale], scope: options[:scope] do |locale|
+          key = from_time > Time.now ? :from_now : :ago
+          locale.t(key, time: distance_of_time_in_words(from_time, Time.now, options))
+        end
       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words

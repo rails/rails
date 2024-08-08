@@ -53,7 +53,7 @@ Reports the approximate distance in time between a `Time` or `Date` object, or
 integer as seconds,  and `Time.current`.
 
 ```ruby
-time_ago_in_words(3.minutes.from_now) # => 3 minutes
+time_ago_in_words(3.minutes.from_now) # => in 3 minutes
 ```
 
 See the [`time_ago_in_words` API
