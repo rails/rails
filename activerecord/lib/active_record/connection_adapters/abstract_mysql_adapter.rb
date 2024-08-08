@@ -942,6 +942,15 @@ module ActiveRecord
 
           # ...and send them all in one query
           raw_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
+
+          if @config[:isolation_level]
+            # Sending as a separate query since different spots that might intercept the query (Vitess, proxysql)
+            # may rely on SET SESSION TRANSACTION ISOLATION LEVEL as a single statement
+            raw_execute(
+              "SET SESSION TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(@config[:isolation_level])}",
+              "SCHEMA"
+            )
+          end
         end
 
         def column_definitions(table_name) # :nodoc:
