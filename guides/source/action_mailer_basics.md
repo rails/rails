@@ -17,11 +17,11 @@ After reading this guide, you will know:
 What is Action Mailer?
 ----------------------
 
-Action Mailer allows you to send emails from your Rails application. It's one of the two email related components in the Rails framework. Action Mailer, for sending email and [Action Mailbox](action_mailbox_basics.html), which deals with receiving emails.
+Action Mailer allows you to send emails from your Rails application. It's one of the two email related components in the Rails framework. Action Mailer, which is for sending email and [Action Mailbox](action_mailbox_basics.html), which deals with receiving emails.
 
 Action Mailer uses classes called "mailers" and views to create and configure the emails to send. Mailers are classes that inherit from [`ActionMailer::Base`][] and are similar to controllers.
 
-Some similarities between controllers and mailers are listed below. Both have:
+Here are some similarities between controllers and mailers. Both have:
 
 * Instance variables that are accessible in views.
 * The ability to use layouts and partials.
@@ -124,7 +124,7 @@ For the `welcome_email` action, you'll need to create a matching view in a file 
 <p>Thanks for joining and have a great day!</p>
 ```
 
-NOTE: the above is the content of the `<body>` tag. It will be embedded in the default mailer layout, which contains the `<html>` tag. See [Mailer layouts](#mailer-views-and-layouts) for more TODO.
+NOTE: the above is the content of the `<body>` tag. It will be embedded in the default mailer layout, which contains the `<html>` tag. See [Mailer layouts](#mailer-views-and-layouts) for more.
 
 You can also create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Not all clients prefer HTML emails,
 and so sending both is best practice. Here is a sample text email:
@@ -159,7 +159,7 @@ $ bin/rails generate scaffold user name email login
 $ bin/rails db:migrate
 ```
 
-Next, we edit the `create` action in the `UserController` to send a welcome email when a new user is created. We do this by inserting a call to `UserMailer.with(user:@user).welcome_email` right after the user is successfully saved.
+Next, we edit the `create` action in the `UserController` to send a welcome email when a new user is created. We do this by inserting a call to `UserMailer.with(user: @user).welcome_email` right after the user is successfully saved.
 
 NOTE We use [`deliver_later`][] to enqueue the email to be sent later, This
 way, the controller action will continue without waiting for the email sending
@@ -233,8 +233,10 @@ class SendWeeklySummary
 end
 ```
 
-The method `weekly_summary` returns an [`ActionMailer::MessageDelivery`][]
-object which has the methods `deliver_now` or `deliver_later` to send itself now or later. The `ActionMailer::MessageDelivery` object is a wrapper around a
+A method like `weekly_summary` from `UserMailer` would return an
+[`ActionMailer::MessageDelivery`][] object, which has the methods `deliver_now`
+or `deliver_later` to send itself now or later. The
+`ActionMailer::MessageDelivery` object is a wrapper around a
 [`Mail::Message`][]. If you want to inspect, alter, or do anything else with the
 `Mail::Message` object you can access it with the [`message`][] method on the
 `ActionMailer::MessageDelivery` object.
@@ -282,34 +284,34 @@ Attachments
 
 Action Mailer makes it very easy to add attachments.
 
-* Pass the file name and content and Action Mailer and the
-  [Mail gem](https://github.com/mikel/mail) will automatically guess the
-  `mime_type`, set the `encoding`, and create the attachment.
+Pass the file name and content to Action Mailer and the [Mail
+gem](https://github.com/mikel/mail) will automatically guess the `mime_type`,
+set the `encoding`, and create the attachment.
 
-    ```ruby
-    attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
-    ```
+```ruby
+attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
+```
 
-  When the `mail` method will be triggered, it will send a multipart email with
-  an attachment, properly nested with the top level being `multipart/mixed` and
-  the first part being a `multipart/alternative` containing the plain text and
-  HTML email messages.
+When the `mail` method will be triggered, it will send a multipart email with an
+attachment, properly nested with the top level being `multipart/mixed` and the
+first part being a `multipart/alternative` containing the plain text and HTML
+email messages.
 
 NOTE: Mail will automatically Base64 encode an attachment. If you want something
 different, encode your content and pass in the encoded content and encoding in a
 `Hash` to the `attachments` method.
 
-* Pass the file name and specify headers and content and Action Mailer and Mail
-  will use the settings you pass in.
+The other way is to pass the file name and specify headers and content and
+Action Mailer and Mail will use the settings you pass in.
 
-    ```ruby
-    encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
-    attachments['filename.jpg'] = {
-      mime_type: 'application/gzip',
-      encoding: 'SpecialEncoding',
-      content: encoded_content
-    }
-    ```
+```ruby
+encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
+attachments['filename.jpg'] = {
+  mime_type: 'application/gzip',
+  encoding: 'SpecialEncoding',
+  content: encoded_content
+}
+```
 
 NOTE: If you specify an encoding, Mail will assume that your content is already
 encoded and not try to Base64 encode it.
