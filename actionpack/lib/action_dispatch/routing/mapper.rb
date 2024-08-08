@@ -471,7 +471,6 @@ module ActionDispatch
         # `:controller` should be set in options or hash shorthand. Examples:
         #
         #     match 'photos/:id', to: 'photos#show', via: :get
-        #     match 'photos/:id', to: 'photos#show', via: :get
         #     match 'photos/:id', controller: 'photos', action: 'show', via: :get
         #
         # A pattern can also point to a `Rack` endpoint i.e. anything that responds to
