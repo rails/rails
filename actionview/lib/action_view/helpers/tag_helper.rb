@@ -316,6 +316,13 @@ module ActionView
             value = escape ? safe_join(value, " ") : value.join(" ")
           when Regexp
             value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
+          when IPAddr
+            addr = value.to_s
+            unless (value.ipv4? && value.prefix == 32) || (value.ipv6? && value.prefix == 128)
+              addr = format("%s/%s", value.to_s, value.prefix)
+            end
+
+            value = escape ? ERB::Util.unwrapped_html_escape(addr) : addr
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
