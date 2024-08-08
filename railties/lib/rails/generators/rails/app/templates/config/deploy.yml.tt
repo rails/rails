@@ -29,8 +29,7 @@ env:
   secret:
     - RAILS_MASTER_KEY
   # clear:
-    # Set this to the number of cores you wish the application to use on each server.
-    # You can use "auto" and the app will attempt to use all available cores (but may guess wrong on some cloud hosts!)
+    # Set number of cores available to the application on each server (default: 1).
     # WEB_CONCURRENCY: 2
 
     # Match this to the database server to configure Active Record correctly
