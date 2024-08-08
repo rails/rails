@@ -435,7 +435,7 @@ module ActiveRecord
           if load
             records = batch_relation.records
             values = records.pluck(*cursor)
-            yielded_relation = where(cursor => values)
+            yielded_relation = batch_relation.where(cursor => values)
             yielded_relation.load_records(records)
           elsif (empty_scope && use_ranges != false) || use_ranges
             values = batch_relation.pluck(*cursor)
@@ -443,12 +443,11 @@ module ActiveRecord
             finish = values.last
             if finish
               yielded_relation = apply_finish_limit(batch_relation, cursor, finish, batch_orders)
-              yielded_relation = yielded_relation.except(:limit, :order)
               yielded_relation.skip_query_cache!(false)
             end
           else
             values = batch_relation.pluck(*cursor)
-            yielded_relation = where(cursor => values)
+            yielded_relation = batch_relation.where(cursor => values)
           end
 
           break if values.empty?
