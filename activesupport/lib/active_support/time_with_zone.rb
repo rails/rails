@@ -138,7 +138,7 @@ module ActiveSupport
     #
     #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25.624541392 EST -05:00"
     def inspect
-      "#{time.strftime('%a, %d %b %Y %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
+      "#{time.strftime('%F %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
     end
 
     # Returns a string of the object's date and time in the ISO 8601 standard
