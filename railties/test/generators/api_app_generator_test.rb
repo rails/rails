@@ -125,6 +125,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     pass
   end
 
+  def test_app_update_does_not_generate_public_files
+    run_generator
+    run_app_update
+
+    assert_no_file "public/406-unsupported-browser.html"
+  end
+
   private
     def default_files
       %w(.gitignore
