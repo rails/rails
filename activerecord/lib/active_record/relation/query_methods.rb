@@ -158,6 +158,11 @@ module ActiveRecord
 
     FROZEN_EMPTY_ARRAY = [].freeze
     FROZEN_EMPTY_HASH = {}.freeze
+    STRUCTURAL_VALUE_METHODS_FOR_OR = (
+      Relation::VALUE_METHODS -
+      [:extending, :where, :having, :unscope, :references, :annotate, :optimizer_hints]
+    ).freeze # :nodoc:
+    STRUCTURAL_VALUE_METHODS_FOR_AND = STRUCTURAL_VALUE_METHODS_FOR_OR - %i(joins left_outer_joins includes eager_load preload) # :nodoc:
 
     Relation::VALUE_METHODS.each do |name|
       method_name, default =
@@ -1117,7 +1122,7 @@ module ActiveRecord
     #    # => false
     #
     def structurally_compatible?(other)
-      structurally_incompatible_values_for(other).empty?
+      structurally_incompatible_values_for(other, STRUCTURAL_VALUE_METHODS_FOR_OR).empty?
     end
 
     # Returns a new relation, which is the logical intersection of this relation and the one passed
@@ -1139,7 +1144,7 @@ module ActiveRecord
     end
 
     def and!(other) # :nodoc:
-      incompatible_values = structurally_incompatible_values_for(other)
+      incompatible_values = structurally_incompatible_values_for(other, STRUCTURAL_VALUE_METHODS_FOR_AND)
 
       unless incompatible_values.empty?
         raise ArgumentError, "Relation passed to #and must be structurally compatible. Incompatible values: #{incompatible_values}"
@@ -1175,7 +1180,7 @@ module ActiveRecord
     end
 
     def or!(other) # :nodoc:
-      incompatible_values = structurally_incompatible_values_for(other)
+      incompatible_values = structurally_incompatible_values_for(other, STRUCTURAL_VALUE_METHODS_FOR_OR)
 
       unless incompatible_values.empty?
         raise ArgumentError, "Relation passed to #or must be structurally compatible. Incompatible values: #{incompatible_values}"
@@ -2214,14 +2219,9 @@ module ActiveRecord
         end
       end
 
-      STRUCTURAL_VALUE_METHODS = (
-        Relation::VALUE_METHODS -
-        [:extending, :where, :having, :unscope, :references, :annotate, :optimizer_hints]
-      ).freeze # :nodoc:
-
-      def structurally_incompatible_values_for(other)
+      def structurally_incompatible_values_for(other, incompatible_values)
         values = other.values
-        STRUCTURAL_VALUE_METHODS.reject do |method|
+        incompatible_values.reject do |method|
           v1, v2 = @values[method], values[method]
           if v1.is_a?(Array)
             next true unless v2.is_a?(Array)
