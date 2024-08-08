@@ -208,7 +208,17 @@ module ActiveRecord
           end
 
           def encode_range(range)
-            "[#{type_cast_range_value(range.begin)},#{type_cast_range_value(range.end)}#{range.exclude_end? ? ')' : ']'}"
+            lower_bound = type_cast_range_value(range.begin)
+            upper_bound = if date_or_time_range?(range)
+              # Postgres will convert `[today,]` to `[today,)`, making it exclusive.
+              # We can use the special timestamp value `infinity` to force inclusion.
+              # https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-INFINITE
+              range.end.nil? ? "infinity" : type_cast(range.end)
+            else
+              type_cast_range_value(range.end)
+            end
+
+            "[#{lower_bound},#{upper_bound}#{range.exclude_end? ? ')' : ']'}"
           end
 
           def determine_encoding_of_strings_in_array(value)
@@ -231,6 +241,10 @@ module ActiveRecord
 
           def infinity?(value)
             value.respond_to?(:infinite?) && value.infinite?
+          end
+
+          def date_or_time_range?(range)
+            [range.begin.class, range.end.class].intersect?([Date, DateTime, Time])
           end
       end
     end
