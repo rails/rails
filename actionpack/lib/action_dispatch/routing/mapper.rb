@@ -2293,9 +2293,9 @@ module ActionDispatch
 
         attr_reader :parent, :scope_level
 
-        def initialize(hash, parent = NULL, scope_level = nil)
-          @hash = hash
+        def initialize(hash, parent = ROOT, scope_level = nil)
           @parent = parent
+          @hash = parent ? parent.frame.merge(hash) : hash
           @scope_level = scope_level
         end
 
@@ -2308,7 +2308,7 @@ module ActionDispatch
         end
 
         def root?
-          @parent.null?
+          @parent == ROOT
         end
 
         def resources?
@@ -2353,23 +2353,22 @@ module ActionDispatch
         end
 
         def [](key)
-          scope = find { |node| node.frame.key? key }
-          scope && scope.frame[key]
+          frame[key]
         end
+
+        def frame; @hash; end
 
         include Enumerable
 
         def each
           node = self
-          until node.equal? NULL
+          until node.equal? ROOT
             yield node
             node = node.parent
           end
         end
 
-        def frame; @hash; end
-
-        NULL = Scope.new(nil, nil)
+        ROOT = Scope.new({}, nil)
       end
 
       def initialize(set) # :nodoc:
