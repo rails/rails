@@ -105,6 +105,14 @@ Here is a quick explanation of the Mailer related methods used above:
 * The [`mail`][] method creates the actual email message. We use it to specify
   the values of headers like `:to` and `:subject` per email.
 
+It is also possible to specify an action directly while using the generator like this:
+
+```bash
+$ bin/rails generate mailer User welcome_email
+```
+
+The above will generate the `UserMailer` above with an empty `welcome_email` method.
+
 [`default`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-default
 [`mail`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-mail
 
@@ -220,6 +228,13 @@ Content-Type: text/html;
 ...
 ```
 
+You can also call the Mailer from the Rails console and send emails. Perhaps as a way to test the email before you have a controller action set up for it. The below will send the same `welcome_email` as above:
+
+```ruby
+irb> user = User.first
+irb> UserMailer.with(user: user).welcome_email.deliver_later
+```
+
 If you want to send emails right away (from a cronjob for example) you can call
 [`deliver_now`][]:
 
@@ -240,6 +255,32 @@ or `deliver_later` to send itself now or later. The
 [`Mail::Message`][]. If you want to inspect, alter, or do anything else with the
 `Mail::Message` object you can access it with the [`message`][] method on the
 `ActionMailer::MessageDelivery` object.
+
+Here is an example of the `MessageDelivery` object from the Rails console example above:
+
+```ruby
+#<ActionMailer::MailDeliveryJob:0x00007f84cb0367c0
+ @_halted_callback_hook_called=nil,
+ @_scheduled_at_time=nil,
+ @arguments=
+  ["UserMailer",
+   "welcome_email",
+   "deliver_now",
+   {:params=>
+     {:user=>
+       #<User:0x00007f84c9327198
+        id: 1,
+        name: "Bhumi",
+        email: "hi@gmail.com",
+        login: "Bhumi",
+        created_at: Thu, 06 Jun 2024 17:43:44.424064000 UTC +00:00,
+        updated_at: Thu, 06 Jun 2024 17:43:44.424064000 UTC +00:00>},
+    :args=>[]}],
+ @exception_executions={},
+ @executions=0,
+ @job_id="07747748-59cc-4e88-812a-0d677040cd5a",
+ @priority=nil,
+```
 
 [`ActionMailer::MessageDelivery`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html
 [`deliver_later`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html#method-i-deliver_later
