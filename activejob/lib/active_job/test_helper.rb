@@ -736,7 +736,7 @@ module ActiveJob
           end
 
           if arguments[:at].acts_like?(:time)
-            at_range = arguments[:at] - 1..arguments[:at] + 1
+            at_range = arguments[:at] - 1.second..arguments[:at] + 1.second
             arguments[:at] = ->(at) { at_range.cover?(at) }
           end
         end
