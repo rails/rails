@@ -68,7 +68,7 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 ...
 ```
 
-Don't forget to review the difference, to see if there were any unexpected changes.
+Don't forget to review the difference, to see if there were any unexpected changes, and note that the diff and merge tools used during this processed can be defined using the `THOR_DIFF` and `THOR_MERGE` environment variables.
 
 ### Configure Framework Defaults
 
