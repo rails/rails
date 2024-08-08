@@ -38,19 +38,34 @@ class ParametersExpectTest < ActiveSupport::TestCase
   end
 
   test "keys to arrays: returns permitted params in hash key order" do
-    name, addresses = @params[:person].expect(name: [:first, :last], addresses: [:city])
+    name, addresses = @params[:person].expect(name: [:first, :last], addresses: [[:city]])
 
     assert_equal({ "first" => "David", "last" => "Heinemeier Hansson" }, name.to_h)
     assert_equal({ "city" => "Chicago" }, addresses.first.to_h)
   end
 
-  test "key and hash: returns permitted params" do
-    params = ActionController::Parameters.new(name: "Martin", age: 40, pies: [{ type: "dessert", flavor: "pumpkin"}])
-    name, age, pies = params.expect(:name, :age, pies: [:type, :flavor])
+  test "key to array of keys: raises when params is an array" do
+    params = ActionController::Parameters.new(name: "Martin", pies: [{ flavor: "pumpkin" }])
 
-    assert_equal "Martin", name
-    assert_equal 40, age
-    assert_equal({ "type" => "dessert", "flavor" => "pumpkin" }, pies.first.to_h)
+    assert_raises(ActionController::ParameterMissing) do
+      params.expect(pies: [:flavor])
+    end
+  end
+
+  test "key to nested array: returns permitted array" do
+    params = ActionController::Parameters.new(name: "Martin", pies: [{ flavor: "pumpkin" }, { flavor: "chicken pot" }])
+    pies = params.expect(pies: [[:flavor]])
+
+    assert_equal({ "flavor" => "pumpkin" }, pies[0].to_h)
+    assert_equal({ "flavor" => "chicken pot" }, pies[1].to_h)
+  end
+
+  test "key to nested array: raises when params is a hash" do
+    params = ActionController::Parameters.new(name: "Martin", pies: { flavor: "pumpkin" })
+
+    assert_raises(ActionController::ParameterMissing) do
+      params.expect(pies: [[:flavor]])
+    end
   end
 
   test "key to mixed array: returns permitted params" do

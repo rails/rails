@@ -675,7 +675,7 @@ module ActionController
     #     params.permit(person: { '0': [:email], '1': [:phone]}).to_h
     #     # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"phone"=>"555-6789"}}}
     def permit(*filters)
-      permit_only(*filters, &method(:unpermitted_parameters))
+      permit_filters(filters, &method(:unpermitted_parameters))
     end
 
     # Same as permit, but raises on unpermitted parameters by default.
@@ -684,12 +684,7 @@ module ActionController
     # If a block is given, it is called with the unpermitted keys.
     def permit_only(*filters, &block)
       block ||= method(:raise_unpermitted_parameters)
-      params = permit_filters(filters, &block)
-
-      unpermitted = unpermitted_keys(params)
-      block.call(unpermitted) if unpermitted.any?
-
-      params
+      permit_filters(filters, &block)
     end
 
     # `expect` is the preferred way to require and permit parameters and work
@@ -819,13 +814,15 @@ module ActionController
     #    object  # => #<ActionController::Parameters {"pie"=>"pumpkin"} permitted: true>
     #
     def expect(*filters)
-      expect_only filters, &method(:unpermitted_parameters)
+      expect_only(*filters, &method(:unpermitted_parameters))
     end
 
-    # Same as expect, but raises on unpermitted parameters, regardless of ActionController::Parameters.action_on_unpermitted_parameters
+    # Same as expect, but raises on unpermitted parameters, ignoring ActionController::Parameters.action_on_unpermitted_parameters
+    #
+    # Accepts a block which will yield the unpermitted keys if any are found.
     def expect_only(*filters, &block)
       block ||= method(:raise_unpermitted_parameters)
-      params = permit_filters(filters, &block)
+      params = permit_filters(filters, explicit_arrays: true, check_unpermitted: false, &block)
       keys = filters.flatten.flat_map { |f| f.is_a?(Hash) ? f.keys : f }
       values = params.require(keys)
       values.size == 1 ? values.first : values
@@ -848,20 +845,22 @@ module ActionController
     #     person_params[:age]  # => nil
     #
     def allow(*filters)
-      allow_only filters, &method(:unpermitted_parameters)
+      allow_only(*filters, &method(:unpermitted_parameters))
     end
 
-    # Same as allow, but raises on unpermitted parameters, regardless of ActionController::Parameters.action_on_unpermitted_parameters
+    # Same as allow, but raises on unpermitted parameters, ignoring ActionController::Parameters.action_on_unpermitted_parameters
+    #
+    # Accepts a block which will yield the unpermitted keys if any are found.
     def allow_only(*filters, &block)
       block ||= method(:raise_unpermitted_parameters)
-      params = permit_filters(filters, &block)
+      params = permit_filters(filters, explicit_arrays: true, check_unpermitted: false, &block)
       values = filters.flatten.flat_map do |filter|
         case filter
         when Symbol, String
           params.fetch(filter, nil)
         when Hash
           filter.map do |key, value|
-            params.fetch(key) { value == EMPTY_ARRAY ? [] : self.class.new.permit! }
+            params.fetch(key) { value == EMPTY_ARRAY || array_filter?(value) ? [] : self.class.new.permit! }
           end
         end
       end
@@ -1205,6 +1204,39 @@ module ActionController
         hash
       end
 
+      # Filters params given the set of filters.
+      #
+      # explicit_arrays: true switches to explicit array param filtering.
+      #   This is a new requirement for permit to distinguish between:
+      #     { comment: [:text] }
+      #     { comments: [[:text]] }
+      #   With explicit_arrays: false, the first filters would allow
+      #   comment to return either a hash or array of hashs.
+      #   With explicit_arrays: true, the first way would only allow a hash
+      #   with key :text while the second way would allow only an array of hashes
+      #   with key :text.
+      # check_unpermitted: true calls the passed block when unpermitted keys are found.
+      #   It is intentionally not passed to hash_filter, defaulting to true for nested keys.
+      def permit_filters(filters, explicit_arrays: false, check_unpermitted: true, &block)
+        params = self.class.new
+
+        filters.flatten.each do |filter|
+          case filter
+          when Symbol, String
+            permitted_scalar_filter(params, filter)
+          when Hash
+            hash_filter(params, filter, explicit_arrays:, &block)
+          end
+        end
+
+        if check_unpermitted
+          unpermitted = unpermitted_keys(params)
+          block.call(unpermitted) if unpermitted.any?
+        end
+
+        params.permit!
+      end
+
     private
       def new_instance_with_inherited_permitted_status(hash)
         self.class.new(hash, @logging_context).tap do |new_instance|
@@ -1294,6 +1326,28 @@ module ActionController
         end
       end
 
+      # When an array is expected, you must specify an array explicitly
+      # using the following format:
+      #
+      #     params.expect(comments: [[:flavor]])
+      #
+      # Which will match only the following array formats:
+      #
+      #     { pies: [{ flavor: "rhubarb" }, { flavor: "apple" }] }
+      #     { pies: { "0" => { flavor: "key lime" }, "1" =>  { flavor: "mince" } } }
+      #
+      # Previously, arrays were specified the same way as hashes:
+      #
+      #     params.expect(pies: [:flavor])
+      #
+      # which would also allow matching with a hash (or vice versa):
+      #
+      #     { pies: { flavor: "cherry" } }
+      #
+      def array_filter?(filter)
+        filter.is_a?(Array) && filter.size == 1 && filter.first.is_a?(Array)
+      end
+
       def each_element(object, filter, &block)
         case object
         when Array
@@ -1360,22 +1414,6 @@ module ActionController
         PERMITTED_SCALAR_TYPES.any? { |type| value.is_a?(type) }
       end
 
-      # Filters params given the set of filters.
-      def permit_filters(filters, &block)
-        params = self.class.new
-
-        filters.flatten.each do |filter|
-          case filter
-          when Symbol, String
-            permitted_scalar_filter(params, filter)
-          when Hash
-            hash_filter(params, filter, &block)
-          end
-        end
-
-        params.permit!
-      end
-
       # Adds existing keys to the params if their values are scalar.
       #
       # For example:
@@ -1413,7 +1451,7 @@ module ActionController
 
       EMPTY_ARRAY = [] # :nodoc:
       EMPTY_HASH  = {} # :nodoc:
-      def hash_filter(params, filter, &block)
+      def hash_filter(params, filter, explicit_arrays: false, &block)
         filter = filter.with_indifferent_access
 
         # Slicing filters out non-declared keys.
@@ -1431,11 +1469,36 @@ module ActionController
             if value.is_a?(Parameters)
               params[key] = permit_any_in_parameters(value)
             end
-          elsif non_scalar?(value)
-            # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
-            params[key] = each_element(value, filter[key]) do |element|
-              element.permit_only(filter[key], &block)
+          elsif array_filter?(filter[key])
+            # Declaration { comments: [[:text]] }
+            params[key] = each_array_element(value, filter[key].first) do |element|
+              element.permit_filters(Array.wrap(filter[key].first), explicit_arrays:, &block)
             end
+          elsif explicit_arrays
+            if value.is_a?(Parameters)
+              # Treat params as a hash even if they could be interpretted as an array.
+              params[key] = value.permit_filters(Array.wrap(filter[key]), explicit_arrays:, &block)
+            end
+          elsif non_scalar?(value)
+            # Declaration { user: { address: ... } } or { user: [:name, :age, { address: ... }] }.
+            # Allow arrays with old syntax { comments: [:text] }
+            params[key] = each_element(value, filter[key]) do |element|
+              element.permit_filters(Array.wrap(filter[key]), explicit_arrays:, &block)
+            end
+          end
+        end
+      end
+
+      # Called with the params being filtered (object) and a nested array (filter)
+      def each_array_element(object, filter, &block)
+        case object
+        when Array
+          object.grep(Parameters).filter_map(&block)
+        when Parameters
+          if object.nested_attributes? && !specify_numeric_keys?(filter)
+            object.each_nested_attribute(&block)
+          else
+            [] # Array is expected but params are not an array.
           end
         end
       end
