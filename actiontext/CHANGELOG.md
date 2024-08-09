@@ -1,24 +1,13 @@
-## Rails 7.2.0.rc1 (August 06, 2024) ##
-
-*   No changes.
-
-
-## Rails 7.2.0.beta3 (July 11, 2024) ##
+## Rails 7.2.0 (August 09, 2024) ##
 
 *   Only sanitize `content` attribute when present in attachments.
 
     *Petrik de Heus*
 
-
-## Rails 7.2.0.beta2 (June 04, 2024) ##
-
 *   Sanitize ActionText HTML ContentAttachment in Trix edit view
     [CVE-2024-32464]
 
     *Aaron Patterson*, *Zack Deveau*
-
-
-## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Use `includes` instead of `eager_load` for `with_all_rich_text`.
 

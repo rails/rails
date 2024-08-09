@@ -106,17 +106,17 @@
     fastq "^1.6.0"
 
 "@rails/actioncable@file:/workspaces/rails/actioncable":
-  version "7.2.0-rc1"
+  version "7.2.0"
   resolved "file:actioncable"
 
 "@rails/actiontext@file:/workspaces/rails/actiontext":
-  version "7.2.0-rc1"
+  version "7.2.0"
   resolved "file:actiontext"
   dependencies:
     "@rails/activestorage" ">= 7.2.0-alpha"
 
 "@rails/activestorage@>= 7.2.0-alpha", "@rails/activestorage@file:/workspaces/rails/activestorage":
-  version "7.2.0-rc1"
+  version "7.2.0"
   resolved "file:activestorage"
   dependencies:
     spark-md5 "^3.0.1"

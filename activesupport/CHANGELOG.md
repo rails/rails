@@ -1,4 +1,4 @@
-## Rails 7.2.0.rc1 (August 06, 2024) ##
+## Rails 7.2.0 (August 09, 2024) ##
 
 *   Fix `delegate_missing_to allow_nil: true` when called with implict self
 
@@ -21,19 +21,13 @@
 
     *Jean Boussier*
 
-## Rails 7.2.0.beta3 (July 11, 2024) ##
-
 *   Add `logger` as a dependency since it is a bundled gem candidate for Ruby 3.5
 
     *Earlopain*
 
-## Rails 7.2.0.beta2 (June 04, 2024) ##
-
 *   Define `Digest::UUID.nil_uuid`, which returns the so-called nil UUID.
 
     *Xavier Noria*
-
-## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Support `duration` type in `ActiveSupport::XmlMini`.
 
