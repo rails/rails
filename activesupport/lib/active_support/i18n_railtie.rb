@@ -49,7 +49,8 @@ module I18n
         when :load_path
           I18n.load_path += value
         when :raise_on_missing_translations
-          setup_raise_on_missing_translations_config(app)
+          strict = value == :strict
+          setup_raise_on_missing_translations_config(app, strict)
         else
           I18n.public_send("#{setting}=", value)
         end
@@ -78,13 +79,13 @@ module I18n
       @i18n_inited = true
     end
 
-    def self.setup_raise_on_missing_translations_config(app)
+    def self.setup_raise_on_missing_translations_config(app, strict)
       ActiveSupport.on_load(:action_view) do
         ActionView::Helpers::TranslationHelper.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
       end
 
       ActiveSupport.on_load(:active_model_translation) do
-        ActiveModel::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+        ActiveModel::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations if strict
       end
 
       if app.config.i18n.raise_on_missing_translations &&
