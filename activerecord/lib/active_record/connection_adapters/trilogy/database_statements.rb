@@ -58,9 +58,9 @@ module ActiveRecord
             end
           end
 
-          def execute_batch(statements, name = nil)
+          def execute_batch(statements, name = nil, **)
             combine_multi_statements(statements).each do |statement|
-              raw_execute(statement, name, batch: true)
+              raw_execute(statement, name, batch: true, **)
             end
           end
       end

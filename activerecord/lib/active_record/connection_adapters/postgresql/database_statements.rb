@@ -192,8 +192,8 @@ module ActiveRecord
             affected_rows
           end
 
-          def execute_batch(statements, name = nil)
-            raw_execute(combine_multi_statements(statements), name, batch: true)
+          def execute_batch(statements, name = nil, **)
+            raw_execute(combine_multi_statements(statements), name, batch: true, **)
           end
 
           def build_truncate_statements(table_names)
