@@ -87,7 +87,7 @@ module ActionDispatch
         attr_reader :path, :requirements, :defaults, :to, :default_controller,
                     :default_action, :required_defaults, :ast, :scope_options
 
-        def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
+        def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, internal, options)
           scope_params = {
             blocks: scope[:blocks] || [],
             constraints: scope[:constraints] || {},
@@ -98,7 +98,7 @@ module ActionDispatch
 
           new set: set, ast: ast, controller: controller, default_action: default_action,
               to: to, formatted: formatted, via: via, options_constraints: options_constraints,
-              anchor: anchor, scope_params: scope_params, options: scope_params[:options].merge(options)
+              anchor: anchor, scope_params: scope_params, internal: internal, options: scope_params[:options].merge(options)
         end
 
         def self.check_via(via)
@@ -129,7 +129,7 @@ module ActionDispatch
           format != false && !path.match?(OPTIONAL_FORMAT_REGEX)
         end
 
-        def initialize(set:, ast:, controller:, default_action:, to:, formatted:, via:, options_constraints:, anchor:, scope_params:, options:)
+        def initialize(set:, ast:, controller:, default_action:, to:, formatted:, via:, options_constraints:, anchor:, scope_params:, internal:, options:)
           @defaults           = scope_params[:defaults]
           @set                = set
           @to                 = intern(to)
@@ -137,7 +137,7 @@ module ActionDispatch
           @default_action     = intern(default_action)
           @anchor             = anchor
           @via                = via
-          @internal           = options.delete(:internal)
+          @internal           = internal
           @scope_options      = scope_params[:options]
           ast                 = Journey::Ast.new(ast, formatted)
 
@@ -624,44 +624,44 @@ module ActionDispatch
         #
         # This will generate the `exciting_path` and `exciting_url` helpers which can be
         # used to navigate to this mounted app.
-        def mount(app, options = nil)
-          if options
-            path = options.delete(:at)
-          elsif Hash === app
-            options = app
-            app, path = options.find { |k, _| k.respond_to?(:call) }
-            options.delete(app) if app
-            hash_key_app = true
+        def mount(app = nil, as: DEFAULT, via: nil, at: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+          path_or_action = at
+
+          if app.nil?
+            hash_app, hash_path = mapping.find { |key, _| key.respond_to?(:call) }
+            mapping.delete(hash_app) if hash_app
+
+            ActionDispatch.deprecator.warn(<<-MSG.squish) if hash_app
+              Mounting an engine with a hash key name is deprecated and
+              will be removed in Rails 8.1. Please use the at: option instead.
+
+              Instead of:
+
+                mount(SomeRackApp => "some_route")
+
+              Please use:
+
+                mount SomeRackApp, at: "some_route"
+            MSG
+
+            app ||= hash_app
+            path_or_action ||= hash_path
           end
 
           raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
-          raise ArgumentError, <<~MSG unless path
+          raise ArgumentError, <<~MSG unless path_or_action
             Must be called with mount point
-
-              mount SomeRackApp, at: "some_route"
-              or
-              mount(SomeRackApp => "some_route")
-          MSG
-          ActionDispatch.deprecator.warn(<<-MSG.squish) if hash_key_app
-            Mounting an engine with a hash key name is deprecated and
-            will be removed in Rails 8.1. Please use the `at:` option instead.
-
-            Instead of:
-
-              mount(SomeRackApp => "some_route")
-
-            Please use:
 
               mount SomeRackApp, at: "some_route"
           MSG
 
           rails_app = rails_app? app
-          options[:as] ||= app_name(app, rails_app)
+          as = app_name(app, rails_app) if as == DEFAULT
 
-          target_as       = name_for_action(options[:as], path)
-          options[:via] ||= :all
+          target_as = name_for_action(as, path_or_action)
+          via ||= :all
 
-          match(path, { to: app, anchor: false, format: false }.merge(options))
+          match(path_or_action, to: app, as:, via:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, &block)
 
           define_generate_prefix(app, target_as) if rails_app
           self
@@ -737,57 +737,55 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     get 'bacon', to: 'food#bacon'
-        def get(*args, &block)
-          map_method(:get, args, &block)
+        def get(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :get, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP POST. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     post 'bacon', to: 'food#bacon'
-        def post(*args, &block)
-          map_method(:post, args, &block)
+        def post(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :post, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP PATCH. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     patch 'bacon', to: 'food#bacon'
-        def patch(*args, &block)
-          map_method(:patch, args, &block)
+        def patch(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :patch, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP PUT. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     put 'bacon', to: 'food#bacon'
-        def put(*args, &block)
-          map_method(:put, args, &block)
+        def put(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :put, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP DELETE. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     delete 'broccoli', to: 'food#broccoli'
-        def delete(*args, &block)
-          map_method(:delete, args, &block)
+        def delete(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :delete, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP OPTIONS. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     options 'carrots', to: 'food#carrots'
-        def options(*args, &block)
-          map_method(:options, args, &block)
+        def options(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, **mapping, via: :options, &block)
+          self
         end
-
-        private
-          def map_method(method, args, &block)
-            options = args.extract_options!
-            options[:via] = method
-            match(*args, options, &block)
-            self
-          end
       end
 
       # You may wish to organize groups of controllers under a namespace. Most
@@ -1682,13 +1680,8 @@ module ActionDispatch
         #
         #     match 'path', to: 'controller#action', via: :post
         #     match 'path', 'otherpath', on: :member, via: :get
-        def match(path, *rest, &block)
-          if rest.empty? && Hash === path
-            options  = path
-            path, to = options.find { |name, _value| name.is_a?(String) }
-
-            raise ArgumentError, "Route path not specified" if path.nil?
-
+        def match(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.count > 1
             ActionDispatch.deprecator.warn(<<-MSG.squish)
               Drawing a route with a hash key name is deprecated and
               will be removed in Rails 8.1. Please use the `to:` option with
@@ -1702,31 +1695,43 @@ module ActionDispatch
 
                 match "path", to: "controller#action"
             MSG
-
-            case to
-            when Symbol
-              options[:action] = to
-            when String
-              if to.include?("#")
-                options[:to] = to
-              else
-                options[:controller] = to
-              end
+          elsif path_or_actions.none? && mapping.any?
+            hash_path, hash_to = mapping.find { |key, _| key.is_a?(String) }
+            if hash_path.nil?
+              raise ArgumentError, "Route path not specified"
             else
-              options[:to] = to
+              mapping.delete(hash_path)
             end
 
-            options.delete(path)
-            paths = [path]
-          else
-            options = rest.pop || {}
-            paths = [path] + rest
+            if hash_path
+              ActionDispatch.deprecator.warn(<<-MSG.squish)
+                Drawing a route with a hash key name is deprecated and
+                will be removed in Rails 8.1. Please use the to: option with
+                "controller#action" syntax instead.
+              MSG
+
+              path_or_actions.push hash_path
+              case hash_to
+              when Symbol
+                action ||= hash_to
+              when String
+                if hash_to.include?("#")
+                  to ||= hash_to
+                else
+                  controller ||= hash_to
+                end
+              else
+                to ||= hash_to
+              end
+            end
           end
 
-          if options.key?(:defaults)
-            defaults(options.delete(:defaults)) { map_match(paths, options, &block) }
-          else
-            map_match(paths, options, &block)
+          path_or_actions.each do |path_or_action|
+            if defaults
+              defaults(defaults) { map_match(path_or_action, as:, via:, to:, controller:, action:, on:, constraints:, anchor:, format:, path:, internal:, mapping:, &block) }
+            else
+              map_match(path_or_action, as:, via:, to:, controller:, action:, on:, constraints:, anchor:, format:, path:, internal:, mapping:, &block)
+            end
           end
         end
 
@@ -1894,7 +1899,7 @@ module ActionDispatch
           end
 
           def prefix_name_for_action(as, action)
-            if as
+            if as && as != DEFAULT
               prefix = as
             elsif !canonical_action?(action)
               prefix = action
@@ -1910,7 +1915,7 @@ module ActionDispatch
             name_prefix = @scope[:as]
 
             if parent_resource
-              return nil unless as || action
+              return nil unless as != DEFAULT || action
 
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name
@@ -1923,7 +1928,7 @@ module ActionDispatch
               # If a name was not explicitly given, we check if it is valid and return nil in
               # case it isn't. Otherwise, we pass the invalid name forward so the underlying
               # router engine treats it and raises an exception.
-              if as.nil?
+              if as == DEFAULT
                 candidate unless !candidate.match?(/\A[_a-z]/i) || has_named_route?(candidate)
               else
                 candidate
@@ -1954,47 +1959,35 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def map_match(paths, options)
-            ActionDispatch.deprecator.warn(<<-MSG.squish) if paths.count > 1
-              Mapping a route with multiple paths is deprecated and
-              will be removed in Rails 8.1. Please use multiple method calls instead.
-            MSG
-
-            if (on = options[:on]) && !VALID_ON_OPTIONS.include?(on)
+          def map_match(path_or_action, constraints: nil, anchor: nil, format: nil, path: nil, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, internal: nil, mapping: nil)
+            if on && !VALID_ON_OPTIONS.include?(on)
               raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
             end
 
             if @scope[:to]
-              options[:to] ||= @scope[:to]
+              to ||= @scope[:to]
             end
 
             if @scope[:controller] && @scope[:action]
-              options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
+              to ||= "#{@scope[:controller]}##{@scope[:action]}"
             end
 
-            controller = options.delete(:controller) || @scope[:controller]
-            option_path = options.delete :path
-            to = options.delete :to
-            via = Mapping.check_via Array(options.delete(:via) {
-              @scope[:via]
-            })
-            formatted = options.delete(:format) { @scope[:format] }
-            anchor = options.delete(:anchor) { true }
-            options_constraints = options.delete(:constraints) || {}
+            controller ||= @scope[:controller]
+            via = Mapping.check_via Array(via || @scope[:via])
+            format ||= @scope[:format] if format.nil?
+            anchor ||= true if anchor.nil?
+            constraints ||= {}
 
-            path_types = paths.group_by(&:class)
-            (path_types[String] || []).each do |_path|
-              route_options = options.dup
-              if _path && option_path
+            case path_or_action
+            when String
+              if path_or_action && path
                 raise ArgumentError, "Ambiguous route definition. Both :path and the route path were specified as strings."
               end
-              to = get_to_from_path(_path, to, route_options[:action])
-              decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
-            end
-
-            (path_types[Symbol] || []).each do |action|
-              route_options = options.dup
-              decomposed_match(action, controller, route_options, option_path, to, via, formatted, anchor, options_constraints)
+              path = path_or_action
+              to = get_to_from_path(path_or_action, to, action)
+              decomposed_match(path, controller, as, action, path, to, via, format, anchor, constraints, internal, mapping, on)
+            when Symbol
+              decomposed_match(path_or_action, controller, as, action, path, to, via, format, anchor, constraints, internal, mapping, on)
             end
 
             self
@@ -2015,28 +2008,28 @@ module ActionDispatch
             %r{^/?[-\w]+/[-\w/]+$}.match?(path)
           end
 
-          def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
-            if on = options.delete(:on)
-              send(on) { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+          def decomposed_match(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping, on = nil)
+            if on
+              send(on) { decomposed_match(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping) }
             else
               case @scope.scope_level
               when :resources
-                nested { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+                nested { decomposed_match(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping) }
               when :resource
-                member { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+                member { decomposed_match(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping) }
               else
-                add_route(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
+                add_route(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping)
               end
             end
           end
 
-          def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints)
+          def add_route(action, controller, as, options_action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping)
             path = path_for_action(action, _path)
             raise ArgumentError, "path is required" if path.blank?
 
             action = action.to_s
 
-            default_action = options.delete(:action) || @scope[:action]
+            default_action = options_action || @scope[:action]
 
             if /^[\w\-\/]+$/.match?(action)
               default_action ||= action.tr("-", "_") unless action.include?("/")
@@ -2044,22 +2037,16 @@ module ActionDispatch
               action = nil
             end
 
-            as = if !options.fetch(:as, true) # if it's set to nil or false
-              options.delete(:as)
-            else
-              name_for_action(options.delete(:as), action)
-            end
-
+            as   = name_for_action(as, action) if as
             path = Mapping.normalize_path URI::DEFAULT_PARSER.escape(path), formatted
-            ast = Journey::Parser.parse path
+            ast  = Journey::Parser.parse path
 
-            mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
+            mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, internal, options_mapping)
             @set.add_route(mapping, as)
           end
 
           def match_root_route(options)
-            args = ["/", { as: :root, via: :get }.merge(options)]
-            match(*args)
+            match("/", as: :root, via: :get, **options)
           end
       end
 
@@ -2369,6 +2356,8 @@ module ActionDispatch
 
         ROOT = Scope.new({}, nil)
       end
+
+      DEFAULT = Object.new # :nodoc:
 
       def initialize(set) # :nodoc:
         @set = set
