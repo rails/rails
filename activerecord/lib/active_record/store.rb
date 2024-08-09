@@ -143,10 +143,18 @@ module ActiveRecord
               read_store_attribute(store_attribute, key)
             end
 
-            define_method("#{accessor_key}_changed?") do
+            define_method("#{accessor_key}_changed?") do |**options|
               return false unless attribute_changed?(store_attribute)
-              prev_store, new_store = changes[store_attribute]
-              prev_store&.dig(key) != new_store&.dig(key)
+              prev_value = changes.dig(store_attribute, 0, key)
+              new_value = changes.dig(store_attribute, 1, key)
+
+              option_not_given = Object.new
+              from = options.dig(:from) || option_not_given
+              to = options.dig(:to) || option_not_given
+
+              (prev_value != new_value) &&
+                (option_not_given == from || prev_value == from) &&
+                (option_not_given == to || new_value == to)
             end
 
             define_method("#{accessor_key}_change") do
@@ -161,22 +169,40 @@ module ActiveRecord
               prev_store&.dig(key)
             end
 
-            define_method("saved_change_to_#{accessor_key}?") do
+            define_method("saved_change_to_#{accessor_key}?") do |**options|
               return false unless saved_change_to_attribute?(store_attribute)
-              prev_store, new_store = saved_changes[store_attribute]
-              prev_store&.dig(key) != new_store&.dig(key)
+              prev_value = saved_changes.dig(store_attribute, 0, key)
+              new_value = saved_changes.dig(store_attribute, 1, key)
+
+              option_not_given = Object.new
+              from = options.dig(:from) || option_not_given
+              to = options.dig(:to) || option_not_given
+
+              (prev_value != new_value) &&
+                (option_not_given == from || prev_value == from) &&
+                (option_not_given == to || new_value == to)
             end
 
             define_method("saved_change_to_#{accessor_key}") do
-              return unless saved_change_to_attribute?(store_attribute)
-              prev_store, new_store = saved_changes[store_attribute]
+              prev_store, new_store = saved_changes.dig(store_attribute)
               [prev_store&.dig(key), new_store&.dig(key)]
             end
 
             define_method("#{accessor_key}_before_last_save") do
-              return unless saved_change_to_attribute?(store_attribute)
-              prev_store, _new_store = saved_changes[store_attribute]
-              prev_store&.dig(key)
+              attribute_before_last_save(store_attribute)&.dig(key.to_s)
+            end
+
+            define_method("will_save_change_to_#{accessor_key}?") do |**options|
+              will_save_change_to_attribute?(accessor_key, **options)
+            end
+
+            define_method("#{accessor_key}_change_to_be_saved") do
+              prev_store, new_store = attribute_change_to_be_saved(store_attribute)
+              [prev_store&.dig(key), new_store&.dig(key)]
+            end
+
+            define_method("#{accessor_key}_in_database") do
+              attribute_in_database(store_attribute)&.dig(key.to_s)
             end
           end
         end
