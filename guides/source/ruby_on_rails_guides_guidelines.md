@@ -51,8 +51,33 @@ Use the same inline formatting as regular text:
 ##### The `:content_type` Option
 ```
 
-Linking to the API
-------------------
+Links
+-----
+
+Use descriptive links and avoid "here" and "more" links:
+
+```markdown
+# BAD
+See the Rails Internationalization (I18n) API documentation for [more
+details](i18n.html).
+
+# GOOD
+See the [Rails Internationalization (I18n) API documentation](i18n.html) for
+more details.
+```
+
+Use descriptive links for internal links as well:
+
+```markdown
+# BAD
+We will cover this [below](#multiple-callback-conditions).
+
+# GOOD
+We will cover this in the [multiple callback conditions
+section](#multiple-callback-conditions) shown below.
+```
+
+### Linking to the API
 
 Links to the API (`api.rubyonrails.org`) are processed by the guides generator in the following manner:
 
