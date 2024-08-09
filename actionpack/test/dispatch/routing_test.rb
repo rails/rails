@@ -3305,7 +3305,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope as: "routes" do
         get "/c/:id", as: :collision, to: "collision#show"
         get "/collision", to: "collision#show"
-        get "/no_collision", to: "collision#show", as: false
+        get "/no_collision", to: "collision#show", as: nil
       end
     end
 

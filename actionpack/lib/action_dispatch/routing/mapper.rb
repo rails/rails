@@ -625,7 +625,7 @@ module ActionDispatch
         #
         # This will generate the `exciting_path` and `exciting_url` helpers which can be
         # used to navigate to this mounted app.
-        def mount(app = nil, as: nil, via: nil, at: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+        def mount(app = nil, as: DEFAULT, via: nil, at: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
           path_or_action = at
 
           if app.nil?
@@ -657,7 +657,7 @@ module ActionDispatch
           MSG
 
           rails_app = rails_app? app
-          as ||= app_name(app, rails_app)
+          as = app_name(app, rails_app) if as == DEFAULT
 
           target_as = name_for_action(as, path_or_action)
           via ||= :all
@@ -738,7 +738,7 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     get 'bacon', to: 'food#bacon'
-        def get(*path_or_actions, as: nil, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+        def get(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
           match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :get, &block)
           self
         end
@@ -747,7 +747,7 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     post 'bacon', to: 'food#bacon'
-        def post(*path_or_actions, as: nil, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+        def post(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
           match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :post, &block)
           self
         end
@@ -756,7 +756,7 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     patch 'bacon', to: 'food#bacon'
-        def patch(*path_or_actions, as: nil, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+        def patch(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
           match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :patch, &block)
           self
         end
@@ -765,7 +765,7 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     put 'bacon', to: 'food#bacon'
-        def put(*path_or_actions, as: nil, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+        def put(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
           match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :put, &block)
           self
         end
@@ -774,7 +774,7 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     delete 'broccoli', to: 'food#broccoli'
-        def delete(*path_or_actions, as: nil, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+        def delete(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
           match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :delete, &block)
           self
         end
@@ -783,7 +783,7 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     options 'carrots', to: 'food#carrots'
-        def options(*path_or_actions, as: nil, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+        def options(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
           match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, **mapping, via: :options, &block)
           self
         end
@@ -1681,7 +1681,7 @@ module ActionDispatch
         #
         #     match 'path', to: 'controller#action', via: :post
         #     match 'path', 'otherpath', on: :member, via: :get
-        def match(*path_or_actions, as: nil, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+        def match(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
           if path_or_actions.count > 1
             ActionDispatch.deprecator.warn(<<-MSG.squish)
               Drawing a route with a hash key name is deprecated and
@@ -1900,7 +1900,7 @@ module ActionDispatch
           end
 
           def prefix_name_for_action(as, action)
-            if as
+            if as && as != DEFAULT
               prefix = as
             elsif !canonical_action?(action)
               prefix = action
@@ -1916,7 +1916,7 @@ module ActionDispatch
             name_prefix = @scope[:as]
 
             if parent_resource
-              return nil unless as || action
+              return nil unless as != DEFAULT || action
 
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name
@@ -1929,7 +1929,7 @@ module ActionDispatch
               # If a name was not explicitly given, we check if it is valid and return nil in
               # case it isn't. Otherwise, we pass the invalid name forward so the underlying
               # router engine treats it and raises an exception.
-              if as.nil?
+              if as == DEFAULT
                 candidate unless !candidate.match?(/\A[_a-z]/i) || has_named_route?(candidate)
               else
                 candidate
@@ -1960,7 +1960,7 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def map_match(path_or_action, constraints: nil, anchor: nil, format: nil, path: nil, as: nil, via: nil, to: nil, controller: nil, action: nil, on: nil, internal: nil, mapping: nil)
+          def map_match(path_or_action, constraints: nil, anchor: nil, format: nil, path: nil, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, internal: nil, mapping: nil)
             if on && !VALID_ON_OPTIONS.include?(on)
               raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
             end
@@ -2038,7 +2038,7 @@ module ActionDispatch
               action = nil
             end
 
-            as   = name_for_action(as, action) unless as == false
+            as   = name_for_action(as, action) if as
             path = Mapping.normalize_path URI::DEFAULT_PARSER.escape(path), formatted
             ast  = Journey::Parser.parse path
 
@@ -2357,6 +2357,8 @@ module ActionDispatch
 
         ROOT = Scope.new({}, nil)
       end
+
+      DEFAULT = Object.new # :nodoc:
 
       def initialize(set) # :nodoc:
         @set = set
