@@ -692,7 +692,7 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby `Logge
 
 #### `config.assets.quiet`
 
-Disables logging of assets requests. Set to `true` by default in `development.rb`.
+Disables logging of assets requests. Set to `true` by default in `config/environments/development.rb`.
 
 ### Configuring Generators
 
