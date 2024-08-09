@@ -176,7 +176,12 @@ module ActiveRecord
         def merge_clauses
           relation.from_clause = other.from_clause if replace_from_clause?
 
-          where_clause = relation.where_clause.merge(other.where_clause)
+          if raw_sql_involved?(relation.where_clause, other.where_clause)
+            where_clause = merge_with_proper_or_handling(relation.where_clause, other.where_clause)
+          else
+            where_clause = relation.where_clause.merge(other.where_clause)
+          end
+
           relation.where_clause = where_clause unless where_clause.empty?
 
           having_clause = relation.having_clause.merge(other.having_clause)
@@ -186,6 +191,21 @@ module ActiveRecord
         def replace_from_clause?
           relation.from_clause.empty? && !other.from_clause.empty? &&
             relation.model.base_class == other.model.base_class
+        end
+
+        def raw_sql_involved?(where_clause1, where_clause2)
+          where_clause1.ast.grep(Arel::Nodes::SqlLiteral).any? || where_clause2.ast.grep(Arel::Nodes::SqlLiteral).any?
+        end
+
+        def merge_with_proper_or_handling(where_clause1, where_clause2)
+          combined_conditions = Arel::Nodes::And.new(
+            [
+              Arel::Nodes::Grouping.new(where_clause1.ast),
+              Arel::Nodes::Grouping.new(where_clause2.ast)
+            ]
+          )
+
+          ActiveRecord::Relation::WhereClause.new([combined_conditions], [])
         end
     end
   end
