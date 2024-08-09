@@ -1,33 +1,49 @@
+// Smooth scrolling (back-to-top etc.)
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+// Scroll-padding allows for anchors to not hug the top of the page. This aids
+// with the visual indicator on guides pages, and works on all pages for a bit
+// of breathing room.
+html {
+  scroll-padding-top: 20px;
+}
+
 body.guide {
   &::-webkit-scrollbar {
     width: 12px;
     background-color: $gray-100;
   }
-  
+
   &::-webkit-scrollbar-track {
-      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-      border-radius: 10px;
-      background-color: transparent;
-    }
-  
-  &::-webkit-scrollbar-thumb {
-      border-radius: 10px;
-      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    background-color: transparent;
   }
 
-  -webkit-tap-highlight-color:rgba(38, 27, 35, 0);
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+
+  -webkit-tap-highlight-color: rgba(38, 27, 35, 0);
 
 
   // ----------------------------------------------------------------------------
   // Typographic Baseline
   // ----------------------------------------------------------------------------
-  
+
   :root {
     font-family: Inter, sans-serif;
-    font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+    font-feature-settings: "liga" 1, "calt" 1; /* fix for Chrome */
   }
   @supports (font-variation-settings: normal) {
-    :root { font-family: InterVariable, sans-serif; }
+    :root {
+      font-family: InterVariable, sans-serif;
+    }
   }
 
   font-family: Inter, sans-serif;
@@ -63,7 +79,6 @@ body.guide {
   // Links
 
   a {
-
     &:link {
       color: $rf-brand;
       text-decoration: underline;
@@ -76,6 +91,37 @@ body.guide {
 
     &:visited {
       color: $rf-brand-darker;
+    }
+  }
+
+  a.skip-link {
+    background-color: $gray-100;
+
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+
+    left: .5rem;
+    top: .5rem;
+
+    &:focus {
+      position: absolute;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+
+      padding: .5rem;
+      border-radius: .125rem;
+      z-index: 1;
     }
   }
 
@@ -121,21 +167,32 @@ body.guide {
     }
   }
 
+  .table-wrapper {
+    overflow: auto;
+    margin-bottom: 2em;
+
+    & > table {
+      margin-bottom: 0;
+    }
+  }
+
   // Headlines
   // TODO: media queries to increase font size, current sizes are for desktop, so drop base to mobile appropriate and MQ up twice (min width 60/120 em, minheight 30/60em)
   h1 {
     color: $rf-brand;
-    font-family: 'Calibre', sans-serif;
+    font-family: "Calibre", sans-serif;
     font-size: 3rem; /* 48px */
     font-weight: 700; /* Light */
     line-height: 1em;
     margin-top: 0;
 
-    @include media('<desktop') { margin-top: 0.5em; }
+    @include media("<desktop") {
+      margin-top: 0.5em;
+    }
   } // h1
 
   h2 {
-    font-family: 'Calibre', sans-serif;
+    font-family: "Calibre", sans-serif;
     font-size: 2.25rem; // Calibre is smaller than inter at the same size
     font-weight: 700; /* Bold */
 
@@ -151,7 +208,7 @@ body.guide {
     }
   } // h2
 
-  h3 {
+  h3, h2.chapter {
     font-size: 1.5rem; /* 24px */
     font-weight: 600; /* Semibold */
 
@@ -185,7 +242,11 @@ body.guide {
     }
   }
 
-  h1, h2, h3, h4, h5 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
     a,
     a:link {
       text-decoration: none;
@@ -202,10 +263,17 @@ body.guide {
   } // h1, h2, h3, h4
 
   // Old style numbers look weird in headlines and ordered lists, so use proportional lining numbers
-  h1, h2, h3, h4, h5, h6, ol, ol > li {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  ol,
+  ol > li {
     font-feature-settings: "kern" 1;
     @supports (kerning: normal) {
-      font-feature-settings: normal; 
+      font-feature-settings: normal;
       kerning: normal;
     }
     font-feature-settings: "lnum" 1;
@@ -224,12 +292,12 @@ body.guide {
     margin: 1em auto;
     width: 90%;
 
-    @include media('>tablet') {
+    @include media(">tablet") {
       height: 1.5em;
       background: url("../images/hr_rails.svg") center no-repeat;
     }
 
-    @include media('>desktop-ultra-wide') {
+    @include media(">desktop-ultra-wide") {
       height: 2em;
     }
 
@@ -242,14 +310,14 @@ body.guide {
 
   dl {
     margin: 0;
-    
+
     dt {
       font-weight: bold;
       font-size: 1.125rem;
       padding: 0.125em 0 0.25em 0;
       margin-bottom: 0.75em;
 
-      @include media('<phone-wide') {
+      @include media("<phone-wide") {
         font-size: 1rem;
       } // @include media('<phone-wide')
     } // dt
@@ -271,15 +339,17 @@ body.guide {
 
   // Code
 
-  pre, code {
+  pre,
+  code {
     font-size: 1rem;
     font-family: "IBM Plex Mono", "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace !important;
     line-height: 1.5;
     margin: 1em 0;
     overflow: auto;
   } // pre, code
-  
-  p code, ul code {
+
+  p code,
+  ul code {
     background: $gray-200;
     border-radius: calc($base-border-radius / 2);
     padding: 1px 3px;
@@ -288,31 +358,84 @@ body.guide {
   p img {
     max-width: 100%;
   }
-  
-  pre, tt, code {
+
+  pre,
+  tt,
+  code {
     // https://caniuse.com/mdn-css_properties_white-space_pre-wrap
-    white-space: pre-wrap;       /* css-3 */
-    white-space: -pre-wrap;      /* Opera 4-6 */
-    white-space: -o-pre-wrap;    /* Opera 7 */
-    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    white-space: pre-wrap; /* css-3 */
+    white-space: -pre-wrap; /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word; /* Internet Explorer 5.5+ */
   }
 
   // Back to Top element
 
   a.back-to-top {
-    background: url('../images/up_white_arrow.png') no-repeat center center, $rf-brand;
+    background: url("../images/up_white_arrow.png") no-repeat center center,
+      $rf-brand;
     background-size: 1em;
     border-radius: calc($base-border-radius * 2);
-    box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
     padding: 1.5em;
     position: fixed;
     right: 1em;
     bottom: 1em;
     visibility: hidden;
   }
-  
+
+  &.no-js a.back-to-top,
   a.back-to-top.show {
     visibility: visible;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    a.back-to-top {
+      visibility: visible;
+
+      animation: fade-in auto linear both;
+      animation-timeline: scroll();
+      animation-range: 100px 300px;
+    }
+  }
+
+  // Screen reader utilities
+  .visibly-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .not-visibly-hidden {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  // Progressive enhancement
+  &.no-js .js-only,
+  &:not(.no-js) .js-hidden {
+    display: none !important;
   }
 
   // ----------------------------------------------------------------------------
@@ -323,7 +446,8 @@ body.guide {
     padding: 1em;
     text-align: left;
 
-    @include media('>desktop') { // 1024
+    @include media(">desktop") {
+      // 1024
       max-width: calc(55rem + 420px);
       margin: 0 auto;
       padding-right: 470px;
@@ -335,7 +459,7 @@ body.guide {
     }
   } // .wrapper
 
-  #container .wrapper {
+  main .wrapper {
     padding-top: 0;
 
     h2:first-child {
@@ -348,14 +472,14 @@ body.guide {
     padding: 0.25em;
   }
 
-  // topNav is a hidden area for mobile only
-  nav#topNav {
+  // mobile-navigation-bar is a hidden area for mobile only
+  #mobile-navigation-bar {
     background-color: $gray-200;
     color: $gray-600;
     padding: 0.5em 0;
     font-size: 0.875rem;
 
-    @include media('>desktop') {
+    @include media(">desktop") {
       display: none;
     }
 
@@ -363,20 +487,25 @@ body.guide {
       text-align: center;
     }
 
-    .s-hidden {
+    .hidden {
       display: none;
     }
 
     .red-button {
       background: $rf-brand;
+      border: 0;
       border-bottom: 2px solid $rf-brand-dark;
       border-radius: $base-border-radius;
       color: white;
       padding: 0.5em 1em;
+
+      &:active {
+        background: $rf-brand-dark;
+      }
     }
 
     .more-info-label {
-      @include media('<desktop') {
+      @include media("<desktop") {
         display: none;
       }
     }
@@ -389,10 +518,10 @@ body.guide {
       @extend %list-in-disguise;
       background: $gray-200;
       border-radius: $base-border-radius;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
       font-size: 1.25em;
       position: absolute;
-        left: 10vw;
+      left: 10vw;
       width: 80vw;
 
       li {
@@ -411,10 +540,9 @@ body.guide {
         }
       }
     }
+  } // #mobile-navigation-bar
 
-  } // nav#topNav
-
-  header#page_header {
+  header#page-header {
     width: 100%;
 
     .wrapper {
@@ -422,25 +550,25 @@ body.guide {
       padding-right: 0;
     }
 
-    nav#feature_nav {
-      @include media('>desktop'){
+    nav#feature-nav {
+      @include media(">desktop") {
         align-items: top;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         width: 100%;
       }
-      
+
       // Image augmented
       .header-logo {
         text-align: center;
-        
+
         a {
           background-image: url("../images/logo_rails-circle.svg");
           background-repeat: no-repeat;
           background-position: top center;
           display: inline-block;
-          font-family: 'Calibre', sans-serif;
+          font-family: "Calibre", sans-serif;
           font-size: 2.25rem;
           font-weight: 700;
           margin: 0 auto;
@@ -449,20 +577,20 @@ body.guide {
           text-decoration: none;
           font-weight: 700;
 
-          @include media('>desktop'){
+          @include media(">desktop") {
             padding: 10px 0 0 85px;
-            background-position: top left;     
+            background-position: top left;
             height: 85px;
             vertical-align: middle;
           }
         } // a
-        
-        span#version_switcher {
+
+        span#version-switcher {
           color: $gray-600;
           display: block;
           font-size: 0.75em;
 
-          @include media('>desktop') {
+          @include media(">desktop") {
             display: inline-block;
             margin-left: 0.5em;
             vertical-align: 1px;
@@ -471,14 +599,14 @@ body.guide {
           select {
             color: $gray-600;
           }
-        } // span#version_switcher
+        } // span#version-switcher
       } // .header-logo
 
       ul.nav {
         @extend %list-in-disguise;
         margin: 1em 1em 0 1em;
 
-        @include media('>desktop'){
+        @include media(">desktop") {
           display: flex;
           flex-direction: row;
           justify-content: flex-end;
@@ -493,14 +621,16 @@ body.guide {
           text-align: center;
           padding: 1em;
 
-          @include media('>desktop'){
+          @include media(">desktop") {
             background: none;
             border: none;
             font-size: 0.75rem;
             height: 24px;
             padding-top: 5px;
 
-            &:first-child {padding-top: 0;}
+            &:first-child {
+              padding-top: 0;
+            }
 
             a,
             a:link,
@@ -525,14 +655,14 @@ body.guide {
             background: none;
             border: none;
             padding: 1em 0 0 0;
-            
+
             select {
               max-width: 100%;
             }
           }
 
           a#home_nav {
-            @include media('>desktop') {
+            @include media(">desktop") {
               // Image replacement
               background-color: transparent;
               color: transparent;
@@ -541,7 +671,7 @@ body.guide {
               text-indent: 100%;
               text-shadow: none;
               white-space: nowrap;
-            
+
               &:before {
                 content: "";
                 display: block;
@@ -559,25 +689,30 @@ body.guide {
             }
           }
 
-
           &.guides-index-large {
-            @include media('<desktop') {
+            @include media("<desktop") {
               display: none;
             }
           }
 
           &.guides-index-small {
-            @include media('>desktop') {
+            label {
+              display: block;
+              margin-bottom: 4px;
+              font-size: 16px;
+            }
+
+            @include media(">desktop") {
               display: none;
             }
-            @include media('<desktop') {
+            @include media("<desktop") {
               display: block;
             }
           }
         }
       }
-    } // nav#feature_nav
-  } // header#page_header
+    } // nav#feature-nav
+  } // header#page-header
 
   // Desktop guides flyout
 
@@ -585,26 +720,23 @@ body.guide {
     position: relative;
     z-index: 15;
     padding-bottom: 0.125em;
-
     :where(html[dir="ltr"]) & { background-position: right top; padding-right: 1em; }
     :where(html[dir="rtl"]) & { background-position: left top; padding-left: 1em; }
   }
 
-  
   #guides {
     background: $gray-200;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
     display: block;
     border-radius: $base-border-radius;
     color: $gray-900;
     padding: 2em 2em 1.5em 2em;
     position: absolute;
-      top: 25px;
-      right: 50px;
+    top: 25px;
+    right: 50px;
     width: 90vw;
     max-width: 1000px;
     z-index: 10;
-
     :where(html[dir="ltr"]) & { left: auto; right: 50px; }
     :where(html[dir="rtl"]) & { left: 50px; right: auto; }
 
@@ -625,7 +757,8 @@ body.guide {
         text-align: left;
         width: 33%;
 
-        dt, dd {
+        dt,
+        dd {
           font-weight: 400 !important;
           font-size: 0.825rem;
           margin: 0;
@@ -636,7 +769,6 @@ body.guide {
         dt {
           margin: 0.5em 0;
           font-weight: bold !important;
-
         }
 
         dd {
@@ -651,7 +783,7 @@ body.guide {
             text-decoration: none;
             font-weight: 400 !important;
           }
-      
+
           a:hover,
           a:active {
             color: $rf-brand !important;
@@ -660,10 +792,9 @@ body.guide {
         }
       }
     }
-
   } // #guides
 
-  footer#page_footer {
+  footer#complementary {
     background-color: $gray-800;
     color: #fff;
     font-size: 0.75em;
@@ -686,7 +817,7 @@ body.guide {
   #feature {
     background-color: $gray-100;
 
-    @include media('>desktop') {
+    @include media(">desktop") {
       background-color: #fff;
     }
 
@@ -694,22 +825,22 @@ body.guide {
       margin-top: 2.5em;
     }
 
-    #subCol {
+    #column-side {
       background-color: $gray-100;
       border-radius: $base-border-radius;
       font-size: 1rem;
       padding: 0.5em 1em;
 
-      @include media('>desktop') {
+      @include media(">desktop") {
         display: block;
         position: fixed;
           top: 100px;
           right: 50px;
         max-height: calc(100vh - 200px);
         width: 400px;
-        
+
         :where(html[dir="rtl"]) & {
-          right: auto; 
+          right: auto;
           left: 50px;
         }
       }
@@ -722,7 +853,7 @@ body.guide {
         right: calc(30vw - 400px);
 
         :where(html[dir="rtl"]) & {
-          right: auto; 
+          right: auto;
           left: calc(30vw - 400px);
         }
       }
@@ -731,7 +862,7 @@ body.guide {
         right: calc(40vw - 400px);
 
         :where(html[dir="rtl"]) & {
-          right: auto; 
+          right: auto;
           left: calc(40vw - 400px);
         }
       }
@@ -747,29 +878,28 @@ body.guide {
         &::-webkit-scrollbar
         {
           width: 6px;
-          background-color: #F5F5F5;
+          background-color: #f5f5f5;
         }
 
-        &::-webkit-scrollbar-track
-        {
-          background-color: #F5F5F5;
+        &::-webkit-scrollbar-track {
+          background-color: #f5f5f5;
           border-radius: 6px;
-          box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-        }  
-
-        &::-webkit-scrollbar-thumb
-        {
-          border-radius: 5px;
-          background-image: -webkit-gradient(linear,
-                            left bottom,
-                            left top,
-                            color-stop(0.44, $rf-brand-light),
-                            color-stop(0.72, $rf-brand),
-                            color-stop(0.86, $rf-brand-dark));
+          box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
         }
 
+        &::-webkit-scrollbar-thumb {
+          border-radius: 5px;
+          background-image: -webkit-gradient(
+            linear,
+            left bottom,
+            left top,
+            color-stop(0.44, $rf-brand-light),
+            color-stop(0.72, $rf-brand),
+            color-stop(0.86, $rf-brand-dark)
+          );
+        }
 
-        @include media('>desktop') {
+        @include media(">desktop") {
           overflow-y: auto;
           overflow-x: hidden;
           max-height: calc(100vh - 350px);
@@ -790,7 +920,7 @@ body.guide {
             color: $gray-900;
             text-decoration: none;
           }
-          
+
           a:hover,
           a:active {
             color: $rf-brand;
@@ -802,71 +932,84 @@ body.guide {
             margin-bottom: 0.75em;
             padding-inline-start: 1em;
             padding-inline-end: 0.25em;
-            
+
             li {
               font-weight: 400;
 
-              a.active::after { // highlight
-                @include media('>desktop') {
-                  width: 328px;
-                }
-                left: -3em;
-              }
+              a[href]:not([href=""]) {
+                &::after { // highlight
+                  @include media('>desktop') {
+                    width: 328px;
+                  }
+                  left: -3em;
 
-              a.active::before { // red square
-                left: -2.5em;
-                top: 7px;
+                  :where(html[dir="rtl"]) & {
+                    right: -3em;
+                    left: unset;
+                  }
+                }
+
+                &::before { // red square
+                  left: -2.5em;
+                  top: 7px;
+
+                  :where(html[dir="rtl"]) & {
+                    right: -2.5em;
+                    left: unset;
+                  }
+                }
               }
             } // li
           } // ul
 
-          a::after { // highlight
-            content: '';
-            position: absolute;
-            display: block;
-            height: calc(100% + 10px);
-            @include media('>desktop') {
-              width: 352px;
+          a[href]:not([href=""]) {
+            &::before { // red square
+              @include media('>desktop') {
+                content: '';
+                display: block;
+              }
+              position: absolute;
+              height: 10px;
+              width: 10px;
+              top: 6px;
+              left: -3em;
+              border-radius: 3px;
+              background-color: $rf-brand;
+              opacity: 0;
+              transition: opacity 0.2s ease-in-out;
+
+              :where(html[dir="rtl"]) & {
+                right: -3em;
+                left: unset;
+              }
             }
-            top: 50%;
-            transform: translateY(-50%);
-            left: -3.5em;
-            border-radius: 8px;
-            background-color: $stop-bkgnd;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
 
-            :where(html[dir="rtl"]) & {
-              right: -3.5em;
-              left: unset;
+            &::after { // highlight
+              content: '';
+              position: absolute;
+              display: block;
+              height: calc(100% + 10px);
+              @include media('>desktop') {
+                width: 352px;
+              }
+              top: 50%;
+              transform: translateY(-50%);
+              left: -3.5em;
+              border-radius: 8px;
+              background-color: $stop-bkgnd;
+              opacity: 0;
+              transition: opacity 0.2s ease-in-out;
+
+              :where(html[dir="rtl"]) & {
+                right: -3.5em;
+                left: unset;
+              }
             }
-          }
 
-          a.active::after {
-            opacity: 1;
-          }
-
-          a::before { // red square
-            content: '';
-            display: block;
-            position: absolute;
-            height: 10px;
-            width: 10px;
-            top: 6px;
-            left: -3em;
-            border-radius: 3px;
-            background-color: $rf-brand;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-
-            :where(html[dir="rtl"]) & {
-              right: -3em;
-              left: unset;
+            &[aria-current]::before,
+            &[aria-current]::after {
+              opacity: 1;
             }
-          }
-
-          a.active::before {
-            opacity: 1;
           }
         } // li
 
@@ -876,7 +1019,6 @@ body.guide {
       } // ol
     }
   }
-  
 } // body.guide
 
 html[dir="rtl"] {
