@@ -1,9 +1,4 @@
-## Rails 7.2.0.rc1 (August 06, 2024) ##
-
-*   No changes.
-
-
-## Rails 7.2.0.beta3 (July 11, 2024) ##
+## Rails 7.2.0 (August 09, 2024) ##
 
 *   Fix templates with strict locals to also include `local_assigns`.
 
@@ -11,13 +6,6 @@
     hash.
 
     *Jean Boussier*
-
-## Rails 7.2.0.beta2 (June 04, 2024) ##
-
-*   No changes.
-
-
-## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Add queries count to template rendering instrumentation.
 

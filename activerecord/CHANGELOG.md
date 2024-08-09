@@ -1,4 +1,4 @@
-## Rails 7.2.0.rc1 (August 06, 2024) ##
+## Rails 7.2.0 (August 09, 2024) ##
 
 *   Handle commas in Sqlite3 default function definitions.
 
@@ -14,8 +14,6 @@
     Please use `ActiveRecord::UnmodifiableRelation` instead.
 
     *Xavier Noria*
-
-## Rails 7.2.0.beta3 (July 11, 2024) ##
 
 *   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
     `DatabaseConfig`.
@@ -40,9 +38,6 @@
 
     *Jay Ang*
 
-
-## Rails 7.2.0.beta2 (June 04, 2024) ##
-
 *   The payload of `sql.active_record` Active Support notifications now has the current transaction in the `:transaction` key.
 
     *Xavier Noria*
@@ -54,9 +49,6 @@
 *   Define `ActiveRecord::Transaction#uuid`, which returns a UUID for the database transaction. This may be helpful when tracing database activity. These UUIDs are generated only on demand.
 
     *Xavier Noria*
-
-
-## Rails 7.2.0.beta1 (May 29, 2024) ##
 
 *   Fix inference of association model on nested models with the same demodularized name.
 
