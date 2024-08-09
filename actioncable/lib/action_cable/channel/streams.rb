@@ -98,12 +98,10 @@ module ActionCable
         handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
         streams[broadcasting] = handler
 
-        connection.server.event_loop.post do
-          pubsub.subscribe(broadcasting, handler, lambda do
-            ensure_confirmation_sent
-            logger.info "#{self.class.name} is streaming from #{broadcasting}"
-          end)
-        end
+        pubsub.subscribe(broadcasting, handler, lambda do
+          ensure_confirmation_sent
+          logger.info "#{self.class.name} is streaming from #{broadcasting}"
+        end)
       end
 
       # Start streaming the pubsub queue for the `model` in this channel. Optionally,
@@ -162,7 +160,7 @@ module ActionCable
           handler = stream_handler(broadcasting, user_handler, coder: coder)
 
           -> message do
-            connection.worker_pool.async_invoke handler, :call, message, connection: connection
+            connection.perform_work handler, :call, message
           end
         end
 

@@ -22,6 +22,7 @@ module ActionCable
       def initialize(*)
         super
         @listener = nil
+        @mutex = Mutex.new
         @redis_connection_for_broadcasts = nil
       end
 
@@ -47,11 +48,11 @@ module ActionCable
 
       private
         def listener
-          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, config_options, @server.event_loop) }
+          @listener || @mutex.synchronize { @listener ||= Listener.new(self, config_options, executor) }
         end
 
         def redis_connection_for_broadcasts
-          @redis_connection_for_broadcasts || @server.mutex.synchronize do
+          @redis_connection_for_broadcasts || @mutex.synchronize do
             @redis_connection_for_broadcasts ||= redis_connection
           end
         end
@@ -61,15 +62,14 @@ module ActionCable
         end
 
         def config_options
-          @config_options ||= @server.config.cable.deep_symbolize_keys.merge(id: identifier)
+          @config_options ||= config.cable.deep_symbolize_keys.merge(id: identifier)
         end
 
-        class Listener < SubscriberMap
-          def initialize(adapter, config_options, event_loop)
-            super()
+        class Listener < SubscriberMap::Async
+          def initialize(adapter, config_options, executor)
+            super(executor)
 
             @adapter = adapter
-            @event_loop = event_loop
 
             @subscribe_callbacks = Hash.new { |h, k| h[k] = [] }
             @subscription_lock = Mutex.new
@@ -104,7 +104,7 @@ module ActionCable
 
                     if callbacks = @subscribe_callbacks[chan]
                       next_callback = callbacks.shift
-                      @event_loop.post(&next_callback) if next_callback
+                      @executor.post(&next_callback) if next_callback
                       @subscribe_callbacks.delete(chan) if callbacks.empty?
                     end
                   end
@@ -150,10 +150,6 @@ module ActionCable
             @subscription_lock.synchronize do
               when_connected { @subscribed_client.unsubscribe(channel) }
             end
-          end
-
-          def invoke_callback(*)
-            @event_loop.post { super }
           end
 
           private
