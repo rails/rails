@@ -1237,7 +1237,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
     end
     assert_file("test/application_system_test_case.rb") do |content|
-      assert_match(/served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)
+      assert_match(/^    served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)
+      assert_match(/^    driven_by :selenium, using: :headless_chrome, screen_size: \[ 1400, 1400 \], options: {$/, content)
+      assert_match(/^      browser: :remote,$/, content)
+      assert_match(/^      url: "http:\/\/\#{ENV\["SELENIUM_HOST"\]}:4444"$/, content)
     end
     assert_compose_file do |compose_config|
       assert_equal "my_app", compose_config["name"]
@@ -1255,7 +1258,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal expected_rails_app_config, compose_config["services"]["rails-app"]
 
       expected_selenium_conifg = {
-        "image" => "seleniarm/standalone-chromium",
+        "image" => "selenium/standalone-chromium",
         "restart" => "unless-stopped",
       }
 
