@@ -103,7 +103,7 @@ Our new Rails application comes with a dev container already configured and read
 We will use VS Code to spin up and work with our dev container. Start by launching VS Code
 and opening your application.
 
-Once the application opens, VS Code should prompt you that a it has found a dev container
+Once the application opens, VS Code should prompt you that it has found a dev container
 configuration file, and you can reopen the folder in a dev container. Click the green "Reopen
 in Container" button to create the dev container.
 
