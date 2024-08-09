@@ -14,6 +14,79 @@ class JsonSerializationTest < ActiveModel::TestCase
     @contact.preferences = { "shows" => "anime" }
   end
 
+  test ".key_format supports both :to_json and :from_json options" do
+    model_class = Class.new(Contact) do
+      key_format to_json: :dasherize, from_json: :underscore
+    end
+    json = { "created-at" => "2006-08-01T00:00:00.000Z" }.to_json
+
+    model = model_class.new.from_json(json)
+
+    assert_equal "2006-08-01T00:00:00.000Z", model.created_at
+    assert_equal json, model.to_json
+  end
+
+  test ".key_format merges subsequent calls with :to_json and :from_json options" do
+    model_class = Class.new(Contact) do
+      key_format to_json: :dasherize
+      key_format from_json: :underscore
+    end
+    json = { "created-at" => "2006-08-01T00:00:00.000Z" }.to_json
+
+    model = model_class.new.from_json(json)
+
+    assert_equal "2006-08-01T00:00:00.000Z", model.created_at
+    assert_equal json, model.to_json
+  end
+
+  test ".key_format with Proc :to_json option" do
+    model_class = Class.new(Contact) do
+      key_format to_json: proc { |key| key.dasherize }
+    end
+    model = model_class.new created_at: Time.utc(2006, 8, 1)
+
+    assert_equal({ "created-at" => "2006-08-01T00:00:00.000Z" }.to_json, model.to_json)
+  end
+
+  test ".key_format with Symbol :to_json option" do
+    model_class = Class.new(Contact) do
+      key_format to_json: :dasherize
+    end
+    model = model_class.new created_at: Time.utc(2006, 8, 1)
+
+    assert_equal({ "created-at" => "2006-08-01T00:00:00.000Z" }.to_json, model.to_json)
+  end
+
+  test ".key_format with Proc :from_json option" do
+    model_class = Class.new(Contact) do
+      key_format from_json: proc { |key| key.underscore }
+    end
+    json = { createdAt: "2006-08-01T00:00:00.000Z" }.to_json
+
+    model = model_class.new.from_json(json)
+
+    assert_equal "2006-08-01T00:00:00.000Z", model.created_at
+  end
+
+  test ".key_format with Symbol :from_json option" do
+    model_class = Class.new(Contact) do
+      key_format from_json: :underscore
+    end
+    json = { createdAt: "2006-08-01T00:00:00.000Z" }.to_json
+
+    model = model_class.new.from_json(json)
+
+    assert_equal "2006-08-01T00:00:00.000Z", model.created_at
+  end
+
+  test ".key_format without arguments raises an ArgumentError" do
+    model_class = Class.new(Contact)
+
+    assert_raises ArgumentError, match: /must pass either :to_json or :from_json/ do
+      model_class.key_format
+    end
+  end
+
   test "should not include root in JSON (class method)" do
     json = @contact.to_json
 
