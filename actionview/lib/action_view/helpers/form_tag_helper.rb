@@ -973,6 +973,24 @@ module ActionView
         number_field_tag(name, value, options.merge(type: :range))
       end
 
+      # Creates a datalist form element.
+      #
+      # The option_tags parameter has the same format as the container parameter from #options_for_select.
+      #
+      # ==== Examples
+      #
+      #   datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
+      #                ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
+      #   # => <datalist id="countries_datalist" class="sa-countries-sample">
+      #          <option value="Argentina">Argentina</option>
+      #          <option value="Brazil" class="brazilian_option">Brazil</option>
+      #          <option value="CL" disabled="disabled">Chile</option>
+      #        </datalist>
+      def datalist_tag(id, option_tags = nil, html_options = {})
+        option_tags ||= ""
+        content_tag("datalist", options_for_select(option_tags), { "id" => id }.update(html_options.stringify_keys))
+      end
+
       # Creates the hidden UTF-8 enforcer tag. Override this method in a helper
       # to customize the tag.
       def utf8_enforcer_tag
