@@ -49,12 +49,15 @@ module ActiveJob
       deserialize_arguments_if_needed
 
       _perform_job
-    rescue Exception => exception
-      handled = rescue_with_handler(exception)
-      return handled if handled
 
-      run_after_discard_procs(exception)
-      raise
+      # The job was successfully performed:
+      performed = true
+    rescue => error
+      # The job failed for some reason, let the user handle it:
+      return rescue_with_handler(error)
+    ensure
+      # Run after discard procedures if the job was not performed:
+      run_after_discard_procs(error) unless performed
     end
 
     def perform(*)
