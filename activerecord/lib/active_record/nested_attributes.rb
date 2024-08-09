@@ -559,7 +559,7 @@ module ActiveRecord
             case limit
             when Symbol
               send(limit)
-            when Proc
+            when ActiveSupport::Callable
               limit.call
             else
               limit
@@ -601,7 +601,7 @@ module ActiveRecord
         case callback = nested_attributes_options[association_name][:reject_if]
         when Symbol
           method(callback).arity == 0 ? send(callback) : send(callback, attributes)
-        when Proc
+        when ActiveSupport::Callable
           callback.call(attributes)
         end
       end

@@ -243,7 +243,7 @@ module ActiveRecord
         ->(warning) { raise warning }
       when :report
         ->(warning) { Rails.error.report(warning, handled: true) }
-      when Proc
+      when ActiveSupport::Callable
         action
       else
         raise ArgumentError, "db_warnings_action must be one of :ignore, :log, :raise, :report, or a custom proc."
