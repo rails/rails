@@ -10,4 +10,8 @@
 
     *Jean Boussier*
 
+*   Add `expires_in:` option to `render` when used with `collection:`
+
+    *Jarrett Lusso*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actionview/CHANGELOG.md) for previous changes.
