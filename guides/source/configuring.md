@@ -937,7 +937,7 @@ Sets the path Rails uses to look for locale files. Defaults to `config/locales/*
 
 #### `config.i18n.raise_on_missing_translations`
 
-Determines whether an error should be raised for missing translations. This defaults to `false`.
+Determines whether an error should be raised for missing translations. If `true`, views and controllers raise `I18n::MissingTranslationData`. If `:strict`, models also raise the error. This defaults to `false`.
 
 #### `config.i18n.fallbacks`
 
