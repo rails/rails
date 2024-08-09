@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record/insert_all"
+require "active_record/insert_rows"
 
 module ActiveRecord
   # = Active Record \Persistence
@@ -85,6 +86,26 @@ module ActiveRecord
         else
           new(attributes, &block)
         end
+      end
+
+      # Given an array of arrays, inserts records into the table bypassing ActiveRecord model layer and validations.
+      # Note that the caller is responsible for type casting attribute values.
+      # If you prefer a higher level API that provides type casting, consider using {insert_all}[rdoc-ref:Relation#insert_all].
+      #
+      # ==== Examples
+      #
+      #     Book.insert_rows([
+      #       [1, "Rework", "David"],
+      #       [2, "Eloquent Ruby", "Russ"]
+      #     ], columns: [:id, :title, :author])
+      #
+      #
+      #     Book.insert_rows([
+      #       [1, "Rework", Arel.sql("NOW()")],
+      #       [2, "Eloquent Ruby", Arel.sql("NOW()")]
+      #     ], columns: [:id, :title, :created_at], returning: [:id])
+      def insert_rows(rows, columns:, returning: nil)
+        InsertRows.execute(self, rows, columns: columns, returning: returning)
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of
