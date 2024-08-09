@@ -129,10 +129,7 @@ pre = pre ? pre.inspect : "nil"
           if /[a-z]/.match?(version)
             npm_tag = " --tag pre"
           else
-            remote_package_version = `npm view @rails/#{NPM_PACKAGES[framework]}@latest version`.chomp
-            local_major_version = version.split(".", 4)[0]
-            remote_major_version = remote_package_version.split(".", 4)[0]
-            npm_tag = remote_major_version <= local_major_version ? " --tag latest" : " --tag v#{local_major_version}"
+            npm_tag = " --tag #{major}-#{minor}-stable"
           end
 
           sh "npm publish#{npm_tag}#{npm_otp}"
