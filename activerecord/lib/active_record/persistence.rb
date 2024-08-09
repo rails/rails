@@ -790,6 +790,53 @@ module ActiveRecord
     #   ball = Ball.new
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
+    # When used within a transaction block, the +touch+ method defers the actual database update until the transaction commits.
+    # This includes the coalescing of SQL commands to maintain the atomicity of the transaction. However, +after_commit+ callbacks
+    # associated with each touch operation are not executed until the entire transaction commits. Moreover, each callback is fired
+    # independently, which may result in non-sequential execution, especially noticeable with multiple touch operations within a single
+    # transaction.
+    #
+    # Consider the following scenario using associated models:
+    #
+    #   class Car < ActiveRecord::Base
+    #     has_many :brakes
+    #     after_update_commit :log_update
+    #
+    #     private
+    #
+    #     def log_update
+    #       puts "Car #{id} was updated at #{updated_at}"
+    #     end
+    #   end
+    #
+    #   class Brake < ActiveRecord::Base
+    #     belongs_to :car, touch: true
+    #   end
+    #
+    #   ActiveRecord::Base.transaction do
+    #     Brake.find(1).update(wear: 'moderate') # Assuming this brake belongs to car with id 1
+    #     Brake.find(2).update(wear: 'low')      # Assuming this brake also belongs to car with id 1
+    #     # The 'touch: true' on the car is triggered by both brake updates,
+    #     # but the actual SQL update and the 'log_update' callback execution for the car
+    #     # are deferred until the transaction commits.
+    #   end
+    #
+    # After the transaction commits, the +after_commit+ callbacks associated with the touch operations are executed.
+    # Due to the coalescing of SQL commands in the transaction, the "Car #{id} was updated at #{updated_at}" log message
+    # from the Car's +after_commit+ callback is printed only once. In the context of the example, this callback is
+    # triggered after the update of Brake with id 1 and before the update of Brake with id 2 within the same transaction.
+    #
+    # This specific order occurs because the touch by the first brake update marks the associated car object for update,
+    # but the actual database write (and hence the +after_commit+ callback of the Car) doesn't happen until the transaction
+    # is committed. When the second brake is updated within the same transaction, the system recognizes that the car is
+    # already marked for update, so it doesn't queue up a second update. However, it is crucial to understand that the
+    # Car's +after_commit+ callback waits for the transaction to commit, so it executes after the first brake's +after_commit+
+    # callback and before the second's.
+    #
+    # This behavior demonstrates the importance of understanding the sequence of events within transactions, as the
+    # +after_commit+ callbacks related to touch operations wait for the entire transaction to complete and don't
+    # necessarily follow the sequential order of operations within the transaction block.
+    #
     def touch(*names, time: nil)
       _raise_record_not_touched_error unless persisted?
       _raise_readonly_record_error if readonly?
