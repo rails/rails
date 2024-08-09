@@ -127,8 +127,7 @@ pre = pre ? pre.inspect : "nil"
           if /[a-z]/.match?(version)
             npm_tag = " --tag pre"
           else
-            local_major_version = version.split(".", 4)[0]
-            npm_tag = " --tag v#{local_major_version}"
+            npm_tag = " --tag latest"
           end
 
           sh "npm publish#{npm_tag}#{npm_otp}"
