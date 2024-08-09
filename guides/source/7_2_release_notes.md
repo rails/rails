@@ -336,6 +336,12 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Add default Progressive Web App (PWA) files for the manifest and service worker, served from `app/views/pwa`,
     and make them dynamically renderable through ERB.
 
+*  Add `bin/rails boot` command to initialize the Rails application environment and exit, 
+   supporting `-e/--environment` options for specifying environments.
+
+*  Add options to `bin/rails app:update`. It now supports `--force`, `--skip`, `--pretend`, and 
+   `--quiet` options. 
+
 Action Cable
 ------------
 
