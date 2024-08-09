@@ -442,17 +442,6 @@ module CookieAssertions
   end
 
   def assert_set_cookie_header(expected, header = @response.headers["Set-Cookie"])
-    # In Rack v2, this is newline delimited. In Rack v3, this is an array.
-    # Normalize the comparison so that we can assert equality in both cases.
-
-    if header.is_a?(String)
-      header = header.split("\n").sort
-    end
-
-    if expected.is_a?(String)
-      expected = expected.split("\n").sort
-    end
-
     # While not strictly speaking correct, this is probably good enough for now:
     header = parse_set_cookies_headers(header)
     expected = parse_set_cookies_headers(expected)

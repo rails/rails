@@ -120,22 +120,11 @@ module ActionDispatch
         cookies = headers[Rack::SET_COOKIE]
         return unless cookies
 
-        if Gem::Version.new(Rack::RELEASE) < Gem::Version.new("3")
-          cookies = cookies.split("\n")
-          headers[Rack::SET_COOKIE] = cookies.map { |cookie|
-            if !/;\s*secure\s*(;|$)/i.match?(cookie)
-              "#{cookie}; secure"
-            else
-              cookie
-            end
-          }.join("\n")
-        else
-          headers[Rack::SET_COOKIE] = Array(cookies).map do |cookie|
-            if !/;\s*secure\s*(;|$)/i.match?(cookie)
-              "#{cookie}; secure"
-            else
-              cookie
-            end
+        headers[Rack::SET_COOKIE] = Array(cookies).map do |cookie|
+          if !/;\s*secure\s*(;|$)/i.match?(cookie)
+            "#{cookie}; secure"
+          else
+            cookie
           end
         end
       end
