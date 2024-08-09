@@ -1258,7 +1258,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal expected_rails_app_config, compose_config["services"]["rails-app"]
 
       expected_selenium_conifg = {
-        "image" => "seleniarm/standalone-chromium",
+        "image" => "selenium/standalone-chromium",
         "restart" => "unless-stopped",
       }
 
