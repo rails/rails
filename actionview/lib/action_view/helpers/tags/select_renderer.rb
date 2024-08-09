@@ -22,7 +22,7 @@ module ActionView
             select = content_tag("select", add_options(option_tags, options, value), html_options)
 
             if html_options["multiple"] && options.fetch(:include_hidden, true)
-              tag("input", disabled: html_options["disabled"], name: html_options["name"], type: "hidden", value: "", autocomplete: "off") + select
+              tag.input(disabled: html_options["disabled"], name: html_options["name"], type: "hidden", value: "", autocomplete: "off") + select
             else
               select
             end

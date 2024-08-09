@@ -76,14 +76,16 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "to_sentence should not escape html_safe values" do
-    ptag = content_tag("p") do
-      safe_join(["<marquee>shady stuff</marquee>", tag("br")])
+    ActionView.deprecator.silence do
+      ptag = content_tag("p") do
+        safe_join(["<marquee>shady stuff</marquee>", tag("br")])
+      end
+      url = "https://example.com"
+      expected = %(<a href="#{url}">#{url}</a> and <p>&lt;marquee&gt;shady stuff&lt;/marquee&gt;<br /></p>)
+      actual = to_sentence([link_to(url, url), ptag])
+      assert_predicate actual, :html_safe?
+      assert_equal(expected, actual)
     end
-    url = "https://example.com"
-    expected = %(<a href="#{url}">#{url}</a> and <p>&lt;marquee&gt;shady stuff&lt;/marquee&gt;<br /></p>)
-    actual = to_sentence([link_to(url, url), ptag])
-    assert_predicate actual, :html_safe?
-    assert_equal(expected, actual)
   end
 
   test "to_sentence handles blank strings" do
