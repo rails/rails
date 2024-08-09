@@ -438,7 +438,7 @@ With the `helper` method it is possible to access Rails and your application's h
 
 ```irb
 irb> helper.time_ago_in_words 30.days.ago
-=> "about 1 month"
+=> "about 1 month ago"
 
 irb> helper.my_custom_helper
 => "my custom helper"

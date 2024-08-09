@@ -49,9 +49,15 @@ class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
   end
 
   def test_time_ago_in_words_passes_locale
-    assert_called_with(I18n, :t, [:less_than_x_minutes], scope: :'datetime.distance_in_words', count: 1, locale: "ru") do
+    mock = Minitest::Mock.new
+    expect_called_with(mock, [:less_than_x_minutes], returns: "less than a minute", scope: :'datetime.distance_in_words', count: 1, locale: "ru")
+    expect_called_with(mock, [:ago], scope: :'datetime.distance_in_words', time: "less than a minute", locale: "ru")
+
+    I18n.stub(:t, mock) do
       time_ago_in_words(15.seconds.ago, locale: "ru")
     end
+
+    assert_mock(mock)
   end
 
   def test_distance_of_time_pluralizations

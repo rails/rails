@@ -2,6 +2,8 @@
   # Used in distance_of_time_in_words(), distance_of_time_in_words_to_now(), time_ago_in_words()
   datetime:
     distance_in_words:
+      ago:      "%{time} ago"
+      from_now: "in %{time}"
       half_a_minute: "half a minute"
       less_than_x_seconds:
         one:   "less than 1 second"

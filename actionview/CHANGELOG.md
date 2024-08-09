@@ -1,3 +1,7 @@
+*   Add the prefix `in` or the suffix `ago` to the `time_ago_in_words` helper.
+
+    *Matthew Nguyen*
+
 *   Rename `text_area` methods into `textarea`
 
     Old names are still available as aliases.
