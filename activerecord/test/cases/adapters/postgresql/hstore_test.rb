@@ -9,7 +9,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   class Hstore < ActiveRecord::Base
     self.table_name = "hstores"
 
-    store_accessor :settings, :language, :timezone
+    store_accessor :settings, :language, :timezone, { country: :country_of_residence, login: :username }
   end
 
   def setup
@@ -116,58 +116,85 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_with_store_accessors
-    x = Hstore.new(language: "fr", timezone: "GMT")
+    x = Hstore.new(language: "fr", timezone: "GMT", country: "FR", login: "Luke")
     assert_equal "fr", x.language
     assert_equal "GMT", x.timezone
+    assert_equal "FR", x.country
+    assert_equal "Luke", x.login
 
     x.save!
     x = Hstore.first
     assert_equal "fr", x.language
     assert_equal "GMT", x.timezone
+    assert_equal "FR", x.country
+    assert_equal "Luke", x.login
 
     x.language = "de"
+    x.country = "DE"
     x.save!
 
     x = Hstore.first
     assert_equal "de", x.language
     assert_equal "GMT", x.timezone
+    assert_equal "DE", x.country
+    assert_equal "Luke", x.login
+
+    x.settings = { "country_of_residence" => "US" }
+    x.settings["username"] = "John"
+    assert_equal "US", x.country
+    assert_equal "John", x.login
   end
 
   def test_duplication_with_store_accessors
-    x = Hstore.new(language: "fr", timezone: "GMT")
+    x = Hstore.new(language: "fr", timezone: "GMT", country: "FR", login: "Luke")
     assert_equal "fr", x.language
     assert_equal "GMT", x.timezone
+    assert_equal "FR", x.country
+    assert_equal "Luke", x.login
 
     y = x.dup
     assert_equal "fr", y.language
     assert_equal "GMT", y.timezone
+    assert_equal "FR", y.country
+    assert_equal "Luke", y.login
   end
 
   def test_yaml_round_trip_with_store_accessors
-    x = Hstore.new(language: "fr", timezone: "GMT")
+    x = Hstore.new(language: "fr", timezone: "GMT", country: "FR", login: "Luke")
     assert_equal "fr", x.language
     assert_equal "GMT", x.timezone
+    assert_equal "FR", x.country
+    assert_equal "Luke", x.login
 
     payload = YAML.dump(x)
     y = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal "fr", y.language
     assert_equal "GMT", y.timezone
+    assert_equal "FR", y.country
+    assert_equal "Luke", y.login
   end
 
   def test_changes_with_store_accessors
-    x = Hstore.new(language: "de")
+    x = Hstore.new(language: "de", country: "DE")
     assert_predicate x, :language_changed?
     assert_nil x.language_was
     assert_equal [nil, "de"], x.language_change
+    assert_predicate x, :country_changed?
+    assert_nil x.country_was
+    assert_equal [nil, "DE"], x.country_change
     x.save!
 
     assert_not x.language_changed?
+    assert_not x.country_changed?
     x.reload
 
     x.settings = nil
     assert_predicate x, :language_changed?
+    assert_predicate x, :country_changed?
     assert_equal "de", x.language_was
+    assert_equal "DE", x.country_was
     assert_equal ["de", nil], x.language_change
+    assert_equal ["DE", nil], x.country_change
   end
 
   def test_changes_in_place
