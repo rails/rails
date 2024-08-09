@@ -20,7 +20,7 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for security vulnerabilities in Ruby dependencies
+      - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
 <% end -%>
