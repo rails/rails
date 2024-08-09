@@ -2187,6 +2187,74 @@ NOTE: Note that if a query matches multiple records, `find_by` will
 fetch only the first one and ignore the others (see the `LIMIT 1`
 statement above).
 
+### Using Common Table Expression (CTE)
+
+The [`with`][] method is a convenient way to access [Common Table Expressions (CTE)](https://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL#Common_table_expression) `WITH` syntax, which can define named temporary query results that are referable within a single SQL query.
+
+NOTE: To use the CTEs on MySQL, MySQL version 8.0+ is required. On SQLite, version 3.8.3+ is required.
+
+The `with` method returns an instance of `ActiveRecord::Relation`, so you can chain other query methods and even refer to the CTE from them (e.g. `from`, `select`, `joins` or `left_outer_joins`):
+
+```ruby
+relation = Book
+  .with(reviewed_books: Review.select(:book_id).distinct)
+  .left_outer_joins(:reviewed_books)
+  .select("books.*, reviewed_books.book_id AS has_reviews")
+```
+
+The above should generate:
+
+```sql
+WITH "reviewed_books" AS (
+  SELECT DISTINCT "reviews"."book_id"
+  FROM "reviews"
+)
+SELECT books.*, reviewed_books.book_id AS has_reviews
+FROM "books"
+LEFT OUTER JOIN "reviewed_books"
+  ON "reviewed_books"."book_id" = "books"."id"
+```
+
+You can also define multiple CTEs by passing multiple key-value pairs:
+
+```ruby
+Book.with(
+  books_with_reviews: Book.where("reviews_count > ?", 0),
+  books_in_print: Book.in_print
+)
+```
+
+Or chaining multiple `with` calls:
+
+```ruby
+Book
+  .with(books_with_reviews: Book.where("reviews_count > ?", 0))
+  .with(books_in_print: Book.in_print)
+```
+
+These examples should generate:
+
+```sql
+WITH "books_with_reviews" AS (
+  SELECT "books".*
+  FROM "books"
+  WHERE (reviews_count > 0)
+),
+"books_in_print" AS (
+  SELECT "books".*
+  FROM "books"
+  WHERE "books"."in_print" = ?
+)
+SELECT "books".*
+FROM "books"
+```
+
+It is recommended to pass a query as `ActiveRecord::Relation`.
+
+WARNING: You should be very careful to avoid SQL injection vulnerabilities, especially when you pass non-relation values via Arel or other techniques to `with`. Never pass unsafe values such as unsanitized inputs.
+
+[`with`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-with
+
 Find or Build a New Object
 --------------------------
 
