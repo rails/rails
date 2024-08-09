@@ -29,6 +29,7 @@ namespace :test do
     t.test_files = FileList["test/template/**/*_test.rb"]
     t.warning = true
     t.verbose = true
+    t.options = "--profile" if ENV["CI"]
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
   end
 
@@ -39,6 +40,7 @@ namespace :test do
       t.test_files = FileList["test/activerecord/*_test.rb"]
       t.warning = true
       t.verbose = true
+      t.options = "--profile" if ENV["CI"]
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -48,6 +50,7 @@ namespace :test do
       t.test_files = FileList["test/actionpack/**/*_test.rb"]
       t.warning = true
       t.verbose = true
+      t.options = "--profile" if ENV["CI"]
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
   end
