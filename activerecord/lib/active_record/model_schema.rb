@@ -300,6 +300,29 @@ module ActiveRecord
         end
       end
 
+      def table_alias
+        return nil unless defined?(@table_alias)
+        @table_alias
+      end
+
+      def table_alias=(value)
+        value = value && value.to_s
+        if defined?(@table_alias)
+          return if value == @table_alias
+          reset_column_information if connected?
+        end
+        @table_alias        = value
+        @quoted_table_alias = nil
+        @arel_table         = nil
+        @sequence_name      = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
+        @predicate_builder  = nil
+      end
+
+      # Returns a quoted version of the table name, used to construct SQL statements.
+      def quoted_table_alias
+        @quoted_table_alias ||= connection.quote_table_name(table_alias)
+      end
+
       def full_table_name_prefix # :nodoc:
         (module_parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
