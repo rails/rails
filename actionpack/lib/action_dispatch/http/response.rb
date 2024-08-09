@@ -245,7 +245,16 @@ module ActionDispatch # :nodoc:
 
     # Sets the HTTP status code.
     def status=(status)
-      @status = Rack::Utils.status_code(status)
+      case status
+      # The following block is for compatibility with Rack < 3.1
+      # In Rack < 3.1, the status code is symbolically referred to as :unprocessable_entity
+      # In Rack >= 3.1, the status code is symbolically referred to as :unprocessable_content
+      # Once support for Rack < 3.1 is dropped, this check can be removed.
+      when :unprocessable_entity, :unprocessable_content
+        @status = 422
+      else
+        @status = Rack::Utils.status_code(status)
+      end
     end
 
     # Sets the HTTP response's content MIME type. For example, in the controller you
