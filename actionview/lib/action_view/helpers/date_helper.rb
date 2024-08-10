@@ -175,6 +175,10 @@ module ActionView
       # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
       #
       def time_ago_in_words(from_time, options = {})
+        unless ActionView::Base.include_prefix_or_suffix_to_time_ago_in_words
+          return distance_of_time_in_words(from_time, Time.now, options)
+        end
+
         options = {
           scope: :'datetime.distance_in_words'
         }.merge!(options)

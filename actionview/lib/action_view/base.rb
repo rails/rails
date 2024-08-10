@@ -178,6 +178,9 @@ module ActionView # :nodoc:
     # Annotate rendered view with file names
     cattr_accessor :annotate_rendered_view_with_filenames, default: false
 
+    # Specify whether to include "ago" or "in" in <tt>time_ago_in_words</tt> helper method.
+    cattr_accessor :include_prefix_or_suffix_to_time_ago_in_words, default: false
+
     class_attribute :_routes
     class_attribute :logger
 

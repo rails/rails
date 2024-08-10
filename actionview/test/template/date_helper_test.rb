@@ -144,6 +144,13 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_ago_in_words_passes_include_seconds
+    ActionView::Base.include_prefix_or_suffix_to_time_ago_in_words = false
+
+    assert_equal "less than 20 seconds", time_ago_in_words(15.seconds.ago, include_seconds: true)
+    assert_equal "less than a minute", time_ago_in_words(15.seconds.ago, include_seconds: false)
+
+    ActionView::Base.include_prefix_or_suffix_to_time_ago_in_words = true
+
     assert_equal "less than 20 seconds ago", time_ago_in_words(15.seconds.ago, include_seconds: true)
     assert_equal "less than a minute ago", time_ago_in_words(15.seconds.ago, include_seconds: false)
   end
@@ -200,6 +207,13 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_ago_in_words
+    ActionView::Base.include_prefix_or_suffix_to_time_ago_in_words = false
+
+    assert_equal "about 1 year", time_ago_in_words(1.year.ago - 1.day)
+    assert_equal "about 1 year", time_ago_in_words(1.year.from_now + 1.day)
+
+    ActionView::Base.include_prefix_or_suffix_to_time_ago_in_words = true
+
     assert_equal "about 1 year ago", time_ago_in_words(1.year.ago - 1.day)
     assert_equal "in about 1 year", time_ago_in_words(1.year.from_now + 1.day)
   end
