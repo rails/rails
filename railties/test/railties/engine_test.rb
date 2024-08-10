@@ -668,6 +668,8 @@ en:
 
       add_to_config "config.middleware.use Bukkits"
       boot_rails
+
+      assert_includes Rails.application.middleware.map(&:klass), Bukkits, "Bukkits middleware should be in the middleware stack"
     end
 
     test "initializers are executed after application configuration initializers" do
