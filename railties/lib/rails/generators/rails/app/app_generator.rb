@@ -491,6 +491,7 @@ module Rails
             remove_dir "app/views"
           else
             remove_file "app/views/layouts/application.html.erb"
+            remove_dir  "app/views/pwa"
           end
         end
       end
