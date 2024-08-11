@@ -1,5 +1,11 @@
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
+*   Add support for multiple databases for Action Text.
+
+    `config.action_text.connects_to = { writing: :primary, reading: :primary_replica }`
+
+    *Matthew Nguyen*
+
 *   Dispatch direct-upload events on attachment uploads
 
     When using Action Text's rich textarea,  it's possible to attach files to the

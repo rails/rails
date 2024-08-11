@@ -215,6 +215,14 @@ Note that there is no command for creating the database users, and you'll need t
 to support the readonly users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
 
+You can also configure Active Storage, Action Text, and Action Mailbox to use multiple databases.
+
+```ruby
+config.active_storage.connects_to = { database: { writing: :primary, reading: :primary_replica } }
+config.action_text.connects_to = { database: { writing: :primary, reading: :primary_replica } }
+config.action_mailbox.connects_to = { database: { writing: :primary, reading: :primary_replica } }
+```
+
 ## Connecting to Databases without Managing Schema and Migrations
 
 If you would like to connect to an external database without any database

@@ -1,5 +1,11 @@
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
+*   Add support for multiple databases for Action Storage.
+
+    `config.active_storage.connects_to = { writing: :primary, reading: :primary_replica }`
+
+    *Matthew Nguyen*
+
 *   Deprecate `ActiveStorage::Service::AzureStorageService`.
 
     *zzak*
