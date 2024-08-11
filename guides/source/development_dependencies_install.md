@@ -229,7 +229,8 @@ $ bundle install
 If you don't need to run Active Record tests, you can run:
 
 ```bash
-$ bundle install --without db
+$ bundle config set without db
+$ bundle install
 ```
 
 ### Contribute to Rails
