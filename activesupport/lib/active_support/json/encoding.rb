@@ -31,7 +31,6 @@ module ActiveSupport
 
         def initialize(options = nil)
           @options = options || {}
-          
         end
 
         # Encode the given object into a JSON string
