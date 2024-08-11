@@ -1,3 +1,10 @@
+*   SQLite3Adapter: Bulk insert fixtures.
+
+    Previously one insert command was executed for each fixture, now they are
+    aggregated in a single bulk insert command.
+
+    *Lázaro Nixon*
+
 *   PostgreSQLAdapter: Allow `disable_extension` to be called with schema-qualified name.
 
     For parity with `enable_extension`, the `disable_extension` method can be called with a schema-qualified
