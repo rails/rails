@@ -1,3 +1,19 @@
+*   Add `escape_html_entities` option to `ActiveSupport::JSON.encode`.
+
+    This allows for overriding the global configuration found at
+    `ActiveSupport.escape_html_entities_in_json` for specific calls to `to_json`.
+
+    This should be usable from controllers in the following manner:
+    ```ruby
+    class MyController < ApplicationController
+      def index
+        render json: { hello: "world" }, escape_html_entities: false
+      end
+    end
+    ```
+
+    *Nigel Baillie*
+
 *   Raise when using key which can't respond to `#to_sym` in `EncryptedConfiguration`.
 
     As is the case when trying to use an Integer or Float as a key, which is unsupported.
