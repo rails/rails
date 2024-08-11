@@ -166,10 +166,9 @@ Note that translations are not submitted to the Rails repository; your work live
 To generate the guides in HTML format, you will need to install the guides dependencies, `cd` into the *guides* directory, and then run (e.g., for it-IT):
 
 ```bash
-# only install gems necessary for the guides. To undo run: bundle config --delete without
-$ bundle install --without job cable storage test db
+$ BUNDLE_ONLY=default:doc bundle install
 $ cd guides/
-$ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
 ```
 
 This will generate the guides in an *output* directory.
