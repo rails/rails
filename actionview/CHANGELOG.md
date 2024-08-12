@@ -1,3 +1,8 @@
+*   Remove deprecated support to passing `nil` to the `model:` argument of `form_with`.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Enable DependencyTracker to evaluate renders with trailing interpolation.

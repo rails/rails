@@ -63,6 +63,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated support to passing `nil` to the `model:` argument of `form_with`.
+
 ### Deprecations
 
 ### Notable changes
