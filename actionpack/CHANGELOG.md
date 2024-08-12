@@ -1,3 +1,7 @@
+*   Remove `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
+
+    *Rafael Mendonça França*
+
 *   Improve `ActionController::TestCase` to expose a binary encoded `request.body`.
 
     The rack spec clearly states:

@@ -50,6 +50,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
+
 ### Deprecations
 
 ### Notable changes
