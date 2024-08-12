@@ -91,6 +91,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `config.active_record.commit_transaction_on_non_local_return`.
 
+*   Remove deprecated `config.active_record.allow_deprecated_singular_associations_name`.
+
 ### Deprecations
 
 ### Notable changes

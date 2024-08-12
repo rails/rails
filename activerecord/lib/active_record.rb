@@ -445,20 +445,6 @@ module ActiveRecord
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
 
-  def self.allow_deprecated_singular_associations_name
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
-  def self.allow_deprecated_singular_associations_name=(value)
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
 

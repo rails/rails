@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_record.allow_deprecated_singular_associations_name`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_record.commit_transaction_on_non_local_return`.
 
     *Rafael Mendonça França*
