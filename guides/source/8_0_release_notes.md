@@ -133,6 +133,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config.active_job.use_big_decimal_serializer`.
+
 ### Deprecations
 
 ### Notable changes

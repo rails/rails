@@ -1,3 +1,8 @@
+*   Remove deprecated `config.active_job.use_big_decimal_serializer`.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Deprecate `sucker_punch` as an adapter option.
