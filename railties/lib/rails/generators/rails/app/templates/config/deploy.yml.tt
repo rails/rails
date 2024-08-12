@@ -38,7 +38,7 @@ env:
 <% if skip_solid? -%>
   # clear:
   #   # Set number of cores available to the application on each server (default: 1).
-  #   WEB_CONCURRENCY: 2
+  #   WEB_CONCURRENCY: auto
 
   #   # Match this to any external database server to configure Active Record correctly
   #   DB_HOST: 192.168.0.2
