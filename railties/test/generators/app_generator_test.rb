@@ -296,6 +296,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_rubocop
+    run_generator [ destination_root, "--skip-rubocop" ]
+
+    FileUtils.cd(destination_root) do
+      assert_no_changes -> { File.exist?("bin/rubocop") } do
+        run_app_update
+      end
+    end
+  end
+
   def test_app_update_preserves_skip_test
     run_generator [ destination_root, "--skip-test" ]
 
