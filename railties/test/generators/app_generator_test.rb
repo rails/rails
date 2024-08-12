@@ -1511,16 +1511,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    def run_app_update(app_root = destination_root, flags: "--force")
-      Dir.chdir(app_root) do
-        gemfile_contents = File.read("Gemfile")
-        gemfile_contents.sub!(/^(gem "rails").*/, "\\1, path: #{File.expand_path("../../..", __dir__).inspect}")
-        File.write("Gemfile", gemfile_contents)
-
-        quietly { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "bin/rails app:update #{flags}", exception: true) }
-      end
-    end
-
     def action(*args, &block)
       capture(:stdout) { generator.send(*args, &block) }
     end

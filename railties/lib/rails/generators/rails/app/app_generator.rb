@@ -223,6 +223,8 @@ module Rails
     end
 
     def public_directory
+      return if options[:update] && options[:api]
+
       directory "public", "public", recursive: false
     end
 
