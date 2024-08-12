@@ -716,6 +716,7 @@ response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 
 Caching in Development
 ----------------------
+
 By default, caching is *enabled* in development mode with
 [`:memory_store`](#activesupport-cache-memorystore).
 
