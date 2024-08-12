@@ -1492,7 +1492,7 @@ So first, we'll wire up the Article show template
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.textarea :body %>
+    <%= form.text_area :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1572,7 +1572,7 @@ add that to the `app/views/articles/show.html.erb`.
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.textarea :body %>
+    <%= form.text_area :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1637,7 +1637,7 @@ following:
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.textarea :body %>
+    <%= form.text_area :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1664,7 +1664,7 @@ create a file `app/views/comments/_form.html.erb` containing:
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.textarea :body %>
+    <%= form.text_area :body %>
   </p>
   <p>
     <%= form.submit %>
