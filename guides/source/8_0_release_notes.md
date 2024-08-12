@@ -93,6 +93,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `config.active_record.allow_deprecated_singular_associations_name`.
 
+*   Remove deprecated support to finding database adapters that aren't registered to Active Record.
+
 ### Deprecations
 
 ### Notable changes

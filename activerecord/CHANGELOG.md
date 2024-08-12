@@ -1,3 +1,7 @@
+*   Remove deprecated support to finding database adapters that aren't registered to Active Record.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_record.allow_deprecated_singular_associations_name`.
 
     *Rafael Mendonça França*
