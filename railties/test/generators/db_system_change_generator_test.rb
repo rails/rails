@@ -133,7 +133,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git", content
-              assert_match "curl libsqlite3-0 libvips", content
+              assert_match "curl libvips sqlite3", content
             end
 
             assert_devcontainer_json_file do |content|
