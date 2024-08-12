@@ -286,6 +286,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_brakeman
+    run_generator [ destination_root, "--skip-brakeman" ]
+
+    FileUtils.cd(destination_root) do
+      assert_no_changes -> { File.exist?("bin/brakeman") } do
+        run_app_update
+      end
+    end
+  end
+
   def test_app_update_preserves_skip_test
     run_generator [ destination_root, "--skip-test" ]
 

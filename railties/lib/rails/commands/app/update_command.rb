@@ -69,6 +69,7 @@ module Rails
               skip_action_mailbox: !defined?(ActionMailbox::Engine),
               skip_action_text:    !defined?(ActionText::Engine),
               skip_action_cable:   !defined?(ActionCable::Engine),
+              skip_brakeman:       skip_brakeman?,
               skip_test:           !defined?(Rails::TestUnitRailtie),
               skip_system_test:    Rails.application.config.generators.system_tests.nil?,
               asset_pipeline:      asset_pipeline,
@@ -86,6 +87,13 @@ module Rails
             else
               nil
             end
+          end
+
+          def skip_brakeman?
+            require "brakeman"
+            false
+          rescue LoadError
+            true
           end
       end
     end
