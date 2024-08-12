@@ -35,7 +35,7 @@ module ActiveRecord
       # The following options are accepted:
       #
       # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previously defined default value (if any) will be used.
+      # is not passed, the previously defined default value (if any) on the superclass or in the schema will be used.
       # Otherwise, the default will be +nil+.
       #
       # +array+ (PostgreSQL only) specifies that the type should be an array (see the
