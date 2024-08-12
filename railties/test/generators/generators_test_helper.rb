@@ -62,9 +62,12 @@ module GeneratorsTestHelper
 
   def copy_routes
     routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb.tt", __dir__)
+    routes = evaluate_template(routes, {
+      options: ActiveSupport::OrderedOptions.new
+    })
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
-    FileUtils.cp routes, File.join(destination, "routes.rb")
+    File.write File.join(destination, "routes.rb"), routes
   end
 
   def copy_gemfile(*gemfile_entries)
