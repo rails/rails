@@ -141,6 +141,14 @@ module ActiveRecord
       end
     end
 
+    def test_prepare_false_with_binds
+      @connection.stub(:prepared_statements, false) do
+        bind = Relation::QueryAttribute.new(nil, 42, Type::Value.new)
+        result = @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: false)
+        assert_equal [[42]], result.rows
+      end
+    end
+
     def test_reconnection_after_actual_disconnection_with_verify
       assert_predicate @connection, :active?
       cause_server_side_disconnect
