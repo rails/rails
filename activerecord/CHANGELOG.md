@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_record.commit_transaction_on_non_local_return`.
+
+    *Rafael Mendonça França*
+
 *   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
 
     *David Stosik*
@@ -25,6 +29,7 @@
     Fixes #52742
 
     *Ryota Kitazawa*, *Takayuki Nagatomi*
+
 
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 

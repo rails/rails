@@ -359,20 +359,6 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
-  def self.commit_transaction_on_non_local_return
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
-  def self.commit_transaction_on_non_local_return=(value)
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
   ##
   # :singleton-method: warn_on_records_fetched_greater_than
   # Specify a threshold for the size of query result sets. If the number of
