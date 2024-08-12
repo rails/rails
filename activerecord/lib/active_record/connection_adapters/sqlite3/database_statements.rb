@@ -93,7 +93,7 @@ module ActiveRecord
               # Don't cache statements if they are not prepared.
               stmt = raw_connection.prepare(sql)
               begin
-                unless without_prepared_statement?(binds)
+                unless binds.nil? || binds.empty?
                   stmt.bind_params(type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return

@@ -1145,10 +1145,6 @@ module ActiveRecord
           end
         end
 
-        def without_prepared_statement?(binds)
-          !prepared_statements || binds.nil? || binds.empty?
-        end
-
         def column_for(table_name, column_name)
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
