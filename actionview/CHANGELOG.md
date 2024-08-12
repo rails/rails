@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing a content to void tag elements on the `tag` builder.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing `nil` to the `model:` argument of `form_with`.
 
     *Rafael Mendonça França*
