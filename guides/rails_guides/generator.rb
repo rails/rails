@@ -122,9 +122,9 @@ module RailsGuides
 
       def process_scss
         system "bundle exec dartsass \
-          #{@guides_dir}/assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style.css \
-          #{@guides_dir}/assets/stylesrc/highlight.scss:#{@output_dir}/stylesheets/highlight.css \
-          #{@guides_dir}/assets/stylesrc/print.scss:#{@output_dir}/stylesheets/print.css"
+          #{@guides_dir}/assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style-v2.css \
+          #{@guides_dir}/assets/stylesrc/highlight.scss:#{@output_dir}/stylesheets/highlight-v2.css \
+          #{@guides_dir}/assets/stylesrc/print.scss:#{@output_dir}/stylesheets/print-v2.css"
       end
 
       def copy_assets
