@@ -8,7 +8,6 @@ module Rails
       include ActiveSupport::Testing::Isolation
 
       setup :build_app
-
       teardown :teardown_app
 
       test "app lazily loads routes when invoking url helpers" do
@@ -83,6 +82,21 @@ module Rails
         assert_not_operator(:plugin_posts_path, :in?, engine_url_helpers.methods)
       end
 
+      test "railties can access lazy routes" do
+        app_file("config/application.rb", <<~RUBY, "a+")
+
+          class MyRailtie < ::Rails::Railtie
+            initializer :some_railtie_init do |app|
+              app.routes
+            end
+          end
+        RUBY
+
+        require "#{app_path}/config/environment"
+
+        assert_operator(Rails.application.routes, :is_a?, Engine::LazyRouteSet)
+      end
+
       private
         def build_app
           super
@@ -118,6 +132,7 @@ module Rails
                 end
               end
             RUBY
+
             plugin.write "config/routes.rb", <<~RUBY
               Plugin::Engine.routes.draw do
                 root to: proc { [200, {}, []] }
