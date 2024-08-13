@@ -1073,10 +1073,10 @@ class ClientsController < ApplicationController
 end
 ```
 
-For this example to work, you have to add the PDF MIME type to Rails. This can be done by adding the following line to the file `config/initializers/mime_types.rb`:
+This example works because [Rails already registers the `"application/pdf"` MIME type](https://github.com/rails/rails/blob/main/actionpack/lib/action_dispatch/http/mime_types.rb) at startup (alongside other common types). If you need additional MIME types, call [`Mime::Type.register`](https://api.rubyonrails.org/classes/Mime/Type.html#method-c-register) in the file `config/initializers/mime_types.rb`. For example:
 
 ```ruby
-Mime::Type.register "application/pdf", :pdf
+Mime::Type.register(<mime_type>, <symbol>)
 ```
 
 NOTE: Configuration files are not reloaded on each request, so you have to restart the server for their changes to take effect.
