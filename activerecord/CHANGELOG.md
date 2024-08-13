@@ -1,3 +1,9 @@
+*   Fix `ActiveRecord::Encryption::EncryptedAttributeType#type` to return
+    actual cast type.
+
+    *Vasiliy Ermolovich*
+
+
 ## Rails 7.2.0 (August 09, 2024) ##
 
 *   Handle commas in Sqlite3 default function definitions.
