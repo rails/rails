@@ -227,7 +227,7 @@ module Rails
         end
 
         def base_package
-          "libsqlite3-0"
+          "sqlite3"
         end
 
         def build_package

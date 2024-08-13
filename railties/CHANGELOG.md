@@ -1,3 +1,10 @@
+*   Fix the default Dockerfile to include the full sqlite3 package.
+
+    Prior to this it only included `libsqlite3`, so it wasn't enough to
+    run `rails dbconsole`.
+
+    *Jerome Dalbert*
+
 ## Rails 7.2.0 (August 09, 2024) ##
 
 *   The new `bin/rails boot` command boots the application and exits. Supports the
