@@ -1,3 +1,9 @@
+*   Make scaffold views I18n friendly
+
+    Instead of hard-coding attribute names, call `human_attribute_name`.
+
+    *Shouichi Kamiya*
+
 *   Enable query log tags by default on development env
 
     This can be used to trace troublesome SQL statements back to the application

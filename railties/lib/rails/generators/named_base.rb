@@ -67,8 +67,9 @@ module Rails
           @namespaced_class_path ||= namespace_dirs + @class_path
         end
 
-        def class_name # :doc:
-          (class_path + [file_name]).map!(&:camelize).join("::")
+        def class_name(fully_qualified: false) # :doc:
+          path = (fully_qualified && namespaced?) ? namespaced_class_path : class_path
+          (path + [file_name]).map!(&:camelize).join("::")
         end
 
         def human_name # :doc:
