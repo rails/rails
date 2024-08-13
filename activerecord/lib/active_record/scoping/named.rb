@@ -190,7 +190,10 @@ module ActiveRecord
 
         private
           def singleton_method_added(name)
-            generate_relation_method(name) if Kernel.respond_to?(name) && !ActiveRecord::Relation.method_defined?(name)
+            # Most Kernel extends are both singleton and instance methods so
+            # respond_to is a fast check, but we don't want to define methods
+            # only on the module (ex. Module#name)
+            generate_relation_method(name) if Kernel.respond_to?(name) && (Kernel.method_defined?(name) || Kernel.private_method_defined?(name)) && !ActiveRecord::Relation.method_defined?(name)
           end
       end
     end
