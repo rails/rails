@@ -1,4 +1,4 @@
-*   Disable validations for record.
+*   Allow disabling validations per instance
 
     ```ruby
     user = User.new
