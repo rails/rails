@@ -590,7 +590,7 @@ module Rails
       config.eager_load_paths.freeze
     end
 
-    initializer :make_routes_lazy, before: :set_routes_reloader_hook do |app|
+    initializer :make_routes_lazy, before: :bootstrap_hook do |app|
       config.route_set_class = LazyRouteSet if Rails.env.local?
     end
 
