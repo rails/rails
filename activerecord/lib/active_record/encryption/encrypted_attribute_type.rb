@@ -7,13 +7,13 @@ module ActiveRecord
     # This is the central piece that connects the encryption system with +encrypts+ declarations in the
     # model classes. Whenever you declare an attribute as encrypted, it configures an +EncryptedAttributeType+
     # for that attribute.
-    class EncryptedAttributeType < ::ActiveRecord::Type::Text
+    class EncryptedAttributeType < ::ActiveModel::Type::Value
       include ActiveModel::Type::Helpers::Mutable
 
       attr_reader :scheme, :cast_type
 
       delegate :key_provider, :downcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
-      delegate :accessor, to: :cast_type
+      delegate :accessor, :type, to: :cast_type
 
       # === Options
       #
