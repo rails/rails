@@ -39,4 +39,10 @@ class AutoIncrementTest < ActiveRecord::AbstractMysqlTestCase
 
     assert_not_predicate @connection.columns(:auto_increments).first, :auto_increment?
   end
+
+  def test_auto_increment_false_with_create_table
+    @connection.create_table :auto_increments, auto_increment: false, force: :cascade
+
+    assert_not_predicate @connection.columns(:auto_increments).first, :auto_increment?
+  end
 end
