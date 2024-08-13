@@ -1,3 +1,8 @@
+*   Fix `ActiveRecord::Encryption::EncryptedAttributeType#type` to return
+    actual cast type.
+
+    *Vasiliy Ermolovich*
+
 *   SQLite3Adapter: Bulk insert fixtures.
 
     Previously one insert command was executed for each fixture, now they are
