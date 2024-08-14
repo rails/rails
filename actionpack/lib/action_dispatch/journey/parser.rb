@@ -36,7 +36,7 @@ module ActionDispatch
         node = parse_expression
 
         while @next_token
-          case @next_token.first
+          case @next_token
           when :RPAREN
             break
           when :OR
@@ -56,9 +56,9 @@ module ActionDispatch
       end
 
       def parse_expression
-        if @next_token.first == :STAR
+        if @next_token == :STAR
           parse_star
-        elsif @next_token.first == :LPAREN
+        elsif @next_token == :LPAREN
           parse_group
         else
           parse_terminal
@@ -66,7 +66,7 @@ module ActionDispatch
       end
 
       def parse_star
-        node = Star.new(Symbol.new(@next_token.last, Symbol::GREEDY_EXP))
+        node = Star.new(Symbol.new(@scanner.last_string, Symbol::GREEDY_EXP))
         advance_token
         node
       end
@@ -74,25 +74,25 @@ module ActionDispatch
       def parse_group
         advance_token
         node = parse_expressions
-        if @next_token.first == :RPAREN
+        if @next_token == :RPAREN
           node = Group.new(node)
           advance_token
           node
         else
-          raise "error"
+          raise ArgumentError, "missing right parenthesis."
         end
       end
 
       def parse_terminal
-        node = case @next_token.first
+        node = case @next_token
         when :SYMBOL
-          Symbol.new(@next_token.last)
+          Symbol.new(@scanner.last_string)
         when :LITERAL
-          Literal.new(@next_token.last)
+          Literal.new(@scanner.last_literal)
         when :SLASH
-          Slash.new(@next_token.last)
+          Slash.new("/")
         when :DOT
-          Dot.new(@next_token.last)
+          Dot.new(".")
         end
 
         advance_token
