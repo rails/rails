@@ -1,3 +1,7 @@
+*   Remove `racc` dependency by manually writing `ActionDispatch::Journey::Scanner`.
+
+    *Gannon McGibbon*
+
 *   Speed up `ActionDispatch::Routing::Mapper::Scope#[]` by merging frame hashes.
 
     *Gannon McGibbon*

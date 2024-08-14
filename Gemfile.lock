@@ -51,7 +51,6 @@ PATH
       actionview (= 8.0.0.alpha)
       activesupport (= 8.0.0.alpha)
       nokogiri (>= 1.8.5)
-      racc
       rack (>= 2.2.4)
       rack-session (>= 1.0.1)
       rack-test (>= 0.6.3)
@@ -666,7 +665,6 @@ DEPENDENCIES
   propshaft (>= 0.1.7)
   puma (>= 5.0.3)
   queue_classic (>= 4.0.0)
-  racc (>= 1.4.6)
   rack (~> 3.0)
   rack-cache (~> 1.2)
   rails!
