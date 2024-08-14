@@ -16,3 +16,11 @@ Example:
 
     This will create:
         script/cleanup/my_script.rb
+
+    You can generate the script with a numbered prefix:
+        `bin/rails generate script data/my_script --prefix`
+        `bin/rails generate script data/other_script --prefix`
+
+    This will create:
+        script/data/001_my_script.rb
+        script/data/002_other_script.rb
