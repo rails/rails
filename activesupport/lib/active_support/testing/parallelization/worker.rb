@@ -46,8 +46,29 @@ module ActiveSupport
 
           set_process_title("#{klass}##{method}")
 
-          result = klass.with_info_handler reporter do
-            Minitest.run_one_method(klass, method)
+          result = nil
+
+          # TODO: Remove conditional when we support on minitest 5.25+
+          if klass.method(:with_info_handler).arity == 2
+            t0 = nil
+
+            handler = lambda do
+              unless reporter.passed? then
+                warn "Current results:"
+                warn reporter.reporters.grep(SummaryReporter).first
+              end
+
+              warn "Current: %s#%s %.2fs" % [klass, method, Minitest.clock_time - t0]
+            end
+
+            result = klass.with_info_handler reporter, handler do
+              t0 = Minitest.clock_time
+              Minitest.run_one_method(klass, method)
+            end
+          else
+            result = klass.with_info_handler reporter do
+              Minitest.run_one_method(klass, method)
+            end
           end
 
           safe_record(reporter, result)
