@@ -786,6 +786,17 @@ module ActionDispatch
           match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, **mapping, via: :options, &block)
           self
         end
+
+        # Define a route that recognizes HTTP CONNECT (and GET) requests. More
+        # specifically this recognizes HTTP/1 protocol upgrade requests and HTTP/2
+        # CONNECT requests with the protocol pseudo header. For supported arguments,
+        # see [match](rdoc-ref:Base#match)
+        #
+        #     connect 'live', to: 'live#index'
+        def connect(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, **mapping, via: [:get, :connect], &block)
+          self
+        end
       end
 
       # You may wish to organize groups of controllers under a namespace. Most

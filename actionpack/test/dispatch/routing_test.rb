@@ -356,6 +356,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "openid#login", @response.body
   end
 
+  def test_websocket
+    draw do
+      connect "chat/live", to: "chat#live"
+    end
+
+    # HTTP/1.1 connection upgrade:
+    get "/chat/live", headers: { "REQUEST_METHOD" => "GET", "HTTP_CONNECTION" => "Upgrade", "HTTP_UPGRADE" => "websocket" }
+    assert_equal "chat#live", @response.body
+
+    # `rack.protocol` connection:
+    get "/chat/live", headers: { "REQUEST_METHOD" => "CONNECT", "rack.protocol" => "websocket" }
+    assert_equal "chat#live", @response.body
+  end
+
   def test_bookmarks
     draw do
       scope "bookmark", controller: "bookmarks", as: :bookmark do
