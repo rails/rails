@@ -289,8 +289,8 @@ Here is an example of the `MessageDelivery` object from the Rails console exampl
 [`message`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html#method-i-message
 [`with`]: https://api.rubyonrails.org/classes/ActionMailer/Parameterized/ClassMethods.html#method-i-with
 
-TODO - Encoding and Attachments
-------------------------
+Attachments and Multipart Emails
+--------------------------------
 
 ### Auto Encoding Header Values
 
@@ -323,7 +323,7 @@ Attachments
 
 ### Adding Attachments
 
-Action Mailer makes it very easy to add attachments.
+Action Mailer makes it very easy to add attachments with the [attachments method](https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments).
 
 Pass the file name and content to Action Mailer and the [Mail
 gem](https://github.com/mikel/mail) will automatically guess the `mime_type`,
@@ -333,17 +333,17 @@ set the `encoding`, and create the attachment.
 attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
 ```
 
-When the `mail` method will be triggered, it will send a multipart email with an
+When the `mail` method is triggered, it will send a multipart email with an
 attachment, properly nested with the top level being `multipart/mixed` and the
 first part being a `multipart/alternative` containing the plain text and HTML
 email messages.
 
-NOTE: Mail will automatically Base64 encode an attachment. If you want something
-different, encode your content and pass in the encoded content and encoding in a
-`Hash` to the `attachments` method.
+NOTE: Mail gem will automatically Base64 encode an attachment. If you want
+something different, you encode your content and pass in the encoded content as
+well as the encoding in a `Hash` to the `attachments` method.
 
-The other way is to pass the file name and specify headers and content and
-Action Mailer and Mail will use the settings you pass in.
+The other way to send attachments is to specify the file name, headers, and
+content and Action Mailer and Mail will use the settings you pass in.
 
 ```ruby
 encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
