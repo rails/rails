@@ -1,3 +1,10 @@
+*   Fix `rails console` for application with non default application constant.
+
+    The wrongly assumed the Rails application would be named `AppNamespace::Application`,
+    which is the default but not an obligation.
+
+    *Jean Boussier*
+
 *   Fix the default Dockerfile to include the full sqlite3 package.
 
     Prior to this it only included `libsqlite3`, so it wasn't enough to

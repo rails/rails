@@ -134,6 +134,13 @@ module Rails
       @initialized
     end
 
+    # Returns the dhasherized application name.
+    #
+    #   MyApp::Application.new.name => "my-app"
+    def name
+      self.class.name.underscore.dasherize.delete_suffix("/application")
+    end
+
     def run_load_hooks! # :nodoc:
       return self if @ran_load_hooks
       @ran_load_hooks = true
