@@ -494,7 +494,19 @@ module ActiveRecord
       end
 
       def extensions
-        internal_exec_query("SELECT extname FROM pg_extension", "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values
+        query = <<~SQL
+          SELECT
+            pg_extension.extname,
+            n.nspname AS schema
+          FROM pg_extension
+          JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
+        SQL
+
+        internal_exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.map do |row|
+          name, schema = row[0], row[1]
+          schema = nil if schema == current_schema
+          [schema, name].compact.join(".")
+        end
       end
 
       # Returns a list of defined enum types, and their values.
