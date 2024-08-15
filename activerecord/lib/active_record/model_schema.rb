@@ -531,7 +531,9 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
-      def load_schema # :nodoc:
+      # Load the model's schema information either from the schema cache
+      # or directly from the database.
+      def load_schema
         return if schema_loaded?
         @load_schema_monitor.synchronize do
           return if schema_loaded?

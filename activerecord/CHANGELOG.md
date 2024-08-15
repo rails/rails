@@ -1,3 +1,7 @@
+*   Fix `ActiveRecord::Base.inspect` to properly explain how to load schema information.
+
+    *Jean Boussier*
+
 *   Fix `ActiveRecord::Encryption::EncryptedAttributeType#type` to return
     actual cast type.
 
