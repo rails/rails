@@ -77,6 +77,17 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_queries_count(3) { authors.to_a }
   end
 
+  def test_eager_association_loading_with_nil_associations
+    authors = Author.includes(nil).to_a
+    assert_equal 3, authors.size
+
+    authors = Author.includes([:posts, nil]).to_a
+    assert_equal 3, authors.size
+
+    authors = Author.includes(posts: nil).to_a
+    assert_equal 3, authors.size
+  end
+
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations
     authors = Author.all.merge!(includes: { posts: [:comments, :categorizations] }, order: "authors.id").to_a
     assert_equal 3, authors.size

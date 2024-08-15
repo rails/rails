@@ -61,7 +61,7 @@ module ActiveRecord
         when Hash
           associations.each do |k, v|
             cache = hash[k] ||= {}
-            walk_tree v, cache
+            walk_tree v, cache if v
           end
         else
           raise ConfigurationError, associations.inspect
