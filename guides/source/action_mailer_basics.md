@@ -289,9 +289,7 @@ Here is an example of the `MessageDelivery` object from the Rails console exampl
 [`message`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html#method-i-message
 [`with`]: https://api.rubyonrails.org/classes/ActionMailer/Parameterized/ClassMethods.html#method-i-with
 
-Attachments and Multipart Emails
---------------------------------
-
+TODO: Make sure these methods are explained elsewhere, then delete this section
 ### Complete List of Action Mailer Methods
 
 There are just three methods that you need to send pretty much any email
@@ -309,8 +307,8 @@ message:
 [`attachments`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments
 [`headers`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-headers
 
-Attachments
------------
+Attachments and Multipart Emails
+--------------------------------
 
 ### Adding Attachments
 
@@ -378,6 +376,20 @@ after the attachment URL as well:
 
 <%= image_tag attachments['image.jpg'].url, alt: 'My Photo', class: 'photos' %>
 ```
+
+### Multipart Emails
+
+As demonstrated [above](#create-a-mailer-view), Action Mailer will automatically
+send multipart emails if you have different templates for the same action. For
+example, if you have a `UserMailer` and `welcome_email.text.erb` and
+`welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will
+automatically send a multipart email with the HTML and text versions setup as
+different parts.
+
+The order of the parts getting inserted is determined by the `:parts_order`
+inside of the `ActionMailer::Base.default` method.
+
+Multipart is also used when you send attachments with email. The `multipart/...` is a MIME type. It represents a document that's comprised of multiple component parts, each of which may have its own individual MIME type. For example, the `html` and `text` parts above. OR a multipart type may encapsulate multiple files being sent together in one transaction. so `multipart` MIME types are used when attaching multiple files to an email.
 
 Mailer Views and Layouts
 ------------------------
