@@ -292,15 +292,6 @@ Here is an example of the `MessageDelivery` object from the Rails console exampl
 Attachments and Multipart Emails
 --------------------------------
 
-### Auto Encoding Header Values
-
-Action Mailer handles the auto encoding of multibyte characters inside of
-headers and bodies.
-
-For more complex examples such as defining alternate character sets or
-self-encoding text first, please refer to the
-[Mail](https://github.com/mikel/mail) library.
-
 ### Complete List of Action Mailer Methods
 
 There are just three methods that you need to send pretty much any email
@@ -359,34 +350,34 @@ encoded and not try to Base64 encode it.
 
 ### Making Inline Attachments
 
-Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in pre 3.0 versions, much simpler and trivial as they should be.
+Sometimes, you may want to send an attachment (e.g. image) inline, so it appears within the email body. Action Mailer makes this simple.
 
-* First, to tell Mail to turn an attachment into an inline attachment, you just call `#inline` on the attachments method within your Mailer:
+First, tell Mail to turn an attachment into an inline attachment by calling `#inline`:
 
-    ```ruby
-    def welcome
-      attachments.inline['image.jpg'] = File.read('/path/to/image.jpg')
-    end
-    ```
+```ruby
+def welcome
+  attachments.inline['image.jpg'] = File.read('/path/to/image.jpg')
+end
+```
 
-* Then in your view, you can just reference `attachments` as a hash and specify
-  which attachment you want to show, calling `url` on it and then passing the
-  result into the `image_tag` method:
+Then in the view, you can reference `attachments` as a hash and specify the file
+you want to show inline. You can call `url` on the hash and pass result into the
+`image_tag` method:
 
-    ```html+erb
-    <p>Hello there, this is our image</p>
+```html+erb
+<p>Hello there, this is the image you requested:</p>
 
-    <%= image_tag attachments['image.jpg'].url %>
-    ```
+<%= image_tag attachments['image.jpg'].url %>
+```
 
-* As this is a standard call to `image_tag` you can pass in an options hash
-  after the attachment URL as you could for any other image:
+Since this is a standard call to `image_tag` you can pass in an options hash
+after the attachment URL as well:
 
-    ```html+erb
-    <p>Hello there, this is our image</p>
+```html+erb
+<p>Hello there, this is our image</p>
 
-    <%= image_tag attachments['image.jpg'].url, alt: 'My Photo', class: 'photos' %>
-    ```
+<%= image_tag attachments['image.jpg'].url, alt: 'My Photo', class: 'photos' %>
+```
 
 Mailer Views and Layouts
 ------------------------
