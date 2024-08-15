@@ -47,6 +47,7 @@ module ApplicationTests
         output.sub!(/^Done in \d+\.\d+s\.\n/, "Done in 0.00s.\n")
         # Ignore warnings such as `Psych.safe_load is deprecated`
         output.gsub!(/^.*warning:\s.*\n/, "")
+        output.gsub!(/^A new release of RubyGems is available.*\n.*\n/, "")
 
         assert_equal(<<~OUTPUT, output)
           == Installing dependencies ==
