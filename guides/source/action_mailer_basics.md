@@ -134,8 +134,7 @@ For the `welcome_email` action, you'll need to create a matching view in a file 
 
 NOTE: the above is the content of the `<body>` tag. It will be embedded in the default mailer layout, which contains the `<html>` tag. See [Mailer layouts](#mailer-views-and-layouts) for more.
 
-You can also create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Not all clients prefer HTML emails,
-and so sending both is best practice. Here is a sample text email:
+You can also create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Sending both formats is best practice in case of HTML rendering issues with a client, text can be a good fallback. Here is a sample text email:
 
 ```erb
 Welcome to example.com, <%= @user.name %>
@@ -384,12 +383,16 @@ send multipart emails if you have different templates for the same action. For
 example, if you have a `UserMailer` and `welcome_email.text.erb` and
 `welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will
 automatically send a multipart email with the HTML and text versions setup as
-different parts.
+different parts. 
 
-The order of the parts getting inserted is determined by the `:parts_order`
-inside of the `ActionMailer::Base.default` method.
+The Mail gem has helper methods for making a `multipart/alternate` email for
+`text/plain` and `text/html` [MIME types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types) and you can manually create
+any other type of MIME email.
 
-Multipart is also used when you send attachments with email. The `multipart/...` is a MIME type. It represents a document that's comprised of multiple component parts, each of which may have its own individual MIME type. For example, the `html` and `text` parts above. OR a multipart type may encapsulate multiple files being sent together in one transaction. so `multipart` MIME types are used when attaching multiple files to an email.
+NOTE: The order of the parts getting inserted is determined by the
+`:parts_order` inside of the `ActionMailer::Base.default` method.
+
+Multipart is also used when you send attachments with email. The `multipart` MIME type represents a document that's comprised of multiple component parts, each of which may have its own individual MIME type. Such as the `text/html` and `text/text` parts above. The use of `multipart` type is to encapsulate multiple files being sent together in one transaction, such as when attaching multiple files to an email.
 
 Mailer Views and Layouts
 ------------------------
