@@ -135,7 +135,7 @@ module Rails
       @initialized
     end
 
-    # Returns the dhasherized application name.
+    # Returns the dasherized application name.
     #
     #   MyApp::Application.new.name => "my-app"
     def name
