@@ -148,9 +148,13 @@ module ActiveRecord
         end
 
         def query_cache
-          @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
+          added = false
+          store = @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
+            added = true
             Store.new(@query_cache_max_size)
           end
+          prune_thread_cache if added
+          store
         end
 
         private
