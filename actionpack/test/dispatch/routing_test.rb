@@ -990,13 +990,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_resource_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resource :user, options }
+    draw { resource :user, **options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
   def test_resources_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resources :users, options }
+    draw { resources :users, **options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 

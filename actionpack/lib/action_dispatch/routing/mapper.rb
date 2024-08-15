@@ -673,7 +673,7 @@ module ActionDispatch
         alias_method :default_url_options, :default_url_options=
 
         def with_default_scope(scope, &block)
-          scope(scope) do
+          scope(**scope) do
             instance_exec(&block)
           end
         end
@@ -883,8 +883,7 @@ module ActionDispatch
         #     scope as: "sekret" do
         #       resources :posts
         #     end
-        def scope(*args)
-          options = args.extract_options!.dup
+        def scope(*args, only: nil, except: nil, **options)
           scope = {}
 
           options[:path] = args.flatten.join("/") if args.any?
@@ -905,9 +904,8 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
-          if options.key?(:only) || options.key?(:except)
-            scope[:action_options] = { only: options.delete(:only),
-                                       except: options.delete(:except) }
+          if only || except
+            scope[:action_options] = { only:, except: }
           end
 
           if options.key? :anchor
@@ -987,18 +985,16 @@ module ActionDispatch
         #     namespace :admin, as: "sekret" do
         #       resources :posts
         #     end
-        def namespace(path, options = {}, &block)
-          path = path.to_s
+        def namespace(name, as: DEFAULT, path: DEFAULT, shallow_path: DEFAULT, shallow_prefix: DEFAULT, **options, &block)
+          name = name.to_s
+          options[:module] ||= name
+          as = name if as == DEFAULT
+          path = name if path == DEFAULT
+          shallow_path = path if shallow_path == DEFAULT
+          shallow_prefix = as if shallow_prefix == DEFAULT
 
-          defaults = {
-            module:         path,
-            as:             options.fetch(:as, path),
-            shallow_path:   options.fetch(:path, path),
-            shallow_prefix: options.fetch(:as, path)
-          }
-
-          path_scope(options.delete(:path) { path }) do
-            scope(defaults.merge!(options), &block)
+          path_scope(path) do
+            scope(**options, as:, shallow_path:, shallow_prefix:, &block)
           end
         end
 
@@ -1192,7 +1188,7 @@ module ActionDispatch
         class Resource # :nodoc:
           attr_reader :controller, :path, :param
 
-          def initialize(entities, api_only, shallow, options = {})
+          def initialize(entities, api_only, shallow, only: nil, except: nil, **options)
             if options[:param].to_s.include?(":")
               raise ArgumentError, ":param option can't contain colons"
             end
@@ -1205,8 +1201,8 @@ module ActionDispatch
             @options    = options
             @shallow    = shallow
             @api_only   = api_only
-            @only       = options.delete :only
-            @except     = options.delete :except
+            @only       = only
+            @except     = except
           end
 
           def default_actions
@@ -1285,7 +1281,7 @@ module ActionDispatch
         end
 
         class SingletonResource < Resource # :nodoc:
-          def initialize(entities, api_only, shallow, options)
+          def initialize(entities, api_only, shallow, **options)
             super
             @as         = nil
             @controller = (options[:controller] || plural).to_s
@@ -1350,19 +1346,17 @@ module ActionDispatch
         #
         # ### Options
         # Takes same options as [resources](rdoc-ref:#resources)
-        def resource(*resources, &block)
-          options = resources.extract_options!.dup
-
-          if apply_common_behavior_for(:resource, resources, options, &block)
+        def resource(*resources, concerns: nil, **options, &block)
+          if apply_common_behavior_for(:resource, resources, concerns:, **options, &block)
             return self
           end
 
           with_scope_level(:resource) do
             options = apply_action_options options
-            resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+            resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], **options)) do
               yield if block_given?
 
-              concerns(options[:concerns]) if options[:concerns]
+              concerns(*concerns) if concerns
 
               new do
                 get :new
@@ -1520,19 +1514,17 @@ module ActionDispatch
         #
         #     # resource actions are at /admin/posts.
         #     resources :posts, path: "admin/posts"
-        def resources(*resources, &block)
-          options = resources.extract_options!.dup
-
-          if apply_common_behavior_for(:resources, resources, options, &block)
+        def resources(*resources, concerns: nil, **options, &block)
+          if apply_common_behavior_for(:resources, resources, concerns:, **options, &block)
             return self
           end
 
           with_scope_level(:resources) do
             options = apply_action_options options
-            resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+            resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], **options)) do
               yield if block_given?
 
-              concerns(options[:concerns]) if options[:concerns]
+              concerns(*concerns) if concerns
 
               collection do
                 get  :index if parent_resource.actions.include?(:index)
@@ -1617,19 +1609,19 @@ module ActionDispatch
             if shallow? && shallow_nesting_depth >= 1
               shallow_scope do
                 path_scope(parent_resource.nested_scope) do
-                  scope(nested_options, &block)
+                  scope(**nested_options, &block)
                 end
               end
             else
               path_scope(parent_resource.nested_scope) do
-                scope(nested_options, &block)
+                scope(**nested_options, &block)
               end
             end
           end
         end
 
         # See ActionDispatch::Routing::Mapper::Scoping#namespace.
-        def namespace(path, options = {})
+        def namespace(name, as: DEFAULT, path: DEFAULT, shallow_path: DEFAULT, shallow_prefix: DEFAULT, **options, &block)
           if resource_scope?
             nested { super }
           else
@@ -1784,22 +1776,21 @@ module ActionDispatch
             @scope[:scope_level_resource]
           end
 
-          def apply_common_behavior_for(method, resources, options, &block)
+          def apply_common_behavior_for(method, resources, shallow: nil, **options, &block)
             if resources.length > 1
-              resources.each { |r| public_send(method, r, options, &block) }
+              resources.each { |r| public_send(method, r, shallow:, **options, &block) }
               return true
             end
 
-            if options[:shallow]
-              options.delete(:shallow)
-              shallow do
-                public_send(method, resources.pop, options, &block)
+            if shallow
+              self.shallow do
+                public_send(method, resources.pop, **options, &block)
               end
               return true
             end
 
             if resource_scope?
-              nested { public_send(method, resources.pop, options, &block) }
+              nested { public_send(method, resources.pop, shallow:, **options, &block) }
               return true
             end
 
@@ -1808,9 +1799,9 @@ module ActionDispatch
             end
 
             scope_options = options.slice!(*RESOURCE_OPTIONS)
-            unless scope_options.empty?
-              scope(scope_options) do
-                public_send(method, resources.pop, options, &block)
+            if !scope_options.empty? || !shallow.nil?
+              scope(**scope_options, shallow:) do
+                public_send(method, resources.pop, **options, &block)
               end
               return true
             end
@@ -1886,9 +1877,10 @@ module ActionDispatch
           end
 
           def shallow_scope
-            scope = { as: @scope[:shallow_prefix],
-                      path: @scope[:shallow_path] }
-            @scope = @scope.new scope
+            @scope = @scope.new(
+              as: @scope[:shallow_prefix],
+              path: @scope[:shallow_path],
+            )
 
             yield
           ensure
@@ -2152,8 +2144,7 @@ module ActionDispatch
         #     namespace :posts do
         #       concerns :commentable
         #     end
-        def concerns(*args)
-          options = args.extract_options!
+        def concerns(*args, **options)
           args.flatten.each do |name|
             if concern = @concerns[name]
               concern.call(self, options)
