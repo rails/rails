@@ -66,6 +66,7 @@ module ActiveRecord
 
         def compute_if_absent(key)
           check_version
+
           return yield unless @enabled
 
           if entry = @map.delete(key)
@@ -93,10 +94,30 @@ module ActiveRecord
           end
       end
 
+      class QueryCacheRegistry # :nodoc:
+        def initialize
+          @mutex = Mutex.new
+          @map = ConnectionPool::WeakThreadKeyMap.new
+        end
+
+        def compute_if_absent(context)
+          @map[context] || @mutex.synchronize do
+            @map[context] ||= yield
+          end
+        end
+
+        def clear
+          @map.synchronize do
+            @map.clear
+          end
+        end
+      end
+
       module ConnectionPoolConfiguration # :nodoc:
         def initialize(...)
           super
           @query_cache_version = Concurrent::AtomicFixnum.new
+          @thread_query_caches = QueryCacheRegistry.new
           @query_cache_max_size = \
             case query_cache = db_config&.query_cache
             when 0, false
@@ -106,10 +127,6 @@ module ActiveRecord
             when nil
               DEFAULT_SIZE
             end
-        end
-
-        def query_cache_version
-          synchronize { @query_cache_version }
         end
 
         def checkout_and_verify(connection)
@@ -166,8 +183,9 @@ module ActiveRecord
         end
 
         def query_cache
-          caches = ActiveSupport::IsolatedExecutionState[:active_record_query_caches] ||= ConnectionPool::WeakKeyMap.new
-          caches[self] ||= Store.new(@query_cache_version, @query_cache_max_size)
+          @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
+            Store.new(@query_cache_version, @query_cache_max_size)
+          end
         end
       end
 
