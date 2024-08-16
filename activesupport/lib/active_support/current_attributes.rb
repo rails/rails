@@ -182,6 +182,7 @@ module ActiveSupport
         end
 
         def method_added(name)
+          super
           return if name == :initialize
           return unless public_method_defined?(name)
           return if respond_to?(name, true)
