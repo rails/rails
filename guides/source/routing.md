@@ -42,16 +42,16 @@ The request is matched to the `UsersController` class's `show` action with `{ id
 The `to:` option expects a `controller#action` format when passed a string. Alternatively, You can pass a symbol and use the `action:` option, instead of `to:`. You can also pass a string without a `#`, in which case the `controller:` option is used instead to `to:`. For example:
 
 ```ruby
-get '/users/:id', action: :show, controller: 'users'
+get '/users/:id', controller: 'users', action: :show
 ```
 
-NOTE: Rails uses snake_case for controller names when specifying routes. For example, if you have a controller named UserProfilesController, you would specify a route to the show action as user_profiles#show.
+NOTE: Rails uses snake_case for controller names when specifying routes. For example, if you have a controller named `UserProfilesController`, you would specify a route to the show action as `user_profiles#show`.
 
 ### Generating Paths and URLs from Code
 
 The Router automatically generates paths and URLs that can be used throughout your application, instead of hard-coded strings.
 
-For example, `user_path` and `user_url` helpers in the route below.
+For example, the `user_path` and `user_url` helper methods are available when defining the following route:
 
 ```ruby
 get '/users/:id', to: 'users#show', as: 'user'
@@ -71,7 +71,7 @@ and this in the corresponding view:
 <%= link_to 'User Record', user_path(@user) %>
 ```
 
-The router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views.
+The router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views. This is helpful if you eventually move the route to a different URL, as you won't need to update the corresponding views.
 
 It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url like `/users/17`, `user_url` generates an absolute url something like `https://yourdomain.com/users/17` in the above example.
 
@@ -91,7 +91,7 @@ Rails.application.routes.draw do
 end
 ```
 
-Since this is a regular Ruby source file you can use all of Ruby's features to help you define your routes.
+Since this is a regular Ruby source file, you can use all of Ruby's features (like conditionals and loops) to help you define your routes.
 
 NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL (Domain Specific Language) and must not be deleted.
 
