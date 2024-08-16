@@ -118,26 +118,24 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
-      if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
-        WeakThreadKeyMap = ::ObjectSpace::WeakKeyMap # :nodoc:
-      else
-        class WeakThreadKeyMap # :nodoc:
-          def initialize
-            @map = {}
-          end
+      class WeakThreadKeyMap # :nodoc:
+        # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
+        # but it currently cause GC crashes: https://github.com/byroot/rails/pull/3
+        def initialize
+          @map = {}
+        end
 
-          def clear
-            @map.clear
-          end
+        def clear
+          @map.clear
+        end
 
-          def [](key)
-            @map[key]
-          end
+        def [](key)
+          @map[key]
+        end
 
-          def []=(key, value)
-            @map.select! { |c, _| c.alive? }
-            @map[key] = value
-          end
+        def []=(key, value)
+          @map.select! { |c, _| c.alive? }
+          @map[key] = value
         end
       end
 
