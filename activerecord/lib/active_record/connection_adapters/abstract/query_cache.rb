@@ -35,7 +35,9 @@ module ActiveRecord
         alias_method :enabled?, :enabled
         alias_method :dirties?, :dirties
 
-        def initialize(max_size)
+        def initialize(pool, max_size)
+          @pool = pool
+          @version = pool.query_cache_version
           @map = {}
           @max_size = max_size
           @enabled = false
@@ -43,14 +45,17 @@ module ActiveRecord
         end
 
         def size
+          check_version
           @map.size
         end
 
         def empty?
+          check_version
           @map.empty?
         end
 
         def [](key)
+          check_version
           return unless @enabled
 
           if entry = @map.delete(key)
@@ -59,6 +64,7 @@ module ActiveRecord
         end
 
         def compute_if_absent(key)
+          check_version
           return yield unless @enabled
 
           if entry = @map.delete(key)
@@ -76,12 +82,21 @@ module ActiveRecord
           @map.clear
           self
         end
+
+        private
+          def check_version
+            version = @pool.query_cache_version
+            if version != @version
+              @map.clear
+              @version = version
+            end
+          end
       end
 
       module ConnectionPoolConfiguration # :nodoc:
         def initialize(...)
           super
-          @thread_query_caches = Concurrent::Map.new(initial_capacity: @size)
+          @query_cache_version = 0
           @query_cache_max_size = \
             case query_cache = db_config&.query_cache
             when 0, false
@@ -91,6 +106,10 @@ module ActiveRecord
             when nil
               DEFAULT_SIZE
             end
+        end
+
+        def query_cache_version
+          synchronize { @query_cache_version }
         end
 
         def checkout_and_verify(connection)
@@ -141,25 +160,17 @@ module ActiveRecord
             # With transactional fixtures, and especially systems test
             # another thread may use the same connection, but with a different
             # query cache. So we must clear them all.
-            @thread_query_caches.each_value(&:clear)
-          else
-            query_cache.clear
+            synchronize do
+              @query_cache_version += 1
+            end
           end
+          query_cache.clear
         end
 
         def query_cache
-          @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
-            Store.new(@query_cache_max_size)
-          end
+          key = :"active_record_query_cache_#{object_id}"
+          ActiveSupport::IsolatedExecutionState[key] ||= Store.new(self, @query_cache_max_size)
         end
-
-        private
-          def prune_thread_cache
-            dead_threads = @thread_query_caches.keys.reject(&:alive?)
-            dead_threads.each do |dead_thread|
-              @thread_query_caches.delete(dead_thread)
-            end
-          end
       end
 
       attr_accessor :query_cache
