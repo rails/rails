@@ -583,7 +583,7 @@ resources :photos do
 end
 ```
 
-An incoming GET request to `/photos/1/preview` will route to the `preview` action of `PhotosController`. The resource id value will be available in `params[:id]` . It will also create the `preview_photo_url` and `preview_photo_path` helpers.
+An incoming GET request to `/photos/1/preview` will route to the `preview` action of `PhotosController`. The resource id value will be available in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the `member` block, each route definition specifies the HTTP verb (`get`
 in the above example with `get 'preview'`). In addition to [`get`][], you can
@@ -699,7 +699,7 @@ The `params` will also include any parameters from the query string. For example
 get 'photos/:id', to: 'photos#show'
 ```
 
-An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` action of the `PhotosController` class as usual and the `params` hash will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
+An incoming `GET` request for `/photos/1?user_id=2` will be dispatched to the `show` action of the `PhotosController` class as usual and the `params` hash will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
 
 ### Defining Default Parameters
 
@@ -895,7 +895,7 @@ end
 
 ### Wildcard Segments
 
-A route definition can have a wildcard segment, which is a segment prefixed with a star, such as`*other`:
+A route definition can have a wildcard segment, which is a segment prefixed with a star, such as `*other`:
 
 ```ruby
 get 'photos/*other', to: 'photos#unknown'
@@ -1059,7 +1059,7 @@ direct :commentable do |model|
 end
 ```
 
-```
+```ruby
 direct :main do
   { controller: 'pages', action: 'index', subdomain: 'www' }
 end
@@ -1257,7 +1257,7 @@ The `:only` option tells Rails to create only the specified routes:
 resources :photos, only: [:index, :show]
 ```
 
-Now, a `GET` request to `/photos` would succeed, but a `POST` request to `/photos` will fail to match.
+Now, a `GET` request to `/photos` or `/photos/:id` would succeed, but a `POST` request to `/photos` will fail to match.
 
 The `:except` option specifies a route or list of routes that Rails should _not_ create:
 
