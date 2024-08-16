@@ -166,8 +166,8 @@ module ActiveRecord
         end
 
         def query_cache
-          key = :"active_record_query_cache_#{object_id}"
-          ActiveSupport::IsolatedExecutionState[key] ||= Store.new(@query_cache_version, @query_cache_max_size)
+          caches = ActiveSupport::IsolatedExecutionState[:active_record_query_caches] ||= ConnectionPool::WeakKeyMap.new
+          caches[self] ||= Store.new(@query_cache_version, @query_cache_max_size)
         end
       end
 
