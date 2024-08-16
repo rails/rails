@@ -79,6 +79,12 @@ there could be breaking changes in the security release. A security release
 should only contain the changes needed to ensure the app is secure so that it's
 easier for applications to remain upgraded.
 
+Old releases will not follow this new policy:
+
+1. Rails 6.1 will reach end-of-life in October 2024
+2. Rails 7.0 will reach end-of-life in April 2025
+3. Rails 7.1 will reach end-of-life in October 2025
+
 End-of-life Release Series
 --------------------------
 
