@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
+require "concurrent/atomic/atomic_fixnum"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -35,9 +36,9 @@ module ActiveRecord
         alias_method :enabled?, :enabled
         alias_method :dirties?, :dirties
 
-        def initialize(pool, max_size)
-          @pool = pool
-          @version = pool.query_cache_version
+        def initialize(version, max_size)
+          @version = version
+          @current_version = version.value
           @map = {}
           @max_size = max_size
           @enabled = false
@@ -85,10 +86,9 @@ module ActiveRecord
 
         private
           def check_version
-            version = @pool.query_cache_version
-            if version != @version
+            if @current_version != @version.value
               @map.clear
-              @version = version
+              @current_version = @version.value
             end
           end
       end
@@ -96,7 +96,7 @@ module ActiveRecord
       module ConnectionPoolConfiguration # :nodoc:
         def initialize(...)
           super
-          @query_cache_version = 0
+          @query_cache_version = Concurrent::AtomicFixnum.new
           @query_cache_max_size = \
             case query_cache = db_config&.query_cache
             when 0, false
@@ -160,16 +160,14 @@ module ActiveRecord
             # With transactional fixtures, and especially systems test
             # another thread may use the same connection, but with a different
             # query cache. So we must clear them all.
-            synchronize do
-              @query_cache_version += 1
-            end
+            @query_cache_version.increment
           end
           query_cache.clear
         end
 
         def query_cache
           key = :"active_record_query_cache_#{object_id}"
-          ActiveSupport::IsolatedExecutionState[key] ||= Store.new(self, @query_cache_max_size)
+          ActiveSupport::IsolatedExecutionState[key] ||= Store.new(@query_cache_version, @query_cache_max_size)
         end
       end
 
