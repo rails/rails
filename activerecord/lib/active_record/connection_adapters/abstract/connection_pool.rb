@@ -118,6 +118,45 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
+      if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
+        WeakKeyMap = ::ObjectSpace::WeakKeyMap # :nodoc:
+      else
+        class WeakKeyMap # :nodoc:
+          def initialize
+            @map = ObjectSpace::WeakMap.new
+            @values = nil
+            @size = 0
+          end
+
+          alias_method :clear, :initialize
+
+          def [](key)
+            prune if @map.size != @size
+            @map[key]
+          end
+
+          def []=(key, value)
+            @map[key] = value
+            prune if @map.size != @size
+            value
+          end
+
+          def delete(key)
+            if value = self[key]
+              self[key] = nil
+              prune
+            end
+            value
+          end
+
+          private
+            def prune(force = false)
+              @values = @map.values
+              @size = @map.size
+            end
+        end
+      end
+
       class Lease # :nodoc:
         attr_accessor :connection, :sticky
 
@@ -145,45 +184,6 @@ module ActiveRecord
       end
 
       class LeaseRegistry # :nodoc:
-        if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
-          WeakKeyMap = ::ObjectSpace::WeakKeyMap # :nodoc:
-        else
-          class WeakKeyMap # :nodoc:
-            def initialize
-              @map = ObjectSpace::WeakMap.new
-              @values = nil
-              @size = 0
-            end
-
-            alias_method :clear, :initialize
-
-            def [](key)
-              prune if @map.size != @size
-              @map[key]
-            end
-
-            def []=(key, value)
-              @map[key] = value
-              prune if @map.size != @size
-              value
-            end
-
-            def delete(key)
-              if value = self[key]
-                self[key] = nil
-                prune
-              end
-              value
-            end
-
-            private
-              def prune(force = false)
-                @values = @map.values
-                @size = @map.size
-              end
-          end
-        end
-
         def initialize
           @mutex = Mutex.new
           @map = WeakKeyMap.new
