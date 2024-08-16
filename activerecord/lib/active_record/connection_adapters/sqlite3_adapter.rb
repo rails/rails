@@ -662,6 +662,8 @@ module ActiveRecord
             InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/called on a closed database/i)
             ConnectionNotEstablished.new(exception, connection_pool: @pool)
+          elsif exception.is_a?(::SQLite3::BusyException)
+            StatementTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
             super
           end

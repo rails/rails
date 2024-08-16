@@ -1,3 +1,7 @@
+*   SQLite3Adapter: Translate `SQLite3::BusyException` into `ActiveRecord::StatementTimeout`.
+
+    *Matthew Nguyen*
+
 *   Include schema name in `enable_extension` statements in `db/schema.rb`.
 
     The schema dumper will now include the schema name in generated
