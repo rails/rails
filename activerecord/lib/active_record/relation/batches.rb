@@ -241,12 +241,12 @@ module ActiveRecord
         raise ArgumentError, ":order must be :asc or :desc or an array consisting of :asc or :desc, got #{order.inspect}"
       end
 
-      unless block
-        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order, use_ranges: use_ranges)
-      end
-
       if arel.orders.present?
         act_on_ignored_order(error_on_ignore)
+      end
+
+      unless block
+        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order, use_ranges: use_ranges)
       end
 
       batch_limit = of
