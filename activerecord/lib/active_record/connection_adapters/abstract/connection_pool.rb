@@ -5,7 +5,6 @@ require "concurrent/map"
 require "monitor"
 
 require "active_record/connection_adapters/abstract/connection_pool/queue"
-require "active_record/connection_adapters/abstract/connection_pool/reaper"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -258,9 +257,6 @@ module ActiveRecord
         @async_executor = build_async_executor
 
         @schema_cache = nil
-
-        @reaper = Reaper.new(self, db_config.reaping_frequency)
-        @reaper.run
       end
 
       def inspect # :nodoc:
