@@ -682,7 +682,7 @@ You can set up as many dynamic segments within a regular route as you like. Any 
 get 'photos/:id/:user_id', to: 'photos#show'
 ```
 
-This route will respond to paths such as `/photos/1/2`. The `params` hash will be  { controller: 'photos', action: 'show', id: '1', user_id: '2' }.
+This route will respond to paths such as `/photos/1/2`. The `params` hash will be { controller: 'photos', action: 'show', id: '1', user_id: '2' }.
 
 TIP: By default, dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
 
@@ -1019,7 +1019,7 @@ root 'pages#main' # shortcut for the above
 
 You typically put the `root` route at the top of the file so that it can be matched first.
 
-NOTE: The `root` route only routes `GET` requests to the action.
+NOTE: The `root` route primarily handles `GET` requests by default. But it is possible to configure it to handle other verbs (e.g. `root "posts#index", via: :post`)
 
 You can also use root inside namespaces and scopes as well:
 
@@ -1476,7 +1476,7 @@ TIP: The output from `bin/rails routes` is easier to read if you widen your term
 
 ### Listing Unused Routes
 
-You can scan your application for unused routes with the `--unused` option. For example:
+You can scan your application for unused routes with the `--unused` option. An "unused" route in Rails is a route that is defined in the config/routes.rb file but is not referenced by any controller action or view in your application. For example:
 
 ```bash
 $ rails routes --unused
