@@ -73,7 +73,7 @@ and this in the corresponding view:
 
 The router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views. This is helpful if you eventually move the route to a different URL, as you won't need to update the corresponding views.
 
-It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url like `/users/17`, `user_url` generates an absolute url something like `https://yourdomain.com/users/17` in the above example.
+It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url like `/users/17`, `user_url` generates an absolute url something like `https://example.com/users/17` in the above example.
 
 ### Configuring the Rails Router
 
@@ -106,7 +106,7 @@ Resource routing allows you to quickly declare all of the common routes for a gi
 
 ### Resources on the Web
 
-Browsers request pages from Rails by making a request for a URL using a specific HTTP verb, such as `GET`, `POST`, `PATCH`, `PUT`, and `DELETE`. Each HTTP verb is a request to perform an operation on the resource. A resource route maps related requests to methods (aka actions) in a single controller.
+Browsers request pages from Rails by making a request for a URL using a specific HTTP verb, such as `GET`, `POST`, `PATCH`, `PUT`, and `DELETE`. Each HTTP verb is a request to perform an operation on the resource. A resource route maps related requests to actions in a single controller.
 
 When your Rails application receives an incoming request for:
 
@@ -166,7 +166,7 @@ Parameters to the path helpers, such as `:id` above, are passed to the generated
 
 Each of these `_path` helpers also have a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port, and path prefix.
 
-TIP: To find the route helper names for your routes, see [Listing existing routes](#listing-existing-routes) below.
+TIP: The prefix used before "_path" and "_url" is the route name and can be identified by looking at the "prefix" column of the `rails routes` command output. To learn more see [Listing existing routes](#listing-existing-routes) below.
 
 ### Defining Multiple Resources at the Same Time
 
@@ -509,8 +509,13 @@ end
 You can also call [`concerns`][] in a `scope` or `namespace` block to get the same result as above. For example:
 
 ```ruby
+namespace :messages do
+  concerns :commentable
+end
+
 namespace :articles do
   concerns :commentable
+  concerns :image_attachable
 end
 ```
 
@@ -821,7 +826,7 @@ namespace :admin do
 end
 ```
 
-Will match something like `https://admin.yourdomain.com/photos`.
+Will match something like `https://admin.example.com/photos`.
 
 Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then comparing the return value with the hash value. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected. However, using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
 
@@ -1065,7 +1070,7 @@ direct :main do
 end
 
 # >> main_url
-# => "http://www.yourdomain.com/pages"
+# => "http://www.example.com/pages"
 ```
 
 [`direct`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/CustomUrls.html#method-i-direct
