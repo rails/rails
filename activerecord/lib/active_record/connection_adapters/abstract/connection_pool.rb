@@ -630,8 +630,6 @@ module ActiveRecord
             remove conn
           end
         end
-
-        prune_thread_cache
       end
 
       # Disconnect all connections that have been idle for at least

@@ -78,11 +78,50 @@ module ActiveRecord
         end
       end
 
+      class CacheRegistry # :nodoc:
+        if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
+          def initialize(max_size)
+            @mutex = Mutex.new
+            @map = ObjectSpace::WeakKeyMap.new
+            @max_size = max_size
+          end
+
+          def [](context)
+            @mutex.synchronize do
+              @map[context] ||= Store.new(@max_size)
+            end
+          end
+
+          def clear
+            @mutex.synchronize do
+              @map.clear
+            end
+          end
+        else
+          def initialize(max_size)
+            @mutex = Mutex.new
+            @map = {}
+            @max_size = max_size
+          end
+
+          def [](context)
+            @mutex.synchronize do
+              @map[context] ||= begin
+                @map.each_key do |context|
+                  @map.delete(context) unless context.alive?
+                end
+
+                Store.new(@max_size)
+              end
+            end
+          end
+        end
+      end
+
       module ConnectionPoolConfiguration # :nodoc:
         def initialize(...)
           super
-          @thread_query_caches = Concurrent::Map.new(initial_capacity: @size)
-          @query_cache_max_size = \
+          query_cache_max_size = \
             case query_cache = db_config&.query_cache
             when 0, false
               nil
@@ -91,6 +130,7 @@ module ActiveRecord
             when nil
               DEFAULT_SIZE
             end
+          @thread_query_caches = CacheRegistry.new(query_cache_max_size)
         end
 
         def checkout_and_verify(connection)
@@ -141,25 +181,15 @@ module ActiveRecord
             # With transactional fixtures, and especially systems test
             # another thread may use the same connection, but with a different
             # query cache. So we must clear them all.
-            @thread_query_caches.each_value(&:clear)
+            @thread_query_caches.clear
           else
             query_cache.clear
           end
         end
 
         def query_cache
-          @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
-            Store.new(@query_cache_max_size)
-          end
+          @thread_query_caches[ActiveSupport::IsolatedExecutionState.context]
         end
-
-        private
-          def prune_thread_cache
-            dead_threads = @thread_query_caches.keys.reject(&:alive?)
-            dead_threads.each do |dead_thread|
-              @thread_query_caches.delete(dead_thread)
-            end
-          end
       end
 
       attr_accessor :query_cache
