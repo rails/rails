@@ -397,11 +397,9 @@ Multipart is also used when you send attachments with email. The `multipart` MIM
 Mailer Views and Layouts
 ------------------------
 
-Mailer views are located in the `app/views/name_of_mailer_class` directory by
+The content of emails sent using Action Mailer are specified in view files. Mailer views are located in the `app/views/name_of_mailer_class` directory by
 default. Similar to a controller view, the name of the file matches the name of
-the mailer method. In the `UserMailer` example above, the view for the
-`welcome_email` mailer action will be in
-`app/views/user_mailer/welcome_email.html.erb`.
+the mailer method. Mailer views are rendered within a layout, similar to controller views. Mailer layouts are located in `app/views/layouts`. The default layout is `mailer.html.erb` and `mailer.text.erb`. This sections covers various features around mailer views and layouts.
 
 ### Configuring Custom View Path
 
@@ -466,6 +464,82 @@ There is also an [`append_view_path`][] method.
 
 [`append_view_path`]: https://api.rubyonrails.org/classes/ActionView/ViewPaths/ClassMethods.html#method-i-append_view_path
 [`prepend_view_path`]: https://api.rubyonrails.org/classes/ActionView/ViewPaths/ClassMethods.html#method-i-prepend_view_path
+
+### Generating URLs in Action Mailer Views
+
+In order to add URLs to your mailer, you need set the `host` value to your application's domain first. This is because, unlike controllers, the mailer instance doesn't have any context about the incoming request.
+
+You can configure the default `host` across the application in `config/application.rb`:
+
+```ruby
+config.action_mailer.default_url_options = { host: 'example.com' }
+```
+
+Because of this behavior, you cannot use the `*_path` helpers inside of
+an email. Instead, use the associated `*_url` helper. For
+example, instead of this:
+
+```html+erb
+<%= link_to 'welcome', welcome_path %>
+```
+
+You will need to use:
+
+```html+erb
+<%= link_to 'welcome', welcome_url %>
+```
+
+By using the full URL, your links will work in your emails.
+
+#### Generating URLs with `url_for`
+
+[`url_for`][] generates a full URL by default in templates.
+
+If you did not configure the `:host` option globally make sure to pass it to
+`url_for`.
+
+```erb
+<%= url_for(host: 'example.com',
+            controller: 'welcome',
+            action: 'greeting') %>
+```
+
+[`url_for`]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
+
+#### Generating URLs with Named Routes
+
+Email clients have no web context and so paths have no base URL to form complete
+web addresses. Thus, you should always use the `*_url` variant of named route
+helpers.
+
+If you did not configure the `:host` option globally make sure to pass it to the
+URL helper.
+
+```erb
+<%= user_url(@user, host: 'example.com') %>
+```
+
+### Adding Images in Action Mailer Views
+
+Unlike controllers, the mailer instance doesn't have any context about the
+incoming request so you'll need to provide the `:asset_host` parameter yourself.
+
+As the `:asset_host` usually is consistent across the application you can
+configure it globally in `config/application.rb`:
+
+```ruby
+config.action_mailer.asset_host = 'http://example.com'
+```
+
+NOTE: Because we can't infer the protocol from the request, you'll need to
+specify a protocol such as `http://` or `https://` in the
+`:asset_host` config.
+
+Now you can display an image inside your email.
+
+```html+erb
+<%= image_tag 'image.jpg' %>
+```
 
 ### Caching Mailer View
 
@@ -534,83 +608,6 @@ end
 The above will render the HTML part using the `my_layout.html.erb` file and the text part with the usual `user_mailer.text.erb` file if it exists.
 
 [`layout`]: https://api.rubyonrails.org/classes/ActionView/Layouts/ClassMethods.html#method-i-layout
-
-### Generating URLs in Action Mailer Views
-
-In order to add URLs to your mailer, you need set the `host` value to your application's domain first. This is because, unlike controllers, the mailer instance doesn't have any context about the incoming request.
-
-You can configure the default `host` across the application in `config/application.rb`:
-
-```ruby
-config.action_mailer.default_url_options = { host: 'example.com' }
-```
-
-Because of this behavior, you cannot use the `*_path` helpers inside of
-an email. Instead, use the associated `*_url` helper. For
-example, instead of this:
-
-```html+erb
-<%= link_to 'welcome', welcome_path %>
-```
-
-You will need to use:
-
-```html+erb
-<%= link_to 'welcome', welcome_url %>
-```
-
-By using the full URL, your links will work in your emails.
-
-#### Generating URLs with `url_for`
-
-[`url_for`][] generates a full URL by default in templates.
-
-If you did not configure the `:host` option globally make sure to pass it to
-`url_for`.
-
-
-```erb
-<%= url_for(host: 'example.com',
-            controller: 'welcome',
-            action: 'greeting') %>
-```
-
-[`url_for`]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
-
-#### Generating URLs with Named Routes
-
-Email clients have no web context and so paths have no base URL to form complete
-web addresses. Thus, you should always use the `*_url` variant of named route
-helpers.
-
-If you did not configure the `:host` option globally make sure to pass it to the
-URL helper.
-
-```erb
-<%= user_url(@user, host: 'example.com') %>
-```
-
-### Adding Images in Action Mailer Views
-
-Unlike controllers, the mailer instance doesn't have any context about the
-incoming request so you'll need to provide the `:asset_host` parameter yourself.
-
-As the `:asset_host` usually is consistent across the application you can
-configure it globally in `config/application.rb`:
-
-```ruby
-config.action_mailer.asset_host = 'http://example.com'
-```
-
-NOTE: Because we can't infer the protocol from the request, you'll need to
-specify a protocol such as `http://` or `https://` in the
-`:asset_host` config.
-
-Now you can display an image inside your email.
-
-```html+erb
-<%= image_tag 'image.jpg' %>
-```
 
 Sending Email
 -------------
