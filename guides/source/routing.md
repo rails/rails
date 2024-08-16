@@ -42,16 +42,16 @@ The request is matched to the `UsersController` class's `show` method with `{ id
 The `to:` option expects a `controller#action` format when passed a string. Alternatively, You can pass a symbol and use the `action:` option, instead of `to:`. You can also pass a string without a `#`, in which case the `controller:` option is used instead to `to:`. For example:
 
 ```ruby
-get '/users/:id', action: :show, controller: 'users'
+get '/users/:id', controller: 'users', action: :show
 ```
 
-NOTE: Rails uses snake_case for controller names when specifying routes. For example, if you have a controller named UserProfilesController, you would specify a route to the show action as user_profiles#show.
+NOTE: Rails uses snake_case for controller names when specifying routes. For example, if you have a controller named `UserProfilesController`, you would specify a route to the show action as `user_profiles#show`.
 
 ### Generating Paths and URLs from Code
 
 The Router automatically generates paths and URLs that can be used throughout your application, instead of hard-coded strings.
 
-For example, `user_path` and `user_url` helpers in the route below.
+For example, the `user_path` and `user_url` helper methods are available when defining the following route:
 
 ```ruby
 get '/users/:id', to: 'users#show', as: 'user'
@@ -71,7 +71,7 @@ and this in the corresponding view:
 <%= link_to 'User Record', user_path(@user) %>
 ```
 
-The router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views.
+The router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views. This is helpful if you eventually move the route to a different URL, as you won't need to update the corresponding views.
 
 It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url like `/users/17`, `user_url` generates an absolute url something like `https://yourdomain.com/users/17` in the above example.
 
@@ -91,7 +91,7 @@ Rails.application.routes.draw do
 end
 ```
 
-Since this is a regular Ruby source file you can use all of Ruby's features to help you define your routes.
+Since this is a regular Ruby source file, you can use all of Ruby's features (like conditionals and loops) to help you define your routes.
 
 NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL (Domain Specific Language) and must not be deleted.
 
@@ -583,7 +583,7 @@ resources :photos do
 end
 ```
 
-An incoming GET request to `/photos/1/preview` will route to the `preview` action of `PhotosController`. The resource id value will be available in `params[:id]` . It will also create the `preview_photo_url` and `preview_photo_path` helpers.
+An incoming GET request to `/photos/1/preview` will route to the `preview` action of `PhotosController`. The resource id value will be available in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the `member` block, each route definition specifies the HTTP verb (`get`
 in the above example with `get 'preview'`). In addition to [`get`][], you can
@@ -699,7 +699,7 @@ The `params` will also include any parameters from the query string. For example
 get 'photos/:id', to: 'photos#show'
 ```
 
-An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` action of the `PhotosController` class as usual and the `params` hash will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
+An incoming `GET` request for `/photos/1?user_id=2` will be dispatched to the `show` action of the `PhotosController` class as usual and the `params` hash will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
 
 ### Defining Default Parameters
 
@@ -895,7 +895,7 @@ end
 
 ### Wildcard Segments
 
-A route definition can have a wildcard segment, which is a segment prefixed with a star, such as`*other`:
+A route definition can have a wildcard segment, which is a segment prefixed with a star, such as `*other`:
 
 ```ruby
 get 'photos/*other', to: 'photos#unknown'
@@ -1059,7 +1059,7 @@ direct :commentable do |model|
 end
 ```
 
-```
+```ruby
 direct :main do
   { controller: 'pages', action: 'index', subdomain: 'www' }
 end
@@ -1257,7 +1257,7 @@ The `:only` option tells Rails to create only the specified routes:
 resources :photos, only: [:index, :show]
 ```
 
-Now, a `GET` request to `/photos` would succeed, but a `POST` request to `/photos` will fail to match.
+Now, a `GET` request to `/photos` or `/photos/:id` would succeed, but a `POST` request to `/photos` will fail to match.
 
 The `:except` option specifies a route or list of routes that Rails should _not_ create:
 
