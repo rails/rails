@@ -788,7 +788,7 @@ module ActiveRecord
             @raw_connection.busy_handler_timeout = timeout
           elsif @config[:retries]
             ActiveRecord.deprecator.warn(<<~MSG)
-              The retries option is deprecated and will be removed in Rails 8.0. Use timeout instead.
+              The retries option is deprecated and will be removed in Rails 8.1. Use timeout instead.
             MSG
             retries = self.class.type_cast_config_to_integer(@config[:retries])
             raw_connection.busy_handler { |count| count <= retries }
