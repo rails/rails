@@ -1073,7 +1073,14 @@ class ClientsController < ApplicationController
 end
 ```
 
-This example works because [Rails already registers the `"application/pdf"` MIME type](https://github.com/rails/rails/blob/b26a9fd2551a2e65e8deef10f4b5ca6b99d666fb/actionpack/lib/action_dispatch/http/mime_types.rb) at startup (alongside other common types). If you need additional MIME types, call [`Mime::Type.register`](https://api.rubyonrails.org/classes/Mime/Type.html#method-c-register) in the file `config/initializers/mime_types.rb`. For example, this is how you would register the Rich Text Format (RTF):
+You can call any method on `format` that is an extension registered as a MIME type by Rails.
+Rails already registers common MIME types like `"text/html"` and `"application/pdf"`:
+```ruby
+Mime::Type.lookup_by_extension(:pdf)
+# => "application/pdf"
+```
+
+If you need additional MIME types, call [`Mime::Type.register`](https://api.rubyonrails.org/classes/Mime/Type.html#method-c-register) in the file `config/initializers/mime_types.rb`. For example, this is how you would register the Rich Text Format (RTF):
 
 ```ruby
 Mime::Type.register("application/rtf", :rtf)
