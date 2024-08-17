@@ -1073,10 +1073,10 @@ class ClientsController < ApplicationController
 end
 ```
 
-This example works because [Rails already registers the `"application/pdf"` MIME type](https://github.com/rails/rails/blob/main/actionpack/lib/action_dispatch/http/mime_types.rb) at startup (alongside other common types). If you need additional MIME types, call [`Mime::Type.register`](https://api.rubyonrails.org/classes/Mime/Type.html#method-c-register) in the file `config/initializers/mime_types.rb`. For example:
+This example works because [Rails already registers the `"application/pdf"` MIME type](https://github.com/rails/rails/blob/b26a9fd2551a2e65e8deef10f4b5ca6b99d666fb/actionpack/lib/action_dispatch/http/mime_types.rb) at startup (alongside other common types). If you need additional MIME types, call [`Mime::Type.register`](https://api.rubyonrails.org/classes/Mime/Type.html#method-c-register) in the file `config/initializers/mime_types.rb`. For example, this is how you would register the Rich Text Format (RTF):
 
 ```ruby
-Mime::Type.register(<mime_type>, <symbol>)
+Mime::Type.register("application/rtf", :rtf)
 ```
 
 NOTE: Configuration files are not reloaded on each request, so you have to restart the server for their changes to take effect.
