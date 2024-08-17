@@ -1,6 +1,6 @@
-*   Replace `SQLite3::Database#busy_timeout` with `#busy_handler_timeout=`
+*   Replace `SQLite3::Database#busy_timeout` with `#busy_handler_timeout=`.
 
-    Provides a non-GVL-blocking, fair retry interval busy handler implementation
+    Provides a non-GVL-blocking, fair retry interval busy handler implementation.
 
     *Stephen Margheim*
 
