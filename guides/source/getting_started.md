@@ -110,9 +110,13 @@ For more installation methods for most Operating Systems take a look at
 
 #### Installing SQLite3
 
-You will also need an installation of the SQLite3 database.
-Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
-Others can find installation instructions at the [SQLite3 website](https://www.sqlite.org).
+You will also need an installation of the [SQLite3](http://www.sqlite.org) database.
+Many popular UNIX-like OSes ship with an acceptable version of SQLite3, but you can
+install SQLite3 using the `gem install` command provided by RubyGems:
+
+```bash
+$ gem install sqlite3
+```
 
 Verify that it is correctly installed and in your load `PATH`:
 
