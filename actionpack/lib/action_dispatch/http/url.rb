@@ -192,7 +192,7 @@ module ActionDispatch
         protocol + host_with_port + fullpath
       end
 
-      # Returns 'https://' if this is an SSL request and 'http://' otherwise.
+      # Returns 'https://' if this is a TLS/SSL request and 'http://' otherwise.
       #
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com'
       #     req.protocol # => "http://"
