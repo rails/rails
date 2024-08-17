@@ -609,6 +609,16 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "Failed to save the record", error.message
   end
 
+  def test_save_missing_record_from_database
+    topic = Topic.create!(title: "Some Title")
+    Topic.find(topic.id).delete
+    topic.title = "Another Title"
+
+    error = assert_raise(ActiveRecord::RecordNotSaved) { topic.save! }
+
+    assert_equal "Failed to save the record", error.message
+  end
+
   def test_save_null_string_attributes
     topic = Topic.find(1)
     topic.attributes = { "title" => "null", "author_name" => "null" }
