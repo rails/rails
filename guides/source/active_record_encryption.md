@@ -388,7 +388,7 @@ end
 Both methods return `ActiveRecord::Encryption::Key` objects:
 
 - `encryption_key` returns the key used for encrypting some content
-- `decryption keys` returns a list of potential keys for decrypting a given message
+- `decryption_keys` returns a list of potential keys for decrypting a given message
 
 A key can include arbitrary tags that will be stored unencrypted with the message. You can use `ActiveRecord::Encryption::Message#headers` to examine those values when decrypting.
 
