@@ -34,11 +34,11 @@ module ActiveRecord
         end
 
         def test_where_with_nil_for_string_column_using_bind_parameters
-          post = Post.create!
-          relation = Post.where("LOWER(title) IS ?", nil)
+          post = Post.create!(title: "Foo", body: "Bar", type: nil)
+          relation = Post.where("LOWER(type) IS ?", nil)
           assert_equal post, relation.first
 
-          expected_sql = %{SELECT "posts".* FROM "posts" WHERE (LOWER(title) IS NULL)}
+          expected_sql = %{SELECT "posts".* FROM "posts" WHERE (LOWER(type) IS NULL)}
           assert_equal(expected_sql, relation.to_sql)
         end
 
