@@ -173,7 +173,7 @@ module ActiveStorage
       # and +photos_blobs+. But you shouldn't need to work with these associations directly in
       # most circumstances.
       #
-      # Instead, +has_one_attached+ generates an ActiveStorage::Attached::Many proxy to
+      # Instead, +has_many_attached+ generates an ActiveStorage::Attached::Many proxy to
       # provide access to the associations and factory methods, like +attach+:
       #
       #   user.photos.attach(uploaded_file)
