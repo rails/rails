@@ -190,6 +190,7 @@ module ActiveRecord
 
         private
           def singleton_method_added(name)
+            super
             # Most Kernel extends are both singleton and instance methods so
             # respond_to is a fast check, but we don't want to define methods
             # only on the module (ex. Module#name)
