@@ -283,6 +283,38 @@ module ActiveRecord
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
+      VIRTUAL_TABLE_REGEX = /USING\s+(\w+)\s*\((.+)\)/i
+
+      # Returns a list of defined virtual tables
+      def virtual_tables
+        query = <<~SQL
+          SELECT name, sql FROM sqlite_master WHERE sql LIKE 'CREATE VIRTUAL %';
+        SQL
+
+        exec_query(query, "SCHEMA").cast_values.each_with_object({}) do |row, memo|
+          table_name, sql = row[0], row[1]
+          _, module_name, arguments = sql.match(VIRTUAL_TABLE_REGEX).to_a
+          memo[table_name] = [module_name, arguments]
+        end.to_a
+      end
+
+      # Creates a virtual table
+      #
+      # Example:
+      #   create_virtual_table :emails, :fts5, ['sender', 'title',' body']
+      def create_virtual_table(table_name, module_name, values)
+        exec_query "CREATE VIRTUAL TABLE IF NOT EXISTS #{table_name} USING #{module_name} (#{values.join(", ")})"
+      end
+
+      # Drops a virtual table
+      #
+      # Although this command ignores +module_name+ and +values+,
+      # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
+      # In that case, +module_name+, +values+ and +options+ will be used by #create_virtual_table.
+      def drop_virtual_table(table_name, module_name, values, **options)
+        drop_table(table_name)
+      end
+
       # Renames a table.
       #
       # Example:

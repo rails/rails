@@ -541,11 +541,11 @@ module ApplicationTests
           end
         RUBY
 
-        list_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip }
+        list_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
 
         assert_equal '["posts"]', list_tables[]
         rails "db:schema:load"
-        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[]
+        assert_equal '["ar_internal_metadata", "comments", "posts", "schema_migrations"]', list_tables[]
 
         add_to_config "config.active_record.schema_format = :sql"
         app_file "db/structure.sql", <<-SQL
@@ -553,7 +553,7 @@ module ApplicationTests
         SQL
 
         rails "db:schema:load"
-        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
+        assert_equal '["ar_internal_metadata", "comments", "posts", "schema_migrations", "users"]', list_tables[]
       end
 
       test "db:schema:load with inflections" do

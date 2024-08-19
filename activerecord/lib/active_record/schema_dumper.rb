@@ -63,6 +63,7 @@ module ActiveRecord
       extensions(stream)
       types(stream)
       tables(stream)
+      virtual_tables(stream)
       trailer(stream)
       stream
     end
@@ -124,6 +125,10 @@ module ActiveRecord
 
       # schemas are only supported by PostgreSQL
       def schemas(stream)
+      end
+
+      # virtual tables are only supported by SQLite
+      def virtual_tables(stream)
       end
 
       def tables(stream)
