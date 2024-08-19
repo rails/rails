@@ -71,8 +71,10 @@ module ActiveStorage
       # and +avatar_blob+. But you shouldn't need to work with these associations directly in
       # most circumstances.
       #
-      # The system has been designed to having you go through the ActiveStorage::Attached::One
-      # proxy that provides the dynamic proxy to the associations and factory methods, like +attach+.
+      # Instead, +has_one_attached+ generates an ActiveStorage::Attached::One proxy to
+      # provide access to the associations and factory methods, like +attach+:
+      #
+      #   user.avatar.attach(uploaded_file)
       #
       # The +:dependent+ option defaults to +:purge_later+. This means the attachment will be
       # purged (i.e. destroyed) in the background whenever the record is destroyed.
@@ -171,8 +173,10 @@ module ActiveStorage
       # and +photos_blobs+. But you shouldn't need to work with these associations directly in
       # most circumstances.
       #
-      # The system has been designed to having you go through the ActiveStorage::Attached::Many
-      # proxy that provides the dynamic proxy to the associations and factory methods, like +#attach+.
+      # Instead, +has_one_attached+ generates an ActiveStorage::Attached::Many proxy to
+      # provide access to the associations and factory methods, like +attach+:
+      #
+      #   user.photos.attach(uploaded_file)
       #
       # The +:dependent+ option defaults to +:purge_later+. This means the attachments will be
       # purged (i.e. destroyed) in the background whenever the record is destroyed.
