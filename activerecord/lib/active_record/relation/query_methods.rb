@@ -1621,7 +1621,7 @@ module ActiveRecord
             parts = [Arel.sql(opts)]
           elsif rest.first.is_a?(Hash) && /:\w+/.match?(opts)
             parts = [build_named_bound_sql_literal(opts, rest.first)]
-          elsif opts.include?("?")
+          elsif opts.include?("?") && rest.compact.present?
             parts = [build_bound_sql_literal(opts, rest)]
           else
             parts = [model.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
