@@ -33,6 +33,15 @@ module ActiveRecord
           assert_quoted_as "0/1", Rational(0)
         end
 
+        def test_where_with_nil_for_string_column_using_bind_parameters
+          relation = Post.where("LOWER(title) = ?", nil)
+
+          expected_sql = %{SELECT "posts".* FROM "posts" WHERE LOWER("posts"."title") IS NULL}
+          assert_equal(expected_sql, relation.to_sql)
+
+          assert_empty relation.to_a
+        end
+
         private
           def assert_quoted_as(expected, value, match: 0)
             relation = Post.where("title = ?", value)
