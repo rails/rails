@@ -2845,8 +2845,7 @@ It can be set to:
 * `:always` - Always defer the enqueue.
 * `:default` - Let the queue adapter define the behaviour.
 
-Active Job backends that use the same database as Active Record as a queue,
-should generally prevent the deferring, and others should allow it.
+Each Active Job backend defines its own default behaviour for this, with some adapters preventing the deferring and others allowing it, so make sure to check that as well if you're opting for `:default`.
 
 Example:
 
