@@ -92,6 +92,12 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_encrypted_attribute(traffic_light, :state, states)
   end
 
+  test "encrypts serialized attributes where encrypts is declared first" do
+    states = ["green", "red"]
+    traffic_light = EncryptedFirstTrafficLight.create!(state: states, long_state: states)
+    assert_encrypted_attribute(traffic_light, :state, states)
+  end
+
   test "encrypts store attributes with accessors" do
     traffic_light = EncryptedTrafficLightWithStoreState.create!(color: "red", long_state: ["green", "red"])
     assert_equal "red", traffic_light.color
