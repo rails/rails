@@ -1190,9 +1190,9 @@ The `:path_names` option lets you override the default `new` and `edit` prefix i
 resources :photos, path_names: { new: 'make', edit: 'change' }
 ```
 
-This would allow paths such as `/photos/make` and `/photos/1/change` and route helpers named `make_image_path` and `change_image_path`.
+This would allow paths such as `/photos/make` and `/photos/1/change`.
 
-NOTE: The controller action names aren't changed by this option. The two paths shown would still route to the `new` and `edit` actions.
+NOTE: The route helpers and controller action names aren't changed by this option. The two paths shown would have `new_photo_path` and `edit_photo_path` helpers and still route to the `new` and `edit` actions.
 
 It is also possible to change this option uniformly for all of your routes by using a `scope` block:
 
