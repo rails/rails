@@ -5,17 +5,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= yield(:page_title) %></title>
-  <link rel="stylesheet" type="text/css" href="stylesheets/style-v2.css" data-turbo-track="reload">
-  <link rel="stylesheet" type="text/css" href="stylesheets/print-v2.css" media="print">
-  <link rel="stylesheet" type="text/css" href="stylesheets/highlight-v2.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="<%= digest_path('stylesheets/style.css') %>" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="<%= digest_path('stylesheets/print.css') %>" media="print">
+  <link rel="stylesheet" type="text/css" href="<%= digest_path('stylesheets/highlight.css') %>" data-turbo-track="reload">
 
   <link rel="icon" href="images/favicon.ico" sizes="any">
 
   <link rel="apple-touch-icon" href="images/icon.png">
 
-  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
-  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
-  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+  <script src="<%= digest_path('javascripts/@hotwired--turbo.js') %>" data-turbo-track="reload"></script>
+  <script src="<%= digest_path('javascripts/clipboard.js') %>" data-turbo-track="reload"></script>
+  <script src="<%= digest_path('javascripts/guides.js') %>" data-turbo-track="reload"></script>
 
   <meta property="og:title" content="<%= yield(:page_title) %>" />
   <meta name="description" content="<%= yield(:description) %>" />
