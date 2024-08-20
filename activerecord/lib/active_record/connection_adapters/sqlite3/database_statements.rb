@@ -123,9 +123,9 @@ module ActiveRecord
             @last_affected_rows
           end
 
-          def execute_batch(statements, name = nil)
+          def execute_batch(statements, name = nil, **kwargs)
             sql = combine_multi_statements(statements)
-            raw_execute(sql, name, batch: true)
+            raw_execute(sql, name, batch: true, **kwargs)
           end
 
           def build_truncate_statement(table_name)
