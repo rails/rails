@@ -163,7 +163,13 @@ module ActiveStorage
       end
 
       def public_url(key, **)
-        file_for(key).public_url
+        if @public
+          storage = Google::Cloud::Storage.anonymous
+          bucket = storage.bucket(config.fetch(:bucket), skip_lookup: true)
+          bucket.file(key, skip_lookup: true).public_url
+        else
+          file_for(key).public_url
+        end
       end
 
 
