@@ -764,9 +764,12 @@ You can match all verbs to a particular route using `via: :all`:
 match 'photos', to: 'photos#show', via: :all
 ```
 
-NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason.
-
-NOTE: `GET` in Rails won't check for CSRF token. You should never write to the database from `GET` requests, for more information see the [security guide](security.html#csrf-countermeasures) on CSRF countermeasures.
+NOTE: Routing both `GET` and `POST` requests to a single action has security
+implications. For example, the `GET` action won't check for CSRF token (so
+writing to the database from `GET` request is not a good idea. For more
+information see the [security guide](security.html#csrf-countermeasures)). In
+general, avoid routing all verbs to a single action unless you have a good
+reason.
 
 [`match`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Base.html#method-i-match
 
@@ -784,7 +787,7 @@ The above route definition requires `id` to be 5 alphanumeric characters long. T
 get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
 ```
 
-`:constraints` takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
+The `:constraints` option takes regular expressions (as well as any object that responds to `matches?` method) with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 ```ruby
 get '/:id', to: 'articles#show', constraints: { id: /^\d/ }
@@ -1451,6 +1454,7 @@ irb> user = User.first
 => #<User:0x00007fc1eab81628
 irb> app.edit_user_path(user)
 => "/users/1/edit"
+```
 
 ### Searching Routes
 
