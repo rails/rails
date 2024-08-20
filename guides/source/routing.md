@@ -1362,7 +1362,7 @@ Breaking Up a Large Route File With `draw`
 
 In a large application with thousands of routes, a single `config/routes.rb` file can become cumbersome and hard to read. Rails offers a way to break up a single `routes.rb` file into multiple small ones using the [`draw`][] macro.
 
-For example, you could add an `admin.rb` file that contains all the routes related to admin, another `api.rb` file for API related resources, etc.
+For example, you could add an `admin.rb` file that contains all the routes related to the admin area, another `api.rb` file for API related resources, etc.
 
 ```ruby
 # config/routes.rb
@@ -1482,7 +1482,7 @@ $ bin/rails routes -c Comments
 $ bin/rails routes -c Articles::CommentsController
 ```
 
-TIP: The output from `bin/rails routes` is easier to read if you widen your terminal window until the output lines don't wrap.
+TIP: The output from `bin/rails routes` is easier to read if you widen your terminal window until the output lines don't wrap or use the `--expanded` option.
 
 ### Listing Unused Routes
 
