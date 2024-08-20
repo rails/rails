@@ -1,3 +1,21 @@
+*   Add `scope_module` option to `resource(s)`.
+
+    ```ruby
+    resources :posts, scope_module: true do
+      resources :comments
+    end
+
+    # Is the same as:
+
+    resources :posts do
+      scope module: "posts" do
+        resources :comments
+      end
+    end
+    ```
+
+    *Lázaro Nixon*
+
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 
     *Hartley McGuire*

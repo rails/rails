@@ -1187,7 +1187,7 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or a path
         # appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns, :scope_module]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource # :nodoc:
@@ -1198,16 +1198,17 @@ module ActionDispatch
               raise ArgumentError, ":param option can't contain colons"
             end
 
-            @name       = entities.to_s
-            @path       = (options[:path] || @name).to_s
-            @controller = (options[:controller] || @name).to_s
-            @as         = options[:as]
-            @param      = (options[:param] || :id).to_sym
-            @options    = options
-            @shallow    = shallow
-            @api_only   = api_only
-            @only       = options.delete :only
-            @except     = options.delete :except
+            @name         = entities.to_s
+            @path         = (options[:path] || @name).to_s
+            @controller   = (options[:controller] || @name).to_s
+            @as           = options[:as]
+            @param        = (options[:param] || :id).to_sym
+            @options      = options
+            @shallow      = shallow
+            @api_only     = api_only
+            @only         = options.delete :only
+            @except       = options.delete :except
+            @scope_module = options[:scope_module]
           end
 
           def default_actions
@@ -1280,6 +1281,10 @@ module ActionDispatch
 
           def shallow?
             @shallow
+          end
+
+          def scope_module?
+            @scope_module
           end
 
           def singleton?; false; end
@@ -1443,6 +1448,21 @@ module ActionDispatch
         #
         #         resources :cows, except: :show
         #         resources :cows, except: [:show, :index]
+        #
+        # :scope_module
+        # :   Set the namespace of nested controllers based on the parent resource's name.
+        #
+        #         resources :posts, scope_module: true do
+        #           resources :comments
+        #         end
+        #
+        #     Is the same as:
+        #
+        #         resources :posts do
+        #           scope module: "posts" do
+        #             resources :comments
+        #           end
+        #         end
         #
         # :shallow
         # :   Generates shallow routes for nested resource(s). When placed on a parent
@@ -1649,6 +1669,10 @@ module ActionDispatch
           !parent_resource.singleton? && @scope[:shallow]
         end
 
+        def scope_module?
+          resource_scope? && parent_resource.scope_module?
+        end
+
         # Loads another routes file with the given `name` located inside the
         # `config/routes` directory. In that file, you can use the normal routing DSL,
         # but *do not* surround it with a `Rails.application.routes.draw` block.
@@ -1788,6 +1812,13 @@ module ActionDispatch
               options.delete(:shallow)
               shallow do
                 public_send(method, resources.pop, options, &block)
+              end
+              return true
+            end
+
+            if scope_module?
+              scope(module: parent_resource.name) do
+                nested { public_send(method, resources.pop, options, &block) }
               end
               return true
             end

@@ -8,6 +8,10 @@ class MessagesController < ResourcesController; end
 class ProductsController < ResourcesController; end
 class ThreadsController < ResourcesController; end
 
+module Threads
+  class MessagesController < ResourcesController; end
+end
+
 module Backoffice
   class ProductsController < ResourcesController; end
   class ImagesController < ResourcesController; end
@@ -455,6 +459,24 @@ class ResourcesTest < ActionController::TestCase
         name_prefix: "thread_message_",
         path_prefix: "threads/1/messages/2/",
         options: { thread_id: "1", message_id: "2" }
+    end
+  end
+
+  def test_nested_restful_routes_with_scope_module
+    with_routing do |set|
+      set.draw do
+        resources :threads, scope_module: true do
+          resources :messages
+        end
+      end
+
+      assert_simply_restful_for :threads,
+        scope_module: true
+      assert_simply_restful_for :messages,
+        controller: "threads/messages",
+        name_prefix: "thread_",
+        path_prefix: "threads/1/",
+        options: { thread_id: "1" }
     end
   end
 
