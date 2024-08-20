@@ -61,10 +61,6 @@ module ActiveStorage
       # There is no column defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachment.
       #
-      # To avoid N+1 queries, you can include the attached blobs in your query like so:
-      #
-      #   User.with_attached_avatar
-      #
       # Under the covers, this relationship is implemented as a +has_one+ association to a
       # ActiveStorage::Attachment record and a +has_one-through+ association to a
       # ActiveStorage::Blob record. These associations are available as +avatar_attachment+
@@ -93,6 +89,10 @@ module ActiveStorage
       #   class User < ActiveRecord::Base
       #     has_one_attached :avatar, service: ->(user) { user.in_europe_region? ? :s3_europe : :s3_usa }
       #   end
+      #
+      # To avoid N+1 queries, you can include the attached blobs in your query like so:
+      #
+      #   User.with_attached_avatar
       #
       # If you need to enable +strict_loading+ to prevent lazy loading of attachment,
       # pass the +:strict_loading+ option. You can do:
@@ -163,10 +163,6 @@ module ActiveStorage
       # There are no columns defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachments.
       #
-      # To avoid N+1 queries, you can include the attached blobs in your query like so:
-      #
-      #   Gallery.where(user: Current.user).with_attached_photos
-      #
       # Under the covers, this relationship is implemented as a +has_many+ association to a
       # ActiveStorage::Attachment record and a +has_many-through+ association to a
       # ActiveStorage::Blob record. These associations are available as +photos_attachments+
@@ -195,6 +191,10 @@ module ActiveStorage
       #   class Gallery < ActiveRecord::Base
       #     has_many_attached :photos, service: ->(gallery) { gallery.personal? ? :personal_s3 : :s3 }
       #   end
+      #
+      # To avoid N+1 queries, you can include the attached blobs in your query like so:
+      #
+      #   Gallery.where(user: Current.user).with_attached_photos
       #
       # If you need to enable +strict_loading+ to prevent lazy loading of attachments,
       # pass the +:strict_loading+ option. You can do:
