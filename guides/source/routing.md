@@ -937,7 +937,11 @@ Given this route definition:
 get '*pages', to: 'pages#show'
 ```
 
-By requesting `'/foo/bar.json'`, your `params[:pages]` will be equal to `'foo/bar'` with the request format of JSON. If you want to match URLs without an explicit format and ignore URLs that include a format extension, you could supply `format: false` like this:
+By requesting `'/foo/bar.json'`, your `params[:pages]` will be equal to `'foo/bar'` with the request format of JSON in `params[:format]`.
+
+The default behavior with `format` is that if included Rails automatically captures it from the URL and includes it in params[:format], but `format` is not required in a URL.
+
+If you want to match URLs without an explicit format and ignore URLs that include a format extension, you could supply `format: false` like this:
 
 ```ruby
 get '*pages', to: 'pages#show', format: false
@@ -1211,9 +1215,9 @@ resources :photos
 ```
 
 This changes the route helpers for `/admin/photos` from `photos_path`,
-`new_photos_path`, etc. to `admin_photos_path`, `new_admin_photo_path`,
-etc. Without the addition of `as: 'admin_photos'` on the scoped `resources
-:photos`, the non-scoped `resources :photos` will not have any route helpers.
+`new_photos_path`, etc. to `admin_photos_path`, `new_admin_photo_path`, etc.
+Without the addition of `as: 'admin_photos'` on the scoped `resources :photos`,
+the non-scoped `resources :photos` will not have any route helpers.
 
 To prefix a group of route helpers, use `:as` with `scope`:
 
@@ -1275,7 +1279,10 @@ resources :photos, except: :destroy
 
 In this case, Rails will create all of the normal routes except the route for `destroy` (a `DELETE` request to `/photos/:id`).
 
-TIP: If your application has many RESTful routes, using `:only` and `:except` to generate only the routes that you actually need can cut down on memory use and speed up the routing process.
+TIP: If your application has many RESTful routes, using `:only` and `:except` to
+generate only the routes that you actually need can cut down on memory use and
+speed up the routing process by eliminating [unused
+routed](#listing-unused-routes).
 
 ### Translated Paths
 
