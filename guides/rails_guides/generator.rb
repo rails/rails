@@ -4,6 +4,7 @@ require "set"
 require "fileutils"
 require "nokogiri"
 require "securerandom"
+require "digest"
 
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/object/blank"
@@ -19,15 +20,16 @@ module RailsGuides
     GUIDES_RE = /\.(?:erb|md)\z/
 
     def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil, lint:)
-      @edge      = edge
-      @version   = version
-      @all       = all
-      @only      = only
-      @epub      = epub
-      @language  = language
-      @direction = direction || "ltr"
-      @lint = lint
-      @warnings = []
+      @edge         = edge
+      @version      = version
+      @all          = all
+      @only         = only
+      @epub         = epub
+      @language     = language
+      @direction    = direction || "ltr"
+      @digest_paths = {}
+      @lint         = lint
+      @warnings     = []
 
       if @epub
         register_special_mime_types
@@ -39,6 +41,14 @@ module RailsGuides
     end
 
     def generate
+      if !dry_run?
+        # First copy assets and add digests to make sure digest_paths are
+        # present in generate_guides.
+        process_scss
+        copy_assets
+        add_digests
+      end
+
       generate_guides
 
       if @lint && @warnings.any?
@@ -47,8 +57,6 @@ module RailsGuides
       end
 
       if !dry_run?
-        process_scss
-        copy_assets
         generate_epub if @epub
       end
     end
@@ -122,14 +130,31 @@ module RailsGuides
 
       def process_scss
         system "bundle exec dartsass \
-          #{@guides_dir}/assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style-v2.css \
-          #{@guides_dir}/assets/stylesrc/highlight.scss:#{@output_dir}/stylesheets/highlight-v2.css \
-          #{@guides_dir}/assets/stylesrc/print.scss:#{@output_dir}/stylesheets/print-v2.css"
+          #{@guides_dir}/assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style.css \
+          #{@guides_dir}/assets/stylesrc/highlight.scss:#{@output_dir}/stylesheets/highlight.css \
+          #{@guides_dir}/assets/stylesrc/print.scss:#{@output_dir}/stylesheets/print.css"
       end
 
       def copy_assets
         source_files = Dir.glob("#{@guides_dir}/assets/*").reject { |name| name.include?("stylesrc") }
         FileUtils.cp_r(source_files, @output_dir)
+      end
+
+      def add_digests
+        assets_files = Dir.glob("{javascripts,stylesheets}/**/*", base: @output_dir)
+        # Add the MD5 digest to the asset names.
+        assets_files.each do |asset|
+          asset_path = File.join(@output_dir, asset)
+          if File.file?(asset_path)
+            digest = Digest::MD5.file(asset_path).hexdigest
+            ext = File.extname(asset)
+            basename = File.basename(asset, ext)
+            dirname = File.dirname(asset)
+            digest_path = "#{dirname}/#{basename}-#{digest}#{ext}"
+            FileUtils.mv(asset_path, "#{@output_dir}/#{digest_path}")
+            @digest_paths[asset] = digest_path
+          end
+        end
       end
 
       def output_file_for(guide)
@@ -157,12 +182,13 @@ module RailsGuides
 
         view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
-          edge:     @edge,
-          version:  @version,
-          epub:     "epub/#{epub_filename}",
-          language: @language,
-          direction: @direction,
-          uuid:      SecureRandom.uuid
+          edge:         @edge,
+          version:      @version,
+          epub:         "epub/#{epub_filename}",
+          language:     @language,
+          direction:    @direction,
+          uuid:         SecureRandom.uuid,
+          digest_paths: @digest_paths
         )
         view.extend(Helpers)
 
