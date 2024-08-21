@@ -76,7 +76,7 @@ class ResourcesTest < ActionController::TestCase
   def test_multiple_resources_with_options
     expected_options = { controller: "threads", action: "index" }
 
-    with_restful_routing :messages, :comments, controller: "threads" do
+    with_restful_routing :messages, :comments, expected_options.slice(:controller) do
       assert_recognizes(expected_options, path: "comments")
       assert_recognizes(expected_options, path: "messages")
     end
@@ -1109,15 +1109,17 @@ class ResourcesTest < ActionController::TestCase
   end
 
   private
-    def with_restful_routing(*args, **options)
+    def with_restful_routing(*args)
+      options = args.extract_options!
       collection_methods = options.delete(:collection)
       member_methods = options.delete(:member)
       path_prefix = options.delete(:path_prefix)
+      args.push(options)
 
       with_routing do |set|
         set.draw do
           scope(path_prefix || "") do
-            resources(*args, **options) do
+            resources(*args) do
               if collection_methods
                 collection do
                   collection_methods.each do |name, method|
