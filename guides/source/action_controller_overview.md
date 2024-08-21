@@ -1072,6 +1072,7 @@ end
 
 You can call any method on `format` that is an extension registered as a MIME type by Rails.
 Rails already registers common MIME types like `"text/html"` and `"application/pdf"`:
+
 ```ruby
 Mime::Type.lookup_by_extension(:pdf)
 # => "application/pdf"
@@ -1320,4 +1321,3 @@ The health check will now be accessible via the `/healthz` path.
 NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis cluster. Replace "rails/health#show" with your own controller action if you have application specific needs.
 
 Think carefully about what you want to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
-
