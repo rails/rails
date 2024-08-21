@@ -1202,7 +1202,7 @@ scope path_names: { new: 'make' } do
 end
 ```
 
-### Prefixing the Named Route Helpers
+### Prefixing the Named Route Helpers with `:as`
 
 You can use the `:as` option to prefix the named route helpers that Rails generates for a route. Use this option to prevent name collisions between routes using a path scope. For example:
 
@@ -1235,7 +1235,19 @@ resources to use `photos_path` and `accounts_path`.
 
 NOTE: The `namespace` scope will automatically add `:as` as well as `:module` and `:path` prefixes.
 
-#### Parametric Scopes
+### Using `:as` in Nested Resources
+
+The `:as` option can override routing helper names for resources in nested routes as well. For example:
+
+```ruby
+resources :magazines do
+  resources :ads, as: 'periodical_ads'
+end
+```
+
+This will create routing helpers such as `magazine_periodical_ads_url` and `edit_magazine_periodical_ad_path` instead of the default `magazine_ads_url` and `edit_magazine_ad_path`.
+
+### Parametric Scopes
 
 You can prefix routes with a named parameter:
 
@@ -1306,17 +1318,17 @@ Rails now creates routes to the `CategoriesController`.
 | PATCH/PUT | /kategorien/:id            | categories#update  | category_path(:id)      |
 | DELETE    | /kategorien/:id            | categories#destroy | category_path(:id)      |
 
-### Using `:as` in Nested Resources
+### Specifying the Singular Form of a Resource
 
-The `:as` option can override routing helper names for resources in nested routes as well. For example:
+If you need to override the singular form of a resource, you can a rule to Active Support Inflector via [`inflections`][]:
 
 ```ruby
-resources :magazines do
-  resources :ads, as: 'periodical_ads'
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.irregular 'tooth', 'teeth'
 end
 ```
 
-This will create routing helpers such as `magazine_periodical_ads_url` and `edit_magazine_periodical_ad_path` instead of the default `magazine_ads_url` and `edit_magazine_ad_path`.
+[`inflections`]: https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-inflections
 
 ### Renaming Default Route Parameter `id`
 
@@ -1352,9 +1364,10 @@ class Video < ApplicationRecord
 end
 ```
 
-```ruby
-video = Video.find_by(identifier: "Roman-Holiday")
-edit_video_path(video) # => "/videos/Roman-Holiday/edit"
+```irb
+irb> video = Video.find_by(identifier: "Roman-Holiday")
+irb> edit_video_path(video)
+=> "/videos/Roman-Holiday/edit"
 ```
 
 Breaking Up a Large Route File With `draw`
