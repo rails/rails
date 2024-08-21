@@ -16,21 +16,25 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   end
 
   test "without content" do
-    message = Message.create!(subject: "Greetings")
-    assert_predicate message.content, :nil?
-    assert_predicate message.content, :blank?
-    assert_predicate message.content, :empty?
-    assert_not message.content?
-    assert_not message.content.present?
+    assert_difference("ActionText::RichText.count" => 0) do
+      message = Message.create!(subject: "Greetings")
+      assert_predicate message.content, :nil?
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
   end
 
   test "with blank content" do
-    message = Message.create!(subject: "Greetings", content: "")
-    assert_not message.content.nil?
-    assert_predicate message.content, :blank?
-    assert_predicate message.content, :empty?
-    assert_not message.content?
-    assert_not message.content.present?
+    assert_difference("ActionText::RichText.count" => 1) do
+      message = Message.create!(subject: "Greetings", content: "")
+      assert_not message.content.nil?
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
   end
 
   test "embed extraction" do
@@ -121,6 +125,31 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_no_queries do
       assert_equal "Content", message.content.to_plain_text
       assert_equal "Body", message.body.to_plain_text
+    end
+  end
+
+  test "with blank content and store_if_blank: false" do
+    assert_difference("ActionText::RichText.count" => 0) do
+      message = MessageWithoutBlanks.create!(subject: "Greetings", content: "")
+      assert_predicate message.content, :nil?
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
+  end
+
+  test "if allowing blanks, updates rich text record on edit" do
+    message = Message.create!(subject: "Greetings", content: "content")
+    assert_difference("ActionText::RichText.count" => 0) do
+      message.update(content: "")
+    end
+  end
+
+  test "if disallowing blanks, deletes rich text record on edit" do
+    message = MessageWithoutBlanks.create!(subject: "Greetings", content: "content")
+    assert_difference("ActionText::RichText.count" => -1) do
+      message.update(content: "")
     end
   end
 end

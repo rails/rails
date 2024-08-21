@@ -1,3 +1,18 @@
+*   Add `store_if_blank` option to `has_rich_text`
+
+    Pass `store_if_blank: false` to not create `ActionText::RichText` records when saving with a blank attribute, such as from an optional form parameter.
+
+    ```ruby
+    class Message
+      has_rich_text :content, store_if_blank: false
+    end
+
+    Message.create(content: "hi") # creates an ActionText::RichText
+    Message.create(content: "") # does not create an ActionText::RichText
+    ```
+
+    *Alex Ghiculescu*
+
 *   Strip `content` attribute if the key is present but the value is empty
 
     *Jeremy Green*
