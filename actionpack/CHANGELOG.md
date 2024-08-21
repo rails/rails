@@ -1,3 +1,8 @@
+*   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
+
+    *Hartley McGuire*
+
+
 ## Rails 7.2.0 (August 09, 2024) ##
 
 *   Allow bots to ignore `allow_browser`.

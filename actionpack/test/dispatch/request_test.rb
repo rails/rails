@@ -1199,6 +1199,13 @@ class RequestParameters < BaseRequestTest
     assert_not_nil e.cause
     assert_equal e.cause.backtrace, e.backtrace
   end
+
+  test "raw_post does not raise when rack.input is nil" do
+    request = stub_request
+
+    # "" on Rack < 3.1, nil on Rack 3.1+
+    assert_predicate request.raw_post, :blank?
+  end
 end
 
 class RequestParameterFilter < BaseRequestTest
