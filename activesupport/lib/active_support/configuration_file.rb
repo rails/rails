@@ -19,7 +19,8 @@ module ActiveSupport
     end
 
     def parse(context: nil, **options)
-      source = render(context)
+      source = @content.include?("<%") ? render(context) : @content
+
       if source == @content
         if YAML.respond_to?(:unsafe_load)
           YAML.unsafe_load_file(@content_path, **options) || {}
@@ -42,7 +43,6 @@ module ActiveSupport
     private
       def read(content_path)
         require "yaml" unless defined?(YAML)
-        require "erb" unless defined?(ERB)
 
         File.read(content_path).tap do |content|
           if content.include?("\u00A0")
@@ -52,6 +52,7 @@ module ActiveSupport
       end
 
       def render(context)
+        require "erb" unless defined?(ERB)
         erb = ERB.new(@content).tap { |e| e.filename = @content_path }
         context ? erb.result(context) : erb.result
       end
