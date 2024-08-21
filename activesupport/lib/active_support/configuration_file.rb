@@ -20,10 +20,18 @@ module ActiveSupport
 
     def parse(context: nil, **options)
       source = render(context)
-      if YAML.respond_to?(:unsafe_load)
-        YAML.unsafe_load(source, **options) || {}
+      if source == @content
+        if YAML.respond_to?(:unsafe_load)
+          YAML.unsafe_load_file(@content_path, **options) || {}
+        else
+          YAML.load_file(@content_path, **options) || {}
+        end
       else
-        YAML.load(source, **options) || {}
+        if YAML.respond_to?(:unsafe_load)
+          YAML.unsafe_load(source, **options) || {}
+        else
+          YAML.load(source, **options) || {}
+        end
       end
     rescue Psych::SyntaxError => error
       raise "YAML syntax error occurred while parsing #{@content_path}. " \
