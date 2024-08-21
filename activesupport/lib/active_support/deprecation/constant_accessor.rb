@@ -62,7 +62,7 @@ module ActiveSupport
           # called and the deprecation won't work as intended. This may happen,
           # for example, if an ancestor of the enclosing namespace has a
           # constant with the same name. This is an unsupported edge case.
-          def deprecate_constant(old_constant_name, new_constant_path, deprecator:, message: nil)
+          def deprecate_constant(old_constant_name, new_constant_path, deprecator: ActiveSupport::Deprecation.new, message: nil)
             class_variable_set(:@@_deprecated_constants, {}) unless class_variable_defined?(:@@_deprecated_constants)
             class_variable_get(:@@_deprecated_constants)[old_constant_name.to_s] = { new: new_constant_path, message: message, deprecator: deprecator }
           end
