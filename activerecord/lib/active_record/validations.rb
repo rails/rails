@@ -44,7 +44,10 @@ module ActiveRecord
     # The validation context can be changed by passing <tt>context: context</tt>.
     # The regular {ActiveRecord::Base#update}[rdoc-ref:Persistence#update] method is replaced
     # with this when the validations module is mixed in, which it is by default.
-    def update(attributes, validate: true, context: nil)
+    def update(attributes)
+      validate = attributes.delete :validate
+      context = attributes.delete :context
+
       with_transaction_returning_status do
         assign_attributes(attributes)
         save(validate:, context:)
@@ -53,7 +56,10 @@ module ActiveRecord
 
     # Attempts to update the record just like {ActiveRecord::Base#update}[rdoc-ref:Base#update] but
     # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
-    def update!(attributes, validate: true, context: nil)
+    def update!(attributes)
+      validate = attributes.delete :validate
+      context = attributes.delete :context
+
       with_transaction_returning_status do
         assign_attributes(attributes)
         save!(validate:, context:)
