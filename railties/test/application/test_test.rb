@@ -335,14 +335,11 @@ Expected: ["id", "name"]
 
       app_file "app/models/user.rb", <<-RUBY
         class User < ApplicationRecord
-          def self.load_schema!
-            super
-            raise "SCHEMA LOADED!"
-          end
+          enum :type, [:admin, :user]
         end
       RUBY
 
-      assert_unsuccessful_run "models/user_test.rb", "SCHEMA LOADED!"
+      assert_unsuccessful_run "models/user_test.rb", "Unknown enum attribute 'type' for User"
     end
 
     private
