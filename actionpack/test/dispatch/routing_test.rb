@@ -77,9 +77,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_logout_redirect_without_to
     draw do
-      ActionDispatch.deprecator.silence do
-        get "account/logout" => redirect("/logout"), as: :logout_redirect
-      end
+      get "account/logout", to: redirect("/logout"), as: :logout_redirect
     end
 
     assert_equal "/account/logout", logout_redirect_path
@@ -990,13 +988,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_resource_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resource :user, **options }
+    draw { resource :user, options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
   def test_resources_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resources :users, **options }
+    draw { resources :users, options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
@@ -2109,10 +2107,32 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
     end
 
+    assert_equal "/account", account_path
     assert_raise(NoMethodError) { new_account_path }
 
     get "/account/new"
     assert_equal 404, status
+
+    get "/account"
+    assert_equal 200, status
+  end
+
+  def test_resource_merges_options_from_scope_hash
+    draw do
+      scope_options = { only: :show }
+      scope scope_options do
+        resource :account
+      end
+    end
+
+    assert_equal "/account", account_path
+    assert_raise(NoMethodError) { new_account_path }
+
+    get "/account/new"
+    assert_equal 404, status
+
+    get "/account"
+    assert_equal 200, status
   end
 
   def test_resources_merges_options_from_scope
