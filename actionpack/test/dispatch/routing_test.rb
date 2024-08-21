@@ -2107,10 +2107,32 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
     end
 
+    assert_equal "/account", account_path
     assert_raise(NoMethodError) { new_account_path }
 
     get "/account/new"
     assert_equal 404, status
+
+    get "/account"
+    assert_equal 200, status
+  end
+
+  def test_resource_merges_options_from_scope_hash
+    draw do
+      scope_options = { only: :show }
+      scope scope_options do
+        resource :account
+      end
+    end
+
+    assert_equal "/account", account_path
+    assert_raise(NoMethodError) { new_account_path }
+
+    get "/account/new"
+    assert_equal 404, status
+
+    get "/account"
+    assert_equal 200, status
   end
 
   def test_resources_merges_options_from_scope
