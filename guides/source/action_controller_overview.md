@@ -1070,10 +1070,17 @@ class ClientsController < ApplicationController
 end
 ```
 
-For this example to work, you have to add the PDF MIME type to Rails. This can be done by adding the following line to the file `config/initializers/mime_types.rb`:
+You can call any method on `format` that is an extension registered as a MIME type by Rails.
+Rails already registers common MIME types like `"text/html"` and `"application/pdf"`:
+```ruby
+Mime::Type.lookup_by_extension(:pdf)
+# => "application/pdf"
+```
+
+If you need additional MIME types, call [`Mime::Type.register`](https://api.rubyonrails.org/classes/Mime/Type.html#method-c-register) in the file `config/initializers/mime_types.rb`. For example, this is how you would register the Rich Text Format (RTF):
 
 ```ruby
-Mime::Type.register "application/pdf", :pdf
+Mime::Type.register("application/rtf", :rtf)
 ```
 
 NOTE: Configuration files are not reloaded on each request, so you have to restart the server for their changes to take effect.
