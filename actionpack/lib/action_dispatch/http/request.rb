@@ -467,11 +467,13 @@ module ActionDispatch
       end
 
       def read_body_stream
-        reset_stream(body_stream) do
-          if headers.key?("Transfer-Encoding")
-            body_stream.read # Read body stream until EOF if "Transfer-Encoding" is present
-          else
-            body_stream.read(content_length)
+        if body_stream
+          reset_stream(body_stream) do
+            if headers.key?("Transfer-Encoding")
+              body_stream.read # Read body stream until EOF if "Transfer-Encoding" is present
+            else
+              body_stream.read(content_length)
+            end
           end
         end
       end

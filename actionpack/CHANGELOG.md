@@ -1,3 +1,7 @@
+*   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
+
+    *Hartley McGuire*
+
 *   Fix url generation in nested engine when script name is empty.
 
     *zzak*
