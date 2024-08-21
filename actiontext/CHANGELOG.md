@@ -1,5 +1,9 @@
-## Rails 7.2.0 (August 09, 2024) ##
+*   Strip `content` attribute if the key is present but the value is empty
 
+    *Jeremy Green*
+
+
+## Rails 7.2.0 (August 09, 2024) ##
 *   Only sanitize `content` attribute when present in attachments.
 
     *Petrik de Heus*

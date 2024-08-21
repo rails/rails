@@ -97,8 +97,9 @@ module ActionText
 
     def render_attachments(**options, &block)
       content = fragment.replace(ActionText::Attachment.tag_name) do |node|
-        if node.key? "content"
-          node["content"] = sanitize_content_attachment(node["content"])
+        if node.key?("content")
+          sanitized_content = sanitize_content_attachment(node.remove_attribute("content").to_s)
+          node["content"] = sanitized_content if sanitized_content.present?
         end
         block.call(attachment_for_node(node, **options))
       end
