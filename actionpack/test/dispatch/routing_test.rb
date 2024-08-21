@@ -77,9 +77,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_logout_redirect_without_to
     draw do
-      ActionDispatch.deprecator.silence do
-        get "account/logout" => redirect("/logout"), as: :logout_redirect
-      end
+      get "account/logout", to: redirect("/logout"), as: :logout_redirect
     end
 
     assert_equal "/account/logout", logout_redirect_path

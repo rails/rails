@@ -219,7 +219,7 @@ module ActionDispatch
       def test_generate_slash
         params = [ [:controller, "tasks"],
                    [:action, "show"] ]
-        get "/", **Hash[params]
+        get "/", Hash[params]
 
         path, _ = _generate(nil, Hash[params], {})
         assert_equal "/", path
@@ -498,15 +498,15 @@ module ActionDispatch
           [uri.path, params]
         end
 
-        def get(...)
+        def get(*args)
           ActionDispatch.deprecator.silence do
-            mapper.get(...)
+            mapper.get(*args)
           end
         end
 
-        def match(...)
+        def match(*args)
           ActionDispatch.deprecator.silence do
-            mapper.match(...)
+            mapper.match(*args)
           end
         end
 
