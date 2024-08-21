@@ -45,8 +45,8 @@ module ActiveRecord
     # The regular {ActiveRecord::Base#update}[rdoc-ref:Persistence#update] method is replaced
     # with this when the validations module is mixed in, which it is by default.
     def update(attributes)
-      validate = attributes.delete :validate
-      context = attributes.delete :context
+      validate = attributes&.delete :validate
+      context = attributes&.delete :context
 
       with_transaction_returning_status do
         assign_attributes(attributes)
