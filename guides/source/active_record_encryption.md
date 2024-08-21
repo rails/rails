@@ -392,9 +392,9 @@ Both methods return `ActiveRecord::Encryption::Key` objects:
 
 A key can include arbitrary tags that will be stored unencrypted with the message. You can use `ActiveRecord::Encryption::Message#headers` to examine those values when decrypting.
 
-### Model-specific Key Providers
+### Attribute-specific Key Providers
 
-You can configure a key provider on a per-class basis with the `:key_provider` option:
+You can configure a key provider on a per-attribute basis with the `:key_provider` option:
 
 ```ruby
 class Article < ApplicationRecord
@@ -402,9 +402,9 @@ class Article < ApplicationRecord
 end
 ```
 
-### Model-specific Keys
+### Attribute-specific Keys
 
-You can configure a given key on a per-class basis with the `:key` option:
+You can configure a given key on a per-attribute basis with the `:key` option:
 
 ```ruby
 class Article < ApplicationRecord
