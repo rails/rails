@@ -146,7 +146,8 @@
     }
 
     .interstitial {
-      
+      display: flex;
+      align-items: center;
       background-repeat: no-repeat !important;
       background-size: 36px 36px !important;
       background-position: 10px 10px !important;
@@ -154,20 +155,20 @@
       &.note {
         background-image: url("../images/icon_task-list-pin.svg") !important;
       }
-    
+
       &.work-in-progress,
       &.todo {
         background-image: url("../images/icon_construction-sign.svg") !important;
       }
-    
+
       &.info {
         background-image: url("../images/icon_bulb-1.svg") !important;
       }
-    
+
       &.warning {
         background-image: url("../images/icon_hand-stop.svg") !important;
       }
-    
+
       &.question {
         background-image: url("../images/icon_question-bubble.svg") !important;
       }
@@ -181,7 +182,7 @@
         border: none;
         font-size: 9.5pt !important;
       }
-      
+
       button {
         display: none;
       }
