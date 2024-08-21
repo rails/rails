@@ -45,7 +45,7 @@ module ActiveRecord
           args << "-header" if options[:header]
           args << File.expand_path(config.database, Rails.respond_to?(:root) ? Rails.root : nil)
 
-          find_cmd_and_exec("sqlite3", *args)
+          find_cmd_and_exec(ActiveRecord.database_cli[:sqlite], *args)
         end
       end
 

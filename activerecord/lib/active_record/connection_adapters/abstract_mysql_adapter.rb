@@ -79,7 +79,7 @@ module ActiveRecord
 
           args << config.database
 
-          find_cmd_and_exec(["mysql", "mysql5"], *args)
+          find_cmd_and_exec(ActiveRecord.database_cli[:mysql], *args)
         end
       end
 
