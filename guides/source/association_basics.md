@@ -214,7 +214,7 @@ association](#bi-directional-associations) - use `belongs_to` in combination
 with a `has_one` or `has_many` on the other model, in this case the Author
 model.
 
-NOTE: By default `belongs_to` validates the presence of the association to
+NOTE: By default `belongs_to` validates the presence of the associated record to
 guarantee reference consistency.<br/><br/>If `optional` is set to true in the
 model, then `belongs_to` does not guarantee reference consistency. This means
 that the foreign key in one table might not reliably point to a valid primary
