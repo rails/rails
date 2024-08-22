@@ -2030,35 +2030,33 @@ databases or when specific customization is required for your models.
 [`ActiveRecord::SubclassNotFound`]:
     https://api.rubyonrails.org/classes/ActiveRecord/SubclassNotFound.html
 
-Delegated Types
-----------------
+### Considerations
 
 [`Single Table Inheritance (STI)`](#single-table-inheritance-sti) works best
 when there is little difference between subclasses and their attributes, but it
 includes all attributes of all subclasses in a single table.
 
-The disadvantage of this approach is that it can result in table bloat, as the
+A disadvantage of this approach is that it can result in table bloat, as the
 table will include attributes specific to each subclass, even if they aren't
 used by others.
 
-In the following example, there are two Active Record models that inherit from
-the same `Entry` class which includes the `subject` attribute.
+Additionally, if you’re using [polymorphic
+associations](#polymorphic-associations), where a model can belong to more than
+one other model via a type and an ID, it could become complex to maintain
+referential integrity because the association logic must handle different types
+correctly.
 
-```ruby
-# Schema: entries[ id, type, subject, created_at, updated_at]
-class Entry < ApplicationRecord
-end
+Finally, if you have specific data integrity checks or validations that differ
+between subclasses, you need to ensure these are correctly handled by Rails or
+the database, especially when setting up foreign key constraints.
 
-class Comment < Entry
-end
+Delegated Types
+----------------
 
-class Message < Entry
-end
-```
-
-Delegated types solves this problem, via `delegated_type`. This approach allows
-us to store shared attributes in a superclass table and have separate tables for
-subclass-specific attributes.
+Delegated types solves the [`Single Table Inheritance
+(STI)`](#single-table-inheritance-sti) problem of table bloat via
+`delegated_type`. This approach allows us to store shared attributes in a
+superclass table and have separate tables for subclass-specific attributes.
 
 ### Setting up Delegated Types
 
@@ -2118,7 +2116,7 @@ end
 The `entryable` parameter specifies the field to use for delegation, and include
 the types `Message` and `Comment` as the delegate classes. The `entryable_type`
 and `entryable_id` fields store the subclass name and the record ID of the
-delegatee subclass, respectively.
+delegate subclass, respectively.
 
 ### Defining the `Entryable` Module
 
