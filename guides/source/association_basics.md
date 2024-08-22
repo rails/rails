@@ -52,7 +52,7 @@ class CreateAuthors < ActiveRecord::Migration[7.2]
     end
 
     create_table :books do |t|
-      t.belongs_to :author
+      t.references :author
       t.datetime :published_at
       t.timestamps
     end
