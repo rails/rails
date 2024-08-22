@@ -1424,20 +1424,6 @@ URI               | /users/:id/edit(.:format)
 Controller#Action | users#edit
 ```
 
-### Routes in Rails Console
-
-You can access route helpers using `Rails.application.routes.url_helpers` within the [Rails Console](command_line.html#bin-rails-console). They are also available via the [app](command_line.html#the-app-and-helper-objects) object. For example:
-
-```irb
-irb> Rails.application.routes.url_helpers.users_path
-=> "/users"
-
-irb> user = User.first
-=> #<User:0x00007fc1eab81628
-irb> app.edit_user_path(user)
-=> "/users/1/edit"
-```
-
 ### Searching Routes
 
 You can search through your routes with the grep option: `-g`. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
@@ -1476,6 +1462,20 @@ edit_person GET    /people/:id/edit(.:format) people#edit
             PATCH  /people/:id(.:format)      people#update
             PUT    /people/:id(.:format)      people#update
             DELETE /people/:id(.:format)      people#destroy
+```
+
+### Routes in Rails Console
+
+You can access route helpers using `Rails.application.routes.url_helpers` within the [Rails Console](command_line.html#bin-rails-console). They are also available via the [app](command_line.html#the-app-and-helper-objects) object. For example:
+
+```irb
+irb> Rails.application.routes.url_helpers.users_path
+=> "/users"
+
+irb> user = User.first
+=> #<User:0x00007fc1eab81628
+irb> app.edit_user_path(user)
+=> "/users/1/edit"
 ```
 
 Testing Routes
