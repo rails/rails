@@ -92,6 +92,12 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_encrypted_attribute(traffic_light, :state, states)
   end
 
+  test "encrypts serialized attributes where encrypts is declared first" do
+    states = ["green", "red"]
+    traffic_light = EncryptedFirstTrafficLight.create!(state: states, long_state: states)
+    assert_encrypted_attribute(traffic_light, :state, states)
+  end
+
   test "encrypts store attributes with accessors" do
     traffic_light = EncryptedTrafficLightWithStoreState.create!(color: "red", long_state: ["green", "red"])
     assert_equal "red", traffic_light.color
@@ -404,13 +410,13 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   test "binary data can be encrypted uncompressed" do
     low_bytes = (0..127).map(&:chr).join
     high_bytes = (128..255).map(&:chr).join
-    assert_equal low_bytes, EncryptedBookWithBinary.create!(logo: low_bytes).logo
-    assert_equal high_bytes, EncryptedBookWithBinary.create!(logo: high_bytes).logo
+    assert_encrypted_attribute EncryptedBookWithBinary.create!(logo: low_bytes), :logo, low_bytes
+    assert_encrypted_attribute EncryptedBookWithBinary.create!(logo: high_bytes), :logo, high_bytes
   end
 
   test "serialized binary data can be encrypted" do
     json_bytes = (32..127).map(&:chr)
-    assert_equal json_bytes, EncryptedBookWithSerializedBinary.create!(logo: json_bytes).logo
+    assert_encrypted_attribute EncryptedBookWithSerializedBinary.create!(logo: json_bytes), :logo, json_bytes
   end
 
   test "can compress data with custom compressor" do
