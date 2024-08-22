@@ -91,10 +91,8 @@ module ActiveRecord
               type_options = { scheme: scheme, default: columns_hash[name.to_s]&.default }
 
               if cast_type.serialized?
-                cast_type.tap do |serialized_type|
-                  serialized_type.replace_serialized_subtype do |current_subtype|
-                    ActiveRecord::Encryption::EncryptedAttributeType.new(cast_type: current_subtype, **type_options)
-                  end
+                cast_type.replace_serialized_subtype do |current_subtype|
+                  ActiveRecord::Encryption::EncryptedAttributeType.new(cast_type: current_subtype, **type_options)
                 end
               else
                 ActiveRecord::Encryption::EncryptedAttributeType.new(cast_type: cast_type, **type_options)
