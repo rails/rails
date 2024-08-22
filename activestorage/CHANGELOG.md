@@ -1,3 +1,5 @@
+## Rails 7.1.4 (August 22, 2024) ##
+
 *   Fixes race condition for multiple preprocessed video variants.
 
     *Justin Searls*

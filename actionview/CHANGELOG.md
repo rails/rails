@@ -1,3 +1,5 @@
+## Rails 7.1.4 (August 22, 2024) ##
+
 *   Action View Test Case `rendered` memoization.
 
     *Sean Doyle*

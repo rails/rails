@@ -1,3 +1,5 @@
+## Rails 7.1.4 (August 22, 2024) ##
+
 *   Preserve `--asset-pipeline propshaft` when running `app:update`.
 
     *Zacharias Knudsen*

@@ -1,3 +1,5 @@
+## Rails 7.1.4 (August 22, 2024) ##
+
 *   Resolve deprecation warning in latest `selenium-webdriver`.
 
     *Earlopain*

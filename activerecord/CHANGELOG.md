@@ -1,3 +1,5 @@
+## Rails 7.1.4 (August 22, 2024) ##
+
 *   Allow to eager load nested nil associations.
 
     *fatkodima*

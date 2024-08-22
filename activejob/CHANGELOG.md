@@ -1,3 +1,5 @@
+## Rails 7.1.4 (August 22, 2024) ##
+
 *   Register autoload for `ActiveJob::Arguments`.
 
     *Rafael Mendonça França*
