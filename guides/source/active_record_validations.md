@@ -69,7 +69,7 @@ controller-level validations. Here's a summary of the pros and cons:
   idea to keep your controllers simple, as it will make your
   application a pleasure to work with in the long run.
 
-Choose these in certain, specific cases. It's the opinion of the Rails team
+Choose these in certain, specific cases. It's the opinion of the Rails framework
 that model-level validations are the most appropriate in most circumstances.
 
 ### When Does Validation Happen?
