@@ -104,6 +104,14 @@ module GeneratorsTestHelper
     File.write File.join(destination, "compose.yaml"), compose_yaml
   end
 
+  def copy_solid_cache_migration
+    destination = File.join(destination_root, "db/cache/migrate")
+    mkdir_p(destination)
+
+    solid_cache_migration = File.read(File.expand_path("../fixtures/db/cache/migrate/20240821135818_create_solid_cache_entries.solid_cache.rb", __dir__))
+    File.write File.join(destination, "20240821135818_create_solid_cache_entries.solid_cache.rb"), solid_cache_migration
+  end
+
   def evaluate_template(file, locals = {})
     erb = ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
     context = Class.new do
@@ -129,6 +137,11 @@ module GeneratorsTestHelper
     assert_file ".devcontainer/devcontainer.json" do |content|
       yield JSON.load(content)
     end
+  end
+
+  def assert_solid_cache_migration(here:, not_here:)
+    assert_file "#{here}/20240821135818_create_solid_cache_entries.solid_cache.rb"
+    assert_no_file "#{not_here}/20240821135818_create_solid_cache_entries.solid_cache.rb"
   end
 
   def run_app_update(app_root = destination_root, flags: "--force")

@@ -18,6 +18,7 @@ module Rails
 
             copy_dockerfile
             copy_devcontainer_files
+            copy_solid_cache_migration
           end
 
           test "change to invalid database" do
@@ -75,7 +76,7 @@ module Rails
               assert_includes compose_config["volumes"].keys, "postgres-data"
             end
 
-            assert_cache_migration_files in: "db/migrate", not_in: "db/cache/migrate"
+            assert_solid_cache_migration here: "db/migrate", not_here: "db/cache/migrate"
           end
 
           test "change to mysql" do
@@ -118,7 +119,7 @@ module Rails
               assert_equal expected_mysql_config, compose_config["services"]["mysql"]
               assert_includes compose_config["volumes"].keys, "mysql-data"
 
-              assert_cache_migration_files in: "db/migrate", not_in: "db/cache/migrate"
+              assert_solid_cache_migration here: "db/migrate", not_here: "db/cache/migrate"
             end
           end
 
@@ -144,7 +145,7 @@ module Rails
               assert_not_includes content["containerEnv"].keys, "DB_HOST"
             end
 
-            assert_cache_migration_files here: "db/cache/migrate", not_here: "db/migrate"
+            assert_solid_cache_migration here: "db/cache/migrate", not_here: "db/migrate"
           end
 
           test "change to trilogy" do
@@ -186,7 +187,7 @@ module Rails
               assert_equal expected_mariadb_config, compose_config["services"]["mariadb"]
               assert_includes compose_config["volumes"].keys, "mariadb-data"
 
-              assert_cache_migration_files here: "db/migrate", not_here: "db/cache/migrate"
+              assert_solid_cache_migration here: "db/migrate", not_here: "db/cache/migrate"
             end
           end
 
@@ -222,12 +223,6 @@ module Rails
               assert_not_includes compose_config.keys, "volumes"
             end
           end
-
-          private
-            def assert_cache_migration_files(here:, not_here:)
-              assert_operator Dir.glob("#{here}/*.solid_cache.rb").size, :>, 1
-              assert_equal Dir.glob("#{not_here}/*.solid_cache.rb").size, 0
-            end
         end
       end
     end
