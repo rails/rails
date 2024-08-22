@@ -12,6 +12,23 @@
 
     *Jerome Dalbert*
 
+*   Don't update public directory during `app:update` command for API-only Applications.
+
+    *y-yagi*
+
+*   Don't add bin/brakeman if brakeman is not in bundle when upgrading an application.
+
+    *Etienne Barrié*
+
+*   Remove PWA views and routes if its an API only project.
+
+    *Jean Boussier*
+
+*   Simplify generated Puma configuration
+
+    *DHH*, *Rafael Mendonça França*
+
+
 ## Rails 7.2.0 (August 09, 2024) ##
 
 *   The new `bin/rails boot` command boots the application and exits. Supports the

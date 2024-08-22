@@ -1,11 +1,41 @@
+*   Fix detection for `enum` columns with parallelized tests and PostgreSQL.
+
+    *Rafael Mendonça França*
+
+*   Allow to eager load nested nil associations.
+
+    *fatkodima*
+
+*   Fix swallowing ignore order warning when batching using `BatchEnumerator`.
+
+    *fatkodima*
+
+*   Fix memory bloat on the connection pool when using the Fiber `IsolatedExecutionState`.
+
+    *Jean Boussier*
+
+*   Restore inferred association class with the same modularized name.
+
+    *Justin Ko*
+
 *   Fix `ActiveRecord::Base.inspect` to properly explain how to load schema information.
 
     *Jean Boussier*
+
+*   Check invalid `enum` options for the new syntax.
+
+    The options using `_` prefix in the old syntax are invalid in the new syntax.
+
+    *Rafael Mendonça França*
 
 *   Fix `ActiveRecord::Encryption::EncryptedAttributeType#type` to return
     actual cast type.
 
     *Vasiliy Ermolovich*
+
+*   Fix `create_table` with `:auto_increment` option for MySQL adapter.
+
+    *fatkodima*
 
 
 ## Rails 7.2.0 (August 09, 2024) ##
