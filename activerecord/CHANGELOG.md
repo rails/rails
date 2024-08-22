@@ -1,3 +1,5 @@
+## Rails 7.2.1 (August 22, 2024) ##
+
 *   Fix detection for `enum` columns with parallelized tests and PostgreSQL.
 
     *Rafael Mendonça França*

@@ -1,3 +1,5 @@
+## Rails 7.2.1 (August 22, 2024) ##
+
 *   Strip `content` attribute if the key is present but the value is empty
 
     *Jeremy Green*

@@ -1,3 +1,5 @@
+## Rails 7.2.1 (August 22, 2024) ##
+
 *   Fix `rails console` for application with non default application constant.
 
     The wrongly assumed the Rails application would be named `AppNamespace::Application`,

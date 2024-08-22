@@ -1,3 +1,5 @@
+## Rails 7.2.1 (August 22, 2024) ##
+
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 
     *Hartley McGuire*

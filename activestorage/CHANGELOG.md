@@ -1,3 +1,8 @@
+## Rails 7.2.1 (August 22, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.2.0 (August 09, 2024) ##
 
 *   Remove deprecated `config.active_storage.silence_invalid_content_types_warning`.

@@ -1,3 +1,8 @@
+## Rails 7.2.1 (August 22, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.2.0 (August 09, 2024) ##
 
 *   Testing guide: Added a section about the implicit database transaction that
