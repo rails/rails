@@ -73,7 +73,7 @@ and this in the corresponding view:
 
 The router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views. This is helpful if you eventually move the route to a different URL, as you won't need to update the corresponding views.
 
-It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative URL like `/users/17`, `user_url` generates an absolute URL something like `https://example.com/users/17` in the above example.
+It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative URL like `/users/17`, `user_url` generates an absolute URL such as `https://example.com/users/17` in the above example.
 
 ### Configuring the Rails Router
 
@@ -166,7 +166,7 @@ Parameters to the path helpers, such as `:id` above, are passed to the generated
 
 Each of these `_path` helpers also have a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port, and path prefix.
 
-TIP: The prefix used before "_path" and "_url" is the route name and can be identified by looking at the "prefix" column of the `rails routes` command output. To learn more see [Listing existing routes](#listing-existing-routes) below.
+TIP: The prefix used before "_path" and "_url" is the route name and can be identified by looking at the "prefix" column of the `rails routes` command output. To learn more see [Listing Existing Routes](#listing-existing-routes) below.
 
 ### Defining Multiple Resources at the Same Time
 
