@@ -40,7 +40,7 @@ gem "cgi", ">= 0.3.6", require: false
 
 gem "prism"
 
-gem "solid_cache", ">= 1.0.0"
+gem "solid_cache", ">= 1.0.1"
 
 group :lint do
   gem "syntax_tree", "6.1.1", require: false

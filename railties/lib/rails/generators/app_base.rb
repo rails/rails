@@ -652,7 +652,7 @@ module Rails
         return if options[:skip_solid_cache]
 
         comment = "Use Solid Cache for caching (http://github.com/rails/solid_cache)"
-        GemfileEntry.new("solid_cache", ">= 1.0.0", comment, {}, false)
+        GemfileEntry.new("solid_cache", ">= 1.0.1", comment, {}, false)
       end
 
       def bundle_command(command, env = {})
