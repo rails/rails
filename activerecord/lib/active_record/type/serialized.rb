@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Type
-    class Serialized < SimpleDelegator # :nodoc:
+    class Serialized < DelegateClass(ActiveModel::Type::Value) # :nodoc:
       undef to_yaml if method_defined?(:to_yaml)
 
       include ActiveModel::Type::Helpers::Mutable
@@ -12,7 +12,7 @@ module ActiveRecord
       def initialize(subtype, coder)
         @subtype = subtype
         @coder = coder
-        __setobj__(subtype)
+        super(subtype)
       end
 
       def init_with(coder) # :nodoc:
@@ -67,6 +67,7 @@ module ActiveRecord
       def replace_serialized_subtype(&block) # :nodoc:
         @subtype = block.call(subtype)
         __setobj__(@subtype)
+        self
       end
 
       private
