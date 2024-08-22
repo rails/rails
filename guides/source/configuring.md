@@ -3335,7 +3335,7 @@ Now the behavior is clear, that we are only using the connection information in 
 
 #### Configuring an SQLite3 Database
 
-Rails comes with built-in support for [SQLite3](http://www.sqlite.org), which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
+Rails comes with built-in support for [SQLite3](http://www.sqlite.org), which is a lightweight serverless database application. While Rails better configures SQLite for production workloads, a busy production environment may overload SQLite. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
 
 Here's the section of the default configuration file (`config/database.yml`) with connection information for the development environment:
 
