@@ -1,3 +1,27 @@
+*   Resolve deprecation warning in latest `selenium-webdriver`.
+
+    *Earlopain*
+
+*   Don't preload Selenium browser when remote.
+
+    *Noah Horton*
+
+*   Fix crash for invalid Content-Type in ShowExceptions middleware.
+
+    *Earlopain*
+
+*   Fix inconsistent results of `params.deep_transform_keys`.
+
+    *Iago Pimenta*
+
+*   Do not report rendered errors except 500.
+
+    *Nikita Vasilevsky*
+
+*   Improve routes source location detection.
+
+    *Jean Boussier*
+
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 
     *Hartley McGuire*

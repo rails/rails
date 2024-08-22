@@ -1,3 +1,23 @@
+*   Improve compatibility for `ActiveSupport::BroadcastLogger`.
+
+    *Máximo Mussini*
+
+*   Pass options along to write_entry in handle_expired_entry method.
+
+    *Graham Cooper*
+
+*   Fix Active Support configurations deprecations.
+
+    *fatkodima*
+
+*   Fix teardown callbacks.
+
+    *Tristan Starck*
+
+*   `BacktraceCleaner` silence core internal methods by default.
+
+    *Jean Boussier*
+
 *   Fix `delegate_missing_to allow_nil: true` when called with implict self
 
     ```ruby

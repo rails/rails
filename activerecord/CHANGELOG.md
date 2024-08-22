@@ -1,3 +1,100 @@
+*   Allow to eager load nested nil associations.
+
+    *fatkodima*
+
+*   Fix `create_table` with `:auto_increment` option for MySQL adapter.
+
+    *fatkodima*
+
+*   Don't load has_one associations during autosave.
+
+    *Eugene Kenny*
+
+*   Fix migration ordering for `bin/rails db:prepare` across databases.
+
+    *fatkodima*
+
+*   Fix `alias_attribute` to ignore methods defined in parent classes.
+
+    *Jean Boussier*
+
+*   Fix a performance regression in attribute methods.
+
+    *Jean Boussier*
+
+*   Fix Active Record configs variable shadowing.
+
+    *Joel Lubrano*
+
+*   Fix running migrations on other databases when `database_tasks: false` on primary.
+
+    *fatkodima*
+
+*   Fix non-partial inserts for models with composite identity primary keys.
+
+    *fatkodima*
+
+*   Fix `ActiveRecord::Relation#touch_all` with custom attribute aliased as attribute for update.
+
+    *fatkodima*
+
+*   Fix a crash when an Executor wrapped fork exit.
+
+    *Joé Dupuis*
+
+*   Fix `destroy_async` job for owners with composite primary keys.
+
+    *fatkodima*
+
+*   Ensure pre-7.1 migrations use legacy index names when using `rename_table`.
+
+    *fatkodima*
+
+*   Allow `primary_key:` association option to be composite.
+
+    *Nikita Vasilevsky*
+
+*   Do not try to alias on key update when raw SQL is supplied.
+
+    *Gabriel Amaral*
+
+*   Memoize `key_provider` from `key` or deterministic `key_provider` if any.
+
+    *Rosa Gutierrez*
+
+*   Fix `upsert` warning for MySQL.
+
+    *fatkodima*
+
+*   Fix predicate builder for polymorphic models referencing models with composite primary keys.
+
+    *fatkodima*
+
+*   Fix `update_all/delete_all` on CPK model relation with join subquery.
+
+    *Nikita Vasilevsky*
+
+*   Remove memoization to accept `key_provider` overridden by `with_encryption_context`.
+
+    *John Hawthorn*
+
+*   Raise error for Trilogy when prepared_statements is true.
+
+    Trilogy doesn't currently support prepared statements. The error that
+    applications would see is a `StatementInvalid` error. This doesn't quite point
+    you to the fact this isn't supported. So raise a more appropriate error
+    pointing to what to change.
+
+    *Eileen M. Uchitelle*
+
+*   Fix loading schema cache when all databases have disabled database tasks.
+
+    *fatkodima*
+
+*   Always request `primary_key` in `RETURNING` if no other columns requested.
+
+    *Nikita Vasilevsky*
+
 *   Handle records being loaded with Marshal without triggering schema load
 
     When using the old marshalling format for Active Record and loading
@@ -99,7 +196,6 @@
     and could lead to a SEGV.
 
     *Jean Boussier*
-
 
 *   Fix counter caches when the foreign key is composite.
 

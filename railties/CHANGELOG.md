@@ -1,3 +1,19 @@
+*   Preserve `--asset-pipeline propshaft` when running `app:update`.
+
+    *Zacharias Knudsen*
+
+*   Allow string keys for SQLCommenter.
+
+    *Ngan Pham*
+
+*   Fix derived foreign key to return correctly when association id is part of query constraints.
+
+    *Varun Sharma*
+
+*   Show warning for `secret_key_base` in development too.
+
+    *fatkodima*
+
 *   Fix sanitizer vendor configuration in 7.1 defaults.
 
     In apps where `rails-html-sanitizer` was not eagerly loaded, the sanitizer default could end up

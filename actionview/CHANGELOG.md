@@ -1,6 +1,14 @@
+*   Action View Test Case `rendered` memoization.
+
+    *Sean Doyle*
+
 *   Restore the ability for templates to return any kind of object and not just strings
 
     *Jean Boussier*
+
+*   Fix threading issue with strict locals.
+
+    *Robert Fletcher*
 
 
 ## Rails 7.1.3.4 (June 04, 2024) ##
