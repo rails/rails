@@ -27,10 +27,12 @@ INFO: A macro-style call is a method that generates or modifies other methods at
 runtime, allowing for concise and expressive declarations of functionality, such
 as defining model associations in Rails. For example, `has_many :comments`.
 
-When you set up an association, you instruct Rails to maintain the [Primary
+When you set up an association, Rails helps define and manage the [Primary
 Key](https://en.wikipedia.org/wiki/Primary_key) and [Foreign
-Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of
-the two models, ensuring that your data stays consistent and properly linked.
+Key](https://en.wikipedia.org/wiki/Foreign_key) relationships between instances
+of the two models, while the database ensures that your data stays consistent
+and properly linked.
+
 This makes it easy to keep track of which records are related. It also adds
 useful methods to your models so you can work with related data more easily.
 
