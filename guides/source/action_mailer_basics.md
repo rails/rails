@@ -289,6 +289,7 @@ Here is an example of the `MessageDelivery` object from the Rails console exampl
 [`with`]: https://api.rubyonrails.org/classes/ActionMailer/Parameterized/ClassMethods.html#method-i-with
 
 TODO: Make sure these methods are explained elsewhere, then delete this section
+
 ### Complete List of Action Mailer Methods
 
 There are just three methods that you need to send pretty much any email
@@ -383,7 +384,7 @@ send multipart emails if you have different templates for the same action. For
 example, if you have a `UserMailer` and `welcome_email.text.erb` and
 `welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will
 automatically send a multipart email with the HTML and text versions setup as
-different parts. 
+different parts.
 
 The Mail gem has helper methods for making a `multipart/alternate` email for
 `text/plain` and `text/html` [MIME types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types) and you can manually create
@@ -399,7 +400,9 @@ Mailer Views and Layouts
 
 The content of emails sent using Action Mailer are specified in view files. Mailer views are located in the `app/views/name_of_mailer_class` directory by
 default. Similar to a controller view, the name of the file matches the name of
-the mailer method. Mailer views are rendered within a layout, similar to controller views. Mailer layouts are located in `app/views/layouts`. The default layout is `mailer.html.erb` and `mailer.text.erb`. This sections covers various features around mailer views and layouts.
+the mailer method.
+
+Mailer views are rendered within a layout, similar to controller views. Mailer layouts are located in `app/views/layouts`. The default layout is `mailer.html.erb` and `mailer.text.erb`. This sections covers various features around mailer views and layouts.
 
 ### Configuring Custom View Path
 
@@ -493,9 +496,9 @@ By using the full URL, your links will work in your emails.
 
 #### Generating URLs with `url_for`
 
-[`url_for`][] generates a full URL by default in templates.
+The [`url_for`][] helper generates a full URL by default in templates.
 
-If you did not configure the `:host` option globally make sure to pass it to
+If you haven't configured the `:host` option globally, you'll need to pass it to
 `url_for`.
 
 ```erb
@@ -508,9 +511,9 @@ If you did not configure the `:host` option globally make sure to pass it to
 
 #### Generating URLs with Named Routes
 
-Email clients have no web context and so paths have no base URL to form complete
-web addresses. Thus, you should always use the `*_url` variant of named route
-helpers.
+Since email clients do no web request context, `*_path` helpers have no base URL
+to form complete web addresses. Therefore, you need to use the `*_url` variant
+of named route helpers in emails.
 
 If you did not configure the `:host` option globally make sure to pass it to the
 URL helper.
