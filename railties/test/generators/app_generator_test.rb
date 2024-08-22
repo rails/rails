@@ -63,6 +63,7 @@ DEFAULT_APP_FILES = [
   "db/seeds.rb",
   "lib/tasks/.keep",
   "log/.keep",
+  "log/test.log",
   "public/404.html",
   "public/406-unsupported-browser.html",
   "public/422.html",
@@ -82,6 +83,7 @@ DEFAULT_APP_FILES = [
   "test/system/.keep",
   "test/test_helper.rb",
   "tmp/.keep",
+  "tmp/local_secret.txt",
   "tmp/pids/.keep",
   "tmp/storage/.keep",
   "vendor/.keep"
