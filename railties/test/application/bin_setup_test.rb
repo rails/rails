@@ -48,6 +48,8 @@ module ApplicationTests
         # Ignore warnings such as `Psych.safe_load is deprecated`
         output.gsub!(/^.*warning:\s.*\n/, "")
         output.gsub!(/^A new release of RubyGems is available.*\n.*\n/, "")
+        # Ignore the Solid Cache migration messages
+        output.gsub!(/== \d{14} CreateSolidCacheEntries:.* migrating ==========================\n.*== \d{14} CreateSolidCacheEntries: migrated \([\d.]*s\) =================\n\n/m, "")
 
         assert_equal(<<~OUTPUT, output)
           == Installing dependencies ==

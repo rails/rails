@@ -58,8 +58,10 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/locales/en.yml
   test/dummy/config/puma.rb
   test/dummy/config/routes.rb
+  test/dummy/config/solid_cache.yml
   test/dummy/config/storage.yml
   test/dummy/log/.keep
+  test/dummy/log/test.log
   test/dummy/public/404.html
   test/dummy/public/406-unsupported-browser.html
   test/dummy/public/422.html
@@ -68,6 +70,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/public/icon.svg
   test/dummy/storage/.keep
   test/dummy/tmp/.keep
+  test/dummy/tmp/local_secret.txt
   test/dummy/tmp/pids/.keep
   test/dummy/tmp/storage/.keep
   test/test_helper.rb
