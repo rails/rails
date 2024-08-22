@@ -1,3 +1,7 @@
+*   Add support for dumping table inheritance and native partitioning table definitions for PostgeSQL adapter
+
+    *Justin Talbott*
+
 *   Deserialize database values before decryption
 
     PostgreSQL binary values (`ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea`)
