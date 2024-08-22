@@ -1633,6 +1633,19 @@ warning, or neither.
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 
+#### config.active_record.database_cli
+
+Controls which CLI tool will be used for accessing the database when running `rails dbconsole`. By default
+the standard tool for the database will be used (e.g. `psql` for PostgreSQL and `mysql` for MySQL). The option
+takes a hash which specifies the tool per-database system, and an array can be used where fallback options are
+required:
+
+```ruby
+# config/application.rb
+
+config.active_record.database_cli = { postgresql: "pgcli", mysql: %w[ mycli mysql ] }
+```
+
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.

@@ -1,3 +1,13 @@
+*   Support use of alternative database interfaces via the `database_cli` ActiveRecord configuration option.
+
+    ```ruby
+    Rails.application.configure do
+      config.active_record.database_cli = { postgresql: "pgcli" }
+    end
+    ```
+
+    *T S Vallender*
+
 *   Add support for dumping table inheritance and native partitioning table definitions for PostgeSQL adapter
 
     *Justin Talbott*
