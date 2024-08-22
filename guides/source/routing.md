@@ -37,7 +37,7 @@ If the first matching route is:
 get '/users/:id', to: 'user#show'
 ```
 
-The request is matched to the `UsersController` class's `show` method with `{ id: '17' }` in the `params` hash.
+The request is matched to the `UsersController` class's `show` action with `{ id: '17' }` in the `params` hash.
 
 The `to:` option expects a `controller#action` format when passed a string. Alternatively, You can pass a symbol and use the `action:` option, instead of `to:`. You can also pass a string without a `#`, in which case the `controller:` option is used instead to `to:`. For example:
 
@@ -49,7 +49,7 @@ NOTE: Rails uses snake_case for controller names when specifying routes. For exa
 
 ### Generating Paths and URLs from Code
 
-The Router automatically generates paths and URLs that can be used throughout your application, instead of hard-coded strings.
+The Router automatically generates path and URL helper methods for your application. With these methods you can avoid hard-coded path and URL strings.
 
 For example, the `user_path` and `user_url` helper methods are available when defining the following route:
 
@@ -73,7 +73,7 @@ and this in the corresponding view:
 
 The router will generate the path `/users/17` from `user_path(@user)`. Using the `user_path` helper allows you to avoid having to hard-code a path in your views. This is helpful if you eventually move the route to a different URL, as you won't need to update the corresponding views.
 
-It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative url like `/users/17`, `user_url` generates an absolute url something like `https://example.com/users/17` in the above example.
+It also generates `user_url`, which has a similar purpose. While `user_path` generates a relative URL like `/users/17`, `user_url` generates an absolute URL something like `https://example.com/users/17` in the above example.
 
 ### Configuring the Rails Router
 
@@ -95,7 +95,7 @@ Since this is a regular Ruby source file, you can use all of Ruby's features (li
 
 NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL (Domain Specific Language) and must not be deleted.
 
-NOTE: Be careful with variable names in `routes.rb` as they can clash with the DSL methods of the router.
+WARNING: Be careful with variable names in `routes.rb` as they can clash with the DSL methods of the router.
 
 Resource Routing: the Rails Default
 -----------------------------------
@@ -307,7 +307,7 @@ class Ad < ApplicationRecord
 end
 ```
 
-Nested routes allow you to capture this relationship in your routing. If you add this nested route declaration:
+Nested route declarations allow you to capture this relationship in your routing:
 
 ```ruby
 resources :magazines do
@@ -1320,7 +1320,7 @@ Rails now creates routes to the `CategoriesController`.
 
 ### Specifying the Singular Form of a Resource
 
-If you need to override the singular form of a resource, you can a rule to Active Support Inflector via [`inflections`][]:
+If you need to override the singular form of a resource, you can add a rule to Active Support Inflector via [`inflections`][]:
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
@@ -1464,7 +1464,7 @@ TIP: The output from `bin/rails routes` is easier to read if you widen your term
 You can scan your application for unused routes with the `--unused` option. An "unused" route in Rails is a route that is defined in the config/routes.rb file but is not referenced by any controller action or view in your application. For example:
 
 ```bash
-$ rails routes --unused
+$ bin/rails routes --unused
 Found 8 unused routes:
 
      Prefix Verb   URI Pattern                Controller#Action
