@@ -266,7 +266,7 @@ module ActiveRecord
           if result
             ActiveSupport::Notifications.instrument(
               "sql.active_record",
-              cache_notification_info(sql, name, binds)
+              cache_notification_info_result(sql, name, binds, result)
             )
           end
 
@@ -288,11 +288,17 @@ module ActiveRecord
           if hit
             ActiveSupport::Notifications.instrument(
               "sql.active_record",
-              cache_notification_info(sql, name, binds)
+              cache_notification_info_result(sql, name, binds, result)
             )
           end
 
           result.dup
+        end
+
+        def cache_notification_info_result(sql, name, binds, result)
+          payload = cache_notification_info(sql, name, binds)
+          payload[:row_count] = result.length
+          payload
         end
 
         # Database adapters can override this method to
