@@ -71,3 +71,4 @@ group :test do
   gem "selenium-webdriver"
 end
 <%- end -%>
+gem "uri", github: "ruby/uri", branch: "master"

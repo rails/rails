@@ -21,3 +21,4 @@ gem "rubocop-rails-omakase", require: false
 
 gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 <% end -%>
+gem "uri", github: "ruby/uri", branch: "master"
