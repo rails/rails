@@ -1,3 +1,10 @@
+*   `ActiveSupport::ErrorReporter#report` now assigns a backtrace to unraised exceptions.
+
+    Previously reporting an un-raised exception would result in an error report without
+    a backtrace. Now it automatically generates one.
+
+    *Jean Boussier*
+
 *   Add `escape_html_entities` option to `ActiveSupport::JSON.encode`.
 
     This allows for overriding the global configuration found at
