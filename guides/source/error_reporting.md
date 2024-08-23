@@ -165,7 +165,8 @@ Rails.error.handle(context: { b: 3 }) { raise }
 # The reported context will be: {:a=>1, :b=>3}
 ```
 
-### For Libraries
+Error-reporting Libraries
+------------------------
 
 Error-reporting libraries can register their subscribers in a `Railtie`:
 
