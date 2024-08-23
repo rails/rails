@@ -335,11 +335,14 @@ Expected: ["id", "name"]
 
       app_file "app/models/user.rb", <<-RUBY
         class User < ApplicationRecord
-          enum :type, [:admin, :user]
+          def self.load_schema!
+            super
+            raise "SCHEMA LOADED!"
+          end
         end
       RUBY
 
-      assert_unsuccessful_run "models/user_test.rb", "Unknown enum attribute 'type' for User"
+      assert_unsuccessful_run "models/user_test.rb", "SCHEMA LOADED!"
     end
 
     test "database-dependent attribute types are resolved when parallel tests are run in eager load context" do

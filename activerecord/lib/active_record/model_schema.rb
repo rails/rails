@@ -596,8 +596,6 @@ module ActiveRecord
           @columns_hash = columns_hash.freeze
 
           _default_attributes # Precompute to cache DB-dependent attribute types
-
-          super
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
