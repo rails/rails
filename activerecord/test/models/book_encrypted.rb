@@ -53,8 +53,8 @@ end
 class EncryptedBookWithSerializedBinary < ActiveRecord::Base
   self.table_name = "encrypted_books"
 
-  serialize :logo, coder: JSON
   encrypts :logo
+  serialize :logo, coder: JSON
 end
 
 class EncryptedBookWithCustomCompressor < ActiveRecord::Base
