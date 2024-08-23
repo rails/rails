@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "fiber"
 
 module ActionView
   # == TODO

@@ -6,7 +6,6 @@ require "active_support/callbacks"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
-require "thread"
 
 module Rails
   # +Rails::Engine+ allows you to wrap a specific \Rails application or subset of
