@@ -12,16 +12,6 @@
 
     *Justin Talbott*
 
-*   Deserialize database values before decryption
-
-    PostgreSQL binary values (`ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea`)
-    need to be deserialized before they are decrypted.
-
-    Additionally ensure that the order of serialization/deserialization is consistent
-    for `serialize :foo` and `encrypts :foo` whichever order they are declared in.
-
-    *Donal McBreen*
-
 *   Infer default `:inverse_of` option for `delegated_type` definitions.
 
     ```ruby
