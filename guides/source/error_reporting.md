@@ -3,7 +3,7 @@
 Error Reporting in Rails Applications
 ========================
 
-This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
+This guide introduces ways to manage exceptions that occur in Ruby on Rails applications. Exceptions are any events that interrupt the normal flow of your program, such as errors.
 
 After reading this guide, you will know:
 
@@ -15,7 +15,7 @@ After reading this guide, you will know:
 Error Reporting
 ------------------------
 
-The Rails [error reporter](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html) provides a standard way to collect exceptions that occur in your application and report them to your preferred service or location.
+The Rails [error reporter](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html) provides a standard way to collect exceptions that occur in your application and report them to your preferred service or location (e.g. a monitoring service such as [Sentry](https://github.com/getsentry/sentry-ruby/blob/e18ce4b6dcce2ebd37778c1e96164684a1e9ebfc/sentry-rails/lib/sentry/rails/error_subscriber.rb)).
 
 The error reporter aims to replace boilerplate error-handling code like this:
 
@@ -35,15 +35,15 @@ Rails.error.handle(SomethingIsBroken) do
 end
 ```
 
-Rails wraps all executions (such as HTTP requests, jobs, and `rails runner` invocations) in the error reporter, so any unhandled errors raised in your app will automatically be reported to your error-reporting service via their subscribers.
+Rails wraps all executions (such as [HTTP requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods), [jobs](https://guides.rubyonrails.org/active_job_basics.html), and [rails runner](https://guides.rubyonrails.org/command_line.html#bin-rails-runner) invocations) in the error reporter, so any unhandled errors raised in your app will automatically be reported to your error-reporting service via their subscribers.
 
-This means that third-party error-reporting libraries no longer need to insert a Rack middleware or do any monkey-patching to capture unhandled exceptions. Libraries that use ActiveSupport can also use this to non-intrusively report warnings that would previously have been lost in logs.
+This means that third-party error-reporting libraries no longer need to insert a [Rack](https://guides.rubyonrails.org/rails_on_rack.html) middleware or do any monkey-patching to capture unhandled exceptions. Libraries that use ActiveSupport can also use this to non-intrusively report warnings that would previously have been lost in logs.
 
-Using the Rails' error reporter is not required. All other means of capturing errors still work.
+NOTE: Using the Rails' error reporter is not required. All other means of capturing errors still work.
 
 ### Subscribing to the Reporter
 
-To use the error reporter, you need a _subscriber_. A subscriber is any object with a `report` method. When an error occurs in your application or is manually reported, the Rails error reporter will call this method with the error object and some options.
+To use the error reporter, you need a _subscriber_. A subscriber can be any object with a `report` method. When an error occurs in your application or is manually reported, the Rails error reporter will call this method with the error object and some options.
 
 NOTE: Some error-reporting libraries, such as [Sentry's](https://github.com/getsentry/sentry-ruby/blob/e18ce4b6dcce2ebd37778c1e96164684a1e9ebfc/sentry-rails/lib/sentry/rails/error_subscriber.rb) and [Honeybadger's](https://docs.honeybadger.io/lib/ruby/integration-guides/rails-exception-tracking/), automatically register a subscriber for you. Consult your provider's documentation for more details.
 
@@ -58,7 +58,7 @@ class ErrorSubscriber
 end
 ```
 
-After defining the subscriber class, register it by calling [`Rails.error.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-subscribe) method:
+After defining the subscriber class, register it by calling [`Rails.error.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-subscribe) method in an initializer:
 
 ```ruby
 Rails.error.subscribe(ErrorSubscriber.new)
@@ -117,7 +117,7 @@ rescue StandardError => e
 end
 ```
 
-Any options you pass will be passed on the error subscribers.
+Any options you pass will be passed on to the error subscribers.
 
 ### Error-reporting Options
 
@@ -168,7 +168,7 @@ Rails.error.handle(context: { b: 3 }) { raise }
 Error-reporting Libraries
 ------------------------
 
-Error-reporting libraries can register their subscribers in a `Railtie`:
+Error-reporting libraries can register their subscribers in a [Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html):
 
 ```ruby
 module MySdk
