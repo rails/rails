@@ -33,7 +33,7 @@ module ActiveRecord
       end
 
       def deserialize(value)
-        decrypt(cast_type.deserialize(value))
+        cast_type.deserialize decrypt(value)
       end
 
       def serialize(value)
@@ -81,7 +81,7 @@ module ActiveRecord
           @previous_type
         end
 
-        def decrypt(value)
+        def decrypt_as_text(value)
           with_context do
             unless value.nil?
               if @default && @default == value
@@ -97,6 +97,10 @@ module ActiveRecord
           else
             try_to_deserialize_with_previous_encrypted_types(value)
           end
+        end
+
+        def decrypt(value)
+          text_to_database_type decrypt_as_text(value)
         end
 
         def try_to_deserialize_with_previous_encrypted_types(value)
@@ -124,11 +128,12 @@ module ActiveRecord
         end
 
         def serialize_with_current(value)
-          value = value&.downcase if downcase?
-          cast_type.serialize(encrypt(value.to_s)) unless value.nil?
+          casted_value = cast_type.serialize(value)
+          casted_value = casted_value&.downcase if downcase?
+          encrypt(casted_value.to_s) unless casted_value.nil?
         end
 
-        def encrypt(value)
+        def encrypt_as_text(value)
           with_context do
             if encryptor.binary? && !cast_type.binary?
               raise Errors::Encoding, "Binary encoded data can only be stored in binary columns"
@@ -136,6 +141,10 @@ module ActiveRecord
 
             encryptor.encrypt(value, **encryption_options)
           end
+        end
+
+        def encrypt(value)
+          text_to_database_type encrypt_as_text(value)
         end
 
         def encryptor
@@ -152,6 +161,14 @@ module ActiveRecord
 
         def clean_text_scheme
           @clean_text_scheme ||= ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
+        end
+
+        def text_to_database_type(value)
+          if value && cast_type.binary?
+            ActiveModel::Type::Binary::Data.new(value)
+          else
+            value
+          end
         end
     end
   end

@@ -404,13 +404,13 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   test "binary data can be encrypted uncompressed" do
     low_bytes = (0..127).map(&:chr).join
     high_bytes = (128..255).map(&:chr).join
-    assert_encrypted_attribute EncryptedBookWithBinary.create!(logo: low_bytes), :logo, low_bytes
-    assert_encrypted_attribute EncryptedBookWithBinary.create!(logo: high_bytes), :logo, high_bytes
+    assert_equal low_bytes, EncryptedBookWithBinary.create!(logo: low_bytes).logo
+    assert_equal high_bytes, EncryptedBookWithBinary.create!(logo: high_bytes).logo
   end
 
   test "serialized binary data can be encrypted" do
     json_bytes = (32..127).map(&:chr)
-    assert_encrypted_attribute EncryptedBookWithSerializedBinary.create!(logo: json_bytes), :logo, json_bytes
+    assert_equal json_bytes, EncryptedBookWithSerializedBinary.create!(logo: json_bytes).logo
   end
 
   test "can compress data with custom compressor" do
