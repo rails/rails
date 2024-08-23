@@ -558,7 +558,7 @@ module ActiveRecord
           end
         end
 
-        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
           raise NotImplementedError
         end
 
