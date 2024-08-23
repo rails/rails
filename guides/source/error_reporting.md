@@ -45,7 +45,7 @@ Using the Rails' error reporter is not required. All other means of capturing er
 
 To use the error reporter, you need a _subscriber_. A subscriber is any object with a `report` method. When an error occurs in your application or is manually reported, the Rails error reporter will call this method with the error object and some options.
 
-Some error-reporting libraries, such as [Sentry's](https://github.com/getsentry/sentry-ruby/blob/e18ce4b6dcce2ebd37778c1e96164684a1e9ebfc/sentry-rails/lib/sentry/rails/error_subscriber.rb) and [Honeybadger's](https://docs.honeybadger.io/lib/ruby/integration-guides/rails-exception-tracking/), automatically register a subscriber for you. Consult your provider's documentation for more details.
+NOTE: Some error-reporting libraries, such as [Sentry's](https://github.com/getsentry/sentry-ruby/blob/e18ce4b6dcce2ebd37778c1e96164684a1e9ebfc/sentry-rails/lib/sentry/rails/error_subscriber.rb) and [Honeybadger's](https://docs.honeybadger.io/lib/ruby/integration-guides/rails-exception-tracking/), automatically register a subscriber for you. Consult your provider's documentation for more details.
 
 You may also create a custom subscriber. For example:
 
