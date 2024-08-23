@@ -348,7 +348,6 @@ module Rack
 
       if options[:debug]
         $DEBUG = true
-        require "pp"
         p options[:server]
         pp wrapped_app
         pp app

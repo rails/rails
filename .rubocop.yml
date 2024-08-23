@@ -255,6 +255,9 @@ Lint/RedundantCopDisableDirective:
 Lint/RedundantCopEnableDirective:
   Enabled: true
 
+Lint/RedundantRequireStatement:
+  Enabled: true
+
 Lint/RedundantStringCoercion:
   Enabled: true
 
