@@ -595,6 +595,8 @@ module ActiveRecord
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
 
+          _default_attributes # Precompute to cache DB-dependent attribute types
+
           super
         end
 
