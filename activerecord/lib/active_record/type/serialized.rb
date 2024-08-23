@@ -15,13 +15,6 @@ module ActiveRecord
         super(subtype)
       end
 
-      def init_with(coder) # :nodoc:
-        # Ensures YAML deserialization calls __setobj__
-        @subtype = coder["subtype"]
-        @coder = coder["coder"]
-        __setobj__(subtype)
-      end
-
       def deserialize(value)
         if default_value?(value)
           value
@@ -62,12 +55,6 @@ module ActiveRecord
 
       def serialized? # :nodoc:
         true
-      end
-
-      def replace_serialized_subtype(&block) # :nodoc:
-        @subtype = block.call(subtype)
-        __setobj__(@subtype)
-        self
       end
 
       private

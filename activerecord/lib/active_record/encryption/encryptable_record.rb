@@ -88,15 +88,7 @@ module ActiveRecord
               scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, support_unencrypted_data: support_unencrypted_data, \
                 downcase: downcase, ignore_case: ignore_case, previous: previous, compress: compress, compressor: compressor, **context_properties
 
-              type_options = { scheme: scheme, default: columns_hash[name.to_s]&.default }
-
-              if cast_type.serialized?
-                cast_type.replace_serialized_subtype do |current_subtype|
-                  ActiveRecord::Encryption::EncryptedAttributeType.new(cast_type: current_subtype, **type_options)
-                end
-              else
-                ActiveRecord::Encryption::EncryptedAttributeType.new(cast_type: cast_type, **type_options)
-              end
+              ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: scheme, cast_type: cast_type, default: columns_hash[name.to_s]&.default)
             end
 
             preserve_original_encrypted(name) if ignore_case
