@@ -1,3 +1,17 @@
+*   Deprecate `::STATS_DIRECTORIES`.
+
+    The global constant `STATS_DIRECTORIES` has been deprecated in favor of
+    `CodeStatistics.add_directory`.
+
+    Add extra directories with `CodeStatistics.add_directory(label, path)`:
+
+    ```ruby
+    require "rails/code_statistics"
+    CodeStatistics.add_directory('My Directory', 'path/to/dir')
+    ```
+
+    *Petrik de Heus*
+
 *   Enable query log tags by default on development env
 
     This can be used to trace troublesome SQL statements back to the application
