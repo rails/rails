@@ -49,6 +49,9 @@ database. They are database agnostic, cannot be bypassed by end users, and are
 convenient to test and maintain. Rails provides built-in helpers for common
 needs, and allows you to create your own validation methods as well.
 
+
+### Alternate Ways to Validate
+
 There are several other ways to validate data before it is saved into your
 database, including native database constraints, client-side validations and
 controller-level validations. Here's a summary of the pros and cons:
@@ -66,20 +69,21 @@ controller-level validations. Here's a summary of the pros and cons:
   users with immediate feedback as they use your site.
 * Controller-level validations can be tempting to use, but often become
   unwieldy and difficult to test and maintain. Whenever possible, it's a good
-  idea to keep your controllers simple, as it will make your
-  application a pleasure to work with in the long run.
+  idea to keep your controllers simple, as it will make working with your
+  application easier in the long run.
 
-Choose these in certain, specific cases. It's the opinion of the Rails framework
-that model-level validations are the most appropriate in most circumstances.
+It's the opinion of the Rails framework that model-level validations are the
+most appropriate in most circumstances, however there may specific cases where
+you want to complement it with alternate validations.
 
 ### When Does Validation Happen?
 
-There are two kinds of Active Record objects: those that correspond to a row
-inside your database and those that do not. When you create a fresh object, for
-example using the `new` method, that object does not belong to the database
-yet. Once you call `save` upon that object it will be saved into the
-appropriate database table. Active Record uses the `new_record?` instance
-method to determine whether an object is already in the database or not.
+There are two kinds of Active Record objects - those that correspond to a row
+inside your database and those that do not. When you create a new object, using
+the `new` method, the object does not get saved in the database as yet.
+Once you call `save` on that object then will it be saved into the appropriate
+database table. Active Record uses an instance method called `new_record?` to
+determine whether an object is already in the database or not.
 Consider the following Active Record class:
 
 ```ruby
@@ -90,8 +94,8 @@ end
 We can see how it works by looking at some `bin/rails console` output:
 
 ```irb
-irb> p = Person.new(name: "John Doe")
-=> #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
+irb> p = Person.new(name: "Jane Doe")
+=> #<Person id: nil, name: "Jane Doe", created_at: nil, updated_at: nil>
 
 irb> p.new_record?
 => true
@@ -104,15 +108,17 @@ irb> p.new_record?
 ```
 
 Creating and saving a new record will send an SQL `INSERT` operation to the
-database. Updating an existing record will send an SQL `UPDATE` operation
-instead. Validations are typically run before these commands are sent to the
+database, whereas updating an existing record will send an SQL `UPDATE`
+operation. Validations are typically run before these commands are sent to the
 database. If any validations fail, the object will be marked as invalid and
-Active Record will not perform the `INSERT` or `UPDATE` operation. This avoids
-storing an invalid object in the database. You can choose to have specific
-validations run when an object is created, saved, or updated.
+Active Record will not perform the `INSERT` or `UPDATE` operation. This helps
+to avoid storing an invalid object in the database. You can choose to have
+specific validations run when an object is created, saved, or updated.
 
+<!-- TODO: seems like a contradiction to the previous paragraph, saying to avoid storing
+an invalid object in the db. -->
 CAUTION: There are many ways to change the state of an object in the database.
-Some methods will trigger validations, but some will not. This means that it's
+Some methods will trigger validations, but others will not. This means that it's
 possible to save an object in the database in an invalid state if you aren't
 careful.
 
@@ -127,8 +133,8 @@ database only if the object is valid:
 * [`update!`][]
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
-The non-bang versions don't: `save` and `update` return `false`, and
-`create` returns the object.
+The non-bang versions - `save` and `update` returns `false`, and `create`
+returns the object.
 
 [`create`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create
 [`create!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create-21
@@ -163,8 +169,8 @@ Refer to the method documentation to learn more.
 * [`upsert`][]
 * [`upsert_all`][]
 
-Note that `save` also has the ability to skip validations if passed `validate:
-false` as an argument. This technique should be used with caution.
+Note that `save` also has the ability to skip validations if `validate:
+false` is passed as an argument. This technique should be used with caution.
 
 * `save(validate: false)`
 
@@ -190,11 +196,11 @@ false` as an argument. This technique should be used with caution.
 
 ### `valid?` and `invalid?`
 
-Before saving an Active Record object, Rails runs your validations.
-If these validations produce any errors, Rails does not save the object.
+Before saving an Active Record object, Rails runs your validations, and
+if these validations produce any errors, then Rails will not save the object.
 
-You can also run these validations on your own. [`valid?`][] triggers your validations
-and returns true if no errors were found in the object, and false otherwise.
+You can also run the validations on your own. [`valid?`][] triggers your validations
+and returns true if no errors are found in the object, and false otherwise.
 As you saw above:
 
 ```ruby
@@ -212,7 +218,7 @@ irb> Person.create(name: nil).valid?
 
 After Active Record has performed validations, any failures can be accessed
 through the [`errors`][] instance method, which returns a collection of errors.
-By definition, an object is valid if this collection is empty after running
+By definition, an object is valid if the collection is empty after running
 validations.
 
 Note that an object instantiated with `new` will not report errors
@@ -331,7 +337,7 @@ You can also pass in a custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
-  validates :terms_of_service, acceptance: { message: 'must be abided' }
+  validates :terms_of_service, acceptance: { message: 'must be checked' }
 end
 ```
 
@@ -374,7 +380,7 @@ In your view template you could use something like
 
 NOTE: This check is performed only if `email_confirmation` is not `nil`. To require
 confirmation, make sure to add a presence check for the confirmation attribute
-(we'll take a look at `presence` [later](#presence) on in this guide):
+(we'll take a look at [the `presence` check](#presence) later on in this guide):
 
 ```ruby
 class Person < ApplicationRecord
@@ -423,6 +429,7 @@ You can also pass in a custom message via the `message` option.
 
 These options are all supported:
 
+<!-- TODO, maybe make into a table -->
 * `:greater_than` - Specifies the value must be greater than the supplied
   value. The default error message for this option is _"must be greater than
   %{count}"_.
@@ -441,6 +448,7 @@ These options are all supported:
 
 NOTE: The validator requires a compare option be supplied. Each option accepts a
 value, proc, or symbol. Any class that includes Comparable can be compared.
+<!-- TODO: maybe an example with a proc  -->
 
 ### `format`
 
@@ -467,6 +475,7 @@ match the start/end of a line. Due to frequent misuse of `^` and `$`, you need
 to pass the `multiline: true` option in case you use any of these two anchors in
 the provided regular expression. In most cases, you should be using `\A` and
 `\z`.
+<!-- TODO: add an example -->
 
 ### `inclusion`
 
@@ -490,10 +499,16 @@ The default error message for this helper is _"is not included in the list"_.
 
 ### `exclusion`
 
-The opposite of `inclusion` is... `exclusion`!
+Naturally, the opposite of `inclusion` is `exclusion`.
 
 This helper validates that the attributes' values are not included in a given
 set. In fact, this set can be any enumerable object.
+
+The `exclusion` helper has an option `:in` that receives the set of values that
+will not be accepted for the validated attributes. The `:in` option has an
+alias called `:within` that you can use for the same purpose.
+This example uses the `:message` option to show how you can include the
+attribute's value.
 
 ```ruby
 class Account < ApplicationRecord
@@ -502,20 +517,18 @@ class Account < ApplicationRecord
 end
 ```
 
-The `exclusion` helper has an option `:in` that receives the set of values that
-will not be accepted for the validated attributes. The `:in` option has an
-alias called `:within` that you can use for the same purpose, if you'd like to.
-This example uses the `:message` option to show how you can include the
-attribute's value. For full options to the message argument please see the
+For full options to the message argument please see the
 [message documentation](#message).
 
 The default error message is _"is reserved"_.
 
-Alternatively to a traditional enumerable (like an Array), you can supply a
+As an alternate to a traditional enumerable (like an Array), you can supply a
 proc, lambda, or symbol which returns an enumerable. If the enumerable is a
-numerical, time, or datetime range the test is performed with `Range#cover?`,
+numerical, time, or datetime range, then the test is performed with `Range#cover?`,
 otherwise with `include?`. When using a proc or lambda the instance under
 validation is passed as an argument.
+
+<!-- TODO, add an a=example of a proc or lambda -->
 
 ### `length`
 
@@ -530,6 +543,8 @@ class Person < ApplicationRecord
   validates :registration_number, length: { is: 6 }
 end
 ```
+
+<!-- TODO: maybe a table -->
 
 The possible length constraint options are:
 
@@ -552,9 +567,9 @@ class Person < ApplicationRecord
 end
 ```
 
-Note that the default error messages are plural (e.g., "is too short (minimum
+Note that the default error messages are plural (e.g. "is too short (minimum
 is %{count} characters)"). For this reason, when `:minimum` is 1 you should
-provide a custom message or use `presence: true` instead. When
+provide a custom message or use `presence: true` instead. Similarly, when
 `:in` or `:within` have a lower limit of 1, you should either provide a
 custom message or call `presence` prior to `length`.
 
@@ -593,13 +608,15 @@ which specifies the value must be an instance of `Numeric` and attempts to parse
 the value if it is a `String`.
 
 NOTE: By default, `numericality` doesn't allow `nil` values. You can use
-`allow_nil: true` option to permit it. Notice that for `Integer` and `Float`
+`allow_nil: true` option to permit it. For `Integer` and `Float`
 columns empty strings are converted to `nil`.
 
 The default error message when no options are specified is _"is not a number"_.
 
 There are also many options that can be used to add constraints to acceptable
 values:
+
+<!-- TODO convert to table -->
 
 * `:greater_than` - Specifies the value must be greater than the supplied
   value. The default error message for this option is _"must be greater than
@@ -627,7 +644,7 @@ values:
 
 This helper validates that the specified attributes are not empty. It uses the
 [`Object#blank?`][] method to check if the value is either `nil` or a blank
-string, that is, a string that is either empty or consists of whitespace.
+string - that is, a string that is either empty or consists of whitespace.
 
 ```ruby
 class Person < ApplicationRecord
@@ -635,10 +652,10 @@ class Person < ApplicationRecord
 end
 ```
 
-If you want to be sure that an association is present, you'll need to test
-whether the associated object itself is present, and not the foreign key used
-to map the association. This way, it is not only checked that the foreign key
-is not empty but also that the referenced object exists.
+To check that an association is present, you'll need to test that the associated
+object is present, and not the foreign key used to map the association. Testing
+the association will help you to determine that the foreign is not empty and
+also that the referenced object exists.
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -660,6 +677,7 @@ NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
+<!-- TODO: LINK TO the methods -->
 If you validate the presence of an object associated via a `has_one` or
 `has_many` relationship, it will check that the object is neither `blank?` nor
 `marked_for_destruction?`.
@@ -684,8 +702,8 @@ The default error message is _"can't be blank"_.
 ### `absence`
 
 This helper validates that the specified attributes are absent. It uses the
-[`Object#present?`][] method to check if the value is not either nil or a blank
-string, that is, a string that is either empty or consists of whitespace.
+[`Object#present?`][] method to check if the value is neither nil nor a blank
+string - that is, a string that is either empty or consists of whitespace.
 
 ```ruby
 class Person < ApplicationRecord
@@ -713,10 +731,12 @@ class Order < ApplicationRecord
 end
 ```
 
+<!-- TODO: not sure that this makes sense in the context -->
 NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
+<!-- TODO, links to methods? -->
 If you validate the absence of an object associated via a `has_one` or
 `has_many` relationship, it will check that the object is neither `present?` nor
 `marked_for_destruction?`.
@@ -753,13 +773,16 @@ end
 ```
 
 WARNING. This validation does not create a uniqueness constraint in the
-database, so it may happen that two different database connections create two
-records with the same value for a column that you intend to be unique. To avoid
-that, you must create a unique index on that column in your database.
+database, so a scenario can occur whereby two different database connections create two
+records with the same value for a column that you intended to be unique. To avoid
+this, you must create a unique index on that column in your database.
 
 In order to add a uniqueness database constraint on your database, use the
 [`add_index`][] statement in a migration and include the `unique: true` option.
 
+<!-- TODO: add an example and a link to the docs -->
+
+<!-- TODO: dont understand the reference to scope here. -->
 Should you wish to create a database constraint to prevent possible violations
 of a uniqueness validation using the `:scope` option, you must create a unique
 index on both columns in your database. See [the MySQL manual][] and [the MariaDB
@@ -780,7 +803,7 @@ end
 WARNING. Note that some databases are configured to perform case-insensitive
 searches anyway.
 
-There is a `:conditions` option that you can specify additional conditions as a
+A `:conditions` option can be used to specify additional conditions as a
 `WHERE` SQL fragment to limit the uniqueness constraint lookup (e.g.
 `conditions: -> { where(status: 'active') }`).
 
