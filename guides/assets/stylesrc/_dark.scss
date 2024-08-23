@@ -219,8 +219,6 @@
     } // #feature
 
     .interstitial {
-      display: flex;
-      align-items: center;
       &.code {
         background-color: $gray-900;
         border: 1px solid $gray-800 !important;
