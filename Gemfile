@@ -172,3 +172,5 @@ if RUBY_VERSION < "3.2"
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
 end
 gem "launchy"
+
+gem "uri", github: "ruby/uri", branch: "master"
