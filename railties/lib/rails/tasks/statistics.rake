@@ -2,8 +2,8 @@
 
 require "rails/code_statistics"
 STATS_DIRECTORIES = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
-  CodeStatistics::DIRECTORIES,
-  "`STATS_DIRECTORIES` is deprecated and will be removed in Rails 8.1! Use `CodeStatistics.add_directory('My Directory', 'path/to/dir)` instead.",
+  Rails::CodeStatistics::DIRECTORIES,
+  "`STATS_DIRECTORIES` is deprecated and will be removed in Rails 8.1! Use `Rails::CodeStatistics.add_directory('My Directory', 'path/to/dir)` instead.",
   Rails.deprecator
 )
 
@@ -19,5 +19,5 @@ task :stats do
   Please use `bin/rails stats` as Rails command instead.\n
   MSG
 
-  CodeStatistics.new(*stat_directories).to_s
+  Rails::CodeStatistics.new(*stat_directories).to_s
 end

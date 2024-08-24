@@ -8,11 +8,11 @@ module Rails
         require "rails/code_statistics"
         boot_application!
 
-        stat_directories = CodeStatistics.directories.map do |name, dir|
+        stat_directories = Rails::CodeStatistics.directories.map do |name, dir|
           [name, Rails::Command.application_root.join(dir)]
         end.select { |name, dir| File.directory?(dir) }
 
-        CodeStatistics.new(*stat_directories).to_s
+        Rails::CodeStatistics.new(*stat_directories).to_s
       end
     end
   end
