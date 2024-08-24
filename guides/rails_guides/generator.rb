@@ -44,6 +44,7 @@ module RailsGuides
       if !dry_run?
         # First copy assets and add digests to make sure digest_paths are
         # present in generate_guides.
+        cleanup_assets
         process_scss
         copy_assets
         add_digests
@@ -126,6 +127,10 @@ module RailsGuides
         guides.select do |guide|
           guide.start_with?("epub", *prefixes)
         end
+      end
+
+      def cleanup_assets
+        FileUtils.rm_rf(Dir.glob("#{@output_dir}/{stylesheets,javascripts}"))
       end
 
       def process_scss
