@@ -1,13 +1,13 @@
 *   Deprecate `::STATS_DIRECTORIES`.
 
     The global constant `STATS_DIRECTORIES` has been deprecated in favor of
-    `Rails::CodeStatistics.add_directory`.
+    `Rails::CodeStatistics.register_directory`.
 
-    Add extra directories with `Rails::CodeStatistics.add_directory(label, path)`:
+    Add extra directories with `Rails::CodeStatistics.register_directory(label, path)`:
 
     ```ruby
     require "rails/code_statistics"
-    Rails::CodeStatistics.add_directory('My Directory', 'path/to/dir')
+    Rails::CodeStatistics.register_directory('My Directory', 'path/to/dir')
     ```
 
     *Petrik de Heus*
