@@ -209,6 +209,12 @@ class CreateBooks < ActiveRecord::Migration[7.2]
 end
 ```
 
+In database terms, the `belongs_to` association says that this model's table
+contains a column which represents a reference to another table. This can be
+used to set up one-to-one or one-to-many relations, depending on the setup. If
+the table _of the other class_ contains the reference in a one-to-one relation,
+then you should use `has_one` instead.
+
 When used alone, `belongs_to` produces a one-directional one-to-one connection.
 Therefore each book in the above example "knows" its author, but the authors
 don't know about their books. To setup a [bi-directional
@@ -238,19 +244,13 @@ create_table :books do |t|
 end
 ```
 
-This ensures that even if `optional: true` allows `author_id` to be NULL, when
-it is not NULL, it must point to a valid record in the authors table.
+This ensures that even though `optional: true` allows `author_id` to be NULL,
+when it's not NULL, it must still reference a valid record in the authors table.
 
 #### Methods Added by `belongs_to`
 
-In database terms, the `belongs_to` association says that this model's table
-contains a column which represents a reference to another table. This can be
-used to set up one-to-one or one-to-many relations, depending on the setup. If
-the table of the other class contains the reference in a one-to-one relation,
-then you should use `has_one` instead.
-
 When you declare a `belongs_to` association, the declaring class automatically
-gains numerous methods related to the association. Some of these include:
+gains numerous methods related to the association. Some of these are:
 
 * `association=(associate)`
 * `build_association(attributes = {})`
@@ -390,6 +390,11 @@ updated the association to reference a new associate object.
 @book.author_previously_changed? # => true
 ```
 
+NOTE: Do not confuse `model.association_changed?` with
+`model.association.changed?`. The former checks if the association has been
+replaced with a new record, while the latter tracks changes to the attributes of
+the association.
+
 ##### Checking for Existing Associations
 
 You can see if any associated objects exist by using the `association.nil?`
@@ -404,7 +409,8 @@ end
 ##### Saving Behavior of Associated Objects
 
 Assigning an object to a `belongs_to` association does _not_ automatically save
-the object. It does not save the associated object either.
+either the current object or the associated object. However, when you save the
+current object, the association is saved as well.
 
 ### `has_one`
 
@@ -445,6 +451,11 @@ class CreateSuppliers < ActiveRecord::Migration[7.2]
 end
 ```
 
+The `has_one` association creates a one-to-one match with another model. In
+database terms, this association says that the other class contains the foreign
+key. If this class contains the foreign key, then you should use `belongs_to`
+instead.
+
 Depending on the use case, you might also need to create a unique index and/or a
 foreign key constraint on the supplier column for the accounts table. The unique
 index ensures that each supplier is associated with only one account and allows
@@ -464,13 +475,8 @@ combination with `belongs_to` on the other model.
 
 #### Methods Added by [`has_one`](#has-one)
 
-The `has_one` association creates a one-to-one match with another model. In
-database terms, this association says that the other class contains the foreign
-key. If this class contains the foreign key, then you should use `belongs_to`
-instead.
-
 When you declare a `has_one` association,  the declaring class automatically
-gains numerous methods related to the association. Some of these include:
+gains numerous methods related to the association. Some of these are:
 
 * `association`
 * `association=(associate)`
@@ -602,19 +608,26 @@ end
 ##### Saving Behavior of Associated Objects
 
 When you assign an object to a `has_one` association, that object is
-automatically saved (in order to update its foreign key). In addition, any
-object being replaced is also automatically saved, because its foreign key will
-change too.
+automatically saved to update its foreign key. Additionally, any object being
+replaced is also automatically saved, as its foreign key will change too.
 
-If either of these saves fails due to validation errors, then the assignment
-statement returns `false` and the assignment itself is cancelled.
+If either of these saves fails due to validation errors, the assignment
+statement returns `false`, and the assignment itself is canceled.
 
 If the parent object (the one declaring the `has_one` association) is unsaved
-(that is, `new_record?` returns `true`) then the child objects are not saved.
-They will automatically when the parent object is saved.
+(that is, `new_record?` returns `true`) then the child objects are not saved
+immediately. They will be automatically saved when the parent object is saved.
 
 If you want to assign an object to a `has_one` association without saving the
-object, use the `build_association` method.
+object, use the `build_association` method. This method creates a new, unsaved
+instance of the associated object, allowing you to work with it before deciding
+to save it.
+
+Use `autosave: false` when you want to control the saving behavior of the
+associated objects for the model. This setting prevents the associated object
+from being saved automatically when the parent object is saved. In contrast, use
+`build_association` when you need to work with an unsaved associated object and
+delay its persistence until you're ready.
 
 ### `has_many`
 
@@ -659,6 +672,10 @@ class CreateAuthors < ActiveRecord::Migration[7.2]
 end
 ```
 
+The `has_many` association creates a one-to-many relationship with another
+model. In database terms, this association says that the other class will have a
+foreign key that refers to instances of this class.
+
 In this migration, the `authors` table is created with a `name` column to store
 the names of authors. The `books` table is also created, and it includes a
 `belongs_to :author` association. This association establishes a foreign key
@@ -693,12 +710,8 @@ combination with `belongs_to` on the other model.
 
 #### Methods Added by `has_many`
 
-The `has_many` association creates a one-to-many relationship with another
-model. In database terms, this association says that the other class will have a
-foreign key that refers to instances of this class.
-
 When you declare a `has_many` association, the declaring class gains numerous
-methods related to the association. Some of these include:
+methods related to the association. Some of these are:
 
 * `collection`
 * [`collection<<(object, ...)`][`collection<<`]
@@ -1229,6 +1242,11 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[7.2]
 end
 ```
 
+The `has_and_belongs_to_many` association creates a many-to-many relationship
+with another model. In database terms, this associates two classes via an
+intermediate join table that includes foreign keys referring to each of the
+classes.
+
 If the join table for a `has_and_belongs_to_many` association has additional
 columns beyond the two foreign keys, these columns will be added as attributes
 to records retrieved via that association. Records returned with additional
@@ -1243,13 +1261,8 @@ relationship, you should use a `has_many :through` association instead of
 
 #### Methods Added by `has_and_belongs_to_many`
 
-The `has_and_belongs_to_many` association creates a many-to-many relationship
-with another model. In database terms, this associates two classes via an
-intermediate join table that includes foreign keys referring to each of the
-classes.
-
 When you declare a `has_and_belongs_to_many` association, the declaring class
-gains numerous methods related to the association. Some of these include:
+gains numerous methods related to the association. Some of these are:
 
 * `collection`
 * [`collection<<(object, ...)`][`collection<<`]
