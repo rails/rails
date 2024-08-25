@@ -16,7 +16,7 @@ class CodeStatisticsTest < ActiveSupport::TestCase
 
   test "ignores directories that happen to have source files extensions" do
     assert_nothing_raised do
-      @code_statistics = CodeStatistics.new(["tmp dir", @tmp_path])
+      @code_statistics = Rails::CodeStatistics.new(["tmp dir", @tmp_path])
     end
   end
 
@@ -28,7 +28,7 @@ class CodeStatisticsTest < ActiveSupport::TestCase
     CODE
 
     assert_nothing_raised do
-      CodeStatistics.new(["hidden file", @tmp_path])
+      Rails::CodeStatistics.new(["hidden file", @tmp_path])
     end
   end
 end
