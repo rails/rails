@@ -73,7 +73,10 @@ module ActionText
               if body.present?
                 self.#{name}.body = body
               else
-                self.#{name}.mark_for_destruction if #{name}?
+                if #{name}?
+                  self.#{name}.body = body
+                  self.#{name}.mark_for_destruction
+                end
               end
             end
           CODE
