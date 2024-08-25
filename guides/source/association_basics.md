@@ -1670,16 +1670,16 @@ In our example, `imageable_id` could be the ID of either an `Employee` or a
 either `Employee` or `Product`.
 
 While creating the polymorphic association manually is acceptable, it is instead
-recommended to use `t.references`and specify `polymorphic: true` so that Rails
-knows that the association is polymorphic, and it automatically adds both the
-foreign key and type columns to the table.
+recommended to use `t.references` or its alias `t.belong_to` and specify
+`polymorphic: true` so that Rails knows that the association is polymorphic, and
+it automatically adds both the foreign key and type columns to the table.
 
 ```ruby
 class CreatePictures < ActiveRecord::Migration[7.2]
   def change
     create_table :pictures do |t|
       t.string :name
-      t.references :imageable, polymorphic: true
+      t.belongs_to :imageable, polymorphic: true
       t.timestamps
     end
   end
@@ -1828,15 +1828,15 @@ manager).
 class CreateEmployees < ActiveRecord::Migration[7.2]
   def change
     create_table :employees do |t|
-      # Add a reference to the manager, which is an employee.
-      t.references :manager, foreign_key: { to_table: :employees }
+      # Add a belongs_to reference to the manager, which is an employee.
+      t.belongs_to :manager, foreign_key: { to_table: :employees }
       t.timestamps
     end
   end
 end
 ```
 
-- `t.references :manager` adds a `manager_id` column to the `employees` table.
+- `t.belongs_to :manager` adds a `manager_id` column to the `employees` table.
 - `foreign_key: { to_table: :employees }` ensures that the `manager_id` column
   references the `id` column of the `employees` table.
 
