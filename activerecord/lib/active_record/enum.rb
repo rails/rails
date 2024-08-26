@@ -167,15 +167,6 @@ module ActiveRecord
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
     end
 
-    def load_schema! # :nodoc:
-      defined_enums.each_key do |name|
-        unless columns_hash.key?(resolve_attribute_name(name))
-          raise "Unknown enum attribute '#{name}' for #{self.name}. Enums must be" \
-            " backed by a database column."
-        end
-      end
-    end
-
     class EnumType < Type::Value # :nodoc:
       delegate :type, to: :subtype
 
@@ -264,7 +255,13 @@ module ActiveRecord
 
         attribute(name, **options)
 
-        decorate_attributes([name]) do |name, subtype|
+        decorate_attributes([name]) do |_name, subtype|
+          if subtype == ActiveModel::Type.default_value
+            raise "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
+              " backed by a database column or declared with an explicit type" \
+              " via `attribute`."
+          end
+
           subtype = subtype.subtype if EnumType === subtype
           EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
         end

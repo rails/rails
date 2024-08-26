@@ -595,7 +595,7 @@ module ActiveRecord
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
 
-          super
+          _default_attributes # Precompute to cache DB-dependent attribute types
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.

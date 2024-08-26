@@ -1157,15 +1157,28 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "raises for attributes with undeclared type" do
-    klass = Class.new(Book) do
-      def self.name; "Book"; end
-      enum :typeless_genre, [:adventure, :comic]
+    klass = assert_deprecated(ActiveRecord.deprecator) do
+      Class.new(Book) do
+        def self.name; "Book"; end
+        enum typeless_genre: [:adventure, :comic]
+      end
     end
 
     error = assert_raises(RuntimeError) do
-      klass.type_for_attribute(:typeless_genre) # load schema
+      klass.type_for_attribute(:typeless_genre)
     end
-    assert_match "Unknown enum attribute 'typeless_genre'", error.message
+    assert_match "Undeclared attribute type for enum 'typeless_genre' in Book", error.message
+  end
+
+  test "supports attributes declared with a explicit type" do
+    klass = assert_deprecated(ActiveRecord.deprecator) do
+      Class.new(Book) do
+        attribute :my_genre, :integer
+        enum my_genre: [:adventure, :comic]
+      end
+    end
+
+    assert_equal :integer, klass.type_for_attribute(:my_genre).type
   end
 
   test "default methods can be disabled by :_instance_methods" do
