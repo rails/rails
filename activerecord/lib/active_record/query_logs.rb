@@ -181,7 +181,6 @@ module ActiveRecord
             end
           end
           handlers.sort_by! { |(key, _)| key.to_s }
-          handlers
         end
 
         def build_handler(name, handler = nil)
