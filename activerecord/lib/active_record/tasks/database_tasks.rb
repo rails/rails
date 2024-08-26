@@ -175,6 +175,7 @@ module ActiveRecord
 
       def prepare_all
         seed = false
+        dump_db_configs = []
 
         each_current_configuration(env) do |db_config|
           with_temporary_pool(db_config) do
@@ -197,12 +198,20 @@ module ActiveRecord
 
         each_current_environment(env) do |environment|
           db_configs_with_versions(environment).sort.each do |version, db_configs|
+            dump_db_configs |= db_configs
+
             db_configs.each do |db_config|
               with_temporary_pool(db_config) do
                 migrate(version)
-                dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
               end
             end
+          end
+        end
+
+        # Dump schema for databases that were migrated.
+        if ActiveRecord.dump_schema_after_migration
+          dump_db_configs.each do |db_config|
+            dump_schema(db_config)
           end
         end
 
