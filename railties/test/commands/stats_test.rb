@@ -13,7 +13,7 @@ class Rails::Command::StatsTest < ActiveSupport::TestCase
 
     app_file "config/initializers/custom.rb", <<~CODE
       require "rails/code_statistics"
-      Rails::CodeStatistics.add_directory("Custom dir", "custom/dir")
+      Rails::CodeStatistics.register_directory("Custom dir", "custom/dir")
     CODE
 
     output = rails "stats"
@@ -23,7 +23,7 @@ class Rails::Command::StatsTest < ActiveSupport::TestCase
   test "`bin/rails stats` handles non-existing directories added by third parties" do
     app_file "config/initializers/custom.rb", <<~CODE
       require "rails/code_statistics"
-      Rails::CodeStatistics.add_directory("Non Existing", "app/non_existing")
+      Rails::CodeStatistics.register_directory("Non Existing", "app/non_existing")
     CODE
 
     output = rails "stats"

@@ -46,8 +46,8 @@ module Rails
 
     # Add directories to the output of the `bin/rails stats` command.
     #
-    #   Rails::CodeStatistics.add_directory("My Directory", "path/to/dir")
-    def self.add_directory(label, path)
+    #   Rails::CodeStatistics.register_directory("My Directory", "path/to/dir")
+    def self.register_directory(label, path)
       self.directories << [label, path]
     end
 
