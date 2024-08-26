@@ -1,8 +1,17 @@
 #!/bin/bash -e
 
 # Enable jemalloc for reduced memory usage and latency.
-if [ -z "${LD_PRELOAD+x}" ] && [ -f /usr/lib/*/libjemalloc.so.2 ]; then
-  export LD_PRELOAD="$(echo /usr/lib/*/libjemalloc.so.2)"
+jemalloc_found=false
+for lib in /usr/lib/*/libjemalloc.so.2; do
+    if [ -f "$lib" ]; then
+        export LD_PRELOAD="$lib"
+        jemalloc_found=true
+        break
+    fi
+done
+
+if [ "$jemalloc_found" = false ]; then
+    echo "Warning: jemalloc not found"
 fi
 
 <% unless skip_active_record? -%>
