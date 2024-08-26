@@ -152,4 +152,16 @@ class ActionText::ModelTest < ActiveSupport::TestCase
       message.update(content: "")
     end
   end
+
+  test "if disallowing blanks, can still validate presence" do
+    message1 = MessageWithoutBlanksWithContentValidation.new(subject: "Greetings", content: "")
+    assert_not_predicate message1, :valid?
+    message1.content = "content"
+    assert_predicate message1, :valid?
+
+    message2 = MessageWithoutBlanksWithContentValidation.new(subject: "Greetings", content: "content")
+    assert_predicate message2, :valid?
+    message2.content = ""
+    assert_not_predicate message2, :valid?
+  end
 end
