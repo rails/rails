@@ -1,3 +1,11 @@
+*   Add support for SQLite3 full-text-search and other virtual tables.
+
+    Previously, adding sqlite3 virtual tables messed up `schema.rb`.
+
+    Now, virtual tables can safely be added using `create_virtual_table`.
+
+    *Zacharias Knudsen*
+
 *   Support use of alternative database interfaces via the `database_cli` ActiveRecord configuration option.
 
     ```ruby

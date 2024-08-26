@@ -108,11 +108,11 @@ module ApplicationTests
 
           rails "db:schema:load"
 
-          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip }
-          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables").strip }
+          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables.sort").strip }
 
-          assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
-          assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+          assert_equal '["ar_internal_metadata", "books", "schema_migrations"]', ar_tables[]
+          assert_equal '["ar_internal_metadata", "dogs", "schema_migrations"]', animals_tables[]
         end
       end
 
@@ -148,15 +148,15 @@ module ApplicationTests
 
           rails "db:schema:load:#{database}"
 
-          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip }
-          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables").strip }
+          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables.sort").strip }
 
           if database == "primary"
-            assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
+            assert_equal '["ar_internal_metadata", "books", "schema_migrations"]', ar_tables[]
             assert_equal "[]", animals_tables[]
           else
             assert_equal "[]", ar_tables[]
-            assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+            assert_equal '["ar_internal_metadata", "dogs", "schema_migrations"]', animals_tables[]
           end
         end
       end
@@ -211,15 +211,15 @@ module ApplicationTests
           output = rails("db:test:prepare:#{name}", "--trace")
           assert_match(/Execute db:test:load_schema:#{name}/, output)
 
-          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.lease_connection.tables").strip }
-          animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.lease_connection.tables").strip }
+          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.lease_connection.tables.sort").strip }
 
           if name == "primary"
-            assert_equal ["schema_migrations", "ar_internal_metadata", "books"].sort, JSON.parse(ar_tables[]).sort
+            assert_equal '["ar_internal_metadata", "books", "schema_migrations"]', ar_tables[]
             assert_equal "[]", animals_tables[]
           else
             assert_equal "[]", ar_tables[]
-            assert_equal ["schema_migrations", "ar_internal_metadata", "dogs"].sort, JSON.parse(animals_tables[]).sort
+            assert_equal '["ar_internal_metadata", "dogs", "schema_migrations"]', animals_tables[]
           end
         end
       end
