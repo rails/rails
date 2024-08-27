@@ -62,6 +62,7 @@ module ActiveSupport
     autoload :Cache
     autoload :Callbacks
     autoload :Configurable
+    autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
     autoload :Digest
