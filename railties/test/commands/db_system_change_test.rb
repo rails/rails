@@ -25,7 +25,7 @@ class Rails::Command::DbSystemChangeTest < ActiveSupport::TestCase
     assert_match <<~MSG.squish, output
       Invalid value for --to option.
       Supported preconfigurations are:
-      mysql, trilogy, postgresql, sqlite3.
+      mysql, trilogy, postgresql, sqlite3, mariadb-mysql, mariadb-trilogy.
     MSG
   end
 

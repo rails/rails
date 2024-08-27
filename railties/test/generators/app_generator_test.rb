@@ -1369,8 +1369,64 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_devcontainer_mariadb
+  def test_devcontainer_trilogy
     run_generator [ destination_root, "--devcontainer", "-d", "trilogy" ]
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
+      expected_mysql_config = {
+        "image" => "mysql/mysql-server:8.0",
+        "restart" => "unless-stopped",
+        "environment" => {
+          "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
+          "MYSQL_ROOT_HOST" => "%"
+        },
+        "volumes" => ["mysql-data:/var/lib/mysql"],
+        "networks" => ["default"],
+      }
+
+      assert_equal expected_mysql_config, compose_config["services"]["mysql"]
+      assert_includes compose_config["volumes"].keys, "mysql-data"
+    end
+    assert_devcontainer_json_file do |content|
+      assert_equal "mysql", content["containerEnv"]["DB_HOST"]
+      assert_includes(content["forwardPorts"], 3306)
+    end
+    assert_file("config/database.yml") do |content|
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+    end
+  end
+
+  def test_devcontainer_mariadb_mysql
+    run_generator [ destination_root, "--devcontainer", "-d", "mariadb-mysql" ]
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"
+      expected_mariadb_config = {
+        "image" => "mariadb:10.5",
+        "restart" => "unless-stopped",
+        "networks" => ["default"],
+        "volumes" => ["mariadb-data:/var/lib/mysql"],
+        "environment" => {
+          "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
+        },
+      }
+
+      assert_equal expected_mariadb_config, compose_config["services"]["mariadb"]
+      assert_includes compose_config["volumes"].keys, "mariadb-data"
+    end
+    assert_devcontainer_json_file do |content|
+      assert_equal "mariadb", content["containerEnv"]["DB_HOST"]
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/mysql-client"
+      assert_includes(content["forwardPorts"], 3306)
+    end
+    assert_file("config/database.yml") do |content|
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+    end
+  end
+
+  def test_devcontainer_mariadb_trilogy
+    run_generator [ destination_root, "--devcontainer", "-d", "mariadb-trilogy" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"

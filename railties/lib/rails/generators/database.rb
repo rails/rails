@@ -3,30 +3,100 @@
 module Rails
   module Generators
     class Database
-      DATABASES = %w( mysql trilogy postgresql sqlite3 )
+      DATABASES = %w( mysql trilogy postgresql sqlite3 mariadb-mysql mariadb-trilogy )
+
+      module MySQL
+        def name
+          "mysql"
+        end
+
+        def port
+          3306
+        end
+
+        def service
+          {
+            "image" => "mysql/mysql-server:8.0",
+            "restart" => "unless-stopped",
+            "environment" => {
+              "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
+              "MYSQL_ROOT_HOST" => "%"
+            },
+            "volumes" => ["mysql-data:/var/lib/mysql"],
+            "networks" => ["default"],
+          }
+        end
+
+        def socket
+          @socket ||= [
+            "/tmp/mysql.sock",                        # default
+            "/var/run/mysqld/mysqld.sock",            # debian/gentoo
+            "/var/tmp/mysql.sock",                    # freebsd
+            "/var/lib/mysql/mysql.sock",              # fedora
+            "/opt/local/lib/mysql/mysql.sock",        # fedora
+            "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
+            "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
+            "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
+            "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
+          ].find { |f| File.exist?(f) } unless Gem.win_platform?
+        end
+
+        def host
+          "localhost"
+        end
+      end
+
+      module MariaDB
+        def name
+          "mariadb"
+        end
+
+        def port
+          3306
+        end
+
+        def service
+          {
+            "image" => "mariadb:10.5",
+            "restart" => "unless-stopped",
+            "networks" => ["default"],
+            "volumes" => ["mariadb-data:/var/lib/mysql"],
+            "environment" => {
+              "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
+            },
+          }
+        end
+      end
 
       class << self
         def build(database_name)
           case database_name
-          when "mysql" then MySQL.new
+          when "mysql" then MySQL2.new
           when "postgresql" then PostgreSQL.new
-          when "trilogy" then MariaDB.new
+          when "trilogy" then Trilogy.new
           when "sqlite3" then SQLite3.new
+          when "mariadb-mysql" then MariaDBMySQL2.new
+          when "mariadb-trilogy" then MariaDBTrilogy.new
           else Null.new
           end
         end
 
         def all
           @all ||= [
-            MySQL.new,
+            MySQL2.new,
             PostgreSQL.new,
-            MariaDB.new,
             SQLite3.new,
+            MariaDBMySQL2.new,
+            MariaDBTrilogy.new
           ]
         end
       end
 
       def name
+        raise NotImplementedError
+      end
+
+      def template
         raise NotImplementedError
       end
 
@@ -69,48 +139,11 @@ module Rails
         "#{name}-data"
       end
 
-      module MySqlSocket
-        def socket
-          @socket ||= [
-            "/tmp/mysql.sock",                        # default
-            "/var/run/mysqld/mysqld.sock",            # debian/gentoo
-            "/var/tmp/mysql.sock",                    # freebsd
-            "/var/lib/mysql/mysql.sock",              # fedora
-            "/opt/local/lib/mysql/mysql.sock",        # fedora
-            "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
-            "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
-            "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
-            "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-          ].find { |f| File.exist?(f) } unless Gem.win_platform?
-        end
+      class MySQL2 < Database
+        include MySQL
 
-        def host
-          "localhost"
-        end
-      end
-
-      class MySQL < Database
-        include MySqlSocket
-
-        def name
-          "mysql"
-        end
-
-        def service
-          {
-            "image" => "mysql/mysql-server:8.0",
-            "restart" => "unless-stopped",
-            "environment" => {
-              "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
-              "MYSQL_ROOT_HOST" => "%"
-            },
-            "volumes" => ["mysql-data:/var/lib/mysql"],
-            "networks" => ["default"],
-          }
-        end
-
-        def port
-          3306
+        def template
+          "config/databases/mysql.yml"
         end
 
         def gem
@@ -133,6 +166,10 @@ module Rails
       class PostgreSQL < Database
         def name
           "postgres"
+        end
+
+        def template
+          "config/databases/postgresql.yml"
         end
 
         def service
@@ -169,27 +206,11 @@ module Rails
         end
       end
 
-      class MariaDB < Database
-        include MySqlSocket
+      class Trilogy < Database
+        include MySQL
 
-        def name
-          "mariadb"
-        end
-
-        def service
-          {
-            "image" => "mariadb:10.5",
-            "restart" => "unless-stopped",
-            "networks" => ["default"],
-            "volumes" => ["mariadb-data:/var/lib/mysql"],
-            "environment" => {
-              "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
-            },
-          }
-        end
-
-        def port
-          3306
+        def template
+          "config/databases/trilogy.yml"
         end
 
         def gem
@@ -212,6 +233,10 @@ module Rails
       class SQLite3 < Database
         def name
           "sqlite3"
+        end
+
+        def template
+          "config/databases/sqlite3.yml"
         end
 
         def service
@@ -239,8 +264,17 @@ module Rails
         end
       end
 
+      class MariaDBMySQL2 < MySQL2
+        include MariaDB
+      end
+
+      class MariaDBTrilogy < Trilogy
+        include MariaDB
+      end
+
       class Null < Database
         def name; end
+        def template; end
         def service; end
         def port; end
         def volume; end
