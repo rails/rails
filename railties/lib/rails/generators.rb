@@ -60,6 +60,10 @@ module Rails
       }
     }
 
+    # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
+    # can change when we FileUtils.cd.
+    RAILS_DEV_PATH = File.expand_path("../../..", __dir__) # :nodoc:
+
     class << self
       def configure!(config) # :nodoc:
         api_only! if config.api_only
