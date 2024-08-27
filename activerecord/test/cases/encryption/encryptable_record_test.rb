@@ -92,6 +92,12 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_encrypted_attribute(traffic_light, :state, states)
   end
 
+  test "encrypts serialized attributes where encrypts is declared first" do
+    states = ["green", "red"]
+    traffic_light = EncryptedFirstTrafficLight.create!(state: states, long_state: states)
+    assert_encrypted_attribute(traffic_light, :state, states)
+  end
+
   test "encrypts store attributes with accessors" do
     traffic_light = EncryptedTrafficLightWithStoreState.create!(color: "red", long_state: ["green", "red"])
     assert_equal "red", traffic_light.color
@@ -404,13 +410,14 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   test "binary data can be encrypted uncompressed" do
     low_bytes = (0..127).map(&:chr).join
     high_bytes = (128..255).map(&:chr).join
-    assert_equal low_bytes, EncryptedBookWithBinary.create!(logo: low_bytes).logo
-    assert_equal high_bytes, EncryptedBookWithBinary.create!(logo: high_bytes).logo
+    assert_encrypted_attribute EncryptedBookWithBinary.create!(logo: low_bytes), :logo, low_bytes
+    assert_encrypted_attribute EncryptedBookWithBinary.create!(logo: high_bytes), :logo, high_bytes
   end
 
   test "serialized binary data can be encrypted" do
     json_bytes = (32..127).map(&:chr)
-    assert_equal json_bytes, EncryptedBookWithSerializedBinary.create!(logo: json_bytes).logo
+    assert_encrypted_attribute EncryptedBookWithSerializedFirstBinary.create!(logo: json_bytes), :logo, json_bytes
+    assert_encrypted_attribute EncryptedBookWithSerializedSecondBinary.create!(logo: json_bytes), :logo, json_bytes
   end
 
   test "can compress data with custom compressor" do
@@ -421,6 +428,17 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   test "type method returns cast type" do
     assert_equal :string, EncryptedBook.type_for_attribute(:name).type
     assert_equal :text, EncryptedPost.type_for_attribute(:body).type
+  end
+
+  test "encrypts normalized data" do
+    assert_encrypted_attribute EncryptedBookNormalizedFirst.create!(name: "Book"), :name, "book"
+    assert_encrypted_attribute EncryptedBookNormalizedSecond.create!(name: "Book"), :name, "book"
+    assert_encrypted_attribute EncryptedBookNormalizedFirst.create!(logo: "Book"), :logo, "book"
+    assert_encrypted_attribute EncryptedBookNormalizedSecond.create!(logo: "Book"), :logo, "book"
+  end
+
+  test "encrypts attribute data" do
+    assert_encrypted_attribute EncryptedBookAttribute.create!(name: "2024-01-01"), :name, Date.new(2024, 1, 1)
   end
 
   private
