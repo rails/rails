@@ -144,6 +144,11 @@ module GeneratorsTestHelper
     assert_no_file "#{not_here}/20240821135818_create_solid_cache_entries.solid_cache.rb"
   end
 
+  def assert_no_solid_cache_migration
+    assert_no_file "db/migrate/20240821135818_create_solid_cache_entries.solid_cache.rb"
+    assert_no_file "db/cache/migrate/20240821135818_create_solid_cache_entries.solid_cache.rb"
+  end
+
   def run_app_update(app_root = destination_root, flags: "--force")
     Dir.chdir(app_root) do
       gemfile_contents = File.read("Gemfile")

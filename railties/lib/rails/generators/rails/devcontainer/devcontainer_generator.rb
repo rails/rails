@@ -55,6 +55,10 @@ module Rails
           true
         end
 
+        def skip_solid_cache?
+          options[:skip_solid_cache]
+        end
+
         def app_name
           options[:app_name]
         end

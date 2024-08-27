@@ -40,6 +40,7 @@ module Rails
               assert_match "adapter: postgresql", content
               assert_match "database: tmp_production", content
               assert_match "host: <%= ENV[\"DB_HOST\"] %>", content
+              assert_match "cache:\n    <<: *production_primary", content
             end
 
             assert_file("Gemfile") do |content|
@@ -85,6 +86,7 @@ module Rails
             assert_file("config/database.yml") do |content|
               assert_match "adapter: mysql2", content
               assert_match "database: tmp_production", content
+              assert_match "cache:\n    <<: *production_primary", content
             end
 
             assert_file("Gemfile") do |content|
@@ -129,6 +131,7 @@ module Rails
             assert_file("config/database.yml") do |content|
               assert_match "adapter: sqlite3", content
               assert_match "storage/development.sqlite3", content
+              assert_match "cache:\n    <<: *default", content
             end
 
             assert_file("Gemfile") do |content|
@@ -186,9 +189,9 @@ module Rails
 
               assert_equal expected_mariadb_config, compose_config["services"]["mariadb"]
               assert_includes compose_config["volumes"].keys, "mariadb-data"
-
-              assert_solid_cache_migration here: "db/migrate", not_here: "db/cache/migrate"
             end
+
+            assert_solid_cache_migration here: "db/migrate", not_here: "db/cache/migrate"
           end
 
           test "change from versioned gem to other versioned gem" do
@@ -198,6 +201,7 @@ module Rails
             assert_file("config/database.yml") do |content|
               assert_match "adapter: mysql2", content
               assert_match "database: tmp_production", content
+              assert_match "cache:\n    <<: *production_primary", content
             end
 
             assert_file("Gemfile") do |content|
@@ -222,6 +226,21 @@ module Rails
               assert_not_includes compose_config["services"].keys, "mysql"
               assert_not_includes compose_config.keys, "volumes"
             end
+          end
+
+          test "change without solid cache" do
+            rm_r(File.expand_path("db/cache/migrate", destination_root))
+
+            run_generator ["--to", "postgresql"]
+
+            assert_file("config/database.yml") do |content|
+              assert_match "adapter: postgresql", content
+              assert_match "database: tmp_production", content
+              assert_match "host: <%= ENV[\"DB_HOST\"] %>", content
+              assert_no_match "cache:\n    <<: *production_primary", content
+            end
+
+            assert_no_solid_cache_migration
           end
         end
       end

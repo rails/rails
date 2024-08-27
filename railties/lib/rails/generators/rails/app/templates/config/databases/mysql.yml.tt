@@ -22,10 +22,10 @@ default: &default
 <% end -%>
 
 development:
-  primary:<% unless options[:skip_solid_cache] %> &development_primary<% end %>
+  primary:<% unless skip_solid_cache? %> &development_primary<% end %>
     <<: *default
     database: <%= app_name %>_development
-<% unless options[:skip_solid_cache] -%>
+<% unless skip_solid_cache? -%>
   cache:
     <<: *development_primary
 <% end -%>
@@ -34,10 +34,10 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  primary:<% unless options[:skip_solid_cache] %> &test_primary<% end %>
+  primary:<% unless skip_solid_cache? %> &test_primary<% end %>
     <<: *default
     database: <%= app_name %>_test
-<% unless options[:skip_solid_cache] -%>
+<% unless skip_solid_cache? -%>
   cache:
     <<: *test_primary
 <% end -%>
@@ -63,12 +63,12 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  primary:<% unless options[:skip_solid_cache] %> &production_primary<% end %>
+  primary:<% unless skip_solid_cache? %> &production_primary<% end %>
     <<: *default
     database: <%= app_name %>_production
     username: <%= app_name %>
     password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
-<% unless options[:skip_solid_cache] -%>
+<% unless skip_solid_cache? -%>
   cache:
     <<: *production_primary
 <% end -%>
