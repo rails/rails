@@ -1,3 +1,15 @@
+*   Dispatch direct-upload events on attachment uploads
+
+    When using Action Text's rich textarea,  it's possible to attach files to the
+    editor. Previously, that action didn't dispatch any events, which made it hard
+    to react to the file uploads. For instance, if an upload failed, there was no
+    way to notify the user about it, or remove the attachment from the editor.
+
+    This commits adds new events - `direct-upload:start`, `direct-upload:progress`,
+    and `direct-upload:end` - similar to how Active Storage's direct uploads work.
+
+    *Matheus Richard*, *Brad Rees*
+
 *   Add `store_if_blank` option to `has_rich_text`
 
     Pass `store_if_blank: false` to not create `ActionText::RichText` records when saving with a blank attribute, such as from an optional form parameter.
