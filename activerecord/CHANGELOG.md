@@ -1,3 +1,11 @@
+*   Add `TimeZoneConverter#==` method, so objects will be properly compared by
+    their type, scale, limit & precision.
+
+    Address #52699.
+
+    *Ruy Rocha*
+
+
 ## Rails 7.2.1 (August 22, 2024) ##
 
 *   Fix detection for `enum` columns with parallelized tests and PostgreSQL.
