@@ -599,9 +599,6 @@ Cache stores may add their own data as well.
 
 #### `cache_increment.active_support`
 
-This event is only emitted when using [`MemCacheStore`][ActiveSupport::Cache::MemCacheStore]
-or [`RedisCacheStore`][ActiveSupport::Cache::RedisCacheStore].
-
 | Key       | Value                   |
 | --------- | ----------------------- |
 | `:key`    | Key used in the store   |
@@ -617,8 +614,6 @@ or [`RedisCacheStore`][ActiveSupport::Cache::RedisCacheStore].
 ```
 
 #### `cache_decrement.active_support`
-
-This event is only emitted when using the Memcached or Redis cache stores.
 
 | Key       | Value                   |
 | --------- | ----------------------- |
