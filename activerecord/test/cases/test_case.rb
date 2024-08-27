@@ -141,9 +141,6 @@ module ActiveRecord
       yield
     ensure
       model.has_many_inversing = old
-      if model != ActiveRecord::Base && !old
-        model.singleton_class.remove_method(:has_many_inversing) # reset the class_attribute
-      end
     end
 
     def with_automatic_scope_inversing(*reflections)
