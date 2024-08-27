@@ -3731,6 +3731,29 @@ module ApplicationTests
       assert_not_includes ActiveRecord::Base.filter_attributes, :content
     end
 
+    test "ActiveRecord::Encryption.config is ready when accessed before loading ActiveRecord::Base" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = false
+
+        config.active_record.encryption.primary_key = "dummy_key"
+        config.active_record.encryption.extend_queries = true
+      RUBY
+
+      app "development"
+
+      # Encryption config is ready to be accessed
+      assert_equal "dummy_key", ActiveRecord::Encryption.config.primary_key
+      assert ActiveRecord::Encryption.config.extend_queries
+
+      # ActiveRecord::Base is not loaded yet (lazy loading preserved)
+      active_record_loaded = ActiveRecord.autoload?(:Base).nil?
+      assert_not active_record_loaded
+
+      # When ActiveRecord::Base loaded, extended queries should be installed
+      assert ActiveRecord::Base.include?(ActiveRecord::Encryption::ExtendedDeterministicQueries::CoreQueries)
+    end
+
     test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is lazy loaded" do
       add_to_config <<-RUBY
         config.enable_reloading = false
