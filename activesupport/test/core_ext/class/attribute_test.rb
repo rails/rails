@@ -30,11 +30,14 @@ class ClassAttributeTest < ActiveSupport::TestCase
   test "overridable" do
     @sub.setting = 1
     assert_nil @klass.setting
+    assert_equal 1, @sub.setting
 
     @klass.setting = 2
+    assert_equal 2, @klass.setting
     assert_equal 1, @sub.setting
 
     assert_equal 1, Class.new(@sub).setting
+    assert_equal 2, Class.new(@klass).setting
   end
 
   test "predicate method" do
@@ -97,8 +100,34 @@ class ClassAttributeTest < ActiveSupport::TestCase
 
   test "works well with singleton classes" do
     object = @klass.new
+
     object.singleton_class.setting = "foo"
     assert_equal "foo", object.setting
+    assert_nil @klass.setting
+
+    object.singleton_class.setting = "bar"
+    assert_equal "bar", object.setting
+    assert_nil @klass.setting
+
+    @klass.setting = "plop"
+    assert_equal "bar", object.setting
+    assert_equal "plop", @klass.setting
+  end
+
+  test "when defined in a class's singleton" do
+    @klass = Class.new do
+      class << self
+        class_attribute :__callbacks, default: 1
+      end
+    end
+
+    assert_equal 1, @klass.__callbacks
+    assert_equal 1, @klass.singleton_class.__callbacks
+
+    # I honestly think this is a bug, but that's how it used to behave
+    @klass.__callbacks = 4
+    assert_equal 1, @klass.__callbacks
+    assert_equal 1, @klass.singleton_class.__callbacks
   end
 
   test "works well with module singleton classes" do
