@@ -91,16 +91,24 @@ class Class
         raise TypeError, "#{name.inspect} is not a symbol nor a string"
       end
 
-      name = name.to_sym
-      ::ActiveSupport::ClassAttribute.redefine(self, name, default)
+      class_methods << <<~RUBY # In case the method exists and is not public
+        silence_redefinition_of_method def #{name}
+        end
+      RUBY
 
-      unless singleton_class?
-        methods << <<~RUBY if instance_reader
-          silence_redefinition_of_method def #{name}
-            defined?(@#{name}) ? @#{name} : self.class.#{name}
-          end
-        RUBY
-      end
+      methods << <<~RUBY if instance_reader
+        silence_redefinition_of_method def #{name}
+          defined?(@#{name}) ? @#{name} : self.class.#{name}
+        end
+      RUBY
+
+      class_methods << <<~RUBY
+        silence_redefinition_of_method def #{name}=(value)
+          redefine_method(:#{name}) { value } if singleton_class?
+          redefine_singleton_method(:#{name}) { value }
+          value
+        end
+      RUBY
 
       methods << <<~RUBY if instance_writer
         silence_redefinition_of_method(:#{name}=)
@@ -117,5 +125,7 @@ class Class
 
     location = caller_locations(1, 1).first
     class_eval(["class << self", *class_methods, "end", *methods].join(";").tr("\n", ";"), location.path, location.lineno)
+
+    attrs.each { |name| public_send("#{name}=", default) }
   end
 end
