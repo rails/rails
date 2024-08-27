@@ -1,3 +1,11 @@
+*   Add `TimeZoneConverter#==` method, so objects will be properly compared by
+    their type, scale, limit & precision.
+
+    Address #52699.
+
+    *Ruy Rocha*
+
+
 ## Rails 7.1.4 (August 22, 2024) ##
 
 *   Allow to eager load nested nil associations.

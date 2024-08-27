@@ -32,6 +32,13 @@ module ActiveRecord
           end
         end
 
+        def ==(other)
+          precision == other.precision &&
+            scale == other.scale &&
+            limit == other.limit &&
+            type == other.type
+        end
+
         private
           def convert_time_to_time_zone(value)
             return if value.nil?
