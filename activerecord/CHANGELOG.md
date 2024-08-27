@@ -1,3 +1,10 @@
+*   Add `TimeZoneConverter#==` method, so objects will be properly compared by
+    their type, scale, limit & precision.
+
+    Address #52699.
+
+    *Ruy Rocha*
+
 *   Add support for SQLite3 full-text-search and other virtual tables.
 
     Previously, adding sqlite3 virtual tables messed up `schema.rb`.
