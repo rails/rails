@@ -145,7 +145,7 @@ Once you open a PR, a preview of the documentation will be deployed for easy rev
 
 ![GitHub rails/rails Pull Request status checks](images/docs_preview/status_checks.png)
 
-This will bring you to the Buildkite build page, if the job was successful there will be an annotation with links to the generated API and Guides above the job list.
+This will bring you to the Buildkite build page. If the job was successful, there will be an annotation with links to the generated API and Guides above the job list.
 
 ![Buildkite rails/docs-preview annotation API & Guides links](images/docs_preview/annotation.png)
 
@@ -300,7 +300,7 @@ Inspecting 1 file
 For changes that might have an impact on performance, please benchmark your
 code and measure the impact. Please share the benchmark script you used as well
 as the results. You should consider including this information in your commit
-message, to allow future contributors to easily verify your findings and
+message to allow future contributors to easily verify your findings and
 determine if they are still relevant. (For example, future optimizations in the
 Ruby VM might render certain optimizations unnecessary.)
 
@@ -485,7 +485,7 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 To use an external debugger (pry, byebug, etc), install the debugger and use it as normal.  If debugger issues occur, run tests in serial by setting `PARALLEL_WORKERS=1` or run a single test with `-n test_long_test_name`.
 
-If running tests against generators you will need to set `RAILS_LOG_TO_STDOUT=true` in order for debugging tools to work.
+If running tests against generators, you will need to set `RAILS_LOG_TO_STDOUT=true` in order for debugging tools to work.
 
 ```sh
 RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
@@ -495,13 +495,13 @@ RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
-Rails CI will raise if warnings are introduced. To implement the same behavior locally set `RAILS_STRICT_WARNINGS=1` when running the test suite.
+Rails CI will raise if warnings are introduced. To implement the same behavior locally, set `RAILS_STRICT_WARNINGS=1` when running the test suite.
 
 ### Updating the Documentation
 
 The Ruby on Rails [guides](https://guides.rubyonrails.org/) provide a high-level overview of Rails' features, while the [API documentation](https://api.rubyonrails.org/) delves into specifics.
 
-If your PR adds a new feature, or changes how an existing feature behaves, check the relevant documentation, and update it or add to it as necessary.
+If your PR adds a new feature or changes how an existing feature behaves, check the relevant documentation and update it or add to it as necessary.
 
 For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
 
@@ -532,7 +532,7 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
 
 ### Breaking Changes
 
-Anytime a change could break existing applications it's considered a breaking
+Anytime a change could break existing applications, it's considered a breaking
 change. To ease upgrading Rails applications, breaking changes require a
 deprecation cycle.
 
@@ -612,7 +612,7 @@ value:
 # Rails.application.config.active_job.existing_behavior = false
 ```
 
-As a last step add the new configuration to configuration guide in
+As a last step, add the new configuration to configuration guide in
 `configuration.md`:
 
 ```markdown
@@ -702,7 +702,7 @@ No conflicts? Tests still pass? Change still seems reasonable to you? Then push 
 $ git push --force-with-lease
 ```
 
-We disallow force pushing on the rails/rails repository base, but you are able to force push to your fork. When rebasing this is a requirement since the history has changed.
+We disallow force pushing on the rails/rails repository base, but you are able to force push to your fork. When rebasing, this is a requirement since the history has changed.
 
 ### Fork
 
@@ -744,7 +744,7 @@ $ git push fork my_new_branch
 
 ### Open a Pull Request
 
-Navigate to the Rails repository you just pushed to (e.g.
+Navigate to the Rails repository you just pushed to (e.g.,
 https://github.com/your-user-name/rails) and click on "Pull Requests" in the top bar (just above the code).
 On the next page, click "New pull request" in the upper right-hand corner.
 
