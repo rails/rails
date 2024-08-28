@@ -538,10 +538,11 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
+        keys    = names.map { |name| normalize_key(name, options) }
 
-        instrument_multi :read_multi, names, options do |payload|
+        instrument_multi :read_multi, keys, options do |payload|
           read_multi_entries(names, **options, event: payload).tap do |results|
-            payload[:hits] = results.keys
+            payload[:hits] = results.keys.map { |name| normalize_key(name, options) }
           end
         end
       end
@@ -551,8 +552,9 @@ module ActiveSupport
         return hash if hash.empty?
 
         options = merged_options(options)
+        normalized_hash = hash.transform_keys { |key| normalize_key(key, options) }
 
-        instrument_multi :write_multi, hash, options do |payload|
+        instrument_multi :write_multi, normalized_hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
             memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
           end
@@ -596,9 +598,9 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
-
+        keys    = names.map { |name| normalize_key(name, options) }
         writes  = {}
-        ordered = instrument_multi :read_multi, names, options do |payload|
+        ordered = instrument_multi :read_multi, keys, options do |payload|
           if options[:force]
             reads = {}
           else
@@ -610,7 +612,7 @@ module ActiveSupport
           end
           writes.compact! if options[:skip_nil]
 
-          payload[:hits] = reads.keys
+          payload[:hits] = reads.keys.map { |name| normalize_key(name, options) }
           payload[:super_operation] = :fetch_multi
 
           ordered
