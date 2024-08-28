@@ -1,3 +1,9 @@
+*   Deserialize binary data before decrypting
+
+    This ensures that we call `PG::Connection.unescape_bytea` on PostgreSQL before decryption.
+
+    *Donal McBreen*
+
 *   Ensure `ActiveRecord::Encryption.config` is always ready before access.
 
     Previously, `ActiveRecord::Encryption` configuration was deferred until `ActiveRecord::Base`
