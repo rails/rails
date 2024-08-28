@@ -33,10 +33,7 @@ module ActiveRecord
         end
 
         def ==(other)
-          precision == other.precision &&
-            scale == other.scale &&
-            limit == other.limit &&
-            type == other.type
+          other.is_a?(self.class) && __getobj__ == other.__getobj__
         end
 
         private
