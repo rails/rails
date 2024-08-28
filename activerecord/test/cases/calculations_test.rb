@@ -623,6 +623,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 4, Account.distinct.select(Account.arel_table[:firm_id]).count
   end
 
+  def test_count_selected_arel_attributes
+    # Only MySQL supports COUNT with multiple columns, and only with DISTINCT.
+    skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+
+    assert_equal 5, Account.distinct.select(Account.arel_table[:id], Account.arel_table[:firm_id]).count
+  end
+
   def test_count_with_column_parameter
     assert_equal 5, Account.count(:firm_id)
   end
