@@ -1795,7 +1795,7 @@ When you assign an object to a `has_one` association, that object is automatical
 
 If either of these saves fails due to validation errors, then the assignment statement returns `false` and the assignment itself is cancelled.
 
-If the parent object (the one declaring the `has_one` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved. They will automatically when the parent object is saved.
+If the parent object (the one declaring the `has_one` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved. They will automatically be saved when the parent object is saved.
 
 If you want to assign an object to a `has_one` association without saving the object, use the `build_association` method.
 
