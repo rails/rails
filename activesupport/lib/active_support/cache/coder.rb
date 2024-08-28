@@ -40,7 +40,7 @@ module ActiveSupport
         version_length = version&.bytesize || -1
 
         packed = SIGNATURE.b
-        packed << [type, expires_at, version_length].pack(PACKED_TEMPLATE)
+        packed << [type, expires_at, entry.generation_time, version_length].pack(PACKED_TEMPLATE)
         packed << version if version
         packed << payload
       end
@@ -50,6 +50,7 @@ module ActiveSupport
 
         type = dumped.unpack1(PACKED_TYPE_TEMPLATE)
         expires_at = dumped.unpack1(PACKED_EXPIRES_AT_TEMPLATE)
+        generation_time = dumped.unpack1(PACKED_GENERATION_TIME_TEMPLATE)
         version_length = dumped.unpack1(PACKED_VERSION_LENGTH_TEMPLATE)
 
         expires_at = nil if expires_at < 0
@@ -59,7 +60,12 @@ module ActiveSupport
         compressor = @compressor if type & COMPRESSED_FLAG > 0
         serializer = STRING_DESERIALIZERS[type & ~COMPRESSED_FLAG] || @serializer
 
-        LazyEntry.new(serializer, compressor, payload, version: version, expires_at: expires_at)
+        LazyEntry.new(
+          serializer, compressor, payload,
+          version: version,
+          expires_at: expires_at,
+          generation_time: generation_time,
+        )
       end
 
       private
@@ -75,10 +81,11 @@ module ActiveSupport
 
         COMPRESSED_FLAG = 0x80
 
-        PACKED_TEMPLATE = "CEl<"
+        PACKED_TEMPLATE = "CEEl<"
         PACKED_TYPE_TEMPLATE = "@#{SIGNATURE.bytesize}C"
         PACKED_EXPIRES_AT_TEMPLATE = "@#{[0].pack(PACKED_TYPE_TEMPLATE).bytesize}E"
-        PACKED_VERSION_LENGTH_TEMPLATE = "@#{[0].pack(PACKED_EXPIRES_AT_TEMPLATE).bytesize}l<"
+        PACKED_GENERATION_TIME_TEMPLATE = "@#{[0].pack(PACKED_EXPIRES_AT_TEMPLATE).bytesize}E"
+        PACKED_VERSION_LENGTH_TEMPLATE = "@#{[0].pack(PACKED_GENERATION_TIME_TEMPLATE).bytesize}l<"
         PACKED_VERSION_INDEX = [0].pack(PACKED_VERSION_LENGTH_TEMPLATE).bytesize
 
         MARSHAL_SIGNATURE = "\x04\x08".b.freeze

@@ -31,7 +31,12 @@ module ActiveSupport
 
         def dump(entry)
           if entry.value && entry.value != true && !entry.value.is_a?(Numeric)
-            Cache::Entry.new(dump_value(entry.value), expires_at: entry.expires_at, version: entry.version)
+            Cache::Entry.new(
+              dump_value(entry.value),
+              expires_at: entry.expires_at,
+              version: entry.version,
+              generation_time: entry.generation_time
+            )
           else
             entry
           end
@@ -44,7 +49,12 @@ module ActiveSupport
 
         def load(entry)
           if !entry.compressed? && entry.value.is_a?(String)
-            Cache::Entry.new(load_value(entry.value), expires_at: entry.expires_at, version: entry.version)
+            Cache::Entry.new(
+              load_value(entry.value),
+              expires_at: entry.expires_at,
+              version: entry.version,
+              generation_time: entry.generation_time
+            )
           else
             entry
           end
