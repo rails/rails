@@ -13,6 +13,7 @@ module ActiveRecord
           value_from_cache = Marshal.load(Marshal.dump(value))
 
           assert_equal value, value_from_cache
+          assert_not_equal value, "foo"
         end
       end
     end
