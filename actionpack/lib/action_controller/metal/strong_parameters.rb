@@ -659,7 +659,7 @@ module ActionController
       permit_filters(filters, &method(:unpermitted_parameters))
     end
 
-    # Same as permit, but raises on unpermitted parameters by default.
+    # Same as `permit`, but raises on unpermitted parameters.
     # Ignores ActionController::Parameters.action_on_unpermitted_parameters
     #
     # Accepts a block which will yield any unpermitted keys instead of raising.
