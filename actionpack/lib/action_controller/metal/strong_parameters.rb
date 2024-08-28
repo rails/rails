@@ -138,6 +138,16 @@ module ActionController
   # environment they should only be set once at boot-time and never mutated at
   # runtime.
   #
+  # `permit!` overrides the setting `action_on_unpermitted_parameters`
+  # allowing each action to define how unpermitted parameters are handled.
+  #
+  #    ActionController::Parameters.action_on_unpermitted_parameters = :log
+  #    params = ActionController::Parameters.new(options: { a: "123", b: "456" })
+  #    params.permit!(options: [:a])
+  #    # => ActionController::UnpermittedParameters: found unpermitted keys: b
+  #    # `permit!` also accepts a block to handle unpermitted keys
+  #    params.permit!(options: [:a]) { |unpermitted_keys| raise "Unpermitted keys: #{unpermitted_keys}" }
+  #
   # You can fetch values of `ActionController::Parameters` using either `:key` or
   # `"key"`.
   #
@@ -646,9 +656,18 @@ module ActionController
     #     params.permit(person: { '0': [:email], '1': [:phone]}).to_h
     #     # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"phone"=>"555-6789"}}}
     def permit(*filters)
-      params = self.class.new
+      permit_filters(filters, &method(:unpermitted_parameters))
+    end
 
-      filters.flatten.each do |filter|
+    # Same as permit, but raises on unpermitted parameters by default.
+    # Ignores ActionController::Parameters.action_on_unpermitted_parameters
+    #
+    # Accepts a block which will yield any unpermitted keys instead of raising.
+    def permit!(*filters, &block)
+      block ||= method(:raise_unpermitted_parameters)
+      permit_filters(filters, &block)
+    end
+
         case filter
         when Symbol, String
           permitted_scalar_filter(params, filter)
@@ -999,6 +1018,30 @@ module ActionController
         hash
       end
 
+      # Filters params given the set of filters.
+      #
+      # check_unpermitted: true calls the passed block when unpermitted keys are found.
+      #   It is intentionally not passed to hash_filter, defaulting to true for nested keys.
+      def permit_filters(filters, check_unpermitted: true, &block)
+        params = self.class.new
+
+        filters.flatten.each do |filter|
+          case filter
+          when Symbol, String
+            permitted_scalar_filter(params, filter)
+          when Hash
+            hash_filter(params, filter, &block)
+          end
+        end
+
+        if check_unpermitted
+          unpermitted = unpermitted_keys(params)
+          block.call(unpermitted) if unpermitted.any?
+        end
+
+        params.permit!
+      end
+
     private
       def new_instance_with_inherited_permitted_status(hash)
         self.class.new(hash, @logging_context).tap do |new_instance|
@@ -1101,21 +1144,40 @@ module ActionController
         end
       end
 
-      def unpermitted_parameters!(params)
-        unpermitted_keys = unpermitted_keys(params)
-        if unpermitted_keys.any?
-          case self.class.action_on_unpermitted_parameters
-          when :log
-            name = "unpermitted_parameters.action_controller"
-            ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys, context: @logging_context)
-          when :raise
-            raise ActionController::UnpermittedParameters.new(unpermitted_keys)
+      # Called when an explicit array filter is encountered.
+      def each_array_element(object, filter, &block)
+        case object
+        when Array
+          object.grep(Parameters).filter_map(&block)
+        when Parameters
+          if object.nested_attributes? && !specify_numeric_keys?(filter)
+            object.each_nested_attribute(&block)
+          else
+            [] # Array is expected but params are not an array.
           end
         end
       end
 
       def unpermitted_keys(params)
         keys - params.keys - always_permitted_parameters
+      end
+
+      def unpermitted_parameters(unpermitted_keys)
+        case self.class.action_on_unpermitted_parameters
+        when :log
+          log_unpermitted_parameters(unpermitted_keys)
+        when :raise
+          raise_unpermitted_parameters(unpermitted_keys)
+        end
+      end
+
+      def log_unpermitted_parameters(unpermitted_keys)
+        name = "unpermitted_parameters.action_controller"
+        ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys, context: @logging_context)
+      end
+
+      def raise_unpermitted_parameters(unpermitted_keys)
+        raise ActionController::UnpermittedParameters.new(unpermitted_keys)
       end
 
       #
@@ -1186,7 +1248,7 @@ module ActionController
 
       EMPTY_ARRAY = [] # :nodoc:
       EMPTY_HASH  = {} # :nodoc:
-      def hash_filter(params, filter)
+      def hash_filter(params, filter, &block)
         filter = filter.with_indifferent_access
 
         # Slicing filters out non-declared keys.
@@ -1205,9 +1267,10 @@ module ActionController
               params[key] = permit_any_in_parameters(value)
             end
           elsif non_scalar?(value)
-            # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
+            # Declaration { user: { address: ... } } or { user: [:name, :age, { address: ... }] }.
+            # Allow arrays with old syntax { comments: [:text] }
             params[key] = each_element(value, filter[key]) do |element|
-              element.permit(*Array.wrap(filter[key]))
+              element.permit_filters(Array.wrap(filter[key]), &block)
             end
           end
         end

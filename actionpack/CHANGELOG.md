@@ -1,3 +1,12 @@
+*   Introduce `params.permit!` which raises on unpermitted params.
+
+    `permit!` replaces the configuration `action_on_unpermitted_parameters`
+    so that `permit!` always raises in the presence of unpermitted params.
+    If a block is given to `permit!` then it will yield the unpermitted keys
+    instead of raising.
+
+    *Martin Emde*
+
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 
     *Hartley McGuire*

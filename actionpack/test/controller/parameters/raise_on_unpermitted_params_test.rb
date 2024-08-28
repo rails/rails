@@ -24,10 +24,35 @@ class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
 
   test "raises on unexpected nested params" do
     params = ActionController::Parameters.new(
-      book: { pages: 65, title: "Green Cats and where to find then." })
+      book: { pages: 65, title: "Green Cats and where to find them." })
 
     assert_raises(ActionController::UnpermittedParameters) do
       params.permit(book: [:pages])
     end
+  end
+
+  test "permit! with block overrides raise on unexpected params" do
+    params = ActionController::Parameters.new(
+      book: { pages: 65 },
+      fishing: "Turnips")
+    unpermitted = nil
+
+    assert_nothing_raised do
+      params.permit!(book: [:pages]) { |keys| unpermitted = keys }
+    end
+
+    assert_equal ["fishing"], unpermitted
+  end
+
+  test "permit! with block overrides raise on unexpected nested params" do
+    params = ActionController::Parameters.new(
+      book: { pages: 65, title: "Green Cats and where to find them." })
+    unpermitted = nil
+
+    assert_nothing_raised do
+      params.permit!(book: [:pages]) { |keys| unpermitted = keys }
+    end
+
+    assert_equal ["title"], unpermitted
   end
 end

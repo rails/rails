@@ -184,6 +184,25 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
     end
   end
 
+  test "permit! overrides log on unexpected params" do
+    params = ActionController::Parameters.new(
+      book: { pages: 65 },
+      fishing: "Turnips")
+
+    assert_raises(ActionController::UnpermittedParameters) do
+      params.permit!(book: [:pages])
+    end
+  end
+
+  test "permit! overrides log on unexpected nested params" do
+    params = ActionController::Parameters.new(
+      book: { pages: 65, title: "Green Cats and where to find them." })
+
+    assert_raises(ActionController::UnpermittedParameters) do
+      params.permit!(book: [:pages])
+    end
+  end
+
   private
     def assert_logged(message)
       old_logger = ActionController::Base.logger
