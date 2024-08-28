@@ -304,6 +304,10 @@ module ActionController
               error = e
             end
           ensure
+            # Ensure we clean up any thread locals we copied so that the thread can reused.
+            ActiveSupport::IsolatedExecutionState.clear
+            locals.each { |k, _| t2[k] = nil }
+
             @_response.commit!
           end
         end
@@ -368,11 +372,15 @@ module ActionController
       # data from the response bodies. Nobody should call this method except in Rails
       # internals. Seriously!
       def new_controller_thread # :nodoc:
-        Thread.new {
+        ActionController::Live.live_thread_pool_executor.post do
           t2 = Thread.current
           t2.abort_on_exception = true
           yield
-        }
+        end
+      end
+
+      def self.live_thread_pool_executor
+        @live_thread_pool_executor ||= Concurrent::CachedThreadPool.new(name: "action_controller.live")
       end
 
       def log_error(exception)
