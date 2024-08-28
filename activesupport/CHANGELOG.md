@@ -57,4 +57,8 @@
 
     *Jason Kim*, *John Hawthorn*
 
+*   Align instrumentation `payload[:key]` in ActiveSupport::Cache to follow the same pattern, with namespaced and normalized keys.
+
+    *Frederik Erbs Spang Thomsen*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activesupport/CHANGELOG.md) for previous changes.
