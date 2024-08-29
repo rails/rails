@@ -54,7 +54,7 @@ module ActiveRecord
           filter = [("#{klass.model_name.element}" if klass.name), attribute.to_s].compact.join(".")
           unless excluded_from_filter_parameters?(filter)
             app.config.filter_parameters << filter unless app.config.filter_parameters.include?(filter)
-            klass.filter_attributes += [ attribute ]
+            klass.filter_attributes += [ /^#{attribute}$/ ]
           end
         end
 

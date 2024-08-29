@@ -1,3 +1,7 @@
+*   Encrypted attributes will now be filtered by exact matches by FilterParameters.
+
+    *Keshav Biswa*
+
 *   Deserialize binary data before decrypting
 
     This ensures that we call `PG::Connection.unescape_bytea` on PostgreSQL before decryption.
