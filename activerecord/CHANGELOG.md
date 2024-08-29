@@ -1,3 +1,7 @@
+*   Encrypted attributes will now be filtered by exact matches by FilterParameters.
+
+    *Keshav Biswa*
+
 *   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
     in `database.yml`.
 
