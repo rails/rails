@@ -15,6 +15,7 @@ require "active_support/testing/constant_stubbing"
 require "active_support/testing/file_fixtures"
 require "active_support/testing/parallelization"
 require "active_support/testing/parallelize_executor"
+require "active_support/testing/notification_assertions"
 require "concurrent/utility/processor_counter"
 
 module ActiveSupport
@@ -146,6 +147,7 @@ module ActiveSupport
     prepend ActiveSupport::Testing::TestsWithoutAssertions
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
+    include ActiveSupport::Testing::NotificationAssertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::ConstantStubbing
     include ActiveSupport::Testing::TimeHelpers
