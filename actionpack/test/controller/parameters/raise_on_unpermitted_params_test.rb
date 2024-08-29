@@ -42,4 +42,16 @@ class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
       params.expect(:id)
     end
   end
+
+  test "expect! never raises on unexpected params" do
+    params = ActionController::Parameters.new(
+      id: 1,
+      book: { pages: 65, title: "Green Cats and where to find them." })
+
+    assert_nothing_raised do
+      params.expect!(book: [:pages])
+      params.expect!(book: [:pages, :title])
+      params.expect!(:id)
+    end
+  end
 end

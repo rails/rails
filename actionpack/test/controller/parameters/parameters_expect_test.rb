@@ -50,6 +50,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
     assert_raises(ActionController::ParameterMissing) do
       params.expect(pies: [:flavor])
     end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(pies: [:flavor])
+    end
   end
 
   test "key to explicit array: returns permitted array" do
@@ -66,6 +69,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
     assert_raises(ActionController::ParameterMissing) do
       params.expect(pies: [[:flavor]])
     end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(pies: [[:flavor]])
+    end
   end
 
   test "key to explicit array: returns empty array when params empty array" do
@@ -73,6 +79,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
 
     assert_raises(ActionController::ParameterMissing) do
       params.expect(pies: [[:flavor]])
+    end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(pies: [[:flavor]])
     end
   end
 
@@ -112,6 +121,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
       assert_raises(ActionController::ParameterMissing) do
         params.expect(:id)
       end
+      assert_raises(ActionController::ExpectedParameterMissing) do
+        params.expect!(pies: [[:flavor]])
+      end
     end
   end
 
@@ -120,6 +132,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
     assert_raises(ActionController::ParameterMissing) do
       params.expect(:id)
     end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(:id)
+    end
   end
 
   test "key to empty array: raises ParameterMissing on empty" do
@@ -127,12 +142,18 @@ class ParametersExpectTest < ActiveSupport::TestCase
     assert_raises(ActionController::ParameterMissing) do
       params.expect(ids: [])
     end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(ids: [])
+    end
   end
 
   test "key to empty array: raises ParameterMissing on scalar" do
     params = ActionController::Parameters.new(person: 1)
     assert_raises(ActionController::ParameterMissing) do
       params.expect(ids: [])
+    end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(ids: [])
     end
   end
 
@@ -142,11 +163,20 @@ class ParametersExpectTest < ActiveSupport::TestCase
     assert_raises(ActionController::ParameterMissing) do
       params.expect(foo: [])
     end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(foo: [])
+    end
     assert_raises(ActionController::ParameterMissing) do
       params.expect(foo: [:bar])
     end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(foo: [:bar])
+    end
     assert_raises(ActionController::ParameterMissing) do
       params.expect(foo: :bar)
+    end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(foo: :bar)
     end
   end
 
@@ -156,6 +186,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
     assert_raises(ActionController::ParameterMissing) do
       params.expect(person: {})
     end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(person: {})
+    end
   end
 
   test "key to empty hash: raises ParameterMissing on scalar" do
@@ -163,6 +196,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
 
     assert_raises(ActionController::ParameterMissing) do
       params.expect(person: {})
+    end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!(person: {})
     end
   end
 
@@ -193,6 +229,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
     assert_raises(ActionController::ParameterMissing) do
       params.expect([:a, :b])
     end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!([:a, :b])
+    end
   end
 
   test "array of keys: raises ParameterMissing when one is non-scalar" do
@@ -200,6 +239,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
 
     assert_raises(ActionController::ParameterMissing) do
       params.expect([:a, :b])
+    end
+    assert_raises(ActionController::ExpectedParameterMissing) do
+      params.expect!([:a, :b])
     end
   end
 
@@ -216,6 +258,9 @@ class ParametersExpectTest < ActiveSupport::TestCase
       params = ActionController::Parameters.new(id: non_permitted_scalar)
       assert_raises(ActionController::ParameterMissing) do
         params.expect(id: [])
+      end
+      assert_raises(ActionController::ExpectedParameterMissing) do
+        params.expect!(id: [])
       end
     end
   end

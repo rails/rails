@@ -41,6 +41,15 @@ module ActionController
     end
   end
 
+  # Raised from `expect!` when an expected parameter is missing or is of an
+  # incompatible type.
+  #
+  #     params = ActionController::Parameters.new(a: {})
+  #     params.expect!(:a)
+  #     # => ActionController::ExpectedParameterMissing: param is missing or the value is empty or invalid: a
+  class ExpectedParameterMissing < ParameterMissing
+  end
+
   # Raised when a supplied parameter is not expected and
   # ActionController::Parameters.action_on_unpermitted_parameters is set to
   # `:raise`.
@@ -778,6 +787,19 @@ module ActionController
       keys = filters.flatten.flat_map { |f| f.is_a?(Hash) ? f.keys : f }
       values = params.require(keys)
       values.size == 1 ? values.first : values
+    end
+
+    # Same as `expect`, but raises an `ActionController::ExpectedParameterMissing`
+    # instead of `ActionController::ParameterMissing`. Unlike `expect` which
+    # will render a 400 response, `expect!` will raise an exception that is
+    # not handled. This is intended for debugging invalid params for an
+    # internal API where incorrectly formatted params would indicate a bug
+    # in a client library that should be fixed.
+    #
+    def expect!(*filters)
+      expect(*filters)
+    rescue ParameterMissing => e
+      raise ExpectedParameterMissing.new(e.param, e.keys)
     end
 
     # Returns a parameter for the given `key`. If not found, returns `nil`.
