@@ -398,7 +398,7 @@ Multipart is also used when you send attachments with email. The `multipart` MIM
 Mailer Views and Layouts
 ------------------------
 
-The content of emails sent using Action Mailer are specified in view files. Mailer views are located in the `app/views/name_of_mailer_class` directory by
+Action Mailer uses view files to specify the content to be sent in emails. Mailer views are located in the `app/views/name_of_mailer_class` directory by
 default. Similar to a controller view, the name of the file matches the name of
 the mailer method.
 
@@ -420,15 +420,15 @@ class UserMailer < ApplicationMailer
     mail(to: @user.email,
          subject: 'Welcome to My Awesome Site',
          template_path: 'notifications',
-         template_name: 'another')
+         template_name: 'hello')
   end
 end
 ```
 
-The above configures the `mail` method to look for a template with the name `another` in the `app/views/notifications` directory.  You can also specify an array of paths for `template_path`, and they will be searched in order.
+The above configures the `mail` method to look for a template with the name `hello` in the `app/views/notifications` directory.  You can also specify an array of paths for `template_path`, and they will be searched in order.
 
 If you need more flexibility, you can also pass a block and render a specific
-template or even render plain text inline without using a template file:
+template. You can also render plain text inline without using a template file:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -440,14 +440,14 @@ class UserMailer < ApplicationMailer
     mail(to: @user.email,
          subject: 'Welcome to My Awesome Site') do |format|
       format.html { render 'another_template' }
-      format.text { render plain: 'Render text' }
+      format.text { render plain: 'hello' }
     end
   end
 end
 ```
 
 This will render the template 'another_template.html.erb' for the HTML part and
-"Rendered text" for the text part. The [render](https://api.rubyonrails.org/classes/ActionController/Rendering.html#method-i-render) method is the same one used inside of Action Controller, so you can use all the same options, such as
+"hello" for the text part. The [render](https://api.rubyonrails.org/classes/ActionController/Rendering.html#method-i-render) method is the same one used inside of Action Controller, so you can use all the same options, such as
 `:plain`, `:inline`, etc.
 
 Lastly, if you need to render a template located outside of the default `app/views/mailer_name/` directory, you can apply the [`prepend_view_path`][], like so:
@@ -478,21 +478,24 @@ You can configure the default `host` across the application in `config/applicati
 config.action_mailer.default_url_options = { host: 'example.com' }
 ```
 
-Because of this behavior, you cannot use the `*_path` helpers inside of
-an email. Instead, use the associated `*_url` helper. For
-example, instead of this:
+Once the `host` is configured, it is recommended that email views use the
+`*_url` with the full URL, and not the `*_path` helpers with relative URL. Since
+email clients do no web request context, `*_path` helpers have no base URL to
+form complete web addresses.
+
+For example, instead of this:
 
 ```html+erb
 <%= link_to 'welcome', welcome_path %>
 ```
 
-You will need to use:
+Use this:
 
 ```html+erb
 <%= link_to 'welcome', welcome_url %>
 ```
 
-By using the full URL, your links will work in your emails.
+By using the full URL, your links will work correctly in your emails.
 
 #### Generating URLs with `url_for`
 
@@ -511,12 +514,11 @@ If you haven't configured the `:host` option globally, you'll need to pass it to
 
 #### Generating URLs with Named Routes
 
-Since email clients do no web request context, `*_path` helpers have no base URL
-to form complete web addresses. Therefore, you need to use the `*_url` variant
-of named route helpers in emails.
+Similar to other URLs, you need to use the `*_url` variant of named route
+helpers in emails as well.
 
-If you did not configure the `:host` option globally make sure to pass it to the
-URL helper.
+You either configure the `:host` option globally or make sure to pass it to the
+URL helper:
 
 ```erb
 <%= user_url(@user, host: 'example.com') %>
