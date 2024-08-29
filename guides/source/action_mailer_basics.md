@@ -622,10 +622,11 @@ Sending Email
 
 ### Sending Email to Multiple Recipients
 
-It is possible to send email to one or more recipients in one email (e.g.,
-informing all admins of a new signup) by setting the list of emails to the `:to`
-key. The list of emails can be an array of email addresses or a single string
-with the addresses separated by commas.
+It is possible to send an email more than one recipients by setting the `:to`
+field to a list of emails addresses. The list of emails can be an array or a
+single string with the addresses separated by commas.
+
+For example, to inform all admins of a new registration:
 
 ```ruby
 class AdminMailer < ApplicationMailer
@@ -639,14 +640,16 @@ class AdminMailer < ApplicationMailer
 end
 ```
 
-The same format can be used to set carbon copy (Cc:) and blind carbon copy
-(Bcc:) recipients, by using the `:cc` and `:bcc` keys respectively.
+The same format can be used to add more multiple carbon copy (cc) and blind
+carbon copy (bcc) recipients, by setting the `:cc` and `:bcc` keys respectively.
 
 ### Sending Email with Name
 
-Sometimes you wish to show the name of the person instead of just their email
-address when they receive the email. You can use [`email_address_with_name`][] for
-that:
+It's possible to show the name, instead of the email address, of the person who
+receives the email or sends the email.
+
+To show the name of the person when they receive the email, you can use
+[`email_address_with_name`][] method in `to:`:
 
 ```ruby
 def welcome_email
@@ -658,7 +661,7 @@ def welcome_email
 end
 ```
 
-The same technique works to specify a sender name:
+The same method in `from:` works to display the name of the sender:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -666,7 +669,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-If the name is a blank string, it returns just the address.
+If the name is a blank string, it returns the email address.
 
 [`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
 
