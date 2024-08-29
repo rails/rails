@@ -526,8 +526,9 @@ URL helper:
 
 ### Adding Images in Action Mailer Views
 
-Unlike controllers, the mailer instance doesn't have any context about the
-incoming request so you'll need to provide the `:asset_host` parameter yourself.
+In order to use the `image_tag` helper in emails, you need to specify the
+`:asset_host` parameter. This is again because a mailer instance doesn't have
+any context about the incoming request.
 
 As the `:asset_host` usually is consistent across the application you can
 configure it globally in `config/application.rb`:
@@ -537,8 +538,7 @@ config.action_mailer.asset_host = 'http://example.com'
 ```
 
 NOTE: Because we can't infer the protocol from the request, you'll need to
-specify a protocol such as `http://` or `https://` in the
-`:asset_host` config.
+specify a protocol such as `http://` or `https://` in the `:asset_host` config.
 
 Now you can display an image inside your email.
 
@@ -548,7 +548,7 @@ Now you can display an image inside your email.
 
 ### Caching Mailer View
 
-You can perform fragment caching in mailer views like in application views using the [`cache`][] method.
+You can perform fragment caching in mailer views, similar to application views, using the [`cache`][] method.
 
 ```html+erb
 <% cache do %>
@@ -556,7 +556,7 @@ You can perform fragment caching in mailer views like in application views using
 <% end %>
 ```
 
-And to use this feature, you need to configure your application with this:
+And to use this feature, you need to enable it in your application's `config/application.rb` file:
 
 ```ruby
 config.action_mailer.perform_caching = true
@@ -568,7 +568,7 @@ Fragment caching is also supported in multipart emails. Read more about caching 
 
 ### Action Mailer Layouts
 
-Just like controller views, you can also have mailer layouts. Mailer layouts are located in `app/views/layouts`. Here is the default layout:
+Just like controller layouts, you can also have mailer layouts. Mailer layouts are located in `app/views/layouts`. Here is the default layout:
 
 ```html
 # app/views/layouts/mailer.html.erb
@@ -587,7 +587,10 @@ Just like controller views, you can also have mailer layouts. Mailer layouts are
 </html>
 ```
 
-The above layout is in a file `mailer.html.erb`. The layout name is specified in the `ApplicationMailer`, as we saw earlier with the line `layout "mailer"`. Similar to controller layouts, you use `yield` to render the mailer view inside the layout.
+The above layout is in a file `mailer.html.erb`. The default layout name
+is specified in the `ApplicationMailer`, as we saw earlier with the line `layout
+"mailer"` in the [Generate Mailer](#generate-the-mailer) section. Similar to
+controller layouts, you use `yield` to render the mailer view inside the layout.
 
 To use a different layout for a given mailer, call [`layout`][]:
 
@@ -610,7 +613,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-The above will render the HTML part using the `my_layout.html.erb` file and the text part with the usual `user_mailer.text.erb` file if it exists.
+The above will render the HTML part using the `my_layout.html.erb` file and the text part with the usual `user_mailer.text.erb` file.
 
 [`layout`]: https://api.rubyonrails.org/classes/ActionView/Layouts/ClassMethods.html#method-i-layout
 
