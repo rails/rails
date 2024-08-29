@@ -684,11 +684,30 @@ with the HTML and text versions setup as different parts.
 The order of the parts getting inserted is determined by the `:parts_order`
 inside of the `ActionMailer::Base.default` method.
 
+### Sending Emails without Template Rendering
+
+There may be cases in which you want to skip the template rendering step and
+supply the email body as a string. You can achieve this using the `:body`
+option. Remember to set the `:content_type` option, such as setting it to
+`text/html` below: Rails will default to `text/plain` as the content type.
+
+```ruby
+class UserMailer < ApplicationMailer
+  def welcome_email
+    mail(to: params[:user].email,
+         body: params[:email_body],
+         content_type: "text/html",
+         subject: "Already rendered!")
+  end
+end
+```
+
 ### Sending Emails with Dynamic Delivery Options
 
-If you wish to override the default delivery options (e.g. SMTP credentials)
-while delivering emails, you can do this using `delivery_method_options` in the
-mailer action.
+If you wish to override the default delivery
+[configuration](#action-mailer-configuration) (e.g. SMTP credentials) while
+delivering emails, you can do this using `delivery_method_options` in the mailer
+action.
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -701,24 +720,6 @@ class UserMailer < ApplicationMailer
     mail(to: @user.email,
          subject: "Please see the Terms and Conditions attached",
          delivery_method_options: delivery_options)
-  end
-end
-```
-
-### Sending Emails without Template Rendering
-
-There may be cases in which you want to skip the template rendering step and
-supply the email body as a string. You can achieve this using the `:body`
-option. In such cases don't forget to add the `:content_type` option. Rails
-will default to `text/plain` otherwise.
-
-```ruby
-class UserMailer < ApplicationMailer
-  def welcome_email
-    mail(to: params[:user].email,
-         body: params[:email_body],
-         content_type: "text/html",
-         subject: "Already rendered!")
   end
 end
 ```
