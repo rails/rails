@@ -727,15 +727,18 @@ end
 Action Mailer Callbacks
 -----------------------
 
-Action Mailer allows for you to specify a [`before_action`][], [`after_action`][] and
-[`around_action`][] to configure the message, and [`before_deliver`][], [`after_deliver`][] and
-[`around_deliver`][] to control the delivery.
+Action Mailer allows for you to specify a [`before_action`][],
+[`after_action`][], and [`around_action`][] to configure the message, and
+[`before_deliver`][], [`after_deliver`][] and [`around_deliver`][] to control
+the delivery.
 
-* Callbacks can be specified with a block or a symbol to a method in the mailer
-  class similar to controllers.
+Callbacks can be specified with a block or a symbol representing a method name in the mailer class, similar to other callbacks (in controllers or models).
 
-* You could use a `before_action` to set instance variables, populate the mail
-  object with defaults, or insert default headers and attachments.
+Here are some examples of when you may use one of these callbacks with mailers.
+
+### `before_action`
+
+You could use a `before_action` to set instance variables, populate the mail object with defaults, or insert default headers and attachments.
 
 ```ruby
 class InvitationsMailer < ApplicationMailer
@@ -765,11 +768,13 @@ class InvitationsMailer < ApplicationMailer
 end
 ```
 
-* You could use an `after_action` to do similar setup as a `before_action` but
-  using instance variables set in your mailer action.
+### `after_action`
 
-* Using an `after_action` callback also enables you to override delivery method
-  settings by updating `mail.delivery_method.settings`.
+You could use an `after_action` to do similar setup as a `before_action` but
+using instance variables set in your mailer action.
+
+You can also use `after_action` callback to override delivery method settings by
+updating `mail.delivery_method.settings`.
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -808,9 +813,11 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-* You could use an `after_deliver` to record the delivery of the message. It
-  also allows observer/interceptor-like behaviors, but with access to the full
-  mailer context.
+### `after_deliver`
+
+You could use an `after_deliver` to record the delivery of the message. It also
+allows observer/interceptor-like behaviors, but with access to the full mailer
+context.
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -839,7 +846,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-* Mailer callbacks abort further processing if body is set to a non-nil value. `before_deliver` can abort with `throw :abort`.
+Mailer callbacks abort further processing if body is set to a non-nil value.`before_deliver` can abort with `throw :abort`.
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
 [`after_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-after_deliver
