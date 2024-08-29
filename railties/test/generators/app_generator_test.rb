@@ -61,6 +61,7 @@ DEFAULT_APP_FILES = %w(
   db/seeds.rb
   lib/tasks/.keep
   log/.keep
+  public/400.html
   public/404.html
   public/406-unsupported-browser.html
   public/422.html

@@ -496,6 +496,7 @@ module Rails
 
       def delete_public_files_if_api_option
         if options[:api]
+          remove_file "public/400.html"
           remove_file "public/404.html"
           remove_file "public/406-unsupported-browser.html"
           remove_file "public/422.html"

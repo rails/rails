@@ -29,7 +29,7 @@
     We suggest replacing `params.require(:person).permit(:name, :age)`
     with the direct replacement `params.expect(person: [:name, :age])`
     to prevent external users from manipulating params to trigger 500
-    errors. A propery 400 error will be returned instead.
+    errors. A 400 error will be returned instead, using public/400.html
 
     Usage of `params.require(:id)` should likewise be replaced with
     `params.expect(:id)` which is designed to ensure that `params[:id]`
