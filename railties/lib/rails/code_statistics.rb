@@ -43,12 +43,18 @@ module Rails
     HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
 
     class_attribute :directories, default: DIRECTORIES
+    class_attribute :test_types, default: TEST_TYPES
 
     # Add directories to the output of the `bin/rails stats` command.
     #
     #   Rails::CodeStatistics.register_directory("My Directory", "path/to/dir")
-    def self.register_directory(label, path)
+    #
+    # For directories that contain test code, set the `test_directory` argument to true.
+    #
+    #   Rails::CodeStatistics.register_directory("Model specs", "spec/models", test_directory: true)
+    def self.register_directory(label, path, test_directory: false)
       self.directories << [label, path]
+      self.test_types << label
     end
 
     def initialize(*pairs)
@@ -99,13 +105,13 @@ module Rails
 
       def calculate_code
         code_loc = 0
-        @statistics.each { |k, v| code_loc += v.code_lines unless TEST_TYPES.include? k }
+        @statistics.each { |k, v| code_loc += v.code_lines unless test_types.include? k }
         code_loc
       end
 
       def calculate_tests
         test_loc = 0
-        @statistics.each { |k, v| test_loc += v.code_lines if TEST_TYPES.include? k }
+        @statistics.each { |k, v| test_loc += v.code_lines if test_types.include? k }
         test_loc
       end
 
