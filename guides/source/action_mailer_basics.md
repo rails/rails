@@ -229,7 +229,7 @@ Content-Type: text/html;
 
 You can also call the Mailer from the Rails console and send emails. Perhaps as a way to test the email before you have a controller action set up for it. The below will send the same `welcome_email` as above:
 
-```ruby
+```irb
 irb> user = User.first
 irb> UserMailer.with(user: user).welcome_email.deliver_later
 ```
@@ -257,7 +257,7 @@ or `deliver_later` to send itself now or later. The
 
 Here is an example of the `MessageDelivery` object from the Rails console example above:
 
-```ruby
+```
 #<ActionMailer::MailDeliveryJob:0x00007f84cb0367c0
  @_halted_callback_hook_called=nil,
  @_scheduled_at_time=nil,
@@ -955,11 +955,12 @@ You can find detailed instructions on how to test your mailers in the
 
 ### Previewing Emails
 
-You can preview how rendered emails look by visiting a special Action Mailer
-preview URL. In order to set up a preview for `UserMailer` for example, create a
-class named `UserMailerPreview` in the `test/mailers/previews/` directory. To
-see the preview of `welcome_email` from `UserMailer`, implement a method that
-has the same name in `UserMailerPreview` and call `UserMailer.welcome_email`:
+You can preview rendered email templates visually by visiting a special Action
+Mailer preview URL. In order to set up a preview for `UserMailer` for example,
+create a class named `UserMailerPreview` in the `test/mailers/previews/`
+directory. To see the preview of `welcome_email` from `UserMailer`, implement a
+method that has the same name in `UserMailerPreview` and call
+`UserMailer.welcome_email`:
 
 ```ruby
 class UserMailerPreview < ActionMailer::Preview
@@ -981,6 +982,31 @@ configured using the `preview_paths` option. For example, if you want to add
 
 ```ruby
 config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
+```
+
+### Rescuing Errors
+
+Rescue blocks inside of a mailer method cannot rescue errors that occur
+outside of rendering. For example, record deserialization errors in a
+background job, or errors from a third-party mail delivery service.
+
+To rescue errors that occur during any part of the mailing process, use
+[rescue_from](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from):
+
+```ruby
+class NotifierMailer < ApplicationMailer
+  rescue_from ActiveJob::DeserializationError do
+    # ...
+  end
+
+  rescue_from "SomeThirdPartyService::ApiError" do
+    # ...
+  end
+
+  def notify(recipient)
+    mail(to: recipient, subject: "Notification")
+  end
+end
 ```
 
 Intercepting and Observing Emails
