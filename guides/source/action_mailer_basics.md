@@ -990,7 +990,10 @@ Action Mailer provides hooks into the Mail observer and interceptor methods. The
 
 ### Intercepting Emails
 
-Interceptors allow you to make modifications to emails before they are handed off to the delivery agents. An interceptor class must implement the `::delivering_email(message)` method which will be called before the email is sent.
+Interceptors allow you to make modifications to emails before they are handed
+off to the delivery agents. An interceptor class must implement the
+`::delivering_email(message)` method which will be called before the email is
+sent.
 
 ```ruby
 class SandboxEmailInterceptor
@@ -1000,7 +1003,7 @@ class SandboxEmailInterceptor
 end
 ```
 
-Before the interceptor can do its job you need to register it using the `interceptors` config option.
+The interceptor needs to be registered using the `interceptors` config option.
 You can do this in an initializer file like `config/initializers/mail_interceptors.rb`:
 
 ```ruby
@@ -1018,7 +1021,9 @@ for more information about custom Rails environments.
 
 ### Observing Emails
 
-Observers give you access to the email message after it has been sent. An observer class must implement the `:delivered_email(message)` method, which will be called after the email is sent.
+Observers give you access to the email message _after_ it has been sent. An
+observer class must implement the `:delivered_email(message)` method, which will
+be called after the email is sent.
 
 ```ruby
 class EmailDeliveryObserver
@@ -1028,8 +1033,9 @@ class EmailDeliveryObserver
 end
 ```
 
-Similar to interceptors, you must register observers using the `observers` config option.
-You can do this in an initializer file like `config/initializers/mail_observers.rb`:
+Similar to interceptors, you must register observers using the `observers`
+config option. You can do this in an initializer file like
+`config/initializers/mail_observers.rb`:
 
 ```ruby
 Rails.application.configure do
