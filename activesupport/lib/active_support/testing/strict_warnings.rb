@@ -17,6 +17,9 @@ module ActiveSupport
 
       # TODO: Can be removed if https://github.com/ruby/uri/issues/118 is addressed
       /URI::RFC3986_PARSER/,
+
+      # TODO: We need to decide what to do with this.
+      /Status code :unprocessable_entity is deprecated/
     )
 
     SUPPRESSED_WARNINGS = Regexp.union(
