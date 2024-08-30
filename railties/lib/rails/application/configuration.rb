@@ -336,6 +336,7 @@ module Rails
           if respond_to?(:active_record)
             active_record.postgresql_adapter_decode_dates = true
             active_record.validate_migration_timestamps = true
+            active_record.attributes_for_inspect = :all
           end
         when "8.0"
           load_defaults "7.2"

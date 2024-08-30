@@ -4701,14 +4701,6 @@ module ApplicationTests
       assert_equal(:html4, Rails.application.config.dom_testing_default_html_version)
     end
 
-    test "sets ActiveRecord::Base.attributes_for_inspect to [:id] when config.consider_all_requests_local = false" do
-      add_to_config "config.consider_all_requests_local = false"
-
-      app "production"
-
-      assert_equal [:id], ActiveRecord::Base.attributes_for_inspect
-    end
-
     test "sets ActiveRecord::Base.attributes_for_inspect to :all when config.consider_all_requests_local = true" do
       add_to_config "config.consider_all_requests_local = true"
 

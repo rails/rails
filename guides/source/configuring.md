@@ -66,6 +66,7 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 7.2
 
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
+- [`config.active_record.attributes_for_inspect`](#config-active-record-attributes-for-inspect): `:all`
 - [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
@@ -1128,6 +1129,21 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.2                   | `true`               |
+
+#### `config.active_record.attributes_for_inspect`
+
+Sets which attributes are included when calling `inspect` on an Active Record object. The default is `:all`.
+This can be overridden at the model level:
+
+```ruby
+class Comment < ApplicationRecord
+  self.attributes_for_inspect = [:id, :post_id]
+end
+```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| 7.2                   | :all                 |
 
 #### `config.active_record.db_warnings_action`
 
