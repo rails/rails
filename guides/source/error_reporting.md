@@ -66,6 +66,15 @@ Rails.error.subscribe(ErrorSubscriber.new)
 
 You can register as many subscribers as you wish. Rails will call them in turn, in the order in which they were registered.
 
+You can also unregister a subscriber by calling [`Rails.error.unsubscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-unsubscribe). Both `subscribe` and `unsubscribe` can take either a subscriber or a class as follows:
+
+```ruby
+subscriber = ErrorSubscriber.new
+Rails.error.unsubscribe(subscriber)
+# or
+Rails.error.unsubscribe(ErrorSubscriber)
+```
+
 NOTE: The Rails error-reporter will always call registered subscribers, regardless of your environment. However, many error-reporting services only report errors in production by default. You should configure and test your setup across environments as needed.
 
 ### Using the Error Reporter
