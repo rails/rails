@@ -94,7 +94,7 @@ end
 
 #### Reporting and Re-raising Errors
 
-[`Rails.error.record`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-record) will report errors to all registered subscribers and then re-raise the error, meaning that the rest of your code won't execute.
+[`Rails.error.record`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-record) will report errors to all registered subscribers and then **re-raise** the error, meaning that the rest of your code won't execute.
 
 ```ruby
 Rails.error.record do
