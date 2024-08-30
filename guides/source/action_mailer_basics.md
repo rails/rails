@@ -939,9 +939,13 @@ config.action_mailer.smtp_settings = {
 
 If you are using an old version of the Mail gem (2.6.x or earlier), use `enable_starttls_auto` instead of `enable_starttls`.
 
-NOTE: Google [blocks sign-ins](https://support.google.com/accounts/answer/6010255) from apps it deems less secure.
-You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
-then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password.
+NOTE: Google [blocks
+sign-ins](https://support.google.com/accounts/answer/6010255) from apps it deems
+less secure. You can change your Gmail settings
+[here](https://www.google.com/settings/security/lesssecureapps) to allow the
+attempts. If your Gmail account has 2-factor authentication enabled, then you
+will need to set an [app password](https://myaccount.google.com/apppasswords)
+and use that instead of your regular password.
 
 Previewing and Testing Mailers
 ------------------------------
@@ -951,12 +955,11 @@ You can find detailed instructions on how to test your mailers in the
 
 ### Previewing Emails
 
-Action Mailer previews provide a way to see how emails look by visiting a
-special URL that renders them. In the above example, the preview class for
-`UserMailer` should be named `UserMailerPreview` and located in
-`test/mailers/previews/user_mailer_preview.rb`. To see the preview of
-`welcome_email`, implement a method that has the same name and call
-`UserMailer.welcome_email`:
+You can preview how rendered emails look by visiting a special Action Mailer
+preview URL. In order to set up a preview for `UserMailer` for example, create a
+class named `UserMailerPreview` in the `test/mailers/previews/` directory. To
+see the preview of `welcome_email` from `UserMailer`, implement a method that
+has the same name in `UserMailerPreview` and call `UserMailer.welcome_email`:
 
 ```ruby
 class UserMailerPreview < ActionMailer::Preview
@@ -966,17 +969,15 @@ class UserMailerPreview < ActionMailer::Preview
 end
 ```
 
-Then the preview will be available in <http://localhost:3000/rails/mailers/user_mailer/welcome_email>.
+Now the preview will be available at <http://localhost:3000/rails/mailers/user_mailer/welcome_email>.
 
-If you change something in `app/views/user_mailer/welcome_email.html.erb`
-or the mailer itself, it'll automatically reload and render it so you can
-visually see the new style instantly. A list of previews are also available
-in <http://localhost:3000/rails/mailers>.
+If you change something in the mailer view at
+`app/views/user_mailer/welcome_email.html.erb` or the mailer itself, the preview will automatically be updated. A list of previews are also available in
+<http://localhost:3000/rails/mailers>.
 
-By default, these preview classes live in `test/mailers/previews`.
-This can be configured using the `preview_paths` option. For example, if you
-want to add `lib/mailer_previews` to it, you can configure it in
-`config/application.rb`:
+By default, these preview classes live in `test/mailers/previews`. This can be
+configured using the `preview_paths` option. For example, if you want to add
+`lib/mailer_previews` to it, you can configure it in `config/application.rb`:
 
 ```ruby
 config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
