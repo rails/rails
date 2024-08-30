@@ -159,7 +159,7 @@
 
 *   Raise specific exception when a connection is not defined.
 
-     The new `ConnectionNotDefined` exception provides connection name, shard and role accessors indicating the details of the connection that was requested.
+    The new `ConnectionNotDefined` exception provides connection name, shard and role accessors indicating the details of the connection that was requested.
 
     *Hana Harencarova*, *Matthew Draper*
 
