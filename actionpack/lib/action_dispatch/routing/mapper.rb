@@ -631,7 +631,6 @@ module ActionDispatch
             options = app
             app, path = options.find { |k, _| k.respond_to?(:call) }
             options.delete(app) if app
-            hash_key_app = true
           end
 
           raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
@@ -641,18 +640,6 @@ module ActionDispatch
               mount SomeRackApp, at: "some_route"
               or
               mount(SomeRackApp => "some_route")
-          MSG
-          ActionDispatch.deprecator.warn(<<-MSG.squish) if hash_key_app
-            Mounting an engine with a hash key name is deprecated and
-            will be removed in Rails 8.1. Please use the `at:` option instead.
-
-            Instead of:
-
-              mount(SomeRackApp => "some_route")
-
-            Please use:
-
-              mount SomeRackApp, at: "some_route"
           MSG
 
           rails_app = rails_app? app
@@ -1698,20 +1685,6 @@ module ActionDispatch
             path, to = options.find { |name, _value| name.is_a?(String) }
 
             raise ArgumentError, "Route path not specified" if path.nil?
-
-            ActionDispatch.deprecator.warn(<<-MSG.squish)
-              Drawing a route with a hash key name is deprecated and
-              will be removed in Rails 8.1. Please use the `to:` option with
-              "controller#action" syntax instead.
-
-              Instead of:
-
-                match "path" => "controller#action`
-
-              Please use:
-
-                match "path", to: "controller#action"
-            MSG
 
             case to
             when Symbol

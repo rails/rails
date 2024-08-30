@@ -32,7 +32,7 @@ module ActionDispatch
 
         output = draw do
           get "/custom/assets", to: "custom_assets#show"
-          mount engine, at: "/blog", as: "blog"
+          mount engine => "/blog", :as => "blog"
         end
 
         assert_equal [
@@ -55,7 +55,7 @@ module ActionDispatch
         end
 
         output = draw do
-          mount engine, at: "/blog", as: "blog"
+          mount engine => "/blog", as: "blog"
         end
 
         assert_equal [
@@ -169,7 +169,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_route_with_defaults
         output = draw do
-          get "photos/:id", to: "photos#show", defaults: { format: "jpg" }
+          get "photos/:id" => "photos#show", :defaults => { format: "jpg" }
         end
 
         assert_equal [
@@ -180,7 +180,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_route_with_constraints
         output = draw do
-          get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
+          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -191,7 +191,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_routes_with_dashes
         output = draw do
-          get "about-us", to: "pages#about_us"
+          get "about-us" => "pages#about_us"
           get "our-work/latest"
 
           resources :photos, only: [:show] do
@@ -214,7 +214,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_route_with_rack_app
         output = draw do
-          get "foo/:id", to: MountedRackApp, id: /[A-Z]\d{5}/
+          get "foo/:id" => MountedRackApp, :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -225,7 +225,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_named_route_with_mounted_rack_app
         output = draw do
-          mount MountedRackApp, at: "/foo"
+          mount MountedRackApp => "/foo"
         end
 
         assert_equal [
@@ -236,7 +236,7 @@ module ActionDispatch
 
       def test_rails_routes_shows_overridden_named_route_with_mounted_rack_app_with_name
         output = draw do
-          mount MountedRackApp, at: "/foo", as: "blog"
+          mount MountedRackApp => "/foo", as: "blog"
         end
 
         assert_equal [
@@ -254,7 +254,7 @@ module ActionDispatch
 
         output = draw do
           scope constraint: constraint.new do
-            mount MountedRackApp, at: "/foo"
+            mount MountedRackApp => "/foo"
           end
         end
 
@@ -266,7 +266,7 @@ module ActionDispatch
 
       def test_rails_routes_dont_show_app_mounted_in_assets_prefix
         output = draw do
-          get "/sprockets", to: MountedRackApp
+          get "/sprockets" => MountedRackApp
         end
         assert_no_match(/MountedRackApp/, output.first)
         assert_no_match(/\/sprockets/, output.first)
@@ -275,7 +275,7 @@ module ActionDispatch
       def test_rails_routes_shows_route_defined_in_under_assets_prefix
         output = draw do
           scope "/sprockets" do
-            get "/foo", to: "foo#bar"
+            get "/foo" => "foo#bar"
           end
         end
         assert_equal [
@@ -286,9 +286,9 @@ module ActionDispatch
 
       def test_redirect
         output = draw do
-          get "/foo",    to: redirect("/foo/bar"), constraints: { subdomain: "admin" }
-          get "/bar",    to: redirect(path: "/foo/bar", status: 307)
-          get "/foobar", to: redirect { "/foo/bar" }
+          get "/foo"    => redirect("/foo/bar"), :constraints => { subdomain: "admin" }
+          get "/bar"    => redirect(path: "/foo/bar", status: 307)
+          get "/foobar" => redirect { "/foo/bar" }
         end
 
         assert_equal [
@@ -332,7 +332,7 @@ module ActionDispatch
         output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new(width: 23)) do
           get "/custom/assets", to: "custom_assets#show"
           get "/custom/furnitures", to: "custom_furnitures#show"
-          mount engine, at: "/blog", as: "blog"
+          mount engine => "/blog", :as => "blog"
         end
 
         expected = ["--[ Route 1 ]----------",
@@ -369,7 +369,7 @@ module ActionDispatch
 
       def test_no_routes_matched_filter_when_expanded
         output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
-          get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
+          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -422,7 +422,7 @@ module ActionDispatch
 
       def test_routes_with_undefined_filter
         output = draw(controller: "Rails::MissingController") do
-          get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
+          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -433,7 +433,7 @@ module ActionDispatch
 
       def test_no_routes_matched_filter
         output = draw(grep: "rails/dummy") do
-          get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
+          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
@@ -468,7 +468,7 @@ module ActionDispatch
 
         output = draw do
           get "/custom/assets", to: "custom_assets#show"
-          mount engine, at: "/blog", as: "blog", internal: true
+          mount engine => "/blog", as: "blog", internal: true
         end
 
         assert_equal [

@@ -31,17 +31,17 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
-    get "/", to: "foo#bar"
-    get "/other", to: "foo#other"
-    get "/article/:id", to: "foo#article", as: :article
-    get "/category/:category", to: "foo#category"
+    get "/" => "foo#bar"
+    get "/other" => "foo#other"
+    get "/article/:id" => "foo#article", :as => :article
+    get "/category/:category" => "foo#category"
     resources :sessions
     resources :workshops do
       resources :sessions
     end
 
     scope :engine do
-      get "/", to: "foo#bar"
+      get "/" => "foo#bar"
     end
   end
 
