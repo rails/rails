@@ -119,6 +119,27 @@ end
 
 Any options you pass will be passed on to the error subscribers.
 
+#### Reporting Unexpected Errors
+
+You can report any errors that unexpectedly occur when the imagined conditions of your code are not met by calling [`Rails.error.unexpected`](https://edgeapi.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-unexpected")
+
+When called in production, this method will return nil after the error is reported and the execution of your code will continue.
+
+When called in development, the error will be wrapped in a new error class (to ensure it's not being rescued higher in the stack) and surfaced to the developer.
+
+For example:
+
+```ruby
+def edit
+  if published?
+    Rails.error.unexpected("[BUG] Attempting to edit a published article, that shouldn't be possible")
+    return false
+  end
+  # ...
+end
+```
+This method is intended to gracefully handle any errors that may occur in production, but that aren't anticipated at the time of writing.
+
 ### Error-reporting Options
 
 All 3 reporting APIs (`#handle`, `#record`, and `#report`) support the following options, which are then passed along to all registered subscribers:
