@@ -4,7 +4,8 @@ require "cases/helper"
 
 class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def setup
-    ActiveRecord::Base.lease_connection.materialize_transactions
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.materialize_transactions
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       def execute(sql, name = nil) sql end
@@ -25,6 +26,18 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_create_database_with_collation_and_ctype
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'UTF8' LC_COLLATE = 'ja_JP.UTF8' LC_CTYPE = 'ja_JP.UTF8'), create_database(:aimonetti, encoding: :"UTF8", collation: :"ja_JP.UTF8", ctype: :"ja_JP.UTF8")
+  end
+
+  def test_create_database_with_locale_provider_and_icu_locale
+    skip("ICU collation is only supported in PostgreSQL 15 or later") if @connection.database_version < 15_00_00
+
+    assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'UTF8' LOCALE_PROVIDER = 'icu' ICU_LOCALE = 'ja-x-icu'), create_database(:aimonetti, encoding: :"UTF8", locale_provider: :"icu", icu_locale: :"ja-x-icu")
+  end
+
+  def test_create_database_with_icu_rules
+    skip("ICU rules is only supported in PostgreSQL 16 or later") if @connection.database_version < 16_00_00
+
+    assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'UTF8' LOCALE_PROVIDER = 'icu' ICU_LOCALE = 'ja-x-icu' ICU_RULES = '&V <<< w <<< W'), create_database(:aimonetti, encoding: :"UTF8", locale_provider: :"icu", icu_locale: :"ja-x-icu", icu_rules: :"&V <<< w <<< W")
   end
 
   def test_add_index

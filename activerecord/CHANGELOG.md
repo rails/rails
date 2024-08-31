@@ -1,3 +1,7 @@
+*   Add support for ICU collations in PostgreSQL 15 or later
+
+    *rono23*
+
 *   Deserialize binary data before decrypting
 
     This ensures that we call `PG::Connection.unescape_bytea` on PostgreSQL before decryption.

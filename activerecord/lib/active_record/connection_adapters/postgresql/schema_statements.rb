@@ -13,7 +13,7 @@ module ActiveRecord
 
         # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
         # <tt>:encoding</tt> (defaults to utf8), <tt>:collation</tt>, <tt>:ctype</tt>,
-        # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
+        # <tt>:tablespace</tt>, <tt>:connection_limit</tt>, <tt>:locale_provider</tt>, <tt>:icu_locale</tt> and <tt>:icu_rules</tt> (note that MySQL uses
         # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
         #
         # Example:
@@ -40,6 +40,22 @@ module ActiveRecord
                       " CONNECTION LIMIT = #{value}"
                     else
                       ""
+            end
+          end
+
+          if supports_icu?
+            if locale_provider = options[:locale_provider]
+              option_string << " LOCALE_PROVIDER = '#{locale_provider}'"
+            end
+
+            if icu_locale = options[:icu_locale]
+              option_string << " ICU_LOCALE = '#{icu_locale}'"
+            end
+          end
+
+          if supports_icu_rules?
+            if icu_rules = options[:icu_rules]
+              option_string << " ICU_RULES = '#{icu_rules}'"
             end
           end
 
@@ -239,6 +255,27 @@ module ActiveRecord
         # Returns the current database ctype.
         def ctype
           query_value("SELECT datctype FROM pg_database WHERE datname = current_database()", "SCHEMA")
+        end
+
+        # Returns the current database locale provider.
+        def locale_provider
+          if supports_icu?
+            query_value("SELECT datlocprovider FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          end
+        end
+
+        # Returns the current database ICU locale ID.
+        def icu_locale
+          if supports_icu?
+            query_value("SELECT daticulocale FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          end
+        end
+
+        # Returns the current database ICU collation rules.
+        def icu_rules
+          if supports_icu_rules?
+            query_value("SELECT daticurules FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          end
         end
 
         # Returns an array of schema names.
@@ -1155,6 +1192,14 @@ module ActiveRecord
               WHERE a.attrelid = #{table_oid}
               AND a.attnum IN (#{column_numbers.join(", ")})
             SQL
+          end
+
+          def supports_icu?
+            database_version >= 15_00_00
+          end
+
+          def supports_icu_rules?
+            database_version >= 16_00_00
           end
       end
     end
