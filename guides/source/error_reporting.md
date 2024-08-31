@@ -3,7 +3,7 @@
 Error Reporting in Rails Applications
 ========================
 
-This guide introduces ways to manage exceptions that occur in Ruby on Rails applications. Exceptions are any events that interrupt the normal flow of your program, such as errors.
+This guide introduces some ways that you can manage exceptions that occur in Ruby on Rails applications. Exceptions are any events that interrupt the normal flow of your program, such as errors.
 
 After reading this guide, you will know:
 
@@ -37,7 +37,7 @@ end
 
 Rails wraps all executions (such as [HTTP requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods), [jobs](https://guides.rubyonrails.org/active_job_basics.html), and [rails runner](https://guides.rubyonrails.org/command_line.html#bin-rails-runner) invocations) in the error reporter, so any unhandled errors raised in your app will automatically be reported to your error-reporting service via their subscribers.
 
-This means that third-party error-reporting libraries no longer need to insert a [Rack](https://guides.rubyonrails.org/rails_on_rack.html) middleware or do any monkey-patching to capture unhandled exceptions. Libraries that use ActiveSupport can also use this to non-intrusively report warnings that would previously have been lost in logs.
+This means that third-party error-reporting libraries no longer need to insert a [Rack](https://guides.rubyonrails.org/rails_on_rack.html) middleware or do any monkey-patching to capture unhandled exceptions. Libraries that use [ActiveSupport](https://edgeapi.rubyonrails.org/classes/ActiveSupport.html) can also use this to non-intrusively report warnings that would previously have been lost in logs.
 
 NOTE: Using the Rails' error reporter is not required. All other means of capturing errors still work.
 
@@ -58,7 +58,7 @@ class ErrorSubscriber
 end
 ```
 
-After defining the subscriber class, register it by calling [`Rails.error.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-subscribe) method in an initializer:
+After defining the subscriber class, you can register it by calling the [`Rails.error.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-subscribe) method:
 
 ```ruby
 Rails.error.subscribe(ErrorSubscriber.new)
@@ -66,7 +66,7 @@ Rails.error.subscribe(ErrorSubscriber.new)
 
 You can register as many subscribers as you wish. Rails will call them in turn, in the order in which they were registered.
 
-You can also unregister a subscriber by calling [`Rails.error.unsubscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-unsubscribe). Both `subscribe` and `unsubscribe` can take either a subscriber or a class as follows:
+It is also possible to unregister a subscriber by calling [`Rails.error.unsubscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-unsubscribe). Both `subscribe` and `unsubscribe` can take either a subscriber or a class as follows:
 
 ```ruby
 subscriber = ErrorSubscriber.new
@@ -79,7 +79,7 @@ NOTE: The Rails error-reporter will always call registered subscribers, regardle
 
 ### Using the Error Reporter
 
-There are three ways you can use the error reporter:
+There are four ways you can use the error reporter:
 
 #### Reporting and Swallowing Errors
 
@@ -130,7 +130,7 @@ Any options you pass will be passed on to the error subscribers.
 
 #### Reporting Unexpected Errors
 
-You can report any errors that unexpectedly occur when the imagined conditions of your code are not met by calling [`Rails.error.unexpected`](https://edgeapi.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-unexpected")
+You can report any errors that may unexpectedly occur when the imagined conditions of your code are not met by calling [`Rails.error.unexpected`](https://edgeapi.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-unexpected").
 
 When called in production, this method will return nil after the error is reported and the execution of your code will continue.
 
@@ -147,7 +147,7 @@ def edit
   # ...
 end
 ```
-This method is intended to gracefully handle any errors that may occur in production, but that aren't anticipated at the time of writing.
+NOTE: This method is intended to gracefully handle any errors that may occur in production, but that aren't anticipated to be the result of typical use.
 
 ### Error-reporting Options
 
@@ -163,23 +163,9 @@ Rails.error.handle(context: { user_id: user.id }, severity: :info) do
   # ...
 end
 ```
-
-### Filtering by Error Classes
-
-With `Rails.error.handle` and `Rails.error.record`, you can also choose to only report errors of certain classes. For example:
-
-```ruby
-Rails.error.handle(IOError) do
-  1 + '1' # raises TypeError
-end
-1 + 1 # TypeErrors are not IOErrors, so this will *not* be executed
-```
-
-Here, the `TypeError` will not be captured by the Rails error reporter. Only instances of  `IOError` and its descendants will be reported. Any other errors will be raised as normal.
-
 ### Setting Context Globally
 
-In addition to setting context through the `context` option, you can use the [`#set_context`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-set_context) API. For example:
+In addition to setting context through the `context` option, you can use [`Rails.error.set_context`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-set_context). For example:
 
 ```ruby
 Rails.error.set_context(section: "checkout", user_id: @user.id)
@@ -194,6 +180,31 @@ Rails.error.handle(context: { b: 2 }) { raise }
 Rails.error.handle(context: { b: 3 }) { raise }
 # The reported context will be: {:a=>1, :b=>3}
 ```
+
+### Filtering by Error Classes
+
+With `Rails.error.handle` and `Rails.error.record`, you can also choose to only report errors of certain classes. For example:
+
+```ruby
+Rails.error.handle(IOError) do
+  1 + '1' # raises TypeError
+end
+1 + 1 # TypeErrors are not IOErrors, so this will *not* be executed
+```
+
+Here, the `TypeError` will not be captured by the Rails error reporter. Only instances of  `IOError` and its descendants will be reported. Any other errors will be raised as normal.
+
+### Disabling Notifications
+
+You can prevent a subscriber from being notified of errors for the duration of a block by calling [`Rails.error.disable`](https://edgeapi.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-disable). Similarly to `subscribe` and `unsubscribe`, you can pass in either the subscriber itself, or its class.
+
+```ruby
+Rails.error.disable(ErrorSubscriber) do
+  1 + '1' # TypeError will not be reported via the ErrorSubscriber
+end
+```
+NOTE: This can also be helpful for third-party error reporting services who may want to manage error handling on their own.
+
 
 Error-reporting Libraries
 ------------------------
@@ -210,4 +221,4 @@ module MySdk
 end
 ```
 
-If you register an error subscriber, but still have other error mechanisms like a Rack middleware, you may end up with errors reported multiple times. You should either remove your other mechanisms or adjust your report functionality so it skips reporting an exception it has seen before.
+NOTE: If you register an error subscriber, but still have other error mechanisms like a Rack middleware, you may end up with errors reported multiple times. You should either remove your other mechanisms or adjust your report functionality so it skips reporting an exception it has seen before.
