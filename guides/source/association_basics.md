@@ -2229,7 +2229,7 @@ associations in your Rails applications:
 * Controlling association scope
 * Bi-directional associations
 
-### Controlling Caching
+### Controlling Association Caching
 
 All of the association methods are built around caching, which keeps the result
 of the most recent query available for further operations. The cache is even
