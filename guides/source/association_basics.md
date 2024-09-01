@@ -90,7 +90,7 @@ end
 ### Using Associations
 
 However, with associations, we can streamline these operations, as well as
-others, by explicitly informing Rails about the connection between the two
+others, by explicitly informing Rails about the relationship between the two
 models. Here's the revised code for setting up authors and books using
 associations:
 
@@ -169,7 +169,7 @@ each association type is appropriate.
 
 ### `belongs_to`
 
-A [`belongs_to`][] association sets up a connection with another model, such
+A [`belongs_to`][] association sets up a relationship with another model, such
 that each instance of the declaring model "belongs to" one instance of the other
 model. For example, if your application includes authors and books, and each
 book can be assigned to exactly one author, you'd declare the book model this
@@ -215,7 +215,7 @@ used to set up one-to-one or one-to-many relations, depending on the setup. If
 the table _of the other class_ contains the reference in a one-to-one relation,
 then you should use `has_one` instead.
 
-When used alone, `belongs_to` produces a one-directional one-to-one connection.
+When used alone, `belongs_to` produces a one-directional one-to-one relationship.
 Therefore each book in the above example "knows" its author, but the authors
 don't know about their books. To setup a [bi-directional
 association](#bi-directional-associations) - use `belongs_to` in combination
@@ -632,7 +632,7 @@ delay its persistence until you're ready.
 ### `has_many`
 
 A [`has_many`][] association is similar to `has_one`, but indicates a
-one-to-many connection with another model. You'll often find this association on
+one-to-many relationship with another model. You'll often find this association on
 the "other side" of a `belongs_to` association. This association indicates that
 each instance of the model has zero or more instances of another model. For
 example, in an application containing authors and books, the author model could
@@ -987,7 +987,7 @@ object, use the `collection.build` method.
 ### `has_many :through`
 
 A [`has_many :through`][`has_many`] association is often used to set up a
-many-to-many connection with another model. This association indicates that the
+many-to-many relationship with another model. This association indicates that the
 declaring model can be matched with zero or more instances of another model by
 proceeding _through_ a third model.
 
@@ -1131,7 +1131,7 @@ end
 
 ### `has_one :through`
 
-A [`has_one :through`][`has_one`] association sets up a one-to-one connection
+A [`has_one :through`][`has_one`] association sets up a one-to-one relationship
 with another model through an intermediary model. This association indicates
 that the declaring model can be matched with one instance of another model by
 proceeding _through_ a third model.
@@ -1189,7 +1189,7 @@ end
 ### `has_and_belongs_to_many`
 
 A [`has_and_belongs_to_many`][] association creates a direct many-to-many
-connection with another model, with no intervening model. This association
+relationship with another model, with no intervening model. This association
 indicates that each instance of the declaring model refers to zero or more
 instances of another model.
 
