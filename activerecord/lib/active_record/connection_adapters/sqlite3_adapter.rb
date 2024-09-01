@@ -11,7 +11,7 @@ require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", ">= 1.4"
+gem "sqlite3", ">= 2.0"
 require "sqlite3"
 
 module ActiveRecord
@@ -45,7 +45,7 @@ module ActiveRecord
           args << "-header" if options[:header]
           args << File.expand_path(config.database, Rails.respond_to?(:root) ? Rails.root : nil)
 
-          find_cmd_and_exec("sqlite3", *args)
+          find_cmd_and_exec(ActiveRecord.database_cli[:sqlite], *args)
         end
       end
 
@@ -281,6 +281,38 @@ module ActiveRecord
         index_name = index_name_for_remove(table_name, column_name, options)
 
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
+      end
+
+      VIRTUAL_TABLE_REGEX = /USING\s+(\w+)\s*\((.+)\)/i
+
+      # Returns a list of defined virtual tables
+      def virtual_tables
+        query = <<~SQL
+          SELECT name, sql FROM sqlite_master WHERE sql LIKE 'CREATE VIRTUAL %';
+        SQL
+
+        exec_query(query, "SCHEMA").cast_values.each_with_object({}) do |row, memo|
+          table_name, sql = row[0], row[1]
+          _, module_name, arguments = sql.match(VIRTUAL_TABLE_REGEX).to_a
+          memo[table_name] = [module_name, arguments]
+        end.to_a
+      end
+
+      # Creates a virtual table
+      #
+      # Example:
+      #   create_virtual_table :emails, :fts5, ['sender', 'title',' body']
+      def create_virtual_table(table_name, module_name, values)
+        exec_query "CREATE VIRTUAL TABLE IF NOT EXISTS #{table_name} USING #{module_name} (#{values.join(", ")})"
+      end
+
+      # Drops a virtual table
+      #
+      # Although this command ignores +module_name+ and +values+,
+      # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
+      # In that case, +module_name+, +values+ and +options+ will be used by #create_virtual_table.
+      def drop_virtual_table(table_name, module_name, values, **options)
+        drop_table(table_name)
       end
 
       # Renames a table.
@@ -662,6 +694,8 @@ module ActiveRecord
             InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/called on a closed database/i)
             ConnectionNotEstablished.new(exception, connection_pool: @pool)
+          elsif exception.is_a?(::SQLite3::BusyException)
+            StatementTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
             super
           end
@@ -781,12 +815,15 @@ module ActiveRecord
           if @config[:timeout] && @config[:retries]
             raise ArgumentError, "Cannot specify both timeout and retries arguments"
           elsif @config[:timeout]
-            @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout]))
+            timeout = self.class.type_cast_config_to_integer(@config[:timeout])
+            raise TypeError, "timeout must be integer, not #{timeout}" unless timeout.is_a?(Integer)
+            @raw_connection.busy_handler_timeout = timeout
           elsif @config[:retries]
+            ActiveRecord.deprecator.warn(<<~MSG)
+              The retries option is deprecated and will be removed in Rails 8.1. Use timeout instead.
+            MSG
             retries = self.class.type_cast_config_to_integer(@config[:retries])
-            raw_connection.busy_handler do |count|
-              count <= retries
-            end
+            raw_connection.busy_handler { |count| count <= retries }
           end
 
           super

@@ -201,7 +201,7 @@ module ActionDispatch
 
       Router = ActionDispatch::Routing::RouteSet.new
       Router.draw do
-        get "/mysessionapp", to: MySessionApp.new
+        get "/mysessionapp" => MySessionApp.new
       end
 
       def app

@@ -144,9 +144,9 @@ module ActiveSupport
     #
     def unexpected(error, severity: :warning, context: {}, source: DEFAULT_SOURCE)
       error = RuntimeError.new(error) if error.is_a?(String)
-      error.set_backtrace(caller(1)) if error.backtrace.nil?
 
       if @debug_mode
+        ensure_backtrace(error)
         raise UnexpectedError, "#{error.class.name}: #{error.message}", error.backtrace, cause: error
       else
         report(error, handled: true, severity: severity, context: context, source: source)
@@ -209,6 +209,7 @@ module ActiveSupport
     #
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
       return if error.instance_variable_defined?(:@__rails_error_reported)
+      ensure_backtrace(error)
 
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
@@ -237,5 +238,28 @@ module ActiveSupport
 
       nil
     end
+
+    private
+      def ensure_backtrace(error)
+        return if error.frozen? # re-raising won't add a backtrace
+        return unless error.backtrace.nil?
+
+        begin
+          # We could use Exception#set_backtrace, but until Ruby 3.4
+          # it only support setting `Exception#backtrace` and not
+          # `Exception#backtrace_locations`. So raising the exception
+          # is a good way to build a real backtrace.
+          raise error
+        rescue error.class => error
+        end
+
+        count = 0
+        while error.backtrace_locations.first&.path == __FILE__
+          count += 1
+          error.backtrace_locations.shift
+        end
+
+        error.backtrace.shift(count)
+      end
   end
 end

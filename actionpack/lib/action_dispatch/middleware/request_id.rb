@@ -25,11 +25,12 @@ module ActionDispatch
     def initialize(app, header:)
       @app = app
       @header = header
+      @env_header = "HTTP_#{header.upcase.tr("-", "_")}"
     end
 
     def call(env)
       req = ActionDispatch::Request.new env
-      req.request_id = make_request_id(req.headers[@header])
+      req.request_id = make_request_id(req.get_header(@env_header))
       @app.call(env).tap { |_status, headers, _body| headers[@header] = req.request_id }
     end
 

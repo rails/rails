@@ -1026,7 +1026,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_lru_eviction
-    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(2)
+    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(Concurrent::AtomicFixnum.new, 2)
     store.enabled = true
 
     connection = Post.lease_connection

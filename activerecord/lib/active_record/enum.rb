@@ -240,6 +240,7 @@ module ActiveRecord
 
       def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
         assert_valid_enum_definition_values(values)
+        assert_valid_enum_options(options)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name = name.to_s
@@ -367,6 +368,13 @@ module ActiveRecord
           end
         else
           raise ArgumentError, "Enum values #{values} must be either a non-empty hash or an array."
+        end
+      end
+
+      def assert_valid_enum_options(options)
+        invalid_keys = options.keys & %i[_prefix _suffix _scopes _default _instance_methods]
+        unless invalid_keys.empty?
+          raise ArgumentError, "invalid option(s): #{invalid_keys.map(&:inspect).join(", ")}. Valid options are: :prefix, :suffix, :scopes, :default, :instance_methods, and :validate."
         end
       end
 

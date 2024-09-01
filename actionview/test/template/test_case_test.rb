@@ -273,7 +273,7 @@ module ActionView
           end
         end
 
-        set.draw { mount app, at: "/foo", as: "foo_app" }
+        set.draw { mount app => "/foo", :as => "foo_app" }
 
         singleton_class.include set.mounted_helpers
 

@@ -108,11 +108,11 @@ module ApplicationTests
 
           rails "db:schema:load"
 
-          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip }
-          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables").strip }
+          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables.sort").strip }
 
-          assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
-          assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+          assert_equal '["ar_internal_metadata", "books", "schema_migrations"]', ar_tables[]
+          assert_equal '["ar_internal_metadata", "dogs", "schema_migrations"]', animals_tables[]
         end
       end
 
@@ -148,15 +148,15 @@ module ApplicationTests
 
           rails "db:schema:load:#{database}"
 
-          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip }
-          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables").strip }
+          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables.sort").strip }
 
           if database == "primary"
-            assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
+            assert_equal '["ar_internal_metadata", "books", "schema_migrations"]', ar_tables[]
             assert_equal "[]", animals_tables[]
           else
             assert_equal "[]", ar_tables[]
-            assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+            assert_equal '["ar_internal_metadata", "dogs", "schema_migrations"]', animals_tables[]
           end
         end
       end
@@ -211,15 +211,15 @@ module ApplicationTests
           output = rails("db:test:prepare:#{name}", "--trace")
           assert_match(/Execute db:test:load_schema:#{name}/, output)
 
-          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.lease_connection.tables").strip }
-          animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.lease_connection.tables").strip }
+          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.lease_connection.tables.sort").strip }
 
           if name == "primary"
-            assert_equal ["schema_migrations", "ar_internal_metadata", "books"].sort, JSON.parse(ar_tables[]).sort
+            assert_equal '["ar_internal_metadata", "books", "schema_migrations"]', ar_tables[]
             assert_equal "[]", animals_tables[]
           else
             assert_equal "[]", ar_tables[]
-            assert_equal ["schema_migrations", "ar_internal_metadata", "dogs"].sort, JSON.parse(animals_tables[]).sort
+            assert_equal '["ar_internal_metadata", "dogs", "schema_migrations"]', animals_tables[]
           end
         end
       end
@@ -556,7 +556,6 @@ module ApplicationTests
           end
         MIGRATION
 
-
         Dir.chdir(app_path) do
           rails "db:migrate:up:primary", "VERSION=01_one_migration.rb"
           rails "db:migrate:up:primary", "VERSION=03_three_migration.rb"
@@ -592,6 +591,46 @@ module ApplicationTests
           output = rails "db:prepare"
           entries = output.scan(/^== (\d+).+migrated/).map(&:first).map(&:to_i)
           assert_equal [1, 2, 3, 4] * 2, entries # twice because for test env too
+        end
+      end
+
+      test "db:prepare only dumps schema for migrated databases" do
+        require "#{app_path}/config/environment"
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        primary_mtime = nil
+        animals_mtime = nil
+
+        Dir.chdir(app_path) do
+          # Run the first two migrations to get the schema files.
+          rails "db:prepare"
+
+          assert File.exist?("db/schema.rb")
+          assert File.exist?("db/animals_schema.rb")
+
+          primary_mtime = File.mtime("db/schema.rb")
+          animals_mtime = File.mtime("db/animals_schema.rb")
+        end
+
+        app_file "db/animals_migrate/03_three_migration.rb", <<-MIGRATION
+          class ThreeMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        Dir.chdir(app_path) do
+          # Run the new migration and assert that only the animals schema was updated.
+          rails "db:prepare"
+
+          assert_equal primary_mtime, File.mtime("db/schema.rb")
+          assert_not_equal animals_mtime, File.mtime("db/animals_schema.rb")
         end
       end
 

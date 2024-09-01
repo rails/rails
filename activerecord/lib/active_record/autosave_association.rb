@@ -462,7 +462,9 @@ module ActiveRecord
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
       def save_has_one_association(reflection)
         association = association_instance_get(reflection.name)
-        record      = association && association.load_target
+        return unless association && association.loaded?
+
+        record = association.load_target
         return unless record && !record.destroyed?
 
         autosave = reflection.options[:autosave]

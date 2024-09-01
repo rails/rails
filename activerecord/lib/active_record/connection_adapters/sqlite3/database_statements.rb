@@ -93,7 +93,7 @@ module ActiveRecord
               # Don't cache statements if they are not prepared.
               stmt = raw_connection.prepare(sql)
               begin
-                unless without_prepared_statement?(binds)
+                unless binds.nil? || binds.empty?
                   stmt.bind_params(type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return
@@ -123,16 +123,9 @@ module ActiveRecord
             @last_affected_rows
           end
 
-          def execute_batch(statements, name = nil)
+          def execute_batch(statements, name = nil, **kwargs)
             sql = combine_multi_statements(statements)
-            raw_execute(sql, name, batch: true)
-          end
-
-          def build_fixture_statements(fixture_set)
-            fixture_set.flat_map do |table_name, fixtures|
-              next if fixtures.empty?
-              fixtures.map { |fixture| build_fixture_sql([fixture], table_name) }
-            end.compact
+            raw_execute(sql, name, batch: true, **kwargs)
           end
 
           def build_truncate_statement(table_name)
@@ -141,6 +134,10 @@ module ActiveRecord
 
           def returning_column_values(result)
             result.rows.first
+          end
+
+          def default_insert_value(column)
+            column.default
           end
       end
     end

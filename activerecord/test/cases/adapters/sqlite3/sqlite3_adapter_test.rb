@@ -596,7 +596,7 @@ module ActiveRecord
 
       def test_tables_logs_name
         sql = <<~SQL
-          SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
+          SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND type IN ('table')
         SQL
         @conn.connect!
         assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -607,7 +607,7 @@ module ActiveRecord
       def test_table_exists_logs_name
         with_example_table do
           sql = <<~SQL
-            SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
+            SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
             assert @conn.table_exists?("ex")
@@ -928,7 +928,7 @@ module ActiveRecord
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
           assert_called(statement, :close) do
             ::SQLite3::Statement.stub(:new, statement) do
-              error = assert_raises ActiveRecord::StatementInvalid do
+              error = assert_raises ActiveRecord::StatementTimeout do
                 @conn.exec_query "select * from statement_test"
               end
               assert_equal @conn.pool, error.connection_pool

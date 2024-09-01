@@ -351,7 +351,7 @@ module ActionDispatch
       PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
       UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
 
-      attr_accessor :formatter, :set, :named_routes, :default_scope, :router
+      attr_accessor :formatter, :set, :named_routes, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :draw_paths
       attr_reader :env_key, :polymorphic_mappings
@@ -363,7 +363,7 @@ module ActionDispatch
       end
 
       def self.new_with_config(config)
-        route_set_config = DEFAULT_CONFIG
+        route_set_config = DEFAULT_CONFIG.dup
 
         # engines apparently don't have this set
         if config.respond_to? :relative_url_root
@@ -374,14 +374,18 @@ module ActionDispatch
           route_set_config.api_only = config.api_only
         end
 
+        if config.respond_to? :default_scope
+          route_set_config.default_scope = config.default_scope
+        end
+
         new route_set_config
       end
 
-      Config = Struct.new :relative_url_root, :api_only
+      Config = Struct.new :relative_url_root, :api_only, :default_scope
 
-      DEFAULT_CONFIG = Config.new(nil, false)
+      DEFAULT_CONFIG = Config.new(nil, false, nil)
 
-      def initialize(config = DEFAULT_CONFIG)
+      def initialize(config = DEFAULT_CONFIG.dup)
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names
         self.default_url_options = {}
@@ -414,6 +418,14 @@ module ActionDispatch
 
       def api_only?
         @config.api_only
+      end
+
+      def default_scope
+        @config.default_scope
+      end
+
+      def default_scope=(new_default_scope)
+        @config.default_scope = new_default_scope
       end
 
       def request_class

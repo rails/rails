@@ -40,7 +40,7 @@ module Rails
         return unless options[:system_test]
         return unless File.exist?("test/application_system_test_case.rb")
 
-        gsub_file("test/application_system_test_case.rb", /^(\s*driven_by\b.*)/, system_test_configuration)
+        gsub_file("test/application_system_test_case.rb", /^\s*driven_by\b.*/, system_test_configuration)
       end
 
       def update_database_yml
@@ -148,17 +148,17 @@ module Rails
         end
 
         def system_test_configuration
-          <<~'RUBY'
-              if ENV["CAPYBARA_SERVER_PORT"]
-                served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
+          optimize_indentation(<<-'RUBY', 2)
+            if ENV["CAPYBARA_SERVER_PORT"]
+              served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
 
-                driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ], options: {
-                  browser: :remote,
-                  url: "http://#{ENV["SELENIUM_HOST"]}:4444"
-                }
-              else
-                driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
-              end
+              driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ], options: {
+                browser: :remote,
+                url: "http://#{ENV["SELENIUM_HOST"]}:4444"
+              }
+            else
+              driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
+            end
           RUBY
         end
     end

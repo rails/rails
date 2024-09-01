@@ -285,6 +285,12 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_queries_count(4) { firm.save! }
   end
 
+  def test_should_not_load_the_associated_model
+    firm = companies(:first_firm)
+    firm.reset_unvalidated_account
+    assert_no_queries { firm.save! }
+  end
+
   def test_callbacks_firing_order_on_create
     eye = Eye.create(iris_attributes: { color: "honey" })
     assert_equal [true, false], eye.after_create_callbacks_stack
@@ -561,6 +567,12 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_nothing_raised do
       Cpk::Order.create!(id: [1, 2], book: Cpk::Book.new(title: "Book", id: [3, 4]))
     end
+  end
+
+  def test_should_not_load_the_associated_model
+    tagging = taggings(:welcome_general)
+    tagging.reset_tag
+    assert_no_queries { tagging.save! }
   end
 end
 
@@ -1047,6 +1059,12 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     firm.reload
     assert_equal 2, firm.clients.length
     assert_includes firm.clients, Client.find_by_name("New Client")
+  end
+
+  def test_should_not_load_the_associated_model
+    firm = companies(:first_firm)
+    firm.clients.reset
+    assert_no_queries { firm.save! }
   end
 end
 

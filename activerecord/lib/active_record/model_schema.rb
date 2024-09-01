@@ -531,7 +531,9 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
-      def load_schema # :nodoc:
+      # Load the model's schema information either from the schema cache
+      # or directly from the database.
+      def load_schema
         return if schema_loaded?
         @load_schema_monitor.synchronize do
           return if schema_loaded?
@@ -592,6 +594,8 @@ module ActiveRecord
           columns_hash = schema_cache.columns_hash(table_name)
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
+
+          _default_attributes # Precompute to cache DB-dependent attribute types
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.

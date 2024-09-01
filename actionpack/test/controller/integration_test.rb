@@ -649,7 +649,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          get "moved", to: redirect("/method")
+          get "moved" => redirect("/method")
 
           ActionDispatch.deprecator.silence do
             match ":action", to: controller, via: [:get, :post], as: :action
@@ -784,9 +784,9 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     get "foo", to: "application_integration_test/test#index", as: :foo
     get "bar", to: "application_integration_test/test#index", as: :bar
 
-    mount MountedApp, at: "/mounted", as: "mounted"
-    get "fooz", to: proc { |env| [ 200, { ActionDispatch::Constants::X_CASCADE => "pass" }, [ "omg" ] ] },
-      anchor: false
+    mount MountedApp => "/mounted", :as => "mounted"
+    get "fooz" => proc { |env| [ 200, { ActionDispatch::Constants::X_CASCADE => "pass" }, [ "omg" ] ] },
+      :anchor => false
     get "fooz", to: "application_integration_test/test#index"
   end
 
@@ -890,7 +890,7 @@ class ControllerWithHeadersMethodIntegrationTest < ActionDispatch::IntegrationTe
   test "doesn't call controller's headers method" do
     with_routing do |routes|
       routes.draw do
-        get "/ok", to: "controller_with_headers_method_integration_test/test#index"
+        get "/ok" => "controller_with_headers_method_integration_test/test#index"
       end
 
       get "/ok"
@@ -941,10 +941,10 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     default_url_options host: "foo.com"
 
     scope module: "url_options_integration_test" do
-      get "/foo", to: "foo#index", as: :foos
-      get "/foo/:id", to: "foo#show", as: :foo
-      get "/foo/:id/edit", to: "foo#edit", as: :edit_foo
-      get "/bar", to: "bar#index", as: :bars
+      get "/foo" => "foo#index", :as => :foos
+      get "/foo/:id" => "foo#show", :as => :foo
+      get "/foo/:id/edit" => "foo#edit", :as => :edit_foo
+      get "/bar" => "bar#index", :as => :bars
     end
   end
 
@@ -1004,7 +1004,7 @@ class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    get "/foo/status", to: "head_with_status_action_integration_test/foo#status"
+    get "/foo/status" => "head_with_status_action_integration_test/foo#status"
   end
 
   test "get /foo/status with head result does not cause stack overflow error" do
@@ -1067,7 +1067,7 @@ class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
     with_routing do |routes|
       routes.draw do
         ActionDispatch.deprecator.silence do
-          get ":action", to: FooController
+          get ":action" => FooController
         end
       end
 
@@ -1115,7 +1115,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     with_routing do |routes|
       routes.draw do
         ActionDispatch.deprecator.silence do
-          post ":action", to: FooController
+          post ":action" => FooController
         end
       end
 
@@ -1142,7 +1142,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     with_routing do |routes|
       routes.draw do
         ActionDispatch.deprecator.silence do
-          post ":action", to: FooController
+          post ":action" => FooController
         end
       end
 
@@ -1203,7 +1203,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     with_routing do |routes|
       routes.draw do
         ActionDispatch.deprecator.silence do
-          get ":action", to: FooController
+          get ":action" => FooController
         end
       end
 
@@ -1217,7 +1217,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     with_routing do |routes|
       routes.draw do
         ActionDispatch.deprecator.silence do
-          get ":action", to: FooController
+          get ":action" => FooController
         end
       end
 
@@ -1231,7 +1231,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     with_routing do |routes|
       routes.draw do
         ActionDispatch.deprecator.silence do
-          get ":action", to: FooController
+          get ":action" => FooController
         end
       end
 
@@ -1247,7 +1247,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     with_routing do |routes|
       routes.draw do
         ActionDispatch.deprecator.silence do
-          get ":action", to: FooController
+          get ":action" => FooController
         end
       end
 
@@ -1262,7 +1262,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
       with_routing do |routes|
         routes.draw do
           ActionDispatch.deprecator.silence do
-            post ":action", to: FooController
+            post ":action" => FooController
           end
         end
 
@@ -1358,8 +1358,8 @@ class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    get "/", to: "page_dump_integration_test/foo#index"
-    get "/redirect", to: "page_dump_integration_test/foo#redirect"
+    get "/" => "page_dump_integration_test/foo#index"
+    get "/redirect" => "page_dump_integration_test/foo#redirect"
   end
 
   test "save_and_open_page saves a copy of the page and call to Launchy" do

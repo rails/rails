@@ -6,7 +6,6 @@ require "active_support/callbacks"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
-require "thread"
 
 module Rails
   # +Rails::Engine+ allows you to wrap a specific \Rails application or subset of
@@ -128,7 +127,7 @@ module Rails
   # Now you can mount your engine in application's routes:
   #
   #   Rails.application.routes.draw do
-  #     mount MyEngine::Engine, at: "/engine"
+  #     mount MyEngine::Engine => "/engine"
   #   end
   #
   # == Middleware stack
@@ -149,7 +148,7 @@ module Rails
   #
   #   # ENGINE/config/routes.rb
   #   MyEngine::Engine.routes.draw do
-  #     get "/", to: "posts#index"
+  #     get "/" => "posts#index"
   #   end
   #
   # == Mount priority
@@ -158,8 +157,8 @@ module Rails
   # passing requests through many routers. Consider this situation:
   #
   #   Rails.application.routes.draw do
-  #     mount MyEngine::Engine, at: "/blog"
-  #     get "/blog/omg", to: "main#omg"
+  #     mount MyEngine::Engine => "/blog"
+  #     get "/blog/omg" => "main#omg"
   #   end
   #
   # +MyEngine+ is mounted at <tt>/blog</tt>, and <tt>/blog/omg</tt> points to application's
@@ -168,8 +167,8 @@ module Rails
   # It's much better to swap that:
   #
   #   Rails.application.routes.draw do
-  #     get "/blog/omg", to: "main#omg"
-  #     mount MyEngine::Engine, at: "/blog"
+  #     get "/blog/omg" => "main#omg"
+  #     mount MyEngine::Engine => "/blog"
   #   end
   #
   # Now, +Engine+ will get only requests that were not handled by +Application+.
@@ -178,7 +177,7 @@ module Rails
   #
   # There are some places where an Engine's name is used:
   #
-  # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine, at: '/my_engine')</tt>,
+  # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
   #   it's used as default <tt>:as</tt> option
   # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
   #
@@ -264,8 +263,8 @@ module Rails
   #
   #   # config/routes.rb
   #   Rails.application.routes.draw do
-  #     mount MyEngine::Engine, at: "/my_engine", as: "my_engine"
-  #     get "/foo", to: "foo#index"
+  #     mount MyEngine::Engine => "/my_engine", as: "my_engine"
+  #     get "/foo" => "foo#index"
   #   end
   #
   # Now, you can use the <tt>my_engine</tt> helper inside your application:
@@ -349,6 +348,7 @@ module Rails
   #   config.railties_order = [Blog::Engine, :main_app, :all]
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
+    autoload :LazyRouteSet,  "rails/engine/lazy_route_set"
 
     class << self
       attr_accessor :called_from, :isolated
@@ -385,7 +385,8 @@ module Rails
       def isolate_namespace(mod)
         engine_name(generate_railtie_name(mod.name))
 
-        routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
+        config.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
+
         self.isolated = true
 
         unless mod.respond_to?(:railtie_namespace)
@@ -543,7 +544,7 @@ module Rails
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
     def routes(&block)
-      @routes ||= ActionDispatch::Routing::RouteSet.new_with_config(config)
+      @routes ||= config.route_set_class.new_with_config(config)
       @routes.append(&block) if block_given?
       @routes
     end
@@ -586,6 +587,10 @@ module Rails
     initializer :set_eager_load_paths, before: :bootstrap_hook do
       ActiveSupport::Dependencies._eager_load_paths.merge(config.all_eager_load_paths)
       config.eager_load_paths.freeze
+    end
+
+    initializer :make_routes_lazy, before: :bootstrap_hook do |app|
+      config.route_set_class = LazyRouteSet if Rails.env.local?
     end
 
     initializer :add_routing_paths do |app|

@@ -715,13 +715,7 @@ module ActiveRecord
 
       def load_schema_if_pending!
         if any_schema_needs_update?
-          # Roundtrip to Rake to allow plugins to hook into database initialization.
-          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
-
-          FileUtils.cd(root) do
-            Base.connection_handler.clear_all_connections!(:all)
-            system("bin/rails db:test:prepare")
-          end
+          load_schema!
         end
 
         check_pending_migrations
@@ -784,6 +778,16 @@ module ActiveRecord
 
         def env
           ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        end
+
+        def load_schema!
+          # Roundtrip to Rake to allow plugins to hook into database initialization.
+          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+
+          FileUtils.cd(root) do
+            Base.connection_handler.clear_all_connections!(:all)
+            system("bin/rails db:test:prepare")
+          end
         end
     end
 

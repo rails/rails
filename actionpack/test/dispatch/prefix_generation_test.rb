@@ -52,7 +52,7 @@ module TestGenerationPrefix
     class RailsApplication < Rails::Engine
       routes.draw do
         scope "/:omg", omg: "awesome" do
-          mount BlogEngine, at: "/blog", as: "blog_engine"
+          mount BlogEngine => "/blog", :as => "blog_engine"
         end
         get "/posts/:id", to: "outside_engine_generating#post", as: :post
         get "/generate", to: "outside_engine_generating#index"
@@ -370,7 +370,7 @@ module TestGenerationPrefix
 
     class RailsApplication < Rails::Engine
       routes.draw do
-        mount BlogEngine, at: "/"
+        mount BlogEngine => "/"
       end
     end
 

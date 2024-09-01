@@ -1,18 +1,18 @@
-*   Deprecate drawing routes with hash key paths to make routing faster.
+*   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 
-    ```ruby
-    # Before
-    get "/users" => "users#index"
-    post "/logout" => :sessions
-    mount MyApp => "/my_app"
+    *Hartley McGuire*
 
-    # After
-    get "/users", to: "users#index"
-    post "/logout", to: "sessions#logout"
-    mount MyApp, at: "/my_app"
-    ```
+*   Remove `racc` dependency by manually writing `ActionDispatch::Journey::Scanner`.
 
     *Gannon McGibbon*
+
+*   Speed up `ActionDispatch::Routing::Mapper::Scope#[]` by merging frame hashes.
+
+    *Gannon McGibbon*
+
+*   Allow bots to ignore `allow_browser`.
+
+    *Matthew Nguyen*
 
 *   Deprecate drawing routes with multiple paths to make routing faster.
     You may use `with_options` or a loop to make drawing multiple paths easier.
@@ -66,5 +66,9 @@
 *   Add `display_capture` and `keyboard_map` in `permissions_policy`
 
     *Cyril Blaecke*
+
+*   Add `connect` route helper.
+
+    *Samuel Williams*
 
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actionpack/CHANGELOG.md) for previous changes.

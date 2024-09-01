@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "active_support/core_ext/object/with_options"
-require "active_support/core_ext/array/extract_options"
 
 class AdminController < ResourcesController; end
 class MessagesController < ResourcesController; end
