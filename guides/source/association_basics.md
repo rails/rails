@@ -2232,7 +2232,7 @@ associations in your Rails applications:
 ### Controlling Association Caching
 
 All of the association methods are built around caching, which keeps the result
-of the most recent query available for further operations. The cache is even
+of loaded associations for further operations. The cache is even
 shared across methods. For example:
 
 ```ruby
