@@ -694,7 +694,7 @@ retrieving books associated with a specific author.
 If you wish to enforce [referential
 integrity](https://en.wikipedia.org/wiki/Referential_integrity) at the database
 level, add the [`foreign_key: true`](active_record_migrations.html#foreign-keys)
-option to the ‘reference’ column declarations above. This will ensure that the
+option to the `reference` column declarations above. This will ensure that the
 `author_id` in the books table must correspond to a valid `id` in the `authors`
 table,
 
