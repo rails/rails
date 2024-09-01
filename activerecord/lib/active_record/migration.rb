@@ -2,7 +2,6 @@
 
 require "benchmark"
 require "set"
-require "zlib"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
