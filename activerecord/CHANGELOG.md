@@ -1,3 +1,51 @@
+*   Allow cycle detection for recursive common table expressions
+
+    SQL:2023 introduces enhanced cycle mark values into the standard.  This is a way
+    to prevent the following of cycles in recursive CTEs which can lead to consumption
+    of memory to the point of host failure.
+
+    ```ruby
+    require 'active_model'
+
+    outer = Table.new(:foo).project(Arel.star).from(Arel.sql("cte"))
+    cycle_clause = "CYCLE id SET is_cycle USING path"
+    graph = Arel::Table.new(:graph)
+    cte = Arel::Table.new(:cte)
+    query = graph.where(graph[:id].eq(1)).project(:id, :parent_id)
+      .union(
+        graph.project(graph[:id], graph[:parent_id]).join(cte).on(graph[:parent_id].eq cte[:id])
+      )
+    inner = Arel::Nodes::Cte.new(:cte, query, cycle: cycle_clause)
+    outer.with(:recursive, inner)
+    ```
+
+    this results in the sql
+    ```
+    WITH RECURSIVE "cte" AS (
+        SELECT id, parent_id FROM "graph" WHERE "graph"."id" = 1
+      UNION
+        SELECT "graph"."id", "graph"."parent_id" FROM "graph" INNER JOIN "cte" ON "graph"."parent_id" = "cte"."id"
+        SELECT id, parent_id FROM "graph" INNER JOIN "cte" ON "graph"."parent_id" = "cte"."id"
+    ) CYCLE id SET is_cycle USING path
+    SELECT * FROM cte
+    ```
+
+    example of how it prevents infinite loops
+    ```sql
+    postgres=# CREATE TABLE graph (id INT, parent_id INT, name TEXT);
+    postgres=# INSERT INTO graph (id, parent_id, name) VALUES (1, 2, 'a'), (2, 3, 'b'), (3, 1, 'c');
+    postgres=# WITH RECURSIVE "cte" AS ( SELECT id, parent_id FROM "graph" WHERE "graph"."id" = 1 UNION SELECT "graph"."id", "graph"."parent_id" FROM "graph" INNER JOIN "cte" ON "graph"."parent_id" = "cte"."id" ) CYCLE id SET is_cycle USING path SELECT * FROM cte;
+     id | parent_id | is_cycle |       path
+    ----+-----------+----------+-------------------
+      1 |         2 | f        | {(1)}
+      3 |         1 | f        | {(1),(3)}
+      2 |         3 | f        | {(1),(3),(2)}
+      1 |         2 | t        | {(1),(3),(2),(1)}
+    (4 rows)
+    ```
+
+    *Mike Gamba*
+
 *   Deprecate `unsigned_float` and `unsigned_decimal` short-hand column methods.
 
     As of MySQL 8.0.17, the UNSIGNED attribute is deprecated for columns of type FLOAT, DOUBLE,
