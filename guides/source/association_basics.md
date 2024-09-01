@@ -1699,7 +1699,7 @@ class CreatePictures < ActiveRecord::Migration[7.2]
 end
 ```
 
-Since polymorphic associations rely on storing class names in the database, that
+WARNING: Since polymorphic associations rely on storing class names in the database, that
 data must remain synchronized with the class name used by the Ruby code. When
 renaming a class, make sure to update the data in the polymorphic type column.
 
