@@ -1046,7 +1046,9 @@ module ActionController
         case object
         when Hash
           object.each_with_object(self.class.new) do |(key, value), result|
-            result[yield(key)] = _deep_transform_keys_in_object(value, &block)
+            new_key = yield(key)
+            new_value = _deep_transform_keys_in_object(value, &block)
+            result[new_key] = new_value unless result.has_key?(new_key) && new_value.empty?
           end
         when Parameters
           if object.permitted?
