@@ -1061,27 +1061,6 @@ module ActionController
         end
       end
 
-      def _deep_transform_keys_in_object!(object, &block)
-        case object
-        when Hash
-          object.keys.each do |key|
-            value = object.delete(key)
-            object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
-          end
-          object
-        when Parameters
-          if object.permitted?
-            object.to_h.deep_transform_keys!(&block)
-          else
-            object.to_unsafe_h.deep_transform_keys!(&block)
-          end
-        when Array
-          object.map! { |e| _deep_transform_keys_in_object!(e, &block) }
-        else
-          object
-        end
-      end
-
       def specify_numeric_keys?(filter)
         if filter.respond_to?(:keys)
           filter.keys.any? { |key| /\A-?\d+\z/.match?(key) }
