@@ -159,7 +159,7 @@ module ActiveRecord
           end
 
           def valid_primary_key_options
-            super + [:unsigned]
+            super + [:unsigned, :auto_increment]
           end
 
           def create_table_definition(name, **options)

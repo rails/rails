@@ -561,6 +561,24 @@ module ActiveRecord
         @connection.execute("DROP DOMAIN example_type")
       end
 
+      def test_extensions_omits_current_schema_name
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE SCHEMA customschema")
+        @connection.execute("CREATE EXTENSION hstore SCHEMA customschema")
+        assert_includes @connection.extensions, "customschema.hstore"
+      ensure
+        @connection.execute("DROP SCHEMA IF EXISTS customschema CASCADE")
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+      end
+
+      def test_extensions_includes_non_current_schema_name
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE EXTENSION hstore")
+        assert_includes @connection.extensions, "hstore"
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+      end
+
       def test_ignores_warnings_when_behaviour_ignore
         with_db_warnings_action(:ignore) do
           # libpq prints a warning to stderr from C, so we need to stub
@@ -667,6 +685,34 @@ module ActiveRecord
         date = connection.select_value("select '2024-01-01'::date")
         assert_equal "2024-01-01", date
         assert_equal String, date.class
+      end
+
+      def test_disable_extension_with_schema
+        @connection.execute("CREATE SCHEMA custom_schema")
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE EXTENSION hstore SCHEMA custom_schema")
+        result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal [["hstore"]], result.to_a
+
+        @connection.disable_extension "custom_schema.hstore"
+        result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal [], result.to_a
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("DROP SCHEMA IF EXISTS custom_schema CASCADE")
+      end
+
+      def test_disable_extension_without_schema
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE EXTENSION hstore")
+        result = @connection.query("SELECT extname FROM pg_extension")
+        assert_includes result.to_a, ["hstore"]
+
+        @connection.disable_extension "hstore"
+        result = @connection.query("SELECT extname FROM pg_extension")
+        assert_not_includes result.to_a, ["hstore"]
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
       end
 
       private

@@ -38,6 +38,7 @@ DEFAULT_APP_FILES = %w(
   bin/rake
   bin/rubocop
   bin/setup
+  bin/thrust
   config.ru
   config/application.rb
   config/boot.rb
@@ -285,6 +286,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_brakeman
+    run_generator [ destination_root, "--skip-brakeman" ]
+
+    FileUtils.cd(destination_root) do
+      assert_no_changes -> { File.exist?("bin/brakeman") } do
+        run_app_update
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_rubocop
+    run_generator [ destination_root, "--skip-rubocop" ]
+
+    FileUtils.cd(destination_root) do
+      assert_no_changes -> { File.exist?("bin/rubocop") } do
+        run_app_update
+      end
+    end
+  end
+
   def test_app_update_preserves_skip_test
     run_generator [ destination_root, "--skip-test" ]
 
@@ -428,7 +449,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
-    assert_gem "sqlite3", '">= 1.4"'
+    assert_gem "sqlite3", '">= 2.0"'
   end
 
   def test_config_mysql_database
@@ -554,6 +575,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     else
       assert_gem "debug"
     end
+  end
+
+  def test_inclusion_of_thruster
+    run_generator
+    assert_gem "thruster"
+  end
+
+  def test_thruster_is_skipped_if_required
+    run_generator [destination_root, "--skip-thruster"]
+
+    assert_no_gem "thruster"
+    assert_no_file "bin/thrust"
   end
 
   def test_inclusion_of_rubocop
@@ -1224,7 +1257,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
     end
     assert_file("test/application_system_test_case.rb") do |content|
-      assert_match(/served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)
+      assert_match(/^    served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)
+      assert_match(/^    driven_by :selenium, using: :headless_chrome, screen_size: \[ 1400, 1400 \], options: {$/, content)
+      assert_match(/^      browser: :remote,$/, content)
+      assert_match(/^      url: "http:\/\/\#{ENV\["SELENIUM_HOST"\]}:4444"$/, content)
     end
     assert_compose_file do |compose_config|
       assert_equal "my_app", compose_config["name"]
@@ -1242,7 +1278,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_equal expected_rails_app_config, compose_config["services"]["rails-app"]
 
       expected_selenium_conifg = {
-        "image" => "seleniarm/standalone-chromium",
+        "image" => "selenium/standalone-chromium",
         "restart" => "unless-stopped",
       }
 
@@ -1333,8 +1369,64 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_devcontainer_mariadb
+  def test_devcontainer_trilogy
     run_generator [ destination_root, "--devcontainer", "-d", "trilogy" ]
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
+      expected_mysql_config = {
+        "image" => "mysql/mysql-server:8.0",
+        "restart" => "unless-stopped",
+        "environment" => {
+          "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
+          "MYSQL_ROOT_HOST" => "%"
+        },
+        "volumes" => ["mysql-data:/var/lib/mysql"],
+        "networks" => ["default"],
+      }
+
+      assert_equal expected_mysql_config, compose_config["services"]["mysql"]
+      assert_includes compose_config["volumes"].keys, "mysql-data"
+    end
+    assert_devcontainer_json_file do |content|
+      assert_equal "mysql", content["containerEnv"]["DB_HOST"]
+      assert_includes(content["forwardPorts"], 3306)
+    end
+    assert_file("config/database.yml") do |content|
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+    end
+  end
+
+  def test_devcontainer_mariadb_mysql
+    run_generator [ destination_root, "--devcontainer", "-d", "mariadb-mysql" ]
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"
+      expected_mariadb_config = {
+        "image" => "mariadb:10.5",
+        "restart" => "unless-stopped",
+        "networks" => ["default"],
+        "volumes" => ["mariadb-data:/var/lib/mysql"],
+        "environment" => {
+          "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
+        },
+      }
+
+      assert_equal expected_mariadb_config, compose_config["services"]["mariadb"]
+      assert_includes compose_config["volumes"].keys, "mariadb-data"
+    end
+    assert_devcontainer_json_file do |content|
+      assert_equal "mariadb", content["containerEnv"]["DB_HOST"]
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/mysql-client"
+      assert_includes(content["forwardPorts"], 3306)
+    end
+    assert_file("config/database.yml") do |content|
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+    end
+  end
+
+  def test_devcontainer_mariadb_trilogy
+    run_generator [ destination_root, "--devcontainer", "-d", "mariadb-trilogy" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"
@@ -1472,16 +1564,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_file "Dockerfile" do |content|
         assert_no_match "yarn", content
         assert_no_match "node-gyp", content
-      end
-    end
-
-    def run_app_update(app_root = destination_root, flags: "--force")
-      Dir.chdir(app_root) do
-        gemfile_contents = File.read("Gemfile")
-        gemfile_contents.sub!(/^(gem "rails").*/, "\\1, path: #{File.expand_path("../../..", __dir__).inspect}")
-        File.write("Gemfile", gemfile_contents)
-
-        quietly { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "bin/rails app:update #{flags}", exception: true) }
       end
     end
 

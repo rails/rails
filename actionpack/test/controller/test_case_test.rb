@@ -458,7 +458,7 @@ class TestCaseTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         namespace :admin do
-          get "user", to: "user#index"
+          get "user" => "user#index"
         end
       end
 
@@ -468,7 +468,7 @@ class TestCaseTest < ActionController::TestCase
 
   def test_assert_routing_with_glob
     with_routing do |set|
-      set.draw { get("*path", to: "pages#show") }
+      set.draw { get("*path" => "pages#show") }
       assert_routing("/company/about", controller: "pages", action: "show", path: "company/about")
     end
   end
@@ -1131,7 +1131,7 @@ module EngineControllerTests
     isolate_namespace EngineControllerTests
 
     routes.draw do
-      get "/", to: "bar#index"
+      get "/" => "bar#index"
     end
   end
 

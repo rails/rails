@@ -44,8 +44,8 @@ Repeat this process until you reach your target Rails version.
 
 To move between versions:
 
-1. Change the Rails version number in the `Gemfile` and run `bundle update`.
-2. Change the versions for Rails JavaScript packages in `package.json` and run `bin/rails javascript:install` if running jsbundling-rails
+1. Change the Rails version number in the `Gemfile` and run `bundle update rails`.
+2. Change the versions for Rails JavaScript packages in `package.json` and run `bin/rails javascript:install` if running jsbundling-rails.
 3. Run the [Update task](#the-update-task).
 4. Run your tests.
 
@@ -68,7 +68,7 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 ...
 ```
 
-Don't forget to review the difference, to see if there were any unexpected changes.
+Don't forget to review the difference, to see if there were any unexpected changes, and note that the diff and merge tools used during this process can be defined using the `THOR_DIFF` and `THOR_MERGE` environment variables.
 
 ### Configure Framework Defaults
 

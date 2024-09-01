@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "thread"
 require "concurrent/map"
 require "monitor"
 
@@ -118,6 +117,27 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
+      class WeakThreadKeyMap # :nodoc:
+        # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
+        # but it currently cause GC crashes: https://github.com/byroot/rails/pull/3
+        def initialize
+          @map = {}
+        end
+
+        def clear
+          @map.clear
+        end
+
+        def [](key)
+          @map[key]
+        end
+
+        def []=(key, value)
+          @map.select! { |c, _| c.alive? }
+          @map[key] = value
+        end
+      end
+
       class Lease # :nodoc:
         attr_accessor :connection, :sticky
 
@@ -145,48 +165,9 @@ module ActiveRecord
       end
 
       class LeaseRegistry # :nodoc:
-        if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
-          WeakKeyMap = ::ObjectSpace::WeakKeyMap # :nodoc:
-        else
-          class WeakKeyMap # :nodoc:
-            def initialize
-              @map = ObjectSpace::WeakMap.new
-              @values = nil
-              @size = 0
-            end
-
-            alias_method :clear, :initialize
-
-            def [](key)
-              prune if @map.size != @size
-              @map[key]
-            end
-
-            def []=(key, value)
-              @map[key] = value
-              prune if @map.size != @size
-              value
-            end
-
-            def delete(key)
-              if value = self[key]
-                self[key] = nil
-                prune
-              end
-              value
-            end
-
-            private
-              def prune(force = false)
-                @values = @map.values
-                @size = @map.size
-              end
-          end
-        end
-
         def initialize
           @mutex = Mutex.new
-          @map = WeakKeyMap.new
+          @map = WeakThreadKeyMap.new
         end
 
         def [](context)
@@ -197,7 +178,7 @@ module ActiveRecord
 
         def clear
           @mutex.synchronize do
-            @map = WeakKeyMap.new
+            @map.clear
           end
         end
       end
@@ -630,8 +611,6 @@ module ActiveRecord
             remove conn
           end
         end
-
-        prune_thread_cache
       end
 
       # Disconnect all connections that have been idle for at least

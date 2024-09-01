@@ -868,6 +868,61 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", klass.new.status
   end
 
+  test ":_default is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _default: :published
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_default/, error.message)
+  end
+
+  test ":_prefix is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _prefix: true
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_prefix/, error.message)
+  end
+
+  test ":_suffix is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _suffix: true
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_suffix/, error.message)
+  end
+
+  test ":_scopes is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _scopes: false
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_scopes/, error.message)
+  end
+
+  test ":_instance_methods is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _instance_methods: false
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_instance_methods/, error.message)
+  end
+
   test "scopes can be disabled by :scopes" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"

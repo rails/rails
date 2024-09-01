@@ -417,9 +417,9 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/write_session", to: "test#write_session"
-          get "/read_session", to: "test#read_session"
-          get "/reset_session", to: "test#reset_session"
+          get "/write_session" => "test#write_session"
+          get "/read_session" => "test#read_session"
+          get "/reset_session" => "test#reset_session"
         end
       RUBY
 
@@ -464,7 +464,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/test_action", to: "test#test_action"
+          get "/test_action" => "test#test_action"
         end
       RUBY
 

@@ -7,13 +7,13 @@ module ActiveRecord
     # This is the central piece that connects the encryption system with +encrypts+ declarations in the
     # model classes. Whenever you declare an attribute as encrypted, it configures an +EncryptedAttributeType+
     # for that attribute.
-    class EncryptedAttributeType < ::ActiveRecord::Type::Text
+    class EncryptedAttributeType < ::ActiveModel::Type::Value
       include ActiveModel::Type::Helpers::Mutable
 
       attr_reader :scheme, :cast_type
 
       delegate :key_provider, :downcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
-      delegate :accessor, to: :cast_type
+      delegate :accessor, :type, to: :cast_type
 
       # === Options
       #
@@ -100,7 +100,7 @@ module ActiveRecord
         end
 
         def decrypt(value)
-          text_to_database_type decrypt_as_text(value)
+          text_to_database_type decrypt_as_text(database_type_to_text(value))
         end
 
         def try_to_deserialize_with_previous_encrypted_types(value)
@@ -166,6 +166,15 @@ module ActiveRecord
         def text_to_database_type(value)
           if value && cast_type.binary?
             ActiveModel::Type::Binary::Data.new(value)
+          else
+            value
+          end
+        end
+
+        def database_type_to_text(value)
+          if value && cast_type.binary?
+            binary_cast_type = cast_type.serialized? ? cast_type.subtype : cast_type
+            binary_cast_type.deserialize(value)
           else
             value
           end

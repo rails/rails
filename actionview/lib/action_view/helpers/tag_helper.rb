@@ -73,7 +73,7 @@ module ActionView
           code_generator.class_eval do |batch|
             batch << "\n" <<
               "def #{method_name}(content = nil, escape: true, **options, &block)" <<
-              "  p :called; if content || block" <<
+              "  if content || block" <<
               "    deprecated_void_content(#{name.inspect})" <<
               "    tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
               "  else" <<

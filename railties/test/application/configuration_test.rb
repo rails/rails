@@ -3731,6 +3731,29 @@ module ApplicationTests
       assert_not_includes ActiveRecord::Base.filter_attributes, :content
     end
 
+    test "ActiveRecord::Encryption.config is ready when accessed before loading ActiveRecord::Base" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = false
+
+        config.active_record.encryption.primary_key = "dummy_key"
+        config.active_record.encryption.extend_queries = true
+      RUBY
+
+      app "development"
+
+      # Encryption config is ready to be accessed
+      assert_equal "dummy_key", ActiveRecord::Encryption.config.primary_key
+      assert ActiveRecord::Encryption.config.extend_queries
+
+      # ActiveRecord::Base is not loaded yet (lazy loading preserved)
+      active_record_loaded = ActiveRecord.autoload?(:Base).nil?
+      assert_not active_record_loaded
+
+      # When ActiveRecord::Base loaded, extended queries should be installed
+      assert ActiveRecord::Base.include?(ActiveRecord::Encryption::ExtendedDeterministicQueries::CoreQueries)
+    end
+
     test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is lazy loaded" do
       add_to_config <<-RUBY
         config.enable_reloading = false
@@ -4633,8 +4656,8 @@ module ApplicationTests
       assert_includes last_response.body, "rescued missing translation error from view"
     end
 
-    test "raise_on_missing_translations affects human_attribute_name in model" do
-      add_to_config "config.i18n.raise_on_missing_translations = true"
+    test "raise_on_missing_translations = :strict affects human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = :strict"
 
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
@@ -4644,6 +4667,21 @@ module ApplicationTests
       app "development"
 
       assert_raises I18n::MissingTranslationData do
+        Post.human_attribute_name("title")
+      end
+    end
+
+    test "raise_on_missing_translations = true does not affect human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+
+      assert_nothing_raised do
         Post.human_attribute_name("title")
       end
     end
@@ -4720,6 +4758,14 @@ module ApplicationTests
 
       assert_equal "potato", ActiveRecord::Base.lease_connection.pool.db_config.adapter
       assert_equal "SQLite", ActiveRecord::Base.lease_connection.adapter_name
+    end
+
+    test "In development mode, config.active_record.query_log_tags_enabled is true by default" do
+      restore_default_config
+
+      app "development"
+
+      assert Rails.application.config.active_record.query_log_tags_enabled
     end
 
     ["development", "production"].each do |env|

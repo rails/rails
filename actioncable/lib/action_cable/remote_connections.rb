@@ -39,45 +39,44 @@ module ActionCable
       RemoteConnection.new(server, identifier)
     end
 
-    private
-      # # Action Cable Remote Connection
-      #
-      # Represents a single remote connection found via
-      # `ActionCable.server.remote_connections.where(*)`. Exists solely for the
-      # purpose of calling #disconnect on that connection.
-      class RemoteConnection
-        class InvalidIdentifiersError < StandardError; end
+    # # Action Cable Remote Connection
+    #
+    # Represents a single remote connection found via
+    # `ActionCable.server.remote_connections.where(*)`. Exists solely for the
+    # purpose of calling #disconnect on that connection.
+    class RemoteConnection
+      class InvalidIdentifiersError < StandardError; end
 
-        include Connection::Identification, Connection::InternalChannel
+      include Connection::Identification, Connection::InternalChannel
 
-        def initialize(server, ids)
-          @server = server
-          set_identifier_instance_vars(ids)
-        end
-
-        # Uses the internal channel to disconnect the connection.
-        def disconnect(reconnect: true)
-          server.broadcast internal_channel, { type: "disconnect", reconnect: reconnect }
-        end
-
-        # Returns all the identifiers that were applied to this connection.
-        redefine_method :identifiers do
-          server.connection_identifiers
-        end
-
-        protected
-          attr_reader :server
-
-        private
-          def set_identifier_instance_vars(ids)
-            raise InvalidIdentifiersError unless valid_identifiers?(ids)
-            ids.each { |k, v| instance_variable_set("@#{k}", v) }
-          end
-
-          def valid_identifiers?(ids)
-            keys = ids.keys
-            identifiers.all? { |id| keys.include?(id) }
-          end
+      def initialize(server, ids)
+        @server = server
+        set_identifier_instance_vars(ids)
       end
+
+      # Uses the internal channel to disconnect the connection.
+      def disconnect(reconnect: true)
+        server.broadcast internal_channel, { type: "disconnect", reconnect: reconnect }
+      end
+
+      # Returns all the identifiers that were applied to this connection.
+      redefine_method :identifiers do
+        server.connection_identifiers
+      end
+
+      protected
+        attr_reader :server
+
+      private
+        def set_identifier_instance_vars(ids)
+          raise InvalidIdentifiersError unless valid_identifiers?(ids)
+          ids.each { |k, v| instance_variable_set("@#{k}", v) }
+        end
+
+        def valid_identifiers?(ids)
+          keys = ids.keys
+          identifiers.all? { |id| keys.include?(id) }
+        end
+    end
   end
 end

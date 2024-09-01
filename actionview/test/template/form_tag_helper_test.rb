@@ -9,7 +9,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   class WithActiveStorageRoutesControllers < ActionController::Base
     test_routes do
-      post "/rails/active_storage/direct_uploads", to: "active_storage/direct_uploads#create", as: :rails_direct_uploads
+      post "/rails/active_storage/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
     end
 
     def url_options

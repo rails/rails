@@ -1,3 +1,140 @@
+*   Deserialize binary data before decrypting
+
+    This ensures that we call `PG::Connection.unescape_bytea` on PostgreSQL before decryption.
+
+    *Donal McBreen*
+
+*   Ensure `ActiveRecord::Encryption.config` is always ready before access.
+
+    Previously, `ActiveRecord::Encryption` configuration was deferred until `ActiveRecord::Base`
+    was loaded. Therefore, accessing `ActiveRecord::Encryption.config` properties before
+    `ActiveRecord::Base` was loaded would give incorrect results.
+
+    `ActiveRecord::Encryption` now has its own loading hook so that its configuration is set as
+    soon as needed.
+
+    When `ActiveRecord::Base` is loaded, even lazily, it in turn triggers the loading of
+    `ActiveRecord::Encryption`, thus preserving the original behavior of having its config ready
+    before any use of `ActiveRecord::Base`.
+
+    *Maxime Réty*
+
+*   Add `TimeZoneConverter#==` method, so objects will be properly compared by
+    their type, scale, limit & precision.
+
+    Address #52699.
+
+    *Ruy Rocha*
+
+*   Add support for SQLite3 full-text-search and other virtual tables.
+
+    Previously, adding sqlite3 virtual tables messed up `schema.rb`.
+
+    Now, virtual tables can safely be added using `create_virtual_table`.
+
+    *Zacharias Knudsen*
+
+*   Support use of alternative database interfaces via the `database_cli` ActiveRecord configuration option.
+
+    ```ruby
+    Rails.application.configure do
+      config.active_record.database_cli = { postgresql: "pgcli" }
+    end
+    ```
+
+    *T S Vallender*
+
+*   Add support for dumping table inheritance and native partitioning table definitions for PostgeSQL adapter
+
+    *Justin Talbott*
+
+*   Infer default `:inverse_of` option for `delegated_type` definitions.
+
+    ```ruby
+    class Entry < ApplicationRecord
+      delegated_type :entryable, types: %w[ Message ]
+      # => defaults to inverse_of: :entry
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Add support for `ActiveRecord::Point` type casts using `Hash` values
+
+    This allows `ActiveRecord::Point` to be cast or serialized from a hash
+    with `:x` and `:y` keys of numeric values, mirroring the functionality of
+    existing casts for string and array values. Both string and symbol keys are
+    supported.
+
+    ```ruby
+    class PostgresqlPoint < ActiveRecord::Base
+      attribute :x, :point
+      attribute :y, :point
+      attribute :z, :point
+    end
+
+    val = PostgresqlPoint.new({
+      x: '(12.34, -43.21)',
+      y: [12.34, '-43.21'],
+      z: {x: '12.34', y: -43.21}
+    })
+    ActiveRecord::Point.new(12.32, -43.21) == val.x == val.y == val.z
+    ```
+
+    *Stephen Drew*
+
+*   Replace `SQLite3::Database#busy_timeout` with `#busy_handler_timeout=`.
+
+    Provides a non-GVL-blocking, fair retry interval busy handler implementation.
+
+    *Stephen Margheim*
+
+*   SQLite3Adapter: Translate `SQLite3::BusyException` into `ActiveRecord::StatementTimeout`.
+
+    *Matthew Nguyen*
+
+*   Include schema name in `enable_extension` statements in `db/schema.rb`.
+
+    The schema dumper will now include the schema name in generated
+    `enable_extension` statements if they differ from the current schema.
+
+    For example, if you have a migration:
+
+    ```ruby
+    enable_extension "heroku_ext.pgcrypto"
+    enable_extension "pg_stat_statements"
+    ```
+
+    then the generated schema dump will also contain:
+
+    ```ruby
+    enable_extension "heroku_ext.pgcrypto"
+    enable_extension "pg_stat_statements"
+    ```
+
+    *Tony Novak*
+
+*   Fix `ActiveRecord::Encryption::EncryptedAttributeType#type` to return
+    actual cast type.
+
+    *Vasiliy Ermolovich*
+
+*   SQLite3Adapter: Bulk insert fixtures.
+
+    Previously one insert command was executed for each fixture, now they are
+    aggregated in a single bulk insert command.
+
+    *Lázaro Nixon*
+
+*   PostgreSQLAdapter: Allow `disable_extension` to be called with schema-qualified name.
+
+    For parity with `enable_extension`, the `disable_extension` method can be called with a schema-qualified
+    name (e.g. `disable_extension "myschema.pgcrypto"`). Note that PostgreSQL's `DROP EXTENSION` does not
+    actually take a schema name (unlike `CREATE EXTENSION`), so the resulting SQL statement will only name
+    the extension, e.g. `DROP EXTENSION IF EXISTS "pgcrypto"`.
+
+    *Tony Novak*
+
 *   Make `create_schema` / `drop_schema` reversible in migrations.
 
     Previously, `create_schema` and `drop_schema` were irreversible migration operations.
@@ -22,7 +159,7 @@
 
 *   Raise specific exception when a connection is not defined.
 
-     The new `ConnectionNotDefined` exception provides connection name, shard and role accessors indicating the details of the connection that was requested.
+    The new `ConnectionNotDefined` exception provides connection name, shard and role accessors indicating the details of the connection that was requested.
 
     *Hana Harencarova*, *Matthew Draper*
 

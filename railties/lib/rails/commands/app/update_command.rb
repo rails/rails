@@ -69,6 +69,8 @@ module Rails
               skip_action_mailbox: !defined?(ActionMailbox::Engine),
               skip_action_text:    !defined?(ActionText::Engine),
               skip_action_cable:   !defined?(ActionCable::Engine),
+              skip_brakeman:       skip_gem?("brakeman"),
+              skip_rubocop:        skip_gem?("rubocop"),
               skip_test:           !defined?(Rails::TestUnitRailtie),
               skip_system_test:    Rails.application.config.generators.system_tests.nil?,
               asset_pipeline:      asset_pipeline,
@@ -86,6 +88,13 @@ module Rails
             else
               nil
             end
+          end
+
+          def skip_gem?(gem_name)
+            gem gem_name
+            false
+          rescue LoadError
+            true
           end
       end
     end

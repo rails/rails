@@ -20,7 +20,7 @@ services:
     - redis
 
   selenium:
-    image: seleniarm/standalone-chromium
+    image: selenium/standalone-chromium
     restart: unless-stopped
 
   redis:

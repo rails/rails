@@ -22,10 +22,12 @@ module ActiveRecord
     # * change_table_comment (must supply a +:from+ and +:to+ option)
     # * create_enum
     # * create_join_table
+    # * create_virtual_table
     # * create_table
     # * disable_extension
     # * drop_enum (must supply a list of values)
     # * drop_join_table
+    # * drop_virtual_table (must supply options)
     # * drop_table (must supply a block)
     # * enable_extension
     # * remove_column (must supply a type)
@@ -56,6 +58,7 @@ module ActiveRecord
         :add_unique_constraint, :remove_unique_constraint,
         :create_enum, :drop_enum, :rename_enum, :add_enum_value, :rename_enum_value,
         :create_schema, :drop_schema,
+        :create_virtual_table, :drop_virtual_table
       ]
       include JoinTable
 
@@ -166,6 +169,7 @@ module ActiveRecord
               enable_extension:  :disable_extension,
               create_enum:       :drop_enum,
               create_schema:     :drop_schema,
+              create_virtual_table: :drop_virtual_table
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -372,6 +376,12 @@ module ActiveRecord
           end
 
           [:rename_enum_value, [type_name, from: options[:to], to: options[:from]]]
+        end
+
+        def invert_drop_virtual_table(args)
+          _enum, values = args.dup.tap(&:extract_options!)
+          raise ActiveRecord::IrreversibleMigration, "drop_virtual_table is only reversible if given options." unless values
+          super
         end
 
         def respond_to_missing?(method, _)

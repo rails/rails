@@ -562,12 +562,12 @@ module ActiveRecord
       def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:foreign_key]
           if options[:foreign_key].is_a?(Array)
-            options[:foreign_key].map { |fk| fk.to_s.freeze }.freeze
+            options[:foreign_key].map { |fk| -fk.to_s.freeze }.freeze
           else
             options[:foreign_key].to_s.freeze
           end
         elsif options[:query_constraints]
-          options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
+          options[:query_constraints].map { |fk| -fk.to_s.freeze }.freeze
         else
           derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
 
@@ -575,7 +575,12 @@ module ActiveRecord
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
 
-          derived_fk
+          if derived_fk.is_a?(Array)
+            derived_fk.map! { |fk| -fk.freeze }
+            derived_fk.freeze
+          else
+            -derived_fk.freeze
+          end
         end
       end
 

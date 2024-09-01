@@ -215,7 +215,7 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_for_query_params_included
     rs = ActionDispatch::Routing::RouteSet.new
     rs.draw do
-      get "home", to: "pages#home"
+      get "home" => "pages#home"
     end
 
     options = {
@@ -316,7 +316,7 @@ class OptionalDefaultUrlOptionsControllerTest < ActionController::TestCase
   def test_default_url_options_override_missing_positional_arguments
     with_routing do |set|
       set.draw do
-        get "/things/:id(.:format)", to: "things#show", as: :thing
+        get "/things/:id(.:format)" => "things#show", :as => :thing
       end
       assert_equal "/things/1.atom", thing_path("1")
       assert_equal "/things/default-id.atom", thing_path

@@ -86,7 +86,7 @@ module ActiveRecord
               "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
             end.join(" ")
           end
-          find_cmd_and_exec("psql", config.database)
+          find_cmd_and_exec(ActiveRecord.database_cli[:postgresql], config.database)
         end
       end
 
@@ -284,6 +284,10 @@ module ActiveRecord
         database_version >= 15_00_00 # >= 15.0
       end
 
+      def supports_native_partitioning? # :nodoc:
+        database_version >= 10_00_00 # >= 10.0
+      end
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end
@@ -479,6 +483,7 @@ module ActiveRecord
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
       def disable_extension(name, force: false)
+        _schema, name = name.to_s.split(".").values_at(-2, -1)
         internal_exec_query("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}").tap {
           reload_type_map
         }
@@ -493,7 +498,19 @@ module ActiveRecord
       end
 
       def extensions
-        internal_exec_query("SELECT extname FROM pg_extension", "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values
+        query = <<~SQL
+          SELECT
+            pg_extension.extname,
+            n.nspname AS schema
+          FROM pg_extension
+          JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
+        SQL
+
+        internal_exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.map do |row|
+          name, schema = row[0], row[1]
+          schema = nil if schema == current_schema
+          [schema, name].compact.join(".")
+        end
       end
 
       # Returns a list of defined enum types, and their values.

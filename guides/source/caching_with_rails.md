@@ -34,7 +34,7 @@ fragment caching. By default Rails provides fragment caching. In order to use
 page and action caching you will need to add `actionpack-page_caching` and
 `actionpack-action_caching` to your `Gemfile`.
 
-By default, caching is only enabled in your production environment. You can play
+By default, Action Controller caching is only enabled in your production environment. You can play
 around with caching locally by running `rails dev:cache`, or by setting
 [`config.action_controller.perform_caching`][] to `true` in `config/environments/development.rb`.
 
@@ -721,9 +721,11 @@ response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 Caching in Development
 ----------------------
 
-It's common to want to test the caching strategy of your application
-in development mode. Rails provides the rails command `dev:cache` to
-easily toggle caching on/off.
+By default, caching is *enabled* in development mode with
+[`:memory_store`](#activesupport-cache-memorystore).
+
+Rails also provides the rails command `dev:cache` to
+easily toggle Action Controller caching on/off.
 
 ```bash
 $ bin/rails dev:cache
@@ -732,8 +734,7 @@ $ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
 
-By default, when development mode caching is *off*, Rails uses
-[`:null_store`](#activesupport-cache-nullstore).
+To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
 
 References
 ----------

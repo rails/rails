@@ -109,7 +109,7 @@ module Rails
     end
 
     def bin
-      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      exclude_pattern = Regexp.union([(/thrust/ if skip_thruster?), (/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
       directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
@@ -206,7 +206,7 @@ module Rails
     end
 
     def database_yml
-      template "config/databases/#{options[:database]}.yml", "config/database.yml"
+      template database.template, "config/database.yml"
     end
 
     def db
@@ -223,6 +223,8 @@ module Rails
     end
 
     def public_directory
+      return if options[:update] && options[:api]
+
       directory "public", "public", recursive: false
     end
 
@@ -281,10 +283,6 @@ module Rails
   end
 
   module Generators
-    # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
-    # can change in Ruby 1.8.7 when we FileUtils.cd.
-    RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
-
     class AppGenerator < AppBase
       # :stopdoc:
 
@@ -491,6 +489,7 @@ module Rails
             remove_dir "app/views"
           else
             remove_file "app/views/layouts/application.html.erb"
+            remove_dir  "app/views/pwa"
           end
         end
       end

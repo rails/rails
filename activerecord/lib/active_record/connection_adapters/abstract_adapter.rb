@@ -595,6 +595,14 @@ module ActiveRecord
       def rename_enum_value(*) # :nodoc:
       end
 
+      # This is meant to be implemented by the adapters that support virtual tables
+      def create_virtual_table(*) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support virtual tables
+      def drop_virtual_table(*) # :nodoc:
+      end
+
       def advisory_locks_enabled? # :nodoc:
         supports_advisory_locks? && @advisory_locks_enabled
       end
@@ -1143,10 +1151,6 @@ module ActiveRecord
           else
             ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds, connection_pool: @pool)
           end
-        end
-
-        def without_prepared_statement?(binds)
-          !prepared_statements || binds.nil? || binds.empty?
         end
 
         def column_for(table_name, column_name)

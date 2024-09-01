@@ -653,7 +653,7 @@ class LiveStreamRouterTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    get "/test", to: "live_stream_router_test/test#index"
+    get "/test" => "live_stream_router_test/test#index"
   end
 
   def app

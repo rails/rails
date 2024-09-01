@@ -477,7 +477,7 @@ module RailtiesTest
         end
 
         Rails.application.routes.draw do
-          get "/sprokkit", to: Sprokkit
+          get "/sprokkit", :to => Sprokkit
         end
       RUBY
 
@@ -498,7 +498,7 @@ module RailtiesTest
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get 'foo', to: 'foo#index'
+          get 'foo', :to => 'foo#index'
         end
       RUBY
 
@@ -668,6 +668,8 @@ en:
 
       add_to_config "config.middleware.use Bukkits"
       boot_rails
+
+      assert_includes Rails.application.middleware.map(&:klass), Bukkits, "Bukkits middleware should be in the middleware stack"
     end
 
     test "initializers are executed after application configuration initializers" do
@@ -717,7 +719,7 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          mount(Bukkits::Engine, at: "/bukkits")
+          mount(Bukkits::Engine => "/bukkits")
         end
       RUBY
 
@@ -744,7 +746,7 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          mount(Bukkits::Engine, at: "/:username")
+          mount(Bukkits::Engine => "/:username")
         end
       RUBY
 
@@ -764,13 +766,13 @@ en:
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          get "/foo", to: lambda { |env| [200, {'Content-Type' => 'text/html'}, ['foo']] }
+          get "/foo" => lambda { |env| [200, {'Content-Type' => 'text/html'}, ['foo']] }
         end
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          mount(Bukkits::Engine, at: "/bukkits")
+          mount(Bukkits::Engine => "/bukkits")
         end
       RUBY
 
@@ -854,18 +856,18 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/bar", to: "bar#index", as: "bar"
-          mount Bukkits::Engine, at: "/bukkits", as: "bukkits"
+          get "/bar" => "bar#index", as: "bar"
+          mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          get "/foo", to: "foo#index", as: "foo"
-          get "/foo/show", to: "foo#show"
-          get "/from_app", to: "foo#from_app"
-          get "/routes_helpers_in_view", to: "foo#routes_helpers_in_view"
-          get "/polymorphic_path_without_namespace", to: "foo#polymorphic_path_without_namespace"
+          get "/foo" => "foo#index", as: "foo"
+          get "/foo/show" => "foo#show"
+          get "/from_app" => "foo#from_app"
+          get "/routes_helpers_in_view" => "foo#routes_helpers_in_view"
+          get "/polymorphic_path_without_namespace" => "foo#polymorphic_path_without_namespace"
           resources :posts
         end
       RUBY
@@ -950,8 +952,8 @@ en:
       assert_equal "bukkits_", Bukkits.table_name_prefix
       assert_equal "bukkits", Bukkits::Engine.engine_name
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
-      assert ::Bukkits::MyMailer.method_defined?(:foo_url)
-      assert_not ::Bukkits::MyMailer.method_defined?(:bar_url)
+      assert ::Bukkits::MyMailer.new.respond_to?(:foo_url)
+      assert_not ::Bukkits::MyMailer.new.respond_to?(:bar_url)
 
       get("/bar")
       assert_equal "/bar", last_response.body
@@ -1000,7 +1002,7 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          mount Bukkits::Engine, at: "/bukkits", as: "bukkits"
+          mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 
@@ -1044,13 +1046,13 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          mount Bukkits::Awesome::Engine, at: "/bukkits", as: "bukkits"
+          mount Bukkits::Awesome::Engine => "/bukkits", :as => "bukkits"
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Awesome::Engine.routes.draw do
-          get "/foo", to: "foo#index"
+          get "/foo" => "foo#index"
         end
       RUBY
 
@@ -1101,7 +1103,7 @@ en:
         end
 
         Bukkits::Engine.routes.draw do
-          get "/foo", to: "foo#index"
+          get "/foo" => "foo#index"
 
           mount Bukkits::Awesome::Engine, at: "/awesome"
         end
@@ -1260,8 +1262,8 @@ en:
       # file has changed
       add_to_config <<-RUBY
         routes do
-          mount lambda{|env| [200, {}, ["foo"]]}, at: "/foo"
-          mount Bukkits::Engine, at: "/bukkits"
+          mount lambda{|env| [200, {}, ["foo"]]} => "/foo"
+          mount Bukkits::Engine => "/bukkits"
         end
       RUBY
 
@@ -1269,7 +1271,7 @@ en:
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          mount lambda{|env| [200, {}, ["bar"]]}, at: "/bar"
+          mount lambda{|env| [200, {}, ["bar"]]} => "/bar"
         end
       RUBY
 
@@ -1483,8 +1485,8 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/foo", to: "main#foo"
-          get "/bar", to: "main#bar"
+          get "/foo" => "main#foo"
+          get "/bar" => "main#bar"
         end
       RUBY
 
@@ -1579,7 +1581,7 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/foo", to: "main#foo"
+          get "/foo" => "main#foo"
         end
       RUBY
 
@@ -1634,7 +1636,7 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          mount Bukkits::Engine, at: "/"
+          mount Bukkits::Engine => "/"
         end
       RUBY
 
@@ -1670,14 +1672,14 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get '/bar', to: 'bar#index', as: 'bar'
-          mount Bukkits::Engine, at: "/bukkits", as: "bukkits"
+          get '/bar' => 'bar#index', :as => 'bar'
+          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          get '/bukkit', to: 'bukkit#index'
+          get '/bukkit' => 'bukkit#index'
         end
       RUBY
 
@@ -1723,14 +1725,14 @@ en:
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get '/bar', to: 'bar#index', as: 'bar'
-          mount Bukkits::Engine, at: "/bukkits", as: "bukkits"
+          get '/bar' => 'bar#index', :as => 'bar'
+          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          get '/bukkit', to: 'bukkit#index'
+          get '/bukkit' => 'bukkit#index'
         end
       RUBY
 
@@ -1781,15 +1783,15 @@ en:
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           scope "/fruits" do
-            mount Bukkits::Engine, at: "/bukkits", as: :fruit_bukkits
+            mount Bukkits::Engine => "/bukkits", as: :fruit_bukkits
           end
 
           scope "/vegetables" do
-            mount Bukkits::Engine, at: "/bukkits", as: :vegetable_bukkits
+            mount Bukkits::Engine => "/bukkits", as: :vegetable_bukkits
           end
 
-          get "/through_fruits", to: "foos#through_fruits"
-          get "/through_vegetables", to: "foos#through_vegetables"
+          get "/through_fruits" => "foos#through_fruits"
+          get "/through_vegetables" => "foos#through_vegetables"
         end
       RUBY
 
@@ -1824,15 +1826,15 @@ en:
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           resources :fruits do
-            mount Bukkits::Engine, at: "/bukkits"
+            mount Bukkits::Engine => "/bukkits"
           end
 
           resources :vegetables do
-            mount Bukkits::Engine, at: "/bukkits"
+            mount Bukkits::Engine => "/bukkits"
           end
 
-          get "/through_fruits", to: "foos#through_fruits"
-          get "/through_vegetables", to: "foos#through_vegetables"
+          get "/through_fruits" => "foos#through_fruits"
+          get "/through_vegetables" => "foos#through_vegetables"
         end
       RUBY
 
@@ -1863,7 +1865,7 @@ en:
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           resources :fruits do
-            mount Bukkits::Engine, at: "/bukkits"
+            mount Bukkits::Engine => "/bukkits"
           end
         end
       RUBY

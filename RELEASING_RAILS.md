@@ -159,7 +159,7 @@ Add some context for users as to the purpose of this release (bugfix/security).
 If this is a part of the latest release series, update `_data/version.yml` so
 that the homepage points to the latest version.
 
-### Post the announcement to the Rails Twitter account.
+### Post the announcement to the Rails X account.
 
 ## Security releases
 
@@ -179,7 +179,7 @@ and links to each patch. Some people may not be able to upgrade right away,
 so we need to give them the security fixes in patch form.
 
 * Blog announcements
-* Twitter announcements
+* X announcements
 * Merge the release branch to the stable branch
 * Drink beer (or other cocktail)
 

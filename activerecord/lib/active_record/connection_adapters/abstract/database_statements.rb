@@ -102,16 +102,16 @@ module ActiveRecord
         select_all(arel, name, binds, async: async).then(&:rows)
       end
 
-      def query_value(sql, name = nil) # :nodoc:
-        single_value_from_rows(query(sql, name))
+      def query_value(...) # :nodoc:
+        single_value_from_rows(query(...))
       end
 
-      def query_values(sql, name = nil) # :nodoc:
-        query(sql, name).map(&:first)
+      def query_values(...) # :nodoc:
+        query(...).map(&:first)
       end
 
-      def query(sql, name = nil) # :nodoc:
-        internal_exec_query(sql, name).rows
+      def query(...) # :nodoc:
+        internal_exec_query(...).rows
       end
 
       # Determines whether the SQL statement is a write query.
@@ -558,7 +558,7 @@ module ActiveRecord
           end
         end
 
-        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
           raise NotImplementedError
         end
 
@@ -591,9 +591,9 @@ module ActiveRecord
           raw_execute(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions, &block)
         end
 
-        def execute_batch(statements, name = nil)
+        def execute_batch(statements, name = nil, **kwargs)
           statements.each do |statement|
-            raw_execute(statement, name)
+            raw_execute(statement, name, **kwargs)
           end
         end
 

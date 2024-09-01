@@ -13,11 +13,11 @@ class InfoControllerTest < ActionController::TestCase
       namespace :test do
         get :nested_route, to: "test#show"
       end
-      get "/rails/info/properties", to: "rails/info#properties"
-      get "/rails/info/routes", to: "rails/info#routes"
-      get "/rails/info/notes", to: "rails/info#notes"
-      post "/rails/:test/properties", to: "rails/info#properties"
-      put "/rails/:test/named_properties", to: "rails/info#properties", as: "named_rails_info_properties"
+      get "/rails/info/properties" => "rails/info#properties"
+      get "/rails/info/routes" => "rails/info#routes"
+      get "/rails/info/notes" => "rails/info#notes"
+      post "/rails/:test/properties" => "rails/info#properties"
+      put "/rails/:test/named_properties" => "rails/info#properties", as: "named_rails_info_properties"
     end
     @routes = Rails.application.routes
 

@@ -692,7 +692,7 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby `Logge
 
 #### `config.assets.quiet`
 
-Disables logging of assets requests. Set to `true` by default in `development.rb`.
+Disables logging of assets requests. Set to `true` by default in `config/environments/development.rb`.
 
 ### Configuring Generators
 
@@ -937,7 +937,7 @@ Sets the path Rails uses to look for locale files. Defaults to `config/locales/*
 
 #### `config.i18n.raise_on_missing_translations`
 
-Determines whether an error should be raised for missing translations. This defaults to `false`.
+Determines whether an error should be raised for missing translations. If `true`, views and controllers raise `I18n::MissingTranslationData`. If `:strict`, models also raise the error. This defaults to `false`.
 
 #### `config.i18n.fallbacks`
 
@@ -1632,6 +1632,19 @@ warning, or neither.
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
 | (original)            | `true`               |
+
+#### config.active_record.database_cli
+
+Controls which CLI tool will be used for accessing the database when running `rails dbconsole`. By default
+the standard tool for the database will be used (e.g. `psql` for PostgreSQL and `mysql` for MySQL). The option
+takes a hash which specifies the tool per-database system, and an array can be used where fallback options are
+required:
+
+```ruby
+# config/application.rb
+
+config.active_record.database_cli = { postgresql: "pgcli", mysql: %w[ mycli mysql ] }
+```
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 
@@ -2845,8 +2858,7 @@ It can be set to:
 * `:always` - Always defer the enqueue.
 * `:default` - Let the queue adapter define the behaviour.
 
-Active Job backends that use the same database as Active Record as a queue,
-should generally prevent the deferring, and others should allow it.
+Each Active Job backend defines its own default behaviour for this, with some adapters preventing the deferring and others allowing it, so make sure to check that as well if you're opting for `:default`.
 
 Example:
 
@@ -3336,7 +3348,7 @@ Now the behavior is clear, that we are only using the connection information in 
 
 #### Configuring an SQLite3 Database
 
-Rails comes with built-in support for [SQLite3](http://www.sqlite.org), which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
+Rails comes with built-in support for [SQLite3](https://www.sqlite.org), which is a lightweight serverless database application. While Rails better configures SQLite for production workloads, a busy production environment may overload SQLite. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
 
 Here's the section of the default configuration file (`config/database.yml`) with connection information for the development environment:
 
@@ -3743,6 +3755,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveModel::Model`                 | `active_model`                       |
 | `ActiveModel::Translation`           | `active_model_translation`           |
 | `ActiveRecord::Base`                 | `active_record`                      |
+| `ActiveRecord::Encryption`           | `active_record_encryption`           |
 | `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
 | `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter`    | `active_record_postgresqladapter`    |
 | `ActiveRecord::ConnectionAdapters::Mysql2Adapter`        | `active_record_mysql2adapter`        |
