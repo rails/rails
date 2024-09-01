@@ -2568,7 +2568,7 @@ allows Active Record to:
     => true
     ```
 
-* Automatic Saving of Associations in more cases:
+* Automatic saving of associations in more cases:
 
     ```irb
     irb> author = Author.new
