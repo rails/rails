@@ -43,7 +43,7 @@ NOTE: Using the Rails' error reporter is not required. All other means of captur
 
 ### Subscribing to the Reporter
 
-To use the error reporter, you need a _subscriber_. A subscriber can be any object with a `report` method. When an error occurs in your application or is manually reported, the Rails error reporter will call this method with the error object and some options.
+To use the error reporter with an external service, you need a _subscriber_. A subscriber can be any object with a `report` method. When an error occurs in your application or is manually reported, the Rails error reporter will call this method with the error object and some options.
 
 NOTE: Some error-reporting libraries, such as [Sentry's](https://github.com/getsentry/sentry-ruby/blob/e18ce4b6dcce2ebd37778c1e96164684a1e9ebfc/sentry-rails/lib/sentry/rails/error_subscriber.rb) and [Honeybadger's](https://docs.honeybadger.io/lib/ruby/integration-guides/rails-exception-tracking/), automatically register a subscriber for you. Consult your provider's documentation for more details.
 
@@ -66,7 +66,7 @@ Rails.error.subscribe(ErrorSubscriber.new)
 
 You can register as many subscribers as you wish. Rails will call them in turn, in the order in which they were registered.
 
-It is also possible to unregister a subscriber by calling [`Rails.error.unsubscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-unsubscribe). Both `subscribe` and `unsubscribe` can take either a subscriber or a class as follows:
+It is also possible to unregister a subscriber by calling [`Rails.error.unsubscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-unsubscribe). This may be useful if you'd like to replace or remove a subscriber added by one of your dependencies. Both `subscribe` and `unsubscribe` can take either a subscriber or a class as follows:
 
 ```ruby
 subscriber = ErrorSubscriber.new
@@ -75,7 +75,7 @@ Rails.error.unsubscribe(subscriber)
 Rails.error.unsubscribe(ErrorSubscriber)
 ```
 
-NOTE: The Rails error-reporter will always call registered subscribers, regardless of your environment. However, many error-reporting services only report errors in production by default. You should configure and test your setup across environments as needed.
+NOTE: The Rails error reporter will always call registered subscribers, regardless of your environment. However, many error-reporting services only report errors in production by default. You should configure and test your setup across environments as needed.
 
 ### Using the Error Reporter
 
@@ -134,7 +134,7 @@ You can report any errors that may unexpectedly occur when the imagined conditio
 
 When called in production, this method will return nil after the error is reported and the execution of your code will continue.
 
-When called in development, the error will be wrapped in a new error class (to ensure it's not being rescued higher in the stack) and surfaced to the developer.
+When called in development, the error will be wrapped in a new error class (to ensure it's not being rescued higher in the stack) and surfaced to the developer for debugging.
 
 For example:
 
@@ -151,7 +151,7 @@ NOTE: This method is intended to gracefully handle any errors that may occur in 
 
 ### Error-reporting Options
 
-All 3 reporting APIs (`#handle`, `#record`, and `#report`) support the following options, which are then passed along to all registered subscribers:
+The reporting APIs `#handle`, `#record`, and `#report` support the following options, which are then passed along to all registered subscribers:
 
 - `handled`: a `Boolean` to indicate if the error was handled. This is set to `true` by default. `#record` sets this to `false`.
 - `severity`: a `Symbol` describing the severity of the error. Expected values are: `:error`, `:warning`, and `:info`. `#handle` sets this to `:warning`, while `#record` sets it to `:error`.
@@ -203,7 +203,7 @@ Rails.error.disable(ErrorSubscriber) do
   1 + '1' # TypeError will not be reported via the ErrorSubscriber
 end
 ```
-NOTE: This can also be helpful for third-party error reporting services who may want to manage error handling on their own.
+NOTE: This can also be helpful for third-party error reporting services who may want to manage error handling a different way, or higher in the stack.
 
 
 Error-reporting Libraries
