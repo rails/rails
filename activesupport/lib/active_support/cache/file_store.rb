@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "zlib"
 require "active_support/core_ext/file/atomic"
 require "active_support/core_ext/string/conversions"
 require "uri/common"
