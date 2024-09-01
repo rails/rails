@@ -30,6 +30,7 @@ module ActionView
 
       # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
+      # <tt>form_tag</tt> is soft-deprecated, it is recommended to use form_with instead.
       #
       # ==== Options
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".

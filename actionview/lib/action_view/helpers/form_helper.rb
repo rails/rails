@@ -121,7 +121,8 @@ module ActionView
       attr_internal :default_form_builder
 
       # Creates a form that allows the user to create or update the attributes
-      # of a specific model object.
+      # of a specific model object. +form_for+ is soft-deprecated, it is
+      # recommended to use form_with instead.
       #
       # The method can be used in several slightly different ways, depending on
       # how much you wish to rely on \Rails to infer automatically from the model
