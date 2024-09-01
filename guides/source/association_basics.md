@@ -2051,7 +2051,8 @@ includes all attributes of all subclasses in a single table.
 
 A disadvantage of this approach is that it can result in table bloat, as the
 table will include attributes specific to each subclass, even if they aren't
-used by others.
+used by others. This can be solved by using [`Delegated
+Types`](#delegated-types).
 
 Additionally, if you’re using [polymorphic
 associations](#polymorphic-associations), where a model can belong to more than
@@ -2330,7 +2331,6 @@ class AddAuthorToBooks < ActiveRecord::Migration[7.2]
 end
 ```
 
-
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
 If you create a `has_and_belongs_to_many` association, you need to explicitly
@@ -2339,16 +2339,6 @@ by using the `:join_table` option, Active Record creates the name by using the
 lexical order of the class names. So a join between author and book models will
 give the default join table name of "authors_books" because "a" outranks "b" in
 lexical ordering.
-
-WARNING: The precedence between model names is calculated using the `<=>`
-operator for `String`. This means that if the strings are of different lengths,
-and the strings are equal when compared up to the shortest length, then the
-longer string is considered of higher lexical precedence than the shorter one.
-For example, one would expect the tables "paper_boxes" and "papers" to generate
-a join table name of "papers_paper_boxes" because of the length of the name
-"paper_boxes", but it in fact generates a join table name of
-"paper_boxes_papers" (because the underscore '\_' is lexicographically _less_
-than 's' in common encodings).
 
 Whatever the name, you must manually generate the join table with an appropriate
 migration. For example, consider these associations:
@@ -2404,6 +2394,8 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
   end
 end
 ```
+
+You can read more about the `create_join_table` method in the [Active Record Migration Guides](active_record_migrations.html#creating-a-join-table)
 
 #### Creating Join Tables for `has_many :through` Associations
 
