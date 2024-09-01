@@ -429,22 +429,14 @@ You can also pass in a custom message via the `message` option.
 
 These options are all supported:
 
-<!-- TODO, maybe make into a table -->
-* `:greater_than` - Specifies the value must be greater than the supplied
-  value. The default error message for this option is _"must be greater than
-  %{count}"_.
-* `:greater_than_or_equal_to` - Specifies the value must be greater than or
-  equal to the supplied value. The default error message for this option is
-  _"must be greater than or equal to %{count}"_.
-* `:equal_to` - Specifies the value must be equal to the supplied value. The
-  default error message for this option is _"must be equal to %{count}"_.
-* `:less_than` - Specifies the value must be less than the supplied value. The
-  default error message for this option is _"must be less than %{count}"_.
-* `:less_than_or_equal_to` - Specifies the value must be less than or equal to
-  the supplied value. The default error message for this option is _"must be
-  less than or equal to %{count}"_.
-* `:other_than` - Specifies the value must be other than the supplied value.
-  The default error message for this option is _"must be other than %{count}"_.
+| Option                      | Description                                                               | Default Error Message                       |
+| --------------------------- | ------------------------------------------------------------------------- | ------------------------------------------- |
+| `:greater_than`             | Specifies the value must be greater than the supplied value.              | "must be greater than %{count}"             |
+| `:greater_than_or_equal_to` | Specifies the value must be greater than or equal to the supplied value.  | "must be greater than or equal to %{count}" |
+| `:equal_to`                 | Specifies the value must be equal to the supplied value.                  | "must be equal to %{count}"                 |
+| `:less_than`                | Specifies the value must be less than the supplied value.                 | "must be less than %{count}"                |
+| `:less_than_or_equal_to`    | Specifies the value must be less than or equal to the supplied value.     | "must be less than or equal to %{count}"    |
+| `:other_than`               | Specifies the value must be other than the supplied value.                | "must be other than %{count}"               |
 
 NOTE: The validator requires a compare option be supplied. Each option accepts a
 value, proc, or symbol. Any class that includes Comparable can be compared.
@@ -544,15 +536,14 @@ class Person < ApplicationRecord
 end
 ```
 
-<!-- TODO: maybe a table -->
-
 The possible length constraint options are:
 
-* `:minimum` - The attribute cannot have less than the specified length.
-* `:maximum` - The attribute cannot have more than the specified length.
-* `:in` (or `:within`) - The attribute length must be included in a given
-  interval. The value for this option must be a range.
-* `:is` - The attribute length must be equal to the given value.
+| Option     | Description                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------------------------ |
+| `:minimum` | The attribute cannot have less than the specified length.                                              |
+| `:maximum` | The attribute cannot have more than the specified length.                                              |
+| `:in`      | The attribute length must be included in a given interval. The value for this option must be a range.  |
+| `:is`      | The attribute length must be equal to the given value.                                                 |
 
 The default error messages depend on the type of length validation being
 performed. You can customize these messages using the `:wrong_length`,
@@ -616,29 +607,18 @@ The default error message when no options are specified is _"is not a number"_.
 There are also many options that can be used to add constraints to acceptable
 values:
 
-<!-- TODO convert to table -->
+| Option                      | Description                                                              | Default Error Message                       |
+| --------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
+| `:greater_than`             | Specifies the value must be greater than the supplied value.             | "must be greater than %{count}"             |
+| `:greater_than_or_equal_to` | Specifies the value must be greater than or equal to the supplied value. | "must be greater than or equal to %{count}" |
+| `:equal_to`                 | Specifies the value must be equal to the supplied value.                 | "must be equal to %{count}"                 |
+| `:less_than`                | Specifies the value must be less than the supplied value.                | "must be less than %{count}"                |
+| `:less_than_or_equal_to`    | Specifies the value must be less than or equal to the supplied value.    | "must be less than or equal to %{count}"    |
+| `:other_than`               | Specifies the value must be other than the supplied value.               | "must be other than %{count}"               |
+| `:in`                       | Specifies the value must be in the supplied range.                       | "must be in %{count}"                       |
+| `:odd`                      | Specifies the value must be an odd number.                               | "must be odd"                               |
+| `:even`                     | Specifies the value must be an even number.                              | "must be even"                              |
 
-* `:greater_than` - Specifies the value must be greater than the supplied
-  value. The default error message for this option is _"must be greater than
-  %{count}"_.
-* `:greater_than_or_equal_to` - Specifies the value must be greater than or
-  equal to the supplied value. The default error message for this option is
-  _"must be greater than or equal to %{count}"_.
-* `:equal_to` - Specifies the value must be equal to the supplied value. The
-  default error message for this option is _"must be equal to %{count}"_.
-* `:less_than` - Specifies the value must be less than the supplied value. The
-  default error message for this option is _"must be less than %{count}"_.
-* `:less_than_or_equal_to` - Specifies the value must be less than or equal to
-  the supplied value. The default error message for this option is _"must be
-  less than or equal to %{count}"_.
-* `:other_than` - Specifies the value must be other than the supplied value.
-  The default error message for this option is _"must be other than %{count}"_.
-* `:in` - Specifies the value must be in the supplied range.
-  The default error message for this option is _"must be in %{count}"_.
-* `:odd` - Specifies the value must be an odd number. The default error message
-  for this option is _"must be odd"_.
-* `:even` - Specifies the value must be an even number. The default error
-  message for this option is _"must be even"_.
 
 ### `presence`
 
