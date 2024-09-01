@@ -794,7 +794,7 @@ books.reload
 [`collection.where`]:
     https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
 
-##### `collection`
+##### Managing the Collection
 
 The `collection` method returns a Relation of all of the associated objects. If
 there are no associated objects, it returns an empty Relation.
@@ -802,17 +802,6 @@ there are no associated objects, it returns an empty Relation.
 ```ruby
 @books = @author.books
 ```
-
-##### `collection<<(object, ...)`
-
-The [`collection<<`][] method adds one or more objects to the collection by
-setting their foreign keys to the primary key of the calling model.
-
-```ruby
-@author.books << @book1
-```
-
-##### `collection.delete(object, ...)`
 
 The [`collection.delete`][] method removes one or more objects from the
 collection by setting their foreign keys to `NULL`.
@@ -825,8 +814,6 @@ WARNING: Additionally, objects will be destroyed if they're associated with
 `dependent: :destroy`, and deleted if they're associated with `dependent:
 :delete_all`.
 
-##### `collection.destroy(object, ...)`
-
 The [`collection.destroy`][] method removes one or more objects from the
 collection by running `destroy` on each object.
 
@@ -837,33 +824,10 @@ collection by running `destroy` on each object.
 WARNING: Objects will _always_ be removed from the database, ignoring the
 `:dependent` option.
 
-##### `collection=(objects)`
-
-The `collection=` method makes the collection contain only the supplied objects,
-by adding and deleting as appropriate. The changes are persisted to the
-database.
-
-##### `collection_singular_ids`
-
-The `collection_singular_ids` method returns an array of the ids of the objects
-in the collection.
-
-```ruby
-@book_ids = @author.book_ids
-```
-
-##### `collection_singular_ids=(ids)`
-
-The `collection_singular_ids=` method makes the collection contain only the
-objects identified by the supplied primary key values, by adding and deleting as
-appropriate. The changes are persisted to the database.
-
-##### `collection.clear`
-
 The [`collection.clear`][] method removes all objects from the collection
 according to the strategy specified by the `dependent` option. If no option is
-given, it follows the default strategy. The default strategy for `has_many
-:through` associations is `delete_all`, and for `has_many` associations is to
+given, it follows the default strategy. The default strategy for `has_many :through`
+associations is `delete_all`, and for `has_many` associations is to
 set the foreign keys to `NULL`.
 
 ```ruby
@@ -873,7 +837,32 @@ set the foreign keys to `NULL`.
 WARNING: Objects will be deleted if they're associated with `dependent:
 :destroy` or `dependent: :destroy_async`, just like `dependent: :delete_all`.
 
-##### `collection.empty?`
+The [`collection.reload`][] method returns a Relation of all of the associated
+objects, forcing a database read. If there are no associated objects, it returns
+an empty Relation.
+
+```ruby
+@books = @author.books.reload
+```
+
+##### Assigning the Collection
+
+The `collection=(objects)` method makes the collection contain only the supplied objects,
+by adding and deleting as appropriate. The changes are persisted to the
+database.
+
+The `collection_singular_ids=(ids)` method makes the collection contain only the
+objects identified by the supplied primary key values, by adding and deleting as
+appropriate. The changes are persisted to the database.
+
+##### Querying the Collection
+
+The `collection_singular_ids` method returns an array of the ids of the objects
+in the collection.
+
+```ruby
+@book_ids = @author.book_ids
+```
 
 The [`collection.empty?`][] method returns `true` if the collection does not
 contain any associated objects.
@@ -884,8 +873,6 @@ contain any associated objects.
 <% end %>
 ```
 
-##### `collection.size`
-
 The [`collection.size`][] method returns the number of objects in the
 collection.
 
@@ -893,15 +880,11 @@ collection.
 @book_count = @author.books.size
 ```
 
-##### `collection.find(...)`
-
 The [`collection.find`][] method finds objects within the collection's table.
 
 ```ruby
 @available_book = @author.books.find(1)
 ```
-
-##### `collection.where(...)`
 
 The [`collection.where`][] method finds objects within the collection based on
 the conditions supplied but the objects are loaded lazily meaning that the
@@ -912,12 +895,10 @@ database is queried only when the object(s) are accessed.
 @available_book = @available_books.first # Now the database will be queried
 ```
 
-##### `collection.exists?(...)`
-
 The [`collection.exists?`][] method checks whether an object meeting the
 supplied conditions exists in the collection's table.
 
-##### `collection.build(attributes = {})`
+##### Building and Creating Associated Objects
 
 The [`collection.build`][] method returns a single or array of new objects of
 the associated type. The object(s) will be instantiated from the passed
@@ -933,8 +914,6 @@ associated objects will _not_ yet be saved.
   { published_at: Time.now, book_number: "A12347" }
 ])
 ```
-
-##### `collection.create(attributes = {})`
 
 The [`collection.create`][] method returns a single or array of new objects of
 the associated type. The object(s) will be instantiated from the passed
@@ -952,20 +931,8 @@ object _will_ be saved.
 ])
 ```
 
-##### `collection.create!(attributes = {})`
-
-Does the same as `collection.create` above, but raises
-`ActiveRecord::RecordInvalid` if the record is invalid.
-
-##### `collection.reload`
-
-The [`collection.reload`][] method returns a Relation of all of the associated
-objects, forcing a database read. If there are no associated objects, it returns
-an empty Relation.
-
-```ruby
-@books = @author.books.reload
-```
+`collection.create!` does the same as `collection.create`, but
+raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 ##### When are Objects Saved?
 
@@ -1319,7 +1286,7 @@ assemblies.create!(attributes = {})
 assemblies.reload
 ```
 
-##### `collection`
+##### Managing the Collection
 
 The `collection` method returns a Relation of all of the associated objects. If
 there are no associated objects, it returns an empty Relation.
@@ -1327,8 +1294,6 @@ there are no associated objects, it returns an empty Relation.
 ```ruby
 @assemblies = @part.assemblies
 ```
-
-##### `collection<<(object, ...)`
 
 The [`collection<<`][] method adds one or more objects to the collection by
 creating records in the join table.
@@ -1339,8 +1304,6 @@ creating records in the join table.
 
 NOTE: This method is aliased as `collection.concat` and `collection.push`.
 
-##### `collection.delete(object, ...)`
-
 The [`collection.delete`][] method removes one or more objects from the
 collection by deleting records in the join table. This does not destroy the
 objects.
@@ -1348,8 +1311,6 @@ objects.
 ```ruby
 @part.assemblies.delete(@assembly1)
 ```
-
-##### `collection.destroy(object, ...)`
 
 The [`collection.destroy`][] method removes one or more objects from the
 collection by deleting records in the join table. This does not destroy the
@@ -1359,13 +1320,22 @@ objects.
 @part.assemblies.destroy(@assembly1)
 ```
 
-##### `collection=(objects)`
+The [`collection.clear`][] method removes every object from the collection by
+deleting the rows from the joining table. This does not destroy the associated
+objects.
+
+
+##### Assigning the Collection
 
 The `collection=` method makes the collection contain only the supplied objects,
 by adding and deleting as appropriate. The changes are persisted to the
 database.
 
-##### `collection_singular_ids`
+The `collection_singular_ids=` method makes the collection contain only the
+objects identified by the supplied primary key values, by adding and deleting as
+appropriate. The changes are persisted to the database.
+
+##### Querying the Collection
 
 The `collection_singular_ids` method returns an array of the ids of the objects
 in the collection.
@@ -1373,20 +1343,6 @@ in the collection.
 ```ruby
 @assembly_ids = @part.assembly_ids
 ```
-
-##### `collection_singular_ids=(ids)`
-
-The `collection_singular_ids=` method makes the collection contain only the
-objects identified by the supplied primary key values, by adding and deleting as
-appropriate. The changes are persisted to the database.
-
-##### `collection.clear`
-
-The [`collection.clear`][] method removes every object from the collection by
-deleting the rows from the joining table. This does not destroy the associated
-objects.
-
-##### `collection.empty?`
 
 The [`collection.empty?`][] method returns `true` if the collection does not
 contain any associated objects.
@@ -1397,8 +1353,6 @@ contain any associated objects.
 <% end %>
 ```
 
-##### `collection.size`
-
 The [`collection.size`][] method returns the number of objects in the
 collection.
 
@@ -1406,15 +1360,11 @@ collection.
 @assembly_count = @part.assemblies.size
 ```
 
-##### `collection.find(...)`
-
 The [`collection.find`][] method finds objects within the collection's table.
 
 ```ruby
 @assembly = @part.assemblies.find(1)
 ```
-
-##### `collection.where(...)`
 
 The [`collection.where`][] method finds objects within the collection based on
 the conditions supplied but the objects are loaded lazily meaning that the
@@ -1424,12 +1374,11 @@ database is queried only when the object(s) are accessed.
 @new_assemblies = @part.assemblies.where("created_at > ?", 2.days.ago)
 ```
 
-##### `collection.exists?(...)`
-
 The [`collection.exists?`][] method checks whether an object meeting the
 supplied conditions exists in the collection's table.
 
-##### `collection.build(attributes = {})`
+
+##### Building and Creating Associated Objects
 
 The [`collection.build`][] method returns a new object of the associated type.
 This object will be instantiated from the passed attributes, and the link
@@ -1440,8 +1389,6 @@ be saved.
 @assembly = @part.assemblies.build({ assembly_name: "Transmission housing" })
 ```
 
-##### `collection.create(attributes = {})`
-
 The [`collection.create`][] method returns a new object of the associated type.
 This object will be instantiated from the passed attributes, the link through
 the join table will be created, and, once it passes all of the validations
@@ -1451,12 +1398,8 @@ specified on the associated model, the associated object _will_ be saved.
 @assembly = @part.assemblies.create({ assembly_name: "Transmission housing" })
 ```
 
-##### `collection.create!(attributes = {})`
-
 Does the same as `collection.create`, but raises `ActiveRecord::RecordInvalid`
 if the record is invalid.
-
-##### `collection.reload`
 
 The [`collection.reload`][] method returns a Relation of all of the associated
 objects, forcing a database read. If there are no associated objects, it returns
