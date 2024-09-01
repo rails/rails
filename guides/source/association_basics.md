@@ -2077,7 +2077,7 @@ To use delegated types, we need to model our data as follows:
 
 * There is a superclass that stores shared attributes among all subclasses in
   its table.
-* Each subclass must inherit from the super class, and will have a separate
+* Each subclass must inherit from the superclass, and will have a separate
   table for any additional attributes specific to it.
 
 This eliminates the need to define attributes in a single table that are
