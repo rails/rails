@@ -156,7 +156,7 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(original_hash)
     email = params.deep_transform_keys!(&:underscore).require(:waitlist_user).permit(:email)[:email]
     assert_equal "TEST@example.com", email
-    assert_equal params.to_unsafe_h, { "waitlist_user" => { "email" => "TEST@example.com" } }
+    assert_equal({ "waitlist_user" => { "email" => "TEST@example.com" } }, params.to_unsafe_h)
   end
 
   test "deep_transform_keys! retains unpermitted status" do
