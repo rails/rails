@@ -38,9 +38,11 @@ module Rails
 
       def update_application_system_test_case
         return unless options[:system_test]
-        return unless File.exist?("test/application_system_test_case.rb")
 
-        gsub_file("test/application_system_test_case.rb", /^\s*driven_by\b.*/, system_test_configuration)
+        system_test_case_path = File.expand_path "test/application_system_test_case.rb", destination_root
+        return unless File.exist? system_test_case_path
+
+        gsub_file(system_test_case_path, /^\s*driven_by\b.*/, system_test_configuration)
       end
 
       def update_database_yml
