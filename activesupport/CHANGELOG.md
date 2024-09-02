@@ -1,3 +1,7 @@
+*   Print test names when running `rails test -v` for parallel tests.
+
+    *Abeid Ahmed*
+
 *   `ActiveSupport::ErrorReporter#report` now assigns a backtrace to unraised exceptions.
 
     Previously reporting an un-raised exception would result in an error report without

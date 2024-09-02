@@ -47,6 +47,7 @@ module ActiveSupport
           set_process_title("#{klass}##{method}")
 
           result = klass.with_info_handler reporter do
+            reporter.prerecord(klass, method)
             Minitest.run_one_method(klass, method)
           end
 
