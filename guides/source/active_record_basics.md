@@ -493,6 +493,7 @@ book = Book.find(42)
 The above resulting in this SQL:
 
 ```sql
+-- Book.find_by(title: "Metaprogramming Ruby 2")
 SELECT "books".* FROM "books" WHERE "books"."title" = ? LIMIT ?  [["title", "Metaprogramming Ruby 2"], ["LIMIT", 1]]
 
 SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIMIT", 1]]
