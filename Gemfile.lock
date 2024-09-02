@@ -96,6 +96,7 @@ PATH
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
+      uri (>= 0.13.1)
     rails (8.0.0.alpha)
       actioncable (= 8.0.0.alpha)
       actionmailbox (= 8.0.0.alpha)
@@ -596,6 +597,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uber (0.1.0)
     unicode-display_width (2.5.0)
+    uri (0.13.1)
     useragent (0.16.10)
     w3c_validators (1.3.7)
       json (>= 1.8)
@@ -701,6 +703,7 @@ DEPENDENCIES
   trilogy (>= 2.7.0)
   turbo-rails
   tzinfo-data
+  uri (>= 0.13.1)
   useragent
   w3c_validators (~> 1.3.6)
   wdm (>= 0.1.0)
