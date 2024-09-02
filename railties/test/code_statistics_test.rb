@@ -17,6 +17,7 @@ class CodeStatisticsTest < ActiveSupport::TestCase
   test "register directories" do
     Rails::CodeStatistics.register_directory("My Directory", "path/to/dir")
     assert Rails::CodeStatistics.directories.include?(["My Directory", "path/to/dir"])
+    assert_not Rails::CodeStatistics.test_types.include?("My Directory")
   ensure
     Rails::CodeStatistics.directories.delete(["My Directory", "path/to/dir"])
   end

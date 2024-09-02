@@ -54,7 +54,7 @@ module Rails
     #   Rails::CodeStatistics.register_directory("Model specs", "spec/models", test_directory: true)
     def self.register_directory(label, path, test_directory: false)
       self.directories << [label, path]
-      self.test_types << label
+      self.test_types << label if test_directory
     end
 
     def initialize(*pairs)
