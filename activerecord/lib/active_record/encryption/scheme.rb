@@ -83,7 +83,7 @@ module ActiveRecord
         def validate_credential(key, error_message = "is not configured")
           unless ActiveRecord::Encryption.config.public_send(key).present?
             raise Errors::Configuration, "#{key} #{error_message}. Please configure it via credential "\
-              "active_record_encryption.#{key} or by setting config.active_record.encryption.#{key}"
+              "active_record_encryption.#{key} or by setting ActiveRecord::Encryption.config.#{key} in the initializer."
           end
         end
 
