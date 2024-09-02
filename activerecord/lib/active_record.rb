@@ -29,6 +29,7 @@ require "active_support/ordered_options"
 require "active_model"
 require "arel"
 require "yaml"
+require "zlib"
 
 require "active_record/version"
 require "active_record/deprecator"
