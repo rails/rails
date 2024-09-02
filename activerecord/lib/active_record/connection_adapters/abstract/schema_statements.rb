@@ -345,6 +345,15 @@ module ActiveRecord
       #   # Creates a table called 'assemblies_parts' with no id.
       #   create_join_table(:assemblies, :parts)
       #
+      #   # Creates a table called 'paper_boxes_papers' with no id.
+      #   create_join_table('papers', 'paper_boxes')
+      #
+      # A duplicate prefix is combined into a single prefix. This is useful for
+      # namespaced models like Music::Artist and Music::Record:
+      #
+      #   # Creates a table called 'music_artists_records' with no id.
+      #   create_join_table('music_artists', 'music_records')
+      #
       # You can pass an +options+ hash which can include the following keys:
       # [<tt>:table_name</tt>]
       #   Sets the table name, overriding the default.
