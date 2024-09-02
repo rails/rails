@@ -256,7 +256,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
-      assert_redirected_to "/action_pack_assertions/foo"
+      assert_redirected_to "http://test.host/action_pack_assertions/foo"
       assert_redirected_to %r(/action_pack_assertions/foo)
     end
   end
@@ -275,7 +275,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       end
       process :redirect_to_top_level_named_route
       # assert_redirected_to top_level_url('foo') would pass because of exact match early return
-      assert_redirected_to top_level_path("foo")
+      assert_redirected_to top_level_url("foo")
     end
   end
 
@@ -329,7 +329,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_redirection_location
     process :redirect_internal
-    assert_equal "http://test.host/nothing", @response.redirect_url
+    assert_equal "/nothing", @response.redirect_url
 
     process :redirect_external
     assert_equal "http://www.rubyonrails.org", @response.redirect_url
@@ -425,12 +425,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_redirect_invalid_external_route
     process :redirect_invalid_external_route
-    assert_redirected_to "http://test.hostht_tp://www.rubyonrails.org"
+    assert_redirected_to "ht_tp://www.rubyonrails.org"
   end
 
-  def test_redirected_to_url_full_url
+  def test_redirected_to_url_full_path
     process :redirect_to_path
-    assert_redirected_to "http://test.host/some/path"
+    assert_redirected_to "/some/path"
   end
 
   def test_assert_redirection_with_symbol
@@ -454,7 +454,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_assert_redirection_with_status
     process :redirect_to_path
-    assert_redirected_to "http://test.host/some/path", status: :found
+    assert_redirected_to "/some/path", status: :found
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_redirected_to "http://test.host/some/path", status: :moved_permanently
     end
@@ -463,7 +463,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     end
 
     process :redirect_permanently
-    assert_redirected_to "http://test.host/some/path", status: :moved_permanently
+    assert_redirected_to "/some/path", status: :moved_permanently
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_redirected_to "http://test.host/some/path", status: :found
     end

@@ -383,7 +383,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       get "/moved"
       assert_response :redirect
-      assert_redirected_to "/method"
+      assert_redirected_to "http://www.example.com/method"
     end
   end
 

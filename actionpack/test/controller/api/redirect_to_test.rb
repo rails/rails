@@ -16,6 +16,6 @@ class RedirectToApiTest < ActionController::TestCase
   def test_redirect_to
     get :one
     assert_response :redirect
-    assert_equal "http://test.host/redirect_to_api/two", redirect_to_url
+    assert_equal "/redirect_to_api/two", redirect_to_url
   end
 end

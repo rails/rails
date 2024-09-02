@@ -201,6 +201,28 @@ module ActionDispatch
         end
       end
 
+      def path_for(options = nil)
+        case options
+        when nil
+          _routes.path_for(url_options.symbolize_keys)
+        when Hash, ActionController::Parameters
+          route_name = options.delete :use_route
+          merged_url_options = options.to_h.symbolize_keys.reverse_merge!(url_options)
+          _routes.path_for(merged_url_options, route_name)
+        when String
+          options
+        when Symbol
+          HelperMethodBuilder.path.handle_string_call self, options
+        when Array
+          components = options.dup
+          polymorphic_path(components, components.extract_options!)
+        when Class
+          HelperMethodBuilder.path.handle_class_call self, options
+        else
+          HelperMethodBuilder.path.handle_model_call self, options
+        end
+      end
+
       # Allows calling direct or regular named route.
       #
       #     resources :buckets

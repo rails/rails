@@ -165,11 +165,11 @@ module ActionController
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
         options.to_str
       when String
-        request.protocol + request.host_with_port + options
+        options
       when Proc
         _compute_redirect_to_location request, instance_eval(&options)
       else
-        url_for(options)
+        _url_redirect?(options) ? url_for(options) : path_for(options)
       end.delete("\0\r\n")
     end
     module_function :_compute_redirect_to_location
@@ -236,6 +236,13 @@ module ActionController
         !url.to_s.start_with?("//")
       rescue ArgumentError, URI::Error
         false
+      end
+
+      def _url_redirect?(options)
+        return false if !options.is_a?(Hash)
+
+        options[:only_path] == false ||
+          options.keys.any? { |key| %i[protocol host domain subdomain port].include?(key.to_sym) }
       end
 
       def _ensure_url_is_http_header_safe(url)

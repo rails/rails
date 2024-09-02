@@ -13,7 +13,7 @@ class IPv6IntegrationTest < ActionDispatch::IntegrationTest
     end
 
     def foo
-      redirect_to action: :index
+      redirect_to action: :index, only_path: false
     end
   end
 
