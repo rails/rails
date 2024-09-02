@@ -1476,43 +1476,6 @@ ActiveRecord::Schema.define do
   end
 end
 
-if ActiveRecord::Base.lease_connection.supports_insert_returning? && !ActiveRecord::TestCase.current_adapter?(:SQLite3Adapter)
-  ActiveRecord::Base.lease_connection.create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
-    t.integer :id, null: false
-  end
-
-  if ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter)
-    ActiveRecord::Base.lease_connection.execute(
-      <<-SQL
-        CREATE OR REPLACE FUNCTION populate_column()
-        RETURNS TRIGGER AS $$
-        DECLARE
-          max_value INTEGER;
-        BEGIN
-            SELECT MAX(id) INTO max_value FROM pk_autopopulated_by_a_trigger_records;
-            NEW.id = COALESCE(max_value, 0) + 1;
-            RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql;
-
-        CREATE TRIGGER before_insert_trigger
-        BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
-        FOR EACH ROW
-        EXECUTE FUNCTION populate_column();
-      SQL
-    )
-  elsif ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-    ActiveRecord::Base.lease_connection.execute(
-      <<-SQL
-        CREATE TRIGGER before_insert_trigger
-        BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
-        FOR EACH ROW
-        SET NEW.id = (SELECT COALESCE(MAX(id), 0) + 1 FROM pk_autopopulated_by_a_trigger_records);
-      SQL
-    )
-  end
-end
-
 Course.lease_connection.create_table :courses, force: true do |t|
   t.column :name, :string, null: false
   t.column :college_id, :integer, index: true
