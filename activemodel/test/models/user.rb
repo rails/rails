@@ -5,6 +5,7 @@ class User
   include ActiveModel::Attributes
   include ActiveModel::Dirty
   include ActiveModel::SecurePassword
+  include ActiveModel::Inspect
 
   define_model_callbacks :create
 
@@ -13,6 +14,8 @@ class User
 
   attribute :recovery_password_digest
   has_secure_password :recovery_password, validations: false
+
+  attribute :name
 
   attr_accessor :password_called
 

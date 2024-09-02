@@ -3718,6 +3718,7 @@ module ApplicationTests
       app "development"
       assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
       assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes
+      assert_equal [ :password, :credit_card_number ], ActiveModel::Inspect.filter_attributes
     end
 
     test "encrypted attributes are added to record's filter_attributes by default" do

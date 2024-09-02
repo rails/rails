@@ -1,3 +1,30 @@
+*   Introduce ActiveModel::Inspect.
+
+    Show a formatted string with relevant
+    attributes when calling `inspect`.
+
+    ```ruby
+    class Person
+      include ActiveModel::API
+      include ActiveModel::Attributes
+      include ActiveModel::Inspect
+      attribute :name, :string
+    end
+    person = Person.new(name: "Amanda")
+    person.inspect
+    => "#<Person name: \"Amanda\">"
+    ```
+
+    Sensitive attributes can be filtered:
+
+    ```ruby
+    Person.filter_attributes = [:name]
+    person.inspect
+    => #<Person name: [FILTERED]>
+    ```
+
+    *Petrik de Heus*
+
 *   Add a default token generator for password reset tokens when using `has_secure_password`.
 
     ```ruby

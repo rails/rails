@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/topic"
 
 class ModelWithAttributes
   include ActiveModel::AttributeMethods

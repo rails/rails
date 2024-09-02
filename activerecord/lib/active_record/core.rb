@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
-require "active_support/parameter_filter"
 require "concurrent/map"
 
 module ActiveRecord
@@ -10,6 +9,7 @@ module ActiveRecord
   module Core
     extend ActiveSupport::Concern
     include ActiveModel::Access
+    include ActiveModel::Inspect
 
     included do
       ##
@@ -322,7 +322,6 @@ module ActiveRecord
         end
       end
 
-      # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
         if @filter_attributes.nil?
           superclass.filter_attributes
@@ -331,20 +330,11 @@ module ActiveRecord
         end
       end
 
-      # Specifies columns which shouldn't be exposed while calling +#inspect+.
-      def filter_attributes=(filter_attributes)
-        @inspection_filter = nil
-        @filter_attributes = filter_attributes
-      end
-
       def inspection_filter # :nodoc:
         if @filter_attributes.nil?
           superclass.inspection_filter
         else
-          @inspection_filter ||= begin
-            mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
-            ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)
-          end
+          super
         end
       end
 
@@ -795,17 +785,6 @@ module ActiveRecord
 
       def custom_inspect_method_defined?
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
-      end
-
-      class InspectionMask < DelegateClass(::String)
-        def pretty_print(pp)
-          pp.text __getobj__
-        end
-      end
-      private_constant :InspectionMask
-
-      def inspection_filter
-        self.class.inspection_filter
       end
 
       def inspect_with_attributes(attributes_to_list)

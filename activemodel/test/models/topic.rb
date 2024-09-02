@@ -4,6 +4,7 @@ class Topic
   include ActiveModel::Validations
   include ActiveModel::Validations::Callbacks
   include ActiveModel::AttributeMethods
+  include ActiveModel::Inspect
   include ActiveSupport::NumberHelper
 
   attribute_method_suffix "_before_type_cast", parameters: false

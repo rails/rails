@@ -17,6 +17,12 @@ module ActiveModel
       ActiveModel::SecurePassword.min_cost = Rails.env.test?
     end
 
+    initializer "active_model.set_filter_attributes" do
+      ActiveSupport.on_load(:active_model_inspect) do
+        ActiveModel::Inspect.filter_attributes += Rails.application.config.filter_parameters
+      end
+    end
+
     initializer "active_model.i18n_customize_full_message" do
       ActiveModel::Error.i18n_customize_full_message = config.active_model.delete(:i18n_customize_full_message) || false
     end

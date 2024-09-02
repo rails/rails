@@ -4,6 +4,8 @@ class Contact
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   include ActiveModel::Validations
+  include ActiveModel::Attributes
+  include ActiveModel::Inspect
 
   include ActiveModel::Serializers::JSON
 
