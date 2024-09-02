@@ -211,7 +211,9 @@ module ActiveRecord
         # Dump schema for databases that were migrated.
         if ActiveRecord.dump_schema_after_migration
           dump_db_configs.each do |db_config|
-            dump_schema(db_config)
+            with_temporary_pool(db_config) do
+              dump_schema(db_config)
+            end
           end
         end
 

@@ -598,11 +598,17 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
           class OneMigration < ActiveRecord::Migration::Current
+            def change
+              create_table :posts
+            end
           end
         MIGRATION
 
         app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
           class TwoMigration < ActiveRecord::Migration::Current
+            def change
+              create_table :dogs
+            end
           end
         MIGRATION
 
@@ -615,6 +621,8 @@ module ApplicationTests
 
           assert File.exist?("db/schema.rb")
           assert File.exist?("db/animals_schema.rb")
+
+          assert_not_equal File.read("db/schema.rb"), File.read("db/animals_schema.rb")
 
           primary_mtime = File.mtime("db/schema.rb")
           animals_mtime = File.mtime("db/animals_schema.rb")
