@@ -54,9 +54,9 @@ module ActiveRecord
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
-        def drop_table(table_name, **options) # :nodoc:
-          schema_cache.clear_data_source_cache!(table_name.to_s)
-          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+        def drop_table(*table_names, **options) # :nodoc:
+          table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
+          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
         end
 
         # Returns true if schema exists.
