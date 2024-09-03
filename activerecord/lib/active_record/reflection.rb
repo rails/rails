@@ -79,7 +79,7 @@ module ActiveRecord
         normalized_reflections.stringify_keys
       end
 
-      def normalized_reflections # :nodoc
+      def normalized_reflections # :nodoc:
         @__reflections ||= begin
           ref = {}
 
