@@ -28,6 +28,10 @@ module ActionDispatch
       end
     end
 
+    class ActionableError < StandardError
+      include ActiveSupport::ActionableError
+    end
+
     setup do
       @cleaner = ActiveSupport::BacktraceCleaner.new
       @cleaner.remove_filters!
@@ -251,6 +255,16 @@ module ActionDispatch
 
     test "#show? returns true when using :rescuable and the exceptions is rescuable" do
       exception = AbstractController::ActionNotFound.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :rescuable }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal true, wrapper.show?(request)
+    end
+
+    test "#show? returns true when using :rescuable and the exceptions is actionable" do
+      exception = ActionableError.new
       wrapper = ExceptionWrapper.new(nil, exception)
 
       env = { "action_dispatch.show_exceptions" => :rescuable }

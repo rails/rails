@@ -192,7 +192,8 @@ module ActionDispatch
     end
 
     def rescue_response?
-      @@rescue_responses.key?(exception.class.name)
+      exception.is_a?(ActiveSupport::ActionableError) ||
+        @@rescue_responses.key?(exception.class.name)
     end
 
     def source_extracts

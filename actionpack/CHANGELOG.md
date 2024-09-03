@@ -1,3 +1,10 @@
+*   Make ActionableErrors rescuable.
+
+    Make sure ActionableErrors like PendingMigrations show the actionable form
+    when setting `action_dispatch.show_exceptions` to `:rescuable`.
+
+    *Petrik de Heus*
+
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 
     *Hartley McGuire*
