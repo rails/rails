@@ -1365,7 +1365,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes content["forwardPorts"], 3306
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
     end
   end
 
@@ -1393,7 +1393,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
     end
   end
 
@@ -1421,7 +1421,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
     end
   end
 
@@ -1448,7 +1448,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
     end
   end
 
