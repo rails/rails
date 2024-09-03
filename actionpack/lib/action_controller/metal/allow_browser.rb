@@ -85,11 +85,15 @@ module ActionController # :nodoc:
           end
 
           def unsupported_browser?
-            version_guarded_browser? && version_below_minimum_required?
+            version_guarded_browser? && version_below_minimum_required? && !bot?
           end
 
           def version_guarded_browser?
             minimum_browser_version_for_browser != nil
+          end
+
+          def bot?
+            parsed_user_agent.bot?
           end
 
           def version_below_minimum_required?

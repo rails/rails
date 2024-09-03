@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "thread"
 require "cases/helper"
 require "models/person"
 require "models/job"
@@ -798,7 +797,7 @@ class PessimisticLockingTest < ActiveRecord::TestCase
 
         a = Thread.new do
           t0 = Time.now
-          Person.transaction do
+          Person.transaction(joinable: false) do
             yield
             b_wakeup.set
             a_wakeup.wait

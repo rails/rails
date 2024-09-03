@@ -25,15 +25,17 @@ module ActiveRecord
       # column which this will persist to.
       #
       # +cast_type+ A symbol such as +:string+ or +:integer+, or a type object
-      # to be used for this attribute. See the examples below for more
-      # information about providing custom type objects.
+      # to be used for this attribute. If this parameter is not passed, the previously
+      # defined type (if any) will be used.
+      # Otherwise, the type will be ActiveModel::Type::Value.
+      # See the examples below for more information about providing custom type objects.
       #
       # ==== Options
       #
       # The following options are accepted:
       #
       # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previous default value (if any) will be used.
+      # is not passed, the previously defined default value (if any) on the superclass or in the schema will be used.
       # Otherwise, the default will be +nil+.
       #
       # +array+ (PostgreSQL only) specifies that the type should be an array (see the

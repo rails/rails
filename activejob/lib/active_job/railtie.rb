@@ -26,14 +26,12 @@ module ActiveJob
     end
 
     initializer "active_job.enqueue_after_transaction_commit" do |app|
-      if config.active_job.key?(:enqueue_after_transaction_commit)
-        enqueue_after_transaction_commit = config.active_job.delete(:enqueue_after_transaction_commit)
-
+      ActiveSupport.on_load(:active_job) do
         ActiveSupport.on_load(:active_record) do
-          ActiveSupport.on_load(:active_job) do
-            include EnqueueAfterTransactionCommit
+          ActiveJob::Base.include EnqueueAfterTransactionCommit
 
-            ActiveJob::Base.enqueue_after_transaction_commit = enqueue_after_transaction_commit
+          if app.config.active_job.key?(:enqueue_after_transaction_commit)
+            ActiveJob::Base.enqueue_after_transaction_commit = app.config.active_job.delete(:enqueue_after_transaction_commit)
           end
         end
       end
@@ -93,7 +91,9 @@ module ActiveJob
         app.config.active_record.query_log_tags |= [:job]
 
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name if context[:job] }
+          ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
+            job: ->(context) { context[:job].class.name if context[:job] }
+          )
         end
       end
     end

@@ -161,6 +161,16 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal [[error, false, :error, "application", {}]], @subscriber.events
   end
 
+  test "#report assigns a backtrace if it's missing" do
+    error = RuntimeError.new("Oops")
+    assert_nil error.backtrace
+    assert_nil error.backtrace_locations
+
+    assert_nil @reporter.report(error)
+    assert_not_predicate error.backtrace, :empty?
+    assert_not_predicate error.backtrace_locations, :empty?
+  end
+
   test "#record passes through the return value" do
     result = @reporter.record do
       2 + 2
@@ -173,6 +183,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_nil @reporter.unexpected(error)
     assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
     assert_not_predicate error.backtrace, :empty?
+    assert_not_predicate error.backtrace_locations, :empty?
   end
 
   test "#unexpected accepts an error message" do

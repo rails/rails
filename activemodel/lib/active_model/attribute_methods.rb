@@ -215,9 +215,7 @@ module ActiveModel
       end
 
       def generate_alias_attribute_methods(code_generator, new_name, old_name)
-        attribute_method_patterns.each do |pattern|
-          alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
-        end
+        define_attribute_method(old_name, _owner: code_generator, as: new_name)
       end
 
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:
@@ -305,22 +303,42 @@ module ActiveModel
       #   person.name = 'Bob'
       #   person.name        # => "Bob"
       #   person.name_short? # => true
-      def define_attribute_method(attr_name, _owner: generated_attribute_methods)
+      def define_attribute_method(attr_name, _owner: generated_attribute_methods, as: attr_name)
         ActiveSupport::CodeGenerator.batch(_owner, __FILE__, __LINE__) do |owner|
           attribute_method_patterns.each do |pattern|
-            method_name = pattern.method_name(attr_name)
-
-            unless instance_method_already_implemented?(method_name)
-              generate_method = "define_method_#{pattern.proxy_target}"
-
-              if respond_to?(generate_method, true)
-                send(generate_method, attr_name.to_s, owner: owner)
-              else
-                define_proxy_call(owner, method_name, pattern.proxy_target, pattern.parameters, attr_name.to_s, namespace: :active_model_proxy)
-              end
-            end
+            define_attribute_method_pattern(pattern, attr_name, owner: owner, as: as)
           end
           attribute_method_patterns_cache.clear
+        end
+      end
+
+      def define_attribute_method_pattern(pattern, attr_name, owner:, as:, override: false) # :nodoc:
+        canonical_method_name = pattern.method_name(attr_name)
+        public_method_name = pattern.method_name(as)
+
+        # If defining a regular attribute method, we don't override methods that are explictly
+        # defined in parrent classes.
+        if instance_method_already_implemented?(public_method_name)
+          # However, for `alias_attribute`, we always define the method.
+          # We check for override second because `instance_method_already_implemented?`
+          # also check for dangerous methods.
+          return unless override
+        end
+
+        generate_method = "define_method_#{pattern.proxy_target}"
+
+        if respond_to?(generate_method, true)
+          send(generate_method, attr_name.to_s, owner: owner, as: as)
+        else
+          define_proxy_call(
+            owner,
+            canonical_method_name,
+            pattern.proxy_target,
+            pattern.parameters,
+            attr_name.to_s,
+            namespace: :active_model_proxy,
+            as: public_method_name
+          )
         end
       end
 
@@ -404,14 +422,19 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `send`
         # if the called name cannot be compiled.
-        def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:)
+        def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:, as: name)
           mangled_name = build_mangled_name(name)
 
           call_args.map!(&:inspect)
           call_args << parameters if parameters
-          namespace = :"#{namespace}_#{proxy_target}_#{call_args.join("_")}}"
 
-          define_call(code_generator, name, proxy_target, mangled_name, parameters, call_args, namespace: namespace)
+          # We have to use a different namespace for every target method, because
+          # if someone defines an attribute that look like an attribute method we could clash, e.g.
+          #   attribute :title_was
+          #   attribute :title
+          namespace = :"#{namespace}_#{proxy_target}"
+
+          define_call(code_generator, name, proxy_target, mangled_name, parameters, call_args, namespace: namespace, as: as)
         end
 
         def build_mangled_name(name)
@@ -424,8 +447,8 @@ module ActiveModel
           mangled_name
         end
 
-        def define_call(code_generator, name, target_name, mangled_name, parameters, call_args, namespace:)
-          code_generator.define_cached_method(name, as: mangled_name, namespace: namespace) do |batch|
+        def define_call(code_generator, name, target_name, mangled_name, parameters, call_args, namespace:, as:)
+          code_generator.define_cached_method(mangled_name, as: as, namespace: namespace) do |batch|
             body = if CALL_COMPILABLE_REGEXP.match?(target_name)
               "self.#{target_name}(#{call_args.join(", ")})"
             else

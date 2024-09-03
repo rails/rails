@@ -31,16 +31,18 @@ module Rails
       def create_devcontainer
         empty_directory ".devcontainer"
 
-        template ".devcontainer/devcontainer.json"
-        template ".devcontainer/Dockerfile"
-        template ".devcontainer/compose.yaml"
+        template "devcontainer/devcontainer.json", ".devcontainer/devcontainer.json"
+        template "devcontainer/Dockerfile", ".devcontainer/Dockerfile"
+        template "devcontainer/compose.yaml", ".devcontainer/compose.yaml"
       end
 
       def update_application_system_test_case
         return unless options[:system_test]
-        return unless File.exist?("test/application_system_test_case.rb")
 
-        gsub_file("test/application_system_test_case.rb", /^(\s*driven_by\b.*)/, system_test_configuration)
+        system_test_case_path = File.expand_path "test/application_system_test_case.rb", destination_root
+        return unless File.exist? system_test_case_path
+
+        gsub_file(system_test_case_path, /^\s*driven_by\b.*/, system_test_configuration)
       end
 
       def update_database_yml
@@ -148,17 +150,17 @@ module Rails
         end
 
         def system_test_configuration
-          <<~RUBY
-              if ENV["CAPYBARA_SERVER_PORT"]
-                served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
+          optimize_indentation(<<-'RUBY', 2)
+            if ENV["CAPYBARA_SERVER_PORT"]
+              served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
 
-                driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ], options: {
-                  browser: :remote,
-                  url: "http://#{ENV["SELENIUM_HOST"]}:4444"
-                }
-              else
-                driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
-              end
+              driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ], options: {
+                browser: :remote,
+                url: "http://#{ENV["SELENIUM_HOST"]}:4444"
+              }
+            else
+              driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
+            end
           RUBY
         end
     end

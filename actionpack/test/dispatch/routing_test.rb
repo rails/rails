@@ -354,6 +354,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "openid#login", @response.body
   end
 
+  def test_websocket
+    draw do
+      connect "chat/live", to: "chat#live"
+    end
+
+    # HTTP/1.1 connection upgrade:
+    get "/chat/live", headers: { "REQUEST_METHOD" => "GET", "HTTP_CONNECTION" => "Upgrade", "HTTP_UPGRADE" => "websocket" }
+    assert_equal "chat#live", @response.body
+
+    # `rack.protocol` connection:
+    get "/chat/live", headers: { "REQUEST_METHOD" => "CONNECT", "rack.protocol" => "websocket" }
+    assert_equal "chat#live", @response.body
+  end
+
   def test_bookmarks
     draw do
       scope "bookmark", controller: "bookmarks", as: :bookmark do
@@ -763,7 +777,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
           member do
             put  :accessible_projects
-            post :resend, :generate_new_password
+            post :resend
+            post :generate_new_password
           end
         end
       end
@@ -812,7 +827,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       resources :projects do
         resources :posts do
-          get  :archive, :toggle_view, on: :collection
+          get :archive, on: :collection
+          get :toggle_view, on: :collection
           post :preview, on: :member
 
           resource :subscription
@@ -1533,8 +1549,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_with_many_paths_containing_a_slash
-    draw do
-      get "get/first", "get/second", "get/third", to: "get#show"
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        get "get/first", "get/second", "get/third", to: "get#show"
+      end
     end
 
     get "/get/first"
@@ -1570,9 +1588,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_shorthand_with_multiple_paths_inside_namespace
-    draw do
-      namespace :proposals do
-        put "activate", "inactivate"
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :proposals do
+          put "activate", "inactivate"
+        end
       end
     end
 
@@ -2087,10 +2107,32 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
     end
 
+    assert_equal "/account", account_path
     assert_raise(NoMethodError) { new_account_path }
 
     get "/account/new"
     assert_equal 404, status
+
+    get "/account"
+    assert_equal 200, status
+  end
+
+  def test_resource_merges_options_from_scope_hash
+    draw do
+      scope_options = { only: :show }
+      scope scope_options do
+        resource :account
+      end
+    end
+
+    assert_equal "/account", account_path
+    assert_raise(NoMethodError) { new_account_path }
+
+    get "/account/new"
+    assert_equal 404, status
+
+    get "/account"
+    assert_equal 200, status
   end
 
   def test_resources_merges_options_from_scope

@@ -604,7 +604,7 @@ module ActiveRecord
               model.attribute_types.fetch(name = result.columns[i]) do
                 join_dependencies ||= build_join_dependencies
                 lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
-                  result.column_types[name] || Type.default_value
+                  result.column_types[i] || Type.default_value
               end
           end
         end
@@ -635,8 +635,12 @@ module ActiveRecord
 
           adapter_class = model.adapter_class
           select_values.map do |field|
-            column = arel_column(field.to_s) do |attr_name|
-              Arel.sql(attr_name)
+            column = if Arel.arel_node?(field)
+              field
+            else
+              arel_column(field.to_s) do |attr_name|
+                Arel.sql(attr_name)
+              end
             end
 
             if column.is_a?(Arel::Nodes::SqlLiteral)

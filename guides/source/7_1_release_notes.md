@@ -613,7 +613,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
-*   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument.
+*   `checkbox_tag` and `radio_button_tag` now accept `checked` as a keyword argument.
 
 *   Add `picture_tag` helper to generate HTML `<picture>` tags.
 

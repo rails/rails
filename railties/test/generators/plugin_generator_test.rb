@@ -27,8 +27,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/Rakefile
   test/dummy/app/assets/images/.keep
   test/dummy/app/assets/stylesheets/application.css
-  test/dummy/app/channels/application_cable/channel.rb
-  test/dummy/app/channels/application_cable/connection.rb
   test/dummy/app/controllers/application_controller.rb
   test/dummy/app/controllers/concerns/.keep
   test/dummy/app/helpers/application_helper.rb
@@ -41,6 +39,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/app/views/layouts/mailer.text.erb
   test/dummy/app/views/pwa/manifest.json.erb
   test/dummy/app/views/pwa/service-worker.js
+  test/dummy/bin/dev
   test/dummy/bin/rails
   test/dummy/bin/rake
   test/dummy/bin/setup
@@ -56,12 +55,10 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/initializers/content_security_policy.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
-  test/dummy/config/initializers/permissions_policy.rb
   test/dummy/config/locales/en.yml
   test/dummy/config/puma.rb
   test/dummy/config/routes.rb
   test/dummy/config/storage.yml
-  test/dummy/lib/assets/.keep
   test/dummy/log/.keep
   test/dummy/public/404.html
   test/dummy/public/406-unsupported-browser.html
@@ -245,13 +242,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "-d", "mysql"]
     assert_file "test/dummy/config/database.yml", /mysql/
     assert_file "Gemfile", /mysql/
-  end
-
-  def test_skip_database_dependency
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "Gemfile" do |contents|
-      assert_no_match(/sqlite/, contents)
-    end
   end
 
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator

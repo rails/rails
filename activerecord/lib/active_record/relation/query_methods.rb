@@ -92,10 +92,11 @@ module ActiveRecord
             @scope.joins!(association)
           end
 
+          association_conditions = Array(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
-            self.not(association => { reflection.association_primary_key => nil })
+            self.not(association => association_conditions)
           else
-            self.not(reflection.table_name => { reflection.association_primary_key => nil })
+            self.not(reflection.table_name => association_conditions)
           end
         end
 
@@ -124,10 +125,11 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
+          association_conditions = Array(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
-            @scope.where!(association => { reflection.association_primary_key => nil })
+            @scope.where!(association => association_conditions)
           else
-            @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
+            @scope.where!(reflection.table_name => association_conditions)
           end
         end
 
@@ -174,7 +176,7 @@ module ActiveRecord
         end                                    # end
 
         def #{method_name}=(value)             # def includes_values=(value)
-          assert_mutability!                   #   assert_mutability!
+          assert_modifiable!                   #   assert_modifiable!
           @values[:#{name}] = value            #   @values[:includes] = value
         end                                    # end
       CODE
@@ -701,7 +703,16 @@ module ActiveRecord
     #   #     WHEN "conversations"."status" = 0 THEN 3
     #   #   END ASC
     #
-    def in_order_of(column, values)
+    # +filter+ can be set to +false+ to include all results instead of only the ones specified in +values+.
+    #
+    #   Conversation.in_order_of(:status, [:archived, :active], filter: false)
+    #   # SELECT "conversations".* FROM "conversations"
+    #   #   ORDER BY CASE
+    #   #     WHEN "conversations"."status" = 1 THEN 1
+    #   #     WHEN "conversations"."status" = 0 THEN 2
+    #   #     ELSE 3
+    #   #   END ASC
+    def in_order_of(column, values, filter: true)
       model.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
       return spawn.none! if values.empty?
 
@@ -711,16 +722,20 @@ module ActiveRecord
       values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
       arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
-      where_clause =
-        if values.include?(nil)
-          arel_column.in(values.compact).or(arel_column.eq(nil))
-        else
-          arel_column.in(values)
-        end
+      scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
 
-      spawn
-        .order!(build_case_for_value_position(arel_column, values))
-        .where!(where_clause)
+      if filter
+        where_clause =
+          if values.include?(nil)
+            arel_column.in(values.compact).or(arel_column.eq(nil))
+          else
+            arel_column.in(values)
+          end
+
+        scope = scope.where!(where_clause)
+      end
+
+      scope
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -801,7 +816,7 @@ module ActiveRecord
           if !VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
-          assert_mutability!
+          assert_modifiable!
           @values.delete(scope)
         when Hash
           scope.each do |key, target_value|
@@ -1710,8 +1725,8 @@ module ActiveRecord
         )
       end
 
-      def assert_mutability!
-        raise ImmutableRelation if @loaded || @arel
+      def assert_modifiable!
+        raise UnmodifiableRelation if @loaded || @arel
       end
 
       def build_arel(connection, aliases = nil)
@@ -2068,17 +2083,29 @@ module ActiveRecord
         order_args.flat_map do |arg|
           case arg
           when String, Symbol
-            arg
+            extract_table_name_from(arg)
           when Hash
-            arg.keys.select { |e| e.is_a?(String) || e.is_a?(Symbol) }
+            arg
+              .map do |key, value|
+                case value
+                when Hash
+                  key.to_s
+                else
+                  extract_table_name_from(key) if key.is_a?(String) || key.is_a?(Symbol)
+                end
+              end
+          when Arel::Attribute
+            arg.relation.name
+          when Arel::Nodes::Ordering
+            if arg.expr.is_a?(Arel::Attribute)
+              arg.expr.relation.name
+            end
           end
-        end.filter_map do |arg|
-          arg =~ /^\W?(\w+)\W?\./ && $1
-        end +
-        order_args
-          .select { |e| e.is_a?(Hash) }
-          .flat_map { |e| e.map { |k, v| k if v.is_a?(Hash) } }
-          .compact
+        end.compact
+      end
+
+      def extract_table_name_from(string)
+        string.match(/^\W?(\w+)\W?\./) && $1
       end
 
       def order_column(field)
@@ -2091,12 +2118,13 @@ module ActiveRecord
         end
       end
 
-      def build_case_for_value_position(column, values)
+      def build_case_for_value_position(column, values, filter: true)
         node = Arel::Nodes::Case.new
         values.each.with_index(1) do |value, order|
           node.when(column.eq(value)).then(order)
         end
 
+        node = node.else(values.length + 1) unless filter
         Arel::Nodes::Ascending.new(node)
       end
 

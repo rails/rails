@@ -9,6 +9,7 @@ require "active_support/deprecation"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
+require "active_support/parameter_filter"
 require "rails/engine"
 require "rails/autoloaders"
 
@@ -134,6 +135,13 @@ module Rails
       @initialized
     end
 
+    # Returns the dasherized application name.
+    #
+    #   MyApp::Application.new.name => "my-app"
+    def name
+      self.class.name.underscore.dasherize.delete_suffix("/application")
+    end
+
     def run_load_hooks! # :nodoc:
       return self if @ran_load_hooks
       @ran_load_hooks = true
@@ -151,6 +159,10 @@ module Rails
     # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
+    end
+
+    def reload_routes_unless_loaded # :nodoc:
+      initialized? && routes_reloader.execute_unless_loaded
     end
 
     # Returns a key generator (ActiveSupport::CachingKeyGenerator) for a
@@ -207,17 +219,20 @@ module Rails
     # It is recommended not to use the same verifier for different things, so you can get different
     # verifiers passing the +verifier_name+ argument.
     #
+    # For instance, +ActiveStorage::Blob.signed_id_verifier+ is implemented using this feature, which assures that
+    # the IDs strings haven't been tampered with and are safe to use in a finder.
+    #
+    # See the ActiveSupport::MessageVerifier documentation for more information.
+    #
     # ==== Parameters
     #
     # * +verifier_name+ - the name of the message verifier.
     #
     # ==== Examples
     #
-    #     message = Rails.application.message_verifier('sensitive_data').generate('my sensible data')
-    #     Rails.application.message_verifier('sensitive_data').verify(message)
-    #     # => 'my sensible data'
-    #
-    # See the ActiveSupport::MessageVerifier documentation for more information.
+    #     message = Rails.application.message_verifier('my_purpose').generate('data to sign against tampering')
+    #     Rails.application.message_verifier('my_purpose').verify(message)
+    #     # => 'data to sign against tampering'
     def message_verifier(verifier_name)
       message_verifiers[verifier_name]
     end
@@ -457,13 +472,7 @@ module Rails
     # then +credentials.secret_key_base+. For most applications, the correct place to store it is in the
     # encrypted credentials file.
     def secret_key_base
-      if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
-        config.secret_key_base ||= generate_local_secret
-      else
-        validate_secret_key_base(
-          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base
-        )
-      end
+      config.secret_key_base
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
@@ -616,39 +625,12 @@ module Rails
       default_stack.build_stack
     end
 
-    def validate_secret_key_base(secret_key_base)
-      if secret_key_base.is_a?(String) && secret_key_base.present?
-        secret_key_base
-      elsif secret_key_base
-        raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
-      else
-        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
-      end
-    end
-
     def ensure_generator_templates_added
       configured_paths = config.generators.templates
       configured_paths.unshift(*(paths["lib/templates"].existent - configured_paths))
     end
 
     private
-      def generate_local_secret
-        if config.secret_key_base.nil?
-          key_file = Rails.root.join("tmp/local_secret.txt")
-
-          if File.exist?(key_file)
-            config.secret_key_base = File.binread(key_file)
-          else
-            random_key = SecureRandom.hex(64)
-            FileUtils.mkdir_p(key_file.dirname)
-            File.binwrite(key_file, random_key)
-            config.secret_key_base = File.binread(key_file)
-          end
-        end
-
-        config.secret_key_base
-      end
-
       def build_request(env)
         req = super
         env["ORIGINAL_FULLPATH"] = req.fullpath

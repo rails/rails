@@ -79,7 +79,7 @@ module ActiveRecord
         normalized_reflections.stringify_keys
       end
 
-      def normalized_reflections # :nodoc
+      def normalized_reflections # :nodoc:
         @__reflections ||= begin
           ref = {}
 
@@ -428,15 +428,19 @@ module ActiveRecord
       # a new association object. Use +build_association+ or +create_association+
       # instead. This allows plugins to hook into association object creation.
       def klass
-        @klass ||= compute_class(compute_name(class_name))
+        @klass ||= _klass(class_name)
+      end
+
+      def _klass(class_name) # :nodoc:
+        if active_record.name.demodulize == class_name
+          return compute_class("::#{class_name}") rescue NameError
+        end
+
+        compute_class(class_name)
       end
 
       def compute_class(name)
         name.constantize
-      end
-
-      def compute_name(name) # :nodoc:
-        active_record.name.demodulize == name ? "::#{name}" : name
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
@@ -558,12 +562,12 @@ module ActiveRecord
       def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:foreign_key]
           if options[:foreign_key].is_a?(Array)
-            options[:foreign_key].map { |fk| fk.to_s.freeze }.freeze
+            options[:foreign_key].map { |fk| -fk.to_s.freeze }.freeze
           else
             options[:foreign_key].to_s.freeze
           end
         elsif options[:query_constraints]
-          options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
+          options[:query_constraints].map { |fk| -fk.to_s.freeze }.freeze
         else
           derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
 
@@ -571,7 +575,12 @@ module ActiveRecord
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
 
-          derived_fk
+          if derived_fk.is_a?(Array)
+            derived_fk.map! { |fk| -fk.freeze }
+            derived_fk.freeze
+          else
+            -derived_fk.freeze
+          end
         end
       end
 
@@ -986,7 +995,7 @@ module ActiveRecord
       end
 
       def klass
-        @klass ||= delegate_reflection.compute_class(compute_name(class_name))
+        @klass ||= delegate_reflection._klass(class_name)
       end
 
       # Returns the source of the through reflection. It checks both a singularized

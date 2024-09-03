@@ -29,6 +29,7 @@ require "active_support/ordered_options"
 require "active_model"
 require "arel"
 require "yaml"
+require "zlib"
 
 require "active_record/version"
 require "active_record/deprecator"
@@ -207,6 +208,9 @@ module ActiveRecord
     end
   end
 
+  singleton_class.attr_accessor :database_cli
+  self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
+
   singleton_class.attr_reader :default_timezone
 
   # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
@@ -301,7 +305,7 @@ module ActiveRecord
   # with the global thread pool async query executor.
   def self.global_executor_concurrency=(global_executor_concurrency)
     if self.async_query_executor.nil? || self.async_query_executor == :multi_thread_pool
-      raise ArgumentError, "`global_executor_concurrency` cannot be set when using the executor is nil or set to multi_thead_pool. For multiple thread pools, please set the concurrency in your database configuration."
+      raise ArgumentError, "`global_executor_concurrency` cannot be set when the executor is nil or set to `:multi_thread_pool`. For multiple thread pools, please set the concurrency in your database configuration."
     end
 
     @global_executor_concurrency = global_executor_concurrency
@@ -358,14 +362,14 @@ module ActiveRecord
   def self.commit_transaction_on_non_local_return
     ActiveRecord.deprecator.warn <<-WARNING.squish
       `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 7.3.
+      is deprecated and will be removed in Rails 8.0.
     WARNING
   end
 
   def self.commit_transaction_on_non_local_return=(value)
     ActiveRecord.deprecator.warn <<-WARNING.squish
       `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 7.3.
+      is deprecated and will be removed in Rails 8.0.
     WARNING
   end
 
@@ -458,14 +462,14 @@ module ActiveRecord
   def self.allow_deprecated_singular_associations_name
     ActiveRecord.deprecator.warn <<-WARNING.squish
       `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 7.3.
+      is deprecated and will be removed in Rails 8.0.
     WARNING
   end
 
   def self.allow_deprecated_singular_associations_name=(value)
     ActiveRecord.deprecator.warn <<-WARNING.squish
       `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 7.3.
+      is deprecated and will be removed in Rails 8.0.
     WARNING
   end
 

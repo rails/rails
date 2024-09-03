@@ -62,9 +62,12 @@ module GeneratorsTestHelper
 
   def copy_routes
     routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb.tt", __dir__)
+    routes = evaluate_template(routes, {
+      options: ActiveSupport::OrderedOptions.new
+    })
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
-    FileUtils.cp routes, File.join(destination, "routes.rb")
+    File.write File.join(destination, "routes.rb"), routes
   end
 
   def copy_gemfile(*gemfile_entries)
@@ -73,6 +76,13 @@ module GeneratorsTestHelper
     gemfile = evaluate_template(gemfile, locals)
     destination = File.join(destination_root)
     File.write File.join(destination, "Gemfile"), gemfile
+  end
+
+  def copy_application_system_test_case
+    content = File.read(File.expand_path("../fixtures/test/application_system_test_case.rb", __dir__))
+    destination = File.join(destination_root, "test")
+    mkdir_p(destination)
+    File.write File.join(destination, "application_system_test_case.rb"), content
   end
 
   def copy_dockerfile
@@ -125,6 +135,16 @@ module GeneratorsTestHelper
   def assert_devcontainer_json_file
     assert_file ".devcontainer/devcontainer.json" do |content|
       yield JSON.load(content)
+    end
+  end
+
+  def run_app_update(app_root = destination_root, flags: "--force")
+    Dir.chdir(app_root) do
+      gemfile_contents = File.read("Gemfile")
+      gemfile_contents.sub!(/^(gem "rails").*/, "\\1, path: #{File.expand_path("../../..", __dir__).inspect}")
+      File.write("Gemfile", gemfile_contents)
+
+      quietly { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "bin/rails app:update #{flags}", exception: true) }
     end
   end
 

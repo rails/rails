@@ -6,7 +6,6 @@ require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/blank"
-require "thread"
 
 module ActiveSupport
   # = Active Support \Callbacks
@@ -67,7 +66,7 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
-      class_attribute :__callbacks, instance_writer: false, default: {}
+      class_attribute :__callbacks, instance_writer: false, instance_predicate: false, default: {}
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around].freeze

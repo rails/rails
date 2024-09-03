@@ -43,7 +43,7 @@ NOTE: We use `Time.current` instead of `Time.now` because it returns the current
 time based on the timezone set in Rails, whereas `Time.now` returns a Time
 object based on the server's timezone.
 
-See the [API
+See the [`distance_of_time_in_words` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-distance_of_time_in_words)
 for more information.
 
@@ -56,7 +56,7 @@ integer as seconds,  and `Time.current`.
 time_ago_in_words(3.minutes.from_now) # => 3 minutes
 ```
 
-See the [API
+See the [`time_ago_in_words` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-time_ago_in_words)
 for more information.
 
@@ -74,7 +74,7 @@ Formats a number into a currency string (e.g., $13.65).
 number_to_currency(1234567890.50) # => $1,234,567,890.50
 ```
 
-See the [API
+See the [`number_to_currency` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_currency)
 for more information.
 
@@ -88,7 +88,7 @@ number_to_human(1234)    # => 1.23 Thousand
 number_to_human(1234567) # => 1.23 Million
 ```
 
-See the [API
+See the [`number_to_human` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_human)
 for more information.
 
@@ -102,7 +102,7 @@ number_to_human_size(1234)    # => 1.21 KB
 number_to_human_size(1234567) # => 1.18 MB
 ```
 
-See the [API
+See the [`number_to_human_size` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_human_size)
 for more information.
 
@@ -114,7 +114,7 @@ Formats a number as a percentage string.
 number_to_percentage(100, precision: 0) # => 100%
 ```
 
-See the [API
+See the [`number_to_percentage` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_percentage)
 for more information.
 
@@ -126,7 +126,7 @@ Formats a number into a phone number (US by default).
 number_to_phone(1235551234) # => 123-555-1234
 ```
 
-See the [API
+See the [`number_to_phone` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_phone)
 for more information.
 
@@ -138,7 +138,7 @@ Formats a number with grouped thousands using a delimiter.
 number_with_delimiter(12345678) # => 12,345,678
 ```
 
-See the [API
+See the [`number_with_delimiter` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_delimiter)
 for more information.
 
@@ -151,7 +151,7 @@ number_with_precision(111.2345)               # => 111.235
 number_with_precision(111.2345, precision: 2) # => 111.23
 ```
 
-See the [API
+See the [`number_with_precision` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_precision)
 for more information.
 
@@ -174,7 +174,7 @@ excerpt("This is also an example", "an", radius: 8, omission: "<chop> ")
 #=> <chop> is also an example
 ```
 
-See the [API
+See the [`excerpt` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-excerpt)
 for more information.
 
@@ -188,7 +188,7 @@ pluralize(2, "person") # => 2 people
 pluralize(3, "person", plural: "users") # => 3 users
 ```
 
-See the [API
+See the [`pluralize` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-pluralize)
 for more information.
 
@@ -215,7 +215,7 @@ truncate("<p>Once upon a time in a world far far away</p>", escape: false)
 # => "<p>Once upon a time in a wo..."
 ```
 
-See the [API
+See the [`truncate` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-truncate)
 for more information.
 
@@ -228,7 +228,7 @@ word_wrap("Once upon a time", line_width: 8)
 # => "Once\nupon a\ntime"
 ```
 
-See the [API
+See the [`word_wrap` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-word_wrap)
 for more information.
 
@@ -267,7 +267,7 @@ would output the following HTML:
 </form>
 ```
 
-See the [API
+See the [`button_to` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
 for more information.
 
@@ -281,7 +281,7 @@ Returns true if the current request URL matches the given `options`.
 <% end %>
 ```
 
-See the [API
+See the [`current_page?` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-current_page-3F)
 for more information.
 
@@ -324,7 +324,7 @@ It would output the following HTML:
 </a>
 ```
 
-See the [API
+See the [`link_to` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 for more information.
 
@@ -343,7 +343,7 @@ mail_to "me@john_doe.com", cc: "me@jane_doe.com",
 # => <a href="mailto:"me@john_doe.com?cc=me@jane_doe.com&subject=This%20is%20an%20example%20email">"me@john_doe.com</a>
 ```
 
-See the [API
+See the [`mail_to` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-mail_to)
 for more information.
 
@@ -399,7 +399,7 @@ class Application < Rails::Application
 end
 ```
 
-See the [API
+See the [`sanitize` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize)
 for more information.
 
@@ -415,7 +415,7 @@ The `sanitize_css` method below will remove the styles that are not allowed.
 sanitize_css("background-color: red; color: white; font-size: 16px;")
 ```
 
-See the [API
+See the [`sanitize_css` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize_css)
 for more information.
 
@@ -434,7 +434,7 @@ strip_links("Blog: <a href='http://myblog.com/'>Visit</a>.")
 # => Blog: Visit.
 ```
 
-See the [API
+See the [`strip_links` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_links)
 for more information.
 
@@ -453,7 +453,7 @@ strip_links('<<a href="https://example.org">malformed & link</a>')
 # => &lt;malformed &amp; link
 ```
 
-See the [API
+See the [`strip_tags` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags)
 for more information.
 
@@ -505,7 +505,7 @@ INFO: Internally, `audio_tag` uses [`audio_path` from the
 AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-audio_path)
 to build the audio path.
 
-See the [API
+See the [`audio_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-audio_tag)
 for more information.
 
@@ -519,7 +519,7 @@ auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS F
 # => <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" />
 ```
 
-See the [API
+See the [`auto_discovery_link_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-auto_discovery_link_tag)
 for more information.
 
@@ -533,7 +533,7 @@ favicon_link_tag
 # => <link href="/assets/favicon.ico" rel="icon" type="image/x-icon" />
 ```
 
-See the [API
+See the [`favicon_link_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-favicon_link_tag)
 for more information.
 
@@ -554,7 +554,7 @@ INFO: Internally, `image_tag` uses [`image_path` from the
 AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path)
 to build the image path.
 
-See the [API
+See the [`image_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag)
 for more information.
 
@@ -582,7 +582,7 @@ INFO: Internally, `javascript_include_tag` uses [`javascript_path` from the
 AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path)
 to build the script path.
 
-See the [API
+See the [`javascript_include_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-javascript_include_tag)
 for more information.
 
@@ -605,7 +605,7 @@ This generates the following HTML:
 </picture>
 ```
 
-See the [API
+See the [`picture_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-picture_tag)
 for more information.
 
@@ -619,7 +619,7 @@ preload_link_tag("application.css")
 # => <link rel="preload" href="/assets/application.css" as="style" type="text/css" />
 ```
 
-See the [API
+See the [`preload_link_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-preload_link_tag)
 for more information.
 
@@ -643,7 +643,7 @@ INFO: Internally, `stylesheet_link_tag` uses [`stylesheet_path` from the
 AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path)
 to build the stylesheet path.
 
-See the [API
+See the [`stylesheet_link_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag)
 for more information.
 
@@ -669,7 +669,7 @@ INFO: Internally, `video_tag` uses [`video_path` from the
 AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-video_path)
 to build the video path.
 
-See the [API
+See the [`video_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag)
 for more information.
 
@@ -701,7 +701,7 @@ My name is <%= current_user.name %>, and I'm here to say "Welcome to our website
 
 This will escape the quotes correctly and display the greeting in an alert box.
 
-See the [API
+See the [`escape_javascript` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-escape_javascript)
 for more information.
 
@@ -730,7 +730,7 @@ Instead of passing the content as an argument, you can also use a block.
 <% end %>
 ```
 
-See the [API
+See the [`javascript_tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-javascript_tag)
 for more information.
 
@@ -778,7 +778,7 @@ tag.div data: { user_id: 123 }
 # => <div data-user-id="123"></div>
 ```
 
-See the [API
+See the [`tag` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-tag)
 for more information.
 
@@ -840,7 +840,7 @@ The return of capture is the string generated by the block.
 # => "Welcome to my shiny new web page! The date and time is 2018-09-06 11:09:16 -0500"
 ```
 
-See the [API
+See the [`capture` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-capture)
 for more information.
 
@@ -905,7 +905,7 @@ a specific identifier in the order they are provided. Each subsequent call
 simply adds to what's already stored. In contrast, `capture` only returns the
 content of the block, without keeping track of any previous invocations.
 
-See the [API
+See the [`content_for` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for)
 for more information.
 
@@ -930,7 +930,7 @@ you can then use to compare timings when optimizing your code.
 NOTE: This helper is a part of Active Support, and it is also available on
 controllers, helpers, models, etc.
 
-See the [API
+See the [`benchmark` API
 Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark)
 for more information.
 
@@ -971,7 +971,8 @@ a new cache entry with a unique key. A key looks something like this:
 views/articles/index:bea67108094918eeba32cd4a6f786301/articles/1
 ```
 
-See [`Fragment Caching`](caching_with_rails.html#fragment-caching) and the [API
+See [`Fragment Caching`](caching_with_rails.html#fragment-caching) and the
+[`cache` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache)
 for more information.
 
@@ -1023,7 +1024,7 @@ atom_feed do |feed|
 end
 ```
 
-See the [API
+See the [`atom_feed` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AtomFeedHelper.html#method-i-atom_feed)
 for more information.
 
@@ -1048,6 +1049,6 @@ third:
 </pre>
 ```
 
-See the [API
+See the [`debug` API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DebugHelper.html#method-i-debug)
 for more information.

@@ -81,14 +81,14 @@ module ActionController
   #
   #     get 'hello', to: HelloController.action(:index)
   #
-  # The `action` method returns a valid Rack application for the Rails router to
+  # The ::action method returns a valid Rack application for the Rails router to
   # dispatch to.
   #
   # ## Rendering Helpers
   #
-  # `ActionController::Metal` by default provides no utilities for rendering
-  # views, partials, or other responses aside from explicitly calling of
-  # `response_body=`, `content_type=`, and `status=`. To add the render helpers
+  # By default, `ActionController::Metal` provides no utilities for rendering
+  # views, partials, or other responses aside from some low-level setters such
+  # as #response_body=, #content_type=, and #status=. To add the render helpers
   # you're used to having in a normal controller, you can do the following:
   #
   #     class HelloController < ActionController::Metal
@@ -179,8 +179,33 @@ module ActionController
     # Delegates to ActionDispatch::Response#headers.
     delegate :headers, to: "@_response"
 
-    delegate :status=, :location=, :content_type=,
-             :status, :location, :content_type, :media_type, to: "@_response"
+    ##
+    # Delegates to ActionDispatch::Response#status=
+    delegate :status=, to: "@_response"
+
+    ##
+    # Delegates to ActionDispatch::Response#location=
+    delegate :location=, to: "@_response"
+
+    ##
+    # Delegates to ActionDispatch::Response#content_type=
+    delegate :content_type=, to: "@_response"
+
+    ##
+    # Delegates to ActionDispatch::Response#status
+    delegate :status, to: "@_response"
+
+    ##
+    # Delegates to ActionDispatch::Response#location
+    delegate :location, to: "@_response"
+
+    ##
+    # Delegates to ActionDispatch::Response#content_type
+    delegate :content_type, to: "@_response"
+
+    ##
+    # Delegates to ActionDispatch::Response#media_type
+    delegate :media_type, to: "@_response"
 
     def initialize
       @_request = nil
@@ -201,7 +226,7 @@ module ActionController
 
     alias :response_code :status # :nodoc:
 
-    # Basic url_for that can be overridden for more robust functionality.
+    # Basic `url_for` that can be overridden for more robust functionality.
     def url_for(string)
       string
     end

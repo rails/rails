@@ -20,7 +20,7 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for security vulnerabilities in Ruby dependencies
+      - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
 <% end -%>
@@ -100,7 +100,7 @@ jobs:
     <%- end -%>
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= (dockerfile_base_packages + [database.base_package]).join(" ") %>
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= dockerfile_base_packages.join(" ") %>
 
       - name: Checkout code
         uses: actions/checkout@v4

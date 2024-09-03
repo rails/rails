@@ -455,6 +455,29 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_create_table_migration_with_required_attributes
+    run_generator ["create_books", "title:string!", "content:text!"]
+    assert_migration "db/migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books/, change)
+        assert_match(/  t\.string :title, null: false/, change)
+        assert_match(/  t\.text :content, null: false/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_required_attributes
+    migration = "add_title_body_to_posts"
+    run_generator [migration, "title:string!", "body:text!"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :posts, :title, :string, null: false/, change)
+        assert_match(/add_column :posts, :body, :text, null: false/, change)
+      end
+    end
+  end
+
   private
     def with_singular_table_name
       old_state = ActiveRecord::Base.pluralize_table_names

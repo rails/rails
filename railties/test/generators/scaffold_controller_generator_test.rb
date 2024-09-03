@@ -37,16 +37,19 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@user = User\.new\(user_params\)/, m)
         assert_match(/@user\.save/, m)
+        assert_match(/redirect_to @user/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@user\.update\(user_params\)/, m)
+        assert_match(/redirect_to @user/, m)
         assert_match(/status: :see_other/, m)
       end
 
       assert_instance_method :destroy, content do |m|
         assert_match(/@user\.destroy/, m)
         assert_match(/User was successfully destroyed/, m)
+        assert_match(/redirect_to users_path/, m)
         assert_match(/status: :see_other/, m)
       end
 
@@ -159,8 +162,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "test/controllers/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post users_url, params: \{ user: \{  \} \}/, content)
-      assert_match(/patch user_url\(@user\), params: \{ user: \{  \} \}/, content)
+      assert_match(/post users_url, params: \{ user: \{\} \}/, content)
+      assert_match(/patch user_url\(@user\), params: \{ user: \{\} \}/, content)
     end
   end
 

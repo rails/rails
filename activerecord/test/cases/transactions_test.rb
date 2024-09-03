@@ -11,15 +11,31 @@ require "models/post"
 require "models/movie"
 require "models/cpk"
 
-class TransactionTest < ActiveRecord::TestCase
-  self.use_transactional_tests = false
-  fixtures :topics, :developers, :authors, :author_addresses, :posts
+module TransactionCallbacksTests
+  SomeError = Class.new(StandardError)
 
-  def setup
-    @first, @second = Topic.find(1, 2).sort_by(&:id)
+  def test_transaction_open?
+    assert_predicate Topic.current_transaction, :closed?
+
+    committed_transaction = nil
+    Topic.transaction do
+      assert_predicate Topic.current_transaction, :open?
+      committed_transaction = Topic.current_transaction
+    end
+    assert_predicate committed_transaction, :closed?
+
+    rolledback_transaction = nil
+    assert_raises SomeError do
+      Topic.transaction do
+        assert_predicate Topic.current_transaction, :open?
+        rolledback_transaction = Topic.current_transaction
+        raise SomeError
+      end
+    end
+    assert_predicate rolledback_transaction, :closed?
   end
 
-  def test_after_all_transactions_committ
+  def test_after_all_transactions_commit
     called = 0
     ActiveRecord.after_all_transactions_commit { called += 1 }
     assert_equal 1, called
@@ -107,50 +123,14 @@ class TransactionTest < ActiveRecord::TestCase
       assert_equal 1, called
     end
     assert_equal 1, called
-  end
 
-  def test_transaction_before_commit_callback
-    called = 0
-    Topic.current_transaction.before_commit { called += 1 }
-    assert_equal 1, called
-
-    Topic.current_transaction.before_commit { called += 1 }
-    assert_equal 2, called
-
-    called = 0
+    committed_transaction = nil
     Topic.transaction do
-      Topic.current_transaction.before_commit { called += 1 }
-      assert_equal 0, called
+      committed_transaction = Topic.current_transaction
     end
-    assert_equal 1, called
-
-    called = 0
-    Topic.transaction do
-      Topic.transaction(requires_new: true) do
-        Topic.current_transaction.before_commit { called += 1 }
-        assert_equal 0, called
-      end
-      assert_equal 0, called
+    assert_raises ActiveRecord::ActiveRecordError, match: /Cannot register callbacks on a finalized transaction/ do
+      committed_transaction.after_commit { nil }
     end
-    assert_equal 1, called
-
-    called = 0
-    Topic.transaction do
-      Topic.current_transaction.before_commit { called += 1 }
-      assert_equal 0, called
-      raise ActiveRecord::Rollback
-    end
-    assert_equal 0, called
-
-    called = 0
-    ARUnit2Model.transaction do
-      Topic.transaction do
-        Topic.current_transaction.before_commit { called += 1 }
-        assert_equal 0, called
-      end
-      assert_equal 1, called
-    end
-    assert_equal 1, called
   end
 
   def test_transaction_after_rollback_callback
@@ -193,6 +173,32 @@ class TransactionTest < ActiveRecord::TestCase
       assert_equal 1, called
     end
     assert_equal 1, called
+
+    committed_transaction = nil
+    Topic.transaction do
+      committed_transaction = Topic.current_transaction
+    end
+    assert_raises ActiveRecord::ActiveRecordError, match: /Cannot register callbacks on a finalized transaction/ do
+      committed_transaction.after_rollback { nil }
+    end
+  end
+end
+
+class TransactionTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+  fixtures :topics, :developers, :authors, :author_addresses, :posts
+
+  include TransactionCallbacksTests
+
+  def setup
+    @first, @second = Topic.find(1, 2).sort_by(&:id)
+  end
+
+  def test_blank?
+    assert_predicate Topic.current_transaction, :blank?
+    Topic.transaction do
+      assert_not_predicate Topic.current_transaction, :blank?
+    end
   end
 
   def test_rollback_dirty_changes
@@ -1380,6 +1386,12 @@ class TransactionTest < ActiveRecord::TestCase
         Topic.reset_column_information
       end
     end
+
+    def test_sqlite_default_transaction_mode_is_immediate
+      assert_queries_match(/BEGIN IMMEDIATE TRANSACTION/i, include_schema: false) do
+        Topic.transaction { Topic.lease_connection.materialize_transactions }
+      end
+    end
   end
 
   def test_transactions_state_from_rollback
@@ -1615,6 +1627,12 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   self.use_transactional_tests = true
   fixtures :topics
 
+  include TransactionCallbacksTests
+
+  def setup
+    @first, @second = Topic.find(1, 2).sort_by(&:id)
+  end
+
   def test_automatic_savepoint_in_outer_transaction
     @first = Topic.find(1)
 
@@ -1653,23 +1671,23 @@ end if Topic.lease_connection.supports_savepoints?
 class TransactionUUIDTest < ActiveRecord::TestCase
   def test_the_uuid_is_lazily_computed
     Topic.transaction do
-      transaction = Topic.connection.current_transaction
+      transaction = Topic.current_transaction
       assert_nil transaction.instance_variable_get(:@uuid)
     end
   end
 
   def test_the_uuid_for_regular_transactions_is_generated_and_memoized
     Topic.transaction do
-      transaction = Topic.connection.current_transaction
+      transaction = Topic.current_transaction
       uuid = transaction.uuid
       assert_match(/\A[[:xdigit:]]{8}-(?:[[:xdigit:]]{4}-){3}[[:xdigit:]]{12}\z/, uuid)
       assert_equal uuid, transaction.uuid
     end
   end
 
-  def test_the_uuid_for_null_transactions_is_the_nil_uuid
-    null_transaction = ActiveRecord::ConnectionAdapters::TransactionManager::NULL_TRANSACTION
-    assert_equal Digest::UUID.nil_uuid, null_transaction.uuid
+  def test_the_uuid_for_null_transactions_is_nil
+    null_transaction = ActiveRecord::Transaction::NULL_TRANSACTION
+    assert_nil null_transaction.uuid
   end
 end
 

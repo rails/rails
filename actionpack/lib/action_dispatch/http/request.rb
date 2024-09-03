@@ -55,6 +55,8 @@ module ActionDispatch
       METHOD
     end
 
+    TRANSFER_ENCODING = "HTTP_TRANSFER_ENCODING" # :nodoc:
+
     def self.empty
       new({})
     end
@@ -230,11 +232,11 @@ module ActionDispatch
     # start making preparations for processing the final response.
     #
     # If the env contains `rack.early_hints` then the server accepts HTTP2 push for
-    # Link headers.
+    # link headers.
     #
     # The `send_early_hints` method accepts a hash of links as follows:
     #
-    #     send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
+    #     send_early_hints("link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload")
     #
     # If you are using `javascript_include_tag` or `stylesheet_link_tag` the Early
     # Hints headers are included by default if supported.
@@ -282,7 +284,7 @@ module ActionDispatch
 
     # Returns the content length of the request as an integer.
     def content_length
-      return raw_post.bytesize if headers.key?("Transfer-Encoding")
+      return raw_post.bytesize if has_header?(TRANSFER_ENCODING)
       super.to_i
     end
 
@@ -340,7 +342,6 @@ module ActionDispatch
     def raw_post
       unless has_header? "RAW_POST_DATA"
         set_header("RAW_POST_DATA", read_body_stream)
-        body_stream.rewind if body_stream.respond_to?(:rewind)
       end
       get_header "RAW_POST_DATA"
     end
@@ -467,9 +468,29 @@ module ActionDispatch
       end
 
       def read_body_stream
-        body_stream.rewind if body_stream.respond_to?(:rewind)
-        return body_stream.read if headers.key?("Transfer-Encoding") # Read body stream until EOF if "Transfer-Encoding" is present
-        body_stream.read(content_length)
+        if body_stream
+          reset_stream(body_stream) do
+            if has_header?(TRANSFER_ENCODING)
+              body_stream.read # Read body stream until EOF if "Transfer-Encoding" is present
+            else
+              body_stream.read(content_length)
+            end
+          end
+        end
+      end
+
+      def reset_stream(body_stream)
+        if body_stream.respond_to?(:rewind)
+          body_stream.rewind
+
+          content = yield
+
+          body_stream.rewind
+
+          content
+        else
+          yield
+        end
       end
   end
 end

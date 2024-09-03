@@ -493,7 +493,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_not_predicate Task, :connected?
 
     Task.cache do
-      assert_queries_count(1) { Task.find(1); Task.find(1) }
+      assert_queries_count(1) { Task.find(1) }
+      assert_no_queries { Task.find(1) }
     ensure
       ActiveRecord::Base.establish_connection(original_connection)
     end
@@ -1025,7 +1026,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_lru_eviction
-    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(2)
+    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(Concurrent::AtomicFixnum.new, 2)
     store.enabled = true
 
     connection = Post.lease_connection
@@ -1067,29 +1068,38 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
     assert_equal @connection_1, @connection_2
   end
+end
 
-  test "payload with implicit transaction" do
-    expected_transaction = Task.current_transaction
+class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
+  # We need current_transaction to return the null transaction.
+  self.use_transactional_tests = false
+
+  def test_payload_without_open_transaction
+    asserted = false
 
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
       if event.payload[:cached]
-        assert_same expected_transaction, event.payload[:transaction]
+        assert_nil event.payload.fetch(:transaction)
+        asserted = true
       end
     end
-
     Task.cache do
       2.times { Task.count }
     end
+
+    assert asserted
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber)
   end
 
-  test "payload with explicit transaction" do
+  def test_payload_with_open_transaction
+    asserted = false
     expected_transaction = nil
 
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
       if event.payload[:cached]
         assert_same expected_transaction, event.payload[:transaction]
+        asserted = true
       end
     end
 
@@ -1100,6 +1110,8 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
         2.times { Task.count }
       end
     end
+
+    assert asserted
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber)
   end

@@ -142,16 +142,29 @@ module ActionDispatch
 
         message = []
         message << "  "
-        message << "#{wrapper.exception_class_name} (#{wrapper.message}):"
         if wrapper.has_cause?
-          message << "\nCauses:"
+          message << "#{wrapper.exception_class_name} (#{wrapper.message})"
           wrapper.wrapped_causes.each do |wrapped_cause|
-            message << "#{wrapped_cause.exception_class_name} (#{wrapped_cause.message})"
+            message << "Caused by: #{wrapped_cause.exception_class_name} (#{wrapped_cause.message})"
           end
+
+          message << "\nInformation for: #{wrapper.exception_class_name} (#{wrapper.message}):"
+        else
+          message << "#{wrapper.exception_class_name} (#{wrapper.message}):"
         end
+
         message.concat(wrapper.annotated_source_code)
         message << "  "
         message.concat(trace)
+
+        if wrapper.has_cause?
+          wrapper.wrapped_causes.each do |wrapped_cause|
+            message << "\nInformation for cause: #{wrapped_cause.exception_class_name} (#{wrapped_cause.message}):"
+            message.concat(wrapped_cause.annotated_source_code)
+            message << "  "
+            message.concat(wrapped_cause.exception_trace)
+          end
+        end
 
         log_array(logger, message, request)
       end

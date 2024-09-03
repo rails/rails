@@ -1199,6 +1199,13 @@ class RequestParameters < BaseRequestTest
     assert_not_nil e.cause
     assert_equal e.cause.backtrace, e.backtrace
   end
+
+  test "raw_post does not raise when rack.input is nil" do
+    request = stub_request
+
+    # "" on Rack < 3.1, nil on Rack 3.1+
+    assert_predicate request.raw_post, :blank?
+  end
 end
 
 class RequestParameterFilter < BaseRequestTest
@@ -1412,8 +1419,8 @@ class EarlyHintsRequestTest < BaseRequestTest
   end
 
   test "when early hints is set in the env link headers are sent" do
-    early_hints = @request.send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
-    expected_hints = { "Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload" }
+    early_hints = @request.send_early_hints("link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload")
+    expected_hints = { "link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload" }
 
     assert_equal expected_hints, early_hints
   end

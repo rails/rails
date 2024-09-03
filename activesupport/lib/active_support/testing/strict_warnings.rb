@@ -10,11 +10,16 @@ module ActiveSupport
     PROJECT_ROOT = File.expand_path("../../../../", __dir__)
     ALLOWED_WARNINGS = Regexp.union(
       /circular require considered harmful.*delayed_job/, # Bug in delayed job.
-      /circular require considered harmful.*rails-html-sanitizer/, # Bug when sprockets-rails is not required.
 
       # Expected non-verbose warning emitted by Rails.
       /Ignoring .*\.yml because it has expired/,
       /Failed to validate the schema cache because/,
+
+      # TODO: Can be removed if https://github.com/ruby/uri/issues/118 is addressed
+      /URI::RFC3986_PARSER/,
+
+      # TODO: We need to decide what to do with this.
+      /Status code :unprocessable_entity is deprecated/
     )
 
     SUPPRESSED_WARNINGS = Regexp.union(

@@ -33,10 +33,6 @@ jobs:
       - name: Generate rails app sqlite3
         run: bundle exec railties/exe/rails new myapp_sqlite --database="sqlite3" --dev --devcontainer
 
-      - name: Remove old deprecated docker-compose
-        run: |
-          sudo rm /usr/local/bin/docker-compose
-
       - name: Test devcontainer sqlite3
         uses: devcontainers/ci@v0.3
         with:
@@ -63,7 +59,7 @@ jobs:
           imageTag: postgresql
           push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
-          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test && bin/rails test:system
 
       - name: Stop all containers
         run: docker ps -q | xargs docker stop

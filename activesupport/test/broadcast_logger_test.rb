@@ -369,6 +369,26 @@ module ActiveSupport
         @adds << [message_level, message, progname] if message_level >= local_level
       end
 
+      def debug?
+        level <= ::Logger::DEBUG
+      end
+
+      def info?
+        level <= ::Logger::INFO
+      end
+
+      def warn?
+        level <= ::Logger::WARN
+      end
+
+      def error?
+        level <= ::Logger::ERROR
+      end
+
+      def fatal?
+        level <= ::Logger::FATAL
+      end
+
       def close
         @closed = true
       end
