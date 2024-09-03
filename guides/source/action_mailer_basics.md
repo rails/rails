@@ -673,6 +673,10 @@ If the name is a blank string, it returns the email address.
 
 [`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
 
+### Sending Email with Subject Translation
+
+If you don't pass a subject to the mail method, Action Mailer will try to find it in your translations. See the [Internationalization Guide](i18n.html#translations-for-action-mailer-e-mail-subjects) for more.
+
 ### Sending Multipart Emails
 
 Action Mailer will automatically send multipart emails if you have different
