@@ -61,7 +61,7 @@ Rails.application.configure do
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Silence requests to /up from the logs
-  config.silence_healthcheck = "/up"
+  config.silence_healthcheck_path = "/up"
 
   # Log to STDOUT by default
   config.logger = ActiveSupport::Logger.new(STDOUT)

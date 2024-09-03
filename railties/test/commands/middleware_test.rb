@@ -197,7 +197,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "silence healthcheck" do
-    add_to_config "config.silence_healthcheck = '/up'"
+    add_to_config "config.silence_healthcheck_path = '/up'"
     boot!
     assert_includes middleware, "Rails::Rack::SilenceRequest"
   end
