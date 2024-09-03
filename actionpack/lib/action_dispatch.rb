@@ -53,7 +53,9 @@ module ActionDispatch
   eager_autoload do
     autoload_under "http" do
       autoload :ContentSecurityPolicy
+      autoload :ParamBuilder
       autoload :PermissionsPolicy
+      autoload :QueryParser
       autoload :Request
       autoload :Response
     end
