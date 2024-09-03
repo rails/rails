@@ -105,6 +105,8 @@ Here is a quick explanation of the Mailer related methods used above:
 * The [`mail`][] method creates the actual email message. We use it to specify
   the values of headers like `:to` and `:subject` per email.
 
+There is also the [`headers`][] method, which is used to specify email headers with a hash or by calling `headers[:field_name] = 'value'`.
+
 It is also possible to specify an action directly while using the generator like this:
 
 ```bash
@@ -115,6 +117,7 @@ The above will generate the `UserMailer` above with an empty `welcome_email` met
 
 [`default`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-default
 [`mail`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-mail
+[`headers`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-headers
 
 ### Create a Mailer View
 
@@ -287,25 +290,6 @@ Here is an example of the `MessageDelivery` object from the Rails console exampl
 [`Mail::Message`]: https://api.rubyonrails.org/classes/Mail/Message.html
 [`message`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html#method-i-message
 [`with`]: https://api.rubyonrails.org/classes/ActionMailer/Parameterized/ClassMethods.html#method-i-with
-
-TODO: Make sure these methods are explained elsewhere, then delete this section
-
-### Complete List of Action Mailer Methods
-
-There are just three methods that you need to send pretty much any email
-message:
-
-* [`headers`][] - Specifies any header on the email you want. You can pass a hash of
-  header field names and value pairs, or you can call `headers[:field_name] =
-  'value'`.
-* [`attachments`][] - Allows you to add attachments to your email. For example,
-  `attachments['file-name.jpg'] = File.read('file-name.jpg')`.
-* [`mail`][] - Creates the actual email itself. You can pass in headers as a hash to
-  the `mail` method as a parameter. `mail` will create an email — either plain
-  text or multipart — depending on what email templates you have defined.
-
-[`attachments`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments
-[`headers`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-headers
 
 Attachments and Multipart Emails
 --------------------------------
