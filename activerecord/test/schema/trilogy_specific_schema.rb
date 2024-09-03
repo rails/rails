@@ -82,3 +82,18 @@ ActiveRecord::Schema.define do
     END
   SQL
 end
+
+if ActiveRecord::Base.lease_connection.supports_insert_returning?
+  ActiveRecord::Base.lease_connection.create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
+    t.integer :id, null: false
+  end
+
+  ActiveRecord::Base.lease_connection.execute(
+    <<-SQL
+      CREATE TRIGGER before_insert_trigger
+      BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
+      FOR EACH ROW
+      SET NEW.id = (SELECT COALESCE(MAX(id), 0) + 1 FROM pk_autopopulated_by_a_trigger_records);
+    SQL
+  )
+end
