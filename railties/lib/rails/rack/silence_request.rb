@@ -16,8 +16,8 @@ module Rails
     #
     # This middleware can also be configured using `config.silence_healthcheck = "/up"` in Rails.
     class SilenceRequest
-      def initialize(app, path:, remote_ip: nil)
-        @app, @path, @remote_ip = app, path, remote_ip
+      def initialize(app, path:)
+        @app, @path = app, path
       end
 
       def call(env)
