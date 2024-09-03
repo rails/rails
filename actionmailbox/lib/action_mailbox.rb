@@ -23,4 +23,5 @@ module ActionMailbox
   mattr_accessor :incinerate_after, default: 30.days
   mattr_accessor :queues, default: {}
   mattr_accessor :storage_service
+  mattr_accessor :connects_to
 end

@@ -2,7 +2,7 @@
 
 *   Add support for multiple databases for Action Text.
 
-    `config.action_text.connects_to = { writing: :primary, reading: :primary_replica }`
+    `config.action_text.connects_to = { database: { writing: :primary, reading: :primary_replica } }`
 
     *Matthew Nguyen*
 

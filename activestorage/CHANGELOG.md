@@ -2,7 +2,7 @@
 
 *   Add support for multiple databases for Action Storage.
 
-    `config.active_storage.connects_to = { writing: :primary, reading: :primary_replica }`
+    `config.active_storage.connects_to = { database: { writing: :primary, reading: :primary_replica } }`
 
     *Matthew Nguyen*
 
