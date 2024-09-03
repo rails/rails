@@ -929,7 +929,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY)
-              params[key] = URI::DEFAULT_PARSER.unescape(value)
+              params[key] = URI::RFC2396_PARSER.unescape(value)
             end
           end
           req.path_parameters = params
