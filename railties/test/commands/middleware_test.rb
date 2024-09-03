@@ -196,10 +196,10 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
     assert_includes middleware, "ActionDispatch::AssumeSSL"
   end
 
-  test "ActionDispatch::SSL is present when force_ssl is set" do
-    add_to_config "config.force_ssl = true"
+  test "silence healthcheck" do
+    add_to_config "config.silence_healthcheck_path = '/up'"
     boot!
-    assert_includes middleware, "ActionDispatch::SSL"
+    assert_includes middleware, "Rails::Rack::SilenceRequest"
   end
 
   test "ActionDispatch::SSL is configured with options when given" do

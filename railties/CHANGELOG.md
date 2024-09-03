@@ -1,3 +1,9 @@
+*   Add Rails::Rack::SilenceRequest middleware and use it via `config.silence_healthcheck_path = path`
+    to silence requests to "/up". This prevents the Kamal-required healthchecks from clogging up
+    the production logs.
+
+    *DHH*
+
 *   Introduce `mariadb-mysql` and `mariadb-trilogy` database options for `rails new`
 
     When used with the `--devcontainer` flag, these options will use `mariadb` as the database for the
