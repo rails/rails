@@ -83,8 +83,8 @@ module ActionDispatch
       end
 
       class CustomParamEncoder # :nodoc:
-        def self.encode(request, params, controller, action)
-          return params unless encoding_template = action_encoding_template(request, controller, action)
+        def self.encode_for_template(params, encoding_template)
+          return params unless encoding_template
           params.except(:controller, :action).each do |key, value|
             ActionDispatch::Request::Utils.each_param_value(value) do |param|
               # If `param` is frozen, it comes from the router defaults
@@ -96,6 +96,11 @@ module ActionDispatch
             end
           end
           params
+        end
+
+        def self.encode(request, params, controller, action)
+          encoding_template = action_encoding_template(request, controller, action)
+          encode_for_template(params, encoding_template)
         end
 
         def self.action_encoding_template(request, controller, action) # :nodoc:
