@@ -865,8 +865,12 @@ instance from your view with [`mailer`][MailHelper#mailer], and accessing the me
 Action Mailer Configuration
 ---------------------------
 
-The following configuration options are best made in one of the environment
-files (environment.rb, production.rb, etc...)
+This section highlights some of the configuration options for Action Mailer. For
+a complete list see the [Configuring Rails
+Applications](configuring.html#configuring-action-mailer) guide.
+
+You can specify these configuration options in environment files such as
+environment.rb, production.rb, etc.
 
 | Configuration | Description |
 |---------------|-------------|
@@ -881,17 +885,13 @@ files (environment.rb, production.rb, etc...)
 |`deliver_later_queue_name`|The name of the queue used with the default `delivery_job`. Defaults to the default Active Job queue.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 
-For a complete writeup of possible configurations see the
-[Configuring Action Mailer](configuring.html#configuring-action-mailer) in
-our Configuring Rails Applications guide.
-
 [`config.action_mailer.sendmail_settings`]: configuring.html#config-action-mailer-sendmail-settings
 [`config.action_mailer.smtp_settings`]: configuring.html#config-action-mailer-smtp-settings
 [`config.action_mailer.file_settings`]: configuring.html#config-action-mailer-file-settings
 
 ### Example Action Mailer Configuration
 
-An example would be adding the following to your appropriate
+Here is an example using the `:sendmail` delivery method, added to a
 `config/environments/$RAILS_ENV.rb` file:
 
 ```ruby
@@ -908,7 +908,6 @@ config.action_mailer.default_options = { from: 'no-reply@example.com' }
 
 ### Action Mailer Configuration for Gmail
 
-Action Mailer uses the [Mail gem](https://github.com/mikel/mail) and accepts similar configuration.
 Add this to your `config/environments/$RAILS_ENV.rb` file to send via Gmail:
 
 ```ruby
@@ -924,8 +923,6 @@ config.action_mailer.smtp_settings = {
   open_timeout:    5,
   read_timeout:    5 }
 ```
-
-If you are using an old version of the Mail gem (2.6.x or earlier), use `enable_starttls_auto` instead of `enable_starttls`.
 
 NOTE: Google [blocks
 sign-ins](https://support.google.com/accounts/answer/6010255) from apps it deems
