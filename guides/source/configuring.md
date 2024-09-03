@@ -593,7 +593,7 @@ config.session_store :my_custom_store
 
 The default store is a cookie store with the application name as the session key.
 
-#### config.silence_healthcheck_path
+#### `config.silence_healthcheck_path`
 
 Specifies the path of the healthcheck that should be silenced in the logs. Uses `Rails::Rack::SilenceRequest` to implement the silencing. All in service of keeping healthchecks from clogging the production logs, especially for early-stage applications.
 
