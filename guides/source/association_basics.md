@@ -19,9 +19,9 @@ Associations Overview
 -----------------
 
 Active Record associations allow you to define relationships between models.
-_Associations_ are implemented as special macro style calls that make it easy to tell Rails how your models relate
-to each other, which helps you manage your data more effectively, and makes
-common operations simpler and easier to read.
+_Associations_ are implemented as special macro style calls that make it easy to
+tell Rails how your models relate to each other, which helps you manage your
+data more effectively, and makes common operations simpler and easier to read.
 
 INFO: A macro-style call is a method that generates or modifies other methods at
 runtime, allowing for concise and expressive declarations of functionality, such
@@ -215,9 +215,9 @@ used to set up one-to-one or one-to-many relations, depending on the setup. If
 the table _of the other class_ contains the reference in a one-to-one relation,
 then you should use `has_one` instead.
 
-When used alone, `belongs_to` produces a one-directional one-to-one relationship.
-Therefore each book in the above example "knows" its author, but the authors
-don't know about their books. To setup a [bi-directional
+When used alone, `belongs_to` produces a one-directional one-to-one
+relationship. Therefore each book in the above example "knows" its author, but
+the authors don't know about their books. To setup a [bi-directional
 association](#bi-directional-associations) - use `belongs_to` in combination
 with a `has_one` or `has_many` on the other model, in this case the Author
 model.
@@ -632,9 +632,9 @@ delay its persistence until you're ready.
 ### `has_many`
 
 A [`has_many`][] association is similar to `has_one`, but indicates a
-one-to-many relationship with another model. You'll often find this association on
-the "other side" of a `belongs_to` association. This association indicates that
-each instance of the model has zero or more instances of another model. For
+one-to-many relationship with another model. You'll often find this association
+on the "other side" of a `belongs_to` association. This association indicates
+that each instance of the model has zero or more instances of another model. For
 example, in an application containing authors and books, the author model could
 be declared like this:
 
@@ -826,8 +826,8 @@ WARNING: Objects will _always_ be removed from the database, ignoring the
 
 The [`collection.clear`][] method removes all objects from the collection
 according to the strategy specified by the `dependent` option. If no option is
-given, it follows the default strategy. The default strategy for `has_many :through`
-associations is `delete_all`, and for `has_many` associations is to
+given, it follows the default strategy. The default strategy for `has_many
+:through` associations is `delete_all`, and for `has_many` associations is to
 set the foreign keys to `NULL`.
 
 ```ruby
@@ -847,8 +847,8 @@ an empty Relation.
 
 ##### Assigning the Collection
 
-The `collection=(objects)` method makes the collection contain only the supplied objects,
-by adding and deleting as appropriate. The changes are persisted to the
+The `collection=(objects)` method makes the collection contain only the supplied
+objects, by adding and deleting as appropriate. The changes are persisted to the
 database.
 
 The `collection_singular_ids=(ids)` method makes the collection contain only the
@@ -931,8 +931,8 @@ object _will_ be saved.
 ])
 ```
 
-`collection.create!` does the same as `collection.create`, but
-raises `ActiveRecord::RecordInvalid` if the record is invalid.
+`collection.create!` does the same as `collection.create`, but raises
+`ActiveRecord::RecordInvalid` if the record is invalid.
 
 ##### When are Objects Saved?
 
@@ -954,9 +954,9 @@ object, use the `collection.build` method.
 ### `has_many :through`
 
 A [`has_many :through`][`has_many`] association is often used to set up a
-many-to-many relationship with another model. This association indicates that the
-declaring model can be matched with zero or more instances of another model by
-proceeding _through_ a third model.
+many-to-many relationship with another model. This association indicates that
+the declaring model can be matched with zero or more instances of another model
+by proceeding _through_ a third model.
 
 For example, consider a medical practice where patients make appointments to see
 physicians. The relevant association declarations could look like this:
@@ -1642,9 +1642,10 @@ class CreatePictures < ActiveRecord::Migration[7.2]
 end
 ```
 
-WARNING: Since polymorphic associations rely on storing class names in the database, that
-data must remain synchronized with the class name used by the Ruby code. When
-renaming a class, make sure to update the data in the polymorphic type column.
+WARNING: Since polymorphic associations rely on storing class names in the
+database, that data must remain synchronized with the class name used by the
+Ruby code. When renaming a class, make sure to update the data in the
+polymorphic type column.
 
 For example, if you change the class name from `Product` to `Item` then you'd
 need to run a migration script to update the `imageable_type` column in the
@@ -1664,9 +1665,8 @@ ensure the correct handling of associations, please refer to the [Associations
 section of the Composite Primary Keys
 guide](active_record_composite_primary_keys#associations-between-models-with-composite-primary-keys).
 This section provides comprehensive guidance on setting up and using
-associations with composite
-primary keys in Rails, including how to specify composite foreign keys when
-necessary.
+associations with composite primary keys in Rails, including how to specify
+composite foreign keys when necessary.
 
 ### Self Joins
 
@@ -1944,8 +1944,8 @@ To use delegated types, we need to model our data as follows:
 
 * There is a superclass that stores shared attributes among all subclasses in
   its table.
-* Each subclass must inherit from the superclass, and will have a separate
-  table for any additional attributes specific to it.
+* Each subclass must inherit from the superclass, and will have a separate table
+  for any additional attributes specific to it.
 
 This eliminates the need to define attributes in a single table that are
 unintentionally shared among all subclasses.
@@ -2099,8 +2099,8 @@ associations in your Rails applications:
 ### Controlling Association Caching
 
 All of the association methods are built around caching, which keeps the result
-of loaded associations for further operations. The cache is even
-shared across methods. For example:
+of loaded associations for further operations. The cache is even shared across
+methods. For example:
 
 ```ruby
 # retrieves books from the database
@@ -2261,7 +2261,8 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
 end
 ```
 
-You can read more about the `create_join_table` method in the [Active Record Migration Guides](active_record_migrations.html#creating-a-join-table)
+You can read more about the `create_join_table` method in the [Active Record
+Migration Guides](active_record_migrations.html#creating-a-join-table)
 
 #### Creating Join Tables for `has_many :through` Associations
 
@@ -2679,8 +2680,8 @@ When you execute `@user.todos.create`, the `@todo` record will have its
 `has_and_belongs_to_many` does not support the `:primary_key` option. For this
 type of association, you can achieve similar functionality by using a join table
 with has_many `:through` association, which gives more flexibility and supports
-the `:primary_key` option. You can read more about this in the
-[`has_many :through` section](#has-many-through).
+the `:primary_key` option. You can read more about this in the [`has_many
+:through` section](#has-many-through).
 
 #### `:touch`
 
@@ -2710,8 +2711,8 @@ end
 
 `has_and_belongs_to_many` does not support the `:touch` option. For this type of
 association, you can achieve similar functionality by using a join table with
-`has_many :through` association. You can read more about this in the
-[`has_many :through` section](#has-many-through).
+`has_many :through` association. You can read more about this in the [`has_many
+:through` section](#has-many-through).
 
 #### `:validate`
 
@@ -2721,8 +2722,8 @@ associated objects will not be validated when this object is saved.
 
 `has_and_belongs_to_many` does not support the `:validate` option. For this type
 of association, you can achieve similar functionality by using a join table with
-has_many `:through` association. You can read more about this in the
-[`has_many :through` section](#has-many-through).
+has_many `:through` association. You can read more about this in the [`has_many
+:through` section](#has-many-through).
 
 
 #### `:inverse_of`
