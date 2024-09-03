@@ -18,8 +18,8 @@ After reading this guide, you will know how to:
 Associations Overview
 -----------------
 
-_Associations_ in Rails are special macro style calls that make it easy to
-connect different models. You can use them to tell Rails how your models relate
+Active Record associations allow you to define relationships between models.
+_Associations_ are implemented as special macro style calls that make it easy to tell Rails how your models relate
 to each other, which helps you manage your data more effectively, and makes
 common operations simpler and easier to read.
 
