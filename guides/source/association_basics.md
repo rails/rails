@@ -2680,8 +2680,8 @@ When you execute `@user.todos.create`, the `@todo` record will have its
 `has_and_belongs_to_many` does not support the `:primary_key` option. For this
 type of association, you can achieve similar functionality by using a join table
 with has_many `:through` association, which gives more flexibility and supports
-the `:primary_key` option. You can read more about this in the [`has_many
-:through` section](#has-many-through).
+the `:primary_key` option. You can read more about this in the
+[`has_many :through` section](#has-many-through).
 
 #### `:touch`
 
@@ -2711,8 +2711,8 @@ end
 
 `has_and_belongs_to_many` does not support the `:touch` option. For this type of
 association, you can achieve similar functionality by using a join table with
-`has_many :through` association. You can read more about this in the [`has_many
-:through` section](#has-many-through).
+`has_many :through` association. You can read more about this in the
+[`has_many :through` section](#has-many-through).
 
 #### `:validate`
 
@@ -2722,8 +2722,8 @@ associated objects will not be validated when this object is saved.
 
 `has_and_belongs_to_many` does not support the `:validate` option. For this type
 of association, you can achieve similar functionality by using a join table with
-has_many `:through` association. You can read more about this in the [`has_many
-:through` section](#has-many-through).
+has_many `:through` association. You can read more about this in the
+[`has_many :through` section](#has-many-through).
 
 
 #### `:inverse_of`
