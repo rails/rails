@@ -22,12 +22,8 @@ module Rails
       end
 
       def call(env)
-        request = ActionDispatch::Request.new(env)
-
-        if request.path == @path
-          Rails.logger.silence do
-            @app.call(env)
-          end
+        if env['PATH_INFO'] == @path
+          Rails.logger.silence { @app.call(env) }
         else
           @app.call(env)
         end
