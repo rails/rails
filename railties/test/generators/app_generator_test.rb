@@ -638,6 +638,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".github/dependabot.yml"
   end
 
+  def test_configuration_of_solid
+    generator [destination_root]
+    run_generator_instance
+
+    assert_file "config/environments/production.rb" do |content|
+      assert_match(%r{config.cache_store = :solid_cache_store}, content)
+    end
+  end
+
   def test_inclusion_of_kamal_files
     generator [destination_root]
     run_generator_instance
