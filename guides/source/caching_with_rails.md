@@ -723,9 +723,10 @@ Caching in Development
 
 By default, caching is *enabled* in development mode with
 [`:memory_store`](#activesupport-cache-memorystore).
+This doesn't apply to Action Controller caching, which is disabled
+by default.
 
-Rails also provides the rails command `dev:cache` to
-easily toggle Action Controller caching on/off.
+To enable Action Controller caching Rails provides the `bin/rails dev:cache` command.
 
 ```bash
 $ bin/rails dev:cache
