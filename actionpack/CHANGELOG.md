@@ -1,3 +1,10 @@
+*   Make ActionView::Template::Error rescuable.
+
+    Make sure ActionView::Template::Errors show the correct error page when
+    setting `action_dispatch.show_exceptions` to `:rescuable`.
+
+    *Petrik de Heus*
+
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 
     *Hartley McGuire*

@@ -10,6 +10,7 @@ require "rack/utils"
 module ActionDispatch
   class ExceptionWrapper
     cattr_accessor :rescue_responses, default: Hash.new(:internal_server_error).merge!(
+      "ActionView::Template::Error"                        => :internal_server_error,
       "ActionController::RoutingError"                     => :not_found,
       "AbstractController::ActionNotFound"                 => :not_found,
       "ActionController::MethodNotAllowed"                 => :method_not_allowed,
