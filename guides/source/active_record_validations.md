@@ -76,7 +76,7 @@ It's the opinion of the Rails framework that model-level validations are the
 most appropriate in most circumstances, however there may specific cases where
 you want to complement it with alternate validations.
 
-### When Does Validation Happen?
+### Validation Triggers
 
 There are two kinds of Active Record objects - those that correspond to a row
 inside your database and those that do not. When you create a new object, using
@@ -296,7 +296,7 @@ class Person < ApplicationRecord
 end
 ```
 
-To read about validation errors in greater depth refer to the [section in Working with Validation
+To read about validation errors in greater depth refer to the [Working with Validation
 Errors](#working-with-validation-errors) section.
 
 [Errors#squarebrackets]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-5B-5D
@@ -1091,6 +1091,7 @@ class Person < ApplicationRecord
     }
 end
 ```
+To translate error messages, see the [I18n guide](i18n.html#error-message-scopes).
 
 ### `:on`
 
