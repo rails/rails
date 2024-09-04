@@ -152,6 +152,8 @@ module RenderStreaming
         assert_equal expected[index], chunk
         index += 1
       end
+
+      assert_equal expected.size, index
     end
   end
 end
