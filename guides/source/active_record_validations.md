@@ -115,7 +115,7 @@ Active Record will not perform the `INSERT` or `UPDATE` operation. This helps
 to avoid storing an invalid object in the database. You can choose to have
 specific validations run when an object is created, saved, or updated.
 
-CAUTION: While validations usually prevent invalid data from being saved to the
+WARNING: While validations usually prevent invalid data from being saved to the
 database, it's important to be aware that not all methods in Rails trigger
 validations. Some methods allow changes to be made directly to the database
 without performing validations. As a result, if you're not careful, it’s
@@ -411,7 +411,7 @@ You can also pass in a custom message via the `message` option.
 Generally when using this validator, you will want to combine it with the `:if`
 option to only validate the "_confirmation" field when the initial field has
 changed and **not** every time you save the record. More on [conditional
-validations](#conditional-validation) later.
+validations](#conditional-validations) later.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1001,7 +1001,7 @@ There are several common options supported by the validators. These options are:
 * [`:on`](#on): Specify the contexts where this validation is active.
 * [`:strict`](#strict-validations): Raise an exception when the validation
   fails.
-* [`:if` and `:unless`](#conditional-validation): Specify when the validation
+* [`:if` and `:unless`](#conditional-validations): Specify when the validation
   should or should not occur.
 
 NOTE: Not all of these options are supported by every validator, please refer to
@@ -1439,7 +1439,7 @@ See the section above for more details about [`:on`](#on).
 You can define your own custom validation contexts for callbacks. This can be
 useful when you want to perform validations based on specific scenarios, or you
 want to group certain callbacks together and run them in a specific context. In
-these cases you may be tempted to [skip callbacks](#skipping-callbacks)
+these cases you may be tempted to [skip callbacks](active_record_callbacks.html#skipping-callbacks)
 altogether, but defining a custom context can sometimes be an alternative
 structured approach. You will need to combine a `context` with the `on` option
 to define a custom context for a callback.
