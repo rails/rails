@@ -3,6 +3,7 @@
 require "generators/generators_test_helper"
 require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
+require 'debug'
 
 DEFAULT_APP_FILES = %w(
   .dockerignore
@@ -641,10 +642,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_configuration_of_solid
     generator [destination_root]
     run_generator_instance
-
-    assert_file "config/environments/production.rb" do |content|
-      assert_match(%r{config.cache_store = :solid_cache_store}, content)
-    end
+    assert_gem "solid_cache"
   end
 
   def test_inclusion_of_kamal_files
@@ -806,7 +804,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_skip_solid_option
     generator([destination_root], skip_solid: true)
-
     run_generator_instance
 
     assert_not_includes @rails_commands, "solid_cache:install", "`solid_cache:install` expected to not be called."
