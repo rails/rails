@@ -111,16 +111,16 @@ module Rails
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
-        class_option :skip_kamal,          type: :boolean, default: false,
+        class_option :skip_kamal,          type: :boolean, default: nil,
                                            desc: "Skip Kamal setup"
 
-        class_option :skip_solid,          type: :boolean, default: false,
+        class_option :skip_solid,          type: :boolean, default: nil,
                                            desc: "Skip Solid Cache & Queue setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :devcontainer,        type: :boolean, default: false,
+        class_option :devcontainer,        type: :boolean, default: nil,
                                            desc: "Generate devcontainer files"
 
         class_option :edge,                type: :boolean, default: nil,
