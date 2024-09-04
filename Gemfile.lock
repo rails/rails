@@ -545,7 +545,7 @@ GEM
       rake
       serverengine (~> 2.0.5)
       thor
-    solid_cache (1.0.3)
+    solid_cache (1.0.4)
       activejob (>= 7.2)
       activerecord (>= 7.2)
       railties (>= 7.2)
