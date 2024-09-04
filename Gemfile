@@ -21,6 +21,7 @@ gem "cssbundling-rails"
 gem "importmap-rails", ">= 1.2.3"
 gem "tailwindcss-rails"
 gem "dartsass-rails"
+gem "solid_cache"
 gem "kamal", require: false
 gem "thruster", require: false
 # require: false so bcrypt is loaded only when has_secure_password is used.

@@ -638,6 +638,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".github/dependabot.yml"
   end
 
+  def test_configuration_of_solid
+    generator [destination_root]
+    run_generator_instance
+    assert_gem "solid_cache"
+    assert_file "config/database.yml" do |content|
+      assert_match(%r{cache:}, content)
+    end
+  end
+
   def test_inclusion_of_kamal_files
     generator [destination_root]
     run_generator_instance
@@ -793,6 +802,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/active_job/, content)
       end
     end
+  end
+
+  def test_skip_solid_option
+    generator([destination_root], skip_solid: true)
+    run_generator_instance
+
+    assert_not_includes @rails_commands, "solid_cache:install", "`solid_cache:install` expected to not be called."
+    assert_no_gem "solid_cache"
   end
 
   def test_skip_javascript_option
@@ -969,7 +986,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     expected_commands = [
-      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install"
+      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install", "solid_cache:install"
     ]
     assert_equal expected_commands, @rails_commands
   end

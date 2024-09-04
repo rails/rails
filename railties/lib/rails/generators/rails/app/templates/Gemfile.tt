@@ -14,6 +14,11 @@ source "https://rubygems.org"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
+<% unless options.skip_solid? -%>
+
+# Use the database-backed Solid Cache adapter for Rails.cache [https://github.com/rails/solid_cache]
+gem "solid_cache"
+<% end -%>
 <% if depend_on_bootsnap? -%>
 
 # Reduces boot times through caching; required in config/boot.rb
