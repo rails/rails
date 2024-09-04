@@ -12,7 +12,6 @@ require "rails/version"
 require "rails/deprecator"
 require "rails/application"
 require "rails/backtrace_cleaner"
-require "rails/rack/silence_request"
 
 require "active_support/railtie"
 require "action_dispatch/railtie"

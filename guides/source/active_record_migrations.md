@@ -559,8 +559,18 @@ create_join_table :products, :categories, column_options: { null: true }
 ```
 
 By default, the name of the join table comes from the union of the first two
-arguments provided to create_join_table, in alphabetical order. In this case,
+arguments provided to create_join_table, in lexical order. In this case,
 the table would be named `categories_products`.
+
+WARNING: The precedence between model names is calculated using the `<=>`
+operator for `String`. This means that if the strings are of different lengths,
+and the strings are equal when compared up to the shortest length, then the
+longer string is considered of higher lexical precedence than the shorter one.
+For example, one would expect the tables "paper_boxes" and "papers" to generate
+a join table name of "papers_paper_boxes" because of the length of the name
+"paper_boxes", but it in fact generates a join table name of
+"paper_boxes_papers" (because the underscore '\_' is lexicographically _less_
+than 's' in common encodings).
 
 To customize the name of the table, provide a `:table_name` option:
 
