@@ -13,6 +13,8 @@ module Cpk
 
     before_destroy :prevent_destroy_if_set
 
+    generates_token_for :test
+
     private
       def prevent_destroy_if_set
         throw(:abort) if fail_destroy
