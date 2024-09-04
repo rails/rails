@@ -20,7 +20,7 @@ module ActiveRecord
       # the type map is Ractor shareable.
       @connection.tables.each do |table|
         @connection.columns(table).each do |column|
-          assert_ractor_shareable @connection.lookup_cast_type_from_column(column)
+          assert_ractor_shareable @connection.send(:lookup_cast_type, column.sql_type)
         end
       end
     end

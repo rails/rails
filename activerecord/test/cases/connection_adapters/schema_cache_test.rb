@@ -99,8 +99,9 @@ module ActiveRecord
         # Load the cache.
         cache = load_bound_reflection(tempfile.path)
 
-        assert_no_queries do
+        assert_no_queries(include_schema: true) do
           assert_equal 3, cache.columns("courses").size
+          assert_equal 3, cache.columns("courses").map(&:cast_type).compact.size
           assert_equal 3, cache.columns_hash("courses").size
           assert cache.data_source_exists?("courses")
           assert_equal "id", cache.primary_keys("courses")
@@ -137,8 +138,9 @@ module ActiveRecord
           YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(gz.read) : YAML.load(gz.read)
         end
 
-        assert_no_queries do
+        assert_no_queries(include_schema: true) do
           assert_equal 3, cache.columns(@connection, "courses").size
+          assert_equal 3, cache.columns(@connection, "courses").map(&:cast_type).compact.size
           assert_equal 3, cache.columns_hash(@connection, "courses").size
           assert cache.data_source_exists?(@connection, "courses")
           assert_equal "id", cache.primary_keys(@connection, "courses")
