@@ -193,7 +193,7 @@ false` is passed as an argument. This technique should be used with caution.
 [`upsert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
 [`upsert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
 
-### `valid?` and `invalid?`
+### Checking Validity
 
 Before saving an Active Record object, Rails runs your validations, and
 if these validations produce any errors, then Rails will not save the object.
@@ -263,18 +263,12 @@ returning true if any errors were found in the object, and false otherwise.
 [`invalid?`]: https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-invalid-3F
 [`valid?`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations.html#method-i-valid-3F
 
-### `errors[]`
+### Errors
 
 To verify whether or not a particular attribute of an object is valid, you can
 use [`errors[:attribute]`][Errors#squarebrackets]. It returns an array of all
 the error messages for `:attribute`. If there are no errors on the specified
 attribute, an empty array is returned.
-
-This method is only useful _after_ validations have been run, because it only
-inspects the errors collection and does not trigger validations itself. It's
-different from the `ActiveRecord::Base#invalid?` method explained above because
-it doesn't verify the validity of the object as a whole. It only checks to see
-whether there are errors found on an individual attribute of the object.
 
 ```ruby
 class Person < ApplicationRecord
@@ -289,7 +283,20 @@ irb> Person.create.errors[:name].any?
 => true
 ```
 
-We'll cover validation errors in greater depth in the [Working with Validation
+The
+[`errors.add`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-add)
+method creates an error object using the attribute, error type, and options,
+which is useful for defining specific error scenarios in custom validators.
+
+```
+class Person < ApplicationRecord
+  validate do |person|
+    errors.add :name, :too_short, message: "is not long enough"
+  end
+end
+```
+
+To read about validation errors in greater depth refer to the [section in Working with Validation
 Errors](#working-with-validation-errors) section.
 
 [Errors#squarebrackets]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-5B-5D
@@ -983,17 +990,10 @@ We will cover [custom validations](#performing-custom-validations) more later.
 
 [`validates_with`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with
 
-Common Validation Options
+Validation Options
 -------------------------
 
-There are several common options supported by the validators we just went over,
-let's go over some of them now!
-
-NOTE: Not all of these options are supported by every validator, please refer to
-the API documentation for [`ActiveModel::Validations`][].
-
-There is a list of common options shared along with the validators of the
-validation methods mentioned above. These options are:
+There are several common options supported by the validators. These options are:
 
 * [`:allow_nil`](#allow-nil): Skip validation if the attribute is `nil`.
 * [`:allow_blank`](#allow-blank): Skip validation if the attribute is blank.
@@ -1003,6 +1003,9 @@ validation methods mentioned above. These options are:
   fails.
 * [`:if` and `:unless`](#conditional-validation): Specify when the validation
   should or should not occur.
+
+NOTE: Not all of these options are supported by every validator, please refer to
+the API documentation for [`ActiveModel::Validations`][].
 
 [`ActiveModel::Validations`]: https://api.rubyonrails.org/classes/ActiveModel/Validations.html
 
@@ -1175,40 +1178,10 @@ irb> person.errors.messages
 => {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
 ```
 
-We will cover more use-cases for `on:` in the [callbacks guide](active_record_callbacks.html).
+You can read more about use-cases for `on:` in the [Custom Contexts section](#custom-contexts).
 
-Strict Validations
-------------------
-
-You can also specify validations to be strict and raise
-`ActiveModel::StrictValidationFailed` when the object is invalid.
-
-```ruby
-class Person < ApplicationRecord
-  validates :name, presence: { strict: true }
-end
-```
-
-```irb
-irb> Person.new.valid?
-ActiveModel::StrictValidationFailed: Name can't be blank
-```
-
-There is also the ability to pass a custom exception to the `:strict` option.
-
-```ruby
-class Person < ApplicationRecord
-  validates :token, presence: true, uniqueness: true, strict: TokenGenerationException
-end
-```
-
-```irb
-irb> Person.new.valid?
-TokenGenerationException: Token can't be blank
-```
-
-Conditional Validation
-----------------------
+Conditional Validations
+-----------------------
 
 Sometimes it will make sense to validate an object only when a given predicate
 is satisfied. You can do that by using the `:if` and `:unless` options, which
@@ -1289,6 +1262,73 @@ end
 
 The validation only runs when all the `:if` conditions and none of the `:unless`
 conditions are evaluated to `true`.
+
+Strict Validations
+------------------
+
+You can also specify validations to be strict and raise
+`ActiveModel::StrictValidationFailed` when the object is invalid.
+
+```ruby
+class Person < ApplicationRecord
+  validates :name, presence: { strict: true }
+end
+```
+
+```irb
+irb> Person.new.valid?
+ActiveModel::StrictValidationFailed: Name can't be blank
+```
+
+There is also the ability to pass a custom exception to the `:strict` option.
+
+```ruby
+class Person < ApplicationRecord
+  validates :token, presence: true, uniqueness: true, strict: TokenGenerationException
+end
+```
+
+```irb
+irb> Person.new.valid?
+TokenGenerationException: Token can't be blank
+```
+
+### Listing Validators
+
+If you want to find out all of the validators for a given objects, you can use
+`validators`.
+
+For example, if we have the following model using a custom validator and a
+built-in validator:
+
+```ruby
+class Person < ApplicationRecord
+  validates :name, presence: true, on: :create
+  validates :email, format: URI::MailTo::EMAIL_REGEXP
+  validates_with MyOtherValidator, strict: true
+end
+```
+
+We can now use `validators` on the "Person" model to list all validators, or
+even check a specific field using `validators_on`.
+
+```irb
+irb> Person.validators
+#=> [#<ActiveRecord::Validations::PresenceValidator:0x10b2f2158
+      @attributes=[:name], @options={:on=>:create}>,
+     #<MyOtherValidatorValidator:0x10b2f17d0
+      @attributes=[:name], @options={:strict=>true}>,
+     #<ActiveModel::Validations::FormatValidator:0x10b2f0f10
+      @attributes=[:email],
+      @options={:with=>URI::MailTo::EMAIL_REGEXP}>]
+     #<MyOtherValidator:0x10b2f0948 @options={:strict=>true}>]
+
+irb> Person.validators_on(:name)
+#=> [#<ActiveModel::Validations::PresenceValidator:0x10b2f2158
+      @attributes=[:name], @options={on: :create}>]
+```
+
+[`validate`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate
 
 Performing Custom Validations
 -----------------------------
@@ -1452,43 +1492,6 @@ irb> user.save(context: :contact_info) # => true
 irb> user.save(context: :location_info) # => false
 ```
 
-### Listing Validators
-
-If you want to find out all of the validators for a given objects, you can use
-`validators`.
-
-For example, if we have the following model using a custom validator and a
-built-in validator:
-
-```ruby
-class Person < ApplicationRecord
-  validates :name, presence: true, on: :create
-  validates :email, format: URI::MailTo::EMAIL_REGEXP
-  validates_with MyOtherValidator, strict: true
-end
-```
-
-We can now use `validators` on the "Person" model to list all validators, or
-even check a specific field using `validators_on`.
-
-```irb
-irb> Person.validators
-#=> [#<ActiveRecord::Validations::PresenceValidator:0x10b2f2158
-      @attributes=[:name], @options={:on=>:create}>,
-     #<MyOtherValidatorValidator:0x10b2f17d0
-      @attributes=[:name], @options={:strict=>true}>,
-     #<ActiveModel::Validations::FormatValidator:0x10b2f0f10
-      @attributes=[:email],
-      @options={:with=>URI::MailTo::EMAIL_REGEXP}>]
-     #<MyOtherValidator:0x10b2f0948 @options={:strict=>true}>]
-
-irb> Person.validators_on(:name)
-#=> [#<ActiveModel::Validations::PresenceValidator:0x10b2f2158
-      @attributes=[:name], @options={on: :create}>]
-```
-
-[`validate`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate
-
 Working with Validation Errors
 ------------------------------
 
@@ -1542,6 +1545,12 @@ irb> person.errors.first.details
 messages for a specific attribute. It returns an array of strings with all error
 messages for the given attribute, each string with one error message. If there
 are no errors related to the attribute, it returns an empty array.
+
+This method is only useful _after_ validations have been run, because it only
+inspects the errors collection and does not trigger validations itself. It's
+different from the `ActiveRecord::Base#invalid?` method explained above because
+it doesn't verify the validity of the object as a whole. It only checks to see
+whether there are errors found on an individual attribute of the object.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1609,7 +1618,7 @@ irb> person.valid?
 => false
 
 irb> person.errors.where(:name, :too_short, minimum: 3)
-=> [ ... ] # all name errors being too short and minimum is 2
+=> [ ... ] # all name errors being too short and minimum is 3
 ```
 
 You can read various information from these error objects:
