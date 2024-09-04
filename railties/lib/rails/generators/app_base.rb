@@ -432,7 +432,7 @@ module Rails
       end
 
       def skip_solid?
-        options[:skip_solid]
+        options[:skip_active_record] || options[:skip_solid]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -754,7 +754,7 @@ module Rails
       end
 
       def run_solid
-        return if options[:skip_solid] || !bundle_install?
+        return if skip_solid? || !bundle_install?
 
         rails_command "solid_cache:install"
       end
