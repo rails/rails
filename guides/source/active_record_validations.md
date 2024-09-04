@@ -1091,6 +1091,7 @@ class Person < ApplicationRecord
     }
 end
 ```
+
 To translate error messages, see the [I18n guide](i18n.html#error-message-scopes).
 
 ### `:on`
