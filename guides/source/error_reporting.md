@@ -35,9 +35,9 @@ Rails.error.handle(SomethingIsBroken) do
 end
 ```
 
-Rails wraps all executions (such as [HTTP requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods), [jobs](https://guides.rubyonrails.org/active_job_basics.html), and [rails runner](https://guides.rubyonrails.org/command_line.html#bin-rails-runner) invocations) in the error reporter, so any unhandled errors raised in your app will automatically be reported to your error-reporting service via their subscribers.
+Rails wraps all executions (such as [HTTP requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods), [jobs](active_job_basics.html), and [rails runner](command_line.html#bin-rails-runner) invocations) in the error reporter, so any unhandled errors raised in your app will automatically be reported to your error-reporting service via their subscribers.
 
-This means that third-party error-reporting libraries no longer need to insert a [Rack](https://guides.rubyonrails.org/rails_on_rack.html) middleware or do any monkey-patching to capture unhandled exceptions. Libraries that use [ActiveSupport](https://edgeapi.rubyonrails.org/classes/ActiveSupport.html) can also use this to non-intrusively report warnings that would previously have been lost in logs.
+This means that third-party error-reporting libraries no longer need to insert a [Rack](rails_on_rack.html) middleware or do any monkey-patching to capture unhandled exceptions. Libraries that use [Active Support](https://api.rubyonrails.org/classes/ActiveSupport.html) can also use this to non-intrusively report warnings that would previously have been lost in logs.
 
 NOTE: Using the Rails' error reporter is not required. All other means of capturing errors still work.
 
