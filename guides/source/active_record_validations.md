@@ -1738,11 +1738,11 @@ Rails generates, for example, adds this CSS rule:
 
 This means that any field with an error ends up with a 2 pixel red border.
 
- ### Customizing Error Field Wrapper
+### Customizing Error Field Wrapper
 
- Rails uses the `field_error_proc` configuration option to wrap fields with
- errors in HTML. By default, this option wraps the erroneous form fields in a
- `<div>` with a `field_with_errors` class, as seen in the example above:
+Rails uses the `field_error_proc` configuration option to wrap fields with
+errors in HTML. By default, this option wraps the erroneous form fields in a
+`<div>` with a `field_with_errors` class, as seen in the example above:
 
 ```ruby
 config.action_view.field_error_proc = Proc.new { |html_tag, instance| content_tag :div, html_tag, class: "field_with_errors" }
