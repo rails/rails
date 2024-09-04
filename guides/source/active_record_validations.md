@@ -26,9 +26,9 @@ end
 ```
 
 ```irb
-irb> Person.create(name: "John Doe").valid?
+irb> Person.new(name: "John Doe").valid?
 => true
-irb> Person.create(name: nil).valid?
+irb> Person.new(name: nil).valid?
 => false
 ```
 
@@ -209,9 +209,9 @@ end
 ```
 
 ```irb
-irb> Person.create(name: "John Doe").valid?
+irb> Person.new(name: "John Doe").valid?
 => true
-irb> Person.create(name: nil).valid?
+irb> Person.new(name: nil).valid?
 => false
 ```
 
@@ -241,7 +241,7 @@ irb> p.valid?
 irb> p.errors.objects.first.full_message
 => "Name can't be blank"
 
-irb> p = Person.create
+irb> p = Person.new
 => #<Person id: nil, name: nil>
 irb> p.errors.objects.first.full_message
 => "Name can't be blank"
@@ -1575,7 +1575,7 @@ end
 ```
 
 ```irb
-irb> person = Person.create
+irb> person = Person.new
 irb> person.errors.where(:name).first.type
 => :too_plain
 irb> person.errors.where(:name).first.full_message
@@ -1599,7 +1599,7 @@ end
 ```
 
 ```irb
-irb> person = Person.create
+irb> person = Person.new
 irb> person.errors.where(:base).first.full_message
 => "This person is invalid because ..."
 ```
