@@ -164,7 +164,11 @@ end
 
 class Array
   def as_json(options = nil) # :nodoc:
-    map { |v| options ? v.as_json(options.dup) : v.as_json }
+    if options
+      map { |v| v.as_json(options.dup) }
+    else
+      map { |v| v.as_json }
+    end
   end
 end
 
@@ -184,8 +188,10 @@ class Hash
     end
 
     result = {}
-    subset.each do |k, v|
-      result[k.to_s] = options ? v.as_json(options.dup) : v.as_json
+    if options
+      subset.each { |k, v| result[k.to_s] = v.as_json(options.dup) }
+    else
+      subset.each { |k, v| result[k.to_s] = v.as_json }
     end
     result
   end
