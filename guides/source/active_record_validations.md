@@ -486,6 +486,29 @@ options please see the [message documentation](#message).
 
 The default error message for this helper is _"is not included in the list"_.
 
+As an alternative to a traditional enumerable (like an Array), you can supply a
+proc, lambda, or symbol that returns an enumerable. If the enumerable is a
+numerical, time, or datetime range, then the test is performed with
+Range#cover?, otherwise with include?. When using a proc or lambda, the instance
+under validation is passed as an argument.
+
+Here’s an example using a proc:
+
+```ruby
+class Coffee < ApplicationRecord
+  validates :size, inclusion: { in: ->(coffee) { coffee.available_sizes } }
+
+  def available_sizes
+    %w(small medium large extra_large)
+  end
+end
+```
+
+In this example, the `available_sizes` method returns an array of sizes that
+should be included. The proc passed to the `:in` option dynamically evaluates
+this list based on the instance of `Coffee` being validated.
+
+
 ### `exclusion`
 
 Naturally, the opposite of `inclusion` is `exclusion`.
@@ -529,9 +552,9 @@ class Account < ApplicationRecord
 end
 ```
 
-In this example, the reserved_subdomains method returns an array of subdomains
-that should be excluded. The proc passed to the :in option dynamically evaluates
-this list based on the instance of Account being validated.
+In this example, the `reserved_subdomains` method returns an array of subdomains
+that should be excluded. The proc passed to the `:in` option dynamically evaluates
+this list based on the instance of `Account` being validated.
 
 ### `length`
 
