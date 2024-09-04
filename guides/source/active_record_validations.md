@@ -812,7 +812,7 @@ end
 
 This validation will work with all of the association types.
 
-CAUTION: Don't use `validates_associated` on both ends of your associations.
+WARNING: Don't use `validates_associated` on both ends of your associations.
 They would call each other in an infinite loop.
 
 The default error message for [`validates_associated`][] is _"is invalid"_. Note
@@ -879,7 +879,7 @@ method definition, which is the record to be validated.
 
 If you want to add an error on a specific attribute, pass it as the first
 argument, such as `record.errors.add(:first_name, "please choose another
-name")`. We will cover [validation errors](#working-with-validation-errors) in greater detail later.
+name")`.
 
 ```ruby
 def validate(record)
@@ -888,6 +888,8 @@ def validate(record)
   end
 end
 ```
+
+We will cover [validation errors](#working-with-validation-errors) in greater detail later.
 
 The [`validates_with`][] helper takes a class, or a list of classes to use for
 validation.
@@ -958,8 +960,8 @@ let's go over some of them now!
 NOTE: Not all of these options are supported by every validator, please refer to
 the API documentation for [`ActiveModel::Validations`][].
 
-By using any of the validation methods we just mentioned, there also is a list
-of common options shared along with validators. We will cover these now!
+There is a list of common options shared along with the validators of the
+validation methods mentioned above. These options are:
 
 * [`:allow_nil`](#allow-nil): Skip validation if the attribute is `nil`.
 * [`:allow_blank`](#allow-blank): Skip validation if the attribute is blank.
@@ -1362,8 +1364,8 @@ See the section above for more details about [`:on`](#on).
 
 ### Listing Validators
 
-If you want to find out all of the validators for a given objects, look no
-further than `validators`.
+If you want to find out all of the validators for a given objects, you can use
+`validators`.
 
 For example, if we have the following model using a custom validator and a
 built-in validator:
@@ -1653,16 +1655,16 @@ irb> person.errors.empty?
 Displaying Validation Errors in Views
 -------------------------------------
 
-Once you've created a model and added validations, if that model is created via
-a web form, you probably want to display an error message when one of the
-validations fails.
+Once you've defined a model and added validations, you'll want to display an
+error message when a validation fails during the creation of that model via a
+web form.
 
-Because every application handles this kind of thing differently, Rails does
-not include any view helpers to help you generate these messages directly.
-However, due to the rich number of methods Rails gives you to interact with
-validations in general, you can build your own. In addition, when
-generating a scaffold, Rails will put some ERB into the `_form.html.erb` that
-it generates that displays the full list of errors on that model.
+Since every application handles this kind of thing differently, Rails does not
+include any view helpers to help you generate these messages directly. However,
+due to the rich number of methods Rails gives you to interact with validations
+in general, you can build your own. In addition, when generating a scaffold,
+Rails will put some generated ERB into the `_form.html.erb` that displays the
+full list of errors on that model.
 
 Assuming we have a model that's been saved in an instance variable named
 `@article`, it looks like this:
