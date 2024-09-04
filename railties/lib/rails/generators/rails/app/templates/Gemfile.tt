@@ -16,7 +16,7 @@ source "https://rubygems.org"
 gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 <% unless options.skip_solid? -%>
 
-# Use the database-backed Solid Cache to back Rails.cache for more space
+# Use the database-backed Solid Cache adapter for Rails.cache [https://github.com/rails/solid_cache]
 gem "solid_cache"
 <% end -%>
 <% if depend_on_bootsnap? -%>
