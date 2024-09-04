@@ -123,9 +123,14 @@ guide to learn more.
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
 
-Rails is often able to infer the primary key - foreign key information between
-associated models with composite primary keys without needing extra information.
-Take the following example:
+Rails can often infer the primary key-foreign key relationships between
+associated models. However, when dealing with composite primary keys, Rails
+typically defaults to using only part of the composite key, usually the `id`
+column, unless explicitly instructed otherwise. This default behavior only works
+if the model's composite primary key contains the `:id` column, _and_ the column
+is unique for all records.
+
+Consider the following example:
 
 ```ruby
 class Order < ApplicationRecord
@@ -138,29 +143,40 @@ class Book < ApplicationRecord
 end
 ```
 
-Here, Rails assumes that the `:id` column should be used as the primary key for
-the association between an order and its books, just as with a regular
-`has_many` / `belongs_to` association. It will infer that the foreign key column
-on the `books` table is `:order_id`. Accessing a book's order:
+In this setup, `Order` has a composite primary key consisting of `[:shop_id,
+:id]`, and `Book` belongs to `Order`. Rails will assume that the `:id` column
+should be used as the primary key for the association between an order and its
+books. It will infer that the foreign key column on the books table is
+`:order_id`.
+
+Below we create an `Order` and a `Book` associated with it:
 
 ```ruby
 order = Order.create!(id: [1, 2], status: "pending")
 book = order.books.create!(title: "A Cool Book")
+```
 
+To access the book's order, we reload the association:
+
+```ruby
 book.reload.order
 ```
 
-will generate the following SQL to access the order:
+When doing so, Rails will generate the following SQL to access the order:
 
 ```sql
 SELECT * FROM orders WHERE id = 2
 ```
 
-This only works if the model's composite primary key contains the `:id` column,
-_and_ the column is unique for all records. In order to use the full composite
-primary key in associations, set the `foreign_key:` option on the
-association. This option specifies a composite foreign key on the association,
-meaning that all columns in the foreign key will be used to query the
+You can see that Rails uses the order's `id` in its query, rather than both the
+`shop_id` and the `id`. In this case, the `id` is sufficient because the model's
+composite primary key does in fact contain the `:id` column, _and_ the column is
+unique for all records.
+
+However, if the above requirements are not met or you would like to use the full
+composite primary key in associations, you can set the `foreign_key:` option on
+the association. This option specifies a composite foreign key on the
+association; all columns in the foreign key will be used when querying the
 associated record(s). For example:
 
 ```ruby
@@ -174,16 +190,25 @@ class Book < ApplicationRecord
 end
 ```
 
-Accessing a book's author:
+In this setup, `Author` has a composite primary key consisting of `[:first_name,
+:last_name]`, and `Book` belongs to `Author` with a composite foreign key
+`[:author_first_name, :author_last_name]`.
+
+Create an `Author` and a `Book` associated with it:
 
 ```ruby
 author = Author.create!(first_name: "Jane", last_name: "Doe")
-book = author.books.create!(title: "A Cool Book")
+book = author.books.create!(title: "A Cool Book", author_first_name: "Jane", author_last_name: "Doe")
+```
 
+To access the book's author, we reload the association:
+
+```ruby
 book.reload.author
 ```
 
-will use `:first_name` _and_ `:last_name` in the SQL query:
+Rails will now use the `:first_name` _and_ `:last_name` from the composite
+primary key in the SQL query:
 
 ```sql
 SELECT * FROM authors WHERE first_name = 'Jane' AND last_name = 'Doe'
