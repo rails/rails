@@ -1,3 +1,15 @@
+*   Apply `config.action_dispatch.cookies_same_site_protection` to every session
+    store.
+
+    `ActionDispatch::Session::CacheStore`, `MemCacheStore` and third-party
+    stores built on `AbstractStore` or the session mixins sent session cookies
+    with no `SameSite` attribute. Only `CookieStore` applied the configured
+    default.
+
+    [GHSA-gmj8-hvj3-49mw]
+
+    *Jean Boussier*
+
 *   Prevent `ActionController::Live` streams from blocking when a full buffer is
     closed or aborted.
 

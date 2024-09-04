@@ -2,22 +2,10 @@
 
 require "abstract_unit"
 require "stringio"
-require "active_support/key_generator"
-require "active_support/messages/rotation_configuration"
+require_relative "store_shared_tests"
 
 class CookieStoreTest < ActionDispatch::IntegrationTest
-  SessionKey = "_myapp_session"
-  SessionSecret = "b3c631c314c0bbca50c1b2843150fe33"
-  SessionSalt   = "authenticated encrypted cookie"
-
-  Generator = ActiveSupport::KeyGenerator.new(SessionSecret, iterations: 1000)
-  Rotations = ActiveSupport::Messages::RotationConfiguration.new
-
-  SameSite = proc { :lax }
-
-  Encryptor = ActiveSupport::MessageEncryptor.new(
-    Generator.generate_key(SessionSalt, 32), cipher: "aes-256-gcm", serializer: Marshal
-  )
+  include StoreSharedTests
 
   class TestController < ActionController::Base
     def no_session_access
@@ -71,8 +59,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       head :ok
     end
   end
-
-  include CookieAssertions
 
   def assert_session_cookie(attributes_string, contents)
     cookies = parse_set_cookies_headers(headers["Set-Cookie"])
@@ -403,31 +389,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "default same_site derives SameSite from env" do
-    with_test_route_set do
-      get "/set_session_value"
-      assert_set_cookie_attributes("_myapp_session", "SameSite=Lax")
-    end
-  end
-
-  test "explicit same_site sets SameSite" do
-    cookie_options(same_site: :strict)
-
-    with_test_route_set do
-      get "/set_session_value"
-      assert_set_cookie_attributes("_myapp_session", "SameSite=Strict")
-    end
-  end
-
-  test "explicit nil same_site omits SameSite" do
-    cookie_options(same_site: nil)
-
-    with_test_route_set do
-      get "/set_session_value"
-      assert_not_set_cookie_attributes("_myapp_session", "SameSite")
-    end
-  end
-
   private
     # Overwrite `get` to set env hash
     def get(path, **options)
@@ -447,12 +408,12 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def cookie_options(options = {})
-      (@cookie_options ||= { key: SessionKey }).merge!(options)
+      @cookie_options ||= options
     end
 
     def app
       @app ||= self.class.build_app do |middleware|
-        middleware.use ActionDispatch::Session::CookieStore, cookie_options
+        middleware.use ActionDispatch::Session::CookieStore, cookie_options.reverse_merge({ key: SessionKey })
         middleware.delete ActionDispatch::ShowExceptions
       end
     end
