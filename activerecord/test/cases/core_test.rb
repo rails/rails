@@ -17,9 +17,9 @@ class CoreTest < ActiveRecord::TestCase
     assert_match(/^Topic\(id: integer, title: string/, Topic.inspect)
   end
 
-  def test_inspect_instance_includes_just_id_by_default
+  def test_inspect_instance
     topic = topics(:first)
-    assert_equal %(#<Topic id: 1>), topic.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_fs(:inspect)}", bonus_time: "#{topic.bonus_time.to_fs(:inspect)}", last_read: "#{topic.last_read.to_fs(:inspect)}", content: "Have a nice day", important: nil, binary_content: nil, approved: false, replies_count: 1, unique_replies_count: 0, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_fs(:inspect)}", updated_at: "#{topic.updated_at.to_fs(:inspect)}">), topic.inspect
   end
 
   def test_inspect_includes_attributes_from_attributes_for_inspect
@@ -107,7 +107,26 @@ class CoreTest < ActiveRecord::TestCase
     actual = +""
     PP.pp(topic, StringIO.new(actual))
     expected = <<~PRETTY
-      #<Topic:0xXXXXXX id: nil>
+      #<Topic:0xXXXXXX
+       id: nil,
+       title: nil,
+       author_name: nil,
+       author_email_address: "test@test.com",
+       written_on: nil,
+       bonus_time: nil,
+       last_read: nil,
+       content: nil,
+       important: nil,
+       binary_content: nil,
+       approved: true,
+       replies_count: 0,
+       unique_replies_count: 0,
+       parent_id: nil,
+       parent_title: nil,
+       type: nil,
+       group: nil,
+       created_at: nil,
+       updated_at: nil>
     PRETTY
     assert actual.start_with?(expected.split("XXXXXX").first)
     assert actual.end_with?(expected.split("XXXXXX").last)
@@ -118,7 +137,26 @@ class CoreTest < ActiveRecord::TestCase
     actual = +""
     PP.pp(topic, StringIO.new(actual))
     expected = <<~PRETTY
-      #<Topic:0x\\w+ id: 1>
+      #<Topic:0x\\w+
+       id: 1,
+       title: "The First Topic",
+       author_name: "David",
+       author_email_address: "david@loudthinking.com",
+       written_on: "2003-07-16 14:28:11\\.223300000 \\+0000",
+       bonus_time: "2000-01-01 14:28:00\\.000000000 \\+0000",
+       last_read: "2004-04-15",
+       content: "Have a nice day",
+       important: nil,
+       binary_content: nil,
+       approved: false,
+       replies_count: 1,
+       unique_replies_count: 0,
+       parent_id: nil,
+       parent_title: nil,
+       type: nil,
+       group: nil,
+       created_at: [^,]+,
+       updated_at: [^,>]+>
     PRETTY
     assert_match(/\A#{expected}\z/, actual)
   end
