@@ -115,12 +115,11 @@ Active Record will not perform the `INSERT` or `UPDATE` operation. This helps
 to avoid storing an invalid object in the database. You can choose to have
 specific validations run when an object is created, saved, or updated.
 
-<!-- TODO: seems like a contradiction to the previous paragraph, saying to avoid storing
-an invalid object in the db. -->
-CAUTION: There are many ways to change the state of an object in the database.
-Some methods will trigger validations, but others will not. This means that it's
-possible to save an object in the database in an invalid state if you aren't
-careful.
+CAUTION: While validations usually prevent invalid data from being saved to the
+database, it's important to be aware that not all methods in Rails trigger
+validations. Some methods allow changes to be made directly to the database
+without performing validations. As a result, if you're not careful, it’s
+possible to bypass validations and save an object in an invalid state.
 
 The following methods trigger validations, and will save the object to the
 database only if the object is valid:
@@ -429,18 +428,17 @@ You can also pass in a custom message via the `message` option.
 
 These options are all supported:
 
-| Option                      | Description                                                               | Default Error Message                       |
-| --------------------------- | ------------------------------------------------------------------------- | ------------------------------------------- |
-| `:greater_than`             | Specifies the value must be greater than the supplied value.              | "must be greater than %{count}"             |
-| `:greater_than_or_equal_to` | Specifies the value must be greater than or equal to the supplied value.  | "must be greater than or equal to %{count}" |
-| `:equal_to`                 | Specifies the value must be equal to the supplied value.                  | "must be equal to %{count}"                 |
-| `:less_than`                | Specifies the value must be less than the supplied value.                 | "must be less than %{count}"                |
-| `:less_than_or_equal_to`    | Specifies the value must be less than or equal to the supplied value.     | "must be less than or equal to %{count}"    |
-| `:other_than`               | Specifies the value must be other than the supplied value.                | "must be other than %{count}"               |
+| Option                      | Description                                                              | Default Error Message                       |
+| --------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
+| `:greater_than`             | Specifies the value must be greater than the supplied value.             | "must be greater than %{count}"             |
+| `:greater_than_or_equal_to` | Specifies the value must be greater than or equal to the supplied value. | "must be greater than or equal to %{count}" |
+| `:equal_to`                 | Specifies the value must be equal to the supplied value.                 | "must be equal to %{count}"                 |
+| `:less_than`                | Specifies the value must be less than the supplied value.                | "must be less than %{count}"                |
+| `:less_than_or_equal_to`    | Specifies the value must be less than or equal to the supplied value.    | "must be less than or equal to %{count}"    |
+| `:other_than`               | Specifies the value must be other than the supplied value.               | "must be other than %{count}"               |
 
 NOTE: The validator requires a compare option be supplied. Each option accepts a
 value, proc, or symbol. Any class that includes Comparable can be compared.
-<!-- TODO: maybe an example with a proc  -->
 
 ### `format`
 
@@ -467,7 +465,6 @@ match the start/end of a line. Due to frequent misuse of `^` and `$`, you need
 to pass the `multiline: true` option in case you use any of these two anchors in
 the provided regular expression. In most cases, you should be using `\A` and
 `\z`.
-<!-- TODO: add an example -->
 
 ### `inclusion`
 
@@ -520,7 +517,21 @@ numerical, time, or datetime range, then the test is performed with `Range#cover
 otherwise with `include?`. When using a proc or lambda the instance under
 validation is passed as an argument.
 
-<!-- TODO, add an a=example of a proc or lambda -->
+Here’s an example using a proc:
+
+```ruby
+class Account < ApplicationRecord
+  validates :subdomain, exclusion: { in: ->(account) { account.reserved_subdomains } }
+
+  def reserved_subdomains
+    %w(www us ca jp admin)
+  end
+end
+```
+
+In this example, the reserved_subdomains method returns an array of subdomains
+that should be excluded. The proc passed to the :in option dynamically evaluates
+this list based on the instance of Account being validated.
 
 ### `length`
 
@@ -538,12 +549,12 @@ end
 
 The possible length constraint options are:
 
-| Option     | Description                                                                                            |
-| ---------- | ------------------------------------------------------------------------------------------------------ |
-| `:minimum` | The attribute cannot have less than the specified length.                                              |
-| `:maximum` | The attribute cannot have more than the specified length.                                              |
-| `:in`      | The attribute length must be included in a given interval. The value for this option must be a range.  |
-| `:is`      | The attribute length must be equal to the given value.                                                 |
+| Option     | Description                                                                                           |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| `:minimum` | The attribute cannot have less than the specified length.                                             |
+| `:maximum` | The attribute cannot have more than the specified length.                                             |
+| `:in`      | The attribute length must be included in a given interval. The value for this option must be a range. |
+| `:is`      | The attribute length must be equal to the given value.                                                |
 
 The default error messages depend on the type of length validation being
 performed. You can customize these messages using the `:wrong_length`,
@@ -657,10 +668,10 @@ NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
-<!-- TODO: LINK TO the methods -->
-If you validate the presence of an object associated via a `has_one` or
-`has_many` relationship, it will check that the object is neither `blank?` nor
-`marked_for_destruction?`.
+If you validate the presence of an object associated via a
+[`has_one`](association_basics.html#the-has-one-association) or
+[`has_many`](association_basics.html#the-has-many-association) relationship, it
+will check that the object is neither `blank?` nor `marked_for_destruction?`.
 
 Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use one of the following validations:
@@ -711,15 +722,14 @@ class Order < ApplicationRecord
 end
 ```
 
-<!-- TODO: not sure that this makes sense in the context -->
-NOTE: If you want to ensure that the association is both present and valid,
-you also need to use `validates_associated`. More on that
-[below](#validates-associated)
+NOTE: If you want to ensure that the association is both present and valid, you
+also need to use `validates_associated`. More on that in the
+[validates_associated section](#validates-associated)
 
-<!-- TODO, links to methods? -->
-If you validate the absence of an object associated via a `has_one` or
-`has_many` relationship, it will check that the object is neither `present?` nor
-`marked_for_destruction?`.
+If you validate the absence of an object associated via a
+[`has_one`](association_basics.html#the-has-one-association) or
+[`has_many`](association_basics.html#the-has-many-association) relationship, it
+will check that the object is neither `present?` nor `marked_for_destruction?`.
 
 Since `false.present?` is false, if you want to validate the absence of a boolean
 field you should use `validates :field_name, exclusion: { in: [true, false] }`.
@@ -760,14 +770,13 @@ this, you must create a unique index on that column in your database.
 In order to add a uniqueness database constraint on your database, use the
 [`add_index`][] statement in a migration and include the `unique: true` option.
 
-<!-- TODO: add an example and a link to the docs -->
 
-<!-- TODO: dont understand the reference to scope here. -->
-Should you wish to create a database constraint to prevent possible violations
-of a uniqueness validation using the `:scope` option, you must create a unique
-index on both columns in your database. See [the MySQL manual][] and [the MariaDB
-manual][] for more details about multiple column indexes, or [the PostgreSQL
-manual][] for examples of unique constraints that refer to a group of columns.
+If you are using the `:scope` option in your uniqueness validation, and you wish
+to create a database constraint to prevent possible violations of the uniqueness
+validation, you must create a unique index on both columns in your database. See
+[the MySQL manual][] and [the MariaDB manual][] for more details about multiple
+column indexes, or [the PostgreSQL manual][] for examples of unique constraints
+that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive, case insensitive, or if it should
