@@ -15,7 +15,7 @@ After reading this guide, you will know:
 Error Reporting
 ------------------------
 
-The Rails [error reporter](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html) provides a standard way to collect exceptions that occur in your application and report them to your preferred service or location (e.g. a monitoring service such as [Sentry](https://github.com/getsentry/sentry-ruby/blob/e18ce4b6dcce2ebd37778c1e96164684a1e9ebfc/sentry-rails/lib/sentry/rails/error_subscriber.rb)).
+The Rails [error reporter](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html) provides a standard way to collect exceptions that occur in your application and report them to your preferred service or location (e.g. you could report the errors to a monitoring service such as [Sentry](https://github.com/getsentry/sentry-ruby)).
 
 The error reporter aims to replace boilerplate error-handling code like this:
 
