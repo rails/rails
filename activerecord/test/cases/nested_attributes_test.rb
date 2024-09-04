@@ -14,6 +14,7 @@ require "models/owner"
 require "models/pet"
 require "models/entry"
 require "models/message"
+require "models/cpk"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -231,6 +232,15 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
         name: "Monkey D. Luffy"
       )
     end
+  end
+
+  def test_updating_models_with_cpk_provided_as_strings
+    book = Cpk::Book.create!(id: [1, 2], shop_id: 3)
+    book.chapters.create!(id: [1, 3], title: "Title")
+
+    book.update!(chapters_attributes: { id: ["1", "3"], title: "New title" })
+    assert_equal 1, book.reload.chapters.count
+    assert_equal "New title", book.chapters.first.title
   end
 end
 
