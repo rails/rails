@@ -642,6 +642,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator [destination_root]
     run_generator_instance
     assert_gem "solid_cache"
+    assert_file "config/database.yml" do |content|
+      assert_match(%r{cache:}, content)
+    end
   end
 
   def test_inclusion_of_kamal_files

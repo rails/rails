@@ -28,13 +28,35 @@ test:
 #
 # Similarly, if you deploy your application as a Docker container, you must
 # ensure the database is located in a persisted volume.
+<%- if options.skip_solid? -%>
 production:
   <<: *default
   # database: path/to/persistent/storage/production.sqlite3
 <%- else -%>
+production:
+  primary:
+    <<: *default
+    # database: path/to/persistent/storage/production.sqlite3
+  cache:
+    <<: *default
+    # database: path/to/persistent/storage/production_cache.sqlite3
+    migrations_paths: db/cache_migrate
+<%- end -%>
+<%- else -%>
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.
+<%- if options.skip_solid? -%>
 production:
   <<: *default
   database: storage/production.sqlite3
+<%- else -%>
+production:
+  primary:
+    <<: *default
+    database: storage/production.sqlite3
+  cache:
+    <<: *default
+    database: storage/production_cache.sqlite3
+    migrations_paths: db/cache_migrate
+<%- end -%>
 <%- end -%>

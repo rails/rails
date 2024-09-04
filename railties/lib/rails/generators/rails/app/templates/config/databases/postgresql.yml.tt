@@ -84,8 +84,21 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+<%- if options.skip_solid? -%>
 production:
   <<: *default
   database: <%= app_name %>_production
   username: <%= app_name %>
   password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
+<%- else -%>
+production:
+  primary: &primary_production
+    <<: *default
+    database: <%= app_name %>_production
+    username: <%= app_name %>
+    password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: <%= app_name %>_production_cache
+    migrations_paths: db/cache_migrate
+<%- end -%>
