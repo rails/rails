@@ -396,13 +396,13 @@ class FormHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_without_locales
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_body" name="post[body]" placeholder="Body" type="text" value="Back to the hill and over it again!" />', text_field(:post, :body, placeholder: true))
+      assert_dom_equal('<input id="post_body" name="post[body]" placeholder="Body" type="text" value="Back to the hill and over it again!" />', text_field(:post, :body, placeholder: true).to_s)
     end
   end
 
   def test_text_field_placeholder_with_locales
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_title" name="post[title]" placeholder="What is this about?" type="text" value="Hello World" />', text_field(:post, :title, placeholder: true))
+      assert_dom_equal('<input id="post_title" name="post[title]" placeholder="What is this about?" type="text" value="Hello World" />', text_field(:post, :title, placeholder: true).to_s)
     end
   end
 
@@ -410,39 +410,39 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         '<input id="post_delegator_title" name="post_delegator[title]" placeholder="Delegate model_name title" type="text" value="Hello World" />',
-        text_field(:post_delegator, :title, placeholder: true)
+        text_field(:post_delegator, :title, placeholder: true).to_s
       )
     end
   end
 
   def test_text_field_placeholder_with_human_attribute_name
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Total cost" type="text" />', text_field(:post, :cost, placeholder: true))
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Total cost" type="text" />', text_field(:post, :cost, placeholder: true).to_s)
     end
   end
 
   def test_text_field_placeholder_with_human_attribute_name_and_to_model
     assert_dom_equal(
       '<input id="post_delegator_title" name="post_delegator[title]" placeholder="Delegate Title" type="text" value="Hello World" />',
-      text_field(:post_delegator, :title, placeholder: true)
+      text_field(:post_delegator, :title, placeholder: true).to_s
     )
   end
 
   def test_text_field_placeholder_with_string_value
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />', text_field(:post, :cost, placeholder: "HOW MUCH?"))
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />', text_field(:post, :cost, placeholder: "HOW MUCH?").to_s)
     end
   end
 
   def test_text_field_placeholder_with_human_attribute_name_and_value
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: :uk))
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: :uk).to_s)
     end
   end
 
   def test_text_field_placeholder_with_locales_and_value
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: :spanish))
+      assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: :spanish).to_s)
     end
   end
 
@@ -450,7 +450,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:comments) do |cf|
-          concat cf.text_field(:body, placeholder: true)
+          concat cf.text_field(:body, placeholder: true).to_s
         end
       end
 
@@ -466,7 +466,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:tags) do |cf|
-          concat cf.text_field(:value, placeholder: true)
+          concat cf.text_field(:value, placeholder: true).to_s
         end
       end
 
@@ -481,19 +481,19 @@ class FormHelperTest < ActionView::TestCase
   def test_text_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="text" value="Hello World" />',
-      text_field("post", "title")
+      text_field("post", "title").to_s
     )
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="password" />',
-      password_field("post", "title")
+      password_field("post", "title").to_s
     )
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="password" value="Hello World" />',
-      password_field("post", "title", value: @post.title)
+      password_field("post", "title", value: @post.title).to_s
     )
     assert_dom_equal(
       '<input id="person_name" name="person[name]" type="password" />',
-      password_field("person", "name")
+      password_field("person", "name").to_s
     )
   end
 
@@ -501,7 +501,7 @@ class FormHelperTest < ActionView::TestCase
     @post.title = "<b>Hello World</b>"
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="text" value="&lt;b&gt;Hello World&lt;/b&gt;" />',
-      text_field("post", "title")
+      text_field("post", "title").to_s
     )
   end
 
@@ -509,52 +509,52 @@ class FormHelperTest < ActionView::TestCase
     @post.title = "The HTML Entity for & is &amp;"
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="text" value="The HTML Entity for &amp; is &amp;amp;" />',
-      text_field("post", "title")
+      text_field("post", "title").to_s
     )
   end
 
   def test_text_field_with_options
     expected = '<input id="post_title" name="post[title]" size="35" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field("post", "title", "size" => 35)
-    assert_dom_equal expected, text_field("post", "title", size: 35)
+    assert_dom_equal expected, text_field("post", "title", "size" => 35).to_s
+    assert_dom_equal expected, text_field("post", "title", size: 35).to_s
   end
 
   def test_text_field_assuming_size
     expected = '<input id="post_title" maxlength="35" name="post[title]" size="35" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35)
-    assert_dom_equal expected, text_field("post", "title", maxlength: 35)
+    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35).to_s
+    assert_dom_equal expected, text_field("post", "title", maxlength: 35).to_s
   end
 
   def test_text_field_removing_size
     expected = '<input id="post_title" maxlength="35" name="post[title]" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35, "size" => nil)
-    assert_dom_equal expected, text_field("post", "title", maxlength: 35, size: nil)
+    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35, "size" => nil).to_s
+    assert_dom_equal expected, text_field("post", "title", maxlength: 35, size: nil).to_s
   end
 
   def test_text_field_with_nil_value
     expected = '<input id="post_title" name="post[title]" type="text" />'
-    assert_dom_equal expected, text_field("post", "title", value: nil)
+    assert_dom_equal expected, text_field("post", "title", value: nil).to_s
   end
 
   def test_text_field_with_nil_name
     expected = '<input id="post_title" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field("post", "title", name: nil)
+    assert_dom_equal expected, text_field("post", "title", name: nil).to_s
   end
 
   def test_text_field_doesnt_change_param_values
     object_name = "post[]"
     expected = '<input id="post_123_title" name="post[123][title]" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field(object_name, "title")
+    assert_dom_equal expected, text_field(object_name, "title").to_s
   end
 
   def test_file_field_has_no_size
     expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
-    assert_dom_equal expected, file_field("user", "avatar")
+    assert_dom_equal expected, file_field("user", "avatar").to_s
   end
 
   def test_file_field_with_multiple_behavior
     expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true)
+    assert_dom_equal expected, file_field("import", "file", multiple: true).to_s
   end
 
   def test_file_field_with_multiple_behavior_configured_include_hidden
@@ -563,19 +563,19 @@ class FormHelperTest < ActionView::TestCase
 
     expected = '<input type="hidden" name="import[file][]" autocomplete="off" value="">' \
                '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true)
+    assert_dom_equal expected, file_field("import", "file", multiple: true).to_s
   ensure
     ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = old_value
   end
 
   def test_file_field_with_multiple_behavior_include_hidden_false
     expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: false)
+    assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: false).to_s
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name
     expected = '<input id="import_file" multiple="multiple" name="custom" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
+    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom").to_s
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name_configured_include_hidden
@@ -584,28 +584,28 @@ class FormHelperTest < ActionView::TestCase
 
     expected = '<input type="hidden" name="custom" autocomplete="off" value="">' \
                '<input id="import_file" multiple="multiple" name="custom" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
+    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom").to_s
   ensure
     ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = old_value
   end
 
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     expected = '<input type="file" name="import[file]" id="import_file" />'
-    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true).to_s
   end
 
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_defined
     @controller = WithActiveStorageRoutesControllers.new
 
     expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" type="file" name="import[file]" id="import_file" />'
-    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true).to_s
   end
 
   def test_file_field_with_direct_upload_dont_mutate_arguments
     original_options = { class: "pix", direct_upload: true }
 
     expected = '<input class="pix" type="file" name="import[file]" id="import_file" />'
-    assert_dom_equal expected, file_field("import", "file", original_options)
+    assert_dom_equal expected, file_field("import", "file", original_options).to_s
 
     assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
@@ -613,11 +613,11 @@ class FormHelperTest < ActionView::TestCase
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" autocomplete="off" />',
-      hidden_field("post", "title")
+      hidden_field("post", "title").to_s
     )
     assert_dom_equal(
       '<input id="post_secret" name="post[secret]" type="hidden" value="1" autocomplete="off" />',
-      hidden_field("post", "secret?")
+      hidden_field("post", "secret?").to_s
     )
   end
 
@@ -625,26 +625,26 @@ class FormHelperTest < ActionView::TestCase
     @post.title = "<b>Hello World</b>"
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="&lt;b&gt;Hello World&lt;/b&gt;" autocomplete="off" />',
-      hidden_field("post", "title")
+      hidden_field("post", "title").to_s
     )
   end
 
   def test_hidden_field_with_nil_value
     expected = '<input id="post_title" name="post[title]" type="hidden" autocomplete="off" />'
-    assert_dom_equal expected, hidden_field("post", "title", value: nil)
+    assert_dom_equal expected, hidden_field("post", "title", value: nil).to_s
   end
 
   def test_hidden_field_with_options
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Something Else" autocomplete="off" />',
-      hidden_field("post", "title", value: "Something Else")
+      hidden_field("post", "title", value: "Something Else").to_s
     )
   end
 
   def test_text_field_with_custom_type
     assert_dom_equal(
       '<input id="user_email" name="user[email]" type="email" />',
-      text_field("user", "email", type: "email")
+      text_field("user", "email", type: "email").to_s
     )
   end
 
@@ -896,7 +896,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_body" name="post[body]" placeholder="Body">\nBack to the hill and over it again!</textarea>},
-        textarea(:post, :body, placeholder: true)
+        textarea(:post, :body, placeholder: true).to_s
       )
     end
   end
@@ -905,7 +905,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_title" name="post[title]" placeholder="What is this about?">\nHello World</textarea>},
-        textarea(:post, :title, placeholder: true)
+        textarea(:post, :title, placeholder: true).to_s
       )
     end
   end
@@ -914,7 +914,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Total cost">\n</textarea>},
-        textarea(:post, :cost, placeholder: true)
+        textarea(:post, :cost, placeholder: true).to_s
       )
     end
   end
@@ -923,7 +923,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="HOW MUCH?">\n</textarea>},
-        textarea(:post, :cost, placeholder: "HOW MUCH?")
+        textarea(:post, :cost, placeholder: "HOW MUCH?").to_s
       )
     end
   end
@@ -932,7 +932,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Pounds">\n</textarea>},
-        textarea(:post, :cost, placeholder: :uk)
+        textarea(:post, :cost, placeholder: :uk).to_s
       )
     end
   end
@@ -941,7 +941,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_written_on" name="post[written_on]" placeholder="Escrito en">\n2004-06-15</textarea>},
-        textarea(:post, :written_on, placeholder: :spanish)
+        textarea(:post, :written_on, placeholder: :spanish).to_s
       )
     end
   end
@@ -950,7 +950,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:comments) do |cf|
-          concat cf.textarea(:body, placeholder: true)
+          concat cf.textarea(:body, placeholder: true).to_s
         end
       end
 
@@ -966,7 +966,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:tags) do |cf|
-          concat cf.textarea(:value, placeholder: true)
+          concat cf.textarea(:value, placeholder: true).to_s
         end
       end
 
@@ -981,7 +981,7 @@ class FormHelperTest < ActionView::TestCase
   def test_textarea
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body")
+      textarea("post", "body").to_s
     )
   end
 
@@ -989,28 +989,28 @@ class FormHelperTest < ActionView::TestCase
     @post.body = "Back to <i>the</i> hill and over it again!"
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nBack to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>},
-      textarea("post", "body")
+      textarea("post", "body").to_s
     )
   end
 
   def test_textarea_with_alternate_value
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nTesting alternate values.</textarea>},
-      textarea("post", "body", value: "Testing alternate values.")
+      textarea("post", "body", value: "Testing alternate values.").to_s
     )
   end
 
   def test_textarea_with_nil_alternate_value
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\n</textarea>},
-      textarea("post", "body", value: nil)
+      textarea("post", "body", value: nil).to_s
     )
   end
 
   def test_inputs_use_before_type_cast_to_retain_information_from_validations_like_numericality
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
-      textarea("post", "id")
+      textarea("post", "id").to_s
     )
   end
 
@@ -1022,7 +1022,7 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\n0</textarea>},
-      textarea("post", "id")
+      textarea("post", "id").to_s
     )
   end
 
@@ -1030,7 +1030,7 @@ class FormHelperTest < ActionView::TestCase
     class << @post; undef id_came_from_user?; end
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
-      textarea("post", "id")
+      textarea("post", "id").to_s
     )
   end
 
@@ -1038,57 +1038,57 @@ class FormHelperTest < ActionView::TestCase
     @post.body = "The HTML Entity for & is &amp;"
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nThe HTML Entity for &amp; is &amp;amp;</textarea>},
-      textarea("post", "body")
+      textarea("post", "body").to_s
     )
   end
 
   def test_textarea_with_size_option
     assert_dom_equal(
       %{<textarea cols="183" id="post_body" name="post[body]" rows="820">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", size: "183x820")
+      textarea("post", "body", size: "183x820").to_s
     )
   end
 
   def test_color_field_with_valid_hex_color_string
     expected = %{<input id="car_color" name="car[color]" type="color" value="#000fff" />}
-    assert_dom_equal(expected, color_field("car", "color"))
+    assert_dom_equal(expected, color_field("car", "color").to_s)
   end
 
   def test_color_field_with_invalid_hex_color_string
     expected = %{<input id="car_color" name="car[color]" type="color" value="#000000" />}
     @car.color = "#1234TR"
-    assert_dom_equal(expected, color_field("car", "color"))
+    assert_dom_equal(expected, color_field("car", "color").to_s)
   end
 
   def test_color_field_with_value_attr
     expected = %{<input id="car_color" name="car[color]" type="color" value="#00FF00" />}
-    assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
+    assert_dom_equal(expected, color_field("car", "color", value: "#00FF00").to_s)
   end
 
   def test_search_field
     expected = %{<input id="contact_notes_query" name="contact[notes_query]" type="search" />}
-    assert_dom_equal(expected, search_field("contact", "notes_query"))
+    assert_dom_equal(expected, search_field("contact", "notes_query").to_s)
   end
 
   def test_search_field_with_onsearch_value
     expected = %{<input onsearch="true" type="search" name="contact[notes_query]" id="contact_notes_query" incremental="true" />}
-    assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true))
+    assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true).to_s)
   end
 
   def test_telephone_field
     expected = %{<input id="user_cell" name="user[cell]" type="tel" />}
-    assert_dom_equal(expected, telephone_field("user", "cell"))
+    assert_dom_equal(expected, telephone_field("user", "cell").to_s)
   end
 
   def test_date_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
-    assert_dom_equal(expected, date_field("post", "written_on"))
+    assert_dom_equal(expected, date_field("post", "written_on").to_s)
   end
 
   def test_date_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, date_field("post", "written_on"))
+    assert_dom_equal(expected, date_field("post", "written_on").to_s)
   end
 
   def test_date_field_with_extra_attrs
@@ -1097,26 +1097,26 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 6, 15)
     max_value = DateTime.new(2010, 8, 15)
     step = 2
-    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_date_field_with_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2013-06-29" />}
     value = Date.new(2013, 6, 29)
-    assert_dom_equal(expected, date_field("post", "written_on", value: value))
+    assert_dom_equal(expected, date_field("post", "written_on", value: value).to_s)
   end
 
   def test_date_field_with_datetime_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2013-06-29" />}
     value = DateTime.new(2013, 6, 29)
-    assert_dom_equal(expected, date_field("post", "written_on", value: value))
+    assert_dom_equal(expected, date_field("post", "written_on", value: value).to_s)
   end
 
   def test_date_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
     @post.written_on = Time.zone.parse("2004-06-15 15:30:45")
-    assert_dom_equal(expected, date_field("post", "written_on"))
+    assert_dom_equal(expected, date_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
@@ -1124,7 +1124,7 @@ class FormHelperTest < ActionView::TestCase
   def test_date_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" />}
     @post.written_on = nil
-    assert_dom_equal(expected, date_field("post", "written_on"))
+    assert_dom_equal(expected, date_field("post", "written_on").to_s)
   end
 
   def test_date_field_with_string_values_for_min_and_max
@@ -1132,7 +1132,7 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15)
     min_value = "2000-06-15"
     max_value = "2010-08-15"
-    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_date_field_with_invalid_string_values_for_min_and_max
@@ -1140,18 +1140,18 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
-    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_time_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="00:00:00.000" />}
-    assert_dom_equal(expected, time_field("post", "written_on"))
+    assert_dom_equal(expected, time_field("post", "written_on").to_s)
   end
 
   def test_time_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, time_field("post", "written_on"))
+    assert_dom_equal(expected, time_field("post", "written_on").to_s)
   end
 
   def test_time_field_with_extra_attrs
@@ -1160,25 +1160,25 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
     step = 60
-    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_time_field_with_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
     value = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, time_field("post", "written_on", value: value))
+    assert_dom_equal(expected, time_field("post", "written_on", value: value).to_s)
   end
 
   def test_time_field_with_value_attr_that_excludes_seconds
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:45" />}
-    assert_dom_equal(expected, time_field("post", "written_on", value: "01:45"))
+    assert_dom_equal(expected, time_field("post", "written_on", value: "01:45").to_s)
   end
 
   def test_time_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
     @post.written_on = Time.zone.parse("2004-06-15 01:02:03")
-    assert_dom_equal(expected, time_field("post", "written_on"))
+    assert_dom_equal(expected, time_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
@@ -1186,7 +1186,7 @@ class FormHelperTest < ActionView::TestCase
   def test_time_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" />}
     @post.written_on = nil
-    assert_dom_equal(expected, time_field("post", "written_on"))
+    assert_dom_equal(expected, time_field("post", "written_on").to_s)
   end
 
   def test_time_field_with_string_values_for_min_and_max
@@ -1194,7 +1194,7 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "20:45:30.000"
     max_value = "10:25:00.000"
-    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_time_field_with_invalid_string_values_for_min_and_max
@@ -1202,7 +1202,7 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
-    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_time_field_without_seconds
@@ -1210,18 +1210,18 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
-    assert_dom_equal(expected, time_field("post", "written_on", include_seconds: false, min: min_value, max: max_value))
+    assert_dom_equal(expected, time_field("post", "written_on", include_seconds: false, min: min_value, max: max_value).to_s)
   end
 
   def test_datetime_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on").to_s)
   end
 
   def test_datetime_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on").to_s)
   end
 
   def test_datetime_field_with_extra_attrs
@@ -1230,20 +1230,20 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
     step = 60
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_datetime_field_with_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2013-06-29T13:37:00" />}
     value = DateTime.new(2013, 6, 29, 13, 37)
-    assert_dom_equal(expected, datetime_field("post", "written_on", value: value))
+    assert_dom_equal(expected, datetime_field("post", "written_on", value: value).to_s)
   end
 
   def test_datetime_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T15:30:45" />}
     @post.written_on = Time.zone.parse("2004-06-15 15:30:45")
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
@@ -1251,7 +1251,7 @@ class FormHelperTest < ActionView::TestCase
   def test_datetime_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" />}
     @post.written_on = nil
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on").to_s)
   end
 
   def test_datetime_field_with_string_values_for_min_and_max
@@ -1259,7 +1259,7 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "2000-06-15T20:45:30"
     max_value = "2010-08-15T10:25:00"
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_datetime_field_with_invalid_string_values_for_min_and_max
@@ -1267,39 +1267,39 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_datetime_local_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_local_field("post", "written_on").to_s)
   end
 
   def test_datetime_local_field_without_seconds
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", include_seconds: false))
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", include_seconds: false).to_s)
   end
 
   def test_datetime_local_field_with_value_attr_that_excludes_seconds
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", value: "2004-06-15T00:00"))
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", value: "2004-06-15T00:00").to_s)
   end
 
   def test_month_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
-    assert_dom_equal(expected, month_field("post", "written_on"))
+    assert_dom_equal(expected, month_field("post", "written_on").to_s)
   end
 
   def test_month_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" />}
     @post.written_on = nil
-    assert_dom_equal(expected, month_field("post", "written_on"))
+    assert_dom_equal(expected, month_field("post", "written_on").to_s)
   end
 
   def test_month_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, month_field("post", "written_on"))
+    assert_dom_equal(expected, month_field("post", "written_on").to_s)
   end
 
   def test_month_field_with_extra_attrs
@@ -1308,39 +1308,39 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 2, 13)
     max_value = DateTime.new(2010, 12, 23)
     step = 2
-    assert_dom_equal(expected, month_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, month_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_month_field_with_datetime_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
     value = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, month_field("post", "written_on", value: value))
+    assert_dom_equal(expected, month_field("post", "written_on", value: value).to_s)
   end
 
   def test_month_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
     @post.written_on = Time.zone.parse("2004-06-15 15:30:45")
-    assert_dom_equal(expected, month_field("post", "written_on"))
+    assert_dom_equal(expected, month_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
 
   def test_week_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   end
 
   def test_week_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" />}
     @post.written_on = nil
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   end
 
   def test_week_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   end
 
   def test_week_field_with_extra_attrs
@@ -1349,20 +1349,20 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 2, 13)
     max_value = DateTime.new(2010, 12, 23)
     step = 2
-    assert_dom_equal(expected, week_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, week_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_week_field_with_datetime_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     value = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, week_field("post", "written_on", value: value))
+    assert_dom_equal(expected, week_field("post", "written_on", value: value).to_s)
   end
 
   def test_week_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     @post.written_on = Time.zone.parse("2004-06-15 15:30:45")
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
@@ -1370,53 +1370,53 @@ class FormHelperTest < ActionView::TestCase
   def test_week_field_week_number_base
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2015-W01" />}
     @post.written_on = DateTime.new(2015, 1, 1, 1, 2, 3)
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   end
 
   def test_url_field
     expected = %{<input id="user_homepage" name="user[homepage]" type="url" />}
-    assert_dom_equal(expected, url_field("user", "homepage"))
+    assert_dom_equal(expected, url_field("user", "homepage").to_s)
   end
 
   def test_email_field
     expected = %{<input id="user_address" name="user[address]" type="email" />}
-    assert_dom_equal(expected, email_field("user", "address"))
+    assert_dom_equal(expected, email_field("user", "address").to_s)
   end
 
   def test_number_field
     expected = %{<input name="order[quantity]" max="9" id="order_quantity" type="number" min="1" />}
-    assert_dom_equal(expected, number_field("order", "quantity", in: 1...10))
+    assert_dom_equal(expected, number_field("order", "quantity", in: 1...10).to_s)
     expected = %{<input name="order[quantity]" size="30" max="9" id="order_quantity" type="number" min="1" />}
-    assert_dom_equal(expected, number_field("order", "quantity", size: 30, in: 1...10))
+    assert_dom_equal(expected, number_field("order", "quantity", size: 30, in: 1...10).to_s)
   end
 
   def test_range_input
     expected = %{<input name="hifi[volume]" step="0.1" max="11" id="hifi_volume" type="range" min="0" />}
-    assert_dom_equal(expected, range_field("hifi", "volume", in: 0..11, step: 0.1))
+    assert_dom_equal(expected, range_field("hifi", "volume", in: 0..11, step: 0.1).to_s)
     expected = %{<input name="hifi[volume]" step="0.1" size="30" max="11" id="hifi_volume" type="range" min="0" />}
-    assert_dom_equal(expected, range_field("hifi", "volume", size: 30, in: 0..11, step: 0.1))
+    assert_dom_equal(expected, range_field("hifi", "volume", size: 30, in: 0..11, step: 0.1).to_s)
   end
 
   def test_explicit_name
     assert_dom_equal(
       '<input id="post_title" name="dont guess" type="text" value="Hello World" />',
-      text_field("post", "title", "name" => "dont guess")
+      text_field("post", "title", "name" => "dont guess").to_s
     )
     assert_dom_equal(
       %{<textarea id="post_body" name="really!">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "name" => "really!")
+      textarea("post", "body", "name" => "really!").to_s
     )
     assert_dom_equal(
       '<input name="i mean it" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" />',
       checkbox("post", "secret", "name" => "i mean it")
     )
     assert_dom_equal(
-      text_field("post", "title", "name" => "dont guess"),
-      text_field("post", "title", name: "dont guess")
+      text_field("post", "title", "name" => "dont guess").to_s,
+      text_field("post", "title", name: "dont guess").to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "name" => "really!"),
-      textarea("post", "body", name: "really!")
+      textarea("post", "body", "name" => "really!").to_s,
+      textarea("post", "body", name: "really!").to_s
     )
     assert_dom_equal(
       checkbox("post", "secret", "name" => "i mean it"),
@@ -1427,23 +1427,23 @@ class FormHelperTest < ActionView::TestCase
   def test_explicit_id
     assert_dom_equal(
       '<input id="dont guess" name="post[title]" type="text" value="Hello World" />',
-      text_field("post", "title", "id" => "dont guess")
+      text_field("post", "title", "id" => "dont guess").to_s
     )
     assert_dom_equal(
       %{<textarea id="really!" name="post[body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "id" => "really!")
+      textarea("post", "body", "id" => "really!").to_s
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" />',
       checkbox("post", "secret", "id" => "i mean it")
     )
     assert_dom_equal(
-      text_field("post", "title", "id" => "dont guess"),
-      text_field("post", "title", id: "dont guess")
+      text_field("post", "title", "id" => "dont guess").to_s,
+      text_field("post", "title", id: "dont guess").to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "id" => "really!"),
-      textarea("post", "body", id: "really!")
+      textarea("post", "body", "id" => "really!").to_s,
+      textarea("post", "body", id: "really!").to_s
     )
     assert_dom_equal(
       checkbox("post", "secret", "id" => "i mean it"),
@@ -1454,11 +1454,11 @@ class FormHelperTest < ActionView::TestCase
   def test_nil_id
     assert_dom_equal(
       '<input name="post[title]" type="text" value="Hello World" />',
-      text_field("post", "title", "id" => nil)
+      text_field("post", "title", "id" => nil).to_s
     )
     assert_dom_equal(
       %{<textarea name="post[body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "id" => nil)
+      textarea("post", "body", "id" => nil).to_s
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[secret]" type="checkbox" value="1" />',
@@ -1473,12 +1473,12 @@ class FormHelperTest < ActionView::TestCase
       select("post", "secret", [], {}, { "id" => nil })
     )
     assert_dom_equal(
-      text_field("post", "title", "id" => nil),
-      text_field("post", "title", id: nil)
+      text_field("post", "title", "id" => nil).to_s,
+      text_field("post", "title", id: nil).to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "id" => nil),
-      textarea("post", "body", id: nil)
+      textarea("post", "body", "id" => nil).to_s,
+      textarea("post", "body", id: nil).to_s
     )
     assert_dom_equal(
       checkbox("post", "secret", "id" => nil),
@@ -1493,23 +1493,23 @@ class FormHelperTest < ActionView::TestCase
   def test_index
     assert_dom_equal(
       '<input name="post[5][title]" id="post_5_title" type="text" value="Hello World" />',
-      text_field("post", "title", "index" => 5)
+      text_field("post", "title", "index" => 5).to_s
     )
     assert_dom_equal(
       %{<textarea name="post[5][body]" id="post_5_body">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "index" => 5)
+      textarea("post", "body", "index" => 5).to_s
     )
     assert_dom_equal(
       '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" id="post_5_secret" />',
       checkbox("post", "secret", "index" => 5)
     )
     assert_dom_equal(
-      text_field("post", "title", "index" => 5),
-      text_field("post", "title", "index" => 5)
+      text_field("post", "title", "index" => 5).to_s,
+      text_field("post", "title", "index" => 5).to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "index" => 5),
-      textarea("post", "body", "index" => 5)
+      textarea("post", "body", "index" => 5).to_s,
+      textarea("post", "body", "index" => 5).to_s
     )
     assert_dom_equal(
       checkbox("post", "secret", "index" => 5),
@@ -1520,23 +1520,23 @@ class FormHelperTest < ActionView::TestCase
   def test_index_with_nil_id
     assert_dom_equal(
       '<input name="post[5][title]" type="text" value="Hello World" />',
-      text_field("post", "title", "index" => 5, "id" => nil)
+      text_field("post", "title", "index" => 5, "id" => nil).to_s
     )
     assert_dom_equal(
       %{<textarea name="post[5][body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "index" => 5, "id" => nil)
+      textarea("post", "body", "index" => 5, "id" => nil).to_s
     )
     assert_dom_equal(
       '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" />',
       checkbox("post", "secret", "index" => 5, "id" => nil)
     )
     assert_dom_equal(
-      text_field("post", "title", "index" => 5, "id" => nil),
-      text_field("post", "title", index: 5, id: nil)
+      text_field("post", "title", "index" => 5, "id" => nil).to_s,
+      text_field("post", "title", index: 5, id: nil).to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "index" => 5, "id" => nil),
-      textarea("post", "body", index: 5, id: nil)
+      textarea("post", "body", "index" => 5, "id" => nil).to_s,
+      textarea("post", "body", index: 5, id: nil).to_s
     )
     assert_dom_equal(
       checkbox("post", "secret", "index" => 5, "id" => nil),
@@ -1552,11 +1552,11 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<input id="post_#{pid}_title" name="post[#{pid}][title]" type="text" value="Hello World" />},
-      text_field("post[]", "title")
+      text_field("post[]", "title").to_s
     )
     assert_dom_equal(
       %{<textarea id="post_#{pid}_body" name="post[#{pid}][body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post[]", "body")
+      textarea("post[]", "body").to_s
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_#{pid}_secret" name="post[#{pid}][secret]" type="checkbox" value="1" />},
@@ -1576,11 +1576,11 @@ class FormHelperTest < ActionView::TestCase
     pid = 123
     assert_dom_equal(
       %{<input name="post[#{pid}][title]" type="text" value="Hello World" />},
-      text_field("post[]", "title", id: nil)
+      text_field("post[]", "title", id: nil).to_s
     )
     assert_dom_equal(
       %{<textarea name="post[#{pid}][body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post[]", "body", id: nil)
+      textarea("post[]", "body", id: nil).to_s
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[#{pid}][secret]" type="checkbox" value="1" />},
@@ -1647,7 +1647,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_text_area_alias
     form_for(@post, html: { id: "create-post" }) do |f|
-      concat f.text_area(:body)
+      concat f.text_area(:body).to_s
     end
 
     expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
@@ -1663,8 +1663,8 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post, html: { id: "create-post" }) do |f|
       concat f.label(:title) { "The Title" }
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
       concat f.submit("Create post")
       concat f.button("Create post")
@@ -1749,7 +1749,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_id_with_index
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) }).to_s
       concat tag.span("is blank", id: form.field_id(:title, :error))
     end
 
@@ -1763,7 +1763,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_blank_as
     form_for(Post.new, as: "") do |form|
-      concat form.text_field(:title, name: form.field_name(:title))
+      concat form.text_field(:title, name: form.field_name(:title)).to_s
     end
 
     expected = whole_form("/posts", "new_", "new_") do
@@ -1776,7 +1776,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_field_id_with_namespace
     form_for(Post.new, namespace: :special) do |form|
       concat form.label(:title)
-      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) }).to_s
       concat tag.span("is blank", id: form.field_id(:title, :error))
     end
 
@@ -1791,7 +1791,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_blank_as_and_multiple
     form_for(Post.new, as: "") do |form|
-      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true)).to_s
     end
 
     expected = whole_form("/posts", "new_", "new_") do
@@ -1803,7 +1803,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_without_method_names_or_multiple_or_index
     form_for(Post.new) do |form|
-      concat form.text_field(:title, name: form.field_name(:title))
+      concat form.text_field(:title, name: form.field_name(:title)).to_s
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1815,7 +1815,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_without_method_names_and_multiple
     form_for(Post.new) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true)).to_s
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1827,7 +1827,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_without_method_names_and_index
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, name: form.field_name(:title))
+      concat form.text_field(:title, name: form.field_name(:title)).to_s
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1839,7 +1839,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_without_method_names_and_index_and_multiple
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true)).to_s
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1851,7 +1851,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_method_names
     form_for(Post.new) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, :subtitle))
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle)).to_s
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1863,7 +1863,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_method_names_and_index
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, :subtitle))
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle)).to_s
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1875,7 +1875,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_method_names_and_multiple
     form_for(Post.new) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true))
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true)).to_s
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1887,7 +1887,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_method_names_and_multiple_and_index
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true))
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true)).to_s
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1899,7 +1899,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_id_with_namespace_and_index
     form_for(Post.new, namespace: :special, index: 1) do |form|
-      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) }).to_s
       concat tag.span("is blank", id: form.field_id(:title, :error))
     end
 
@@ -2014,7 +2014,7 @@ class FormHelperTest < ActionView::TestCase
         b.label { b.radio_button + b.text }
       end
       concat rendered_radio_buttons
-      concat f.hidden_field :id
+      concat f.hidden_field(:id).to_s
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
@@ -2128,7 +2128,7 @@ class FormHelperTest < ActionView::TestCase
         b.label { b.checkbox + b.text }
       end
       concat rendered_checkboxes
-      concat f.hidden_field :id
+      concat f.hidden_field(:id).to_s
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
@@ -2206,7 +2206,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_file_field_generate_multipart
     form_for(@post, html: { id: "create-post" }) do |f|
-      concat f.file_field(:file)
+      concat f.file_field(:file).to_s
     end
 
     expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch", multipart: true) do
@@ -2219,7 +2219,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_file_field_generate_multipart
     form_for(@post) do |f|
       concat f.fields_for(:comment, @post) { |c|
-        concat c.file_field(:file)
+        concat c.file_field(:file).to_s
       }
     end
 
@@ -2273,8 +2273,8 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_symbol_as
     form_for(@post, as: "other_name", html: { id: "create-post" }) do |f|
       concat f.label(:title, class: "post_title")
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
       concat f.submit("Create post")
     end
@@ -2300,14 +2300,14 @@ class FormHelperTest < ActionView::TestCase
     end.new
 
     form_for(obj, as: "other_name", url: "/", html: { id: "edit-other-name" }) do |f|
-      assert_raise(NoMethodError) { f.hidden_field(:private_property) }
+      assert_raise(NoMethodError) { f.hidden_field(:private_property).to_s }
     end
   end
 
   def test_form_for_with_method_as_part_of_html_options
     form_for(@post, url: "/", html: { id: "create-post", method: :delete }) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -2323,8 +2323,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_method
     form_for(@post, url: "/", method: :delete, html: { id: "create-post" }) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -2342,7 +2342,7 @@ class FormHelperTest < ActionView::TestCase
     # Test case for bug which would emit an "object" attribute
     # when used with form_for using a search_field form helper
     form_for(Post.new, url: "/search", html: { id: "search-post", method: :get }) do |f|
-      concat f.search_field(:title)
+      concat f.search_field(:title).to_s
     end
 
     expected = whole_form("/search", "search-post", "new_post", method: "get") do
@@ -2354,8 +2354,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_remote
     form_for(@post, url: "/", remote: true, html: { id: "create-post", method: :patch }) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -2371,7 +2371,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_enforce_utf8_true
     form_for(:post, enforce_utf8: true) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected = whole_form("/", nil, nil, enforce_utf8: true) do
@@ -2383,7 +2383,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_enforce_utf8_false
     form_for(:post, enforce_utf8: false) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected = whole_form("/", nil, nil, enforce_utf8: false) do
@@ -2396,7 +2396,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_default_enforce_utf8_false
     with_default_enforce_utf8 false do
       form_for(:post) do |f|
-        concat f.text_field(:title)
+        concat f.text_field(:title).to_s
       end
 
       expected = whole_form("/", nil, nil, enforce_utf8: false) do
@@ -2410,7 +2410,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_default_enforce_utf8_true
     with_default_enforce_utf8 true do
       form_for(:post) do |f|
-        concat f.text_field(:title)
+        concat f.text_field(:title).to_s
       end
 
       expected = whole_form("/", nil, nil, enforce_utf8: true) do
@@ -2423,8 +2423,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_remote_in_html
     form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -2442,8 +2442,8 @@ class FormHelperTest < ActionView::TestCase
     @post.persisted = false
     @post.stub(:to_key, nil) do
       form_for(@post, remote: true) do |f|
-        concat f.text_field(:title)
-        concat f.textarea(:body)
+        concat f.text_field(:title).to_s
+        concat f.textarea(:body).to_s
         concat f.checkbox(:secret)
       end
 
@@ -2460,8 +2460,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_without_object
     form_for(:post, html: { id: "create-post" }) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -2478,8 +2478,8 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_index
     form_for(@post, as: "post[]") do |f|
       concat f.label(:title)
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -2496,8 +2496,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_nil_index_option_override
     form_for(@post, as: "post[]", index: nil) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -2514,7 +2514,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_label_error_wrapping
     form_for(@post) do |f|
       concat f.label(:author_name, class: "label")
-      concat f.text_field(:author_name)
+      concat f.text_field(:author_name).to_s
       concat f.submit("Create post")
     end
 
@@ -2532,7 +2532,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(post) do |f|
       concat f.label(:author_name, class: "label")
-      concat f.text_field(:author_name)
+      concat f.text_field(:author_name).to_s
       concat f.submit("Create post")
     end
 
@@ -2561,8 +2561,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_namespace
     form_for(@post, namespace: "namespace") do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -2587,7 +2587,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_namespace_with_label
     form_for(@post, namespace: "namespace") do |f|
       concat f.label(:title)
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
@@ -2600,7 +2600,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_namespace_and_as_option
     form_for(@post, namespace: "namespace", as: "custom_name") do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected = whole_form("/posts/123", "namespace_edit_custom_name", "edit_custom_name", method: "patch") do
@@ -2613,7 +2613,7 @@ class FormHelperTest < ActionView::TestCase
   def test_two_form_for_with_namespace
     form_for(@post, namespace: "namespace_1") do |f|
       concat f.label(:title)
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected_1 = whole_form("/posts/123", "namespace_1_edit_post_123", "edit_post", method: "patch") do
@@ -2625,7 +2625,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post, namespace: "namespace_2") do |f|
       concat f.label(:title)
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected_2 = whole_form("/posts/123", "namespace_2_edit_post_123", "edit_post", method: "patch") do
@@ -2639,10 +2639,10 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_namespace
     @comment.body = "Hello World"
     form_for(@post, namespace: "namespace") do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.fields_for(@comment) { |c|
-        concat c.text_field(:body)
+        concat c.text_field(:body).to_s
       }
     end
 
@@ -2829,7 +2829,7 @@ class FormHelperTest < ActionView::TestCase
     @comment.body = "Hello World"
     form_for(@post) do |f|
       concat f.fields_for(@comment) { |c|
-        concat c.text_field(:body)
+        concat c.text_field(:body).to_s
       }
     end
 
@@ -2872,10 +2872,10 @@ class FormHelperTest < ActionView::TestCase
     @comment.save
     form_for(:posts) do |f|
       f.fields_for("post[]", @post) do |f2|
-        f2.text_field(:id)
+        f2.text_field(:id).to_s
         @post.comments.each do |comment|
           concat f2.fields_for("comment[]", comment) { |c|
-            concat c.text_field(:name)
+            concat c.text_field(:name).to_s
           }
         end
       end
@@ -2890,11 +2890,11 @@ class FormHelperTest < ActionView::TestCase
 
   def test_nested_fields_for_with_nested_collections
     form_for(@post, as: "post[]") do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for("comment[]", @comment) { |c|
-        concat c.text_field(:name)
+        concat c.text_field(:name).to_s
       }
-      concat f.text_field(:body)
+      concat f.text_field(:body).to_s
     end
 
     expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
@@ -2908,9 +2908,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_nested_fields_for_with_index_and_parent_fields
     form_for(@post, index: 1) do |c|
-      concat c.text_field(:title)
+      concat c.text_field(:title).to_s
       concat c.fields_for("comment", @comment, index: 1) { |r|
-        concat r.text_field(:name)
+        concat r.text_field(:name).to_s
       }
     end
 
@@ -2925,7 +2925,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_index_and_nested_fields_for
     @rendered = form_for(@post, index: 1) do |f|
       concat f.fields_for(:comment, @post) { |c|
-        concat c.text_field(:title)
+        concat c.text_field(:title).to_s
       }
     end
 
@@ -2939,7 +2939,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_index_on_both
     form_for(@post, index: 1) do |f|
       concat f.fields_for(:comment, @post, index: 5) { |c|
-        concat c.text_field(:title)
+        concat c.text_field(:title).to_s
       }
     end
 
@@ -2953,7 +2953,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_auto_index
     form_for(@post, as: "post[]") do |f|
       concat f.fields_for(:comment, @post) { |c|
-        concat c.text_field(:title)
+        concat c.text_field(:title).to_s
       }
     end
 
@@ -2981,7 +2981,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_auto_index_on_both
     form_for(@post, as: "post[]") do |f|
       concat f.fields_for("comment[]", @post) { |c|
-        concat c.text_field(:title)
+        concat c.text_field(:title).to_s
       }
     end
 
@@ -2995,7 +2995,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_index_and_auto_index
     form_for(@post, as: "post[]") do |f|
       concat f.fields_for(:comment, @post, index: 5) { |c|
-        concat c.text_field(:title)
+        concat c.text_field(:title).to_s
       }
     end
 
@@ -3006,7 +3006,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post, as: :post, index: 1) do |f|
       concat f.fields_for("comment[]", @post) { |c|
-        concat c.text_field(:title)
+        concat c.text_field(:title).to_s
       }
     end
 
@@ -3021,9 +3021,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author) { |af|
-        concat af.text_field(:name)
+        concat af.text_field(:name).to_s
       }
     end
 
@@ -3048,9 +3048,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author) { |af|
-        concat af.text_field(:name)
+        concat af.text_field(:name).to_s
       }
     end
 
@@ -3067,9 +3067,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -3086,9 +3086,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author, include_id: false) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -3104,9 +3104,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post, include_id: false) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -3122,9 +3122,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post, include_id: false) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author, include_id: true) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -3141,10 +3141,10 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author) { |af|
-        concat af.hidden_field(:id)
-        concat af.text_field(:name)
+        concat af.hidden_field(:id).to_s
+        concat af.text_field(:name).to_s
       }
     end
 
@@ -3161,10 +3161,10 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name)
+          concat cf.text_field(:name).to_s
         }
       end
     end
@@ -3185,13 +3185,13 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author) { |af|
-        concat af.text_field(:name)
+        concat af.text_field(:name).to_s
       }
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment, include_id: false) { |cf|
-          concat cf.text_field(:name)
+          concat cf.text_field(:name).to_s
         }
       end
     end
@@ -3212,13 +3212,13 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post, include_id: false) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author) { |af|
-        concat af.text_field(:name)
+        concat af.text_field(:name).to_s
       }
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name)
+          concat cf.text_field(:name).to_s
         }
       end
     end
@@ -3238,13 +3238,13 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post, include_id: false) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author, include_id: true) { |af|
-        concat af.text_field(:name)
+        concat af.text_field(:name).to_s
       }
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name)
+          concat cf.text_field(:name).to_s
         }
       end
     end
@@ -3264,10 +3264,10 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          cf.text_field(:name)
+          cf.text_field(:name).to_s
         }
       end
     end
@@ -3287,11 +3287,11 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.hidden_field(:id)
-          concat cf.text_field(:name)
+          concat cf.hidden_field(:id).to_s
+          concat cf.text_field(:name).to_s
         }
       end
     end
@@ -3311,10 +3311,10 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = [Comment.new, Comment.new]
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name)
+          concat cf.text_field(:name).to_s
         }
       end
     end
@@ -3332,10 +3332,10 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = [Comment.new(321), Comment.new]
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name)
+          concat cf.text_field(:name).to_s
         }
       end
     end
@@ -3352,9 +3352,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_nested_fields_for_with_an_empty_supplied_attributes_collection
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       f.fields_for(:comments, []) do |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
       end
     end
 
@@ -3369,9 +3369,9 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:comments, @post.comments) { |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
       }
     end
 
@@ -3390,9 +3390,9 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = ArelLike.new
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:comments, @post.comments) { |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
       }
     end
 
@@ -3431,9 +3431,9 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = []
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:comments, comments) { |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
       }
     end
 
@@ -3453,9 +3453,9 @@ class FormHelperTest < ActionView::TestCase
     yielded_comments = []
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:comments) { |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
         yielded_comments << cf.object
       }
     end
@@ -3476,7 +3476,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
       }
     end
 
@@ -3493,7 +3493,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, Comment.new(321), child_index: -> { "abc" }) { |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
       }
     end
 
@@ -3516,7 +3516,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
       }
     end
 
@@ -3587,21 +3587,21 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, @post.comments[0]) { |cf|
-        concat cf.text_field(:name)
+        concat cf.text_field(:name).to_s
         concat cf.fields_for(:relevances, CommentRelevance.new(314)) { |crf|
-          concat crf.text_field(:value)
+          concat crf.text_field(:value).to_s
         }
       }
       concat f.fields_for(:tags, @post.tags[0]) { |tf|
-        concat tf.text_field(:value)
+        concat tf.text_field(:value).to_s
         concat tf.fields_for(:relevances, TagRelevance.new(3141)) { |trf|
-          concat trf.text_field(:value)
+          concat trf.text_field(:value).to_s
         }
       }
       concat f.fields_for("tags", @post.tags[1]) { |tf|
-        concat tf.text_field(:value)
+        concat tf.text_field(:value).to_s
         concat tf.fields_for(:relevances, TagRelevance.new(31415)) { |trf|
-          concat trf.text_field(:value)
+          concat trf.text_field(:value).to_s
         }
       }
     end
@@ -3629,7 +3629,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:author, @author) { |af|
-        concat af.text_field(:name)
+        concat af.text_field(:name).to_s
       }
     end
 
@@ -3645,7 +3645,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:author, @author, {}) { |af|
-        concat af.text_field(:name)
+        concat af.text_field(:name).to_s
       }
     end
 
@@ -3661,7 +3661,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:author, @author) { |af|
-        concat af.text_field(:name)
+        concat af.text_field(:name).to_s
       }
     end
 
@@ -3672,8 +3672,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for
     @rendered = fields_for(:post, @post) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -3694,8 +3694,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_index
     @rendered = fields_for("post[]", @post) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -3716,8 +3716,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_nil_index_option_override
     @rendered = fields_for("post[]", @post, index: nil) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -3738,8 +3738,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_index_option_override
     @rendered = fields_for("post[]", @post, index: "abc") do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -3754,8 +3754,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_without_object
     @rendered = fields_for(:post) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -3770,8 +3770,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_only_object
     @rendered = fields_for(@post) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -3787,7 +3787,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_object_with_bracketed_name
     @rendered = fields_for("author[post]", @post) do |f|
       concat f.label(:title)
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     assert_dom_equal "<label for=\"author_post_title\">Title</label>" \
@@ -3798,7 +3798,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_object_with_bracketed_name_and_index
     @rendered = fields_for("author[post]", @post, index: 1) do |f|
       concat f.label(:title)
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     assert_dom_equal "<label for=\"author_post_1_title\">Title</label>" \
@@ -3812,8 +3812,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_and_fields_for
     form_for(@post, as: :post, html: { id: "create-post" }) do |post_form|
-      concat post_form.text_field(:title)
-      concat post_form.textarea(:body)
+      concat post_form.text_field(:title).to_s
+      concat post_form.textarea(:body).to_s
 
       concat fields_for(:parent_post, @post) { |parent_fields|
         concat parent_fields.checkbox(:secret)
@@ -3832,11 +3832,11 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_and_fields_for_with_object
     form_for(@post, as: :post, html: { id: "create-post" }) do |post_form|
-      concat post_form.text_field(:title)
-      concat post_form.textarea(:body)
+      concat post_form.text_field(:title).to_s
+      concat post_form.textarea(:body).to_s
 
       concat post_form.fields_for(@comment) { |comment_fields|
-        concat comment_fields.text_field(:name)
+        concat comment_fields.text_field(:name).to_s
       }
     end
 
@@ -3852,7 +3852,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_and_fields_for_with_non_nested_association_and_without_object
     form_for(@post) do |f|
       concat f.fields_for(:category) { |c|
-        concat c.text_field(:name)
+        concat c.text_field(:name).to_s
       }
     end
 
@@ -3867,7 +3867,7 @@ class FormHelperTest < ActionView::TestCase
     (field_helpers - %w(hidden_field)).each do |selector|
       class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
         def #{selector}(field, *args, &proc)
-          ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
+          ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super.to_s + "<br/>").html_safe
         end
       RUBY_EVAL
     end
@@ -3875,8 +3875,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_labelled_builder
     form_for(@post, builder: LabelledFormBuilder) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -3894,8 +3894,8 @@ class FormHelperTest < ActionView::TestCase
       ActionView::Base.default_form_builder, LabelledFormBuilder
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 
@@ -3915,7 +3915,7 @@ class FormHelperTest < ActionView::TestCase
       ActionView::Base.default_form_builder, "FormHelperTest::LabelledFormBuilder"
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
@@ -3931,7 +3931,7 @@ class FormHelperTest < ActionView::TestCase
     self.default_form_builder = LabelledFormBuilder
 
     @rendered = fields_for(:post, @post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected = "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>"
@@ -3943,7 +3943,7 @@ class FormHelperTest < ActionView::TestCase
     self.default_form_builder = "FormHelperTest::LabelledFormBuilder"
 
     @rendered = fields_for(:post, @post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected = "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>"
@@ -3953,8 +3953,8 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_labelled_builder
     @rendered = fields_for(:post, @post, builder: LabelledFormBuilder) do |f|
-      concat f.text_field(:title)
-      concat f.textarea(:body)
+      concat f.text_field(:title).to_s
+      concat f.textarea(:body).to_s
       concat f.checkbox(:secret)
     end
 

@@ -4,7 +4,7 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class FileField < TextField # :nodoc:
-        def render
+        def to_s
           include_hidden = @options.delete(:include_hidden)
           options = @options.stringify_keys
           add_default_name_and_id(options)

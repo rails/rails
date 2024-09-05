@@ -8,7 +8,7 @@ module ActionView
       class TextArea < Base # :nodoc:
         include Placeholderable
 
-        def render
+        def to_s
           options = @options.stringify_keys
           add_default_name_and_id(options)
 

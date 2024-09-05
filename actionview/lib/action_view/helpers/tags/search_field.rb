@@ -4,7 +4,7 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class SearchField < TextField # :nodoc:
-        def render
+        def to_s
           options = @options.stringify_keys
 
           if options["autosave"]
