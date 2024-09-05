@@ -756,7 +756,7 @@ module Rails
       def run_solid
         return if skip_solid? || !bundle_install?
 
-        rails_command "solid_cache:install"
+        rails_command "solid_cache:install solid_queue:install"
       end
 
       def add_bundler_platforms

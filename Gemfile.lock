@@ -549,6 +549,8 @@ GEM
       activejob (>= 7.2)
       activerecord (>= 7.2)
       railties (>= 7.2)
+    solid_queue (0.2.2)
+      rails (~> 7.1)
     sorted_set (1.0.3)
       rbtree
       set (~> 1.0)
@@ -696,6 +698,7 @@ DEPENDENCIES
   sidekiq
   sneakers
   solid_cache
+  solid_queue
   sprockets-rails (>= 2.0.0)
   sqlite3 (>= 2.0)
   stackprof

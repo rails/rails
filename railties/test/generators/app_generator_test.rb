@@ -641,9 +641,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_configuration_of_solid
     generator [destination_root]
     run_generator_instance
+
     assert_gem "solid_cache"
+    assert_gem "solid_queue"
+
     assert_file "config/database.yml" do |content|
       assert_match(%r{cache:}, content)
+      assert_match(%r{queue:}, content)
     end
   end
 
@@ -808,8 +812,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], skip_solid: true)
     run_generator_instance
 
-    assert_not_includes @rails_commands, "solid_cache:install", "`solid_cache:install` expected to not be called."
+    assert_not_includes @rails_commands, "solid_cache:install solid_queue:install", "`solid_cache:install solid_queue:install` expected to not be called."
     assert_no_gem "solid_cache"
+    assert_no_gem "solid_queue"
   end
 
   def test_skip_javascript_option
