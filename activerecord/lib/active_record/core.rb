@@ -432,8 +432,8 @@ module ActiveRecord
               where(wheres).limit(1)
             }
 
-            begin
-              statement.execute(values.flatten, connection, allow_retry: true).first
+            statement.execute(values.flatten, connection, allow_retry: true).then do |r|
+              r.first
             rescue TypeError
               raise ActiveRecord::StatementInvalid
             end

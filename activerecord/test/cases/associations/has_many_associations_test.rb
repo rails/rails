@@ -3252,3 +3252,36 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       companies(:first_firm).clients_of_firm.load_target
     end
 end
+
+class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
+  include WaitForAsyncTestHelper
+
+  self.use_transactional_tests = false
+
+  fixtures :companies
+
+  unless in_memory_db?
+    def test_async_load_has_many
+      firm = companies(:first_firm)
+
+      firm.association(:clients).async_load_target
+      wait_for_async_query
+
+      events = []
+      callback = -> (event) do
+        events << event unless event.payload[:name] == "SCHEMA"
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        assert_equal 3, firm.clients.size
+      end
+
+      assert_no_queries do
+        assert_not_nil firm.clients[2]
+      end
+
+      assert_equal 1, events.size
+      assert_equal true, events.first.payload[:async]
+    end
+  end
+end
