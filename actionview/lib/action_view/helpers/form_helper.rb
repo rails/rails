@@ -1173,7 +1173,7 @@ module ActionView
       #   text_field(:snippet, :code, size: 20, class: 'code_input')
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
       def text_field(object_name, method, options = {})
-        Tags::TextField.new(object_name, method, self, options).render
+        Tags::TextField.new(object_name, method, self, options)
       end
 
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object
