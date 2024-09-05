@@ -6,8 +6,6 @@ require "models/post"
 
 module AsynchronousQueriesSharedTests
   def test_async_select_failure
-    ActiveRecord::Base.asynchronous_queries_tracker.start_session
-
     if in_memory_db?
       assert_raises ActiveRecord::StatementInvalid do
         @connection.select_all "SELECT * FROM does_not_exists", async: true
@@ -19,13 +17,9 @@ module AsynchronousQueriesSharedTests
         future_result.result
       end
     end
-  ensure
-    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
   end
 
   def test_async_query_from_transaction
-    ActiveRecord::Base.asynchronous_queries_tracker.start_session
-
     assert_nothing_raised do
       @connection.select_all "SELECT * FROM posts", async: true
     end
@@ -37,20 +31,15 @@ module AsynchronousQueriesSharedTests
         end
       end
     end
-  ensure
-    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
   end
 
   def test_async_query_cache
-    ActiveRecord::Base.asynchronous_queries_tracker.start_session
-
     @connection.enable_query_cache!
 
     @connection.select_all "SELECT * FROM posts"
     result = @connection.select_all "SELECT * FROM posts", async: true
     assert_equal ActiveRecord::FutureResult::Complete, result.class
   ensure
-    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
     @connection.disable_query_cache!
   end
 
@@ -103,7 +92,6 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
   end
 
   def test_async_select_all
-    ActiveRecord::Base.asynchronous_queries_tracker.start_session
     status = {}
 
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
@@ -125,7 +113,6 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     assert_kind_of ActiveRecord::Result, future_result.result
     assert_equal @connection.supports_concurrent_connections?, status[:async]
   ensure
-    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
 end

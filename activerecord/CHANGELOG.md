@@ -1,3 +1,13 @@
+*   Make Active Record asynchronous queries compatible with transactional fixtures.
+
+    Previously transactional fixtures would disable asynchronous queries, because transactional
+    fixtures impose all queries use the same connection.
+
+    Now asynchronous queries will use the connection pinned by transactional fixtures, and behave
+    much closer to production.
+
+    *Jean Boussier*
+
 *   Deserialize binary data before decrypting
 
     This ensures that we call `PG::Connection.unescape_bytea` on PostgreSQL before decryption.
