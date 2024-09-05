@@ -114,7 +114,7 @@ module Rails
         class_option :skip_kamal,          type: :boolean, default: false,
                                            desc: "Skip Kamal setup"
 
-        class_option :skip_solid,          type: :boolean, default: false,
+        class_option :skip_solid,          type: :boolean, default: nil,
                                            desc: "Skip Solid Cache & Queue setup"
 
         class_option :dev,                 type: :boolean, default: nil,
@@ -206,7 +206,7 @@ module Rails
 
       OPTION_IMPLICATIONS = { # :nodoc:
         skip_active_job:     [:skip_action_mailer, :skip_active_storage],
-        skip_active_record:  [:skip_active_storage],
+        skip_active_record:  [:skip_active_storage, :skip_solid],
         skip_active_storage: [:skip_action_mailbox, :skip_action_text],
         skip_javascript:     [:skip_hotwire],
       }

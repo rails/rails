@@ -1,3 +1,7 @@
+*   `--skip-active-record` implies `--skip-solid` when running Rails generators.
+
+    *Jon Rowe*
+
 *   Use [Solid Cache](https://github.com/rails/solid_cache) as the default Rails.cache backend in production, configured as a separate cache database in config/database.yml.
 
     *DHH*
