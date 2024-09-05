@@ -19,8 +19,8 @@ After reading this guide, you will know how to:
 
 --------------------------------------------------------------------------------
 
-What Does a Controller Do?
---------------------------
+Introduction
+------------
 
 Action Controller is the C in Model View Controller
 [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller).
@@ -38,18 +38,32 @@ makes model data available to the view, so that the view can display that data
 to the user. The controller also takes user input and saves or updates model
 data accordingly.
 
-Controller Naming Convention
-----------------------------
+Creating a Controller
+---------------------
 
-The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
+A controller is a Ruby class which inherits from `ApplicationController` and has methods just like any other class. Once an incoming request is matched to a controller by the router, Rails creates an instance of that controller and calls the method with the same name as the action.
 
-Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and will keep named route helpers' usage consistent throughout your application. See [Layouts and Rendering Guide](layouts_and_rendering.html) for more details.
+```ruby
+# TODO Add simple example of route --> controller method/action matching
+```
 
-NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
+### Controller Naming Convention
 
+Rails favors making the last word in the controller's name plural. For example,
+`ClientsController` is preferred over `ClientController` and
+`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController`.
 
-Methods and Actions
--------------------
+NOTE: The plural names are not strictly required (e.g. `ApplicationController`).
+
+Following this naming convention will allow you to use the default route
+generators (e.g. `resources`) without needing to qualify each `:path` or
+`:controller`. The convention also makes named route helpers consistent
+throughout your application. TODO: add links to routing guide.
+
+NOTE: The controller naming convention is different from models. The singular
+form is preferred for models names (e.g. `Account` vs. `Accounts`).
+
+### Methods and Actions
 
 A controller is a Ruby class which inherits from `ApplicationController` and has methods just like any other class. When your application receives a request, the routing will determine which controller and action to run, then Rails creates an instance of that controller and runs the method with the same name as the action.
 
@@ -60,7 +74,11 @@ class ClientsController < ApplicationController
 end
 ```
 
-As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. By creating a new `Client`, the `new` method can make a `@client` instance variable accessible in the view:
+As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. 
+
+NOTE: The empty method from the example above would work because Rails will render the `new.html.erb` view by default. 
+
+By creating a new `Client`, the `new` method can make a `@client` instance variable accessible in the view:
 
 ```ruby
 def new
@@ -68,13 +86,11 @@ def new
 end
 ```
 
-The [Layouts and Rendering Guide](layouts_and_rendering.html) explains this in more detail.
-
 `ApplicationController` inherits from [`ActionController::Base`][], which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](https://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
 
-Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or filters.
+Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like helper methods.
 
-WARNING: Some method names are reserved by Action Controller. Accidentally redefining them as actions, or even as auxiliary methods, could result in `SystemStackError`. If you limit your controllers to only RESTful [Resource Routing][] actions you should not need to worry about this.
+WARNING: Some method names are reserved by Action Controller. Accidentally redefining them could result in `SystemStackError`. If you limit your controllers to only RESTful [Resource Routing][] actions you should not need to worry about this.
 
 NOTE: If you must use a reserved method as an action name, one workaround is to use a custom route to map the reserved method name to your non-reserved action method.
 
