@@ -1,3 +1,7 @@
+*   System Testing: Disable Chrome's search engine choice by default in system tests.
+
+    *glaszig*
+
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 
     *Hartley McGuire*
