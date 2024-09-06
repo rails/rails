@@ -51,6 +51,26 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
     end
   end
 
+  test ".with_encryption_context inherits properties from previous contexts" do
+    ActiveRecord::Encryption.with_encryption_context(key_provider: key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new("some_key")) do
+      ActiveRecord::Encryption.with_encryption_context(key_generator: key_generator = ActiveRecord::Encryption::KeyGenerator.new) do
+        ActiveRecord::Encryption.with_encryption_context(cipher: cipher = ActiveRecord::Encryption::Cipher.new) do
+          ActiveRecord::Encryption.with_encryption_context(encryptor: encryptor = ActiveRecord::Encryption::NullEncryptor.new) do
+            ActiveRecord::Encryption.with_encryption_context(message_serializer: message_serializer = ActiveRecord::Encryption::MessageSerializer.new) do
+              ActiveRecord::Encryption.with_encryption_context({}) do
+                assert_equal encryptor, ActiveRecord::Encryption.encryptor
+                assert_equal key_provider, ActiveRecord::Encryption.key_provider
+                assert_equal cipher, ActiveRecord::Encryption.cipher
+                assert_equal message_serializer, ActiveRecord::Encryption.message_serializer
+                assert_equal key_generator, ActiveRecord::Encryption.key_generator
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
   test ".without_encryption won't decrypt or encrypt data automatically" do
     ActiveRecord::Encryption.without_encryption do
       assert_equal @title_ciphertext, @post.reload.title

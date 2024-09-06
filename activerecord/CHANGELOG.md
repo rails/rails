@@ -1,3 +1,14 @@
+*   Inherit properties from the previous encryption context
+
+    Previously, when `ActiveRecord::Encryption.with_encryption_context` was
+    called, the new context was created with the default properties, ignoring
+    anything set in previous custom contexts.
+
+    Now, the new context inherits the properties from the previous context,
+    allowing for the composition of multiple contexts.
+
+    *Neil Carvalho*
+
 *   Make Active Record asynchronous queries compatible with transactional fixtures.
 
     Previously transactional fixtures would disable asynchronous queries, because transactional
