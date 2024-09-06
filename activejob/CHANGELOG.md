@@ -1,3 +1,9 @@
+*   Support second-level precision for `assert_enqueued_with`
+
+    Fixes #52478.
+
+    *Steve Polito*
+
 *   Use `RAILS_MAX_THREADS` in `ActiveJob::AsyncAdapter`. If it is not set, use 5 as default.
 
     *heka1024*
