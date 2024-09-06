@@ -148,13 +148,8 @@ ActiveRecord::Schema.define do
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
     t.index "(lower(external_id))", unique: true if supports_expression_index?
 
-    if supports_datetime_with_precision?
-      t.datetime :created_at, precision: 6
-      t.datetime :updated_at, precision: 6
-    else
-      t.datetime :created_at
-      t.datetime :updated_at
-    end
+    t.datetime :created_at
+    t.datetime :updated_at
     t.date :updated_on
   end
 
@@ -541,17 +536,10 @@ ActiveRecord::Schema.define do
     t.integer  :salary, default: 70000
     t.references :firm, index: false
     t.integer :mentor_id
-    if supports_datetime_with_precision?
-      t.datetime :legacy_created_at, precision: 6
-      t.datetime :legacy_updated_at, precision: 6
-      t.datetime :legacy_created_on, precision: 6
-      t.datetime :legacy_updated_on, precision: 6
-    else
-      t.datetime :legacy_created_at
-      t.datetime :legacy_updated_at
-      t.datetime :legacy_created_on
-      t.datetime :legacy_updated_on
-    end
+    t.datetime :legacy_created_at
+    t.datetime :legacy_updated_at
+    t.datetime :legacy_created_on
+    t.datetime :legacy_updated_on
   end
 
   create_table :developers_projects, force: true, id: false do |t|
@@ -685,11 +673,7 @@ ActiveRecord::Schema.define do
 
   create_table :invoices, force: true do |t|
     t.integer :balance
-    if supports_datetime_with_precision?
-      t.datetime :updated_at, precision: 6
-    else
-      t.datetime :updated_at
-    end
+    t.datetime :updated_at
   end
 
   create_table :iris, force: true do |t|
@@ -882,11 +866,7 @@ ActiveRecord::Schema.define do
 
   create_table :owners, primary_key: :owner_id, force: true do |t|
     t.string :name
-    if supports_datetime_with_precision?
-      t.column :updated_at, :datetime, precision: 6
-    else
-      t.column :updated_at, :datetime
-    end
+    t.column :updated_at, :datetime
     t.column :happy_at,   :datetime
     t.string :essay_id
   end
@@ -907,30 +887,18 @@ ActiveRecord::Schema.define do
       t.string :parrot_sti_class
       t.integer :killer_id
       t.integer :updated_count, :integer, default: 0
-      if supports_datetime_with_precision?
-        t.datetime :created_at, precision: 0
-        t.datetime :created_on, precision: 0
-        t.datetime :updated_at, precision: 0
-        t.datetime :updated_on, precision: 0
-      else
-        t.datetime :created_at
-        t.datetime :created_on
-        t.datetime :updated_at
-        t.datetime :updated_on
-      end
+      t.datetime :created_at, precision: 0
+      t.datetime :created_on, precision: 0
+      t.datetime :updated_at, precision: 0
+      t.datetime :updated_on, precision: 0
     end
 
     create_table :pirates, force: :cascade do |t|
       t.string :catchphrase
       t.integer :parrot_id
       t.integer :non_validated_parrot_id
-      if supports_datetime_with_precision?
-        t.datetime :created_on, precision: 6
-        t.datetime :updated_on, precision: 6
-      else
-        t.datetime :created_on
-        t.datetime :updated_on
-      end
+      t.datetime :created_on
+      t.datetime :updated_on
     end
 
     create_table :treasures, force: :cascade do |t|
@@ -1154,11 +1122,7 @@ ActiveRecord::Schema.define do
   create_table :ship_parts, force: true do |t|
     t.string :name
     t.integer :ship_id
-    if supports_datetime_with_precision?
-      t.datetime :updated_at, precision: 6
-    else
-      t.datetime :updated_at
-    end
+    t.datetime :updated_at
   end
 
   create_table :squeaks, force: true do |t|
@@ -1234,11 +1198,7 @@ ActiveRecord::Schema.define do
     t.string   :title, limit: 250
     t.string   :author_name
     t.string   :author_email_address
-    if supports_datetime_with_precision?
-      t.datetime :written_on, precision: 6
-    else
-      t.datetime :written_on
-    end
+    t.datetime :written_on
     t.time     :bonus_time
     t.date     :last_read
     t.text     :content

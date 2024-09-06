@@ -620,7 +620,6 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
-    skip "Fractional seconds are not supported" unless supports_datetime_with_precision?
     in_time_zone "Paris" do
       target = Class.new(ActiveRecord::Base)
       target.table_name = "topics"
