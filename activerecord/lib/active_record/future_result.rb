@@ -100,17 +100,21 @@ module ActiveRecord
     def execute_or_skip
       return unless pending?
 
-      @pool.with_connection do |connection|
-        return unless @mutex.try_lock
-        begin
-          if pending?
-            @event_buffer = EventBuffer.new(self, @instrumenter)
-            connection.with_instrumenter(@event_buffer) do
-              execute_query(connection, async: true)
+      @session.synchronize do
+        return unless pending?
+
+        @pool.with_connection do |connection|
+          return unless @mutex.try_lock
+          begin
+            if pending?
+              @event_buffer = EventBuffer.new(self, @instrumenter)
+              connection.with_instrumenter(@event_buffer) do
+                execute_query(connection, async: true)
+              end
             end
+          ensure
+            @mutex.unlock
           end
-        ensure
-          @mutex.unlock
         end
       end
     end

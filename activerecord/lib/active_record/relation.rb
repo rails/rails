@@ -1124,9 +1124,6 @@ module ActiveRecord
     # for queries to actually be executed concurrently. Otherwise it defaults to
     # executing them in the foreground.
     #
-    # +load_async+ will also fall back to executing in the foreground in the test environment when transactional
-    # fixtures are enabled.
-    #
     # If the query was actually executed in the background, the Active Record logs will show
     # it by prefixing the log line with <tt>ASYNC</tt>:
     #
@@ -1136,7 +1133,7 @@ module ActiveRecord
         return load if !c.async_enabled?
 
         unless loaded?
-          result = exec_main_query(async: c.current_transaction.closed?)
+          result = exec_main_query(async: !c.current_transaction.joinable?)
 
           if result.is_a?(Array)
             @records = result

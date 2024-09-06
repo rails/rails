@@ -10,8 +10,6 @@ module ActiveRecord
   class LoadAsyncTest < ActiveRecord::TestCase
     include WaitForAsyncTestHelper
 
-    self.use_transactional_tests = false
-
     fixtures :posts, :comments, :categories, :categories_posts
 
     def test_scheduled?
@@ -240,8 +238,6 @@ module ActiveRecord
 
   class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
-      self.use_transactional_tests = false
-
       fixtures :posts, :comments
 
       def setup
@@ -363,8 +359,6 @@ module ActiveRecord
   class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
       include WaitForAsyncTestHelper
-
-      self.use_transactional_tests = false
 
       fixtures :posts, :comments
 
@@ -504,8 +498,6 @@ module ActiveRecord
   class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
       include WaitForAsyncTestHelper
-
-      self.use_transactional_tests = false
 
       fixtures :posts, :comments, :other_dogs
 
