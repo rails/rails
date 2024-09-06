@@ -11,6 +11,8 @@ require "active_record/connection_adapters/mysql/schema_definitions"
 require "active_record/connection_adapters/mysql/schema_dumper"
 require "active_record/connection_adapters/mysql/schema_statements"
 require "active_record/connection_adapters/mysql/type_metadata"
+require "active_record/connection_adapters/mysql/type/linestring"
+require "active_record/connection_adapters/mysql/type/multilinestring"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -30,20 +32,22 @@ module ActiveRecord
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigint auto_increment PRIMARY KEY",
-        string:      { name: "varchar", limit: 255 },
-        text:        { name: "text" },
-        integer:     { name: "int", limit: 4 },
-        bigint:      { name: "bigint" },
-        float:       { name: "float", limit: 24 },
-        decimal:     { name: "decimal" },
-        datetime:    { name: "datetime" },
-        timestamp:   { name: "timestamp" },
-        time:        { name: "time" },
-        date:        { name: "date" },
-        binary:      { name: "blob" },
-        blob:        { name: "blob" },
-        boolean:     { name: "tinyint", limit: 1 },
-        json:        { name: "json" },
+        string:           { name: "varchar", limit: 255 },
+        text:             { name: "text" },
+        integer:          { name: "int", limit: 4 },
+        bigint:           { name: "bigint" },
+        float:            { name: "float", limit: 24 },
+        decimal:          { name: "decimal" },
+        datetime:         { name: "datetime" },
+        timestamp:        { name: "timestamp" },
+        time:             { name: "time" },
+        date:             { name: "date" },
+        binary:           { name: "blob" },
+        blob:             { name: "blob" },
+        boolean:          { name: "tinyint", limit: 1 },
+        json:             { name: "json" },
+        linestring:       { name: "linestring" },
+        multilinestring:  { name: "multilinestring" },
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
