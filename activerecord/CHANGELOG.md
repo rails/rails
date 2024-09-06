@@ -1,3 +1,14 @@
+*   Fix an issue where `.left_outer_joins` used with multiple associations that have
+    the same child association but different parents does not join all parents.
+
+    Previously, using `.left_outer_joins` with the same child association would only join one of the parents.
+
+    Now it will correctly join both parents.
+
+    Fixes #41498.
+
+    *Garrett Blehm*
+
 *   Make Active Record asynchronous queries compatible with transactional fixtures.
 
     Previously transactional fixtures would disable asynchronous queries, because transactional
