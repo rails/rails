@@ -1,4 +1,4 @@
-*   Use [Solid Queue](https://github.com/rails/solid_queue) as the default Active Job backend in production, configured as a separate cache database in config/database.yml. In a single-server deployment, it'll run as a Puma plugin. This is configured in `config/deploy.yml` and can easily be changed to use a dedicated jobs machine.
+*   Use [Solid Queue](https://github.com/rails/solid_queue) as the default Active Job backend in production, configured as a separate queue database in config/database.yml. In a single-server deployment, it'll run as a Puma plugin. This is configured in `config/deploy.yml` and can easily be changed to use a dedicated jobs machine.
 
     *DHH*
 
