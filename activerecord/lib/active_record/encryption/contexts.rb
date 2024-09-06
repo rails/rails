@@ -32,7 +32,7 @@ module ActiveRecord
         # Encryption contexts can be nested.
         def with_encryption_context(properties)
           self.custom_contexts ||= []
-          self.custom_contexts << default_context.dup
+          self.custom_contexts << context.dup
           properties.each do |key, value|
             self.current_custom_context.send("#{key}=", value)
           end
