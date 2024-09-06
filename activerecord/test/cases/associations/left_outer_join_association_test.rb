@@ -9,6 +9,10 @@ require "models/essay"
 require "models/category"
 require "models/categorization"
 require "models/person"
+require "models/friendship"
+require "models/reader"
+require "models/reference"
+require "models/job"
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :ratings, :categorizations, :people
@@ -119,5 +123,13 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     author.categorizations.create! special: true
 
     assert_equal [author], Author.where(id: author).left_outer_joins(:special_categorizations)
+  end
+
+  def test_left_outer_joins_includes_all_nested_associations
+    queries = capture_sql { Friendship.left_outer_joins(:friend_favorite_reference_job, :follower_favorite_reference_job).to_a }
+    # Match mysql and postgresql/sqlite quoting
+    quote = Regexp.union(%w[" `])
+    assert queries.any? { |sql| /#{quote}friendships#{quote}.#{quote}friend_id#{quote}/i.match?(sql) }
+    assert queries.any? { |sql| /#{quote}friendships#{quote}.#{quote}follower_id#{quote}/i.match?(sql) }
   end
 end

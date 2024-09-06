@@ -12,6 +12,10 @@ require "models/tagging"
 require "models/tag"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
+require "models/friendship"
+require "models/reader"
+require "models/reference"
+require "models/job"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
@@ -230,5 +234,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
     assert_not_empty blog_posts
     assert_equal(expected_comment.blog_post, blog_posts.first)
+  end
+
+  def test_inner_joins_includes_all_nested_associations
+    queries = capture_sql { Friendship.joins(:friend_favorite_reference_job, :follower_favorite_reference_job).to_a }
+    # Match mysql and postgresql/sqlite quoting
+    quote = Regexp.union(%w[" `])
+    assert queries.any? { |sql| /#{quote}friendships#{quote}.#{quote}friend_id#{quote}/i.match?(sql) }
+    assert queries.any? { |sql| /#{quote}friendships#{quote}.#{quote}follower_id#{quote}/i.match?(sql) }
   end
 end
