@@ -190,12 +190,13 @@ module ActiveRecord
         def make_constraints(parent, child, join_type)
           foreign_table = parent.table
           foreign_klass = parent.base_klass
-          child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
-            table, terminated = @joined_tables[reflection]
+          child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection, remaining_reflections|
+            joined_table_key = [reflection, remaining_reflections]
+            table, terminated = @joined_tables[joined_table_key]
             root = reflection == child.reflection
 
             if table && (!root || !terminated)
-              @joined_tables[reflection] = [table, root] if root
+              @joined_tables[joined_table_key] = [table, root] if root
               next table, true
             end
 
@@ -206,7 +207,7 @@ module ActiveRecord
               root ? name : "#{name}_join"
             end
 
-            @joined_tables[reflection] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
+            @joined_tables[joined_table_key] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
             table
           end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
