@@ -1,3 +1,12 @@
+*   Deprecate `unsigned_float` and `unsigned_decimal` short-hand column methods.
+
+    As of MySQL 8.0.17, the UNSIGNED attribute is deprecated for columns of type FLOAT, DOUBLE,
+    and DECIMAL. Consider using a simple CHECK constraint instead for such columns.
+
+    https://dev.mysql.com/doc/refman/8.0/en/numeric-type-syntax.html
+
+    *Ryuta Kamizono*
+
 *   Drop MySQL 5.5 support.
 
     MySQL 5.5 is the only version that does not support datetime with precision,

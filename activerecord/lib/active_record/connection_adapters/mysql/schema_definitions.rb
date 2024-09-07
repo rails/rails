@@ -42,18 +42,12 @@ module ActiveRecord
         # :method: unsigned_bigint
         # :call-seq: unsigned_bigint(*names, **options)
 
-        ##
-        # :method: unsigned_float
-        # :call-seq: unsigned_float(*names, **options)
-
-        ##
-        # :method: unsigned_decimal
-        # :call-seq: unsigned_decimal(*names, **options)
-
         included do
           define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
             :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
             :unsigned_float, :unsigned_decimal
+
+          deprecate :unsigned_float, :unsigned_decimal, deprecator: ActiveRecord.deprecator
         end
       end
 
