@@ -1,5 +1,5 @@
-*   Introduce safer, more explicit params handling method.
-    - `params.expect(table: [ :attr ])` replaces `params.require(:table).permit(:attr)`
+*   Introduce safer, more explicit params handling method with `params#expect` such that
+    `params.expect(table: [ :attr ])` replaces `params.require(:table).permit(:attr)`
 
     Ensures params are filtered with consideration for the expected
     types of values, improving handling of params and avoiding ignorable
@@ -44,6 +44,10 @@
     ```
 
     *Martin Emde*
+
+*   System Testing: Disable Chrome's search engine choice by default in system tests.
+
+    *glaszig*
 
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
 

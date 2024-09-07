@@ -1,3 +1,11 @@
+*   Use [Solid Queue](https://github.com/rails/solid_queue) as the default Active Job backend in production, configured as a separate queue database in config/database.yml. In a single-server deployment, it'll run as a Puma plugin. This is configured in `config/deploy.yml` and can easily be changed to use a dedicated jobs machine.
+
+    *DHH*
+
+*   Use [Solid Cache](https://github.com/rails/solid_cache) as the default Rails.cache backend in production, configured as a separate cache database in config/database.yml.
+
+    *DHH*
+
 *   Add Rails::Rack::SilenceRequest middleware and use it via `config.silence_healthcheck_path = path`
     to silence requests to "/up". This prevents the Kamal-required healthchecks from clogging up
     the production logs.

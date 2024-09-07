@@ -2020,8 +2020,8 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
 
-      (field_helpers - [:label, :checkbox, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
-        ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
+      ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
+        (field_helpers - [:label, :checkbox, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
             code_generator.class_eval do |batch|
               batch <<
                 "def #{selector}(method, options = {})" <<

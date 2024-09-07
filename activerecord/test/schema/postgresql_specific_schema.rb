@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-  ActiveRecord::TestCase.enable_extension!("uuid-ossp", ActiveRecord::Base.lease_connection)
-  ActiveRecord::TestCase.enable_extension!("pgcrypto",  ActiveRecord::Base.lease_connection) if ActiveRecord::Base.lease_connection.supports_pgcrypto_uuid?
+  ActiveRecord::TestCase.enable_extension!("uuid-ossp", connection)
+  ActiveRecord::TestCase.enable_extension!("pgcrypto",  connection) if supports_pgcrypto_uuid?
 
-  uuid_default = connection.supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
+  uuid_default = supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
 
   create_table :chat_messages, id: :uuid, force: true, **uuid_default do |t|
     t.text :content
@@ -196,15 +196,13 @@ _SQL
   end
 
   add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])
-end
 
-if ActiveRecord::Base.lease_connection.supports_insert_returning?
-  ActiveRecord::Base.lease_connection.create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
-    t.integer :id, null: false
-  end
+  if supports_insert_returning?
+    create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
+      t.integer :id, null: false
+    end
 
-  ActiveRecord::Base.lease_connection.execute(
-    <<-SQL
+    execute <<~SQL
       CREATE OR REPLACE FUNCTION populate_column()
       RETURNS TRIGGER AS $$
       DECLARE
@@ -221,5 +219,5 @@ if ActiveRecord::Base.lease_connection.supports_insert_returning?
       FOR EACH ROW
       EXECUTE FUNCTION populate_column();
     SQL
-  )
+  end
 end

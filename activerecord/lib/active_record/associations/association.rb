@@ -34,7 +34,7 @@ module ActiveRecord
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association # :nodoc:
       attr_accessor :owner
-      attr_reader :target, :reflection, :disable_joins
+      attr_reader :reflection, :disable_joins
 
       delegate :options, to: :reflection
 
@@ -48,6 +48,13 @@ module ActiveRecord
         reset_scope
 
         @skip_strict_loading = nil
+      end
+
+      def target
+        if @target.is_a?(Promise)
+          @target = @target.value
+        end
+        @target
       end
 
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
@@ -172,12 +179,19 @@ module ActiveRecord
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
-        @target = find_target if (@stale_state && stale_target?) || find_target?
+        @target = find_target(async: false) if (@stale_state && stale_target?) || find_target?
 
         loaded! unless loaded?
         target
       rescue ActiveRecord::RecordNotFound
         reset
+      end
+
+      def async_load_target # :nodoc:
+        @target = find_target(async: true) if (@stale_state && stale_target?) || find_target?
+
+        loaded! unless loaded?
+        nil
       end
 
       # We can't dump @reflection and @through_reflection since it contains the scope proc
@@ -223,13 +237,19 @@ module ActiveRecord
           klass
         end
 
-        def find_target
+        def find_target(async: false)
           if violates_strict_loading?
             Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
           scope = self.scope
-          return scope.to_a if skip_statement_cache?(scope)
+          if skip_statement_cache?(scope)
+            if async
+              return scope.load_async.then(&:to_a)
+            else
+              return scope.to_a
+            end
+          end
 
           sc = reflection.association_scope_cache(klass, owner) do |params|
             as = AssociationScope.create { params.bind }
@@ -238,7 +258,7 @@ module ActiveRecord
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
           klass.with_connection do |c|
-            sc.execute(binds, c) do |record|
+            sc.execute(binds, c, async: async) do |record|
               set_inverse_instance(record)
               if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
                 record.strict_loading!

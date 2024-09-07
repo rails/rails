@@ -111,13 +111,16 @@ module Rails
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
-        class_option :skip_kamal,          type: :boolean, default: false,
+        class_option :skip_kamal,          type: :boolean, default: nil,
                                            desc: "Skip Kamal setup"
+
+        class_option :skip_solid,          type: :boolean, default: nil,
+                                           desc: "Skip Solid Cache & Queue setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :devcontainer,        type: :boolean, default: false,
+        class_option :devcontainer,        type: :boolean, default: nil,
                                            desc: "Generate devcontainer files"
 
         class_option :edge,                type: :boolean, default: nil,
@@ -203,7 +206,7 @@ module Rails
 
       OPTION_IMPLICATIONS = { # :nodoc:
         skip_active_job:     [:skip_action_mailer, :skip_active_storage],
-        skip_active_record:  [:skip_active_storage],
+        skip_active_record:  [:skip_active_storage, :skip_solid],
         skip_active_storage: [:skip_action_mailbox, :skip_action_text],
         skip_javascript:     [:skip_hotwire],
       }
@@ -426,6 +429,10 @@ module Rails
 
       def skip_kamal?
         options[:skip_kamal]
+      end
+
+      def skip_solid?
+        options[:skip_solid]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -744,6 +751,12 @@ module Rails
         remove_file ".env"
         template "env.erb", ".env.erb"
         template "config/deploy.yml", force: true
+      end
+
+      def run_solid
+        return if skip_solid? || !bundle_install?
+
+        rails_command "solid_cache:install solid_queue:install"
       end
 
       def add_bundler_platforms
