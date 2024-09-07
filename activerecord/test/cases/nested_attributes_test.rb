@@ -372,6 +372,15 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal "Mister Pablo", @pirate.ship.name
   end
 
+  def test_should_defer_updating_nested_associations_until_after_base_attributes_are_set
+    ship = @pirate.ship
+
+    ship_part = ShipPart.new
+    ship_part.attributes = { ship_attributes: { name: "Prometheus" }, ship_id: ship.id }
+
+    assert_equal "Prometheus", ship_part.ship.name
+  end
+
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     @pirate.attributes = { ship_attributes: { id: @ship.id, _destroy: "1" } }
 
