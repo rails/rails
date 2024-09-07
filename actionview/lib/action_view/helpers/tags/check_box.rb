@@ -14,18 +14,8 @@ module ActionView
           super(object_name, method_name, template_object, options)
         end
 
-        def render
-          options = @options.stringify_keys
-          options["type"]     = "checkbox"
-          options["value"]    = @checked_value
-          options["checked"] = "checked" if input_checked?(options)
-
-          if options["multiple"]
-            add_default_name_and_id_for_value(@checked_value, options)
-            options.delete("multiple")
-          else
-            add_default_name_and_id(options)
-          end
+        def to_s
+          options = options_with_hidden_attribute
 
           include_hidden = options.delete("include_hidden") { true }
           checkbox = tag("input", options)
@@ -36,6 +26,12 @@ module ActionView
           else
             checkbox
           end
+        end
+
+        def attributes
+          options = options_with_hidden_attribute
+          options.delete("include_hidden")
+          options
         end
 
         private
@@ -58,6 +54,22 @@ module ActionView
 
           def hidden_field_for_checkbox(options)
             @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value, "autocomplete" => "off")) : "".html_safe
+          end
+
+          def options_with_hidden_attribute
+            options = @options.stringify_keys
+            options["type"]     = "checkbox"
+            options["value"]    = @checked_value
+            options["checked"] = "checked" if input_checked?(options)
+
+            if options["multiple"]
+              add_default_name_and_id_for_value(@checked_value, options)
+              options.delete("multiple")
+            else
+              add_default_name_and_id(options)
+            end
+
+            options
           end
       end
     end

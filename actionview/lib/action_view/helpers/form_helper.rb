@@ -1344,7 +1344,7 @@ module ActionView
       #   # => <input name="eula[accepted]" type="hidden" value="no" />
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
       def checkbox(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
-        Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
+        Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options)
       end
       alias_method :check_box, :checkbox
 
@@ -1367,7 +1367,7 @@ module ActionView
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
       #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
       def radio_button(object_name, method, tag_value, options = {})
-        Tags::RadioButton.new(object_name, method, self, tag_value, options).render
+        Tags::RadioButton.new(object_name, method, self, tag_value, options)
       end
 
       # Returns a text_field of type "color".

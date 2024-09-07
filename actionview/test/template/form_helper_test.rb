@@ -649,13 +649,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_checkbox_is_html_safe
-    assert_predicate checkbox("post", "secret"), :html_safe?
+    assert_predicate checkbox("post", "secret").to_s, :html_safe?
   end
 
   def test_checkbox_checked_if_object_value_is_same_that_check_value
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
   end
 
@@ -663,14 +663,14 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = 0
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
   end
 
   def test_checkbox_checked_if_option_checked_is_present
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", "checked" => "checked")
+      checkbox("post", "secret", "checked" => "checked").to_s
     )
   end
 
@@ -678,12 +678,12 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = true
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
 
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret?")
+      checkbox("post", "secret?").to_s
     )
   end
 
@@ -691,19 +691,19 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = ["0"]
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
 
     @post.secret = ["1"]
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
 
     @post.secret = Set.new(["1"])
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
   end
 
@@ -711,7 +711,7 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = false
     assert_dom_equal(
       '<input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", include_hidden: false)
+      checkbox("post", "secret", include_hidden: false).to_s
     )
   end
 
@@ -719,13 +719,13 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = "on"
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="off" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
-      checkbox("post", "secret", {}, "on", "off")
+      checkbox("post", "secret", {}, "on", "off").to_s
     )
 
     @post.secret = "off"
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="off" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="on" />',
-      checkbox("post", "secret", {}, "on", "off")
+      checkbox("post", "secret", {}, "on", "off").to_s
     )
   end
 
@@ -733,13 +733,13 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = false
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="false" />',
-      checkbox("post", "secret", {}, false, true)
+      checkbox("post", "secret", {}, false, true).to_s
     )
 
     @post.secret = true
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="false" />',
-      checkbox("post", "secret", {}, false, true)
+      checkbox("post", "secret", {}, false, true).to_s
     )
   end
 
@@ -747,19 +747,19 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = 0
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = 1
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = 2
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
   end
 
@@ -767,19 +767,19 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = 0.0
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = 1.1
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = 2.2
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
   end
 
@@ -787,19 +787,19 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = BigDecimal(0)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = BigDecimal(1)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = BigDecimal(2.2, 1)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
   end
 
@@ -807,23 +807,23 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = "on"
     assert_dom_equal(
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
-      checkbox("post", "secret", {}, "on", nil)
+      checkbox("post", "secret", {}, "on", nil).to_s
     )
   end
 
   def test_checkbox_with_nil_unchecked_value_is_html_safe
-    assert_predicate checkbox("post", "secret", {}, "on", nil), :html_safe?
+    assert_predicate checkbox("post", "secret", {}, "on", nil).to_s, :html_safe?
   end
 
   def test_checkbox_with_multiple_behavior
     @post.comment_ids = [2, 3]
     assert_dom_equal(
       '<input name="post[comment_ids][]" type="hidden" value="0" autocomplete="off" /><input id="post_comment_ids_1" name="post[comment_ids][]" type="checkbox" value="1" />',
-      checkbox("post", "comment_ids", { multiple: true }, 1)
+      checkbox("post", "comment_ids", { multiple: true }, 1).to_s
     )
     assert_dom_equal(
       '<input name="post[comment_ids][]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_comment_ids_3" name="post[comment_ids][]" type="checkbox" value="3" />',
-      checkbox("post", "comment_ids", { multiple: true }, 3)
+      checkbox("post", "comment_ids", { multiple: true }, 3).to_s
     )
   end
 
@@ -831,64 +831,64 @@ class FormHelperTest < ActionView::TestCase
     @post.comment_ids = [2, 3]
     assert_dom_equal(
       '<input name="post[foo][comment_ids][]" type="hidden" value="0" autocomplete="off" /><input id="post_foo_comment_ids_1" name="post[foo][comment_ids][]" type="checkbox" value="1" />',
-      checkbox("post", "comment_ids", { multiple: true, index: "foo" }, 1)
+      checkbox("post", "comment_ids", { multiple: true, index: "foo" }, 1).to_s
     )
     assert_dom_equal(
       '<input name="post[bar][comment_ids][]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_bar_comment_ids_3" name="post[bar][comment_ids][]" type="checkbox" value="3" />',
-      checkbox("post", "comment_ids", { multiple: true, index: "bar" }, 3)
+      checkbox("post", "comment_ids", { multiple: true, index: "bar" }, 3).to_s
     )
   end
 
   def test_checkbox_disabled_disables_hidden_field
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" disabled="disabled" autocomplete="off"/><input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", disabled: true)
+      checkbox("post", "secret", disabled: true).to_s
     )
   end
 
   def test_checkbox_form_html5_attribute
     assert_dom_equal(
       '<input form="new_form" name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" form="new_form" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", form: "new_form")
+      checkbox("post", "secret", form: "new_form").to_s
     )
   end
 
   def test_radio_button
     assert_dom_equal('<input checked="checked" id="post_title_hello_world" name="post[title]" type="radio" value="Hello World" />',
-      radio_button("post", "title", "Hello World")
+      radio_button("post", "title", "Hello World").to_s
     )
     assert_dom_equal('<input id="post_title_goodbye_world" name="post[title]" type="radio" value="Goodbye World" />',
-      radio_button("post", "title", "Goodbye World")
+      radio_button("post", "title", "Goodbye World").to_s
     )
     assert_dom_equal('<input id="item_subobject_title_inside_world" name="item[subobject][title]" type="radio" value="inside world"/>',
-      radio_button("item[subobject]", "title", "inside world")
+      radio_button("item[subobject]", "title", "inside world").to_s
     )
   end
 
   def test_radio_button_is_checked_with_integers
     assert_dom_equal('<input checked="checked" id="post_secret_1" name="post[secret]" type="radio" value="1" />',
-      radio_button("post", "secret", "1")
+      radio_button("post", "secret", "1").to_s
     )
   end
 
   def test_radio_button_with_negative_integer_value
     assert_dom_equal('<input id="post_secret_-1" name="post[secret]" type="radio" value="-1" />',
-      radio_button("post", "secret", "-1"))
+      radio_button("post", "secret", "-1").to_s)
   end
 
   def test_radio_button_respects_passed_in_id
     assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
-      radio_button("post", "secret", "1", id: "foo")
+      radio_button("post", "secret", "1", id: "foo").to_s
     )
   end
 
   def test_radio_button_with_booleans
     assert_dom_equal('<input id="post_secret_true" name="post[secret]" type="radio" value="true" />',
-      radio_button("post", "secret", true)
+      radio_button("post", "secret", true).to_s
     )
 
     assert_dom_equal('<input id="post_secret_false" name="post[secret]" type="radio" value="false" />',
-      radio_button("post", "secret", false)
+      radio_button("post", "secret", false).to_s
     )
   end
 
@@ -1408,7 +1408,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       '<input name="i mean it" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" />',
-      checkbox("post", "secret", "name" => "i mean it")
+      checkbox("post", "secret", "name" => "i mean it").to_s
     )
     assert_dom_equal(
       text_field("post", "title", "name" => "dont guess").to_s,
@@ -1419,8 +1419,8 @@ class FormHelperTest < ActionView::TestCase
       textarea("post", "body", name: "really!").to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "name" => "i mean it"),
-      checkbox("post", "secret", name: "i mean it")
+      checkbox("post", "secret", "name" => "i mean it").to_s,
+      checkbox("post", "secret", name: "i mean it").to_s
     )
   end
 
@@ -1435,7 +1435,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", "id" => "i mean it")
+      checkbox("post", "secret", "id" => "i mean it").to_s
     )
     assert_dom_equal(
       text_field("post", "title", "id" => "dont guess").to_s,
@@ -1446,8 +1446,8 @@ class FormHelperTest < ActionView::TestCase
       textarea("post", "body", id: "really!").to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "id" => "i mean it"),
-      checkbox("post", "secret", id: "i mean it")
+      checkbox("post", "secret", "id" => "i mean it").to_s,
+      checkbox("post", "secret", id: "i mean it").to_s
     )
   end
 
@@ -1462,11 +1462,11 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", "id" => nil)
+      checkbox("post", "secret", "id" => nil).to_s
     )
     assert_dom_equal(
       '<input type="radio" name="post[secret]" value="0" />',
-      radio_button("post", "secret", "0", "id" => nil)
+      radio_button("post", "secret", "0", "id" => nil).to_s
     )
     assert_dom_equal(
       '<select name="post[secret]"></select>',
@@ -1481,12 +1481,12 @@ class FormHelperTest < ActionView::TestCase
       textarea("post", "body", id: nil).to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "id" => nil),
-      checkbox("post", "secret", id: nil)
+      checkbox("post", "secret", "id" => nil).to_s,
+      checkbox("post", "secret", id: nil).to_s
     )
     assert_dom_equal(
-      radio_button("post", "secret", "0", "id" => nil),
-      radio_button("post", "secret", "0", id: nil)
+      radio_button("post", "secret", "0", "id" => nil).to_s,
+      radio_button("post", "secret", "0", id: nil).to_s
     )
   end
 
@@ -1501,7 +1501,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" id="post_5_secret" />',
-      checkbox("post", "secret", "index" => 5)
+      checkbox("post", "secret", "index" => 5).to_s
     )
     assert_dom_equal(
       text_field("post", "title", "index" => 5).to_s,
@@ -1512,8 +1512,8 @@ class FormHelperTest < ActionView::TestCase
       textarea("post", "body", "index" => 5).to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "index" => 5),
-      checkbox("post", "secret", "index" => 5)
+      checkbox("post", "secret", "index" => 5).to_s,
+      checkbox("post", "secret", "index" => 5).to_s
     )
   end
 
@@ -1528,7 +1528,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", "index" => 5, "id" => nil)
+      checkbox("post", "secret", "index" => 5, "id" => nil).to_s
     )
     assert_dom_equal(
       text_field("post", "title", "index" => 5, "id" => nil).to_s,
@@ -1539,8 +1539,8 @@ class FormHelperTest < ActionView::TestCase
       textarea("post", "body", index: 5, id: nil).to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "index" => 5, "id" => nil),
-      checkbox("post", "secret", index: 5, id: nil)
+      checkbox("post", "secret", "index" => 5, "id" => nil).to_s,
+      checkbox("post", "secret", index: 5, id: nil).to_s
     )
   end
 
@@ -1560,15 +1560,15 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_#{pid}_secret" name="post[#{pid}][secret]" type="checkbox" value="1" />},
-      checkbox("post[]", "secret")
+      checkbox("post[]", "secret").to_s
     )
     assert_dom_equal(
       %{<input checked="checked" id="post_#{pid}_title_hello_world" name="post[#{pid}][title]" type="radio" value="Hello World" />},
-      radio_button("post[]", "title", "Hello World")
+      radio_button("post[]", "title", "Hello World").to_s
     )
     assert_dom_equal(
       %{<input id="post_#{pid}_title_goodbye_world" name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
-      radio_button("post[]", "title", "Goodbye World")
+      radio_button("post[]", "title", "Goodbye World").to_s
     )
   end
 
@@ -1584,15 +1584,15 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[#{pid}][secret]" type="checkbox" value="1" />},
-      checkbox("post[]", "secret", id: nil)
+      checkbox("post[]", "secret", id: nil).to_s
     )
     assert_dom_equal(
       %{<input checked="checked" name="post[#{pid}][title]" type="radio" value="Hello World" />},
-       radio_button("post[]", "title", "Hello World", id: nil)
+       radio_button("post[]", "title", "Hello World", id: nil).to_s
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
-      radio_button("post[]", "title", "Goodbye World", id: nil)
+      radio_button("post[]", "title", "Goodbye World", id: nil).to_s
     )
   end
 
@@ -1622,7 +1622,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.label(:title) { "The Title" }
       concat f.text_field(:title)
       concat f.textarea(:body)
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
       concat f.submit("Create post")
       concat f.button("Create post")
       concat f.button {
@@ -1665,7 +1665,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.label(:title) { "The Title" }
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
       concat f.submit("Create post")
       concat f.button("Create post")
       concat f.button {
@@ -1986,7 +1986,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(post) do |f|
       rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
-        b.label { b.radio_button + b.text }
+        b.label { b.radio_button.to_s + b.text }
       end
       concat rendered_radio_buttons
     end
@@ -2011,7 +2011,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(post) do |f|
       rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
-        b.label { b.radio_button + b.text }
+        b.label { b.radio_button.to_s + b.text }
       end
       concat rendered_radio_buttons
       concat f.hidden_field(:id).to_s
@@ -2096,7 +2096,7 @@ class FormHelperTest < ActionView::TestCase
     collection = (1..3).map { |i| [i, "Tag #{i}"] }
     form_for(post) do |f|
       rendered_checkboxes = f.collection_checkboxes(:tag_ids, collection, :first, :last) do |b|
-        b.label { b.checkbox + b.text }
+        b.label { b.checkbox.to_s + b.text }
       end
       concat rendered_checkboxes
     end
@@ -2125,7 +2125,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(post) do |f|
       rendered_checkboxes = f.collection_checkboxes(:tag_ids, collection, :first, :last) do |b|
-        b.label { b.checkbox + b.text }
+        b.label { b.checkbox.to_s + b.text }
       end
       concat rendered_checkboxes
       concat f.hidden_field(:id).to_s
@@ -2275,7 +2275,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.label(:title, class: "post_title")
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
       concat f.submit("Create post")
     end
 
@@ -2308,7 +2308,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, url: "/", html: { id: "create-post", method: :delete }) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "delete") do
@@ -2325,7 +2325,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, url: "/", method: :delete, html: { id: "create-post" }) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "delete") do
@@ -2356,7 +2356,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, url: "/", remote: true, html: { id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "patch", remote: true) do
@@ -2425,7 +2425,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "patch", remote: true) do
@@ -2444,7 +2444,7 @@ class FormHelperTest < ActionView::TestCase
       form_for(@post, remote: true) do |f|
         concat f.text_field(:title).to_s
         concat f.textarea(:body).to_s
-        concat f.checkbox(:secret)
+        concat f.checkbox(:secret).to_s
       end
 
       expected = whole_form("/posts", "new_post", "new_post", remote: true) do
@@ -2462,7 +2462,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(:post, html: { id: "create-post" }) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/", "create-post") do
@@ -2480,7 +2480,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.label(:title)
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
@@ -2498,7 +2498,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, as: "post[]", index: nil) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
@@ -2563,7 +2563,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, namespace: "namespace") do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
@@ -2967,7 +2967,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_index_radio_button
     form_for(@post) do |f|
       concat f.fields_for(:comment, @post, index: 5) { |c|
-        concat c.radio_button(:title, "hello")
+        concat c.radio_button(:title, "hello").to_s
       }
     end
 
@@ -3674,7 +3674,7 @@ class FormHelperTest < ActionView::TestCase
     @rendered = fields_for(:post, @post) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected =
@@ -3696,7 +3696,7 @@ class FormHelperTest < ActionView::TestCase
     @rendered = fields_for("post[]", @post) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected =
@@ -3718,7 +3718,7 @@ class FormHelperTest < ActionView::TestCase
     @rendered = fields_for("post[]", @post, index: nil) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected =
@@ -3740,7 +3740,7 @@ class FormHelperTest < ActionView::TestCase
     @rendered = fields_for("post[]", @post, index: "abc") do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected =
@@ -3756,7 +3756,7 @@ class FormHelperTest < ActionView::TestCase
     @rendered = fields_for(:post) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected =
@@ -3772,7 +3772,7 @@ class FormHelperTest < ActionView::TestCase
     @rendered = fields_for(@post) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected =
@@ -3816,7 +3816,7 @@ class FormHelperTest < ActionView::TestCase
       concat post_form.textarea(:body).to_s
 
       concat fields_for(:parent_post, @post) { |parent_fields|
-        concat parent_fields.checkbox(:secret)
+        concat parent_fields.checkbox(:secret).to_s
       }
     end
 
@@ -3877,7 +3877,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, builder: LabelledFormBuilder) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
@@ -3896,7 +3896,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
@@ -3955,7 +3955,7 @@ class FormHelperTest < ActionView::TestCase
     @rendered = fields_for(:post, @post, builder: LabelledFormBuilder) do |f|
       concat f.text_field(:title).to_s
       concat f.textarea(:body).to_s
-      concat f.checkbox(:secret)
+      concat f.checkbox(:secret).to_s
     end
 
     expected =

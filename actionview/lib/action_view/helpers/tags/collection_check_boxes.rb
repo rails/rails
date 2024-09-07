@@ -25,7 +25,7 @@ module ActionView
 
         private
           def render_component(builder)
-            builder.checkbox + builder.label
+            builder.checkbox.to_s + builder.label
           end
 
           def hidden_field_name
