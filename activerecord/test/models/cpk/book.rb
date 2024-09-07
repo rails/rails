@@ -10,6 +10,7 @@ module Cpk
     belongs_to :author, class_name: "Cpk::Author"
 
     has_many :chapters, query_constraints: [:author_id, :book_id]
+    accepts_nested_attributes_for :chapters
 
     before_destroy :prevent_destroy_if_set
 
