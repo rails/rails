@@ -9,6 +9,11 @@ module ActionView
         include Placeholderable
 
         def to_s
+          options = attributes
+          content_tag("textarea", options.delete("value") { value_before_type_cast }, options)
+        end
+
+        def attributes
           options = @options.stringify_keys
           add_default_name_and_id(options)
 
@@ -16,7 +21,7 @@ module ActionView
             options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
           end
 
-          content_tag("textarea", options.delete("value") { value_before_type_cast }, options)
+          options
         end
       end
     end

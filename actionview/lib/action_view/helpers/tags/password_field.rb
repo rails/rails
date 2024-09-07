@@ -4,7 +4,7 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class PasswordField < TextField # :nodoc:
-        def to_s
+        def attributes
           @options = { value: nil }.merge!(@options)
           super
         end

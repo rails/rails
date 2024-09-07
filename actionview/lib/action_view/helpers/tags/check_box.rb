@@ -34,6 +34,17 @@ module ActionView
           options
         end
 
+        def hidden_field_attributes
+          options = options_with_hidden_attribute
+          include_hidden = options.delete("include_hidden") { true }
+
+          if include_hidden && @unchecked_value
+            prepare_hidden_options(options)
+          else
+            {}
+          end
+        end
+
         private
           def checked?(value)
             case value
@@ -53,7 +64,7 @@ module ActionView
           end
 
           def hidden_field_for_checkbox(options)
-            @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value, "autocomplete" => "off")) : "".html_safe
+            @unchecked_value ? tag("input", prepare_hidden_options(options)) : "".html_safe
           end
 
           def options_with_hidden_attribute
@@ -70,6 +81,10 @@ module ActionView
             end
 
             options
+          end
+
+          def prepare_hidden_options(options)
+            options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value, "autocomplete" => "off")
           end
       end
     end

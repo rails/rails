@@ -4,7 +4,7 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class ColorField < TextField # :nodoc:
-        def to_s
+        def attributes
           options = @options.stringify_keys
           options["value"] ||= validate_color_string(value)
           @options = options
