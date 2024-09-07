@@ -1,3 +1,11 @@
+*   Drop MySQL 5.5 support.
+
+    MySQL 5.5 is the only version that does not support datetime with precision,
+    which we have supported in the core. Now we support MySQL 5.6.4 or later, which
+    is the first version to support datetime with precision.
+
+    *Ryuta Kamizono*
+
 *   Make Active Record asynchronous queries compatible with transactional fixtures.
 
     Previously transactional fixtures would disable asynchronous queries, because transactional
