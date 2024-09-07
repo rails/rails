@@ -412,7 +412,7 @@ class SignupController < ApplicationController
 
   private
     def user_params
-      params.require(:user).permit(:email_address, :password, :avatar)
+      params.expect(user: [:email_address, :password, :avatar])
     end
 end
 ```
@@ -518,7 +518,7 @@ class MessagesController < ApplicationController
 
   private
     def message_params
-      params.require(:message).permit(:title, :content, images: [])
+      params.expect(message: [ :title, :content, images: [] ])
     end
 end
 ```
