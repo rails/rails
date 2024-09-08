@@ -131,7 +131,7 @@ database only if the object is valid:
 * [`update`][]
 * [`update!`][]
 
-The bang versions (e.g. `save!`) raise an exception if the record is invalid.
+The bang versions (methods that end with an exclamation mark, like `save!`) raise an exception if the record is invalid.
 The non-bang versions - `save` and `update` returns `false`, and `create`
 returns the object.
 
