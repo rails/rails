@@ -31,4 +31,3 @@ class PasswordsController < ApplicationController
       redirect_to new_password_url, alert: "Password reset link is invalid or has expired."
     end
 end
-
