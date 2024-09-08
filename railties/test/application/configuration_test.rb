@@ -978,7 +978,7 @@ module ApplicationTests
       app_file "config/initializers/form_builder.rb", <<-RUBY
       class CustomFormBuilder < ActionView::Helpers::FormBuilder
         def text_field(attribute, *args)
-          label(attribute) + super(attribute, *args)
+          label(attribute) + super(attribute, *args).to_s
         end
       end
       Rails.configuration.action_view.default_form_builder = "CustomFormBuilder"
@@ -994,7 +994,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ApplicationController
         def index
-          render inline: "<%= begin; form_for(Post.new) {|f| f.text_field(:name)}; rescue => e; e.to_s; end %>"
+          render inline: "<%= begin; form_for(Post.new) {|f| f.text_field(:name).to_s}; rescue => e; e.to_s; end %>"
         end
       end
       RUBY
@@ -1055,7 +1055,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ApplicationController
         def index
-          render inline: "<%= begin; form_with(model: Post.new) {|f| f.text_field(:name)}; rescue => e; e.to_s; end %>"
+          render inline: "<%= begin; form_with(model: Post.new) {|f| f.text_field(:name).to_s}; rescue => e; e.to_s; end %>"
         end
       end
       RUBY
