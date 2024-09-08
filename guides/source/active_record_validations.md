@@ -107,7 +107,7 @@ irb> p.new_record?
 => false
 ```
 
-Creating and saving a new record will send an SQL `INSERT` operation to the
+Saving a new record will send an SQL `INSERT` operation to the
 database, whereas updating an existing record will send an SQL `UPDATE`
 operation. Validations are typically run before these commands are sent to the
 database. If any validations fail, the object will be marked as invalid and
