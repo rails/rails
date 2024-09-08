@@ -196,7 +196,7 @@ false` is passed as an argument. This technique should be used with caution.
 ### Checking Validity
 
 Before saving an Active Record object, Rails runs your validations, and
-if these validations produce any errors, then Rails will not save the object.
+if these validations produce any validation errors, then Rails will not save the object.
 
 You can also run the validations on your own. [`valid?`][] triggers your validations
 and returns true if no errors are found in the object, and false otherwise.
