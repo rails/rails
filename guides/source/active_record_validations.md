@@ -818,7 +818,7 @@ class Person < ApplicationRecord
 end
 ```
 
-WARNING. Note that some databases are configured to perform case-insensitive
+WARNING: Note that some databases are configured to perform case-insensitive
 searches anyway.
 
 A `:conditions` option can be used to specify additional conditions as a
