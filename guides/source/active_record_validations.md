@@ -82,7 +82,7 @@ There are two kinds of Active Record objects - those that correspond to a row
 inside your database and those that do not. When you create a new object, using
 the `new` method, the object does not get saved in the database as yet.
 Once you call `save` on that object then will it be saved into the appropriate
-database table. Active Record uses an instance method called `new_record?` to
+database table. Active Record uses an instance method called `persisted?` (and its inverse `new_record?`) to
 determine whether an object is already in the database or not.
 Consider the following Active Record class:
 
