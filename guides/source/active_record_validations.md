@@ -343,7 +343,7 @@ You can also pass in a custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
-  validates :terms_of_service, acceptance: { message: 'must be checked' }
+  validates :terms_of_service, acceptance: { message: 'must be accepted' }
 end
 ```
 
