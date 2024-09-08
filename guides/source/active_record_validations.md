@@ -800,7 +800,6 @@ this, you must create a unique index on that column in your database.
 In order to add a uniqueness database constraint on your database, use the
 [`add_index`][] statement in a migration and include the `unique: true` option.
 
-
 If you are using the `:scope` option in your uniqueness validation, and you wish
 to create a database constraint to prevent possible violations of the uniqueness
 validation, you must create a unique index on both columns in your database. See
