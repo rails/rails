@@ -20,7 +20,7 @@ reporter](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html)
 provides a standard way to collect errors that occur in your application and
 report them to your preferred service or location (e.g. you could report the
 errors to a monitoring service such as
-[Sentry](https://github.com/getsentry/sentry-ruby)).
+Sentry).
 
 It aims to replace boilerplate error-handling code like this:
 
@@ -40,10 +40,9 @@ Rails.error.handle(SomethingIsBroken) do
 end
 ```
 
-Rails wraps all executions (such as [HTTP
-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods),
-[jobs](active_job_basics.html), and [rails
-runner](command_line.html#bin-rails-runner) invocations) in the error reporter,
+Rails wraps all executions (such as HTTP
+requests,
+[jobs](active_job_basics.html), and [rails runner](command_line.html#bin-rails-runner) invocations) in the error reporter,
 so any unhandled errors raised in your app will automatically be reported to
 your error-reporting service via their subscribers.
 
@@ -64,10 +63,8 @@ subscriber can be any Ruby object with a `report` method. When an error occurs
 in your application or is manually reported, the Rails error reporter will call
 this method with the error object and some options.
 
-NOTE: Some error-reporting libraries, such as
-[Sentry's](https://github.com/getsentry/sentry-ruby/blob/e18ce4b6dcce2ebd37778c1e96164684a1e9ebfc/sentry-rails/lib/sentry/rails/error_subscriber.rb)
-and
-[Honeybadger's](https://docs.honeybadger.io/lib/ruby/integration-guides/rails-exception-tracking/),
+NOTE: Some error-reporting libraries, such as Sentry's
+and Honeybadger's,
 automatically register a subscriber for you.
 
 You may also create a custom subscriber. For example:
