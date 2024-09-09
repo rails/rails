@@ -220,6 +220,12 @@ module ActiveRecord
       end
     end
 
+    class AddCheckConstraintWithInvalidOptionMigration < SilentMigration
+      def change
+        add_check_constraint :discounts, "amount >= 0", name: "amount_check", invalid_option: true
+      end
+    end
+
     self.use_transactional_tests = false
 
     setup do
@@ -525,6 +531,18 @@ module ActiveRecord
       connection = ActiveRecord::Base.lease_connection
       assert_not connection.column_exists?(:horses, :oldie)
       Horse.reset_column_information
+    end
+
+    def test_add_check_constraint_with_invalid_option
+      connection = ActiveRecord::Base.lease_connection
+
+      assert_not connection.check_constraint_exists?(:discounts, name: "amount_check")
+
+      AddCheckConstraintWithInvalidOptionMigration.new.migrate(:up)
+      assert connection.check_constraint_exists?(:discounts, name: "amount_check")
+
+      AddCheckConstraintWithInvalidOptionMigration.new.migrate(:down)
+      assert_not connection.check_constraint_exists?(:discounts, name: "amount_check")
     end
   end
 end
