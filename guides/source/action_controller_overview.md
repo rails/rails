@@ -23,10 +23,10 @@ Introduction
 ------------
 
 Action Controller is the C in Model View Controller
-[MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller).
-After the [router](routing.html) has matched a controller to an incoming
-request, the controller is responsible for processing the request and generating
-the appropriate output.
+([MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller))
+pattern. After the [router](routing.html) has matched a controller to an
+incoming request, the controller is responsible for processing the request and
+generating the appropriate output.
 
 For most conventional
 [RESTful](https://en.wikipedia.org/wiki/Representational_state_transfer)
@@ -35,16 +35,31 @@ model, and use a view to create HTML output.
 
 You can imagine that a controller sits between models and views. The controller
 makes model data available to the view, so that the view can display that data
-to the user. The controller also takes user input and saves or updates model
-data accordingly.
+to the user. The controller also receives user input from the view and saves or
+updates model data accordingly.
 
 Creating a Controller
 ---------------------
 
-A controller is a Ruby class which inherits from `ApplicationController` and has methods just like any other class. Once an incoming request is matched to a controller by the router, Rails creates an instance of that controller and calls the method with the same name as the action.
+A controller is a Ruby class which inherits from `ApplicationController` and has methods just like any other class. Once an incoming request is matched to a controller by the router, Rails creates an instance of that controller class and calls the method with the same name as the action.
 
 ```ruby
-# TODO Add simple example of route --> controller method/action matching
+class ClientsController < ApplicationController
+  def new
+  end
+end
+```
+
+Given the above `ClientsController`, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. 
+
+NOTE: The empty method from the example above would work because Rails will render the `new.html.erb` view by default. 
+
+In the `new` method, the controller would typically create an instance of the `Client` model, and make it available as an instance variable called `@client` in the view:
+
+```ruby
+def new
+  @client = Client.new
+end
 ```
 
 ### Controller Naming Convention
@@ -55,36 +70,19 @@ Rails favors making the last word in the controller's name plural. For example,
 
 NOTE: The plural names are not strictly required (e.g. `ApplicationController`).
 
-Following this naming convention will allow you to use the default route
-generators (e.g. `resources`) without needing to qualify each `:path` or
-`:controller`. The convention also makes named route helpers consistent
-throughout your application. TODO: add links to routing guide.
+Following this naming convention will allow you to use the [default route
+generators](routing.html#crud-verbs-and-actions) (e.g. `resources`) without
+needing to qualify each with options such as
+[`:controller`](routing.html#specifying-a-controller-to-use). The convention
+also makes named route helpers consistent throughout your application.
 
-NOTE: The controller naming convention is different from models. The singular
-form is preferred for models names (e.g. `Account` vs. `Accounts`).
+NOTE: The controller naming convention is different from models. While plural
+names are preferred for controller names, the singular form is preferred for
+models names (e.g. `Account` vs. `Accounts`).
 
 ### Methods and Actions
 
-A controller is a Ruby class which inherits from `ApplicationController` and has methods just like any other class. When your application receives a request, the routing will determine which controller and action to run, then Rails creates an instance of that controller and runs the method with the same name as the action.
-
-```ruby
-class ClientsController < ApplicationController
-  def new
-  end
-end
-```
-
-As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. 
-
-NOTE: The empty method from the example above would work because Rails will render the `new.html.erb` view by default. 
-
-By creating a new `Client`, the `new` method can make a `@client` instance variable accessible in the view:
-
-```ruby
-def new
-  @client = Client.new
-end
-```
+Todo: TBD where this goes.
 
 `ApplicationController` inherits from [`ActionController::Base`][], which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](https://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
 
