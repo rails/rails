@@ -222,7 +222,7 @@ module ActiveRecord
 
     class AddCheckConstraintWithInvalidOptionMigration < SilentMigration
       def change
-        add_check_constraint :settings, "value >= 0", name: "positive_value", invalid_option: true
+        add_check_constraint :foos, "value >= 0", name: "positive_value", invalid_option: true
       end
     end
 
@@ -536,17 +536,17 @@ module ActiveRecord
     def test_add_check_constraint_with_invalid_option
       connection = ActiveRecord::Base.lease_connection
 
-      connection.create_table(:settings2) do |t|
+      connection.create_table(:foos) do |t|
         t.integer :value
       end
 
       AddCheckConstraintWithInvalidOptionMigration.new.migrate(:up)
-      assert connection.check_constraint_exists?(:settings2, name: "positive_value")
+      assert connection.check_constraint_exists?(:foos, name: "positive_value")
 
       AddCheckConstraintWithInvalidOptionMigration.new.migrate(:down)
-      assert_not connection.check_constraint_exists?(:settings2, name: "positive_value")
+      assert_not connection.check_constraint_exists?(:foos, name: "positive_value")
     ensure
-      connection.drop_table(:settings2) rescue nil
+      connection.drop_table(:foos) rescue nil
     end
   end
 end
