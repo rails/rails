@@ -15,6 +15,8 @@
     person.full_name # => NoMethodError: undefined method `attribute' for an instance of Person
     ```
 
+    *Jean Boussier*
+
 ## Rails 7.2.1 (August 22, 2024) ##
 
 *   No changes.
