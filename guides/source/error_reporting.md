@@ -274,7 +274,6 @@ end
 NOTE: This can also be helpful for third-party error reporting services who may
 want to manage error handling a different way, or higher in the stack.
 
-
 Error-reporting Libraries
 ------------------------
 
