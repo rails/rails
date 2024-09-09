@@ -535,6 +535,9 @@ module ActiveRecord
 
     def test_add_check_constraint_with_invalid_option
       connection = ActiveRecord::Base.lease_connection
+
+      skip unless connection.supports_check_constraints?
+
       connection.create_table(:settings) do |t|
         t.integer :value
       end
