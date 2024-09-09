@@ -92,7 +92,6 @@ module ActiveSupport
 
     private
       def deep_symbolize_keys(hash)
-        hash.deep_symbolize_keys
         hash.deep_transform_keys do |key|
           key.to_sym
         rescue NoMethodError
