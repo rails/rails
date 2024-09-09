@@ -543,6 +543,8 @@ module ActiveRecord
 
       AddCheckConstraintWithInvalidOptionMigration.new.migrate(:down)
       assert_not connection.check_constraint_exists?(:discounts, name: "amount_check")
+    ensure
+      connection.remove_check_constraint(:discounts, name: "amount_check", if_exists: true)
     end
   end
 end
