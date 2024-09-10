@@ -260,7 +260,8 @@ or `deliver_later` to send itself now or later. The
 
 Here is an example of the `MessageDelivery` object from the Rails console example above:
 
-```
+```ruby
+UserMailer.with(user: user).weekly_summary
 #<ActionMailer::MailDeliveryJob:0x00007f84cb0367c0
  @_halted_callback_hook_called=nil,
  @_scheduled_at_time=nil,
@@ -296,7 +297,7 @@ Attachments and Multipart Emails
 
 ### Adding Attachments
 
-Action Mailer makes it very easy to add attachments with the [attachments method](https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments).
+Action Mailer simplifies adding attachments with the [attachments method](https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments).
 
 Pass the file name and content to Action Mailer and the [Mail
 gem](https://github.com/mikel/mail) will automatically guess the `mime_type`,
@@ -332,7 +333,7 @@ encoded and not try to Base64 encode it.
 
 ### Making Inline Attachments
 
-Sometimes, you may want to send an attachment (e.g. image) inline, so it appears within the email body. Action Mailer makes this simple.
+Sometimes, you may want to send an attachment (e.g. image) inline, so it appears within the email body.
 
 First, tell Mail to turn an attachment into an inline attachment by calling `#inline`:
 
@@ -343,7 +344,7 @@ end
 ```
 
 Then in the view, you can reference `attachments` as a hash and specify the file
-you want to show inline. You can call `url` on the hash and pass result into the
+you want to show inline. You can call `url` on the hash and pass the result into the
 `image_tag` method:
 
 ```html+erb
@@ -363,12 +364,12 @@ after the attachment URL as well:
 
 ### Multipart Emails
 
-As demonstrated [above](#create-a-mailer-view), Action Mailer will automatically
-send multipart emails if you have different templates for the same action. For
-example, if you have a `UserMailer` and `welcome_email.text.erb` and
-`welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will
-automatically send a multipart email with the HTML and text versions setup as
-different parts.
+As demonstrated in [Create a Mailer View](#create-a-mailer-view), Action Mailer will automatically
+send multipart emails if you have different templates for the same action. For 
+example, if you have a `UserMailer` with `welcome_email.text.erb` and 
+`welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will 
+automatically send a multipart email with both the HTML and text versions included
+ as separate parts.
 
 The Mail gem has helper methods for making a `multipart/alternate` email for
 `text/plain` and `text/html` [MIME types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types) and you can manually create
@@ -377,7 +378,7 @@ any other type of MIME email.
 NOTE: The order of the parts getting inserted is determined by the
 `:parts_order` inside of the `ActionMailer::Base.default` method.
 
-Multipart is also used when you send attachments with email. The `multipart` MIME type represents a document that's comprised of multiple component parts, each of which may have its own individual MIME type. Such as the `text/html` and `text/text` parts above. The use of `multipart` type is to encapsulate multiple files being sent together in one transaction, such as when attaching multiple files to an email.
+Multipart is also used when you send attachments with email. The `multipart` MIME type represents a document that's comprised of multiple component parts, each of which may have its own individual MIME type, such as the `text/html` and `text/text` parts above. The use of `multipart` type is to encapsulate multiple files being sent together in one transaction, such as when attaching multiple files to an email.
 
 Mailer Views and Layouts
 ------------------------
@@ -388,7 +389,7 @@ the mailer method.
 
 Mailer views are rendered within a layout, similar to controller views. Mailer layouts are located in `app/views/layouts`. The default layout is `mailer.html.erb` and `mailer.text.erb`. This sections covers various features around mailer views and layouts.
 
-### Configuring Custom View Path
+### Configuring Custom View Paths
 
 It is possible to change the default mailer view for your action in various ways, as shown below.
 
@@ -464,16 +465,16 @@ config.action_mailer.default_url_options = { host: 'example.com' }
 
 Once the `host` is configured, it is recommended that email views use the
 `*_url` with the full URL, and not the `*_path` helpers with relative URL. Since
-email clients do no web request context, `*_path` helpers have no base URL to
+email clients do not have web request context, `*_path` helpers have no base URL to
 form complete web addresses.
 
-For example, instead of this:
+For example, instead of:
 
 ```html+erb
 <%= link_to 'welcome', welcome_path %>
 ```
 
-Use this:
+Use:
 
 ```html+erb
 <%= link_to 'welcome', welcome_url %>
@@ -483,7 +484,7 @@ By using the full URL, your links will work correctly in your emails.
 
 #### Generating URLs with `url_for`
 
-The [`url_for`][] helper generates a full URL by default in templates.
+The [`url_for`][] helper generates a full URL, by default, in templates.
 
 If you haven't configured the `:host` option globally, you'll need to pass it to
 `url_for`.
