@@ -284,42 +284,36 @@ In a given request, the method is not actually called for every single generated
 
 ### Strong Parameters
 
-With strong parameters, Action Controller parameters are forbidden to
-be used in Active Model mass assignments until they have been
-permitted. This means that you'll have to make a conscious decision about
-which attributes to permit for mass update. This is a better security
-practice to help prevent accidentally allowing users to update sensitive
-model attributes.
+With Action Controller [strong
+parameters](https://api.rubyonrails.org/classes/ActionController/StrongParameters.html),
+parameters cannot be used in Active Model mass assignments until they have been
+explicitly permitted. This means you will need to decide which attributes to
+permit for mass update and declare them in the controller. This is a security
+practice to prevent users from accidentally updating sensitive model attributes.
 
-In addition, parameters can be marked as required and will flow through a
-predefined raise/rescue flow that will result in a 400 Bad Request being
-returned if not all required parameters are passed in.
+In addition, parameters can be marked as required and the request will result in
+a 400 Bad Request being returned if not all required parameters are passed in.
 
 ```ruby
 class PeopleController < ActionController::Base
+
   # This will raise an ActiveModel::ForbiddenAttributesError exception
   # because it's using mass assignment without an explicit permit
-  # step.
   def create
     Person.create(params[:person])
   end
 
-  # This will pass with flying colors as long as there's a person key
-  # in the parameters, otherwise it'll raise an
-  # ActionController::ParameterMissing exception, which will get
-  # caught by ActionController::Base and turned into a 400 Bad
-  # Request error.
+  # This will work as we are using `person_params` helper method, which has the
+  # call to `permit` to allow mass assignment.
   def update
-    person = current_account.people.find(params[:id])
+    person = Person.find(params[:id])
     person.update!(person_params)
     redirect_to person
   end
 
   private
-    # Using a private method to encapsulate the permissible parameters
-    # is just a good pattern since you'll be able to reuse the same
-    # permit list between create and update. Also, you can specialize
-    # this method with per-user checking of permissible attributes.
+    # Using a private method to encapsulate the permitted parameters is a good
+    # pattern. you can use the same list for both create and update.
     def person_params
       params.require(:person).permit(:name, :age)
     end
