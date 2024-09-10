@@ -129,6 +129,28 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "referential_integrity_test_schema", if_exists: true
   end
 
+  def test_disable_trigger_for_only_the_given_table
+    @connection.execute <<~SQL
+      CREATE TABLE test_referenced_table (
+        id          BIGSERIAL,
+        PRIMARY KEY(id)
+      );
+
+      CREATE TABLE test_simple_table (
+        id          BIGSERIAL,
+        test_referenced_table_id bigint,
+        PRIMARY KEY(id),
+        CONSTRAINT fk_referenced_table FOREIGN KEY(test_referenced_table_id) REFERENCES test_referenced_table(id) ON DELETE CASCADE
+      );
+    SQL
+
+    assert_queries_match("ALTER TABLE \"test_simple_table\" DISABLE TRIGGER ALL;") do
+      assert_queries_match("ALTER TABLE \"test_simple_table\" ENABLE TRIGGER ALL;") do
+        @connection.disable_referential_integrity(table_name: "test_simple_table") {}
+      end
+    end
+  end
+
   private
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
