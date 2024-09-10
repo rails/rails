@@ -50,9 +50,9 @@ class ClientsController < ApplicationController
 end
 ```
 
-Given the above `ClientsController`, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. 
+Given the above `ClientsController`, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method.
 
-NOTE: The empty method from the example above would work because Rails will render the `new.html.erb` view by default. 
+NOTE: The empty method from the example above would work because Rails will render the `new.html.erb` view by default.
 
 In the `new` method, the controller would typically create an instance of the `Client` model, and make it available as an instance variable called `@client` in the view:
 
@@ -171,7 +171,7 @@ The `params` object acts like a Hash, but lets you use symbols and strings inter
 
 ### JSON Parameters
 
-If your application exposes an API, you are likely to be accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
+If your application exposes an API, you will likely accept parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -181,13 +181,21 @@ So for example, if you are sending this JSON content:
 
 Your controller will receive `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
-Also, if you've turned on `config.wrap_parameters` in your initializer or called [`wrap_parameters`][] in your controller, you can safely omit the root element in the JSON parameter. In this case, the parameters will be cloned and wrapped with a key chosen based on your controller's name. So the above JSON request can be written as:
+#### Configuring Wrap Parameters
+
+You can [configure wrap parameters](configuring.html#config-action-controller-wrap-parameters-by-default) option if you want to omit the root element in the JSON parameters. It is `true` by default.
+
+```ruby
+config.action_controller.wrap_parameters_by_default = true
+```
+
+With this configuration, parameters will be cloned and wrapped with a key chosen based on your controller's name.
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
 ```
 
-And, assuming that you're sending the data to `CompaniesController`, it would then be wrapped within the `:company` key like this:
+Assuming that you're sending the data to `CompaniesController`, the above JSON would be wrapped within the `:company` key like this:
 
 ```ruby
 { name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
@@ -201,13 +209,28 @@ NOTE: Support for parsing XML parameters has been extracted into a gem named `ac
 
 ### Routing Parameters
 
-The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods [`controller_name`][] and [`action_name`][] instead to access these values. Any other parameters defined by the routing, such as `:id`, will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route that captures the `:status` parameter in a "pretty" URL:
+Parameters specified as part of a route declaration in the `routes.rb` file are
+also made available in the `params` hash. 
+
+For example, we can add a route that captures the `:status` parameter for a
+client:
 
 ```ruby
 get '/clients/:status', to: 'clients#index', foo: 'bar'
 ```
 
-In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar", as if it were passed in the query string. Your controller will also receive `params[:action]` as "index" and `params[:controller]` as "clients".
+When a user navigates to `/clients/active` URL, `params[:status]` will be set to
+"active". When this route is used, `params[:foo]` will also be set to "bar", as
+if it were passed in the query string.
+
+Any other parameters defined by the route declaration, such as `:id`, will also
+be available.
+
+NOTE: In the above example, your controller will also receive `params[:action]`
+as "index" and `params[:controller]` as "clients". The `params` hash will always
+contain the `:controller` and `:action` keys, but it's recommended to use the
+methods [`controller_name`][] and [`action_name`][] instead to access these
+values.
 
 [`controller_name`]: https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-controller_name
 [`action_name`]: https://api.rubyonrails.org/classes/AbstractController/Base.html#method-i-action_name
