@@ -93,15 +93,17 @@ NOTE: If you must use a reserved method as an action name, one workaround is to 
 Parameters
 ----------
 
-You will probably want to access data sent in by the user or other parameters in your controller actions. There are two kinds of parameters possible in a web application. The first are parameters that are sent as part of the URL, called query string parameters. The query string is everything after "?" in the URL. The second type of parameter is usually referred to as POST data. This information usually comes from an HTML form which has been filled in by the user. It's called POST data because it can only be sent as part of an HTTP POST request. Rails does not make any distinction between query string parameters and POST parameters, and both are available in the [`params`][] hash in your controller:
+Data provided by the user is available in your controller in the [`params`][] hash. There are two types of parameter data:
+
+- Query string parameter which are sent as part of the URL (for example, after the `?` in `example.com/accounts?filter=free`).
+- POST data which are submitted as from an HTML form.
+
+Rails does not make a distinction between query string parameters and POST parameters; both are available in the `params` hash in your controller. For example:
 
 ```ruby
 class ClientsController < ApplicationController
-  # This action uses query string parameters because it gets run
-  # by an HTTP GET request, but this does not make any difference
-  # to how the parameters are accessed. The URL for
-  # this action would look like this to list activated
-  # clients: /clients?status=activated
+  # This action receives query string parameters from an HTTP GET request
+  # at the URL "/clients?status=activated"
   def index
     if params[:status] == "activated"
       @clients = Client.activated
@@ -110,17 +112,12 @@ class ClientsController < ApplicationController
     end
   end
 
-  # This action uses POST parameters. They are most likely coming
-  # from an HTML form that the user has submitted. The URL for
-  # this RESTful request will be "/clients", and the data will be
-  # sent as part of the request body.
+  # This action receives parameters from a POST request to "/clients" URL with # form data in the request body.
   def create
     @client = Client.new(params[:client])
     if @client.save
       redirect_to @client
     else
-      # This line overrides the default rendering behavior, which
-      # would have been to render the "create" view.
       render "new"
     end
   end
