@@ -237,35 +237,36 @@ values.
 
 ### Composite Key Parameters
 
-Composite key parameters contain multiple values in one parameter. For this reason, we need to be able to extract each value and pass them to Active Record. We can leverage the `extract_value` method for this use-case.
+[Composite key parameters](active_record_composite_primary_keys.html) contain
+multiple values in one parameter separated by a delimiter. Therefore, you will
+need extract each value so that you can pass them to Active Record. You can use
+the `extract_value` do that.
 
-Given the following controller:
+For example, given the following controller:
 
 ```ruby
 class BooksController < ApplicationController
   def show
     # Extract the composite ID value from URL parameters.
     id = params.extract_value(:id)
-    # Find the book using the composite ID.
     @book = Book.find(id)
-    # use the default rendering behaviour to render the show view.
   end
 end
 ```
 
-And the following route:
+And the this route:
 
 ```ruby
 get '/books/:id', to: 'books#show'
 ```
 
-When a user opens the URL `/books/4_2`, the controller will extract the composite
-key value `["4", "2"]` and pass it to `Book.find` to render the right record in the view.
-The `extract_value` method may be used to extract arrays out of any delimited parameters.
+When a user opens the URL `/books/4_2`, the controller will extract the
+composite key value `["4", "2"]` and pass it to `Book.find`. The `extract_value`
+method may be used to extract arrays out of any delimited parameters.
 
-### `default_url_options`
+### The `default_url_options` Method
 
-You can set global default parameters for URL generation by defining a method called `default_url_options` in your controller. Such a method must return a hash with the desired defaults, whose keys must be symbols:
+You can set global default parameters by defining a method called `default_url_options` in your controller. This method must return a hash with the desired defaults, whose keys must be symbols:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -277,9 +278,9 @@ end
 
 These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed to `url_for` calls.
 
-If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only affects URLs generated there.
+If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only applys URLs generated for that controller.
 
-In a given request, the method is not actually called for every single generated URL. For performance reasons, the returned hash is cached, and there is at most one invocation per request.
+In a given request, the method is not actually called for every single generated URL. For performance reasons, the returned hash is cached.
 
 ### Strong Parameters
 
