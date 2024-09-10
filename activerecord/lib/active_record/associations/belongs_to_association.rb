@@ -9,8 +9,11 @@ module ActiveRecord
 
         case options[:dependent]
         when :destroy
+          target.destroyed_by_association = reflection
           raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
+          target.destroyed_by_association = reflection
+
           if reflection.foreign_key.is_a?(Array)
             primary_key_column = reflection.active_record_primary_key
             id = reflection.foreign_key.map { |col| owner.public_send(col) }
