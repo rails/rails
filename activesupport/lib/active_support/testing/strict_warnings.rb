@@ -16,7 +16,10 @@ module ActiveSupport
       /Failed to validate the schema cache because/,
 
       # TODO: We need to decide what to do with this.
-      /Status code :unprocessable_entity is deprecated/
+      /Status code :unprocessable_entity is deprecated/,
+
+      # TODO: Revert this change when #52746 or #52827 is merged.
+      /warning: benchmark was loaded from the standard library, but will no longer be part of the default gems starting from Ruby 3.5.0./,
     )
 
     SUPPRESSED_WARNINGS = Regexp.union(
