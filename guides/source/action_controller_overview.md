@@ -131,19 +131,28 @@ NOTE: The `params` hash is not a plain old Ruby Hash; instead, it is an [`Action
 
 ### Hash and Array Parameters
 
-The `params` hash is not limited to one-dimensional keys and values. It can contain nested arrays and hashes. To send an array of values, append an empty pair of square brackets "[]" to the key name:
+The `params` hash is not limited to one-dimensional keys and values. It can
+contain nested arrays and hashes. To send an array of values, append an empty
+pair of square brackets "[]" to the key name:
 
 ```
 GET /clients?ids[]=1&ids[]=2&ids[]=3
 ```
 
-NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as the "[" and "]" characters are not allowed in URLs. Most of the time you don't have to worry about this because the browser will encode it for you, and Rails will decode it automatically, but if you ever find yourself having to send those requests to the server manually you should keep this in mind.
+NOTE: The actual URL in this example will be encoded as
+"/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as the "[" and "]" characters are
+not allowed in URLs. Most of the time you don't have to worry about this because
+the browser will encode it for you, and Rails will decode it automatically, but
+if you ever find yourself having to send those requests to the server manually
+you should keep this in mind.
 
-The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter values are always strings; Rails does not attempt to guess or cast the type.
+The value of `params[:ids]` will be the array `["1", "2", "3"]`. Note that
+parameter values are always strings; Rails does not attempt to guess or cast the
+type.
 
-NOTE: Values such as `[nil]` or `[nil, nil, ...]` in `params` are replaced
-with `[]` for security reasons by default. See [Security Guide](security.html#unsafe-query-generation)
-for more information.
+NOTE: Values such as `[nil]` or `[nil, nil, ...]` in `params` are replaced with
+`[]` for security reasons by default. See [Security
+Guide](security.html#unsafe-query-generation) for more information.
 
 To send a hash, you include the key name inside the brackets:
 
