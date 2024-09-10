@@ -82,6 +82,10 @@ module ActiveRecord
           alter_table(from_table, foreign_keys)
         end
 
+        def virtual_table_exists?(table_name)
+          query_values(data_source_sql(table_name, type: "VIRTUAL TABLE"), "SCHEMA").any?
+        end
+
         def check_constraints(table_name)
           table_sql = query_value(<<-SQL, "SCHEMA")
             SELECT sql
@@ -176,7 +180,8 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'table','view'"
 
-            sql = +"SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'"
+            sql = +"SELECT name FROM pragma_table_list WHERE schema <> 'temp'"
+            sql << " AND name NOT IN ('sqlite_sequence', 'sqlite_schema')"
             sql << " AND name = #{scope[:name]}" if scope[:name]
             sql << " AND type IN (#{scope[:type]})"
             sql
@@ -189,6 +194,8 @@ module ActiveRecord
                 "'table'"
               when "VIEW"
                 "'view'"
+              when "VIRTUAL TABLE"
+                "'virtual'"
               end
             scope = {}
             scope[:name] = quote(name) if name

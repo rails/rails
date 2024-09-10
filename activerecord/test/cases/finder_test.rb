@@ -291,7 +291,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_loaded_relation
     topics = Topic.all.load
-    assert_no_queries do
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
       assert_predicate topics, :exists?
     end
   end
@@ -299,7 +299,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists_with_empty_loaded_relation
     Topic.delete_all
     topics = Topic.all.load
-    assert_no_queries do
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
       assert_not_predicate topics, :exists?
     end
   end
@@ -310,7 +310,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_not_empty posts
     posts.each(&:destroy)
 
-    assert_no_queries do
+    assert_queries_match(/SELECT 1 AS one/i) do
       assert_not_predicate posts, :exists?
     end
   end

@@ -122,10 +122,12 @@ module Rails
     def generate_test_dummy(force = false)
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
+      opts[:skip_thruster] = true
       opts[:skip_brakeman] = true
       opts[:skip_bundle] = true
       opts[:skip_ci] = true
       opts[:skip_kamal] = true
+      opts[:skip_solid] = true
       opts[:skip_git] = true
       opts[:skip_hotwire] = true
       opts[:skip_rubocop] = true
@@ -160,7 +162,7 @@ module Rails
         remove_file ".ruby-version"
         remove_dir "db"
         remove_file "Gemfile"
-        remove_file "lib/tasks"
+        remove_dir "lib"
         remove_file "public/robots.txt"
         remove_file "README.md"
         remove_file "test"

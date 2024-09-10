@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "openssl"
-require "zlib"
 require "active_support/core_ext/numeric"
 
 module ActiveRecord
@@ -54,7 +53,7 @@ module ActiveRecord
         serialize_message build_encrypted_message(clear_text, key_provider: key_provider, cipher_options: cipher_options)
       end
 
-      # Decrypts a +clean_text+ and returns the result as clean text
+      # Decrypts an +encrypted_text+ and returns the result as clean text
       #
       # === Options
       #

@@ -230,23 +230,21 @@
         border-color: $note-dark;
         background-color: $note-bkgnd-dark;
       }
-    
+
       &.info {
         border-color: $tip-dark;
         background-color: $tip-bkgnd-dark;
       }
-    
+
       &.warning {
         border-color: $stop-dark;
         background-color: $stop-bkgnd-dark;
       }
-    
+
       &.question {
         border-color: $gray-600;
         background-color: $gray-700;
       }
-    
-
-    }  
+    }
   } // body.guide
 } // @media (prefers-color-scheme: dark

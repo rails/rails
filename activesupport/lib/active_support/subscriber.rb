@@ -67,6 +67,7 @@ module ActiveSupport
 
       # Adds event subscribers for all new methods added to the class.
       def method_added(event)
+        super
         # Only public methods are added as subscribers, and only if a notifier
         # has been set up. This means that subscribers will only be set up for
         # classes that call #attach_to.

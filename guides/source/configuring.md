@@ -409,7 +409,7 @@ default, Rails filters out passwords by adding the following filters in
 
 ```ruby
 Rails.application.config.filter_parameters += [
-  :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
+  :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn, :cvv, :cvc
 ]
 ```
 
@@ -593,6 +593,14 @@ config.session_store :my_custom_store
 
 The default store is a cookie store with the application name as the session key.
 
+#### `config.silence_healthcheck_path`
+
+Specifies the path of the healthcheck that should be silenced in the logs. Uses `Rails::Rack::SilenceRequest` to implement the silencing. All in service of keeping healthchecks from clogging the production logs, especially for early-stage applications.
+
+```
+config.silence_healthcheck_path = "/up"
+```
+
 #### `config.ssl_options`
 
 Configuration options for the [`ActionDispatch::SSL`](https://api.rubyonrails.org/classes/ActionDispatch/SSL.html) middleware.
@@ -692,7 +700,7 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby `Logge
 
 #### `config.assets.quiet`
 
-Disables logging of assets requests. Set to `true` by default in `development.rb`.
+Disables logging of assets requests. Set to `true` by default in `config/environments/development.rb`.
 
 ### Configuring Generators
 
@@ -937,7 +945,7 @@ Sets the path Rails uses to look for locale files. Defaults to `config/locales/*
 
 #### `config.i18n.raise_on_missing_translations`
 
-Determines whether an error should be raised for missing translations. This defaults to `false`.
+Determines whether an error should be raised for missing translations. If `true`, views and controllers raise `I18n::MissingTranslationData`. If `:strict`, models also raise the error. This defaults to `false`.
 
 #### `config.i18n.fallbacks`
 
@@ -1633,6 +1641,19 @@ warning, or neither.
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 
+#### config.active_record.database_cli
+
+Controls which CLI tool will be used for accessing the database when running `rails dbconsole`. By default
+the standard tool for the database will be used (e.g. `psql` for PostgreSQL and `mysql` for MySQL). The option
+takes a hash which specifies the tool per-database system, and an array can be used where fallback options are
+required:
+
+```ruby
+# config/application.rb
+
+config.active_record.database_cli = { postgresql: "pgcli", mysql: %w[ mycli mysql ] }
+```
+
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
@@ -2121,7 +2142,7 @@ Setting the value to `:none` configures Action Pack raise all exceptions.
 
 Configures whether the `ActionDispatch::ETag` middleware should prefer the `ETag` header over the `Last-Modified` header when both are present in the response.
 
-If set to `true`, when both headers are present only the `ETag` is considered as specificed by RFC 7232 section 6.
+If set to `true`, when both headers are present only the `ETag` is considered as specified by RFC 7232 section 6.
 
 If set to `false`, when both headers are present, both headers are checked and both need to match for the response to be considered fresh.
 
@@ -2130,6 +2151,13 @@ If set to `false`, when both headers are present, both headers are checked and b
 | (original)            | `false`               |
 | 8.0                   | `true`                |
 
+#### `config.action_dispatch.always_write_cookie`
+
+Cookies will be written at the end of a request if they marked as insecure, if the request is made over SSL, or if the request is made to an onion service.
+
+If set to `true`, cookies will be written even if this criteria is not met.
+
+This defaults to `true` in `development`, and `false` in all other environments.
 
 #### `ActionDispatch::Callbacks.before`
 
@@ -2838,8 +2866,7 @@ It can be set to:
 * `:always` - Always defer the enqueue.
 * `:default` - Let the queue adapter define the behaviour.
 
-Active Job backends that use the same database as Active Record as a queue,
-should generally prevent the deferring, and others should allow it.
+Each Active Job backend defines its own default behaviour for this, with some adapters preventing the deferring and others allowing it, so make sure to check that as well if you're opting for `:default`.
 
 Example:
 
@@ -3150,7 +3177,7 @@ default to _replacing_ the current collection instead of _appending_ to it. Thus
 to support submitting an _empty_ collection, when `multiple_file_field_include_hidden`
 is `true`, the [`file_field`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-file_field)
 helper will render an auxiliary hidden field, similar to the auxiliary field
-rendered by the [`check_box`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-check_box)
+rendered by the [`checkbox`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-checkbox)
 helper.
 
 The default value depends on the `config.load_defaults` target version:
@@ -3329,7 +3356,7 @@ Now the behavior is clear, that we are only using the connection information in 
 
 #### Configuring an SQLite3 Database
 
-Rails comes with built-in support for [SQLite3](http://www.sqlite.org), which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
+Rails comes with built-in support for [SQLite3](https://www.sqlite.org), which is a lightweight serverless database application. While Rails better configures SQLite for production workloads, a busy production environment may overload SQLite. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
 
 Here's the section of the default configuration file (`config/database.yml`) with connection information for the development environment:
 
@@ -3734,7 +3761,9 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveJob::Base`                    | `active_job`                         |
 | `ActiveJob::TestCase`                | `active_job_test_case`               |
 | `ActiveModel::Model`                 | `active_model`                       |
+| `ActiveModel::Translation`           | `active_model_translation`           |
 | `ActiveRecord::Base`                 | `active_record`                      |
+| `ActiveRecord::Encryption`           | `active_record_encryption`           |
 | `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
 | `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter`    | `active_record_postgresqladapter`    |
 | `ActiveRecord::ConnectionAdapters::Mysql2Adapter`        | `active_record_mysql2adapter`        |

@@ -45,7 +45,7 @@ module ActiveRecord
         attr_reader :uri
 
         def uri_parser
-          @uri_parser ||= URI::Parser.new
+          @uri_parser ||= URI::RFC2396_Parser.new
         end
 
         # Converts the query parameters of the URI into a hash.

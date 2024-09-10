@@ -15,7 +15,7 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
-                    :log_tags, :railties_order, :relative_url_root,
+                    :log_tags, :silence_healthcheck_path, :railties_order, :relative_url_root,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
@@ -62,6 +62,7 @@ module Rails
         @exceptions_app                          = nil
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
+        @silence_healthcheck_path                = nil
         @eager_load                              = nil
         @secret_key_base                         = nil
         @api_only                                = false
@@ -367,11 +368,11 @@ module Rails
       end
 
       def read_encrypted_secrets
-        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 7.3.")
+        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 8.0.")
       end
 
       def read_encrypted_secrets=(value)
-        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 7.3.")
+        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 8.0.")
       end
 
       def encoding=(value)
@@ -512,7 +513,7 @@ module Rails
 
       def secret_key_base
         @secret_key_base || begin
-          self.secret_key_base = if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
+          self.secret_key_base = if generate_local_secret?
             generate_local_secret
           else
             ENV["SECRET_KEY_BASE"] || Rails.application.credentials.secret_key_base
@@ -521,7 +522,9 @@ module Rails
       end
 
       def secret_key_base=(new_secret_key_base)
-        if new_secret_key_base.is_a?(String) && new_secret_key_base.present?
+        if new_secret_key_base.nil? && generate_local_secret?
+          @secret_key_base = generate_local_secret
+        elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
           @secret_key_base = new_secret_key_base
         elsif new_secret_key_base
           raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
@@ -646,6 +649,10 @@ module Rails
           end
 
           File.binread(key_file)
+        end
+
+        def generate_local_secret?
+          Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
         end
     end
   end

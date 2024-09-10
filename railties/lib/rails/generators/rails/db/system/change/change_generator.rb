@@ -35,7 +35,7 @@ module Rails
           end
 
           def edit_database_config
-            template("config/databases/#{options[:database]}.yml", "config/database.yml")
+            template(database.template, "config/database.yml")
           end
 
           def edit_gemfile

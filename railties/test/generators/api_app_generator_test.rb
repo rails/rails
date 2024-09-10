@@ -125,6 +125,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     pass
   end
 
+  def test_app_update_does_not_generate_public_files
+    run_generator
+    run_app_update
+
+    assert_no_file "public/406-unsupported-browser.html"
+  end
+
   private
     def default_files
       %w(.gitignore
@@ -141,6 +148,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
+        bin/dev
         bin/docker-entrypoint
         bin/rails
         bin/rake
@@ -184,8 +192,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          bin/yarn
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
-         lib/assets
          test/helpers
+         public/400.html
          public/404.html
          public/422.html
          public/406-unsupported-browser.html

@@ -282,6 +282,12 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_since_with_instance_of_time_deprecated
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time.now.since(Time.now)
+    end
+  end
+
   def test_since
     assert_equal Time.local(2005, 2, 22, 10, 10, 11), Time.local(2005, 2, 22, 10, 10, 10).since(1)
     assert_equal Time.local(2005, 2, 22, 11, 10, 10), Time.local(2005, 2, 22, 10, 10, 10).since(3600)
@@ -516,6 +522,16 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
       assert_equal one_am_2, two_am.change(hour: 1)
       assert_equal midnight, two_am.change(hour: 0)
+    end
+  end
+
+  def test_change_preserves_fractional_seconds_on_zoned_time
+    with_tz_default "US/Eastern" do
+      time = Time.new(2005, 10, 30, 00, 00, 0.99r, Time.zone) + 0
+      time2 = time.change(month: 1)
+
+      assert_equal "2005-10-30 00:00:00.99 -0400", time.inspect
+      assert_equal "2005-01-30 00:00:00.99 -0500", time2.inspect
     end
   end
 

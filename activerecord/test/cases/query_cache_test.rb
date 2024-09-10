@@ -493,7 +493,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_not_predicate Task, :connected?
 
     Task.cache do
-      assert_queries_count(1) { Task.find(1); Task.find(1) }
+      assert_queries_count(1) { Task.find(1) }
+      assert_no_queries { Task.find(1) }
     ensure
       ActiveRecord::Base.establish_connection(original_connection)
     end
@@ -1025,7 +1026,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_lru_eviction
-    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(2)
+    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(Concurrent::AtomicFixnum.new, 2)
     store.enabled = true
 
     connection = Post.lease_connection

@@ -79,7 +79,7 @@ module ActiveRecord
 
           args << config.database
 
-          find_cmd_and_exec(["mysql", "mysql5"], *args)
+          find_cmd_and_exec(ActiveRecord.database_cli[:mysql], *args)
         end
       end
 
@@ -138,7 +138,7 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        mariadb? || database_version >= "5.6.4"
+        true
       end
 
       def supports_virtual_columns?
@@ -197,12 +197,6 @@ module ActiveRecord
 
       # HELPER METHODS ===========================================
 
-      # The two drivers have slightly different ways of yielding hashes of results, so
-      # this method must be implemented to provide a uniform interface.
-      def each_hash(result) # :nodoc:
-        raise NotImplementedError
-      end
-
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:
@@ -226,24 +220,19 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      # Mysql2Adapter doesn't have to free a result after using it, but we use this method
-      # to write stuff in an abstract way without concerning ourselves about whether it
-      # needs to be explicitly freed or not.
-      def execute_and_free(sql, name = nil, async: false, allow_retry: false) # :nodoc:
-        sql = transform_query(sql)
-        check_if_write_query(sql)
-
-        mark_transaction_written_if_write(sql)
-        yield raw_execute(sql, name, async: async, allow_retry: allow_retry)
-      end
-
       def begin_db_transaction # :nodoc:
         internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
-        begin_db_transaction
+        # From MySQL manual: The [SET TRANSACTION] statement applies only to the next single transaction performed within the session.
+        # So we don't need to implement #reset_isolation_level
+        execute_batch(
+          ["SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "BEGIN"],
+          "TRANSACTION",
+          allow_retry: true,
+          materialize_transactions: false,
+        )
       end
 
       def commit_db_transaction # :nodoc:
@@ -580,7 +569,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        query_value("SELECT @@#{name}", "SCHEMA")
+        query_value("SELECT @@#{name}", "SCHEMA", materialize_transactions: false, allow_retry: true)
       rescue ActiveRecord::StatementInvalid
         nil
       end
@@ -679,8 +668,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "5.5.8"
-          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
+        if database_version < "5.6.4"
+          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.6.4."
         end
       end
 
@@ -785,11 +774,6 @@ module ActiveRecord
 
         def warning_ignored?(warning)
           warning.level == "Note" || super
-        end
-
-        # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
-        # made since we established the connection
-        def sync_timezone_changes(raw_connection)
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
@@ -961,13 +945,11 @@ module ActiveRecord
           end.join(", ")
 
           # ...and send them all in one query
-          internal_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}")
+          raw_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
         end
 
         def column_definitions(table_name) # :nodoc:
-          execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
-            each_hash(result)
-          end
+          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA")
         end
 
         def create_table_info(table_name) # :nodoc:

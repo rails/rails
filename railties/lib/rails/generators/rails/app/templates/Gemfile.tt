@@ -14,6 +14,14 @@ source "https://rubygems.org"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
+<% unless options.skip_solid? -%>
+
+# Use the database-backed Solid Cache adapter for Rails.cache [https://github.com/rails/solid_cache]
+gem "solid_cache"
+
+# Use the database-backed Solid Queue adapter for Active Job [https://github.com/rails/solid_queue]
+gem "solid_queue"
+<% end -%>
 <% if depend_on_bootsnap? -%>
 
 # Reduces boot times through caching; required in config/boot.rb
@@ -23,6 +31,11 @@ gem "bootsnap", require: false
 
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "kamal", require: false
+<% end -%>
+<% unless options.skip_thruster? -%>
+
+# Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
+gem "thruster", require: false
 <% end -%>
 <% unless skip_active_storage? -%>
 

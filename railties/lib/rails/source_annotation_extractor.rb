@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
-require "ripper"
+begin
+  require "prism"
+rescue LoadError
+  # If Prism isn't available (because of using an older Ruby version) then we'll
+  # define a fallback for the ParserExtractor using ripper.
+  require "ripper"
+end
 
 module Rails
   # Implements the logic behind +Rails::Command::NotesCommand+. See <tt>rails notes --help</tt> for usage information.
@@ -16,24 +22,35 @@ module Rails
     # Wraps a regular expression that will be tested against each of the source
     # file's comments.
     class ParserExtractor < Struct.new(:pattern)
-      class Parser < Ripper
-        attr_reader :comments, :pattern
+      if defined?(Prism)
+        def annotations(file)
+          result = Prism.parse_file(file)
+          return [] unless result.success?
 
-        def initialize(source, pattern:)
-          super(source)
-          @pattern = pattern
-          @comments = []
+          result.comments.filter_map do |comment|
+            Annotation.new(comment.location.start_line, $1, $2) if comment.location.slice =~ pattern
+          end
+        end
+      else
+        class Parser < Ripper
+          attr_reader :comments, :pattern
+
+          def initialize(source, pattern:)
+            super(source)
+            @pattern = pattern
+            @comments = []
+          end
+
+          def on_comment(value)
+            @comments << Annotation.new(lineno, $1, $2) if value =~ pattern
+          end
         end
 
-        def on_comment(value)
-          @comments << Annotation.new(lineno, $1, $2) if value =~ pattern
+        def annotations(file)
+          contents = File.read(file, encoding: Encoding::BINARY)
+          parser = Parser.new(contents, pattern: pattern).tap(&:parse)
+          parser.error? ? [] : parser.comments
         end
-      end
-
-      def annotations(file)
-        contents = File.read(file, encoding: Encoding::BINARY)
-        parser = Parser.new(contents, pattern: pattern).tap(&:parse)
-        parser.error? ? [] : parser.comments
       end
     end
 

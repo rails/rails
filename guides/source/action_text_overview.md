@@ -130,7 +130,7 @@ name the attribute to be something different from `content`.
 Once you have added the `has_rich_text` class method to the model, you can then
 update your views to make use of the rich text editor (Trix) for that field. To
 do so, use a
-[`rich_text_area`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area)
+[`rich_textarea`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_textarea)
 for the form field.
 
 ```html+erb
@@ -138,7 +138,7 @@ for the form field.
 <%= form_with model: article do |form| %>
   <div class="field">
     <%= form.label :content %>
-    <%= form.rich_text_area :content %>
+    <%= form.rich_textarea :content %>
   </div>
 <% end %>
 ```
@@ -154,7 +154,7 @@ permit the referenced attribute as a parameter in the relevant controller:
 ```ruby
 class ArticlesController < ApplicationController
   def create
-    article = Article.create! params.require(:article).permit(:title, :content)
+    article = Article.create! params.expect(article: [:title, :content])
     redirect_to article
   end
 end
@@ -233,7 +233,6 @@ To customize the HTML rendered for embedded images and other attachments (known
 as blobs), edit the `app/views/active_storage/blobs/_blob.html.erb` template
 created by the installer:
 
-
 ```html+erb
 <%# app/views/active_storage/blobs/_blob.html.erb %>
 <figure class="attachment attachment--<%= blob.representable? ? "preview" : "file" %> attachment--<%= blob.filename.extension %>">
@@ -270,6 +269,14 @@ encounter when working with Action Text and Active Storage is that images do not
 render correctly in the editor. This is usually due to the `libvips` dependency
 not being installed.
 
+#### Attachment Direct Upload JavaScript Events
+
+| Event name | Event target | Event data (`event.detail`) | Description |
+| --- | --- | --- | --- |
+| `direct-upload:start` | `<input>` | `{id, file}` | A direct upload is starting. |
+| `direct-upload:progress` | `<input>` | `{id, file, progress}` | As requests to store files progress. |
+| `direct-upload:error` | `<input>` | `{id, file, error}` | An error occurred. An `alert` will display unless this event is canceled. |
+| `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 
 ### Signed GlobalID
 

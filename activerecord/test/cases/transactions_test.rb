@@ -1386,6 +1386,12 @@ class TransactionTest < ActiveRecord::TestCase
         Topic.reset_column_information
       end
     end
+
+    def test_sqlite_default_transaction_mode_is_immediate
+      assert_queries_match(/BEGIN IMMEDIATE TRANSACTION/i, include_schema: false) do
+        Topic.transaction { Topic.lease_connection.materialize_transactions }
+      end
+    end
   end
 
   def test_transactions_state_from_rollback

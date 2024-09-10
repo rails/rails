@@ -175,6 +175,7 @@ module ActiveRecord
 
       def prepare_all
         seed = false
+        dump_db_configs = []
 
         each_current_configuration(env) do |db_config|
           with_temporary_pool(db_config) do
@@ -192,9 +193,27 @@ module ActiveRecord
 
               seed = true
             end
+          end
+        end
 
-            migrate
-            dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+        each_current_environment(env) do |environment|
+          db_configs_with_versions(environment).sort.each do |version, db_configs|
+            dump_db_configs |= db_configs
+
+            db_configs.each do |db_config|
+              with_temporary_pool(db_config) do
+                migrate(version)
+              end
+            end
+          end
+        end
+
+        # Dump schema for databases that were migrated.
+        if ActiveRecord.dump_schema_after_migration
+          dump_db_configs.each do |db_config|
+            with_temporary_pool(db_config) do
+              dump_schema(db_config)
+            end
           end
         end
 
@@ -255,10 +274,10 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def db_configs_with_versions # :nodoc:
+      def db_configs_with_versions(environment = env) # :nodoc:
         db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
-        with_temporary_pool_for_each do |pool|
+        with_temporary_pool_for_each(env: environment) do |pool|
           db_config = pool.db_config
           versions_to_run = pool.migration_context.pending_migration_versions
           target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
@@ -446,7 +465,7 @@ module ActiveRecord
             db_config_or_name.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
         else
           ActiveRecord.deprecator.warn(<<~MSG.squish)
-            Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 7.3. Pass a
+            Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 8.0. Pass a
             `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object instead.
           MSG
 
@@ -531,7 +550,7 @@ module ActiveRecord
         def schema_cache_env
           if ENV["SCHEMA_CACHE"]
             ActiveRecord.deprecator.warn(<<~MSG.squish)
-              Setting `ENV["SCHEMA_CACHE"]` is deprecated and will be removed in Rails 7.3.
+              Setting `ENV["SCHEMA_CACHE"]` is deprecated and will be removed in Rails 8.0.
               Configure the `:schema_cache_path` in the database configuration instead.
             MSG
 
@@ -580,16 +599,19 @@ module ActiveRecord
         end
 
         def each_current_configuration(environment, name = nil)
-          environments = [environment]
-          environments << "test" if environment == "development" && !ENV["SKIP_TEST_DATABASE"] && !ENV["DATABASE_URL"]
-
-          environments.each do |env|
+          each_current_environment(environment) do |env|
             configs_for(env_name: env).each do |db_config|
               next if name && name != db_config.name
 
               yield db_config
             end
           end
+        end
+
+        def each_current_environment(environment, &block)
+          environments = [environment]
+          environments << "test" if environment == "development" && !ENV["SKIP_TEST_DATABASE"] && !ENV["DATABASE_URL"]
+          environments.each(&block)
         end
 
         def each_local_configuration

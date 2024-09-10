@@ -50,13 +50,23 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
     end
   end
 
-  test "logs on unexpected nested params with require" do
+  test "does not log on unexpected nested params with expect" do
     request_params = { book: { pages: 65, title: "Green Cats and where to find then.", author: "G. A. Dog" } }
     context = { "action" => "my_action", "controller" => "my_controller" }
     params = ActionController::Parameters.new(request_params, context)
 
-    assert_logged("Unpermitted parameters: :title, :author. Context: { action: my_action, controller: my_controller }") do
-      params.require(:book).permit(:pages)
+    assert_logged("") do
+      params.expect(book: :pages)
+    end
+  end
+
+  test "does not log on unexpected nested params with expect!" do
+    request_params = { book: { pages: 65, title: "Green Cats and where to find then.", author: "G. A. Dog" } }
+    context = { "action" => "my_action", "controller" => "my_controller" }
+    params = ActionController::Parameters.new(request_params, context)
+
+    assert_logged("") do
+      params.expect!(book: :pages)
     end
   end
 
