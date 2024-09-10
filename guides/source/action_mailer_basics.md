@@ -19,7 +19,7 @@ What is Action Mailer?
 
 Action Mailer allows you to send emails from your Rails application. It's one of the two email related components in the Rails framework. Action Mailer, which is for sending email and [Action Mailbox](action_mailbox_basics.html), which deals with receiving emails.
 
-Action Mailer uses classes called "mailers" and views to create and configure the emails to send. Mailers are classes that inherit from [`ActionMailer::Base`][] and are similar to controllers.
+Action Mailer uses classes (called "mailers") and views to create and configure the emails to send. Mailers are classes that inherit from [`ActionMailer::Base`][] and are similar to controllers.
 
 Here are some similarities between controllers and mailers. Both have:
 
@@ -38,7 +38,7 @@ views.
 
 ### Generate the Mailer
 
-You can user the "mailer" generator to create the Mailer related classes:
+You can use the "mailer" generator to create the Mailer related classes:
 
 ```bash
 $ bin/rails generate mailer User
@@ -50,7 +50,7 @@ create    test/mailers/user_mailer_test.rb
 create    test/mailers/previews/user_mailer_preview.rb
 ```
 
-Like the `UserMailer` below, all Mailer classes inherit from `ApplicationMailer`:
+Like the `UserMailer` below, all generated Mailer classes inherit from `ApplicationMailer`:
 
 ```ruby
 # app/mailers/user_mailer.rb
@@ -107,13 +107,13 @@ Here is a quick explanation of the Mailer related methods used above:
 
 There is also the [`headers`][] method, which is used to specify email headers with a hash or by calling `headers[:field_name] = 'value'`.
 
-It is also possible to specify an action directly while using the generator like this:
+It is possible to specify an action directly while using the generator like this:
 
 ```bash
 $ bin/rails generate mailer User welcome_email
 ```
 
-The above will generate the `UserMailer` above with an empty `welcome_email` method.
+The above will generate the `UserMailer` with an empty `welcome_email` method.
 
 [`default`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-default
 [`mail`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-mail
@@ -121,7 +121,7 @@ The above will generate the `UserMailer` above with an empty `welcome_email` met
 
 ### Create a Mailer View
 
-For the `welcome_email` action, you'll need to create a matching view in a file called `welcome_email.html.erb` in the `app/views/user_mailer/` directory. Here is a sample HTML template that can be used the welcome email:
+For the `welcome_email` action, you'll need to create a matching view in a file called `welcome_email.html.erb` in the `app/views/user_mailer/` directory. Here is a sample HTML template that can be used for the welcome email:
 
 ```html+erb
 <h1>Welcome to example.com, <%= @user.name %></h1>
@@ -130,14 +130,14 @@ For the `welcome_email` action, you'll need to create a matching view in a file 
   your username is: <%= @user.login %>.<br>
 </p>
 <p>
-  To login to the site, just follow this link: <%= @url %>.
+  To login to the site, just follow this link: <%= link_to 'login`, login_url %>.
 </p>
 <p>Thanks for joining and have a great day!</p>
 ```
 
 NOTE: the above is the content of the `<body>` tag. It will be embedded in the default mailer layout, which contains the `<html>` tag. See [Mailer layouts](#mailer-views-and-layouts) for more.
 
-You can also create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Sending both formats is best practice in case of HTML rendering issues with a client, text can be a good fallback. Here is a sample text email:
+You can also create a text version of the above email and store it in `welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the `.text.erb` extension vs. the `html.erb`). Sending both formats is considered best practice because, in case of HTML rendering issues, the text version can serve as a reliable fallback. Here is a sample text email:
 
 ```erb
 Welcome to example.com, <%= @user.name %>
@@ -153,7 +153,7 @@ Thanks for joining and have a great day!
 
 Notice that in both HTMl and text email templates you can use the instance variables `@user` and `@url`.
 
-When you call the `mail` method now, Action Mailer will detect the two templates
+Now, when you call the `mail` method, Action Mailer will detect the two templates```
 (text and HTML) and automatically generate a `multipart/alternative` email.
 
 ### Call the Mailer
@@ -171,7 +171,7 @@ $ bin/rails db:migrate
 
 Next, we edit the `create` action in the `UserController` to send a welcome email when a new user is created. We do this by inserting a call to `UserMailer.with(user: @user).welcome_email` right after the user is successfully saved.
 
-NOTE We use [`deliver_later`][] to enqueue the email to be sent later, This
+NOTE: We use [`deliver_later`][] to enqueue the email to be sent later. This
 way, the controller action will continue without waiting for the email sending
 code to run. The `deliver_later` method is backed by [Active Job](active_job_basics.html#action-mailer).
 
@@ -230,7 +230,7 @@ Content-Type: text/html;
 ...
 ```
 
-You can also call the Mailer from the Rails console and send emails. Perhaps as a way to test the email before you have a controller action set up for it. The below will send the same `welcome_email` as above:
+You can also call the Mailer from the Rails console and send emails, perhaps as a test before you have a controller action set up. The below will send the same `welcome_email` as above:
 
 ```irb
 irb> user = User.first
