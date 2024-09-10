@@ -1021,6 +1021,24 @@ module Arel
             "foo" AS NOT MATERIALIZED (SELECT * FROM "bar")
           }
         end
+
+        it "handles CTEs with a CYCLE modifier" do
+          cycle_clause = "CYCLE id SET is_cycle USING path"
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), cycle: cycle_clause)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS (SELECT * FROM "bar") #{cycle_clause}
+          }
+        end
+
+        it "handles CTEs with MATERIALIZED and CYCLE modifiers" do
+          cycle_clause = "CYCLE id SET is_cycle USING path"
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: true, cycle: cycle_clause)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS MATERIALIZED (SELECT * FROM "bar") #{cycle_clause}
+          }
+        end
       end
 
       describe "Nodes::Fragments" do

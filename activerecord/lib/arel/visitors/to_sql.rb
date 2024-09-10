@@ -741,6 +741,12 @@ module Arel # :nodoc: all
           end
 
           visit o.relation, collector
+
+          unless o.cycle.nil?
+            collector << " #{o.cycle}"
+          end
+
+          collector
         end
 
         def visit_Arel_Attributes_Attribute(o, collector)
