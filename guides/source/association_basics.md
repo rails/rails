@@ -2414,7 +2414,7 @@ allows Active Record to:
 
 * Prevent inconsistent data
 
-    Since only one copy of the `Author` object is loaded, it helpes to prevent
+    Since only one copy of the `Author` object is loaded, it helps to prevent
     inconsistencies.
 
     ```irb
