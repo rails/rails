@@ -33,12 +33,12 @@ class Integer
   # Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
   # date and time arithmetic.
   def months
-    ActiveSupport::Duration.new(self * 30.days, [[:months, self]])
+    ActiveSupport::Duration.new(30.days * self, [[:months, self]])
   end
   alias :month :months
 
   def years
-    ActiveSupport::Duration.new(self * 365.25.days, [[:years, self]])
+    ActiveSupport::Duration.new(365.25.days * self, [[:years, self]])
   end
   alias :year :years
 end
