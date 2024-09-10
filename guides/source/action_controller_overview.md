@@ -62,6 +62,8 @@ def new
 end
 ```
 
+NOTE: All controllers inherit from `ApplicationController`, which in turn inherits from [`ActionController::Base`](https://api.rubyonrails.org/classes/ActionController/Base.html).
+
 ### Controller Naming Convention
 
 Rails favors making the last word in the controller's name plural. For example,
@@ -76,23 +78,16 @@ needing to qualify each with options such as
 [`:controller`](routing.html#specifying-a-controller-to-use). The convention
 also makes named route helpers consistent throughout your application.
 
-NOTE: The controller naming convention is different from models. While plural
+The controller naming convention is different from models. While plural
 names are preferred for controller names, the singular form is preferred for
 models names (e.g. `Account` vs. `Accounts`).
 
-### Methods and Actions
-
-Todo: TBD where this goes.
-
-`ApplicationController` inherits from [`ActionController::Base`][], which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](https://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
-
-Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like helper methods.
+Controller actions should be `public`, as only `public` methods are callable as actions. It is also best practice to lower the visibility of helper methods (with `private` or `protected`) which are _not_ intended to be actions.
 
 WARNING: Some method names are reserved by Action Controller. Accidentally redefining them could result in `SystemStackError`. If you limit your controllers to only RESTful [Resource Routing][] actions you should not need to worry about this.
 
 NOTE: If you must use a reserved method as an action name, one workaround is to use a custom route to map the reserved method name to your non-reserved action method.
 
-[`ActionController::Base`]: https://api.rubyonrails.org/classes/ActionController/Base.html
 [Resource Routing]: routing.html#resource-routing-the-rails-default
 
 Parameters
