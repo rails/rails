@@ -2024,7 +2024,7 @@ module ActionDispatch
               name_for_action(options.delete(:as), action)
             end
 
-            path = Mapping.normalize_path URI::DEFAULT_PARSER.escape(path), formatted
+            path = Mapping.normalize_path uri_parser.escape(path), formatted
             ast = Journey::Parser.parse path
 
             mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
@@ -2034,6 +2034,10 @@ module ActionDispatch
           def match_root_route(options)
             args = ["/", { as: :root, via: :get }.merge(options)]
             match(*args)
+          end
+
+          def uri_parser
+            defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::DEFAULT_PARSER
           end
       end
 

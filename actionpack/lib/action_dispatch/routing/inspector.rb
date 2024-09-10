@@ -101,7 +101,7 @@ module ActionDispatch
             { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter[:grep]
             grep_pattern = Regexp.new(filter[:grep])
-            path = URI::DEFAULT_PARSER.escape(filter[:grep])
+            path = uri_parser.escape(filter[:grep])
             normalized_path = ("/" + path).squeeze("/")
 
             {
@@ -149,6 +149,10 @@ module ActionDispatch
           if routes.is_a?(ActionDispatch::Routing::RouteSet)
             @engines[name] = collect_routes(routes.routes)
           end
+        end
+
+        def uri_parser
+          defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::DEFAULT_PARSER
         end
     end
 

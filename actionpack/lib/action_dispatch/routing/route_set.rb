@@ -917,7 +917,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY)
-              params[key] = URI::DEFAULT_PARSER.unescape(value)
+              params[key] = uri_parser.unescape(value)
             end
           end
           req.path_parameters = params
@@ -940,6 +940,11 @@ module ActionDispatch
           raise ActionController::RoutingError, "No route matches #{path.inspect}"
         end
       end
+
+      private
+        def uri_parser
+          defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::DEFAULT_PARSER
+        end
     end
     # :startdoc:
   end

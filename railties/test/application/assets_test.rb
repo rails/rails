@@ -324,7 +324,7 @@ module ApplicationTests
       # Load app env
       app "development"
 
-      get "/assets/#{URI::DEFAULT_PARSER.escape(asset_path)}"
+      get "/assets/#{uri_parser.escape(asset_path)}"
       assert_match "not an image really", last_response.body
       assert_file_exists("#{app_path}/public/assets/#{asset_path}")
     end
@@ -516,6 +516,10 @@ module ApplicationTests
           get '/posts', :to => "posts#index"
         end
         RUBY
+      end
+
+      def uri_parser
+        defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::DEFAULT_PARSER
       end
   end
 end

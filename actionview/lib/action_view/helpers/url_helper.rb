@@ -556,14 +556,14 @@ module ActionView
 
         options ||= options_as_kwargs
         check_parameters ||= options.is_a?(Hash) && options.delete(:check_parameters)
-        url_string = URI::DEFAULT_PARSER.unescape(url_for(options)).force_encoding(Encoding::BINARY)
+        url_string = uri_parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
         # submitted URL doesn't have any either. This lets the function
         # work with things like ?order=asc
         # the behavior can be disabled with check_parameters: true
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
-        request_uri = URI::DEFAULT_PARSER.unescape(request_uri).force_encoding(Encoding::BINARY)
+        request_uri = uri_parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
         if %r{^\w+://}.match?(url_string)
           request_uri = +"#{request.protocol}#{request.host_with_port}#{request_uri}"
@@ -806,6 +806,10 @@ module ActionView
         def remove_trailing_slash!(url_string)
           trailing_index = (url_string.index("?") || 0) - 1
           url_string[trailing_index] = "" if url_string[trailing_index] == "/"
+        end
+
+        def uri_parser
+          defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::DEFAULT_PARSER
         end
     end
   end
