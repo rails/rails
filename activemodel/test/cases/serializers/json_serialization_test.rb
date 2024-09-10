@@ -171,14 +171,14 @@ class JsonSerializationTest < ActiveModel::TestCase
     json = @contact.as_json(except: [:age, :created_at, :awesome, :preferences])
 
     assert_kind_of Hash, json
-    assert_equal json, { "name" => "Konata Izumi" }
+    assert_equal({ "name" => "Konata Izumi" }, json)
   end
 
   test "as_json should allow attribute filtering with only" do
     json = @contact.as_json(only: :name)
 
     assert_kind_of Hash, json
-    assert_equal json, { "name" => "Konata Izumi" }
+    assert_equal({ "name" => "Konata Izumi" }, json)
   end
 
   test "as_json should work with methods options" do
@@ -210,7 +210,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     %w(name age created_at awesome preferences).each do |field|
       assert_equal @contact.public_send(field).as_json, json[field]
     end
-    assert_equal json["address"], { "city" => "Trichy" }
+    assert_equal({ "city" => "Trichy" }, json["address"])
   end
 
   test "as_json should work with include option paired with except filter" do
@@ -220,7 +220,7 @@ class JsonSerializationTest < ActiveModel::TestCase
     %w(name age created_at awesome preferences).each do |field|
       assert_equal @contact.public_send(field).as_json, json[field]
     end
-    assert_equal json["address"], { "city" => "Trichy" }
+    assert_equal({ "city" => "Trichy" }, json["address"])
   end
 
   test "from_json should work without a root (class attribute)" do
