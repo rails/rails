@@ -1550,7 +1550,7 @@ en:
         ActiveJob::Railtie
         ActionMailer::Railtie
         Rails::TestUnitRailtie
-        Sprockets::Railtie
+        Propshaft::Railtie
         ActionView::Railtie
         ActiveStorage::Engine
         ActionCable::Engine
