@@ -9,7 +9,7 @@
     dependencies.
 
     *Hartley McGuire*
-    
+
 *   Rename `text_area` methods into `textarea`
 
     Old names are still available as aliases.
