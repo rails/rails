@@ -31,8 +31,7 @@ Action Mailer uses classes (called "mailers") and views to create and configure 
 Creating a Mailer and Views
 ---------------------------
 
-This section will provide a step-by-step guide to creating a Mailer and its
-views.
+This section will provide a step-by-step guide to sending email with Action Mailer. Here are the details of each step.
 
 ### Generate the Mailer
 
