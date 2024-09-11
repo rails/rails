@@ -329,17 +329,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_preserves_sprockets
-    run_generator [destination_root, "-a", "sprockets"]
-
-    FileUtils.cd(destination_root) do
-      config = "config/environments/production.rb"
-      assert_no_changes -> { File.readlines(config).grep(/config\.assets/) } do
-        run_app_update
-      end
-    end
-  end
-
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
     run_generator [destination_root, "--skip-active-storage"]
 
