@@ -515,7 +515,7 @@ URL helper:
 ### Adding Images in Action Mailer Views
 
 In order to use the `image_tag` helper in emails, you need to specify the
-`:asset_host` parameter. This is again because a mailer instance doesn't have
+`:asset_host` parameter. This is because a mailer instance doesn't have
 any context about the incoming request.
 
 Usually the `:asset_host` is consistent across the application, so you can
@@ -629,7 +629,7 @@ end
 ```
 
 The same format can be used to add multiple carbon copy (cc) and blind
-carbon copy (bcc) recipients, by setting the `:cc` and `:bcc` keys respectively.
+carbon copy (bcc) recipients, by setting the `:cc` and `:bcc` keys respectively (similarly to the `:to` field).
 
 ### Sending Email with Name
 
@@ -657,24 +657,13 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-If the name is a blank string, it returns the email address.
+If the name is blank (`nil` or empty string), it returns the email address.
 
 [`email_address_with_name`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-email_address_with_name
 
 ### Sending Email with Subject Translation
 
 If you don't pass a subject to the mail method, Action Mailer will try to find it in your translations. See the [Internationalization Guide](i18n.html#translations-for-action-mailer-e-mail-subjects) for more.
-
-### Sending Multipart Emails
-
-Action Mailer will automatically send multipart emails if you have different
-templates for the same action. So, for our `UserMailer` example, if you have
-`welcome_email.text.erb` and `welcome_email.html.erb` in
-`app/views/user_mailer`, Action Mailer will automatically send a multipart email
-with the HTML and text versions setup as different parts.
-
-The order of the parts getting inserted is determined by the `:parts_order`
-inside of the `ActionMailer::Base.default` method.
 
 ### Sending Emails without Template Rendering
 
