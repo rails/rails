@@ -1,3 +1,7 @@
+*   When running `db:migrate` on a fresh database, load the database schema before running migrations.
+
+    *Andrew Novoselac*
+
 *   Fix an issue where `.left_outer_joins` used with multiple associations that have
     the same child association but different parents does not join all parents.
 

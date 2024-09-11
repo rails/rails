@@ -307,6 +307,25 @@ module ActiveSupport
       assert_equal true, @logger.error("Hello")
     end
 
+    Logger::Severity.constants.each do |level_name|
+      method = level_name.downcase
+      level = Logger::Severity.const_get(level_name)
+
+      test "##{method} delegates keyword arguments to loggers" do
+        logger = BroadcastLogger.new(KwargsAcceptingLogger.new)
+
+        logger.public_send(method, "Hello", foo: "bar")
+        assert_equal [[level, "{:foo=>\"bar\"} Hello", nil]], logger.broadcasts.sole.adds
+      end
+    end
+
+    test "#add delegates keyword arguments to the loggers" do
+      logger = BroadcastLogger.new(KwargsAcceptingLogger.new)
+
+      logger.add(::Logger::INFO, "Hello", foo: "bar")
+      assert_equal [[::Logger::INFO, "{:foo=>\"bar\"} Hello", nil]], logger.broadcasts.sole.adds
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
@@ -400,6 +419,20 @@ module ActiveSupport
       # LoggerSilence includes LoggerThreadSafeLevel which defines these as
       # methods, so we need to redefine them
       attr_accessor :level, :local_level
+    end
+
+    class KwargsAcceptingLogger < CustomLogger
+      Logger::Severity.constants.each do |level_name|
+        method = level_name.downcase
+        define_method(method) do |message, **kwargs|
+          add(Logger::Severity.const_get(level_name), "#{kwargs.inspect} #{message}")
+        end
+      end
+
+      def add(severity, message = nil, **kwargs)
+        return super(severity, "#{kwargs.inspect} #{message}") if kwargs.present?
+        super
+      end
     end
   end
 end

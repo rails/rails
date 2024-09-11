@@ -1,3 +1,7 @@
+*   Deprecate `ActiveStorage::Service::AzureStorageService`.
+
+    *zzak*
+
 *   Improve `ActiveStorage::Filename#sanitized` method to handle special characters more effectively.
     Replace the characters `"*?<>` with `-` if they exist in the Filename to match the Filename convention of Win OS.
 
