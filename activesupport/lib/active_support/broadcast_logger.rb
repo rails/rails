@@ -113,33 +113,33 @@ module ActiveSupport
       dispatch { |logger| logger.<<(message) }
     end
 
-    def add(*args, &block)
-      dispatch { |logger| logger.add(*args, &block) }
+    def add(...)
+      dispatch { |logger| logger.add(...) }
     end
     alias_method :log, :add
 
-    def debug(*args, &block)
-      dispatch { |logger| logger.debug(*args, &block) }
+    def debug(...)
+      dispatch { |logger| logger.debug(...) }
     end
 
-    def info(*args, &block)
-      dispatch { |logger| logger.info(*args, &block) }
+    def info(...)
+      dispatch { |logger| logger.info(...) }
     end
 
-    def warn(*args, &block)
-      dispatch { |logger| logger.warn(*args, &block) }
+    def warn(...)
+      dispatch { |logger| logger.warn(...) }
     end
 
-    def error(*args, &block)
-      dispatch { |logger| logger.error(*args, &block) }
+    def error(...)
+      dispatch { |logger| logger.error(...) }
     end
 
-    def fatal(*args, &block)
-      dispatch { |logger| logger.fatal(*args, &block) }
+    def fatal(...)
+      dispatch { |logger| logger.fatal(...) }
     end
 
-    def unknown(*args, &block)
-      dispatch { |logger| logger.unknown(*args, &block) }
+    def unknown(...)
+      dispatch { |logger| logger.unknown(...) }
     end
 
     def formatter=(formatter)
