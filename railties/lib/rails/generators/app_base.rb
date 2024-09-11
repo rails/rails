@@ -748,8 +748,7 @@ module Rails
         bundle_command "binstubs kamal"
         bundle_command "exec kamal init"
 
-        remove_file ".env"
-        template "env.erb", ".env.erb"
+        template "kamal-secrets.tt", ".kamal/secrets", force: true
         template "config/deploy.yml", force: true
       end
 
