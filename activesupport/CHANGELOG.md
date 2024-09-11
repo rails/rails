@@ -1,3 +1,9 @@
+*   Deprecate `Benchmark.ms` core extension.
+
+    The `benchmark` gem will become bundled in Ruby 3.5
+
+    *Earlopain*
+
 *   `ActiveSupport::TimeWithZone#inspect` now uses ISO 8601 style time like `Time#inspect`
 
     *John Hawthorn*
