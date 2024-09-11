@@ -188,7 +188,7 @@ For example:
 def edit
   if published?
     Rails.error.unexpected("[BUG] Attempting to edit a published article, that shouldn't be possible")
-    return false
+    false
   end
   # ...
 end
