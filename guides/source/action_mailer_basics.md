@@ -149,7 +149,7 @@ To login to the site, just follow this link: <%= @url %>.
 Thanks for joining and have a great day!
 ```
 
-Notice that in both HTMl and text email templates you can use the instance variables `@user` and `@url`.
+Notice that in both HTML and text email templates you can use the instance variables `@user` and `@url`.
 
 Now, when you call the `mail` method, Action Mailer will detect the two templates```
 (text and HTML) and automatically generate a `multipart/alternative` email.
@@ -310,12 +310,9 @@ attachment, properly nested with the top level being `multipart/mixed` and the
 first part being a `multipart/alternative` containing the plain text and HTML
 email messages.
 
-NOTE: Mail gem will automatically Base64 encode an attachment. If you want
-something different, you encode your content and pass in the encoded content as
-well as the encoding in a `Hash` to the `attachments` method.
-
-The other way to send attachments is to specify the file name, headers, and
-content and Action Mailer and Mail will use the settings you pass in.
+The other way to send attachments is to specify the file name, MIME-type and
+encoding headers, and content. Action Mailer will use the settings you pass
+in.
 
 ```ruby
 encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
@@ -326,14 +323,16 @@ attachments['filename.jpg'] = {
 }
 ```
 
-NOTE: If you specify an encoding, Mail will assume that your content is already
-encoded and not try to Base64 encode it.
+NOTE: Mail gem will automatically Base64 encode an attachment. If you want
+something different, you can encode your content and pass in the encoded content
+as well as the encoding in a `Hash` to the `attachments` method. If you specify
+an encoding, Mail gem not try to Base64 encode it.
 
 ### Making Inline Attachments
 
 Sometimes, you may want to send an attachment (e.g. image) inline, so it appears within the email body.
 
-First, tell Mail to turn an attachment into an inline attachment by calling `#inline`:
+First, you turn an attachment into an inline attachment by calling `#inline`:
 
 ```ruby
 def welcome
@@ -342,8 +341,8 @@ end
 ```
 
 Then in the view, you can reference `attachments` as a hash and specify the file
-you want to show inline. You can call `url` on the hash and pass the result into the
-`image_tag` method:
+you want to show inline. You can call `url` on the hash and pass the result into
+the [`image_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag) method:
 
 ```html+erb
 <p>Hello there, this is the image you requested:</p>
@@ -362,21 +361,27 @@ after the attachment URL as well:
 
 ### Multipart Emails
 
-As demonstrated in [Create a Mailer View](#create-a-mailer-view), Action Mailer will automatically
-send multipart emails if you have different templates for the same action. For 
-example, if you have a `UserMailer` with `welcome_email.text.erb` and 
-`welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will 
-automatically send a multipart email with both the HTML and text versions included
- as separate parts.
+As demonstrated in [Create a Mailer View](#create-a-mailer-view), Action Mailer
+will automatically send multipart emails if you have different templates for the
+same action. For example, if you have a `UserMailer` with
+`welcome_email.text.erb` and `welcome_email.html.erb` in
+`app/views/user_mailer`, Action Mailer will automatically send a multipart email
+ with both the HTML and text versions included as separate parts.
 
-The Mail gem has helper methods for making a `multipart/alternate` email for
-`text/plain` and `text/html` [MIME types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types) and you can manually create
-any other type of MIME email.
+The [Mail](https://github.com/mikel/mail) gem has helper methods for making a
+`multipart/alternate` email for `text/plain` and `text/html` [MIME
+types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+and you can manually create any other type of MIME email.
 
 NOTE: The order of the parts getting inserted is determined by the
 `:parts_order` inside of the `ActionMailer::Base.default` method.
 
-Multipart is also used when you send attachments with email. The `multipart` MIME type represents a document that's comprised of multiple component parts, each of which may have its own individual MIME type, such as the `text/html` and `text/text` parts above. The use of `multipart` type is to encapsulate multiple files being sent together in one transaction, such as when attaching multiple files to an email.
+Multipart is also used when you send attachments with email. The `multipart`
+MIME type represents a document that's comprised of multiple component parts,
+each of which may have its own individual MIME type, such as the `text/html` and
+`text/text` parts above. The use of `multipart` type is to encapsulate multiple
+files being sent together in one transaction, such as when attaching multiple
+files to an email.
 
 Mailer Views and Layouts
 ------------------------
