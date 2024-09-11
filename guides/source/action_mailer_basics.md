@@ -515,7 +515,7 @@ In order to use the `image_tag` helper in emails, you need to specify the
 `:asset_host` parameter. This is again because a mailer instance doesn't have
 any context about the incoming request.
 
-As the `:asset_host` usually is consistent across the application you can
+Usually the `:asset_host` is consistent across the application, so you can
 configure it globally in `config/application.rb`:
 
 ```ruby
@@ -541,7 +541,7 @@ You can perform fragment caching in mailer views, similar to application views, 
 <% end %>
 ```
 
-And to use this feature, you need to enable it in your application's `config/application.rb` file:
+And to use this feature, you need to enable it in your application's `config/environments/*.rb` file:
 
 ```ruby
 config.action_mailer.perform_caching = true
@@ -581,7 +581,7 @@ To use a different layout for a given mailer, call [`layout`][]:
 
 ```ruby
 class UserMailer < ApplicationMailer
-  layout 'awesome' # use awesome.(html|text).erb as the layout
+  layout 'awesome' # Use awesome.(html|text).erb as the layout
 end
 ```
 
@@ -607,8 +607,8 @@ Sending Email
 
 ### Sending Email to Multiple Recipients
 
-It is possible to send an email more than one recipients by setting the `:to`
-field to a list of emails addresses. The list of emails can be an array or a
+It is possible to send an email to more than one recipient by setting the `:to`
+field to a list of email addresses. The list of emails can be an array or a
 single string with the addresses separated by commas.
 
 For example, to inform all admins of a new registration:
@@ -625,7 +625,7 @@ class AdminMailer < ApplicationMailer
 end
 ```
 
-The same format can be used to add more multiple carbon copy (cc) and blind
+The same format can be used to add multiple carbon copy (cc) and blind
 carbon copy (bcc) recipients, by setting the `:cc` and `:bcc` keys respectively.
 
 ### Sending Email with Name
@@ -675,10 +675,10 @@ inside of the `ActionMailer::Base.default` method.
 
 ### Sending Emails without Template Rendering
 
-There may be cases in which you want to skip the template rendering step and
+There may be cases in which you want to skip the template rendering step and instead
 supply the email body as a string. You can achieve this using the `:body`
 option. Remember to set the `:content_type` option, such as setting it to
-`text/html` below: Rails will default to `text/plain` as the content type.
+`text/html` below. Rails will default to `text/plain` as the content type.
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -727,7 +727,7 @@ Here are some examples of when you may use one of these callbacks with mailers.
 
 ### `before_action`
 
-You could use a `before_action` to set instance variables, populate the mail object with defaults, or insert default headers and attachments.
+You can use a `before_action` to set instance variables, populate the mail object with defaults, or insert default headers and attachments.
 
 ```ruby
 class InvitationsMailer < ApplicationMailer
@@ -835,7 +835,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Mailer callbacks abort further processing if body is set to a non-nil value.`before_deliver` can abort with `throw :abort`.
+Mailer callbacks abort further processing if `body` is set to a non-nil value. `before_deliver` can abort with `throw :abort`.
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
 [`after_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-after_deliver
@@ -847,8 +847,8 @@ Mailer callbacks abort further processing if body is set to a non-nil value.`bef
 Action Mailer Helpers
 ---------------------
 
-Action Mailer inherits from `AbstractController`, so you have access to most
-of the same helpers as you do in Action Controller.
+Action Mailer views have access to most
+of the same helpers as regular views.
 
 There are also some Action Mailer-specific helper methods available in
 [`ActionMailer::MailHelper`][]. For example, these allow accessing the mailer
@@ -871,7 +871,7 @@ a complete list see the [Configuring Rails
 Applications](configuring.html#configuring-action-mailer) guide.
 
 You can specify these configuration options in environment files such as
-environment.rb, production.rb, etc.
+production.rb, etc.
 
 | Configuration | Description |
 |---------------|-------------|
