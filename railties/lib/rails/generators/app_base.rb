@@ -395,14 +395,6 @@ module Rails
         options[:skip_asset_pipeline]
       end
 
-      def skip_sprockets?
-        skip_asset_pipeline? || options[:asset_pipeline] != "sprockets"
-      end
-
-      def skip_propshaft?
-        skip_asset_pipeline? || options[:asset_pipeline] != "propshaft"
-      end
-
       def skip_thruster?
         options[:skip_thruster]
       end

@@ -227,12 +227,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "public/406-unsupported-browser.html"
   end
 
-  def test_app_update_does_not_generate_assets_initializer_when_sprockets_and_propshaft_are_not_used
-    run_generator [destination_root, "-a", "none"]
+  def test_app_update_does_not_generate_assets_initializer_when_asset_pipeline_is_not_used
+    run_generator [destination_root, "--skip-asset-pipeline"]
     run_app_update
 
     assert_no_file "config/initializers/assets.rb"
-    assert_no_file "app/assets/config/manifest.js"
   end
 
   def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
