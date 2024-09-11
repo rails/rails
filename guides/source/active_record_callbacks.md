@@ -983,7 +983,7 @@ class Author < ApplicationRecord
   has_many :books, before_add: :check_limit
 
   private
-    def check_limit
+    def check_limit(_book)
       if books.count >= 5
         errors.add(:base, "Cannot add more than 5 books for this author")
         throw(:abort)
@@ -1004,7 +1004,7 @@ callback for you to use.
 class Author < ApplicationRecord
   has_many :books, before_add: [:check_limit, :calculate_shipping_charges]
 
-  def check_limit
+  def check_limit(_book)
     if books.count >= 5
       errors.add(:base, "Cannot add more than 5 books for this author")
       throw(:abort)
