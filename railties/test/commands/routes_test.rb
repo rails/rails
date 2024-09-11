@@ -340,55 +340,55 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       Verb              | GET
       URI               | /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/redirect#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:5
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:8
       --[ Route 17 ]-------------
       Prefix            | rails_service_blob_proxy
       Verb              | GET
       URI               | /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/proxy#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:6
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:9
       --[ Route 18 ]-------------
       Prefix            |#{" "}
       Verb              | GET
       URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/redirect#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:7
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:10
       --[ Route 19 ]-------------
       Prefix            | rails_blob_representation
       Verb              | GET
       URI               | /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/redirect#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:9
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:12
       --[ Route 20 ]-------------
       Prefix            | rails_blob_representation_proxy
       Verb              | GET
       URI               | /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/proxy#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:10
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:13
       --[ Route 21 ]-------------
       Prefix            |#{" "}
       Verb              | GET
       URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/redirect#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:11
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:14
       --[ Route 22 ]-------------
       Prefix            | rails_disk_service
       Verb              | GET
       URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
       Controller#Action | active_storage/disk#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:13
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:16
       --[ Route 23 ]-------------
       Prefix            | update_rails_disk_service
       Verb              | PUT
       URI               | /rails/active_storage/disk/:encoded_token(.:format)
       Controller#Action | active_storage/disk#update
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:14
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:17
       --[ Route 24 ]-------------
       Prefix            | rails_direct_uploads
       Verb              | POST
       URI               | /rails/active_storage/direct_uploads(.:format)
       Controller#Action | active_storage/direct_uploads#create
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:15
+      Source Location   | #{rails_gem_root}/activestorage/lib/active_storage/routes.rb:18
     MESSAGE
   end
 

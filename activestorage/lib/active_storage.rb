@@ -44,6 +44,7 @@ module ActiveStorage
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
+  autoload :Routes
 
   mattr_accessor :logger
   mattr_accessor :verifier
