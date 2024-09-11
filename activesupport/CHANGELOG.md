@@ -65,4 +65,8 @@
 
     *Frederik Erbs Spang Thomsen*
 
+*   Fix `travel_to` to set usec 0 when `with_usec` is `false` and the given argument String or DateTime.
+
+    *mopp*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activesupport/CHANGELOG.md) for previous changes.
