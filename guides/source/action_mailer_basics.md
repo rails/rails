@@ -942,7 +942,7 @@ You can find detailed instructions on how to test your mailers in the
 ### Previewing Emails
 
 You can preview rendered email templates visually by visiting a special Action
-Mailer preview URL. In order to set up a preview for `UserMailer` for example,
+Mailer preview URL. To set up a preview for `UserMailer`,
 create a class named `UserMailerPreview` in the `test/mailers/previews/`
 directory. To see the preview of `welcome_email` from `UserMailer`, implement a
 method that has the same name in `UserMailerPreview` and call
@@ -1004,7 +1004,7 @@ Action Mailer provides hooks into the Mail observer and interceptor methods. The
 
 Interceptors allow you to make modifications to emails before they are handed
 off to the delivery agents. An interceptor class must implement the
-`::delivering_email(message)` method which will be called before the email is
+`.delivering_email(message)` method which will be called before the email is
 sent.
 
 ```ruby
