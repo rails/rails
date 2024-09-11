@@ -15,7 +15,7 @@ module Rails
           puts "Action Controller caching disabled for development mode."
         else
           create_cache_file
-          puts "Action Controller caching enabled for development mode"
+          puts "Action Controller caching enabled for development mode."
         end
 
         FileUtils.touch "tmp/restart.txt"
