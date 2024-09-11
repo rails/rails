@@ -1,3 +1,14 @@
+*   Fix an issue where `.left_outer_joins` used with multiple associations that have
+    the same child association but different parents does not join all parents.
+
+    Previously, using `.left_outer_joins` with the same child association would only join one of the parents.
+
+    Now it will correctly join both parents.
+
+    Fixes #41498.
+
+    *Garrett Blehm*
+
 *   Deprecate `unsigned_float` and `unsigned_decimal` short-hand column methods.
 
     As of MySQL 8.0.17, the UNSIGNED attribute is deprecated for columns of type FLOAT, DOUBLE,
