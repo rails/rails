@@ -156,9 +156,16 @@ module ActiveRecord
     # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
     # record is found.
     #
-    #   Product.find_sole_by(["price = %?", price])
-    def find_sole_by(arg, *args)
+    #   Product.find_sole_by!(["price = %?", price])
+    def find_sole_by!(arg, *args)
       where(arg, *args).sole
+    end
+
+    # Like #find_sole_by!, except that if no record is found, it returns nil.
+    def find_sole_by(arg, *args)
+      find_sole_by!(arg, *args)
+    rescue ActiveRecord::RecordNotFound
+      nil
     end
 
     # Find the first record (or first N records if a parameter is supplied).

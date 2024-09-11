@@ -1,3 +1,23 @@
+*   Change `ActiveRecord::FinderMethods#find_sole_by` to return nil if no record is found.
+    Add `ActiveRecord::FinderMethods#find_sole_by!` to find and assert the presence of exactly one record.
+
+    `ActiveRecord::FinderMethods#find_sole_by` behaviour is changed to return nil if no record is found and
+    the new `ActiveRecord::FinderMethods#find_sole_by!` raises `ActiveRecord::RecordNotFound` if no record is found.
+
+    ```ruby
+    user.api_keys.find_sole_by(key: key)
+    # => nil                               (if no matching api key)
+    # => #<ApiKey ...>                     (if one api key)
+    # => ActiveRecord::SoleRecordExceeded  (if more than one api key)
+
+    user.api_keys.find_sole_by!(key: key)
+    # => ActiveRecord::RecordNotFound      (if no matching api key)
+    # => #<ApiKey ...>                     (if one api key)
+    # => ActiveRecord::SoleRecordExceeded  (if more than one api key)
+    ```
+
+    *Biruk H. Tabor*
+
 *   Fix an issue where `.left_outer_joins` used with multiple associations that have
     the same child association but different parents does not join all parents.
 

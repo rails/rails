@@ -774,15 +774,11 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_sole
     assert_equal topics(:first), Topic.where("title = 'The First Topic'").sole
-    assert_equal topics(:first), Topic.find_sole_by("title = 'The First Topic'")
   end
 
   def test_sole_failing_none
     assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").sole
-    end
-    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
-      Topic.find_sole_by("title = 'This title does not exist'")
     end
   end
 
@@ -790,6 +786,33 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
       Topic.where("author_name = 'Carl'").sole
     end
+  end
+
+  def test_find_sole_by_bang
+    assert_equal topics(:first), Topic.find_sole_by!("title = 'The First Topic'")
+  end
+
+  def test_find_sole_by_bang_failing_none
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
+      Topic.find_sole_by!("title = 'This title does not exist'")
+    end
+  end
+
+  def test_find_sole_by_bang_failing_many
+    assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
+      Topic.find_sole_by!("author_name = 'Carl'")
+    end
+  end
+
+  def test_find_sole_by
+    assert_equal topics(:first), Topic.find_sole_by("title = 'The First Topic'")
+  end
+
+  def test_find_sole_by_returning_nil
+    assert_nil Topic.find_sole_by("title = 'This title does not exist'")
+  end
+
+  def test_find_sole_by_failing_many
     assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
       Topic.find_sole_by("author_name = 'Carl'")
     end
