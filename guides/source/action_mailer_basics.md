@@ -3,7 +3,7 @@
 Action Mailer Basics
 ====================
 
-This guide is all about sending emails from your application.
+This guide covers sending emails from your application.
 
 After reading this guide, you will know:
 
@@ -17,11 +17,9 @@ After reading this guide, you will know:
 What is Action Mailer?
 ----------------------
 
-Action Mailer allows you to send emails from your Rails application. It's one of the two email related components in the Rails framework. Action Mailer, which is for sending email and [Action Mailbox](action_mailbox_basics.html), which deals with receiving emails.
+Action Mailer allows you to send emails from your Rails application. It's one of the two email related components in the Rails framework. Action Mailer, which is for sending emails and [Action Mailbox](action_mailbox_basics.html), which deals with receiving emails.
 
-Action Mailer uses classes (called "mailers") and views to create and configure the emails to send. Mailers are classes that inherit from [`ActionMailer::Base`][] and are similar to controllers.
-
-Here are some similarities between controllers and mailers. Both have:
+Action Mailer uses classes (called "mailers") and views to create and configure the emails to send. Mailers are classes that inherit from [`ActionMailer::Base`][]. Mailer classes are similar to controller classes. Both have:
 
 * Instance variables that are accessible in views.
 * The ability to use layouts and partials.
@@ -79,7 +77,7 @@ end
 ### Edit the Mailer
 
 Mailers have methods called "actions" and they use views to structure their
-content, analogous to controllers. While a controller generates HTML content to
+content, similar to controllers. While a controller generates HTML content to
 send back to the client, a Mailer creates a message to be delivered via email.
 
 The file `app/mailers/user_mailer.rb` is initially empty. Let's add a method called `welcome_email`, that will send an email to the user's
@@ -87,12 +85,12 @@ registered email address:
 
 ```ruby
 class UserMailer < ApplicationMailer
-  default from: 'notifications@example.com'
+  default from: "notifications@example.com"
 
   def welcome_email
     @user = params[:user]
-    @url  = 'http://example.com/login'
-    mail(to: @user.email, subject: 'Welcome to My Awesome Site')
+    @url  = "http://example.com/login"
+    mail(to: @user.email, subject: "Welcome to My Awesome Site")
   end
 end
 ```
