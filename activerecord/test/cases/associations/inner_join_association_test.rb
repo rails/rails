@@ -13,7 +13,6 @@ require "models/tag"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
 require "models/friendship"
-require "models/reader"
 require "models/reference"
 require "models/job"
 
@@ -237,10 +236,10 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_inner_joins_includes_all_nested_associations
-    queries = capture_sql { Friendship.joins(:friend_favorite_reference_job, :follower_favorite_reference_job).to_a }
-    # Match mysql and postgresql/sqlite quoting
-    quote = Regexp.union(%w[" `])
-    assert queries.any? { |sql| /#{quote}friendships#{quote}.#{quote}friend_id#{quote}/i.match?(sql) }
-    assert queries.any? { |sql| /#{quote}friendships#{quote}.#{quote}follower_id#{quote}/i.match?(sql) }
+    sql, = capture_sql { Friendship.joins(:friend_favorite_reference_job, :follower_favorite_reference_job).to_a }
+
+    escape = -> name { Regexp.escape(Friendship.lease_connection.quote_table_name(name)) }
+    assert_match %r(#{escape["friendships.friend_id"]}), sql
+    assert_match %r(#{escape["friendships.follower_id"]}), sql
   end
 end
