@@ -1,3 +1,14 @@
+*   Fix an issue where `.left_outer_joins` used with multiple associations that have
+    the same child association but different parents does not join all parents.
+
+    Previously, using `.left_outer_joins` with the same child association would only join one of the parents.
+
+    Now it will correctly join both parents.
+
+    Fixes #41498.
+
+    *Garrett Blehm*
+
 *   Ensure `ActiveRecord::Encryption.config` is always ready before access.
 
     Previously, `ActiveRecord::Encryption` configuration was deferred until `ActiveRecord::Base`
