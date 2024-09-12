@@ -13,8 +13,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Why Write Tests for Your Rails Applications?
---------------------------------------------
+Why Write Tests?
+----------------
 
 Rails makes it super easy to write your tests. It starts by producing skeleton test code while you are creating your models and controllers.
 
@@ -27,7 +27,7 @@ Introduction to Testing
 
 Testing support was woven into the Rails fabric from the beginning. It wasn't an "oh! let's bolt on support for running tests because they're new and cool" epiphany.
 
-### Rails Sets up for Testing from the Word Go
+### Test Setup
 
 Rails creates a `test` directory for you as soon as you create a Rails project using `rails new` _application_name_. If you list the contents of this directory then you shall see:
 
@@ -347,7 +347,7 @@ Because of the modular nature of the testing framework, it is possible to create
 
 NOTE: Creating your own assertions is an advanced topic that we won't cover in this tutorial.
 
-### Rails Specific Assertions
+### Rails-Specific Assertions
 
 Rails adds some custom assertions of its own to the `minitest` framework:
 
@@ -383,7 +383,7 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 
 You'll see the usage of some of these assertions in the next chapter.
 
-### A Brief Note About Test Cases
+### Test Cases
 
 All the basic assertions such as `assert_equal` defined in `Minitest::Assertions` are also available in the classes we use in our own test cases. In fact, Rails provides the following classes for you to inherit from:
 
@@ -546,142 +546,6 @@ Known extensions: rails, pride
     -p, --pride                      Pride. Show your testing pride!
 ```
 
-### Running tests in Continuous Integration (CI)
-
-To run all tests in a CI environment, there's just one command you need:
-
-```bash
-$ bin/rails test
-```
-
-If you are using [System Tests](#system-testing), `bin/rails test` will not run them, since
-they can be slow. To also run them, add an another CI step that runs `bin/rails test:system`,
-or change your first step to `bin/rails test:all`, which runs all tests including system tests.
-
-Parallel Testing
-----------------
-
-Parallel testing allows you to parallelize your test suite. While forking processes is the
-default method, threading is supported as well. Running tests in parallel reduces the time it
-takes your entire test suite to run.
-
-### Parallel Testing with Processes
-
-The default parallelization method is to fork processes using Ruby's DRb system. The processes
-are forked based on the number of workers provided. The default number is the actual core count
-on the machine you are on, but can be changed by the number passed to the parallelize method.
-
-To enable parallelization add the following to your `test_helper.rb`:
-
-```ruby
-class ActiveSupport::TestCase
-  parallelize(workers: 2)
-end
-```
-
-The number of workers passed is the number of times the process will be forked. You may want to
-parallelize your local test suite differently from your CI, so an environment variable is provided
-to be able to easily change the number of workers a test run should use:
-
-```bash
-$ PARALLEL_WORKERS=15 bin/rails test
-```
-
-When parallelizing tests, Active Record automatically handles creating a database and loading the schema into the database for each
-process. The databases will be suffixed with the number corresponding to the worker. For example, if you
-have 2 workers the tests will create `test-database-0` and `test-database-1` respectively.
-
-If the number of workers passed is 1 or fewer the processes will not be forked and the tests will not
-be parallelized and they will use the original `test-database` database.
-
-Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
-These can be useful if your app uses multiple databases or performs other tasks that depend on the number of
-workers.
-
-The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
-is called right before the processes are closed.
-
-```ruby
-class ActiveSupport::TestCase
-  parallelize_setup do |worker|
-    # setup databases
-  end
-
-  parallelize_teardown do |worker|
-    # cleanup databases
-  end
-
-  parallelize(workers: :number_of_processors)
-end
-```
-
-These methods are not needed or available when using parallel testing with threads.
-
-### Parallel Testing with Threads
-
-If you prefer using threads or are using JRuby, a threaded parallelization option is provided. The threaded
-parallelizer is backed by Minitest's `Parallel::Executor`.
-
-To change the parallelization method to use threads over forks put the following in your `test_helper.rb`:
-
-```ruby
-class ActiveSupport::TestCase
-  parallelize(workers: :number_of_processors, with: :threads)
-end
-```
-
-Rails applications generated from JRuby or TruffleRuby will automatically include the `with: :threads` option.
-
-The number of workers passed to `parallelize` determines the number of threads the tests will use. You may
-want to parallelize your local test suite differently from your CI, so an environment variable is provided
-to be able to easily change the number of workers a test run should use:
-
-```bash
-$ PARALLEL_WORKERS=15 bin/rails test
-```
-
-### Testing Parallel Transactions
-
-When you want to test code that runs parallel database transactions in threads,
-those can block each other because they are already nested under the implicit
-test transaction.
-
-To workaround this, you can disable transactions in a test case class by setting
-`self.use_transactional_tests = false`:
-
-```ruby
-class WorkerTest < ActiveSupport::TestCase
-  self.use_transactional_tests = false
-
-  test "parallel transactions" do
-    # start some threads that create transactions
-  end
-end
-```
-
-NOTE: With disabled transactional tests, you have to clean up any data tests
-create as changes are not automatically rolled back after the test completes.
-
-### Threshold to parallelize tests
-
-Running tests in parallel adds an overhead in terms of database setup and
-fixture loading. Because of this, Rails won't parallelize executions that involve
-fewer than 50 tests.
-
-You can configure this threshold in your `test.rb`:
-
-```ruby
-config.active_support.test_parallelization_threshold = 100
-```
-
-And also when setting up parallelization at the test case level:
-
-```ruby
-class ActiveSupport::TestCase
-  parallelize threshold: 100
-end
-```
-
 The Test Database
 -----------------
 
@@ -704,7 +568,7 @@ bring the schema up to date.
 NOTE: If there were modifications to existing migrations, the test database needs to
 be rebuilt. This can be done by executing `bin/rails test:db`.
 
-### The Low-Down on Fixtures
+### Fixtures
 
 For good tests, you'll need to give some thought to setting up test data.
 In Rails, you can handle this by defining and customizing fixtures.
@@ -1253,7 +1117,7 @@ Finally we can assert that our response was successful and our new article is re
 We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editing comments. Integration tests are a great place to experiment with all kinds of use cases for our applications.
 
 
-Functional Tests for Your Controllers
+Functional Tests for Controllers
 -------------------------------------
 
 In Rails, testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you are testing how your actions handle the requests and the expected result or response, in some cases an HTML view.
@@ -1610,7 +1474,8 @@ end
 
 Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
 
-### Test Helpers
+Test Helpers
+------------
 
 To avoid code duplication, you can add your own test helpers.
 Sign in helper can be a good example:
@@ -1767,8 +1632,7 @@ assert_select_email do
 end
 ```
 
-Testing View Partials
----------------------
+### Testing View Partials
 
 Partial templates - usually called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and reuse them throughout your templates.
 
@@ -1917,8 +1781,7 @@ end
 [rails-dom-testing]: https://github.com/rails/rails-dom-testing
 [RSS content]: https://www.rssboard.org/rss-specification
 
-Testing Helpers
----------------
+### Testing View Helpers
 
 A helper is just a simple module where you can define methods which are
 available in your views.
@@ -1952,7 +1815,7 @@ end
 Moreover, since the test class extends from `ActionView::TestCase`, you have
 access to Rails' helper methods such as `link_to` or `pluralize`.
 
-Testing Your Mailers
+Testing Mailers
 --------------------
 
 Testing mailer classes requires some specific tools to do a thorough job.
@@ -2363,6 +2226,143 @@ class ChatRelayJobTest < ActiveJob::TestCase
       ChatRelayJob.perform_now(room, "Hi!")
     end
   end
+end
+```
+
+Running tests in Continuous Integration (CI)
+--------------------------------------------
+
+To run all tests in a CI environment, there's just one command you need:
+
+```bash
+$ bin/rails test
+```
+
+If you are using [System Tests](#system-testing), `bin/rails test` will not run them, since
+they can be slow. To also run them, add an another CI step that runs `bin/rails test:system`,
+or change your first step to `bin/rails test:all`, which runs all tests including system tests.
+
+Parallel Testing
+----------------
+
+Parallel testing allows you to parallelize your test suite. While forking processes is the
+default method, threading is supported as well. Running tests in parallel reduces the time it
+takes your entire test suite to run.
+
+### Parallel Testing with Processes
+
+The default parallelization method is to fork processes using Ruby's DRb system. The processes
+are forked based on the number of workers provided. The default number is the actual core count
+on the machine you are on, but can be changed by the number passed to the parallelize method.
+
+To enable parallelization add the following to your `test_helper.rb`:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize(workers: 2)
+end
+```
+
+The number of workers passed is the number of times the process will be forked. You may want to
+parallelize your local test suite differently from your CI, so an environment variable is provided
+to be able to easily change the number of workers a test run should use:
+
+```bash
+$ PARALLEL_WORKERS=15 bin/rails test
+```
+
+When parallelizing tests, Active Record automatically handles creating a database and loading the schema into the database for each
+process. The databases will be suffixed with the number corresponding to the worker. For example, if you
+have 2 workers the tests will create `test-database-0` and `test-database-1` respectively.
+
+If the number of workers passed is 1 or fewer the processes will not be forked and the tests will not
+be parallelized and they will use the original `test-database` database.
+
+Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
+These can be useful if your app uses multiple databases or performs other tasks that depend on the number of
+workers.
+
+The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
+is called right before the processes are closed.
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize_setup do |worker|
+    # setup databases
+  end
+
+  parallelize_teardown do |worker|
+    # cleanup databases
+  end
+
+  parallelize(workers: :number_of_processors)
+end
+```
+
+These methods are not needed or available when using parallel testing with threads.
+
+### Parallel Testing with Threads
+
+If you prefer using threads or are using JRuby, a threaded parallelization option is provided. The threaded
+parallelizer is backed by Minitest's `Parallel::Executor`.
+
+To change the parallelization method to use threads over forks put the following in your `test_helper.rb`:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize(workers: :number_of_processors, with: :threads)
+end
+```
+
+Rails applications generated from JRuby or TruffleRuby will automatically include the `with: :threads` option.
+
+The number of workers passed to `parallelize` determines the number of threads the tests will use. You may
+want to parallelize your local test suite differently from your CI, so an environment variable is provided
+to be able to easily change the number of workers a test run should use:
+
+```bash
+$ PARALLEL_WORKERS=15 bin/rails test
+```
+
+### Testing Parallel Transactions
+
+When you want to test code that runs parallel database transactions in threads,
+those can block each other because they are already nested under the implicit
+test transaction.
+
+To workaround this, you can disable transactions in a test case class by setting
+`self.use_transactional_tests = false`:
+
+```ruby
+class WorkerTest < ActiveSupport::TestCase
+  self.use_transactional_tests = false
+
+  test "parallel transactions" do
+    # start some threads that create transactions
+  end
+end
+```
+
+NOTE: With disabled transactional tests, you have to clean up any data tests
+create as changes are not automatically rolled back after the test completes.
+
+### Threshold to parallelize tests
+
+Running tests in parallel adds an overhead in terms of database setup and
+fixture loading. Because of this, Rails won't parallelize executions that involve
+fewer than 50 tests.
+
+You can configure this threshold in your `test.rb`:
+
+```ruby
+config.active_support.test_parallelization_threshold = 100
+```
+
+And also when setting up parallelization at the test case level:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize threshold: 100
 end
 ```
 
