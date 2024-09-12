@@ -1455,6 +1455,53 @@ module ActiveRecord
         Table.new(table_name, base)
       end
 
+      # Adds an index to the specified table and column with the given 
+      # options.
+      #
+      # This method allows you to add an index to a table with flexibility
+      # around unique constraints, column length, order, and other
+      # customizations.
+      # 
+      # ==== Options
+      #
+      # [+unique+]
+      #   Specifies whether the index should enforce a uniqueness constraint.
+      #
+      # [+length+]
+      #   A Hash specifying the length for each column in the index.
+      #
+      # [+order+]
+      #   A Hash specifying the order for each column in the index.
+      #
+      # [+opclass+]
+      #   Specifies the operator class for each column in the index.
+      #
+      # [+where+]
+      #   Adds a WHERE clause for partial indexes.
+      #
+      # [+type+]
+      #   Specifies the type of the index (e.g., btree).
+      #
+      # [+using+]
+      #   The method to use for the index (e.g., 'btree', 'hash').
+      #
+      # [+comment+]
+      #   A comment to attach to the index.
+      #
+      # [+algorithm+]
+      #   Specifies the algorithm to use when creating the index
+      #   (e.g., 'concurrently').
+      #
+      # [+include+]
+      #   Specifies columns to include in the index (for covering indexes).
+      #
+      # [+nulls_not_distinct+]
+      #   Specifies whether NULLs should be treated as distinct values in the
+      #   index.
+      #
+      # ==== Example
+      #
+      #   add_index_options("users", "email", unique: true, where: "active = true", using: :btree, nulls_not_distinct: false)
       def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
         options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct)
 
