@@ -31,7 +31,7 @@ module Rails
       end
 
       def mail_params
-        params.require(:mail).permit(:from, :to, :cc, :bcc, :x_original_to, :in_reply_to, :subject, :body, attachments: [])
+        params.expect(mail: [:from, :to, :cc, :bcc, :x_original_to, :in_reply_to, :subject, :body, attachments: []])
       end
 
       def create_inbound_email(mail)

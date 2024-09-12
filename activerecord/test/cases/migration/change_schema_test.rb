@@ -294,8 +294,7 @@ module ActiveRecord
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "timestamp(6) without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-          sql_type = supports_datetime_with_precision? ? "datetime(6)" : "datetime"
-          assert_equal sql_type, column.sql_type
+          assert_equal "datetime(6)", column.sql_type
         else
           assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end

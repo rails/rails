@@ -409,7 +409,7 @@ default, Rails filters out passwords by adding the following filters in
 
 ```ruby
 Rails.application.config.filter_parameters += [
-  :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
+  :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn, :cvv, :cvc
 ]
 ```
 
@@ -2142,7 +2142,7 @@ Setting the value to `:none` configures Action Pack raise all exceptions.
 
 Configures whether the `ActionDispatch::ETag` middleware should prefer the `ETag` header over the `Last-Modified` header when both are present in the response.
 
-If set to `true`, when both headers are present only the `ETag` is considered as specificed by RFC 7232 section 6.
+If set to `true`, when both headers are present only the `ETag` is considered as specified by RFC 7232 section 6.
 
 If set to `false`, when both headers are present, both headers are checked and both need to match for the response to be considered fresh.
 

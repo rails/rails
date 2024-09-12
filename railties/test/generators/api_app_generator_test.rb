@@ -193,6 +193,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
          test/helpers
+         public/400.html
          public/404.html
          public/422.html
          public/406-unsupported-browser.html

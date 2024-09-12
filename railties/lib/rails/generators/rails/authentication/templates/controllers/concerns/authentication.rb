@@ -23,9 +23,7 @@ module Authentication
 
 
     def resume_session
-      if session = find_session_by_cookie
-        set_current_session session
-      end
+      Current.session = find_session_by_cookie
     end
 
     def find_session_by_cookie
@@ -45,13 +43,9 @@ module Authentication
 
     def start_new_session_for(user)
       user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip).tap do |session|
-        set_current_session session
+        Current.session = session
+        cookies.signed.permanent[:session_id] = { value: session.id, httponly: true, same_site: :lax }
       end
-    end
-
-    def set_current_session(session)
-      Current.session = session
-      cookies.signed.permanent[:session_id] = { value: session.id, httponly: true, same_site: :lax }
     end
 
     def terminate_session
