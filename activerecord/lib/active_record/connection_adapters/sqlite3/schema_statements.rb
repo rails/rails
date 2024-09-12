@@ -109,6 +109,7 @@ module ActiveRecord
         end
 
         def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
+          options = remove_check_constraint_options(options)
           return if if_exists && !check_constraint_exists?(table_name, **options)
 
           check_constraints = check_constraints(table_name)
