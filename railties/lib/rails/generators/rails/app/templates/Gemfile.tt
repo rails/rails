@@ -18,6 +18,9 @@ gem "solid_cache"
 
 # Use the database-backed Solid Queue adapter for Active Job [https://github.com/rails/solid_queue]
 gem "solid_queue"
+
+# Use the database-backed Solid Cable adapter for Action Cable [https://github.com/rails/solid_cable]
+gem "solid_cable"
 <% end -%>
 <% if depend_on_bootsnap? -%>
 
