@@ -641,7 +641,7 @@ module Rails
       end
 
       def cable_gemfile_entry
-        return if options[:skip_action_cable]
+        return if options[:skip_action_cable] || !options[:skip_solid]
 
         comment = "Use Redis adapter to run Action Cable in production"
         GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
