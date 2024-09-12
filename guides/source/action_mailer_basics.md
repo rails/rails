@@ -261,7 +261,7 @@ or `deliver_later` to send itself now or later. The
 
 Here is an example of the `MessageDelivery` object from the Rails console example above:
 
-```ruby
+```
 UserMailer.with(user: user).weekly_summary
 #<ActionMailer::MailDeliveryJob:0x00007f84cb0367c0
  @_halted_callback_hook_called=nil,
@@ -329,13 +329,13 @@ attachments['filename.jpg'] = {
 NOTE: Mail gem will automatically Base64 encode an attachment. If you want
 something different, you can encode your content and pass in the encoded content
 as well as the encoding in a `Hash` to the `attachments` method. If you specify
-an encoding, Mail gem not try to Base64 encode it.
+an encoding, Mail gem not try to Base64 encode the attachment.
 
 ### Making Inline Attachments
 
 Sometimes, you may want to send an attachment (e.g. image) inline, so it appears within the email body.
 
-First, you turn an attachment into an inline attachment by calling `#inline`:
+In order to do this, first, you turn an attachment into an inline attachment by calling `#inline`:
 
 ```ruby
 def welcome
@@ -369,7 +369,7 @@ will automatically send multipart emails if you have different templates for the
 same action. For example, if you have a `UserMailer` with
 `welcome_email.text.erb` and `welcome_email.html.erb` in
 `app/views/user_mailer`, Action Mailer will automatically send a multipart email
- with both the HTML and text versions included as separate parts.
+with both the HTML and text versions included as separate parts.
 
 The [Mail](https://github.com/mikel/mail) gem has helper methods for making a
 `multipart/alternate` email for `text/plain` and `text/html` [MIME
@@ -461,9 +461,12 @@ There is also an [`append_view_path`][] method.
 
 ### Generating URLs in Action Mailer Views
 
-In order to add URLs to your mailer, you need set the `host` value to your application's domain first. This is because, unlike controllers, the mailer instance doesn't have any context about the incoming request.
+In order to add URLs to your mailer, you need set the `host` value to your
+application's domain first. This is because, unlike controllers, the mailer
+instance doesn't have any context about the incoming request.
 
-You can configure the default `host` across the application in `config/application.rb`:
+You can configure the default `host` across the application in
+`config/application.rb`:
 
 ```ruby
 config.action_mailer.default_url_options = { host: 'example.com' }
@@ -471,8 +474,8 @@ config.action_mailer.default_url_options = { host: 'example.com' }
 
 Once the `host` is configured, it is recommended that email views use the
 `*_url` with the full URL, and not the `*_path` helpers with relative URL. Since
-email clients do not have web request context, `*_path` helpers have no base URL to
-form complete web addresses.
+email clients do not have web request context, `*_path` helpers have no base URL
+to form complete web addresses.
 
 For example, instead of:
 
@@ -670,10 +673,10 @@ If you don't pass a subject to the mail method, Action Mailer will try to find i
 
 ### Sending Emails without Template Rendering
 
-There may be cases in which you want to skip the template rendering step and instead
-supply the email body as a string. You can achieve this using the `:body`
-option. Remember to set the `:content_type` option, such as setting it to
-`text/html` below. Rails will default to `text/plain` as the content type.
+There may be cases in which you want to skip the template rendering step and
+instead supply the email body as a string. You can achieve this using the
+`:body` option. Remember to set the `:content_type` option, such as setting it
+to `text/html` below. Rails will default to `text/plain` as the content type.
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -842,12 +845,12 @@ Mailer callbacks abort further processing if `body` is set to a non-nil value. `
 Action Mailer Helpers
 ---------------------
 
-Action Mailer views have access to most
-of the same helpers as regular views.
+Action Mailer views have access to most of the same helpers as regular views.
 
 There are also some Action Mailer-specific helper methods available in
 [`ActionMailer::MailHelper`][]. For example, these allow accessing the mailer
-instance from your view with [`mailer`][MailHelper#mailer], and accessing the message as [`message`][MailHelper#message]:
+instance from your view with [`mailer`][MailHelper#mailer], and accessing the
+message as [`message`][MailHelper#message]:
 
 ```erb
 <%= stylesheet_link_tag mailer.name.underscore %>
@@ -920,11 +923,10 @@ You can find detailed instructions on how to test your mailers in the
 ### Previewing Emails
 
 You can preview rendered email templates visually by visiting a special Action
-Mailer preview URL. To set up a preview for `UserMailer`,
-create a class named `UserMailerPreview` in the `test/mailers/previews/`
-directory. To see the preview of `welcome_email` from `UserMailer`, implement a
-method that has the same name in `UserMailerPreview` and call
-`UserMailer.welcome_email`:
+Mailer preview URL. To set up a preview for `UserMailer`, create a class named
+`UserMailerPreview` in the `test/mailers/previews/` directory. To see the
+preview of `welcome_email` from `UserMailer`, implement a method that has the
+same name in `UserMailerPreview` and call `UserMailer.welcome_email`:
 
 ```ruby
 class UserMailerPreview < ActionMailer::Preview
@@ -934,10 +936,12 @@ class UserMailerPreview < ActionMailer::Preview
 end
 ```
 
-Now the preview will be available at <http://localhost:3000/rails/mailers/user_mailer/welcome_email>.
+Now the preview will be available at
+<http://localhost:3000/rails/mailers/user_mailer/welcome_email>.
 
 If you change something in the mailer view at
-`app/views/user_mailer/welcome_email.html.erb` or the mailer itself, the preview will automatically be updated. A list of previews are also available in
+`app/views/user_mailer/welcome_email.html.erb` or the mailer itself, the preview
+will automatically be updated. A list of previews are also available in
 <http://localhost:3000/rails/mailers>.
 
 By default, these preview classes live in `test/mailers/previews`. This can be
