@@ -4014,9 +4014,9 @@ class FormHelperTest < ActionView::TestCase
       ActionView::Base.default_form_builder, LabelledFormBuilder
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do

@@ -117,7 +117,7 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_checkboxes_with_errors
     assert_dom_equal(
       %(<input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div><input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div>),
-      checkbox("post", "published").to_s + checkbox("post", "published").to_s
+      checkbox("post", "published") + checkbox("post", "published")
     )
   end
 
@@ -131,7 +131,7 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_radio_buttons_with_errors
     assert_dom_equal(
       %(<div class="field_with_errors"><input type="radio" value="rails" checked="checked" name="post[category]" id="post_category_rails" /></div><div class="field_with_errors"><input type="radio" value="java" name="post[category]" id="post_category_java" /></div>),
-      radio_button("post", "category", "rails").to_s + radio_button("post", "category", "java").to_s
+      radio_button("post", "category", "rails") + radio_button("post", "category", "java")
     )
   end
 

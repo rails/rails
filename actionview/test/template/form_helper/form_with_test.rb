@@ -686,7 +686,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         b.label { b.checkbox + b.text }
       end
       concat rendered_checkboxes
-      concat f.hidden_field(:id)
+      concat f.hidden_field :id
     end
 
     expected = whole_form("/posts") do
