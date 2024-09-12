@@ -10,6 +10,9 @@ module Rails
       setup :build_app
       teardown :teardown_app
 
+      class UsersController < ActionController::Base
+      end
+
       test "app lazily loads routes when invoking url helpers" do
         require "#{app_path}/config/environment"
 
@@ -63,11 +66,11 @@ module Rails
 
         @app = Rails.application
 
-        assert_not_operator(:users_path, :in?, app_url_helpers.methods)
-        assert_equal "/users", app_url_helpers.url_for(
-          controller: :users, action: :index, only_path: true,
+        assert_not_operator(:products_path, :in?, app_url_helpers.methods)
+        assert_equal "/products", app_url_helpers.url_for(
+          controller: :products, action: :index, only_path: true,
         )
-        assert_operator(:users_path, :in?, app_url_helpers.methods)
+        assert_operator(:products_path, :in?, app_url_helpers.methods)
       end
 
       test "engine lazily loads routes when url_for is used" do
@@ -97,6 +100,15 @@ module Rails
         assert_operator(Rails.application.routes, :is_a?, Engine::LazyRouteSet)
       end
 
+      test "reloads routes when recognize_path is called" do
+        require "#{app_path}/config/environment"
+
+        assert_equal(
+          { controller: "rails/engine/lazy_route_set_test/users", action: "index" },
+          Rails.application.routes.recognize_path("/users")
+        )
+      end
+
       private
         def build_app
           super
@@ -110,7 +122,8 @@ module Rails
             Rails.application.routes.draw do
               root to: proc { [200, {}, []] }
 
-              resources(:users)
+              resources :products
+              resources :users, module: "rails/engine/lazy_route_set_test"
 
               mount Plugin::Engine, at: "/plugin"
             end
