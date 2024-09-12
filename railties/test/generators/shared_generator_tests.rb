@@ -279,6 +279,7 @@ module SharedGeneratorTests
     assert_gitattributes_does_not_have_schema_file
 
     assert_file "Gemfile" do |contents|
+      assert_no_match(/solid_cache/, contents)
       assert_no_match(/sqlite/, contents)
     end
   end

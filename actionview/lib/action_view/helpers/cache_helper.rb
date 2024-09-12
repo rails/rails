@@ -93,6 +93,14 @@ module ActionView
       #   render partial: 'attachments/attachment', collection: group_of_attachments
       #   render partial: 'documents/document', collection: @project.documents.where(published: true).order('created_at')
       #
+      # One last type of dependency can be determined implicitly:
+      #
+      #   render "maintenance_tasks/runs/info/#{run.status}"
+      #
+      # Because the value passed to render ends in interpolation, Action View
+      # will mark all partials within the "maintenace_tasks/runs/info" folder as
+      # dependencies.
+      #
       # === Explicit dependencies
       #
       # Sometimes you'll have template dependencies that can't be derived at all. This is typically

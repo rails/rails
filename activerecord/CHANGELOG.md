@@ -1,3 +1,45 @@
+*   When running `db:migrate` on a fresh database, load the database schema before running migrations.
+
+    *Andrew Novoselac*
+
+*   Fix an issue where `.left_outer_joins` used with multiple associations that have
+    the same child association but different parents does not join all parents.
+
+    Previously, using `.left_outer_joins` with the same child association would only join one of the parents.
+
+    Now it will correctly join both parents.
+
+    Fixes #41498.
+
+    *Garrett Blehm*
+
+*   Deprecate `unsigned_float` and `unsigned_decimal` short-hand column methods.
+
+    As of MySQL 8.0.17, the UNSIGNED attribute is deprecated for columns of type FLOAT, DOUBLE,
+    and DECIMAL. Consider using a simple CHECK constraint instead for such columns.
+
+    https://dev.mysql.com/doc/refman/8.0/en/numeric-type-syntax.html
+
+    *Ryuta Kamizono*
+
+*   Drop MySQL 5.5 support.
+
+    MySQL 5.5 is the only version that does not support datetime with precision,
+    which we have supported in the core. Now we support MySQL 5.6.4 or later, which
+    is the first version to support datetime with precision.
+
+    *Ryuta Kamizono*
+
+*   Make Active Record asynchronous queries compatible with transactional fixtures.
+
+    Previously transactional fixtures would disable asynchronous queries, because transactional
+    fixtures impose all queries use the same connection.
+
+    Now asynchronous queries will use the connection pinned by transactional fixtures, and behave
+    much closer to production.
+
+    *Jean Boussier*
+
 *   Deserialize binary data before decrypting
 
     This ensures that we call `PG::Connection.unescape_bytea` on PostgreSQL before decryption.

@@ -5,9 +5,6 @@ source "https://rubygems.org"
 <% end -%>
 <% unless options.minimal? -%>
 
-# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
-# gem "kredis"
-
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 <% end -%>
@@ -18,6 +15,9 @@ gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 
 # Use the database-backed Solid Cache adapter for Rails.cache [https://github.com/rails/solid_cache]
 gem "solid_cache"
+
+# Use the database-backed Solid Queue adapter for Active Job [https://github.com/rails/solid_queue]
+gem "solid_queue"
 <% end -%>
 <% if depend_on_bootsnap? -%>
 

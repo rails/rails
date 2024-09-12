@@ -154,7 +154,7 @@ permit the referenced attribute as a parameter in the relevant controller:
 ```ruby
 class ArticlesController < ApplicationController
   def create
-    article = Article.create! params.require(:article).permit(:title, :content)
+    article = Article.create! params.expect(article: [:title, :content])
     redirect_to article
   end
 end
