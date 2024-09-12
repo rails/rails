@@ -645,10 +645,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_gem "solid_cache"
     assert_gem "solid_queue"
+    assert_gem "solid_cable"
 
     assert_file "config/database.yml" do |content|
       assert_match(%r{cache:}, content)
       assert_match(%r{queue:}, content)
+      assert_match(%r{cable:}, content)
     end
   end
 
@@ -813,9 +815,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], skip_solid: true)
     run_generator_instance
 
-    assert_not_includes @rails_commands, "solid_cache:install solid_queue:install", "`solid_cache:install solid_queue:install` expected to not be called."
+    assert_not_includes @rails_commands, "solid_cache:install solid_queue:install solid_cable:install", "`solid_cache:install solid_queue:install solid_cable:install` expected to not be called."
     assert_no_gem "solid_cache"
     assert_no_gem "solid_queue"
+    assert_no_gem "solid_cable"
   end
 
   def test_skip_javascript_option
@@ -992,7 +995,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     expected_commands = [
-      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install", "solid_cache:install solid_queue:install"
+      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install", "solid_cache:install solid_queue:install solid_cable:install"
     ]
     assert_equal expected_commands, @rails_commands
   end

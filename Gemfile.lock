@@ -547,6 +547,8 @@ GEM
       rake
       serverengine (~> 2.0.5)
       thor
+    solid_cable (1.1.0)
+      rails (>= 7.2)
     solid_cache (1.0.4)
       activejob (>= 7.2)
       activerecord (>= 7.2)
@@ -704,6 +706,7 @@ DEPENDENCIES
   selenium-webdriver (>= 4.20.0)
   sidekiq
   sneakers
+  solid_cable
   solid_cache
   solid_queue
   sprockets-rails (>= 2.0.0)
