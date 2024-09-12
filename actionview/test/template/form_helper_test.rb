@@ -450,7 +450,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:comments) do |cf|
-          concat cf.text_field(:body, placeholder: true).to_s
+          concat cf.text_field(:body, placeholder: true)
         end
       end
 
@@ -1742,7 +1742,7 @@ class FormHelperTest < ActionView::TestCase
       concat f.label(:title) { "The Title" }
       concat f.text_field(:title)
       concat f.textarea(:body)
-      concat f.checkbox(:secret).to_s
+      concat f.checkbox(:secret)
       concat f.submit("Create post")
       concat f.button("Create post")
       concat f.button {
@@ -1767,7 +1767,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_text_area_alias
     form_for(@post, html: { id: "create-post" }) do |f|
-      concat f.text_area(:body).to_s
+      concat f.text_area(:body)
     end
 
     expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
@@ -1783,9 +1783,9 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post, html: { id: "create-post" }) do |f|
       concat f.label(:title) { "The Title" }
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
       concat f.submit("Create post")
       concat f.button("Create post")
       concat f.button {
@@ -1869,7 +1869,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_id_with_index
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) }).to_s
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
       concat tag.span("is blank", id: form.field_id(:title, :error))
     end
 
@@ -1883,7 +1883,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_blank_as
     form_for(Post.new, as: "") do |form|
-      concat form.text_field(:title, name: form.field_name(:title)).to_s
+      concat form.text_field(:title, name: form.field_name(:title))
     end
 
     expected = whole_form("/posts", "new_", "new_") do
@@ -1896,7 +1896,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_field_id_with_namespace
     form_for(Post.new, namespace: :special) do |form|
       concat form.label(:title)
-      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) }).to_s
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
       concat tag.span("is blank", id: form.field_id(:title, :error))
     end
 
@@ -1911,7 +1911,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_blank_as_and_multiple
     form_for(Post.new, as: "") do |form|
-      concat form.text_field(:title, name: form.field_name(:title, multiple: true)).to_s
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
     end
 
     expected = whole_form("/posts", "new_", "new_") do
@@ -1923,7 +1923,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_without_method_names_or_multiple_or_index
     form_for(Post.new) do |form|
-      concat form.text_field(:title, name: form.field_name(:title)).to_s
+      concat form.text_field(:title, name: form.field_name(:title))
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1935,7 +1935,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_without_method_names_and_multiple
     form_for(Post.new) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, multiple: true)).to_s
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1947,7 +1947,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_without_method_names_and_index
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, name: form.field_name(:title)).to_s
+      concat form.text_field(:title, name: form.field_name(:title))
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1959,7 +1959,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_without_method_names_and_index_and_multiple
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, multiple: true)).to_s
+      concat form.text_field(:title, name: form.field_name(:title, multiple: true))
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1971,7 +1971,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_method_names
     form_for(Post.new) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, :subtitle)).to_s
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle))
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1983,7 +1983,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_method_names_and_index
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, :subtitle)).to_s
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle))
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -1995,7 +1995,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_method_names_and_multiple
     form_for(Post.new) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true)).to_s
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true))
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -2007,7 +2007,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_name_with_method_names_and_multiple_and_index
     form_for(Post.new, index: 1) do |form|
-      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true)).to_s
+      concat form.text_field(:title, name: form.field_name(:title, :subtitle, multiple: true))
     end
 
     expected = whole_form("/posts", "new_post", "new_post") do
@@ -2019,7 +2019,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_field_id_with_namespace_and_index
     form_for(Post.new, namespace: :special, index: 1) do |form|
-      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) }).to_s
+      concat form.text_field(:title, aria: { describedby: form.field_id(:title, :error) })
       concat tag.span("is blank", id: form.field_id(:title, :error))
     end
 
@@ -2106,7 +2106,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(post) do |f|
       rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
-        b.label { b.radio_button.to_s + b.text }
+        b.label { b.radio_button + b.text }
       end
       concat rendered_radio_buttons
     end
@@ -2131,10 +2131,10 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(post) do |f|
       rendered_radio_buttons = f.collection_radio_buttons(:active, [true, false], :to_s, :to_s) do |b|
-        b.label { b.radio_button.to_s + b.text }
+        b.label { b.radio_button + b.text }
       end
       concat rendered_radio_buttons
-      concat f.hidden_field(:id).to_s
+      concat f.hidden_field(:id)
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
@@ -2216,7 +2216,7 @@ class FormHelperTest < ActionView::TestCase
     collection = (1..3).map { |i| [i, "Tag #{i}"] }
     form_for(post) do |f|
       rendered_checkboxes = f.collection_checkboxes(:tag_ids, collection, :first, :last) do |b|
-        b.label { b.checkbox.to_s + b.text }
+        b.label { b.checkbox + b.text }
       end
       concat rendered_checkboxes
     end
@@ -2245,10 +2245,10 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(post) do |f|
       rendered_checkboxes = f.collection_checkboxes(:tag_ids, collection, :first, :last) do |b|
-        b.label { b.checkbox.to_s + b.text }
+        b.label { b.checkbox + b.text }
       end
       concat rendered_checkboxes
-      concat f.hidden_field(:id).to_s
+      concat f.hidden_field(:id)
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
@@ -2339,7 +2339,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_file_field_generate_multipart
     form_for(@post) do |f|
       concat f.fields_for(:comment, @post) { |c|
-        concat c.file_field(:file).to_s
+        concat c.file_field(:file)
       }
     end
 
@@ -2393,9 +2393,9 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_symbol_as
     form_for(@post, as: "other_name", html: { id: "create-post" }) do |f|
       concat f.label(:title, class: "post_title")
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
       concat f.submit("Create post")
     end
 
@@ -2426,9 +2426,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_method_as_part_of_html_options
     form_for(@post, url: "/", html: { id: "create-post", method: :delete }) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "delete") do
@@ -2443,9 +2443,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_method
     form_for(@post, url: "/", method: :delete, html: { id: "create-post" }) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "delete") do
@@ -2462,7 +2462,7 @@ class FormHelperTest < ActionView::TestCase
     # Test case for bug which would emit an "object" attribute
     # when used with form_for using a search_field form helper
     form_for(Post.new, url: "/search", html: { id: "search-post", method: :get }) do |f|
-      concat f.search_field(:title).to_s
+      concat f.search_field(:title)
     end
 
     expected = whole_form("/search", "search-post", "new_post", method: "get") do
@@ -2474,9 +2474,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_remote
     form_for(@post, url: "/", remote: true, html: { id: "create-post", method: :patch }) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "patch", remote: true) do
@@ -2491,7 +2491,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_enforce_utf8_true
     form_for(:post, enforce_utf8: true) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     expected = whole_form("/", nil, nil, enforce_utf8: true) do
@@ -2503,7 +2503,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_enforce_utf8_false
     form_for(:post, enforce_utf8: false) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     expected = whole_form("/", nil, nil, enforce_utf8: false) do
@@ -2516,7 +2516,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_default_enforce_utf8_false
     with_default_enforce_utf8 false do
       form_for(:post) do |f|
-        concat f.text_field(:title).to_s
+        concat f.text_field(:title)
       end
 
       expected = whole_form("/", nil, nil, enforce_utf8: false) do
@@ -2530,7 +2530,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_default_enforce_utf8_true
     with_default_enforce_utf8 true do
       form_for(:post) do |f|
-        concat f.text_field(:title).to_s
+        concat f.text_field(:title)
       end
 
       expected = whole_form("/", nil, nil, enforce_utf8: true) do
@@ -2543,9 +2543,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_remote_in_html
     form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "patch", remote: true) do
@@ -2562,9 +2562,9 @@ class FormHelperTest < ActionView::TestCase
     @post.persisted = false
     @post.stub(:to_key, nil) do
       form_for(@post, remote: true) do |f|
-        concat f.text_field(:title).to_s
-        concat f.textarea(:body).to_s
-        concat f.checkbox(:secret).to_s
+        concat f.text_field(:title)
+        concat f.textarea(:body)
+        concat f.checkbox(:secret)
       end
 
       expected = whole_form("/posts", "new_post", "new_post", remote: true) do
@@ -2580,9 +2580,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_without_object
     form_for(:post, html: { id: "create-post" }) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post") do
@@ -2598,9 +2598,9 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_index
     form_for(@post, as: "post[]") do |f|
       concat f.label(:title)
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
@@ -2616,9 +2616,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_nil_index_option_override
     form_for(@post, as: "post[]", index: nil) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
@@ -2634,7 +2634,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_label_error_wrapping
     form_for(@post) do |f|
       concat f.label(:author_name, class: "label")
-      concat f.text_field(:author_name).to_s
+      concat f.text_field(:author_name)
       concat f.submit("Create post")
     end
 
@@ -2652,7 +2652,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(post) do |f|
       concat f.label(:author_name, class: "label")
-      concat f.text_field(:author_name).to_s
+      concat f.text_field(:author_name)
       concat f.submit("Create post")
     end
 
@@ -2681,9 +2681,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_namespace
     form_for(@post, namespace: "namespace") do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
@@ -2707,7 +2707,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_namespace_with_label
     form_for(@post, namespace: "namespace") do |f|
       concat f.label(:title)
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
@@ -2720,7 +2720,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_namespace_and_as_option
     form_for(@post, namespace: "namespace", as: "custom_name") do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     expected = whole_form("/posts/123", "namespace_edit_custom_name", "edit_custom_name", method: "patch") do
@@ -2745,7 +2745,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post, namespace: "namespace_2") do |f|
       concat f.label(:title)
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     expected_2 = whole_form("/posts/123", "namespace_2_edit_post_123", "edit_post", method: "patch") do
@@ -2759,10 +2759,10 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_with_namespace
     @comment.body = "Hello World"
     form_for(@post, namespace: "namespace") do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
       concat f.fields_for(@comment) { |c|
-        concat c.text_field(:body).to_s
+        concat c.text_field(:body)
       }
     end
 
@@ -2949,7 +2949,7 @@ class FormHelperTest < ActionView::TestCase
     @comment.body = "Hello World"
     form_for(@post) do |f|
       concat f.fields_for(@comment) { |c|
-        concat c.text_field(:body).to_s
+        concat c.text_field(:body)
       }
     end
 
@@ -2992,10 +2992,10 @@ class FormHelperTest < ActionView::TestCase
     @comment.save
     form_for(:posts) do |f|
       f.fields_for("post[]", @post) do |f2|
-        f2.text_field(:id).to_s
+        f2.text_field(:id)
         @post.comments.each do |comment|
           concat f2.fields_for("comment[]", comment) { |c|
-            concat c.text_field(:name).to_s
+            concat c.text_field(:name)
           }
         end
       end
@@ -3010,11 +3010,11 @@ class FormHelperTest < ActionView::TestCase
 
   def test_nested_fields_for_with_nested_collections
     form_for(@post, as: "post[]") do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for("comment[]", @comment) { |c|
-        concat c.text_field(:name).to_s
+        concat c.text_field(:name)
       }
-      concat f.text_field(:body).to_s
+      concat f.text_field(:body)
     end
 
     expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
@@ -3028,9 +3028,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_nested_fields_for_with_index_and_parent_fields
     form_for(@post, index: 1) do |c|
-      concat c.text_field(:title).to_s
+      concat c.text_field(:title)
       concat c.fields_for("comment", @comment, index: 1) { |r|
-        concat r.text_field(:name).to_s
+        concat r.text_field(:name)
       }
     end
 
@@ -3045,7 +3045,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_index_and_nested_fields_for
     @rendered = form_for(@post, index: 1) do |f|
       concat f.fields_for(:comment, @post) { |c|
-        concat c.text_field(:title).to_s
+        concat c.text_field(:title)
       }
     end
 
@@ -3059,7 +3059,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_index_on_both
     form_for(@post, index: 1) do |f|
       concat f.fields_for(:comment, @post, index: 5) { |c|
-        concat c.text_field(:title).to_s
+        concat c.text_field(:title)
       }
     end
 
@@ -3073,7 +3073,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_auto_index
     form_for(@post, as: "post[]") do |f|
       concat f.fields_for(:comment, @post) { |c|
-        concat c.text_field(:title).to_s
+        concat c.text_field(:title)
       }
     end
 
@@ -3087,7 +3087,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_index_radio_button
     form_for(@post) do |f|
       concat f.fields_for(:comment, @post, index: 5) { |c|
-        concat c.radio_button(:title, "hello").to_s
+        concat c.radio_button(:title, "hello")
       }
     end
 
@@ -3101,7 +3101,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_auto_index_on_both
     form_for(@post, as: "post[]") do |f|
       concat f.fields_for("comment[]", @post) { |c|
-        concat c.text_field(:title).to_s
+        concat c.text_field(:title)
       }
     end
 
@@ -3115,7 +3115,7 @@ class FormHelperTest < ActionView::TestCase
   def test_nested_fields_for_with_index_and_auto_index
     form_for(@post, as: "post[]") do |f|
       concat f.fields_for(:comment, @post, index: 5) { |c|
-        concat c.text_field(:title).to_s
+        concat c.text_field(:title)
       }
     end
 
@@ -3126,7 +3126,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post, as: :post, index: 1) do |f|
       concat f.fields_for("comment[]", @post) { |c|
-        concat c.text_field(:title).to_s
+        concat c.text_field(:title)
       }
     end
 
@@ -3141,9 +3141,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
-        concat af.text_field(:name).to_s
+        concat af.text_field(:name)
       }
     end
 
@@ -3168,9 +3168,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
-        concat af.text_field(:name).to_s
+        concat af.text_field(:name)
       }
     end
 
@@ -3187,7 +3187,7 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
         af.text_field(:name).to_s
       }
@@ -3224,7 +3224,7 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post, include_id: false) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
         af.text_field(:name).to_s
       }
@@ -3242,7 +3242,7 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post, include_id: false) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author, include_id: true) { |af|
         af.text_field(:name).to_s
       }
@@ -3261,10 +3261,10 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
-        concat af.hidden_field(:id).to_s
-        concat af.text_field(:name).to_s
+        concat af.hidden_field(:id)
+        concat af.text_field(:name)
       }
     end
 
@@ -3281,10 +3281,10 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name).to_s
+          concat cf.text_field(:name)
         }
       end
     end
@@ -3305,13 +3305,13 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
-        concat af.text_field(:name).to_s
+        concat af.text_field(:name)
       }
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment, include_id: false) { |cf|
-          concat cf.text_field(:name).to_s
+          concat cf.text_field(:name)
         }
       end
     end
@@ -3332,13 +3332,13 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post, include_id: false) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
-        concat af.text_field(:name).to_s
+        concat af.text_field(:name)
       }
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name).to_s
+          concat cf.text_field(:name)
         }
       end
     end
@@ -3358,13 +3358,13 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post, include_id: false) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:author, include_id: true) { |af|
-        concat af.text_field(:name).to_s
+        concat af.text_field(:name)
       }
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name).to_s
+          concat cf.text_field(:name)
         }
       end
     end
@@ -3407,11 +3407,11 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.hidden_field(:id).to_s
-          concat cf.text_field(:name).to_s
+          concat cf.hidden_field(:id)
+          concat cf.text_field(:name)
         }
       end
     end
@@ -3431,10 +3431,10 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = [Comment.new, Comment.new]
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name).to_s
+          concat cf.text_field(:name)
         }
       end
     end
@@ -3452,10 +3452,10 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = [Comment.new(321), Comment.new]
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          concat cf.text_field(:name).to_s
+          concat cf.text_field(:name)
         }
       end
     end
@@ -3472,9 +3472,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_nested_fields_for_with_an_empty_supplied_attributes_collection
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       f.fields_for(:comments, []) do |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
       end
     end
 
@@ -3489,9 +3489,9 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:comments, @post.comments) { |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
       }
     end
 
@@ -3510,9 +3510,9 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = ArelLike.new
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:comments, @post.comments) { |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
       }
     end
 
@@ -3551,9 +3551,9 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = []
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:comments, comments) { |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
       }
     end
 
@@ -3573,9 +3573,9 @@ class FormHelperTest < ActionView::TestCase
     yielded_comments = []
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
       concat f.fields_for(:comments) { |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
         yielded_comments << cf.object
       }
     end
@@ -3596,7 +3596,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
       }
     end
 
@@ -3613,7 +3613,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, Comment.new(321), child_index: -> { "abc" }) { |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
       }
     end
 
@@ -3636,7 +3636,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
       }
     end
 
@@ -3707,21 +3707,21 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:comments, @post.comments[0]) { |cf|
-        concat cf.text_field(:name).to_s
+        concat cf.text_field(:name)
         concat cf.fields_for(:relevances, CommentRelevance.new(314)) { |crf|
-          concat crf.text_field(:value).to_s
+          concat crf.text_field(:value)
         }
       }
       concat f.fields_for(:tags, @post.tags[0]) { |tf|
-        concat tf.text_field(:value).to_s
+        concat tf.text_field(:value)
         concat tf.fields_for(:relevances, TagRelevance.new(3141)) { |trf|
-          concat trf.text_field(:value).to_s
+          concat trf.text_field(:value)
         }
       }
       concat f.fields_for("tags", @post.tags[1]) { |tf|
-        concat tf.text_field(:value).to_s
+        concat tf.text_field(:value)
         concat tf.fields_for(:relevances, TagRelevance.new(31415)) { |trf|
-          concat trf.text_field(:value).to_s
+          concat trf.text_field(:value)
         }
       }
     end
@@ -3749,7 +3749,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:author, @author) { |af|
-        concat af.text_field(:name).to_s
+        concat af.text_field(:name)
       }
     end
 
@@ -3765,7 +3765,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:author, @author, {}) { |af|
-        concat af.text_field(:name).to_s
+        concat af.text_field(:name)
       }
     end
 
@@ -3781,7 +3781,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       concat f.fields_for(:author, @author) { |af|
-        concat af.text_field(:name).to_s
+        concat af.text_field(:name)
       }
     end
 
@@ -3792,9 +3792,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for
     @rendered = fields_for(:post, @post) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -3814,9 +3814,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_index
     @rendered = fields_for("post[]", @post) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -3836,9 +3836,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_nil_index_option_override
     @rendered = fields_for("post[]", @post, index: nil) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -3858,9 +3858,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_index_option_override
     @rendered = fields_for("post[]", @post, index: "abc") do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -3874,9 +3874,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_without_object
     @rendered = fields_for(:post) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -3890,9 +3890,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_only_object
     @rendered = fields_for(@post) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -3907,7 +3907,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_object_with_bracketed_name
     @rendered = fields_for("author[post]", @post) do |f|
       concat f.label(:title)
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     assert_dom_equal "<label for=\"author_post_title\">Title</label>" \
@@ -3918,7 +3918,7 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_object_with_bracketed_name_and_index
     @rendered = fields_for("author[post]", @post, index: 1) do |f|
       concat f.label(:title)
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     assert_dom_equal "<label for=\"author_post_1_title\">Title</label>" \
@@ -3932,11 +3932,11 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_and_fields_for
     form_for(@post, as: :post, html: { id: "create-post" }) do |post_form|
-      concat post_form.text_field(:title).to_s
-      concat post_form.textarea(:body).to_s
+      concat post_form.text_field(:title)
+      concat post_form.textarea(:body)
 
       concat fields_for(:parent_post, @post) { |parent_fields|
-        concat parent_fields.checkbox(:secret).to_s
+        concat parent_fields.checkbox(:secret)
       }
     end
 
@@ -3952,11 +3952,11 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_and_fields_for_with_object
     form_for(@post, as: :post, html: { id: "create-post" }) do |post_form|
-      concat post_form.text_field(:title).to_s
-      concat post_form.textarea(:body).to_s
+      concat post_form.text_field(:title)
+      concat post_form.textarea(:body)
 
       concat post_form.fields_for(@comment) { |comment_fields|
-        concat comment_fields.text_field(:name).to_s
+        concat comment_fields.text_field(:name)
       }
     end
 
@@ -3972,7 +3972,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_and_fields_for_with_non_nested_association_and_without_object
     form_for(@post) do |f|
       concat f.fields_for(:category) { |c|
-        concat c.text_field(:name).to_s
+        concat c.text_field(:name)
       }
     end
 
@@ -3995,9 +3995,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_labelled_builder
     form_for(@post, builder: LabelledFormBuilder) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
@@ -4035,7 +4035,7 @@ class FormHelperTest < ActionView::TestCase
       ActionView::Base.default_form_builder, "FormHelperTest::LabelledFormBuilder"
 
     form_for(@post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
@@ -4051,7 +4051,7 @@ class FormHelperTest < ActionView::TestCase
     self.default_form_builder = LabelledFormBuilder
 
     @rendered = fields_for(:post, @post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     expected = "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>"
@@ -4063,7 +4063,7 @@ class FormHelperTest < ActionView::TestCase
     self.default_form_builder = "FormHelperTest::LabelledFormBuilder"
 
     @rendered = fields_for(:post, @post) do |f|
-      concat f.text_field(:title).to_s
+      concat f.text_field(:title)
     end
 
     expected = "<label for='title'>Title:</label> <input name='post[title]' type='text' id='post_title' value='Hello World' /><br/>"
@@ -4073,9 +4073,9 @@ class FormHelperTest < ActionView::TestCase
 
   def test_fields_for_with_labelled_builder
     @rendered = fields_for(:post, @post, builder: LabelledFormBuilder) do |f|
-      concat f.text_field(:title).to_s
-      concat f.textarea(:body).to_s
-      concat f.checkbox(:secret).to_s
+      concat f.text_field(:title)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =

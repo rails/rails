@@ -171,7 +171,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio with block helpers allows access to current text and value" do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label("data-value": b.value) { b.radio_button.to_s + b.text }
+      b.label("data-value": b.value) { b.radio_button + b.text }
     end
 
     assert_select "label[for=user_active_true][data-value=true]", "true" do
@@ -184,7 +184,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio with block helpers allows access to the current object item in the collection to access extra properties" do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label(class: b.object) { b.radio_button.to_s + b.text }
+      b.label(class: b.object) { b.radio_button + b.text }
     end
 
     assert_select "label.true[for=user_active_true]", "true" do
@@ -517,7 +517,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes with block helpers allows access to current text and value" do
     with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label("data-value": b.value) { b.checkbox.to_s + b.text }
+      b.label("data-value": b.value) { b.checkbox + b.text }
     end
 
     assert_select "label[for=user_active_true][data-value=true]", "true" do
@@ -530,7 +530,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes with block helpers allows access to the current object item in the collection to access extra properties" do
     with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label(class: b.object) { b.checkbox.to_s + b.text }
+      b.label(class: b.object) { b.checkbox + b.text }
     end
 
     assert_select "label.true[for=user_active_true]", "true" do

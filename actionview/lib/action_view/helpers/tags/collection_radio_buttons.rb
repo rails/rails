@@ -23,7 +23,7 @@ module ActionView
 
         private
           def render_component(builder)
-            builder.radio_button.to_s + builder.label
+            builder.radio_button + builder.label
           end
       end
     end
