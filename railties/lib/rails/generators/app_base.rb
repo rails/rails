@@ -756,7 +756,10 @@ module Rails
       def run_solid
         return if skip_solid? || !bundle_install?
 
-        rails_command "solid_cache:install solid_queue:install solid_cable:install"
+        commands = "solid_cache:install solid_queue:install"
+        commands += " solid_cable:install" unless skip_action_cable?
+
+        rails_command commands
       end
 
       def add_bundler_platforms
