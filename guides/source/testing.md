@@ -20,12 +20,12 @@ Rails makes it super easy to write your tests. It starts by producing skeleton t
 
 By running your Rails tests you can ensure your code adheres to the desired functionality even after some major code refactoring.
 
-Rails tests can also simulate browser requests and thus you can test your application's response without having to test it through your browser.
+Rails tests can also simulate browser requests and thus you can test your application's response without having to view the output through your browser.
 
 Introduction to Testing
 -----------------------
 
-Testing support was woven into the Rails fabric from the beginning. It wasn't an "oh! let's bolt on support for running tests because they're new and cool" epiphany.
+Testing wasn't just an afterthought - it was woven into the Rails fabric from the very beginning.
 
 ### Test Setup
 
@@ -37,7 +37,9 @@ application_system_test_case.rb  controllers/                     helpers/      
 channels/                        fixtures/                        integration/                     models/                          test_helper.rb
 ```
 
-The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `channels` directory is meant to hold tests for Action Cable connection and channels. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
+### Test Directories
+
+The `helpers`, `mailers`, and `models` directories are where tests for view helpers, mailers, and models respectively should be stored. The `channels` directory is where tests for Action Cable connection and channels should be stored. The `controllers` directory is where tests for controllers, routes, and views should be stored. The `integration` directory is where tests for interactions between controllers should be stored.
 
 The system test directory holds system tests, which are used for full browser
 testing of your application. System tests allow you to test your application
@@ -45,7 +47,7 @@ the way your users experience it and help you test your JavaScript as well.
 System tests inherit from Capybara and perform in browser tests for your
 application.
 
-Fixtures are a way of organizing test data; they reside in the `fixtures` directory.
+Fixtures are a way of organizing test data; they can be stored in the `fixtures` directory.
 
 A `jobs` directory will also be created when an associated test is first generated.
 
@@ -64,16 +66,14 @@ NOTE: Your tests are run under `RAILS_ENV=test`.
 
 ### Rails Meets Minitest
 
-If you remember, we used the `bin/rails generate model` command in the
-[Getting Started with Rails](getting_started.html) guide. We created our first
-model, and among other things it created test stubs in the `test` directory:
+We introduced the `bin/rails generate model` command in the
+[Getting Started with Rails](getting_started.html#mvc-and-you-generating-a-model) guide. Alongside creating a model, this command also creates a test stub in the `test` directory:
 
 ```bash
 $ bin/rails generate model article title:string body:text
 ...
 create  app/models/article.rb
 create  test/models/article_test.rb
-create  test/fixtures/articles.yml
 ...
 ```
 
@@ -103,7 +103,7 @@ class ArticleTest < ActiveSupport::TestCase
 end
 ```
 
-The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. Later in this guide, we'll see some of the methods it gives us.
+This is called a test case, because the `ArticleTest` class inherits from `ActiveSupport::TestCase`. It therefore also has all the methods from `ActiveSupport::TestCase` available to it. Later in this guide, we'll see some of the methods this gives us.
 
 Any method defined within a class inherited from `Minitest::Test`
 (which is the superclass of `ActiveSupport::TestCase`) that begins with `test_` is simply called a test. So, methods defined as `test_password` and `test_valid_password` are legal test names and are run automatically when the test case is run.
@@ -145,7 +145,7 @@ Every test may contain one or more assertions, with no restriction as to how man
 
 #### Your First Failing Test
 
-To see how a test failure is reported, you can add a failing test to the `article_test.rb` test case.
+To see how a test failure is reported, you can add a failing test to the `article_test.rb` test case. Here were are asserting that the article will not save, which will fail the test when the article saves successfully.
 
 ```ruby
 test "should not save article without title" do
@@ -158,6 +158,7 @@ Let us run this newly added test (where `6` is the line number where the test is
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
+Running 1 tests in a single process (parallelization threshold is 50)
 Run options: --seed 44656
 
 # Running:
@@ -195,7 +196,7 @@ ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/model
 Saved the article without a title
 ```
 
-Now to get this test to pass we can add a model level validation for the _title_ field.
+To get this test to pass we can add a model level validation for the `title` field.
 
 ```ruby
 class Article < ApplicationRecord
@@ -203,10 +204,11 @@ class Article < ApplicationRecord
 end
 ```
 
-Now the test should pass. Let us verify by running the test again:
+Now the test should pass, as we have not initialized the article in our test with a `title`, so the model validation will prevent the save. Let us verify by running the test again:
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
+Running 1 tests in a single process (parallelization threshold is 50)
 Run options: --seed 31252
 
 # Running:
@@ -218,13 +220,14 @@ Finished in 0.027476s, 36.3952 runs/s, 36.3952 assertions/s.
 1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-Now, if you noticed, we first wrote a test which fails for a desired
+The small green dot displayed means that the test has passed successfully.
+
+NOTE: In that process, we first wrote a test which fails for a desired
 functionality, then we wrote some code which adds the functionality and finally
 we ensured that our test passes. This approach to software development is
-referred to as
-[_Test-Driven Development_ (TDD)](http://c2.com/cgi/wiki?TestDrivenDevelopment).
+referred to as _Test-Driven Development_ (TDD).
 
-#### What an Error Looks Like
+#### Encountering and Asserting Error-Presence
 
 To see how an error gets reported, here's a test containing an error:
 
@@ -240,11 +243,12 @@ Now you can see even more output in the console from running the tests:
 
 ```bash
 $ bin/rails test test/models/article_test.rb
+Running 2 tests in a single process (parallelization threshold is 50)
 Run options: --seed 1808
 
 # Running:
 
-.E
+E
 
 Error:
 ArticleTest#test_should_report_error:
@@ -254,14 +258,14 @@ NameError: undefined local variable or method 'some_undefined_variable' for #<Ar
 
 bin/rails test test/models/article_test.rb:9
 
-
+.
 
 Finished in 0.040609s, 49.2500 runs/s, 24.6250 assertions/s.
 
 2 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 ```
 
-Notice the 'E' in the output. It denotes a test with error.
+Notice the 'E' in the output. It denotes a test with error. The green dot above the 'finished' line denotes the one passing test.
 
 NOTE: The execution of each test method stops as soon as any error or an
 assertion failure is encountered, and the test suite continues with the next
@@ -278,7 +282,7 @@ backtrace. Set the `-b` (or `--backtrace`) argument to enable this behavior:
 $ bin/rails test -b test/models/article_test.rb
 ```
 
-If we want this test to pass we can modify it to use `assert_raises` like so:
+If we want this test to pass we can modify it to use `assert_raises` (so we are now checking for the presence of the error) like so:
 
 ```ruby
 test "should report error" do
@@ -293,7 +297,7 @@ This test should now pass.
 
 [`config.active_support.test_order`]: configuring.html#config-active-support-test-order
 
-### Available Assertions
+### Minitest Assertions
 
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
@@ -339,8 +343,8 @@ specify to make your test failure messages clearer.
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive &
-more up-to-date list, please check
-[Minitest API documentation](http://docs.seattlerb.org/minitest/), specifically
+more up-to-date list, please check the
+[Minitest API documentation](http://docs.seattlerb.org/minitest/Minitest), specifically
 [`Minitest::Assertions`](http://docs.seattlerb.org/minitest/Minitest/Assertions.html).
 
 Because of the modular nature of the testing framework, it is possible to create your own assertions. In fact, that's exactly what Rails does. It includes some specialized assertions to make your life easier.
