@@ -238,7 +238,9 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     book = Cpk::Book.create!(id: [1, 2], shop_id: 3)
     book.chapters.create!(id: [1, 3], title: "Title")
 
-    book.update!(chapters_attributes: { id: ["1", "3"], title: "New title" })
+    assert_queries_count(4) do
+      book.update!(chapters_attributes: { id: ["1", "3"], title: "New title" })
+    end
     assert_equal 1, book.reload.chapters.count
     assert_equal "New title", book.chapters.first.title
   end

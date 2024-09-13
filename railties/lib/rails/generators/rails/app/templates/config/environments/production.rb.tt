@@ -52,7 +52,7 @@ Rails.application.configure do
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
-  # Prevent healthchecks from clogging up the logs.
+  # Prevent health checks from clogging up the logs.
   config.silence_healthcheck_path = "/up"
 
   # Log to STDOUT by default.
@@ -116,6 +116,7 @@ Rails.application.configure do
   #   "example.com",     # Allow requests from example.com
   #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
   # ]
+  #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

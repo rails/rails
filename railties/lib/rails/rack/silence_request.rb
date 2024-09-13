@@ -7,7 +7,7 @@ require "active_support/logger_silence"
 module Rails
   module Rack
     # Allows you to silence requests made to a specific path.
-    # This is useful for preventing recurring requests like healthchecks from clogging the logging.
+    # This is useful for preventing recurring requests like health checks from clogging the logging.
     # This middleware is used to do just that against the path /up in production by default.
     #
     # Example:
@@ -15,7 +15,7 @@ module Rails
     #   config.middleware.insert_before \
     #     Rails::Rack::Logger, Rails::Rack::SilenceRequest, path: "/up"
     #
-    # This middleware can also be configured using `config.silence_healthcheck = "/up"` in Rails.
+    # This middleware can also be configured using `config.silence_healthcheck_path = "/up"` in Rails.
     class SilenceRequest
       def initialize(app, path:)
         @app, @path = app, path
