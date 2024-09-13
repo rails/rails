@@ -14,11 +14,11 @@
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
-    <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
+
     <%%# Includes all stylesheet files in app/views/stylesheets %>
+    <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
     <%%= stylesheet_link_tag :app %>
     <%- else -%>
-    <%%# Includes all stylesheet files in app/views/stylesheets %>
     <%%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%- end -%>
   </head>
