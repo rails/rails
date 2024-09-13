@@ -20,11 +20,13 @@ module ActionCable
     # # Action Cable Channel extensions for testing
     #
     # Add public aliases for +subscription_confirmation_sent?+ and
-    # +subscription_rejected?+.
+    # +subscription_rejected?+ and +stream_names+ to access the list of subscribed streams.
     module ChannelExt
       def confirmed? = subscription_confirmation_sent?
 
       def rejected? = subscription_rejected?
+
+      def stream_names = streams.keys
     end
 
     # Superclass for Action Cable channel functional tests.
@@ -141,9 +143,6 @@ module ActionCable
         included do
           class_attribute :_channel_class
 
-          # Use testserver (not test_server) to silence "Test is missing assertions: `test_server`" warnings
-          attr_reader :subscription, :testserver
-
           ActiveSupport.run_load_hooks(:action_cable_channel_test_case, self)
         end
 
@@ -194,6 +193,9 @@ module ActionCable
             channel
           end
         end
+
+        # Use testserver (not test_server) to silence "Test is missing assertions: `test_server`" warnings
+        attr_reader :subscription, :testserver
 
         # Set up test connection with the specified identifiers:
         #
@@ -259,7 +261,8 @@ module ActionCable
         #     end
         #
         def assert_no_streams
-          assert testserver.streams.empty?, "No streams started was expected, but #{testserver.streams.count} found"
+          check_subscribed!
+          assert subscription.stream_names.empty?, "No streams started was expected, but #{subscription.stream_names.count} found"
         end
 
         # Asserts that the specified stream has been started.
@@ -270,7 +273,8 @@ module ActionCable
         #     end
         #
         def assert_has_stream(stream)
-          assert testserver.streams.include?(stream), "Stream #{stream} has not been started"
+          check_subscribed!
+          assert subscription.stream_names.include?(stream), "Stream #{stream} has not been started"
         end
 
         # Asserts that the specified stream for a model has started.
@@ -292,7 +296,8 @@ module ActionCable
         #     end
         #
         def assert_has_no_stream(stream)
-          assert testserver.streams.exclude?(stream), "Stream #{stream} has been started"
+          check_subscribed!
+          assert subscription.stream_names.exclude?(stream), "Stream #{stream} has been started"
         end
 
         # Asserts that the specified stream for a model has not started.

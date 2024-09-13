@@ -217,10 +217,6 @@ module ActionCable
         included do
           class_attribute :_connection_class
 
-          attr_reader :connection, :socket, :testserver
-
-          delegate :transmissions, to: :socket, allow_nil: true
-
           ActiveSupport.run_load_hooks(:action_cable_connection_test_case, self)
         end
 
@@ -253,6 +249,8 @@ module ActionCable
           end
         end
 
+        attr_reader :connection, :socket, :testserver
+
         # Performs connection attempt to exert #connect on the connection under test.
         #
         # Accepts request path as the first argument and the following request options:
@@ -283,6 +281,10 @@ module ActionCable
 
         def cookies
           @cookie_jar ||= TestCookieJar.new
+        end
+
+        def transmissions
+          socket&.transmissions || []
         end
       end
 
