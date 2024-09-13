@@ -95,6 +95,8 @@ module ActiveSupport
 
     INVALID_ATTRIBUTE_NAMES = [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all] # :nodoc:
 
+    NOT_SET = Object.new.freeze # :nodoc:
+
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
@@ -109,7 +111,7 @@ module ActiveSupport
       # is a proc or lambda, it will be called whenever an instance is
       # constructed. Otherwise, the value will be duplicated with +#dup+.
       # Default values are re-assigned when the attributes are reset.
-      def attribute(*names, default: nil)
+      def attribute(*names, default: NOT_SET)
         invalid_attribute_names = names.map(&:to_sym) & INVALID_ATTRIBUTE_NAMES
         if invalid_attribute_names.any?
           raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
@@ -221,8 +223,10 @@ module ActiveSupport
 
     private
       def resolve_defaults
-        defaults.transform_values do |value|
-          Proc === value ? value.call : value.dup
+        defaults.each_with_object({}) do |(key, value), result|
+          if value != NOT_SET
+            result[key] = Proc === value ? value.call : value.dup
+          end
         end
       end
   end
