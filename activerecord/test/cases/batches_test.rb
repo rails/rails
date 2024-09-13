@@ -318,6 +318,16 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_should_error_on_ignore_the_order
+    assert_raise(ArgumentError, match: "Scoped order is ignored") do
+      PostWithDefaultScope.in_batches(error_on_ignore: true) { }
+    end
+
+    assert_raise(ArgumentError, match: "Scoped order is ignored") do
+      PostWithDefaultScope.in_batches(error_on_ignore: true).delete_all
+    end
+  end
+
   def test_in_batches_has_attribute_readers
     enumerator = Post.no_comments.in_batches(of: 2, start: 42, finish: 84)
     assert_equal Post.no_comments, enumerator.relation
@@ -506,6 +516,23 @@ class EachTest < ActiveRecord::TestCase
     assert_equal posts.size - 2, batch_count
   end
 
+  def test_in_batches_when_loaded_runs_no_queries_with_start_and_end_arguments_and_reverse_order
+    posts = Post.all.order(id: :asc)
+    posts.load
+    batch_count = 0
+
+    start_id = posts.map(&:id)[-2]
+    finish_id = posts.map(&:id)[1]
+    assert_queries_count(0) do
+      posts.in_batches(of: 1, start: start_id, finish: finish_id, order: :desc) do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+
+    assert_equal posts.size - 2, batch_count
+  end
+
   def test_in_batches_when_loaded_can_return_an_enum
     posts = Post.all
     posts.load
@@ -519,6 +546,46 @@ class EachTest < ActiveRecord::TestCase
     end
 
     assert_equal posts.size, batch_count
+  end
+
+  def test_in_batches_when_loaded_runs_no_queries_when_batching_over_cpk_model
+    incorrectly_sorted_orders = Cpk::Order.order(shop_id: :asc, id: :desc)
+    incorrectly_sorted_orders.load
+
+    correctly_sorted_orders = Cpk::Order.order(shop_id: :desc, id: :asc).to_a
+    expected_orders = correctly_sorted_orders[1..-2]
+    start_id = expected_orders.first.id
+    finish_id = expected_orders.last.id
+    orders = []
+
+    assert_no_queries do
+      incorrectly_sorted_orders.find_each(batch_size: 1, start: start_id, finish: finish_id, order: [:desc, :asc]) do |order|
+        orders << order
+      end
+    end
+
+    assert_equal expected_orders, orders
+  end
+
+  def test_in_batches_when_loaded_iterates_using_custom_column
+    c = Post.lease_connection
+    c.add_index(:posts, :title, unique: true)
+    ActiveRecord::Base.schema_cache.clear!
+
+    ordered_posts = Post.order(id: :desc)
+    ordered_posts.load
+
+    posts = []
+
+    assert_no_queries do
+      ordered_posts.in_batches(of: 1, cursor: :id, order: :desc).each_record do |post|
+        posts << post
+      end
+    end
+
+    assert_equal ordered_posts.to_a, posts
+  ensure
+    c.remove_index(:posts, :title)
   end
 
   def test_in_batches_should_return_relations
@@ -722,6 +789,79 @@ class EachTest < ActiveRecord::TestCase
       batch.where("author_id >= 1").update_all("author_id = author_id + 1")
     end
     assert_equal 2, person.reload.author_id # incremented only once
+  end
+
+  def test_in_batches_with_custom_columns_raises_when_start_missing_items
+    assert_raises(ArgumentError, match: ":start must contain one value per cursor column") do
+      Post.in_batches(start: 1, cursor: [:author_id, :id]) { }
+    end
+  end
+
+  def test_in_batches_with_custom_columns_raises_when_finish_missing_items
+    assert_raises(ArgumentError, match: ":finish must contain one value per cursor column") do
+      Post.in_batches(finish: 10, cursor: [:author_id, :id]) { }
+    end
+  end
+
+  def test_in_batches_with_custom_columns_raises_when_non_unique_columns
+    ActiveRecord::Base.schema_cache.clear!
+
+    # Non unique column.
+    assert_raises(ArgumentError, match: /must include a primary key/) do
+      Post.in_batches(cursor: :title) { }
+    end
+
+    # Primary key column.
+    assert_nothing_raised do
+      Post.in_batches(cursor: :id) { }
+    end
+
+    c = Post.lease_connection
+    c.add_index(:posts, :title)
+    ActiveRecord::Base.schema_cache.clear!
+
+    # Non unique indexed column.
+    assert_raises(ArgumentError, match: /must include a primary key/) do
+      Post.in_batches(cursor: :title) { }
+    end
+
+    c.remove_index(:posts, :title)
+
+    if current_adapter?(:PostgreSQLAdapter)
+      c.add_index(:posts, :title, unique: true, where: "id > 5")
+      ActiveRecord::Base.schema_cache.clear!
+
+      # Column having a unique, but partial, index.
+      assert_raises(ArgumentError, match: /must include a primary key/) do
+        Post.in_batches(cursor: :title) { }
+      end
+
+      c.remove_index(:posts, :title)
+    end
+
+    c.add_index(:posts, :title, unique: true)
+    ActiveRecord::Base.schema_cache.clear!
+    assert_nothing_raised do
+      Post.in_batches(cursor: :title) { }
+    end
+  ensure
+    c.remove_index(:posts, :title)
+  end
+
+  def test_in_batches_iterating_using_custom_columns
+    c = Post.lease_connection
+    c.add_index(:posts, :title, unique: true)
+    ActiveRecord::Base.schema_cache.clear!
+
+    expected_posts = Post.order(id: :desc).to_a
+    posts = []
+    Post.in_batches(of: 1, cursor: :id, order: :desc).each_record do |post|
+      posts << post
+    end
+
+    assert_equal expected_posts, posts
+  ensure
+    c.remove_index(:posts, :title)
   end
 
   def test_find_in_batches_should_return_a_sized_enumerator

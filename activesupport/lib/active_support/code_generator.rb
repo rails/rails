@@ -55,6 +55,11 @@ module ActiveSupport
       @path = path
       @line = line
       @namespaces = Hash.new { |h, k| h[k] = MethodSet.new(k) }
+      @sources = []
+    end
+
+    def class_eval
+      yield @sources
     end
 
     def define_cached_method(canonical_name, namespace:, as: nil, &block)
@@ -64,6 +69,10 @@ module ActiveSupport
     def execute
       @namespaces.each_value do |method_set|
         method_set.apply(@owner, @path, @line - 1)
+      end
+
+      unless @sources.empty?
+        @owner.class_eval("# frozen_string_literal: true\n" + @sources.join(";"), @path, @line - 1)
       end
     end
   end

@@ -58,10 +58,12 @@ module ActiveSupport
   eager_autoload do
     autoload :BacktraceCleaner
     autoload :ProxyObject
+    autoload :Benchmark
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
     autoload :Configurable
+    autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
     autoload :Digest
@@ -115,9 +117,15 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone=(value)
-    unless value
+    if !value
       ActiveSupport.deprecator.warn(
-        "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 8.0."
+        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.0. " \
+        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
+      )
+    elsif value != :zone
+      ActiveSupport.deprecator.warn(
+        "`to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.0. " \
+        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
       )
     end
 

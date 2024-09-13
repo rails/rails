@@ -448,10 +448,14 @@ module ActiveRecord
     # = Active Record Real \Transaction
     class RealTransaction < Transaction
       def materialize!
-        if isolation_level
-          connection.begin_isolated_db_transaction(isolation_level)
+        if joinable?
+          if isolation_level
+            connection.begin_isolated_db_transaction(isolation_level)
+          else
+            connection.begin_db_transaction
+          end
         else
-          connection.begin_db_transaction
+          connection.begin_deferred_transaction(isolation_level)
         end
 
         super
@@ -472,13 +476,19 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_db_transaction if materialized?
+        if materialized?
+          connection.rollback_db_transaction
+          connection.reset_isolation_level if isolation_level
+        end
         @state.full_rollback!
         @instrumenter.finish(:rollback) if materialized?
       end
 
       def commit
-        connection.commit_db_transaction if materialized?
+        if materialized?
+          connection.commit_db_transaction
+          connection.reset_isolation_level if isolation_level
+        end
         @state.full_commit!
         @instrumenter.finish(:commit) if materialized?
       end

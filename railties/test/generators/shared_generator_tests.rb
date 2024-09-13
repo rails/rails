@@ -279,6 +279,7 @@ module SharedGeneratorTests
     assert_gitattributes_does_not_have_schema_file
 
     assert_file "Gemfile" do |contents|
+      assert_no_match(/solid_cache/, contents)
       assert_no_match(/sqlite/, contents)
     end
   end
@@ -334,9 +335,6 @@ module SharedGeneratorTests
     run_generator [destination_root, "--skip-action-cable", "--webpack"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "#{application_path}/config/cable.yml"
-    assert_no_file "#{application_path}/app/javascript/consumer.js"
-    assert_no_directory "#{application_path}/app/javascript/channels"
-    assert_no_directory "#{application_path}/app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/"redis"/, content)
     end

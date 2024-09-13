@@ -175,7 +175,7 @@ of the files and folders that Rails creates by default:
 
 | File/Folder | Purpose |
 | ----------- | ------- |
-|app/|Contains the controllers, models, views, helpers, mailers, channels, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|app/|Contains the controllers, models, views, helpers, mailers, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |bin/|Contains the `rails` script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.|
 |config/|Contains configuration for your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack-based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
@@ -187,6 +187,7 @@ of the files and folders that Rails creates by default:
 |public/|Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
 |README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
+|script/|Contains one-off or general purpose [scripts](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/script/USAGE) and [benchmarks](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/benchmark/USAGE).|
 |storage/|Active Storage files for Disk Service. This is covered in [Active Storage Overview](active_storage_overview.html).|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
@@ -711,6 +712,7 @@ $ bin/rails routes
              POST   /articles(.:format)          articles#create
 edit_article GET    /articles/:id/edit(.:format) articles#edit
              PATCH  /articles/:id(.:format)      articles#update
+             PUT    /articles/:id(.:format)      articles#update
              DELETE /articles/:id(.:format)      articles#destroy
 ```
 
@@ -837,7 +839,7 @@ Let's create `app/views/articles/new.html.erb` with the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </div>
 
   <div>
@@ -925,7 +927,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -980,7 +982,7 @@ display any error messages for `title` and `body`:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %><br>
+    <%= form.textarea :body %><br>
     <% @article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
@@ -1103,7 +1105,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1144,7 +1146,7 @@ the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %><br>
+    <%= form.textarea :body %><br>
     <% article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
@@ -1260,7 +1262,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1490,7 +1492,7 @@ So first, we'll wire up the Article show template
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1514,7 +1516,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body)
+      params.expect(comment: [:commenter, :body])
     end
 end
 ```
@@ -1570,7 +1572,7 @@ add that to the `app/views/articles/show.html.erb`.
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1635,7 +1637,7 @@ following:
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1655,14 +1657,14 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_with model: [ @article, @article.comments.build ] do |form| %>
+<%= form_with model: [ article, article.comments.build ] do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1689,16 +1691,13 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= render 'comments/form' %>
+<%= render "comments/form", article: @article %>
 ```
 
 The second render just defines the partial template we want to render,
 `comments/form`. Rails is smart enough to spot the forward slash in that
 string and realize that you want to render the `_form.html.erb` file in
 the `app/views/comments` directory.
-
-The `@article` object is available to any partials rendered in the view because
-we defined it as an instance variable.
 
 ### Using Concerns
 
@@ -1740,7 +1739,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 
   private
     def article_params
-      params.require(:article).permit(:title, :body, :status)
+      params.expect(article: [:title, :body, :status])
     end
 ```
 
@@ -1750,7 +1749,7 @@ and in `app/controllers/comments_controller.rb`:
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.expect(comment: [:commenter, :body, :status])
     end
 ```
 
@@ -1996,7 +1995,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.expect(comment: [:commenter, :body, :status])
     end
 end
 ```

@@ -354,8 +354,8 @@ module ActiveRecord
           super
         elsif abstract_class?
           "#{super}(abstract)"
-        elsif !connected?
-          "#{super} (call '#{super}.lease_connection' to establish a connection)"
+        elsif !schema_loaded? && !connected?
+          "#{super} (call '#{super}.load_schema' to load schema informations)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
@@ -432,8 +432,8 @@ module ActiveRecord
               where(wheres).limit(1)
             }
 
-            begin
-              statement.execute(values.flatten, connection, allow_retry: true).first
+            statement.execute(values.flatten, connection, allow_retry: true).then do |r|
+              r.first
             rescue TypeError
               raise ActiveRecord::StatementInvalid
             end

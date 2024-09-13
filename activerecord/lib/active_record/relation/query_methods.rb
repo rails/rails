@@ -92,10 +92,11 @@ module ActiveRecord
             @scope.joins!(association)
           end
 
+          association_conditions = Array(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
-            self.not(association => { reflection.association_primary_key => nil })
+            self.not(association => association_conditions)
           else
-            self.not(reflection.table_name => { reflection.association_primary_key => nil })
+            self.not(reflection.table_name => association_conditions)
           end
         end
 
@@ -124,10 +125,11 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
+          association_conditions = Array(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
-            @scope.where!(association => { reflection.association_primary_key => nil })
+            @scope.where!(association => association_conditions)
           else
-            @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
+            @scope.where!(reflection.table_name => association_conditions)
           end
         end
 
@@ -174,7 +176,7 @@ module ActiveRecord
         end                                    # end
 
         def #{method_name}=(value)             # def includes_values=(value)
-          assert_mutability!                   #   assert_mutability!
+          assert_modifiable!                   #   assert_modifiable!
           @values[:#{name}] = value            #   @values[:includes] = value
         end                                    # end
       CODE
@@ -814,7 +816,7 @@ module ActiveRecord
           if !VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
-          assert_mutability!
+          assert_modifiable!
           @values.delete(scope)
         when Hash
           scope.each do |key, target_value|
@@ -1723,8 +1725,8 @@ module ActiveRecord
         )
       end
 
-      def assert_mutability!
-        raise ImmutableRelation if @loaded || @arel
+      def assert_modifiable!
+        raise UnmodifiableRelation if @loaded || @arel
       end
 
       def build_arel(connection, aliases = nil)

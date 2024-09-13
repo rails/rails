@@ -291,7 +291,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_loaded_relation
     topics = Topic.all.load
-    assert_no_queries do
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
       assert_predicate topics, :exists?
     end
   end
@@ -299,7 +299,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists_with_empty_loaded_relation
     Topic.delete_all
     topics = Topic.all.load
-    assert_no_queries do
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
       assert_not_predicate topics, :exists?
     end
   end
@@ -310,7 +310,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_not_empty posts
     posts.each(&:destroy)
 
-    assert_no_queries do
+    assert_queries_match(/SELECT 1 AS one/i) do
       assert_not_predicate posts, :exists?
     end
   end
@@ -1156,9 +1156,9 @@ class FinderTest < ActiveRecord::TestCase
     ClothingItem.implicit_order_column = "description"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
-    quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
+    quoted_description = Regexp.escape(c.quote_table_name("clothing_items.description"))
 
-    assert_queries_match(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{quoted_description} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure

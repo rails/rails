@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/book"
 require "models/clothing_item"
 
@@ -148,6 +149,29 @@ module ActiveRecord
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
 
+    def test_payload_row_count_on_cache
+      events = []
+      callback = -> (event) do
+        payload = event.payload
+        events << payload if payload[:sql].include?("SELECT")
+      end
+
+      Book.create!(name: "row count book")
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        Book.cache do
+          Book.first
+          Book.first
+        end
+      end
+
+      assert_equal 2, events.size
+      assert_not events[0][:cached]
+      assert events[1][:cached]
+
+      assert_equal 1, events[0][:row_count]
+      assert_equal 1, events[1][:row_count]
+    end
+
     def test_payload_connection_with_query_cache_disabled
       connection = ClothingItem.lease_connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
@@ -167,6 +191,22 @@ module ActiveRecord
         Book.first
         Book.first
       end
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_no_instantiation_notification_when_no_records
+      author = Author.create!(id: 100, name: "David")
+
+      called = false
+      subscriber = ActiveSupport::Notifications.subscribe("instantiation.active_record") do
+        called = true
+      end
+
+      Author.where(id: 0).to_a
+      author.books.to_a
+
+      assert_equal false, called
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end

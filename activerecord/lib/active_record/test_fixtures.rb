@@ -137,12 +137,15 @@ module ActiveRecord
           invalidate_already_loaded_fixtures
           @loaded_fixtures = load_fixtures(config)
         end
+        setup_asynchronous_queries_session
 
         # Instantiate fixtures for every test if requested.
         instantiate_fixtures if use_instantiated_fixtures
       end
 
       def teardown_fixtures
+        teardown_asynchronous_queries_session
+
         # Rollback changes if a transaction is active.
         if run_in_transaction?
           teardown_transactional_fixtures
@@ -152,6 +155,14 @@ module ActiveRecord
         end
 
         ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
+      end
+
+      def setup_asynchronous_queries_session
+        @_async_queries_session = ActiveRecord::Base.asynchronous_queries_tracker.start_session
+      end
+
+      def teardown_asynchronous_queries_session
+        ActiveRecord::Base.asynchronous_queries_tracker.finalize_session(true) if @_async_queries_session
       end
 
       def invalidate_already_loaded_fixtures
@@ -190,6 +201,7 @@ module ActiveRecord
 
       def teardown_transactional_fixtures
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
+
         unless @fixture_connection_pools.map(&:unpin_connection!).all?
           # Something caused the transaction to be committed or rolled back
           # We can no longer trust the database is in a clean state.

@@ -43,6 +43,12 @@ module ActiveSupport
       end
     end
 
+    class InvalidKeyError < RuntimeError
+      def initialize(content_path, key)
+        super "Key '#{key}' is invalid, it must respond to '#to_sym' from configuration in '#{content_path}'."
+      end
+    end
+
     delegate_missing_to :options
 
     def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
@@ -61,7 +67,11 @@ module ActiveSupport
     end
 
     def validate! # :nodoc:
-      deserialize(read)
+      deserialize(read).each_key do |key|
+        key.to_sym
+      rescue NoMethodError
+        raise InvalidKeyError.new(content_path, key)
+      end
     end
 
     # Returns the decrypted content as a Hash with symbolized keys.
@@ -73,7 +83,7 @@ module ActiveSupport
     #   # => { some_secret: 123, some_namespace: { another_secret: 789 } }
     #
     def config
-      @config ||= deserialize(read).deep_symbolize_keys
+      @config ||= deep_symbolize_keys(deserialize(read))
     end
 
     def inspect # :nodoc:
@@ -81,6 +91,14 @@ module ActiveSupport
     end
 
     private
+      def deep_symbolize_keys(hash)
+        hash.deep_transform_keys do |key|
+          key.to_sym
+        rescue NoMethodError
+          raise InvalidKeyError.new(content_path, key)
+        end
+      end
+
       def deep_transform(hash)
         return hash unless hash.is_a?(Hash)
 

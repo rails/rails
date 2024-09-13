@@ -790,7 +790,7 @@ module ApplicationTests
 
     test "application will generate secret_key_base in tmp file if blank in development" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.credentials.secret_key_base = nil
+        Rails.application.config.secret_key_base = nil
       RUBY
 
       # For test that works even if tmp dir does not exist.
@@ -804,7 +804,7 @@ module ApplicationTests
 
     test "application will generate secret_key_base in tmp file if blank in test" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.credentials.secret_key_base = nil
+        Rails.application.config.secret_key_base = nil
       RUBY
 
       # For test that works even if tmp dir does not exist.
@@ -1581,7 +1581,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render plain: params.require(:post).permit(:name)
+          render plain: params.permit(post: [:name])
         end
       end
       RUBY
@@ -1602,6 +1602,33 @@ module ApplicationTests
 
       post "/posts", post: { "title" => "zomg" }
       assert_match "We're sorry, but something went wrong", last_response.body
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters = :raise is ignored with expect" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render plain: params.expect(post: [:name])
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      app "development"
+
+      require "action_controller/base"
+      require "action_controller/api"
+
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", post: { "title" => "zomg" }
+      assert_match "The server cannot process the request due to a client error", last_response.body
     end
 
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
@@ -3358,6 +3385,25 @@ module ApplicationTests
       assert_equal 308, Rails.application.config.action_dispatch.ssl_default_redirect_status
     end
 
+    test "Rails.application.config.action_dispatch.strict_freshness is false by default for older applications" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app "development"
+
+      assert_equal false, Rails.application.config.action_dispatch.strict_freshness
+    end
+
+    test "Rails.application.config.action_dispatch.strict_freshness can be configured in an initializer" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config <<-RUBY
+        config.action_dispatch.strict_freshness = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionDispatch::Http::Cache::Request.strict_freshness
+    end
+
+
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config <<-RUBY
@@ -3710,6 +3756,29 @@ module ApplicationTests
 
       assert_not_includes Post.filter_attributes, :content
       assert_not_includes ActiveRecord::Base.filter_attributes, :content
+    end
+
+    test "ActiveRecord::Encryption.config is ready when accessed before loading ActiveRecord::Base" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = false
+
+        config.active_record.encryption.primary_key = "dummy_key"
+        config.active_record.encryption.extend_queries = true
+      RUBY
+
+      app "development"
+
+      # Encryption config is ready to be accessed
+      assert_equal "dummy_key", ActiveRecord::Encryption.config.primary_key
+      assert ActiveRecord::Encryption.config.extend_queries
+
+      # ActiveRecord::Base is not loaded yet (lazy loading preserved)
+      active_record_loaded = ActiveRecord.autoload?(:Base).nil?
+      assert_not active_record_loaded
+
+      # When ActiveRecord::Base loaded, extended queries should be installed
+      assert ActiveRecord::Base.include?(ActiveRecord::Encryption::ExtendedDeterministicQueries::CoreQueries)
     end
 
     test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is lazy loaded" do
@@ -4614,6 +4683,36 @@ module ApplicationTests
       assert_includes last_response.body, "rescued missing translation error from view"
     end
 
+    test "raise_on_missing_translations = :strict affects human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = :strict"
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+
+      assert_raises I18n::MissingTranslationData do
+        Post.human_attribute_name("title")
+      end
+    end
+
+    test "raise_on_missing_translations = true does not affect human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+
+      assert_nothing_raised do
+        Post.human_attribute_name("title")
+      end
+    end
+
     test "dom testing uses the HTML5 parser in new apps if it is supported" do
       app "development"
       expected = defined?(Nokogiri::HTML5) ? :html5 : :html4
@@ -4686,6 +4785,14 @@ module ApplicationTests
 
       assert_equal "potato", ActiveRecord::Base.lease_connection.pool.db_config.adapter
       assert_equal "SQLite", ActiveRecord::Base.lease_connection.adapter_name
+    end
+
+    test "In development mode, config.active_record.query_log_tags_enabled is true by default" do
+      restore_default_config
+
+      app "development"
+
+      assert Rails.application.config.active_record.query_log_tags_enabled
     end
 
     ["development", "production"].each do |env|

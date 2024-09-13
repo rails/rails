@@ -51,5 +51,9 @@ module RailsGuides
       c = capture(&block)
       content_tag(:code, c)
     end
+
+    def digest_path(original_filename)
+      @digest_paths[original_filename] || original_filename
+    end
   end
 end

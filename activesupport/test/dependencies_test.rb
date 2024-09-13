@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
-require "pp"
 require "active_support/dependencies"
 
 module ModuleWithMissing

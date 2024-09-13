@@ -88,6 +88,13 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
     assert_equal ActiveRecord::Point.new(1, 2), p.x
   end
 
+  def test_hash_assignment
+    p = PostgresqlPoint.new(x: { x: 1, y: 2 }, y: { "x" => 3, "y" => 4 })
+
+    assert_equal ActiveRecord::Point.new(1, 2), p.x
+    assert_equal ActiveRecord::Point.new(3, 4), p.y
+  end
+
   def test_string_assignment
     p = PostgresqlPoint.new(x: "(1, 2)")
 

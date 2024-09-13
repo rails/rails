@@ -32,6 +32,10 @@ module ActiveRecord
           end
         end
 
+        def ==(other)
+          other.is_a?(self.class) && __getobj__ == other.__getobj__
+        end
+
         private
           def convert_time_to_time_zone(value)
             return if value.nil?

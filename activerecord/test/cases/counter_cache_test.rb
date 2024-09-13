@@ -444,7 +444,7 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_not Car.counter_cache_column?("cars_count")
   end
 
-  test "inactive conter cache" do
+  test "inactive counter cache" do
     car = Car.new
     car.bulbs = [Bulb.new, Bulb.new]
     car.save!
@@ -461,7 +461,7 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
-  test "active conter cache" do
+  test "active counter cache" do
     car = Car.new
     car.tyres = [Tyre.new, Tyre.new]
     car.save!

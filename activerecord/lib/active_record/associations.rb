@@ -379,21 +379,43 @@ module ActiveRecord
       #              after_add: :congratulate_client,
       #              after_remove: :log_after_remove
       #
-      #     def congratulate_client(record)
+      #     def congratulate_client(client)
       #       # ...
       #     end
       #
-      #     def log_after_remove(record)
+      #     def log_after_remove(client)
       #       # ...
       #     end
       #   end
       #
+      # Callbacks can be defined in three ways:
+      #
+      # 1. A symbol that references a method defined on the class with the
+      #    associated collection. For example, <tt>after_add: :congratulate_client</tt>
+      #    invokes <tt>Firm#congratulate_client(client)</tt>.
+      # 2. A callable with a signature that accepts both the record with the
+      #    associated collection and the record being added or removed. For
+      #    example, <tt>after_add: ->(firm, client) { ... }</tt>.
+      # 3. An object that responds to the callback name. For example, passing
+      #    <tt>after_add: CallbackObject.new</tt> invokes <tt>CallbackObject#after_add(firm,
+      #    client)</tt>.
+      #
       # It's possible to stack callbacks by passing them as an array. Example:
+      #
+      #   class CallbackObject
+      #     def after_add(firm, client)
+      #       firm.log << "after_adding #{client.id}"
+      #     end
+      #   end
       #
       #   class Firm < ActiveRecord::Base
       #     has_many :clients,
       #              dependent: :destroy,
-      #              after_add: [:congratulate_client, -> (firm, record) { firm.log << "after_adding#{record.id}" }],
+      #              after_add: [
+      #                :congratulate_client,
+      #                -> (firm, client) { firm.log << "after_adding #{client.id}" },
+      #                CallbackObject.new
+      #              ],
       #              after_remove: :log_after_remove
       #   end
       #
@@ -1244,13 +1266,21 @@ module ActiveRecord
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
         #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
-        # [:index_errors]
+        # [+:index_errors+]
         #   Allows differentiation of multiple validation errors from the association records, by including
-        #   an index in the error attribute name, e.g. `roles[2].level`.
+        #   an index in the error attribute name, e.g. +roles[2].level+.
         #   When set to +true+, the index is based on association order, i.e. database order, with yet to be
         #   persisted new records placed at the end.
         #   When set to +:nested_attributes_order+, the index is based on the record order received by
         #   nested attributes setter, when accepts_nested_attributes_for is used.
+        # [:before_add]
+        #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>before an object is added</b> to the association collection.
+        # [:after_add]
+        #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>after an object is added</b> to the association collection.
+        # [:before_remove]
+        #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>before an object is removed</b> from the association collection.
+        # [:after_remove]
+        #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>after an object is removed</b> from the association collection.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }

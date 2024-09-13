@@ -27,8 +27,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/Rakefile
   test/dummy/app/assets/images/.keep
   test/dummy/app/assets/stylesheets/application.css
-  test/dummy/app/channels/application_cable/channel.rb
-  test/dummy/app/channels/application_cable/connection.rb
   test/dummy/app/controllers/application_controller.rb
   test/dummy/app/controllers/concerns/.keep
   test/dummy/app/helpers/application_helper.rb
@@ -41,6 +39,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/app/views/layouts/mailer.text.erb
   test/dummy/app/views/pwa/manifest.json.erb
   test/dummy/app/views/pwa/service-worker.js
+  test/dummy/bin/dev
   test/dummy/bin/rails
   test/dummy/bin/rake
   test/dummy/bin/setup
@@ -56,13 +55,12 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/initializers/content_security_policy.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
-  test/dummy/config/initializers/permissions_policy.rb
   test/dummy/config/locales/en.yml
   test/dummy/config/puma.rb
   test/dummy/config/routes.rb
   test/dummy/config/storage.yml
-  test/dummy/lib/assets/.keep
   test/dummy/log/.keep
+  test/dummy/public/400.html
   test/dummy/public/404.html
   test/dummy/public/406-unsupported-browser.html
   test/dummy/public/422.html

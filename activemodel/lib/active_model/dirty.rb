@@ -256,7 +256,8 @@ module ActiveModel
     end
 
     def as_json(options = {}) # :nodoc:
-      options[:except] = [*options[:except], "mutations_from_database", "mutations_before_last_save"]
+      except = [*options[:except], "mutations_from_database", "mutations_before_last_save"]
+      options = options.merge except: except
       super(options)
     end
 

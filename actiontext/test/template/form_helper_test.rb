@@ -25,10 +25,10 @@ class ActionText::FormHelperTest < ActionView::TestCase
     )
   end
 
-  test "#rich_text_area_tag helper" do
+  test "#rich_textarea_tag helper" do
     message = Message.new
 
-    concat rich_text_area_tag :content, message.content, { input: "trix_input_1" }
+    concat rich_textarea_tag :content, message.content, { input: "trix_input_1" }
 
     assert_dom_equal \
       '<input type="hidden" name="content" id="trix_input_1" autocomplete="off" />' \
@@ -37,8 +37,8 @@ class ActionText::FormHelperTest < ActionView::TestCase
       output_buffer
   end
 
-  test "#rich_text_area helper" do
-    concat rich_text_area :message, :content, input: "trix_input_1"
+  test "#rich_textarea helper" do
+    concat rich_textarea :message, :content, input: "trix_input_1"
 
     assert_dom_equal \
       '<input type="hidden" name="message[content]" id="trix_input_1" autocomplete="off" />' \
@@ -47,10 +47,10 @@ class ActionText::FormHelperTest < ActionView::TestCase
       output_buffer
   end
 
-  test "#rich_text_area helper renders the :value argument into the hidden field" do
+  test "#rich_textarea helper renders the :value argument into the hidden field" do
     message = Message.new content: "<h1>hello world</h1>"
 
-    concat rich_text_area :message, :title, value: message.content, input: "trix_input_1"
+    concat rich_textarea :message, :title, value: message.content, input: "trix_input_1"
 
     assert_dom_equal \
       '<input type="hidden" name="message[title]" id="trix_input_1" value="&lt;h1&gt;hello world&lt;/h1&gt;" autocomplete="off" />' \
@@ -61,7 +61,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "form with rich text area" do
     form_with model: Message.new, scope: :message do |form|
-      form.rich_text_area :content
+      form.rich_textarea :content
     end
 
     assert_dom_equal \
@@ -75,7 +75,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "form with rich text area having class" do
     form_with model: Message.new, scope: :message do |form|
-      form.rich_text_area :content, class: "custom-class"
+      form.rich_textarea :content, class: "custom-class"
     end
 
     assert_dom_equal \
@@ -92,7 +92,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
     message.errors.add(:content, :blank)
 
     form_with model: message, scope: :message do |form|
-      form.rich_text_area :content
+      form.rich_textarea :content
     end
 
     assert_dom_equal \
@@ -108,7 +108,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "form with rich text area for non-attribute" do
     form_with model: Message.new, scope: :message do |form|
-      form.rich_text_area :not_an_attribute
+      form.rich_textarea :not_an_attribute
     end
 
     assert_dom_equal \
@@ -122,7 +122,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "modelless form with rich text area" do
     form_with url: "/messages", scope: :message do |form|
-      form.rich_text_area :content, { input: "trix_input_2" }
+      form.rich_textarea :content, { input: "trix_input_2" }
     end
 
     assert_dom_equal \
@@ -136,7 +136,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "form with rich text area having placeholder without locale" do
     form_with model: Message.new, scope: :message do |form|
-      form.rich_text_area :content, placeholder: true
+      form.rich_textarea :content, placeholder: true
     end
 
     assert_dom_equal \
@@ -151,7 +151,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
   test "form with rich text area having placeholder with locale" do
     I18n.with_locale :placeholder do
       form_with model: Message.new, scope: :message do |form|
-        form.rich_text_area :title, placeholder: true
+        form.rich_textarea :title, placeholder: true
       end
     end
 
@@ -166,7 +166,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "form with rich text area with value" do
     form_with model: Message.new, scope: :message do |form|
-      form.rich_text_area :title, value: "<h1>hello world</h1>"
+      form.rich_textarea :title, value: "<h1>hello world</h1>"
     end
 
     assert_dom_equal \
@@ -180,7 +180,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "form with rich text area with form attribute" do
     form_with model: Message.new, scope: :message do |form|
-      form.rich_text_area :title, form: "other_form"
+      form.rich_textarea :title, form: "other_form"
     end
 
     assert_dom_equal \
@@ -194,7 +194,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "form with rich text area with data[direct_upload_url]" do
     form_with model: Message.new, scope: :message do |form|
-      form.rich_text_area :content, data: { direct_upload_url: "http://test.host/direct_uploads" }
+      form.rich_textarea :content, data: { direct_upload_url: "http://test.host/direct_uploads" }
     end
 
     assert_dom_equal \
@@ -208,7 +208,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
 
   test "form with rich text area with data[blob_url_template]" do
     form_with model: Message.new, scope: :message do |form|
-      form.rich_text_area :content, data: { blob_url_template: "http://test.host/blobs/:signed_id/:filename" }
+      form.rich_textarea :content, data: { blob_url_template: "http://test.host/blobs/:signed_id/:filename" }
     end
 
     assert_dom_equal \

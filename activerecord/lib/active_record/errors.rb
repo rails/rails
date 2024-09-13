@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+require "active_support/deprecation"
+
 module ActiveRecord
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
   # = Active Record Errors
   #
   # Generic Active Record exception class.
@@ -78,6 +82,19 @@ module ActiveRecord
   # acquisition timeout period: because max connections in pool
   # are in use.
   class ConnectionTimeoutError < ConnectionNotEstablished
+  end
+
+  # Raised when a database connection pool is requested but
+  # has not been defined.
+  class ConnectionNotDefined < ConnectionNotEstablished
+    def initialize(message = nil, connection_name: nil, role: nil, shard: nil)
+      super(message)
+      @connection_name = connection_name
+      @role = role
+      @shard = shard
+    end
+
+    attr_reader :connection_name, :role, :shard
   end
 
   # Raised when connection to the database could not been established because it was not
@@ -476,9 +493,9 @@ module ActiveRecord
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.
-  #   relation.where!(title: 'TODO')  # => ActiveRecord::ImmutableRelation
-  #   relation.limit!(5)              # => ActiveRecord::ImmutableRelation
-  class ImmutableRelation < ActiveRecordError
+  #   relation.where!(title: 'TODO')  # => ActiveRecord::UnmodifiableRelation
+  #   relation.limit!(5)              # => ActiveRecord::UnmodifiableRelation
+  class UnmodifiableRelation < ActiveRecordError
   end
 
   # TransactionIsolationError will be raised under the following conditions:

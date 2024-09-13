@@ -59,6 +59,18 @@ class TestJSONEncoding < ActiveSupport::TestCase
     ActiveSupport.escape_html_entities_in_json = false
   end
 
+  def test_hash_keys_encoding_option
+    global_config = ActiveSupport.escape_html_entities_in_json
+
+    ActiveSupport.escape_html_entities_in_json = true
+    assert_equal "{\"<>\":\"<>\"}", ActiveSupport::JSON.encode({ "<>" => "<>" }, escape_html_entities: false)
+
+    ActiveSupport.escape_html_entities_in_json = false
+    assert_equal "{\"\\u003c\\u003e\":\"\\u003c\\u003e\"}", ActiveSupport::JSON.encode({ "<>" => "<>" }, escape_html_entities: true)
+  ensure
+    ActiveSupport.escape_html_entities_in_json = global_config
+  end
+
   def test_utf8_string_encoded_properly
     result = ActiveSupport::JSON.encode("€2.99")
     assert_equal '"€2.99"', result

@@ -238,6 +238,11 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render(message: "Hello", implicit_locals: %i[message])
   end
 
+  def test_rails_local_assigns_and_strict_locals
+    @template = new_template("<%# locals: (class: ) -%>\n<%= local_assigns[:class] %>")
+    assert_equal "some-class", render(class: "some-class", implicit_locals: %i[message])
+  end
+
   def test_rails_injected_locals_can_be_specified_as_kwargs
     @template = new_template("<%# locals: (message: 'Hello', **kwargs) -%>\n<%= kwargs[:message_counter] %>-<%= kwargs[:message_iteration] %>")
     assert_equal "1-2", render(message: "Hello", message_counter: 1, message_iteration: 2, implicit_locals: %i[message_counter message_iteration])

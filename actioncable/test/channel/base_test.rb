@@ -242,6 +242,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
       assert_equal 1, events.length
       assert_equal "transmit_subscription_confirmation.action_cable", events[0].name
       assert_equal "ActionCable::Channel::BaseTest::ChatChannel", events[0].payload[:channel_class]
+      assert_equal "{id: 1}", events[0].payload[:identifier]
     end
   ensure
     ActiveSupport::Notifications.unsubscribe "transmit_subscription_confirmation.action_cable"
@@ -256,6 +257,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     assert_equal 1, events.length
     assert_equal "transmit_subscription_rejection.action_cable", events[0].name
     assert_equal "ActionCable::Channel::BaseTest::ChatChannel", events[0].payload[:channel_class]
+    assert_equal "{id: 1}", events[0].payload[:identifier]
   ensure
     ActiveSupport::Notifications.unsubscribe "transmit_subscription_rejection.action_cable"
   end

@@ -10,6 +10,8 @@ intermediate whitespace looks uniform. */
 
 .interstitial,
 dl dd .interstitial {
+  display: flex;
+  align-items: center;
   background-repeat: no-repeat;
   background-size: 36px 36px;
   border-radius: $base-border-radius;

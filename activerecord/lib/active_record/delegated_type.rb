@@ -220,6 +220,14 @@ module ActiveRecord
     # [:primary_key]
     #   Specify the method that returns the primary key of associated object used for the convenience methods.
     #   By default this is +id+.
+    # [+:inverse_of+]
+    #   Specifies the name of the #belongs_to association on the associated object
+    #   that is the inverse of this #has_one association. By default, the class
+    #   singularized class name is used unless a <tt>:foreign_key</tt> option is
+    #   also provided. For example, a call to
+    #   <tt>Entry.delegated_type</tt> will default to <tt>inverse_of: :entry</tt>.
+    #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional
+    #   associations for more detail.
     #
     # Option examples:
     #   class Entry < ApplicationRecord
@@ -229,6 +237,8 @@ module ActiveRecord
     #   Entry#message_uuid      # => returns entryable_uuid, when entryable_type == "Message", otherwise nil
     #   Entry#comment_uuid      # => returns entryable_uuid, when entryable_type == "Comment", otherwise nil
     def delegated_type(role, types:, **options)
+      options[:inverse_of] = model_name.singular unless options.key?(:inverse_of) || options.key?(:foreign_key)
+
       belongs_to role, options.delete(:scope), **options.merge(polymorphic: true)
       define_delegated_type_methods role, types: types, options: options
     end

@@ -201,6 +201,11 @@ body.guide {
     a:visited {
       color: $rf-brand;
     } // a, a:link, a:visited
+
+    code {
+      font-size: 2rem;
+      font-weight: 400;
+    }
   } // h2
 
   h3, h2.chapter {
@@ -725,7 +730,6 @@ body.guide {
     display: block;
     border-radius: $base-border-radius;
     color: $gray-900;
-    height: 61em;
     padding: 2em 2em 1.5em 2em;
     position: absolute;
     top: 25px;

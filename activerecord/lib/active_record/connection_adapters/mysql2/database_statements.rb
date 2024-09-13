@@ -6,62 +6,17 @@ module ActiveRecord
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
         def select_all(*, **) # :nodoc:
-          result = nil
-          with_raw_connection do |conn|
-            result = if ExplainRegistry.collect? && prepared_statements
-              unprepared_statement { super }
-            else
-              super
-            end
-            conn.abandon_results!
-          end
-          result
-        end
-
-        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
-          if without_prepared_statement?(binds)
-            execute_and_free(sql, name, async: async, allow_retry: allow_retry) do |result|
-              if result
-                build_result(columns: result.fields, rows: result.to_a)
-              else
-                build_result(columns: [], rows: [])
-              end
-            end
+          if ExplainRegistry.collect? && prepared_statements
+            unprepared_statement { super }
           else
-            exec_stmt_and_free(sql, name, binds, cache_stmt: prepare, async: async) do |_, result|
-              if result
-                build_result(columns: result.fields, rows: result.to_a)
-              else
-                build_result(columns: [], rows: [])
-              end
-            end
+            super
           end
         end
-
-        def exec_delete(sql, name = nil, binds = []) # :nodoc:
-          if without_prepared_statement?(binds)
-            with_raw_connection do |conn|
-              @affected_rows_before_warnings = nil
-              execute_and_free(sql, name) { @affected_rows_before_warnings || conn.affected_rows }
-            end
-          else
-            exec_stmt_and_free(sql, name, binds) { |stmt| stmt.affected_rows }
-          end
-        end
-        alias :exec_update :exec_delete
 
         private
-          def sync_timezone_changes(raw_connection)
-            raw_connection.query_options[:database_timezone] = default_timezone
-          end
-
-          def execute_batch(statements, name = nil)
-            statements = statements.map { |sql| transform_query(sql) }
+          def execute_batch(statements, name = nil, **kwargs)
             combine_multi_statements(statements).each do |statement|
-              with_raw_connection do |conn|
-                raw_execute(statement, name)
-                conn.abandon_results!
-              end
+              raw_execute(statement, name, batch: true, **kwargs)
             end
           end
 
@@ -83,73 +38,57 @@ module ActiveRecord
             end
           end
 
-          def with_multi_statements
-            if multi_statements_enabled?
-              return yield
+          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+            reset_multi_statement = if batch && !multi_statements_enabled?
+              raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+              true
             end
 
-            with_raw_connection do |conn|
-              conn.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+            # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
+            # made since we established the connection
+            raw_connection.query_options[:database_timezone] = default_timezone
 
-              yield
-            ensure
-              conn.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+            result = if prepare
+              stmt = @statements[sql] ||= raw_connection.prepare(sql)
+
+              begin
+                ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                  stmt.execute(*type_casted_binds)
+                end
+              rescue ::Mysql2::Error
+                @statements.delete(sql)
+                stmt.close
+                raise
+              end
+              verified!
+            else
+              raw_connection.query(sql)
+            end
+
+            notification_payload[:row_count] = result&.size || 0
+
+            @affected_rows_before_warnings = raw_connection.affected_rows
+            raw_connection.abandon_results!
+
+            verified!
+            handle_warnings(sql)
+            result
+          ensure
+            if reset_multi_statement && active?
+              raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
             end
           end
 
-          def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-            log(sql, name, async: async) do |notification_payload|
-              with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-                sync_timezone_changes(conn)
-                result = conn.query(sql)
-                verified!
-                handle_warnings(sql)
-                notification_payload[:row_count] = result&.size || 0
-                result
-              end
+          def cast_result(result)
+            if result.nil? || result.fields.empty?
+              ActiveRecord::Result.empty
+            else
+              ActiveRecord::Result.new(result.fields, result.to_a)
             end
           end
 
-          def exec_stmt_and_free(sql, name, binds, cache_stmt: false, async: false)
-            sql = transform_query(sql)
-            check_if_write_query(sql)
-
-            mark_transaction_written_if_write(sql)
-
-            type_casted_binds = type_casted_binds(binds)
-
-            log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-              with_raw_connection do |conn|
-                sync_timezone_changes(conn)
-
-                if cache_stmt
-                  stmt = @statements[sql] ||= conn.prepare(sql)
-                else
-                  stmt = conn.prepare(sql)
-                end
-
-                begin
-                  result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                    stmt.execute(*type_casted_binds)
-                  end
-                  verified!
-                  result
-                rescue ::Mysql2::Error => e
-                  if cache_stmt
-                    @statements.delete(sql)
-                  else
-                    stmt.close
-                  end
-                  raise e
-                end
-
-                ret = yield stmt, result
-                notification_payload[:row_count] = result&.size || 0
-                result.free if result
-                stmt.close unless cache_stmt
-                ret
-              end
-            end
+          def affected_rows(result)
+            @affected_rows_before_warnings
           end
       end
     end

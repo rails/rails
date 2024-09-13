@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require "benchmark"
 require "set"
-require "zlib"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
@@ -715,13 +713,7 @@ module ActiveRecord
 
       def load_schema_if_pending!
         if any_schema_needs_update?
-          # Roundtrip to Rake to allow plugins to hook into database initialization.
-          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
-
-          FileUtils.cd(root) do
-            Base.connection_handler.clear_all_connections!(:all)
-            system("bin/rails db:test:prepare")
-          end
+          load_schema!
         end
 
         check_pending_migrations
@@ -784,6 +776,16 @@ module ActiveRecord
 
         def env
           ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        end
+
+        def load_schema!
+          # Roundtrip to Rake to allow plugins to hook into database initialization.
+          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+
+          FileUtils.cd(root) do
+            Base.connection_handler.clear_all_connections!(:all)
+            system("bin/rails db:test:prepare")
+          end
         end
     end
 
@@ -972,16 +974,16 @@ module ActiveRecord
       when :down then announce "reverting"
       end
 
-      time = nil
+      time_elapsed = nil
       ActiveRecord::Tasks::DatabaseTasks.migration_connection.pool.with_connection do |conn|
-        time = Benchmark.measure do
+        time_elapsed = ActiveSupport::Benchmark.realtime do
           exec_migration(conn, direction)
         end
       end
 
       case direction
-      when :up   then announce "migrated (%.4fs)" % time.real; write
-      when :down then announce "reverted (%.4fs)" % time.real; write
+      when :up   then announce "migrated (%.4fs)" % time_elapsed; write
+      when :down then announce "reverted (%.4fs)" % time_elapsed; write
       end
     end
 
@@ -1022,8 +1024,8 @@ module ActiveRecord
     def say_with_time(message)
       say(message)
       result = nil
-      time = Benchmark.measure { result = yield }
-      say "%.4fs" % time.real, :subitem
+      time_elapsed = ActiveSupport::Benchmark.realtime { result = yield }
+      say "%.4fs" % time_elapsed, :subitem
       say("#{result} rows", :subitem) if result.is_a?(Integer)
       result
     end

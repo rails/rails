@@ -173,9 +173,12 @@ module ActiveSupport
         return {} if names.empty?
 
         options = names.extract_options!
-        instrument_multi(:read_multi, names, options) do |payload|
+        options = merged_options(options)
+        keys    = names.map { |name| normalize_key(name, options) }
+
+        instrument_multi(:read_multi, keys, options) do |payload|
           read_multi_entries(names, **options).tap do |results|
-            payload[:hits] = results.keys
+            payload[:hits] = results.keys.map { |name| normalize_key(name, options) }
           end
         end
       end

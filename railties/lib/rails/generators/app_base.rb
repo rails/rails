@@ -99,6 +99,9 @@ module Rails
         class_option :skip_dev_gems,       type: :boolean, default: nil,
                                            desc: "Skip development gems (e.g., web-console)"
 
+        class_option :skip_thruster,       type: :boolean, default: nil,
+                                           desc: "Skip Thruster setup"
+
         class_option :skip_rubocop,        type: :boolean, default: nil,
                                            desc: "Skip RuboCop setup"
 
@@ -108,13 +111,16 @@ module Rails
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
-        class_option :skip_kamal,          type: :boolean, default: false,
+        class_option :skip_kamal,          type: :boolean, default: nil,
                                            desc: "Skip Kamal setup"
+
+        class_option :skip_solid,          type: :boolean, default: nil,
+                                           desc: "Skip Solid Cache & Queue setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :devcontainer,        type: :boolean, default: false,
+        class_option :devcontainer,        type: :boolean, default: nil,
                                            desc: "Generate devcontainer files"
 
         class_option :edge,                type: :boolean, default: nil,
@@ -200,7 +206,7 @@ module Rails
 
       OPTION_IMPLICATIONS = { # :nodoc:
         skip_active_job:     [:skip_action_mailer, :skip_active_storage],
-        skip_active_record:  [:skip_active_storage],
+        skip_active_record:  [:skip_active_storage, :skip_solid],
         skip_active_storage: [:skip_action_mailbox, :skip_action_text],
         skip_javascript:     [:skip_hotwire],
       }
@@ -397,6 +403,10 @@ module Rails
         skip_asset_pipeline? || options[:asset_pipeline] != "propshaft"
       end
 
+      def skip_thruster?
+        options[:skip_thruster]
+      end
+
       def skip_rubocop?
         options[:skip_rubocop]
       end
@@ -419,6 +429,10 @@ module Rails
 
       def skip_kamal?
         options[:skip_kamal]
+      end
+
+      def skip_solid?
+        options[:skip_solid]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -579,7 +593,7 @@ module Rails
       end
 
       def dockerfile_base_packages
-        # Add curl to work with the default healthcheck strategy in Kamal
+        # Add curl to work with the default health check strategy in Kamal
         packages = ["curl"]
 
         # ActiveRecord databases
@@ -737,6 +751,15 @@ module Rails
         remove_file ".env"
         template "env.erb", ".env.erb"
         template "config/deploy.yml", force: true
+      end
+
+      def run_solid
+        return if skip_solid? || !bundle_install?
+
+        commands = "solid_cache:install solid_queue:install"
+        commands += " solid_cable:install" unless skip_action_cable?
+
+        rails_command commands
       end
 
       def add_bundler_platforms

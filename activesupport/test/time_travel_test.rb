@@ -174,6 +174,20 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_time_helper_travel_to_with_string_and_milliseconds
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+          travel_to "2004-11-24T01:04:44.123-05:00" do
+            assert_equal expected_time, Time.zone.now
+          end
+        end
+      end
+    end
+  end
+
   def test_time_helper_travel_to_with_separate_class
     travel_object = TravelClass.new
     date1 = Date.new(2004, 11, 24)
@@ -327,6 +341,93 @@ class TimeTravelTest < ActiveSupport::TestCase
       end
     ensure
       travel_back
+    end
+  end
+
+  def test_time_helper_travel_to_with_datetime_and_usec
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          duration_usec = 0.1.seconds
+          traveled_time = DateTime.iso8601("2004-11-24T01:04:44.000-05:00") + duration_usec
+          expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+          assert_nothing_raised do
+            travel_to traveled_time
+
+            assert_equal expected_time, Time.zone.now
+
+            travel_back
+          end
+        ensure
+          travel_back
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_datetime_and_usec_true
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          duration_usec = 0.1.seconds
+          traveled_time = DateTime.iso8601("2004-11-24T01:04:44.000-05:00") + duration_usec
+          expected_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+
+          assert_nothing_raised do
+            travel_to traveled_time, with_usec: true
+
+            assert_equal expected_time, Time.now
+
+            travel_back
+          end
+        ensure
+          travel_back
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_string_and_usec
+    with_tz_default ActiveSupport::TimeZone["UTC"] do
+      Time.stub(:now, Time.now) do
+        duration_usec = 0.1.seconds
+        traveled_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+        expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+        assert_nothing_raised do
+          travel_to traveled_time.iso8601(3)
+
+          assert_equal expected_time, Time.now
+
+          travel_back
+        end
+      ensure
+        travel_back
+      end
+    end
+  end
+
+  def  test_time_helper_travel_to_with_string_and_usec_true
+    with_tz_default ActiveSupport::TimeZone["UTC"] do
+      Time.stub(:now, Time.now) do
+        duration_usec = 0.1.seconds
+        expected_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+
+        assert_nothing_raised do
+          travel_to expected_time.iso8601(3), with_usec: true
+
+          assert_equal expected_time.to_f, Time.now.to_f
+
+          travel 0.5, with_usec: true
+
+          assert_equal((expected_time + 0.5).to_f, Time.now.to_f)
+
+          travel_back
+        end
+      ensure
+        travel_back
+      end
     end
   end
 

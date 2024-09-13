@@ -4,19 +4,30 @@ module ActiveRecord
   module AttributeAssignment
     private
       def _assign_attributes(attributes)
+        foreign_keys = foreign_key_column_names
+        foreign_key_attributes = nil
+        normal_attributes = {}
         multi_parameter_attributes = nil
 
         attributes.each do |k, v|
           key = k.to_s
 
-          if key.include?("(")
+          if key.in?(foreign_keys)
+            (foreign_key_attributes ||= {})[key] = v
+          elsif key.include?("(")
             (multi_parameter_attributes ||= {})[key] = v
           else
-            _assign_attribute(key, v)
+            normal_attributes[key] = v
           end
         end
 
+        foreign_key_attributes.each { |key, value| _assign_attribute(key, value) } if foreign_key_attributes
+        normal_attributes.each { |key, value| _assign_attribute(key, value)  }
         assign_multiparameter_attributes(multi_parameter_attributes) if multi_parameter_attributes
+      end
+
+      def foreign_key_column_names
+        self.class._reflections.values.grep(Reflection::BelongsToReflection).map(&:foreign_key)
       end
 
       # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done

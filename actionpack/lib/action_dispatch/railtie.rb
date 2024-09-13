@@ -29,6 +29,7 @@ module ActionDispatch
     config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
     config.action_dispatch.log_rescued_responses = true
     config.action_dispatch.debug_exception_log_level = :fatal
+    config.action_dispatch.strict_freshness = false
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -69,6 +70,7 @@ module ActionDispatch
 
       ActionDispatch::Routing::Mapper.route_source_locations = Rails.env.development?
 
+      ActionDispatch::Http::Cache::Request.strict_freshness = app.config.action_dispatch.strict_freshness
       ActionDispatch.test_app = app
     end
   end
