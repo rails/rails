@@ -23,7 +23,28 @@
     for (var i = 0; i < array.length; i++) callback(array[i]);
   };
 
-  document.addEventListener("turbo:load", function () {
+  // Allows you to turn-off or block Turbo e.g. for testing
+  var event = 'Turbo' in globalThis ? 'turbo:load' : 'DOMContentLoaded'
+
+  document.addEventListener(event, function () {
+    // This smooth scrolling behaviour does not work in tandem with the
+    // scrollIntoView function for some browser-os combinations. Therefore, if
+    // JavaScript is enabled, and scrollIntoView may be called, this style is
+    // forced to not use smooth scrolling and the behaviour is added to the
+    // back-to-top element etc, unless reduced motion is preferred.
+    document.body.parentElement.style.scrollBehavior = 'auto';
+
+    var disableChapterScroll = false
+    var scrollBehavior = 'auto'
+    if ('matchMedia' in window) {
+      var mediaQueryList = window.matchMedia('(prefers-reduced-motion: reduce)');
+      scrollBehavior = mediaQueryList.matches ? 'auto' : 'smooth';
+
+      mediaQueryList.addEventListener('change', function (ev) {
+        scrollBehavior = ev.matches ? 'auto' : 'smooth';
+      });
+    }
+
     // The guides menu anchor is overridden to expand an element with the entire
     // index on the same page. It is important that both the visibility is
     // changed and that the aria-expanded attribute is toggled.
@@ -101,12 +122,18 @@
     // If the browser supports the animation timeline CSS feature, JavaScript is
     // not required for the element to be made visible at a certain scroll
     // position.
+    var backToTop = document.querySelector('.back-to-top');
+    var backToTopTarget = document.getElementById(
+      'URL' in window ?
+        new URL(backToTop.href).hash.substring(1) :
+        backToTop.href.split('#')
+    );
+
     if (
       typeof window.CSS === "undefined" ||
       typeof window.CSS.supports === "undefined" ||
       !CSS.supports("(animation-timeline: scroll())")
     ) {
-      var backToTop = document.querySelector('.back-to-top');
 
       var toggleBackToTop = function () {
         if (window.scrollY > 300) {
@@ -118,6 +145,78 @@
 
       document.addEventListener("scroll", toggleBackToTop);
     }
+
+    // Make it smooth scroll when clicking back-to-top.
+    var frameSkipper = 'requestAnimationFrame' in window ? window.requestAnimationFrame : setTimeout;
+
+    backToTop.addEventListener('click', function (event) {
+      event.preventDefault();
+
+      // We could use backToTopTarget.focus({ preventScroll: true }), but there
+      // is a bug on Android that prevents this from working. Instead we can
+      // disable the scroll conditionally, based on if animation is required.
+      //
+      // https://issues.chromium.org/issues/41453122
+      //
+      // This entire section can be simplified to the following once that bug is
+      // fixed:
+      //
+      //   if (scrollBehavior === 'auto') {
+      //     backToTopTarget.focus();
+      //   } else {
+      //     backToTopTarget.focus({ preventScroll: true });
+      //     backToTopTarget.scrollIntoView({ behavior: 'smooth' });
+      //   }
+
+      if (scrollBehavior === 'auto') {
+        backToTopTarget.focus();
+      } else {
+        var x = window.scrollX;
+        var y = window.scrollY;
+
+        backToTopTarget.focus({ preventScroll: true });
+
+        // This is purely here for those Android users
+        if (window.scrollX !== x || window.scrollY !== y) {
+          window.scrollTo(x, y);
+        }
+
+        // Prevent the sidebar scrolling from affecting this scroll into view
+        // animation on some browser combinations
+        if (window.onscrollend !== undefined) {
+          disableChapterScroll = true;
+
+          window.addEventListener('scrollend', function () {
+            disableChapterScroll = false;
+
+            // Skip a frame to ensure the browser is truly done scrolling.
+            frameSkipper(function nextFrame() {
+              // Ensure the link is highlighted and visible where the scrolling
+              // ended, which can be mid page if user scrolls whilst animation
+              // is playing.
+              //
+              // This is necessary because if the scroll started all the way at
+              // the bottom, the chapters element may also be scroll to the
+              // bottom. It will not update scrolling (otherwise the current
+              // scroll animation will be cancelled), and thus it needs to
+              // re-apply the logic when done to scroll the chapters list to
+              // the correct position.
+              var activeLink = columnSide.querySelector('a[aria-current]');
+              if (activeLink) {
+                activeLink.removeAttribute('aria-current');
+                updateHighlight(activeLink);
+              }
+            });
+          }, { once: true });
+        }
+
+        backToTopTarget.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'start'
+        });
+      }
+    })
 
     // Automatically browse when the version selector is changed. It is
     // important that this behaviour is communicated to the user, for example
@@ -255,12 +354,27 @@
       removeHighlight();
       elem.setAttribute('aria-current', 'true');
 
-      // You may be tempted to scroll the chapter list, but on some OS-browser
-      // combinations, this will stop smooth scrolling of the main document.
-      // This is the case with setting scrollTop & scrollIntoView.
+      if (disableChapterScroll) {
+        return;
+      }
+
+      console.log("scrolling highlight")
+
+      // On some OS-browser combinations, this will stop smooth scrolling of the
+      // main document if scroll-behaviour: smooth or vice-versa (this element
+      // stopping when clicking a link). This is also the case with setting
+      // scrollTop & scrollIntoView.
       //
       // eg. elem.scrollIntoView(...)
       //     columnSide.querySelector('ol').scrollTop = ...
+      //
+      // Therefore, smooth-scrolling is disabled on html and we manually smooth
+      // scroll instead.
+      elem.scrollIntoView({
+        behavior: scrollBehavior,
+        block: 'center',
+        inline: 'center'
+      });
     }
 
     var prevElem = function (elem) {
