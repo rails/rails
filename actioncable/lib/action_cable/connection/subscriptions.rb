@@ -32,14 +32,13 @@ module ActionCable
 
       def add(data)
         id_key = data["identifier"]
-        id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
 
+        # TODO: Raise already subscribed error
         return if subscriptions.key?(id_key)
 
-        subscription_klass = id_options[:channel].safe_constantize
+        subscription = subscription_from_identifier(id_key)
 
-        if subscription_klass && ActionCable::Channel::Base > subscription_klass
-          subscription = subscription_klass.new(connection, id_key, id_options)
+        if subscription
           subscriptions[id_key] = subscription
           subscription.subscribe_to_channel
         else
@@ -78,6 +77,15 @@ module ActionCable
             subscription
           else
             raise "Unable to find subscription with identifier: #{data['identifier']}"
+          end
+        end
+
+        def subscription_from_identifier(id_key)
+          id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
+          subscription_klass = id_options[:channel].safe_constantize
+
+          if subscription_klass && ActionCable::Channel::Base > subscription_klass
+            subscription_klass.new(connection, id_key, id_options)
           end
         end
     end
