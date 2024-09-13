@@ -1,3 +1,7 @@
+*   Print test names when running `rails test -v` for parallel tests.
+
+    *John Hawthorn*, *Abeid Ahmed*
+
 ## Rails 7.2.1 (August 22, 2024) ##
 
 *   No changes.
