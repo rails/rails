@@ -36,8 +36,6 @@ module ActionText
       end
 
       def create_actiontext_files
-        destination = Pathname(destination_root)
-
         template "actiontext.css", "app/assets/stylesheets/actiontext.css"
 
         gem_root = "#{__dir__}/../../../.."
