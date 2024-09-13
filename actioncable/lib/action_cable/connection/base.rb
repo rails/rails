@@ -64,6 +64,7 @@ module ActionCable
 
       delegate :pubsub, :config, to: :server
       delegate :env, :request, :protocol, :perform_work, to: :socket, allow_nil: true
+      delegate :executor, to: :server
 
       def initialize(server, socket)
         @server = server
