@@ -26,6 +26,15 @@
   // Allows you to turn-off or block Turbo e.g. for testing
   var event = 'Turbo' in globalThis ? 'turbo:load' : 'DOMContentLoaded'
 
+  // Allows older browsers to skip a frame, as this schedules work right after
+  // the current task is done, or for newer browsers, when an animation frame
+  // occurs.
+  var frameSkipper = 'requestAnimationFrame' in window ? window.requestAnimationFrame : setTimeout;
+  var cancelFrameSkipper = 'requestAnimationFrame' in window ? window.cancelAnimationFrame : clearTimeout;
+
+  var disableChapterScroll = false
+  var scrollBehavior = 'auto'
+
   document.addEventListener(event, function () {
     // This smooth scrolling behaviour does not work in tandem with the
     // scrollIntoView function for some browser-os combinations. Therefore, if
@@ -34,8 +43,6 @@
     // back-to-top element etc, unless reduced motion is preferred.
     document.body.parentElement.style.scrollBehavior = 'auto';
 
-    var disableChapterScroll = false
-    var scrollBehavior = 'auto'
     if ('matchMedia' in window) {
       var mediaQueryList = window.matchMedia('(prefers-reduced-motion: reduce)');
       scrollBehavior = mediaQueryList.matches ? 'auto' : 'smooth';
@@ -147,8 +154,6 @@
     }
 
     // Make it smooth scroll when clicking back-to-top.
-    var frameSkipper = 'requestAnimationFrame' in window ? window.requestAnimationFrame : setTimeout;
-
     backToTop.addEventListener('click', function (event) {
       event.preventDefault();
 
@@ -188,25 +193,6 @@
 
           window.addEventListener('scrollend', function () {
             disableChapterScroll = false;
-
-            // Skip a frame to ensure the browser is truly done scrolling.
-            frameSkipper(function nextFrame() {
-              // Ensure the link is highlighted and visible where the scrolling
-              // ended, which can be mid page if user scrolls whilst animation
-              // is playing.
-              //
-              // This is necessary because if the scroll started all the way at
-              // the bottom, the chapters element may also be scroll to the
-              // bottom. It will not update scrolling (otherwise the current
-              // scroll animation will be cancelled), and thus it needs to
-              // re-apply the logic when done to scroll the chapters list to
-              // the correct position.
-              var activeLink = columnSide.querySelector('a[aria-current]');
-              if (activeLink) {
-                activeLink.removeAttribute('aria-current');
-                updateHighlight(activeLink);
-              }
-            });
           }, { once: true });
         }
 
@@ -346,8 +332,9 @@
      * @param {HTMLElement | null | undefined} elem
      * @returns
      */
-    var updateHighlight = function (elem) {
-      if (!elem || elem.hasAttribute('aria-current')) {
+    var scrollThrottleTimeout = null
+    var updateHighlight = function (elem, force = false) {
+      if (!elem || (!force && elem.hasAttribute('aria-current'))) {
         return
       };
 
@@ -357,8 +344,6 @@
       if (disableChapterScroll) {
         return;
       }
-
-      console.log("scrolling highlight")
 
       // On some OS-browser combinations, this will stop smooth scrolling of the
       // main document if scroll-behaviour: smooth or vice-versa (this element
@@ -370,10 +355,18 @@
       //
       // Therefore, smooth-scrolling is disabled on html and we manually smooth
       // scroll instead.
-      elem.scrollIntoView({
-        behavior: scrollBehavior,
-        block: 'center',
-        inline: 'center'
+      //
+
+      if (scrollThrottleTimeout) {
+        cancelFrameSkipper(scrollThrottleTimeout)
+      }
+
+      scrollThrottleTimeout = frameSkipper(function nextFrame() {
+        elem.scrollIntoView({
+          behavior: scrollBehavior,
+          block: 'center',
+          inline: 'center'
+        });
       });
     }
 
@@ -455,9 +448,35 @@
     columnMainElements.forEach(function (elem) {
       observer.observe(elem);
     })
-  });
 
-  // ------------ end of highlight chapter navigation ------------
+    if (window.onscrollend !== undefined) {
+      window.addEventListener('scrollend', function () {
+        // Skip a frame to ensure the browser is truly done scrolling.
+        frameSkipper(function nextFrame() {
+          if (disableChapterScroll) {
+            return
+          }
+
+          // Ensure the link is highlighted and visible where the scrolling
+          // ended, which can be mid page if user scrolls whilst animation
+          // is playing.
+          //
+          // This is necessary because if the scroll started all the way at
+          // the bottom, the chapters element may also be scroll to the
+          // bottom. It will not update scrolling (otherwise the current
+          // scroll animation will be cancelled), and thus it needs to
+          // re-apply the logic when done to scroll the chapters list to
+          // the correct position.
+          var activeLink = columnSide.querySelector('a[aria-current]');
+          if (activeLink) {
+            updateHighlight(activeLink, true);
+          }
+        });
+      });
+    }
+
+    // ------------ end of highlight chapter navigation ------------
+  });
 
   // Observe the HTML tag for Google Translate CSS class, to swap our lang direction LTR/RTL.
   var observer = new MutationObserver(function(mutations, _observer) {
