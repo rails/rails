@@ -66,6 +66,8 @@ module ActionCable
         end
 
         class Listener < SubscriberMap::Async
+          delegate :logger, to: :@adapter
+
           def initialize(adapter, config_options, executor)
             super(executor)
 
@@ -160,11 +162,14 @@ module ActionCable
                 begin
                   conn = @adapter.redis_connection_for_subscriptions
                   listen conn
-                rescue ConnectionError
+                rescue ConnectionError => e
                   reset
                   if retry_connecting?
+                    logger&.warn "Redis connection failed: #{e.message}. Trying to reconnect..."
                     when_connected { resubscribe }
                     retry
+                  else
+                    logger&.error "Failed to reconnect to Redis after #{@reconnect_attempt} attempts."
                   end
                 end
               end
