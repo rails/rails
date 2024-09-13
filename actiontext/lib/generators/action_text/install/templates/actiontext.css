@@ -3,7 +3,8 @@
  * the trix-editor content (whether displayed or under editing). Feel free to incorporate this
  * inclusion directly in any other asset bundle and remove this file.
  *
- *= require trix
+ * Note: The base Trix stylesheet is automatically included when using stylesheet_link_tag :all,
+ * but if not using that, you'll have to manually include it with stylesheet_link_tag "trix".
 */
 
 /*
