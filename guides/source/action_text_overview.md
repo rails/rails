@@ -71,9 +71,7 @@ It will do the following:
 - Adds migrations to create the following tables that store rich text content
   and attachments: `action_text_rich_texts`, `active_storage_blobs`,
   `active_storage_attachments`, `active_storage_variant_records`.
-- Creates `actiontext.css` and imports it into `application.css`. The base Trix
-  stylesheet is automatically included via `stylesheet_link_tag :all`, but
-  if that is not used, will have to be added manually.
+- Creates `actiontext.css` which includes all Trix styles and overrides.
 - Adds the default view partials `_content.html` and `_blob.html` to render
   Action Text content and Active Storage attachment (aka blob) respectively.
 
@@ -204,11 +202,8 @@ By default, Action Text will render rich text content inside an element with the
 class are then styled by the trix stylesheet.
 
 If you’d like to update any of the trix styles, you can add your custom styles
-in `app/assets/stylesheets/actiontext.css`.
-
-However, if you’d prefer to provide your own styles or utilize a third-party
-library instead of the default trix stylesheet, you must change `stylesheet_link_tag :all`
-to `stylesheet_link_tag :app`, and manually deal with any engine stylesheets you need added.
+in `app/assets/stylesheets/actiontext.css`, which includes both the full set of 
+styles for Trix and the overrides needed for Action Text.
 
 ### Customizing the Editor Container
 
