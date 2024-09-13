@@ -27,37 +27,6 @@ module ActionCable
       def rejected? = subscription_rejected?
     end
 
-    # TestServer provides test pub/sub and executor implementations
-    class TestServer
-      attr_reader :streams, :config
-
-      def initialize
-        @streams = Hash.new { |h, k| h[k] = [] }
-        @config = ActionCable.server.config
-      end
-
-      alias_method :pubsub, :itself
-      alias_method :executor, :itself
-
-      #== Executor interface ==
-
-      # Inline async calls
-      def post(&work) = work.call
-      # We don't support timers in unit tests yet
-      def timer(_every) = nil
-
-      #== Pub/sub interface ==
-      def subscribe(stream, callback, success_callback = nil)
-        @streams[stream] << callback
-        success_callback&.call
-      end
-
-      def unsubscribe(stream, callback)
-        @streams[stream].delete(callback)
-        @streams.delete(stream) if @streams[stream].empty?
-      end
-    end
-
     # Superclass for Action Cable channel functional tests.
     #
     # ## Basic example
@@ -233,9 +202,9 @@ module ActionCable
         #     end
         #
         #     stub_connection(user: users[:john], token: 'my-secret-token')
-        def stub_connection(**identifiers)
+        def stub_connection(server: ActionCable.server, **identifiers)
           @socket = Connection::TestSocket.new(Connection::TestSocket.build_request(ActionCable.server.config.mount_path || "/cable"))
-          @testserver = TestServer.new
+          @testserver = Connection::TestServer.new(server)
           @connection = self.class.connection_class.new(testserver, socket).tap do |conn|
             identifiers.each do |identifier, val|
               conn.public_send("#{identifier}=", val)
