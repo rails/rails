@@ -584,7 +584,9 @@ module ActiveRecord
       # Add enum value to an existing enum type.
       def add_enum_value(type_name, value, options = {})
         before, after = options.values_at(:before, :after)
-        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE '#{value}'"
+        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE"
+        sql << " IF NOT EXISTS" if options[:if_not_exists]
+        sql << " '#{value}'"
 
         if before && after
           raise ArgumentError, "Cannot have both :before and :after at the same time"

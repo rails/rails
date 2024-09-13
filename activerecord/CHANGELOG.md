@@ -1,3 +1,8 @@
+*   Add support for PostgreSQL `IF NOT EXISTS` via the `:if_not_exists` option
+    on the `add_enum_value` method.
+
+    *Ariel Rzezak*
+
 *   When running `db:migrate` on a fresh database, load the database schema before running migrations.
 
     *Andrew Novoselac*
