@@ -524,12 +524,12 @@ module ActiveRecord
             unless reject_new_record?(association_name, attributes)
               association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
-          elsif existing_record = find_record_by_id(existing_records, attributes["id"])
+          elsif existing_record = find_record_by_id(association.klass, existing_records, attributes["id"])
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
               # Take into account that the proxy_target may have changed due to callbacks
-              target_record = find_record_by_id(association.target, attributes["id"])
+              target_record = find_record_by_id(association.klass, association.target, attributes["id"])
               if target_record
                 existing_record = target_record
               else
@@ -621,10 +621,8 @@ module ActiveRecord
                                  model, "id", record_id)
       end
 
-      def find_record_by_id(records, id)
-        return if records.empty?
-
-        if records.first.class.composite_primary_key?
+      def find_record_by_id(klass, records, id)
+        if klass.composite_primary_key?
           id = Array(id).map(&:to_s)
           records.find { |record| Array(record.id).map(&:to_s) == id }
         else
