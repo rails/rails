@@ -4,30 +4,27 @@ module ActiveRecord
   module AttributeAssignment
     private
       def _assign_attributes(attributes)
-        foreign_keys = foreign_key_column_names
-        foreign_key_attributes = nil
-        normal_attributes = {}
-        multi_parameter_attributes = nil
+        multi_parameter_attributes = nested_parameter_attributes = nil
 
         attributes.each do |k, v|
           key = k.to_s
 
-          if key.in?(foreign_keys)
-            (foreign_key_attributes ||= {})[key] = v
-          elsif key.include?("(")
+          if key.include?("(")
             (multi_parameter_attributes ||= {})[key] = v
+          elsif v.is_a?(Hash)
+            (nested_parameter_attributes ||= {})[key] = v
           else
-            normal_attributes[key] = v
+            _assign_attribute(key, v)
           end
         end
 
-        foreign_key_attributes.each { |key, value| _assign_attribute(key, value) } if foreign_key_attributes
-        normal_attributes.each { |key, value| _assign_attribute(key, value)  }
+        assign_nested_parameter_attributes(nested_parameter_attributes) if nested_parameter_attributes
         assign_multiparameter_attributes(multi_parameter_attributes) if multi_parameter_attributes
       end
 
-      def foreign_key_column_names
-        self.class._reflections.values.grep(Reflection::BelongsToReflection).map(&:foreign_key)
+      # Assign any deferred nested attributes after the base attributes have been set.
+      def assign_nested_parameter_attributes(pairs)
+        pairs.each { |k, v| _assign_attribute(k, v) }
       end
 
       # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
