@@ -102,6 +102,37 @@ module ActionCable
       end
     end
 
+    # TestServer provides test pub/sub and executor implementations
+    class TestServer
+      attr_reader :streams, :config
+
+      def initialize(server)
+        @streams = Hash.new { |h, k| h[k] = [] }
+        @config = server.config
+      end
+
+      alias_method :pubsub, :itself
+      alias_method :executor, :itself
+
+      #== Executor interface ==
+
+      # Inline async calls
+      def post(&work) = work.call
+      # We don't support timers in unit tests yet
+      def timer(_every) = nil
+
+      #== Pub/sub interface ==
+      def subscribe(stream, callback, success_callback = nil)
+        @streams[stream] << callback
+        success_callback&.call
+      end
+
+      def unsubscribe(stream, callback)
+        @streams[stream].delete(callback)
+        @streams.delete(stream) if @streams[stream].empty?
+      end
+    end
+
     # # Action Cable Connection TestCase
     #
     # Unit test Action Cable connections.
@@ -186,7 +217,7 @@ module ActionCable
         included do
           class_attribute :_connection_class
 
-          attr_reader :connection, :socket
+          attr_reader :connection, :socket, :testserver
 
           delegate :transmissions, to: :socket, allow_nil: true
 
@@ -230,11 +261,12 @@ module ActionCable
         # *   headers – request headers (Hash)
         # *   session – session data (Hash)
         # *   env – additional Rack env configuration (Hash)
-        def connect(path = ActionCable.server.config.mount_path, **request_params)
+        def connect(path = ActionCable.server.config.mount_path, server: ActionCable.server, **request_params)
           path ||= DEFAULT_PATH
 
           @socket = TestSocket.new(TestSocket.build_request(path, **request_params, cookies: cookies))
-          connection = self.class.connection_class.new(ActionCable.server, socket)
+          @testserver = Connection::TestServer.new(server)
+          connection = self.class.connection_class.new(@testserver, socket)
           connection.connect if connection.respond_to?(:connect)
 
           # Only set instance variable if connected successfully
