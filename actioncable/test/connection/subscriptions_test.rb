@@ -53,7 +53,10 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
   test "subscribe command without an identifier" do
     setup_connection
 
-    @subscriptions.execute_command "command" => "subscribe"
+    assert_raises ActionCable::Connection::Subscriptions::MalformedCommandError do
+      @subscriptions.execute_command "command" => "subscribe"
+    end
+
     assert_empty @subscriptions.identifiers
   end
 
@@ -61,14 +64,28 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     setup_connection
 
     identifier = ActiveSupport::JSON.encode(id: 1, channel: "ActionCable::Channel::Base")
-    @subscriptions.execute_command "command" => "subscribe", "identifier" => identifier
+
+    assert_raises ActionCable::Connection::Subscriptions::ChannelNotFound do
+      @subscriptions.execute_command "command" => "subscribe", "identifier" => identifier
+    end
 
     assert_empty @subscriptions.identifiers
   end
 
+  test "double subscribe command" do
+    setup_connection
+
+    subscribe_to_chat_channel
+
+    assert_raises ActionCable::Connection::Subscriptions::AlreadySubscribedError do
+      subscribe_to_chat_channel
+    end
+
+    assert_equal 1, @subscriptions.identifiers.size
+  end
+
   test "unsubscribe command" do
     setup_connection
-    subscribe_to_chat_channel
 
     channel = subscribe_to_chat_channel
 
@@ -82,7 +99,10 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
   test "unsubscribe command without an identifier" do
     setup_connection
 
-    @subscriptions.execute_command "command" => "unsubscribe"
+    assert_raises ActionCable::Connection::Subscriptions::UnknownSubscription do
+      @subscriptions.execute_command "command" => "unsubscribe"
+    end
+
     assert_empty @subscriptions.identifiers
   end
 
@@ -101,7 +121,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     subscribe_to_chat_channel
 
     data = { "content" => "Hello World!", "action" => "throw_exception" }
-    @subscriptions.execute_command "command" => "message", "identifier" => @chat_identifier, "data" => ActiveSupport::JSON.encode(data)
+    @connection.handle_channel_command({ "command" => "message", "identifier" => @chat_identifier, "data" => ActiveSupport::JSON.encode(data) })
 
     exception = @connection.exceptions.first
     assert_kind_of ChatChannelError, exception
@@ -135,6 +155,6 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       socket = ActionCable::Server::Socket.new(@server, env)
 
       @connection = Connection.new(@server, socket)
-      @subscriptions = ActionCable::Connection::Subscriptions.new(@connection)
+      @subscriptions = @connection.subscriptions
     end
 end
