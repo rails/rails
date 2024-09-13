@@ -75,14 +75,12 @@ volumes:
 # version inside the asset_path.
 asset_path: /rails/public/assets
 
-# Defaults to amd64 (which is x86), but other option is "arm64" or "amd64,arm64" (multiarch)
+# Configure the image builder.
 builder:
   arch: amd64
 
-  # # Build image via remote server (useful for faster amd64 builds on an arm64 computer)
-  # remote:
-  #   arch: amd64
-  #   host: ssh://app@192.168.0.1
+  # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
+  # remote: ssh://docker@docker-builder-server
   #
   # # Pass arguments and secrets to the Docker build process
   # args:
