@@ -81,6 +81,8 @@ module ActionCable
         else
           logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
         end
+      rescue Exception => e
+        logger.error "Could not handle incoming message: #{websocket_message.inspect} [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
       end
 
       def on_open # :nodoc:

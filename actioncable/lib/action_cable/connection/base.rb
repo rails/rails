@@ -107,6 +107,8 @@ module ActionCable
         run_callbacks :command do
           subscriptions.execute_command payload
         end
+      rescue Exception => e
+        rescue_with_handler(e) || raise
       end
 
       alias_method :handle_incoming, :handle_channel_command
