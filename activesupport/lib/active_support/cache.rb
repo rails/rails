@@ -675,7 +675,7 @@ module ActiveSupport
         options = merged_options(options)
         key = normalize_key(name, options)
 
-        instrument(:delete, key) do
+        instrument(:delete, key, options) do
           delete_entry(key, **options)
         end
       end
@@ -690,7 +690,7 @@ module ActiveSupport
         options = merged_options(options)
         names.map! { |key| normalize_key(key, options) }
 
-        instrument_multi :delete_multi, names do
+        instrument_multi(:delete_multi, names, options) do
           delete_multi_entries(names, **options)
         end
       end
