@@ -243,6 +243,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.action_cable/, content)
     end
+    assert_file "config/database.yml" do |content|
+      assert_no_match(/cable:/, content)
+    end
   end
 
   def test_app_update_does_not_generate_bootsnap_contents_when_skip_bootsnap_is_given
