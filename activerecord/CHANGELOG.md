@@ -1,3 +1,10 @@
+*   SQLite3Adapter: Ensure fork-safety.
+
+    Previously, forking a Rails process with open SQLite3 database connections could result in
+    database file corruption under certain circumstances.
+
+    *Mike Dalessio*
+
 *   Add support for PostgreSQL `IF NOT EXISTS` via the `:if_not_exists` option
     on the `add_enum_value` method.
 

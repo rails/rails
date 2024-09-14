@@ -442,6 +442,16 @@ module ActiveRecord
         end
       end
 
+      # Notify connections that a fork is imminent, to allow them to take necessary measures to
+      # ensure fork-safety.
+      #
+      # See AbstractAdapter#prepare_to_fork!
+      def prepare_to_fork! # :nodoc:
+        @connections.each do |conn|
+          conn.prepare_to_fork!
+        end
+      end
+
       # Disconnects all connections in the pool, and clears the pool.
       #
       # The pool first tries to gain ownership of all connections. If unable to

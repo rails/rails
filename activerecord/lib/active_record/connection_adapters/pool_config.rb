@@ -17,6 +17,10 @@ module ActiveRecord
       private_constant :INSTANCES
 
       class << self
+        def prepare_to_fork!
+          INSTANCES.each_key(&:prepare_to_fork!)
+        end
+
         def discard_pools!
           INSTANCES.each_key(&:discard_pool!)
         end
@@ -66,6 +70,14 @@ module ActiveRecord
         @pool || synchronize { @pool ||= ConnectionAdapters::ConnectionPool.new(self) }
       end
 
+      def prepare_to_fork!
+        synchronize do
+          return unless @pool
+
+          @pool.prepare_to_fork!
+        end
+      end
+
       def discard_pool!
         return unless @pool
 
@@ -80,4 +92,5 @@ module ActiveRecord
   end
 end
 
+ActiveSupport::ForkTracker.before_fork { ActiveRecord::ConnectionAdapters::PoolConfig.prepare_to_fork! }
 ActiveSupport::ForkTracker.after_fork { ActiveRecord::ConnectionAdapters::PoolConfig.discard_pools! }

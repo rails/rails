@@ -497,6 +497,19 @@ module ActiveRecord
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
       EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
+      def prepare_to_fork!
+        # It's not safe to fork with an open sqlite connection, because when the object is GCed in
+        # the child process, it can interfere with existing or subsequent connections to the
+        # database in the child process, which can lead to corruption.
+        #
+        # Note that closing the database will raise a BusyException unless all related statements
+        # are also closed, which the AbstractAdapter's disconnect! method handles for us.
+        #
+        # More on sqlite fork-safety: https://www.sqlite.org/howtocorrupt.html section 2.6
+        # More on Rails db corruption: https://github.com/rails/solid_queue/issues/324
+        disconnect!
+      end
+
       private
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.

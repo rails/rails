@@ -696,6 +696,13 @@ module ActiveRecord
         end
       end
 
+      # Prepare the connection for an imminent fork. Some database adapters are not fork-safe
+      # (specifically sqlite3), and so this gives the adapter an opportunity to close or finalize
+      # any objects that the child process should not inherit.
+      def prepare_to_fork!
+        # This should be overridden by concrete adapters.
+      end
+
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
