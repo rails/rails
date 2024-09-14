@@ -1,3 +1,7 @@
+*   Remove `sucker_punch` dependecy
+
+    *Dino Maric*
+
 *   Use `RAILS_MAX_THREADS` in `ActiveJob::AsyncAdapter`. If it is not set, use 5 as default.
 
     *heka1024*
