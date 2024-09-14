@@ -604,17 +604,10 @@ Module.new do
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
 
-  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --asset-pipeline=sprockets --skip-bundle --no-rc --quiet"
+  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --no-rc --quiet"
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts 'require "bootsnap/setup" if ENV["BOOTSNAP_CACHE_DIR"]'
     f.puts 'require "rails/all"'
-  end
-
-  assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
-  unless Dir.exist?("#{assets_path}/node_modules")
-    Dir.chdir(assets_path) do
-      sh "yarn install"
-    end
   end
 
   FileUtils.mkdir_p "#{app_template_path}/app/javascript"

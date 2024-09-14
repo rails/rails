@@ -79,14 +79,7 @@ module Rails
           end
 
           def asset_pipeline
-            case
-            when defined?(Sprockets::Railtie)
-              "sprockets"
-            when defined?(Propshaft::Railtie)
-              "propshaft"
-            else
-              nil
-            end
+            "propshaft" if defined?(Propshaft::Railtie)
           end
 
           def skip_gem?(gem_name)
