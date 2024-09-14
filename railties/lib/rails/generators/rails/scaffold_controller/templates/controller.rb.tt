@@ -57,7 +57,7 @@ class <%= controller_class_name %>Controller < ApplicationController
       <%- if attributes_names.empty? -%>
       params.expect(<%= singular_table_name %>: {})
       <%- else -%>
-      params.expect(<%= singular_table_name %>: [<%= permitted_params %>])
+      params.expect(<%= singular_table_name %>: [ <%= permitted_params %> ])
       <%- end -%>
     end
 end
