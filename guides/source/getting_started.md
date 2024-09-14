@@ -412,7 +412,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[7.2]
+class CreateArticles < ActiveRecord::Migration[8.0]
   def change
     create_table :articles do |t|
       t.string :title
@@ -1351,7 +1351,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[7.2]
+class CreateComments < ActiveRecord::Migration[8.0]
   def change
     create_table :comments do |t|
       t.string :commenter

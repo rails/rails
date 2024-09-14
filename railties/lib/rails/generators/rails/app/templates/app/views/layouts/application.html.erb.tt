@@ -14,7 +14,9 @@
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
-    <% style_link_target = options[:skip_asset_pipeline] ? "\"application\"" : ":all" %>
+
+    <%%# Includes all stylesheet files in app/views/stylesheets %>
+    <% style_link_target = options[:skip_asset_pipeline] ? "\"application\"" : ":app" %>
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
     <%%= stylesheet_link_tag <%= style_link_target %> %>
     <%- else -%>

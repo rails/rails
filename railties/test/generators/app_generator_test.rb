@@ -543,7 +543,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+:all %>/, contents)
+      assert_match(/stylesheet_link_tag\s+:app %>/, contents)
     end
   end
 
