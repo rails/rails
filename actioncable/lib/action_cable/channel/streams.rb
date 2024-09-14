@@ -113,8 +113,8 @@ module ActionCable
       # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to
       # the callback. Defaults to `coder: nil` which does no decoding, passes raw
       # messages.
-      def stream_for(broadcastables, callback = nil, coder: nil, &block)
-        stream_from(broadcasting_for(broadcastables), callback || block, coder: coder)
+      def stream_for(broadcastables, ...)
+        stream_from(broadcasting_for(broadcastables), ...)
       end
 
       # Unsubscribes streams from the named `broadcasting`.

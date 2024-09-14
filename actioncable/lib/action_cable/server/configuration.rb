@@ -18,6 +18,7 @@ module ActionCable
       attr_accessor :cable, :url, :mount_path
       attr_accessor :precompile_assets
       attr_accessor :health_check_path, :health_check_application
+      attr_writer :pubsub_adapter
 
       def initialize
         @log_tags = []
@@ -35,10 +36,13 @@ module ActionCable
         }
       end
 
-      # Returns constant of subscription adapter specified in config/cable.yml. If the
-      # adapter cannot be found, this will default to the Redis adapter. Also makes
+      # Returns constant of subscription adapter specified in config/cable.yml or directly in the configuration.
+      # If the adapter cannot be found, this will default to the Redis adapter. Also makes
       # sure proper dependencies are required.
       def pubsub_adapter
+        # Provided explicitly in the configuration
+        return @pubsub_adapter.constantize if @pubsub_adapter
+
         adapter = (cable.fetch("adapter") { "redis" })
 
         # Require the adapter itself and give useful feedback about
