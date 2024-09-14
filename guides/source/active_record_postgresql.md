@@ -332,6 +332,7 @@ def up
   add_enum_value :article_state, "archived" # will be at the end after published
   add_enum_value :article_state, "in review", before: "published"
   add_enum_value :article_state, "approved", after: "in review"
+  add_enum_value :article_state, "rejected", if_not_exists: true # won't raise an error if the value already exists
 end
 ```
 

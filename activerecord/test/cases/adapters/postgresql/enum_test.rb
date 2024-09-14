@@ -128,9 +128,14 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     @connection.add_enum_value :mood, :nervous, after: :ok
     @connection.add_enum_value :mood, :glad
 
+    assert_nothing_raised do
+      @connection.add_enum_value :mood, :glad, if_not_exists: true
+      @connection.add_enum_value :mood, :curious, if_not_exists: true
+    end
+
     output = dump_table_schema("postgresql_enums")
 
-    assert_includes output, 'create_enum "mood", ["sad", "angry", "ok", "nervous", "happy", "glad"]'
+    assert_includes output, 'create_enum "mood", ["sad", "angry", "ok", "nervous", "happy", "glad", "curious"]'
   end
 
   def test_schema_dump_renamed_enum_value
