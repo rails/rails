@@ -1398,6 +1398,20 @@ class DirectUploadsController < ActiveStorage::DirectUploadsController
 end
 ```
 
+Alternatively, you can hook into an initialization event to add authentication similar to the following:
+
+```ruby
+Rails.application.config.to_prepare do
+  ActiveStorage::DirectUploadsController.class_eval do
+    before_action :authenticate!
+
+    def authenticate!
+      #auth logic
+    end
+  end
+end
+```
+
 NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file that uploads, but never attaches to a record. Consider [purging unattached uploads](#purging-unattached-uploads).
 
 Testing
