@@ -202,7 +202,7 @@ By default, Action Text will render rich text content inside an element with the
 class are then styled by the trix stylesheet.
 
 If you’d like to update any of the trix styles, you can add your custom styles
-in `app/assets/stylesheets/actiontext.css`, which includes both the full set of 
+in `app/assets/stylesheets/actiontext.css`, which includes both the full set of
 styles for Trix and the overrides needed for Action Text.
 
 ### Customizing the Editor Container
