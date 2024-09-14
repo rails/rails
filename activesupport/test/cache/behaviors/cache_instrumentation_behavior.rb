@@ -64,6 +64,60 @@ module CacheInstrumentationBehavior
     assert_equal @cache.class.name, events[0].payload[:store]
   end
 
+  def test_read_instrumentation
+    key = SecureRandom.uuid
+    @cache.write(key, SecureRandom.alphanumeric)
+
+    events = with_instrumentation "read" do
+      @cache.read(key)
+    end
+
+    assert_equal %w[ cache_read.active_support ], events.map(&:name)
+    assert_equal normalized_key(key), events[0].payload[:key]
+    assert_same true, events[0].payload[:hit]
+    assert_equal @cache.class.name, events[0].payload[:store]
+  end
+
+  def test_write_instrumentation
+    key = SecureRandom.uuid
+
+    events = with_instrumentation "write" do
+      @cache.write(key, SecureRandom.alphanumeric)
+    end
+
+    assert_equal %w[ cache_write.active_support ], events.map(&:name)
+    assert_equal normalized_key(key), events[0].payload[:key]
+    assert_equal @cache.class.name, events[0].payload[:store]
+  end
+
+  def test_delete_instrumentation
+    key = SecureRandom.uuid
+
+    options = { namespace: "foo" }
+    events = with_instrumentation "delete" do
+      @cache.delete(key, options)
+    end
+
+    assert_equal %w[ cache_delete.active_support ], events.map(&:name)
+    assert_equal normalized_key(key, options), events[0].payload[:key]
+    assert_equal @cache.class.name, events[0].payload[:store]
+    assert_equal "foo", events[0].payload[:namespace]
+  end
+
+  def test_delete_multi_instrumentation
+    key_1 = SecureRandom.uuid
+    key_2 = SecureRandom.uuid
+
+    options = { namespace: "foo" }
+    events = with_instrumentation "delete_multi" do
+      @cache.delete_multi([key_2, key_1], options)
+    end
+
+    assert_equal %w[ cache_delete_multi.active_support ], events.map(&:name)
+    assert_equal [normalized_key(key_2, options), normalized_key(key_1, options)], events[0].payload[:key]
+    assert_equal @cache.class.name, events[0].payload[:store]
+  end
+
   def test_increment_instrumentation
     key_1 = SecureRandom.uuid
     @cache.write(key_1, 0)
@@ -103,7 +157,7 @@ module CacheInstrumentationBehavior
       ActiveSupport::Notifications.unsubscribe event_name
     end
 
-    def normalized_key(key)
-      @cache.send(:normalize_key, key, @cache.options)
+    def normalized_key(key, options = nil)
+      @cache.send(:normalize_key, key, options)
     end
 end
