@@ -152,9 +152,8 @@ module Rails
       end
     end
 
-    def test_dummy_sprocket_assets
-      template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
-      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
+    def test_dummy_assets
+      template "rails/stylesheets.css", "#{dummy_path}/app/assets/stylesheets/application.css", force: true
     end
 
     def test_dummy_clean
@@ -168,10 +167,6 @@ module Rails
         remove_file "test"
         remove_file "vendor"
       end
-    end
-
-    def assets_manifest
-      template "rails/engine_manifest.js", "app/assets/config/#{underscored_name}_manifest.js"
     end
 
     def stylesheets
@@ -364,7 +359,7 @@ module Rails
         mute do
           build(:generate_test_dummy)
           build(:test_dummy_config)
-          build(:test_dummy_sprocket_assets) unless skip_sprockets?
+          build(:test_dummy_assets) unless skip_asset_pipeline?
           build(:test_dummy_clean)
           # ensure that bin/rails has proper dummy_path
           build(:bin)

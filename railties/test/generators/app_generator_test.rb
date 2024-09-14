@@ -111,11 +111,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_match(/Expected '--javascript' to be one of/, content)
   end
 
-  def test_invalid_asset_pipeline_option_raises_an_error
-    content = capture(:stderr) { run_generator([destination_root, "-a", "unknown"]) }
-    assert_match(/Expected '--asset-pipeline' to be one of/, content)
-  end
-
   def test_invalid_css_option_raises_an_error
     content = capture(:stderr) { run_generator([destination_root, "-c", "unknown"]) }
     assert_match(/Expected '--css' to be one of/, content)
@@ -227,12 +222,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "public/406-unsupported-browser.html"
   end
 
-  def test_app_update_does_not_generate_assets_initializer_when_sprockets_and_propshaft_are_not_used
-    run_generator [destination_root, "-a", "none"]
+  def test_app_update_does_not_generate_assets_initializer_when_asset_pipeline_is_not_used
+    run_generator [destination_root, "--skip-asset-pipeline"]
     run_app_update
 
     assert_no_file "config/initializers/assets.rb"
-    assert_no_file "app/assets/config/manifest.js"
   end
 
   def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
@@ -325,17 +319,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       config = "config/application.rb"
       assert_file config, /generators\.system_tests/
       assert_no_changes -> { File.readlines(config).grep(/generators\.system_tests/) } do
-        run_app_update
-      end
-    end
-  end
-
-  def test_app_update_preserves_sprockets
-    run_generator [destination_root, "-a", "sprockets"]
-
-    FileUtils.cd(destination_root) do
-      config = "config/environments/production.rb"
-      assert_no_changes -> { File.readlines(config).grep(/config\.assets/) } do
         run_app_update
       end
     end
