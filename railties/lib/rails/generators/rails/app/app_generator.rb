@@ -465,6 +465,10 @@ module Rails
         build(:devcontainer)
       end
 
+      def nullify_javascript_option_if_api_option
+        options[:javascript] = nil
+      end
+
       def delete_app_assets_if_api_option
         if options[:api]
           remove_dir "app/assets"
