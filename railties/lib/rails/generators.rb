@@ -60,6 +60,10 @@ module Rails
       }
     }
 
+    # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
+    # can change when we FileUtils.cd.
+    RAILS_DEV_PATH = File.expand_path("../../..", __dir__) # :nodoc:
+
     class << self
       def configure!(config) # :nodoc:
         api_only! if config.api_only
@@ -90,7 +94,7 @@ module Rails
       end
 
       # Hold configured generators fallbacks. If a plugin developer wants a
-      # generator group to fallback to another group in case of missing generators,
+      # generator group to fall back to another group in case of missing generators,
       # they can add a fallback.
       #
       # For example, shoulda is considered a test_framework and is an extension
@@ -151,7 +155,8 @@ module Rails
             "#{template}:scaffold",
             "#{template}:mailer",
             "action_text:install",
-            "action_mailbox:install"
+            "action_mailbox:install",
+            "devcontainer"
           ]
         end
       end
@@ -202,7 +207,6 @@ module Rails
         rails.map! { |n| n.delete_prefix("rails:") }
         rails.delete("app")
         rails.delete("plugin")
-        rails.delete("encrypted_secrets")
         rails.delete("encrypted_file")
         rails.delete("encryption_key_file")
         rails.delete("master_key")

@@ -151,7 +151,7 @@ module RenderTestCases
     buffer = ActiveSupport::SafeBuffer.new
     buffer << @view.render(template: "plain_text")
     assert_equal true, buffer.html_safe?
-    assert_equal buffer, "<%= hello_world %>\n"
+    assert_equal "<%= hello_world %>\n", buffer
   end
 
   def test_render_ruby_template_with_handlers
@@ -221,6 +221,32 @@ module RenderTestCases
 
       assert_equal 6, translated_spot[:first_column]
     end
+
+    def test_render_location_conditional_append
+      ex = assert_raises(ActionView::Template::Error) {
+        @view.render(template: "test/unparseable_runtime_error")
+      }
+      erb_btl = ex.backtrace_locations.first
+
+      # Get the spot information from ErrorHighlight
+      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+      translated_spot = translating_frame.spot(ex.cause)
+
+      assert_equal 8, translated_spot[:first_column]
+    end
+
+    def test_render_location_conditional_append_2
+      ex = assert_raises(ActionView::Template::Error) {
+        @view.render(template: "test/unparseable_runtime_error_2")
+      }
+      erb_btl = ex.backtrace_locations.first
+
+      # Get the spot information from ErrorHighlight
+      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+      translated_spot = translating_frame.spot(ex.cause)
+
+      assert_instance_of Integer, translated_spot[:first_column]
+    end
   end
 
   def test_render_partial
@@ -267,8 +293,32 @@ module RenderTestCases
   end
 
   def test_render_partial_with_incompatible_object
-    e = assert_raises(ArgumentError) { @view.render(partial: nil) }
-    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
+    assert_raises ArgumentError, match: "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement #to_partial_path." do
+      @view.render(partial: nil)
+    end
+  end
+
+  def test_render_renderable_with_nil
+    assert_raises ArgumentError, match: "'#{nil.inspect}' is not a renderable object. It must implement #render_in." do
+      @view.render renderable: nil
+    end
+  end
+
+  def test_render_renderable_with_incompatible_object
+    object = Object.new
+
+    assert_raises ArgumentError, match: "'#{object.inspect}' is not a renderable object. It must implement #render_in." do
+      @view.render renderable: object
+    end
+  end
+
+  def test_render_renderable_does_not_mask_nomethoderror_from_within_render_in
+    renderable = Object.new
+    renderable.define_singleton_method(:render_in) { |*| nil.render_in }
+
+    assert_raises NoMethodError, match: /undefined method [`']render_in' for nil/ do
+      @view.render renderable: renderable
+    end
   end
 
   def test_render_partial_starting_with_a_capital
@@ -340,13 +390,18 @@ module RenderTestCases
 
   def test_undefined_method_error_references_named_class
     e = assert_raises(ActionView::Template::Error) { @view.render(inline: "<%= undefined %>") }
-    assert_match(/undefined local variable or method `undefined'/, e.message)
+    assert_match(/undefined local variable or method [`']undefined'/, e.message)
   end
 
   def test_render_renderable_object
     assert_equal "Hello: david", @view.render(partial: "test/customer", object: Customer.new("david"))
     assert_equal "FalseClass", @view.render(partial: "test/klass", object: false)
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
+  end
+
+  def test_render_renderable_render_in
+    assert_equal "Hello, World!", @view.render(TestRenderable.new)
+    assert_equal "Hello, World!", @view.render(renderable: TestRenderable.new)
   end
 
   def test_render_object_different_name
@@ -738,7 +793,7 @@ module RenderTestCases
   end
 
   def test_render_mutate_string_literal
-    assert_equal "foobar", @view.render(inline: "'foo' << 'bar'", type: :ruby)
+    assert_equal "foobar", @view.render(inline: "+'foo' << 'bar'", type: :ruby)
   end
 end
 
@@ -944,6 +999,12 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     assert_raises(NotImplementedError) do
       @controller_view.render(partial: [a, b], cached: true)
     end
+  end
+
+  test "collection caching with empty collection and logger with level debug" do
+    ActionView::PartialRenderer.collection_cache.logger = Logger.new(nil, level: :debug)
+
+    assert_nil @view.render(partial: "test/cached_customer", collection: [], cached: true)
   end
 
   test "collection caching with repeated collection" do

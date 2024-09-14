@@ -4,10 +4,12 @@ class Object
   # Set and restore public attributes around a block.
   #
   #   client.timeout # => 5
-  #   client.with(timeout: 1) do
-  #     client.timeout # => 1
+  #   client.with(timeout: 1) do |c|
+  #     c.timeout # => 1
   #   end
   #   client.timeout # => 5
+  #
+  # The receiver is yielded to the provided block.
   #
   # This method is a shorthand for the common begin/ensure pattern:
   #
@@ -28,7 +30,7 @@ class Object
         old_values[key] = public_send(key)
         public_send("#{key}=", value)
       end
-      yield
+      yield self
     ensure
       old_values.each do |key, old_value|
         public_send("#{key}=", old_value)

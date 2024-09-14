@@ -128,6 +128,7 @@ Connection.prototype.events = {
   message(event) {
     if (!this.isProtocolSupported()) { return }
     const {identifier, message, reason, reconnect, type} = JSON.parse(event.data)
+    this.monitor.recordMessage()
     switch (type) {
       case message_types.welcome:
         if (this.triedToReconnect()) {
@@ -139,7 +140,7 @@ Connection.prototype.events = {
         logger.log(`Disconnecting. Reason: ${reason}`)
         return this.close({allowReconnect: reconnect})
       case message_types.ping:
-        return this.monitor.recordPing()
+        return null
       case message_types.confirmation:
         this.subscriptions.confirmSubscription(identifier)
         if (this.reconnectAttempted) {

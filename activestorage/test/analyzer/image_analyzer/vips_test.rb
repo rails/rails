@@ -65,7 +65,7 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
 
       yield
     rescue LoadError
-      ENV["CI"] ? raise : skip("Variant processor vips is not installed")
+      ENV["BUILDKITE"] ? raise : skip("Variant processor vips is not installed")
     ensure
       ActiveStorage.variant_processor = previous_processor
     end

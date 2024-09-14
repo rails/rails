@@ -754,9 +754,9 @@
     }
   }
   function didClick(event) {
-    const {target: target} = event;
-    if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
-      submitButtonsByForm.set(target.form, target);
+    const button = event.target.closest("button, input");
+    if (button && button.type === "submit" && button.form) {
+      submitButtonsByForm.set(button.form, button);
     }
   }
   function didSubmitForm(event) {
@@ -822,6 +822,7 @@
   exports.DirectUpload = DirectUpload;
   exports.DirectUploadController = DirectUploadController;
   exports.DirectUploadsController = DirectUploadsController;
+  exports.dispatchEvent = dispatchEvent;
   exports.start = start;
   Object.defineProperty(exports, "__esModule", {
     value: true

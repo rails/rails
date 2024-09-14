@@ -1,37 +1,42 @@
-*   Attachables now can override default attachment missing template.
+*   Dispatch direct-upload events on attachment uploads
 
-    When rendering Action Text attachments where the underlying attachable model has
-    been removed, a fallback template is used. You now can override this template on
-    a per-model basis. For example, you could render a placeholder image for a file
-    attachment or the text "Deleted User" for a User attachment.
+    When using Action Text's rich textarea,  it's possible to attach files to the
+    editor. Previously, that action didn't dispatch any events, which made it hard
+    to react to the file uploads. For instance, if an upload failed, there was no
+    way to notify the user about it, or remove the attachment from the editor.
 
-    *Matt Swanson*, *Joel Drapper*
+    This commits adds new events - `direct-upload:start`, `direct-upload:progress`,
+    and `direct-upload:end` - similar to how Active Storage's direct uploads work.
 
-*   Update bundled Trix version from `1.3.1` to `2.0.4`.
+    *Matheus Richard*, *Brad Rees*
 
-    *Sarah Ridge*, *Sean Doyle*
+*   Add `store_if_blank` option to `has_rich_text`
 
-*   Apply `field_error_proc` to `rich_text_area` form fields.
+    Pass `store_if_blank: false` to not create `ActionText::RichText` records when saving with a blank attribute, such as from an optional form parameter.
 
-    *Kaíque Kandy Koga*
+    ```ruby
+    class Message
+      has_rich_text :content, store_if_blank: false
+    end
 
-*   Action Text attachment URLs rendered in a background job (a la Turbo
-    Streams) now use `Rails.application.default_url_options` and
-    `Rails.application.config.force_ssl` instead of `http://example.org`.
+    Message.create(content: "hi") # creates an ActionText::RichText
+    Message.create(content: "") # does not create an ActionText::RichText
+    ```
 
-    *Jonathan Hefner*
+    *Alex Ghiculescu*
 
-*   Support `strict_loading:` option for `has_rich_text` declaration
+*   Strip `content` attribute if the key is present but the value is empty
+
+    *Jeremy Green*
+
+*   Rename `rich_text_area` methods into `rich_textarea`
+
+    Old names are still available as aliases.
 
     *Sean Doyle*
 
-*   Update ContentAttachment so that it can encapsulate arbitrary HTML content in a document.
+*   Only sanitize `content` attribute when present in attachments.
 
-    *Jamis Buck*
+    *Petrik de Heus*
 
-*   Fix an issue that caused the content layout to render multiple times when a
-    rich_text field was updated.
-
-    *Jacob Herrington*
-
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actiontext/CHANGELOG.md) for previous changes.
+Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actiontext/CHANGELOG.md) for previous changes.

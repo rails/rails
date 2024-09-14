@@ -25,7 +25,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   test "The integration is minimally looking good" do
     boot
 
-    assert Rails.autoloaders.zeitwerk_enabled?
+    assert_predicate Rails.autoloaders, :zeitwerk_enabled?
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
     assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
@@ -185,7 +185,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     boot
 
-    assert     Rails.autoloaders.main.reloading_enabled?
+    assert_predicate Rails.autoloaders.main, :reloading_enabled?
     assert_not Rails.autoloaders.once.reloading_enabled?
   end
 
@@ -234,27 +234,17 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     $zeitwerk_integration_test_user = false
     app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
 
-    $zeitwerk_integration_test_lib = false
-    app_dir "lib"
-    app_file "lib/webhook_hacks.rb", "WebhookHacks = 1; $zeitwerk_integration_test_lib = true"
-
     $zeitwerk_integration_test_extras = false
     app_dir "extras"
     app_file "extras/websocket_hacks.rb", "WebsocketHacks = 1; $zeitwerk_integration_test_extras = true"
-
-    add_to_config "config.autoload_paths      << '#{app_path}/lib'"
     add_to_config "config.autoload_once_paths << '#{app_path}/extras'"
 
     boot("production")
 
     assert $zeitwerk_integration_test_user
-    assert_not $zeitwerk_integration_test_lib
     assert_not $zeitwerk_integration_test_extras
 
-    assert WebhookHacks
     assert WebsocketHacks
-
-    assert $zeitwerk_integration_test_lib
     assert $zeitwerk_integration_test_extras
   end
 

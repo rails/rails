@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rails"
 require "action_controller"
 require "action_dispatch/railtie"
@@ -77,6 +79,7 @@ module ActionController
 
         # Configs used in other initializers
         filtered_options = options.except(
+          :default_protect_from_forgery,
           :log_query_tags_around_actions,
           :permit_all_parameters,
           :action_on_unpermitted_parameters,
@@ -120,7 +123,7 @@ module ActionController
         app.config.active_record.query_log_tags |= [:action]
 
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings.merge!(
+          ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
             namespaced_controller: ->(context) {

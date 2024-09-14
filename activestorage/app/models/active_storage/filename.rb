@@ -57,7 +57,7 @@ class ActiveStorage::Filename
   #
   # Characters considered unsafe for storage (e.g. \, $, and the RTL override character) are replaced with a dash.
   def sanitized
-    @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/\t\r\n\\", "-")
+    @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/<>?*\"\t\r\n\\", "-")
   end
 
   # Returns the sanitized version of the filename.
@@ -66,10 +66,6 @@ class ActiveStorage::Filename
   end
 
   def as_json(*)
-    to_s
-  end
-
-  def to_json
     to_s
   end
 

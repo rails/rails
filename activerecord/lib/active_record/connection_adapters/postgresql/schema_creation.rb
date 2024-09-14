@@ -12,18 +12,19 @@ module ActiveRecord
             sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
             sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
             sql << o.exclusion_constraint_drops.map { |con| visit_DropExclusionConstraint con }.join(" ")
-            sql << o.unique_key_adds.map { |con| visit_AddUniqueKey con }.join(" ")
-            sql << o.unique_key_drops.map { |con| visit_DropUniqueKey con }.join(" ")
+            sql << o.unique_constraint_adds.map { |con| visit_AddUniqueConstraint con }.join(" ")
+            sql << o.unique_constraint_drops.map { |con| visit_DropUniqueConstraint con }.join(" ")
           end
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
-              if o.deferrable
-                sql << " DEFERRABLE"
-                sql << " INITIALLY #{o.deferrable.to_s.upcase}" unless o.deferrable == true
-              end
-
               sql << " NOT VALID" unless o.validate?
+            end
+          end
+
+          def visit_ForeignKeyDefinition(o)
+            super.dup.tap do |sql|
+              sql << " DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
             end
           end
 
@@ -47,13 +48,18 @@ module ActiveRecord
             sql.join(" ")
           end
 
-          def visit_UniqueKeyDefinition(o)
-            column_name = Array(o.columns).map { |column| quote_column_name(column) }.join(", ")
+          def visit_UniqueConstraintDefinition(o)
+            column_name = Array(o.column).map { |column| quote_column_name(column) }.join(", ")
 
             sql = ["CONSTRAINT"]
             sql << quote_column_name(o.name)
             sql << "UNIQUE"
-            sql << "(#{column_name})"
+
+            if o.using_index
+              sql << "USING INDEX #{quote_column_name(o.using_index)}"
+            else
+              sql << "(#{column_name})"
+            end
 
             if o.deferrable
               sql << "DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}"
@@ -70,11 +76,11 @@ module ActiveRecord
             "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 
-          def visit_AddUniqueKey(o)
+          def visit_AddUniqueConstraint(o)
             "ADD #{accept(o)}"
           end
 
-          def visit_DropUniqueKey(name)
+          def visit_DropUniqueConstraint(name)
             "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 

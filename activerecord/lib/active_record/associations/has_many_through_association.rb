@@ -113,7 +113,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          !(through_reflection.belongs_to? && owner[through_reflection.foreign_key].blank?)
+          !(through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? { |foreign_key_column| owner[foreign_key_column].blank? })
         end
 
         def update_through_counter?(method)
@@ -140,7 +140,7 @@ module ActiveRecord
 
           case method
           when :destroy
-            if scope.klass.primary_key
+            if scope.model.primary_key
               count = scope.destroy_all.count(&:destroyed?)
             else
               scope.each(&:_run_destroy_callbacks)
@@ -216,7 +216,8 @@ module ActiveRecord
           end
         end
 
-        def find_target
+        def find_target(async: false)
+          raise NotImplementedError, "No async loading for HasManyThroughAssociation yet" if async
           return [] unless target_reflection_has_associated_record?
           return scope.to_a if disable_joins
           super

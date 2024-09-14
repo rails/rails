@@ -33,6 +33,11 @@ module PostgresqlJSONSharedTestCases
     x.reload
     assert_equal ["foo" => "bar"], x.objects
   end
+
+  def test_noname_columns_of_different_types
+    @connection.execute(insert_statement_per_database('{"a":{},"b":"b"}'))
+    assert_equal [[{}, "b"]], klass.pluck(Arel.sql("payload->'a', payload->>'b'"))
+  end
 end
 
 class PostgresqlJSONTest < ActiveRecord::PostgreSQLTestCase

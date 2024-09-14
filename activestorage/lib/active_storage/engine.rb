@@ -65,6 +65,8 @@ module ActiveStorage
     )
 
     config.active_storage.content_types_allowed_inline = %w(
+      image/webp
+      image/avif
       image/png
       image/gif
       image/jpeg
@@ -110,20 +112,12 @@ module ActiveStorage
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
+        ActiveStorage.touch_attachment_records = app.config.active_storage.touch_attachment_records != false
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.urls_expire_in = app.config.active_storage.urls_expire_in
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
-
-        unless app.config.active_storage.silence_invalid_content_types_warning.nil?
-          ActiveStorage.silence_invalid_content_types_warning = app.config.active_storage.silence_invalid_content_types_warning
-        end
-
-        unless app.config.active_storage.replace_on_assign_to_many.nil?
-          ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many
-        end
-
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
       end
     end

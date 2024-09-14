@@ -3,13 +3,16 @@
 require "abstract_unit"
 
 class SSLTest < ActionDispatch::IntegrationTest
-  HEADERS = { "Content-Type" => "text/html" }
-
   attr_accessor :app
 
   def build_app(headers: {}, ssl_options: {})
-    headers = HEADERS.merge(headers)
-    ActionDispatch::SSL.new lambda { |env| [200, headers, []] }, **ssl_options.reverse_merge(hsts: { subdomains: true })
+    app = lambda { |env| [200, headers, []] }
+    Rack::Lint.new(
+      ActionDispatch::SSL.new(
+        Rack::Lint.new(app),
+        hsts: { subdomains: true }, **ssl_options,
+      )
+    )
   end
 end
 
@@ -128,9 +131,9 @@ class StrictTransportSecurityTest < SSLTest
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
     get url
     if expected.nil?
-      assert_nil response.headers["Strict-Transport-Security"]
+      assert_nil response.headers["strict-transport-security"]
     else
-      assert_equal expected, response.headers["Strict-Transport-Security"]
+      assert_equal expected, response.headers["strict-transport-security"]
     end
   end
 
@@ -143,7 +146,8 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test "defers to app-provided header" do
-    assert_hsts "app-provided", headers: { "Strict-Transport-Security" => "app-provided" }
+    headers = { ActionDispatch::Constants::STRICT_TRANSPORT_SECURITY => "app-provided" }
+    assert_hsts "app-provided", headers: headers
   end
 
   test "hsts: true enables default settings" do
@@ -180,82 +184,94 @@ class StrictTransportSecurityTest < SSLTest
 end
 
 class SecureCookiesTest < SSLTest
-  DEFAULT = %(id=1; path=/\ntoken=abc; path=/; secure; HttpOnly)
-
-  def get(**options)
-    self.app = build_app(**options)
-    super "https://example.org"
-  end
-
-  def assert_cookies(*expected)
-    assert_equal expected, response.headers["Set-Cookie"].split("\n")
+  DEFAULT = if Gem::Version.new(Rack::RELEASE) < Gem::Version.new("3")
+    %(id=1; path=/\ntoken=abc; path=/; secure; HttpOnly)
+  else
+    ["id=1; path=/", "token=abc; path=/; secure; HttpOnly"]
   end
 
   def test_flag_cookies_as_secure
-    get headers: { "Set-Cookie" => DEFAULT }
+    get headers: { Rack::SET_COOKIE => DEFAULT }
     assert_cookies "id=1; path=/; secure", "token=abc; path=/; secure; HttpOnly"
   end
 
-  def test_flag_cookies_as_secure_with_single_cookie_in_array
-    get headers: { "Set-Cookie" => ["id=1"] }
-    assert_cookies "id=1; secure"
-  end
-
-  def test_flag_cookies_as_secure_with_multiple_cookies_in_array
-    get headers: { "Set-Cookie" => ["id=1", "problem=def"] }
-    assert_cookies "id=1; secure", "problem=def; secure"
-  end
-
   def test_flag_cookies_as_secure_at_end_of_line
-    get headers: { "Set-Cookie" => "problem=def; path=/; HttpOnly; secure" }
+    get headers: { Rack::SET_COOKIE => "problem=def; path=/; HttpOnly; secure" }
     assert_cookies "problem=def; path=/; HttpOnly; secure"
   end
 
   def test_flag_cookies_as_secure_with_more_spaces_before
-    get headers: { "Set-Cookie" => "problem=def; path=/; HttpOnly;  secure" }
+    get headers: { Rack::SET_COOKIE => "problem=def; path=/; HttpOnly;  secure" }
     assert_cookies "problem=def; path=/; HttpOnly;  secure"
   end
 
   def test_flag_cookies_as_secure_with_more_spaces_after
-    get headers: { "Set-Cookie" => "problem=def; path=/; secure;  HttpOnly" }
+    get headers: { Rack::SET_COOKIE => "problem=def; path=/; secure;  HttpOnly" }
     assert_cookies "problem=def; path=/; secure;  HttpOnly"
   end
 
   def test_flag_cookies_as_secure_with_has_not_spaces_before
-    get headers: { "Set-Cookie" => "problem=def; path=/;secure; HttpOnly" }
+    get headers: { Rack::SET_COOKIE => "problem=def; path=/;secure; HttpOnly" }
     assert_cookies "problem=def; path=/;secure; HttpOnly"
   end
 
   def test_flag_cookies_as_secure_with_has_not_spaces_after
-    get headers: { "Set-Cookie" => "problem=def; path=/; secure;HttpOnly" }
+    get headers: { Rack::SET_COOKIE => "problem=def; path=/; secure;HttpOnly" }
     assert_cookies "problem=def; path=/; secure;HttpOnly"
   end
 
   def test_flag_cookies_as_secure_with_ignore_case
-    get headers: { "Set-Cookie" => "problem=def; path=/; Secure; HttpOnly" }
+    get headers: { Rack::SET_COOKIE => "problem=def; path=/; Secure; HttpOnly" }
     assert_cookies "problem=def; path=/; Secure; HttpOnly"
   end
 
   def test_cookies_as_not_secure_with_secure_cookies_disabled
-    get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { secure_cookies: false }
-    assert_cookies(*DEFAULT.split("\n"))
+    get headers: { Rack::SET_COOKIE => DEFAULT }, ssl_options: { secure_cookies: false }
+    assert_cookies("id=1; path=/", "token=abc; path=/; secure; HttpOnly")
   end
 
   def test_cookies_as_not_secure_with_exclude
     excluding = { exclude: -> request { /example/.match?(request.domain) } }
-    get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { redirect: excluding }
+    get headers: { Rack::SET_COOKIE => DEFAULT }, ssl_options: { redirect: excluding }
 
-    assert_cookies(*DEFAULT.split("\n"))
+    assert_cookies("id=1; path=/", "token=abc; path=/; secure; HttpOnly")
     assert_response :ok
   end
 
   def test_no_cookies
     get
-    assert_nil response.headers["Set-Cookie"]
+    assert_nil response.headers[Rack::SET_COOKIE]
   end
 
   def test_keeps_original_headers_behavior
-    get headers: { "Connection" => "close" }
-    assert_equal "close", response.headers["Connection"]
+    get headers: { "connection" => "close" }
+    assert_equal "close", response.headers["connection"]
   end
+
+  # Array-based headers are only supported in Rack 3+
+  if Gem::Version.new(Rack::RELEASE) >= Gem::Version.new("3")
+    def test_flag_cookies_as_secure_with_single_cookie_in_array
+      get headers: { Rack::SET_COOKIE => ["id=1"] }
+      assert_cookies "id=1; secure"
+    end
+
+    def test_flag_cookies_as_secure_with_multiple_cookies_in_array
+      get headers: { Rack::SET_COOKIE => ["id=1", "problem=def"] }
+      assert_cookies "id=1; secure", "problem=def; secure"
+    end
+  end
+
+  private
+    def get(**options)
+      self.app = build_app(**options)
+      super "https://example.org"
+    end
+
+    def assert_cookies(*expected)
+      cookies = response.headers[Rack::SET_COOKIE]
+      if Gem::Version.new(Rack::RELEASE) < Gem::Version.new("3")
+        cookies = cookies.split("\n")
+      end
+      assert_equal expected, cookies
+    end
 end

@@ -139,14 +139,16 @@ class ViewLoadPathsTest < ActionController::TestCase
 
   def test_view_paths_override_for_layouts_in_controllers_with_a_module
     @controller = Test::SubController.new
-    with_routes do
-      get :hello_world, to: "view_load_paths_test/test/sub#hello_world"
-    end
+    with_routing do |routes|
+      routes.draw do
+        get :hello_world, to: "view_load_paths_test/test/sub#hello_world"
+      end
 
-    Test::SubController.view_paths = [ "#{FIXTURE_LOAD_PATH}/override", FIXTURE_LOAD_PATH, "#{FIXTURE_LOAD_PATH}/override2" ]
-    get :hello_world
-    assert_response :success
-    assert_equal "layout: Hello overridden world!", @response.body
+      Test::SubController.view_paths = [ "#{FIXTURE_LOAD_PATH}/override", FIXTURE_LOAD_PATH, "#{FIXTURE_LOAD_PATH}/override2" ]
+      get :hello_world
+      assert_response :success
+      assert_equal "layout: Hello overridden world!", @response.body
+    end
   end
 
   def test_view_paths_override_at_request_time

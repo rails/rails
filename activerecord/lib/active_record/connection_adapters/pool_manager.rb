@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def shard_names
-        @role_to_shard_mapping.values.flat_map { |shard_map| shard_map.keys }
+        @role_to_shard_mapping.values.flat_map { |shard_map| shard_map.keys }.uniq
       end
 
       def role_names

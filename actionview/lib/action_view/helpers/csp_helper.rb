@@ -2,9 +2,8 @@
 
 module ActionView
   module Helpers # :nodoc:
+    # = Action View CSP \Helpers
     module CspHelper
-      # = Action View CSP \Helpers
-      #
       # Returns a meta tag "csp-nonce" with the per-session nonce value
       # for allowing inline <script> tags.
       #
@@ -12,7 +11,7 @@ module ActionView
       #     <%= csp_meta_tag %>
       #   </head>
       #
-      # This is used by the Rails UJS helper to create dynamically
+      # This is used by the \Rails UJS helper to create dynamically
       # loaded inline <script> elements.
       #
       def csp_meta_tag(**options)

@@ -1,23 +1,25 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController
   module Head
-    # Returns a response that has no content (merely headers). The options
-    # argument is interpreted to be a hash of header names and values.
-    # This allows you to easily return a response that consists only of
-    # significant headers:
+    # Returns a response that has no content (merely headers). The options argument
+    # is interpreted to be a hash of header names and values. This allows you to
+    # easily return a response that consists only of significant headers:
     #
-    #   head :created, location: person_path(@person)
+    #     head :created, location: person_path(@person)
     #
-    #   head :created, location: @person
+    #     head :created, location: @person
     #
     # It can also be used to return exceptional conditions:
     #
-    #   return head(:method_not_allowed) unless request.post?
-    #   return head(:bad_request) unless valid_request?
-    #   render
+    #     return head(:method_not_allowed) unless request.post?
+    #     return head(:bad_request) unless valid_request?
+    #     render
     #
-    # See +Rack::Utils::SYMBOL_TO_STATUS_CODE+ for a full list of valid +status+ symbols.
+    # See `Rack::Utils::SYMBOL_TO_STATUS_CODE` for a full list of valid `status`
+    # symbols.
     def head(status, options = nil)
       if status.is_a?(Hash)
         raise ArgumentError, "#{status.inspect} is not a valid value for `status`."

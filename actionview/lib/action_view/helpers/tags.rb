@@ -5,6 +5,8 @@ module ActionView
     module Tags # :nodoc:
       extend ActiveSupport::Autoload
 
+      autoload :SelectRenderer
+
       eager_autoload do
         autoload :Base
         autoload :Translator

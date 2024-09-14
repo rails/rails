@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "fiber"
 
 module ActionView
   # == TODO
@@ -46,7 +45,7 @@ module ActionView
       return [super.body] unless layout_name && template.supports_streaming?
 
       locals ||= {}
-      layout   = layout_name && find_layout(layout_name, locals.keys, [formats.first])
+      layout   = find_layout(layout_name, locals.keys, [formats.first])
 
       Body.new do |buffer|
         delayed_render(buffer, template, layout, view, locals)

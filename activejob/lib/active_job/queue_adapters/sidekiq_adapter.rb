@@ -9,7 +9,7 @@ module ActiveJob
     #
     # Simple, efficient background processing for Ruby. Sidekiq uses threads to
     # handle many jobs at the same time in the same process. It does not
-    # require Rails but will integrate tightly with it to make background
+    # require \Rails but will integrate tightly with it to make background
     # processing dead simple.
     #
     # Read more about Sidekiq {here}[http://sidekiq.org].
@@ -17,7 +17,7 @@ module ActiveJob
     # To use Sidekiq set the queue_adapter config to +:sidekiq+.
     #
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
-    class SidekiqAdapter
+    class SidekiqAdapter < AbstractAdapter
       def enqueue(job) # :nodoc:
         job.provider_job_id = JobWrapper.set(
           wrapped: job.class,
@@ -33,30 +33,34 @@ module ActiveJob
       end
 
       def enqueue_all(jobs) # :nodoc:
+        enqueued_count = 0
         jobs.group_by(&:class).each do |job_class, same_class_jobs|
           same_class_jobs.group_by(&:queue_name).each do |queue, same_class_and_queue_jobs|
             immediate_jobs, scheduled_jobs = same_class_and_queue_jobs.partition { |job| job.scheduled_at.nil? }
 
             if immediate_jobs.any?
-              Sidekiq::Client.push_bulk(
+              jids = Sidekiq::Client.push_bulk(
                 "class" => JobWrapper,
                 "wrapped" => job_class,
                 "queue" => queue,
                 "args" => immediate_jobs.map { |job| [job.serialize] },
               )
+              enqueued_count += jids.compact.size
             end
 
             if scheduled_jobs.any?
-              Sidekiq::Client.push_bulk(
+              jids = Sidekiq::Client.push_bulk(
                 "class" => JobWrapper,
                 "wrapped" => job_class,
                 "queue" => queue,
                 "args" => scheduled_jobs.map { |job| [job.serialize] },
-                "at" => scheduled_jobs.map { |job| job.scheduled_at }
+                "at" => scheduled_jobs.map { |job| job.scheduled_at&.to_f }
               )
+              enqueued_count += jids.compact.size
             end
           end
         end
+        enqueued_count
       end
 
       class JobWrapper # :nodoc:

@@ -35,7 +35,7 @@ require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/string/inflections"
 require "active_support/lazy_load_hooks"
 
-# :include: actionmailer/README.rdoc
+# :include: ../README.rdoc
 module ActionMailer
   extend ::ActiveSupport::Autoload
 
@@ -44,6 +44,7 @@ module ActionMailer
   end
 
   autoload :Base
+  autoload :Callbacks
   autoload :DeliveryMethods
   autoload :InlinePreviewInterceptor
   autoload :MailHelper
@@ -55,6 +56,7 @@ module ActionMailer
   autoload :MessageDelivery
   autoload :MailDeliveryJob
   autoload :QueuedDelivery
+  autoload :FormBuilder
 
   def self.eager_load!
     super
@@ -72,6 +74,6 @@ autoload :Mime, "action_dispatch/http/mime_type"
 
 ActiveSupport.on_load(:action_view) do
   ActionView::Base.default_formats ||= Mime::SET.symbols
-  ActionView::Template::Types.delegate_to Mime
+  ActionView::Template.mime_types_implementation = Mime
   ActionView::LookupContext::DetailsKey.clear
 end

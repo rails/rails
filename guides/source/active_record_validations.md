@@ -119,45 +119,74 @@ careful.
 The following methods trigger validations, and will save the object to the
 database only if the object is valid:
 
-* `create`
-* `create!`
-* `save`
-* `save!`
-* `update`
-* `update!`
+* [`create`][]
+* [`create!`][]
+* [`save`][]
+* [`save!`][]
+* [`update`][]
+* [`update!`][]
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
 The non-bang versions don't: `save` and `update` return `false`, and
 `create` returns the object.
 
+[`create`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create
+[`create!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create-21
+[`save`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save
+[`save!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save-21
+[`update`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update
+[`update!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update-21
+
 ### Skipping Validations
 
 The following methods skip validations, and will save the object to the
 database regardless of its validity. They should be used with caution.
+Refer to the method documentation to learn more.
 
-* `decrement!`
-* `decrement_counter`
-* `increment!`
-* `increment_counter`
-* `insert`
-* `insert!`
-* `insert_all`
-* `insert_all!`
-* `toggle!`
-* `touch`
-* `touch_all`
-* `update_all`
-* `update_attribute`
-* `update_column`
-* `update_columns`
-* `update_counters`
-* `upsert`
-* `upsert_all`
+* [`decrement!`][]
+* [`decrement_counter`][]
+* [`increment!`][]
+* [`increment_counter`][]
+* [`insert`][]
+* [`insert!`][]
+* [`insert_all`][]
+* [`insert_all!`][]
+* [`toggle!`][]
+* [`touch`][]
+* [`touch_all`][]
+* [`update_all`][]
+* [`update_attribute`][]
+* [`update_attribute!`][]
+* [`update_column`][]
+* [`update_columns`][]
+* [`update_counters`][]
+* [`upsert`][]
+* [`upsert_all`][]
 
 Note that `save` also has the ability to skip validations if passed `validate:
 false` as an argument. This technique should be used with caution.
 
 * `save(validate: false)`
+
+[`decrement!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
+[`decrement_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
+[`increment!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-increment-21
+[`increment_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
+[`insert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
+[`insert!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
+[`insert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
+[`insert_all!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
+[`toggle!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-toggle-21
+[`touch`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch
+[`touch_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
+[`update_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_all
+[`update_attribute`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_attribute
+[`update_attribute!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_attribute-21
+[`update_column`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column
+[`update_columns`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_columns
+[`update_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
+[`upsert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
+[`upsert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
 
 ### `valid?` and `invalid?`
 
@@ -205,21 +234,21 @@ irb> p.errors.size
 irb> p.valid?
 => false
 irb> p.errors.objects.first.full_message
-=> "Name can’t be blank"
+=> "Name can't be blank"
 
 irb> p = Person.create
 => #<Person id: nil, name: nil>
 irb> p.errors.objects.first.full_message
-=> "Name can’t be blank"
+=> "Name can't be blank"
 
 irb> p.save
 => false
 
 irb> p.save!
-ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
 irb> Person.create!
-ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 [`invalid?`][] is the inverse of `valid?`. It triggers your validations,
@@ -547,7 +576,7 @@ value.
 ```
 
 Otherwise, it will try to convert the value to a number using `Float`. `Float`s
-are casted to `BigDecimal` using the column's precision value or a maximum of 15
+are cast to `BigDecimal` using the column's precision value or a maximum of 15
 digits.
 
 ```ruby
@@ -627,7 +656,7 @@ class Order < ApplicationRecord
 end
 ```
 
-NOTE: If you want to ensure that the association it is both present and valid,
+NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
@@ -648,7 +677,7 @@ validates :boolean_field_name, exclusion: [nil]
 By using one of these validations, you will ensure the value will NOT be `nil`
 which would result in a `NULL` value in most cases.
 
-The default error message is _"can’t be blank"_.
+The default error message is _"can't be blank"_.
 
 [`Object#blank?`]: https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
 
@@ -684,7 +713,7 @@ class Order < ApplicationRecord
 end
 ```
 
-NOTE: If you want to ensure that the association it is both present and valid,
+NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
@@ -733,14 +762,14 @@ In order to add a uniqueness database constraint on your database, use the
 
 Should you wish to create a database constraint to prevent possible violations
 of a uniqueness validation using the `:scope` option, you must create a unique
-index on both columns in your database. See [the MySQL manual][] for more
-details about multiple column indexes or [the PostgreSQL manual][] for examples
-of unique constraints that refer to a group of columns.
+index on both columns in your database. See [the MySQL manual][] and [the MariaDB
+manual][] for more details about multiple column indexes, or [the PostgreSQL
+manual][] for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
-uniqueness constraint will be case sensitive, case insensitive, or respects
-default database collation. This option defaults to respects default database
-collation.
+uniqueness constraint will be case sensitive, case insensitive, or if it should
+respect the default database collation. This option defaults to respecting the
+default database collation.
 
 ```ruby
 class Person < ApplicationRecord
@@ -762,6 +791,7 @@ See [`validates_uniqueness_of`][] for more information.
 [`validates_uniqueness_of`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_uniqueness_of
 [`add_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
 [the MySQL manual]: https://dev.mysql.com/doc/refman/en/multiple-column-indexes.html
+[the MariaDB manual]: https://mariadb.com/kb/en/compound-composite-indexes/
 [the PostgreSQL manual]: https://www.postgresql.org/docs/current/static/ddl-constraints.html
 
 ### `validates_associated`
@@ -846,7 +876,7 @@ method definition, which is the record to be validated.
 
 If you want to add an error on a specific attribute, pass it as the first
 argument, such as `record.errors.add(:first_name, "please choose another
-name")`. We will cover [validation errors][] in greater detail later.
+name")`. We will cover [validation errors](#working-with-validation-errors) in greater detail later.
 
 ```ruby
 def validate(record)
@@ -914,7 +944,6 @@ end
 
 We will cover [custom validations](#performing-custom-validations) more later.
 
-[validation errors](#working-with-validation-errors)
 [`validates_with`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with
 
 Common Validation Options
@@ -1004,6 +1033,7 @@ class Person < ApplicationRecord
   # with the actual value of the attribute. %{attribute} and %{model}
   # are also available.
   validates :age, numericality: { message: "%{value} seems wrong" }
+end
 ```
 
 A `Proc` `:message` value is given two arguments: the object being validated, and
@@ -1086,7 +1116,7 @@ irb> book.valid?
 irb> book.valid?(:ensure_title)
 => false
 irb> book.errors.messages
-=> {:title=>["can’t be blank"]}
+=> {:title=>["can't be blank"]}
 ```
 
 When triggered by an explicit context, validations are run for that context,
@@ -1105,7 +1135,7 @@ irb> person = Person.new
 irb> person.valid?(:account_setup)
 => false
 irb> person.errors.messages
-=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can’t be blank"]}
+=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
 ```
 
 We will cover more use-cases for `on:` in the [callbacks guide](active_record_callbacks.html).
@@ -1124,7 +1154,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-ActiveModel::StrictValidationFailed: Name can’t be blank
+ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
 There is also the ability to pass a custom exception to the `:strict` option.
@@ -1137,7 +1167,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-TokenGenerationException: Token can’t be blank
+TokenGenerationException: Token can't be blank
 ```
 
 Conditional Validation
@@ -1240,7 +1270,7 @@ the `validates_with` method.
 class MyValidator < ActiveModel::Validator
   def validate(record)
     unless record.name.start_with? 'X'
-      record.errors.add :name, "Need a name starting with X please!"
+      record.errors.add :name, "Provide a name starting with X, please!"
     end
   end
 end
@@ -1394,7 +1424,7 @@ irb> person = Person.new
 irb> person.valid?
 => false
 irb> person.errors.full_messages
-=> ["Name can’t be blank", "Name is too short (minimum is 3 characters)"]
+=> ["Name can't be blank", "Name is too short (minimum is 3 characters)"]
 
 irb> person = Person.new(name: "John Doe")
 irb> person.valid?
@@ -1441,7 +1471,7 @@ irb> person = Person.new
 irb> person.valid?
 => false
 irb> person.errors[:name]
-=> ["can’t be blank", "is too short (minimum is 3 characters)"]
+=> ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
 ### `errors.where` and Error Object

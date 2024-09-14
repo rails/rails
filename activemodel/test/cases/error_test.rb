@@ -89,7 +89,7 @@ class ErrorTest < ActiveModel::TestCase
 
   test "message with type as a symbol" do
     error = ActiveModel::Error.new(Person.new, :name, :blank)
-    assert_equal "can’t be blank", error.message
+    assert_equal "can't be blank", error.message
   end
 
   test "message with custom interpolation" do
@@ -178,15 +178,15 @@ class ErrorTest < ActiveModel::TestCase
 
   test "full_message returns the given message with the attribute name included" do
     error = ActiveModel::Error.new(Person.new, :name, :blank)
-    assert_equal "name can’t be blank", error.full_message
+    assert_equal "name can't be blank", error.full_message
   end
 
   test "full_message uses default format" do
-    error = ActiveModel::Error.new(Person.new, :name, message: "can’t be blank")
+    error = ActiveModel::Error.new(Person.new, :name, message: "can't be blank")
 
     # Use a locale without errors.format
     I18n.with_locale(:unknown) {
-      assert_equal "name can’t be blank", error.full_message
+      assert_equal "name can't be blank", error.full_message
     }
   end
 
@@ -217,6 +217,11 @@ class ErrorTest < ActiveModel::TestCase
     assert_not_equal error, person
   end
 
+  test "full_message returns the given message when the attribute contains base" do
+    error = ActiveModel::Error.new(Person.new, :"foo.base", "press the button")
+    assert_equal "foo.base press the button", error.full_message
+  end
+
   # details
 
   test "details which ignores callback and message options" do
@@ -236,8 +241,8 @@ class ErrorTest < ActiveModel::TestCase
     )
 
     assert_equal(
-      error.details,
-      { error: :too_short, foo: :bar }
+      { error: :too_short, foo: :bar },
+      error.details
     )
   end
 
@@ -245,6 +250,6 @@ class ErrorTest < ActiveModel::TestCase
     person = Person.new
     error = ActiveModel::Error.new(person, :name, foo: :bar)
 
-    assert_equal(error.details, { error: :invalid, foo: :bar })
+    assert_equal({ error: :invalid, foo: :bar }, error.details)
   end
 end

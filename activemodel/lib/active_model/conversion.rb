@@ -24,6 +24,14 @@ module ActiveModel
   module Conversion
     extend ActiveSupport::Concern
 
+    included do
+      ##
+      # :singleton-method:
+      #
+      # Accepts a string that will be used as a delimiter of object's key values in the `to_param` method.
+      class_attribute :param_delimiter, instance_reader: false, default: "-"
+    end
+
     # If your object is already designed to implement all of the \Active \Model
     # you can use the default <tt>:to_model</tt> implementation, which simply
     # returns +self+.
@@ -58,7 +66,7 @@ module ActiveModel
     #   person.to_key # => [1]
     def to_key
       key = respond_to?(:id) && id
-      key ? [key] : nil
+      key ? Array(key) : nil
     end
 
     # Returns a +string+ representing the object's key suitable for use in URLs,
@@ -80,7 +88,7 @@ module ActiveModel
     #   person = Person.new(1)
     #   person.to_param # => "1"
     def to_param
-      (persisted? && key = to_key) ? key.join("-") : nil
+      (persisted? && (key = to_key) && key.all?) ? key.join(self.class.param_delimiter) : nil
     end
 
     # Returns a +string+ identifying the path associated with the object.
@@ -100,7 +108,9 @@ module ActiveModel
       # Provide a class level cache for #to_partial_path. This is an
       # internal method and should not be accessed directly.
       def _to_partial_path # :nodoc:
-        @_to_partial_path ||= begin
+        @_to_partial_path ||= if respond_to?(:model_name)
+          "#{model_name.collection}/#{model_name.element}"
+        else
           element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name))
           collection = ActiveSupport::Inflector.tableize(name)
           "#{collection}/#{element}"

@@ -14,9 +14,11 @@ require "models/topic"
 require "models/tag"
 require "models/tagging"
 require "models/warehouse_thing"
+require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags, :taggings, "warehouse-things"
+  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags,
+    :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -66,10 +68,10 @@ class UpdateAllTest < ActiveRecord::TestCase
       assert_equal pets.count, pets.update_all(name: "Bob")
     end
 
-    if current_adapter?(:Mysql2Adapter)
-      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
     else
-      assert_match %r/SELECT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_match %r/SELECT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
     end
   end
 
@@ -130,6 +132,19 @@ class UpdateAllTest < ActiveRecord::TestCase
     developer.reload
 
     assert_not_equal previously_created_at, developer.created_at
+    assert_not_equal previously_updated_at, developer.updated_at
+  end
+
+  def test_touch_all_with_aliased_for_update_timestamp
+    assert Developer.attribute_aliases.key?("updated_at")
+
+    developer = developers(:david)
+    previously_created_at = developer.created_at
+    previously_updated_at = developer.updated_at
+    Developer.where(name: "David").touch_all(:updated_at)
+    developer.reload
+
+    assert_equal previously_created_at, developer.created_at
     assert_not_equal previously_updated_at, developer.updated_at
   end
 
@@ -300,31 +315,34 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
-  # Oracle UPDATE does not support ORDER BY
-  unless current_adapter?(:OracleAdapter)
-    def test_update_all_ignores_order_without_limit_from_association
-      author = authors(:david)
-      assert_nothing_raised do
-        assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
-      end
+  def test_update_all_composite_model_with_join_subquery
+    agreement = cpk_order_agreements(:order_agreement_three)
+    join_scope = Cpk::Order.joins(:order_agreements).where(order_agreements: { signature: agreement.signature })
+    assert_equal 1, join_scope.update_all(status: "shipped")
+  end
+
+  def test_update_all_ignores_order_without_limit_from_association
+    author = authors(:david)
+    assert_nothing_raised do
+      assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
+    end
+  end
+
+  def test_update_all_doesnt_ignore_order
+    assert_equal authors(:david).id + 1, authors(:mary).id # make sure there is going to be a duplicate PK error
+    test_update_with_order_succeeds = lambda do |order|
+      Author.order(order).update_all("id = id + 1")
+    rescue ActiveRecord::ActiveRecordError
+      false
     end
 
-    def test_update_all_doesnt_ignore_order
-      assert_equal authors(:david).id + 1, authors(:mary).id # make sure there is going to be a duplicate PK error
-      test_update_with_order_succeeds = lambda do |order|
-        Author.order(order).update_all("id = id + 1")
-      rescue ActiveRecord::ActiveRecordError
-        false
-      end
-
-      if test_update_with_order_succeeds.call("id DESC")
-        # test that this wasn't a fluke and using an incorrect order results in an exception
-        assert_not test_update_with_order_succeeds.call("id ASC")
-      else
-        # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
-        assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
-          test_update_with_order_succeeds.call("id DESC")
-        end
+    if test_update_with_order_succeeds.call("id DESC")
+      # test that this wasn't a fluke and using an incorrect order results in an exception
+      assert_not test_update_with_order_succeeds.call("id ASC")
+    else
+      # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
+      assert_queries_match(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
+        test_update_with_order_succeeds.call("id DESC")
       end
     end
 

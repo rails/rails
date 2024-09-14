@@ -22,6 +22,7 @@ require "models/customer"
 require "models/carrier"
 require "models/shop_account"
 require "models/customer_carrier"
+require "models/cpk"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -37,7 +38,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_executes_limited_query
     boring_club = clubs(:boring_club)
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       assert_equal boring_club, @member.general_club
     end
   end
@@ -99,6 +100,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_predicate member_detail_with_two_associations.member, :new_record?
   end
 
+  def test_building_works_with_has_one_through_belongs_to
+    new_member = Member.create!(name: "Joe")
+    new_member.create_current_membership!
+    new_club = new_member.build_club
+
+    assert_equal(new_member.club, new_club)
+  end
+
   def test_creating_multiple_associations_creates_through_record
     member_type = MemberType.create!
     member = Member.create!
@@ -156,7 +165,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading
-    members = assert_queries(3) do # base table, through table, clubs table
+    members = assert_queries_count(3) do # base table, through table, clubs table
       Member.all.merge!(includes: :club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
@@ -164,7 +173,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading_through_polymorphic
-    members = assert_queries(3) do # base table, through table, clubs table
+    members = assert_queries_count(3) do # base table, through table, clubs table
       Member.all.merge!(includes: :sponsor_club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
@@ -194,7 +203,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_nonpreload_eagerloading
-    members = assert_queries(1) do
+    members = assert_queries_count(1) do
       Member.all.merge!(includes: :club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a # force fallback
     end
     assert_equal 1, members.size
@@ -202,7 +211,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic
-    members = assert_queries(1) do
+    members = assert_queries_count(1) do
       Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a # force fallback
     end
     assert_equal 1, members.size
@@ -211,7 +220,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record
     Sponsor.new(sponsor_club: clubs(:outrageous_club), sponsorable: members(:groucho)).save!
-    members = assert_queries(1) do
+    members = assert_queries_count(1) do
       Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name DESC").to_a # force fallback
     end
     assert_equal 1, members.size
@@ -236,7 +245,9 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_proxy_should_respond_to_private_methods_via_send
     clubs(:moustache_club).send(:private_method)
-    @member.club.send(:private_method)
+    assert_nothing_raised do
+      @member.club.send(:private_method)
+    end
   end
 
   def test_assigning_to_has_one_through_preserves_decorated_join_record
@@ -281,7 +292,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     @member_detail = MemberDetail.new
     @member.member_detail = @member_detail
     @member.organization = @organization
-    @member_details = assert_queries(3) do
+    @member_details = assert_queries_count(3) do
       MemberDetail.all.merge!(includes: :member_type).to_a
     end
     @new_detail = @member_details[0]
@@ -313,13 +324,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_not_nil @member_detail.member_type
     @member_detail.destroy
-    assert_queries(1) do
+    assert_queries_count(1) do
       @member_detail.association(:member_type).reload
       assert_not_nil @member_detail.member_type
     end
 
     @member_detail.member.destroy
-    assert_queries(1) do
+    assert_queries_count(1) do
       @member_detail.association(:member_type).reload
       assert_nil @member_detail.member_type
     end
@@ -444,5 +455,24 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal other_carrier, account_carrier
   ensure
     CustomerCarrier.current_customer = nil
+  end
+
+  def test_loading_cpk_association_with_unpersisted_owner
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.new(id: [1, 2], order: order)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+
+    assert_equal(order_agreement, book.order_agreement)
+  end
+
+  def test_cpk_stale_target
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.create!(id: [1, 2], order: order)
+    Cpk::OrderAgreement.create!(order: order)
+
+    book.order_agreement
+    book.order = Cpk::Order.new
+
+    assert_predicate(book.association(:order_agreement), :stale_target?)
   end
 end

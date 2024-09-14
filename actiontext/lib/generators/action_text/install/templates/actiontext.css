@@ -3,11 +3,7 @@
  * the trix-editor content (whether displayed or under editing). Feel free to incorporate this
  * inclusion directly in any other asset bundle and remove this file.
  *
-<%- if defined?(Webpacker::Engine) -%>
- *= require trix/dist/trix
-<%- else -%>
  *= require trix
-<% end -%>
 */
 
 /*

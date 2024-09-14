@@ -44,6 +44,16 @@ class Rails::RunnerTest < ActiveSupport::TestCase
     OUTPUT
   end
 
+  def test_rails_runner_with_conditional_executor
+    assert_equal <<~OUTPUT, run_runner_command("puts Rails.application.executor.active?", allow_failure: true)
+      true
+    OUTPUT
+
+    assert_equal <<~OUTPUT, run_runner_command("--skip-executor", "puts Rails.application.executor.active?", allow_failure: true)
+      false
+    OUTPUT
+  end
+
   def test_rails_runner_with_syntax_error_in_ruby_code
     command_output = run_runner_command("This is not ruby code", allow_failure: true)
 
@@ -61,7 +71,7 @@ class Rails::RunnerTest < ActiveSupport::TestCase
   end
 
   private
-    def run_runner_command(argument, allow_failure: false)
-      rails "runner", argument, allow_failure: allow_failure
+    def run_runner_command(*arguments, allow_failure: false)
+      rails "runner", *arguments, allow_failure: allow_failure
     end
 end

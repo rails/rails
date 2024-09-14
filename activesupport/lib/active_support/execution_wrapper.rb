@@ -2,7 +2,6 @@
 
 require "active_support/error_reporter"
 require "active_support/callbacks"
-require "concurrent/hash"
 
 module ActiveSupport
   class ExecutionWrapper

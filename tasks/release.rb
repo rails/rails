@@ -23,17 +23,26 @@ tag     = "v#{version}"
 
 directory "pkg"
 
+major, minor, tiny, pre = version.split(".", 4)
+
 # This "npm-ifies" the current version number
 # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
 # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
-
-# "5.0.1"     --> "5.0.1"
-# "5.0.1.1"   --> "5.0.1-1" *
+# "5.0.0"     --> "5.0.0"
+# "5.0.1"     --> "5.0.100"
+# "5.0.0.1"   --> "5.0.1"
+# "5.0.1.1"   --> "5.0.101"
 # "5.0.0.rc1" --> "5.0.0-rc1"
-#
-# * This makes it a prerelease. That's bad, but we haven't come up with
-# a better solution at the moment.
-npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
+if pre
+  pre_release = pre.match?(/rc|beta|alpha/) ? pre : nil
+  npm_pre = pre.to_i
+else
+  npm_pre = 0
+  pre_release = nil
+end
+
+npm_version = "#{major}.#{minor}.#{(tiny.to_i * 100) + npm_pre}#{pre_release ? "-#{pre_release}" : ""}"
+pre = pre ? pre.inspect : "nil"
 
 (FRAMEWORKS + ["rails"]).each do |framework|
   namespace framework do
@@ -55,9 +64,6 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
       file = Dir[glob].first
       ruby = File.read(file)
-
-      major, minor, tiny, pre = version.split(".", 4)
-      pre = pre ? pre.inspect : "nil"
 
       ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
       raise "Could not insert MAJOR in #{file}" unless $1
@@ -121,10 +127,7 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
           if /[a-z]/.match?(version)
             npm_tag = " --tag pre"
           else
-            remote_package_version = `npm view @rails/#{framework}@latest version`.chomp
-            local_major_version = version.split(".", 4)[0]
-            remote_major_version = remote_package_version.split(".", 4)[0]
-            npm_tag = remote_major_version <= local_major_version ? " --tag latest" : " --tag v#{local_major_version}"
+            npm_tag = " --tag latest"
           end
 
           sh "npm publish#{npm_tag}#{npm_otp}"
@@ -212,8 +215,8 @@ namespace :all do
     end
 
     # Replace the generated gemfile entry with the exact version.
-    substitute.call("Gemfile", /^gem 'rails.*/, "gem 'rails', '#{version}'")
-    substitute.call("Gemfile", /^# gem 'image_processing/, "gem 'image_processing")
+    substitute.call("Gemfile", /^gem "rails.*/, %{gem "rails", "#{version}"})
+    substitute.call("Gemfile", /^# gem "image_processing/, 'gem "image_processing')
     sh "bundle"
     sh "rails action_mailbox:install"
     sh "rails action_text:install"
@@ -228,8 +231,8 @@ namespace :all do
       end
     CODE
 
-    substitute.call("app/views/users/_form.html.erb", /text_area :description %>\n  <\/div>/, <<~CODE)
-      rich_text_area :description %>\n  </div>
+    substitute.call("app/views/users/_form.html.erb", /textarea :description %>\n  <\/div>/, <<~CODE)
+      rich_textarea :description %>\n  </div>
 
       <div class="field">
         Avatar: <%= form.file_field :avatar %>
@@ -249,8 +252,9 @@ namespace :all do
     # Permit the avatar param.
     substitute.call("app/controllers/users_controller.rb", /:admin/, ":admin, :avatar")
 
-    if ENV["EDITOR"]
-      `#{ENV["EDITOR"]} #{File.expand_path(app_name)}`
+    editor = ENV["VISUAL"] || ENV["EDITOR"]
+    if editor
+      `#{editor} #{File.expand_path(app_name)}`
     end
 
     puts "Booting a Rails server. Verify the release by:"

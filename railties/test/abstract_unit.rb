@@ -22,12 +22,6 @@ end
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
-
-  private
-    # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
-      skip message if defined?(JRUBY_VERSION)
-    end
 end
 
 require_relative "../../tools/test_common"

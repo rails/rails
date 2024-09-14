@@ -85,7 +85,7 @@ module ActiveRecord
           @handler.establish_connection(:primary, shard: :pool_config_two)
 
           # connect to default
-          @handler.connection_pool_list(:writing).first.checkout
+          @handler.connection_pool_list(:writing).first.checkout.connect!
 
           assert @handler.connected?("primary")
           assert @handler.connected?("primary", shard: :default)

@@ -60,10 +60,18 @@ gem "bj"
 gem "nokogiri"
 ```
 
-Please note that this will NOT install the gems for you and you will have to run `bundle install` to do that.
+Note that this method only adds the gem to the `Gemfile`; it does not install the gem.
 
-```bash
-$ bundle install
+You can also specify an exact version:
+
+```ruby
+gem "nokogiri", "~> 1.16.4"
+```
+
+And you can also add comments that will be added to the `Gemfile`:
+
+```ruby
+gem "nokogiri", "~> 1.16.4", comment: "Add the nokogiri gem for XML parsing"
 ```
 
 ### gem_group(*names, &block)

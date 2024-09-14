@@ -27,10 +27,10 @@ module ActionView
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    attr_reader :rendered_format
+    attr_internal_reader :rendered_format
 
     def initialize
-      @rendered_format = nil
+      @_rendered_format = nil
       super
     end
 
@@ -136,7 +136,7 @@ module ActionView
         end
 
         rendered_format = rendered_template.format || lookup_context.formats.first
-        @rendered_format = Template::Types[rendered_format]
+        @_rendered_format = Template::Types[rendered_format]
 
         rendered_template.body
       end
@@ -179,7 +179,7 @@ module ActionView
           options[:partial] = action_name
         end
 
-        if (options.keys & [:partial, :file, :template]).empty?
+        if !options.keys.intersect?([:partial, :file, :template])
           options[:prefixes] ||= _prefixes
         end
 

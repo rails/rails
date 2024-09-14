@@ -452,14 +452,8 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["A", "bbb"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
-    if RUBY_VERSION < "3"
-      assert_raise ArgumentError do
-        hash.transform_keys(nil)
-      end
-    else
-      assert_raise TypeError do
-        hash.transform_keys(nil)
-      end
+    assert_raise TypeError do
+      hash.transform_keys(nil)
     end
   end
 
@@ -512,14 +506,8 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["A", "bbb"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
-    if RUBY_VERSION < "3"
-      assert_raise ArgumentError do
-        hash.transform_keys(nil)
-      end
-    else
-      assert_raise TypeError do
-        hash.transform_keys(nil)
-      end
+    assert_raise TypeError do
+      hash.transform_keys(nil)
     end
   end
 
@@ -964,5 +952,14 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     hash_wia = HashWithIndifferentAccess.new(non_hash)
     assert_equal :bar, hash_wia[:foo]
     assert_equal :baz, hash_wia[:missing]
+  end
+
+  def test_indifferent_to_proc
+    @strings = @strings.with_indifferent_access
+    proc = @strings.to_proc
+
+    assert_equal 1, proc["a"]
+    assert_equal 1, proc[:a]
+    assert_nil proc[:no_such]
   end
 end

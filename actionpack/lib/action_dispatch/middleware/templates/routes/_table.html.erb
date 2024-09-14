@@ -90,9 +90,10 @@
       <th class="http-verb">HTTP Verb</th>
       <th>Path</th>
       <th>Controller#Action</th>
+      <th>Source Location</th>
     </tr>
     <tr>
-      <th colspan="4" id="search_container"><%= search_field(:query, nil, id: 'search', placeholder: "Search") %></th>
+      <th colspan="5" id="search_container"><%= search_field(:query, nil, id: 'search', placeholder: "Search") %></th>
     </tr>
   </thead>
   <tbody class='exact_matches' id='exact_matches'>
@@ -157,7 +158,7 @@
     function buildTr(string) {
       var tr = document.createElement('tr');
       var th = document.createElement('th');
-      th.setAttribute('colspan', 4);
+      th.setAttribute('colspan', 5);
       tr.appendChild(th);
       th.innerText = string;
       return tr;

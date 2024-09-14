@@ -22,7 +22,7 @@ module ActiveRecord
             raise ArgumentError, "Bulk insert or upsert is currently not supported for has_many through association"
           end
 
-          scoping { klass.#{method}(attributes, **kwargs) }
+          super
         end
       RUBY
     end

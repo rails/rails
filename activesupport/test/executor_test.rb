@@ -225,31 +225,33 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_equal [:state_a, :state_b, :state_d, :state_c], supplied_state
   end
 
-  def test_class_serial_is_unaffected
-    skip if !defined?(RubyVM) || !RubyVM.stat.has_key?(:class_serial)
+  if RUBY_VERSION < "3.2"
+    def test_class_serial_is_unaffected
+      skip if !defined?(RubyVM) || !RubyVM.stat.has_key?(:class_serial)
 
-    hook = Class.new do
-      define_method(:run) do
-        nil
-      end
+      hook = Class.new do
+        define_method(:run) do
+          nil
+        end
 
-      define_method(:complete) do |state|
-        nil
-      end
-    end.new
+        define_method(:complete) do |state|
+          nil
+        end
+      end.new
 
-    executor.register_hook(hook)
+      executor.register_hook(hook)
 
-    # Warm-up to trigger any pending autoloads
-    executor.wrap { }
+      # Warm-up to trigger any pending autoloads
+      executor.wrap { }
 
-    before = RubyVM.stat(:class_serial)
-    executor.wrap { }
-    executor.wrap { }
-    executor.wrap { }
-    after = RubyVM.stat(:class_serial)
+      before = RubyVM.stat(:class_serial)
+      executor.wrap { }
+      executor.wrap { }
+      executor.wrap { }
+      after = RubyVM.stat(:class_serial)
 
-    assert_equal before, after
+      assert_equal before, after
+    end
   end
 
   def test_separate_classes_can_wrap

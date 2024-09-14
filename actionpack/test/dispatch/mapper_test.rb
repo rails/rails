@@ -36,7 +36,9 @@ module ActionDispatch
       end
 
       def test_initialize
-        Mapper.new FakeSet.new
+        assert_nothing_raised do
+          Mapper.new FakeSet.new
+        end
       end
 
       def test_scope_raises_on_anchor
@@ -127,7 +129,6 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
 
-        # FIXME: is this a desired behavior?
         mapper.get "/one/two/", to: "posts#index", as: :main
         assert_equal "/one/two(.:format)", fakeset.asts.first.to_s
       end

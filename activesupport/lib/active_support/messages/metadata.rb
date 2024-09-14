@@ -2,6 +2,7 @@
 
 require "time"
 require "active_support/json"
+require_relative "serializer_with_fallback"
 
 module ActiveSupport
   module Messages # :nodoc:
@@ -9,11 +10,21 @@ module ActiveSupport
       singleton_class.attr_accessor :use_message_serializer_for_metadata
 
       ENVELOPE_SERIALIZERS = [
-        ::JSON,
+        *SerializerWithFallback::SERIALIZERS.values,
         ActiveSupport::JSON,
-        ActiveSupport::JsonWithMarshalFallback,
+        ::JSON,
         Marshal,
       ]
+
+      TIMESTAMP_SERIALIZERS = [
+        SerializerWithFallback::SERIALIZERS.fetch(:message_pack),
+        SerializerWithFallback::SERIALIZERS.fetch(:message_pack_allow_marshal),
+      ]
+
+      ActiveSupport.on_load(:message_pack) do
+        ENVELOPE_SERIALIZERS << ActiveSupport::MessagePack
+        TIMESTAMP_SERIALIZERS << ActiveSupport::MessagePack
+      end
 
       private
         def serialize_with_metadata(data, **metadata)
@@ -21,7 +32,7 @@ module ActiveSupport
 
           if has_metadata && !use_message_serializer_for_metadata?
             data_string = serialize_to_json_safe_string(data)
-            envelope = wrap_in_metadata_envelope({ "message" => data_string }, **metadata)
+            envelope = wrap_in_metadata_legacy_envelope({ "message" => data_string }, **metadata)
             serialize_to_json(envelope)
           else
             data = wrap_in_metadata_envelope({ "data" => data }, **metadata) if has_metadata
@@ -57,6 +68,13 @@ module ActiveSupport
           { "_rails" => hash }
         end
 
+        def wrap_in_metadata_legacy_envelope(hash, expires_at: nil, expires_in: nil, purpose: nil)
+          expiry = pick_expiry(expires_at, expires_in)
+          hash["exp"] = expiry
+          hash["pur"] = purpose
+          { "_rails" => hash }
+        end
+
         def extract_from_metadata_envelope(envelope, purpose: nil)
           hash = envelope["_rails"]
 
@@ -64,7 +82,7 @@ module ActiveSupport
             throw :invalid_message_content, "expired"
           end
 
-          if hash["pur"] != purpose&.to_s
+          if hash["pur"].to_s != purpose.to_s
             throw :invalid_message_content, "mismatched purpose"
           end
 
@@ -80,11 +98,17 @@ module ActiveSupport
         end
 
         def pick_expiry(expires_at, expires_in)
-          if expires_at
-            expires_at.utc.iso8601(3)
+          expiry = if expires_at
+            expires_at.utc
           elsif expires_in
-            Time.now.utc.advance(seconds: expires_in).iso8601(3)
+            Time.now.utc.advance(seconds: expires_in)
           end
+
+          unless Metadata::TIMESTAMP_SERIALIZERS.include?(serializer)
+            expiry = expiry&.iso8601(3)
+          end
+
+          expiry
         end
 
         def parse_expiry(expires_at)

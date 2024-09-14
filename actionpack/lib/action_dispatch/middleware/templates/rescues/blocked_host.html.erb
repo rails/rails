@@ -1,8 +1,12 @@
 <header>
-  <h1>Blocked host: <%= @host %></h1>
+  <h1>Blocked hosts: <%= @hosts.join(", ") %></h1>
 </header>
 <main role="main" id="container">
-  <h2>To allow requests to <%= @host %> make sure it is a valid hostname (containing only numbers, letters, dashes and dots), then add the following to your environment configuration:</h2>
-  <pre>config.hosts &lt;&lt; "<%= @host %>"</pre>
+  <h2>To allow requests to these hosts, make sure they are valid hostnames (containing only numbers, letters, dashes and dots), then add the following to your environment configuration:</h2>
+  <pre>
+  <% @hosts.each do |host| %>
+    config.hosts &lt;&lt; "<%= host %>"
+  <% end %>
+  </pre>
   <p>For more details view: <a href="https://guides.rubyonrails.org/configuring.html#actiondispatch-hostauthorization">the Host Authorization guide</a></p>
 </main>

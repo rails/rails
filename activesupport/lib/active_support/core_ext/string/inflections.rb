@@ -97,8 +97,6 @@ class String
   #   'active_record/errors'.camelize         # => "ActiveRecord::Errors"
   #   'active_record/errors'.camelize(:lower) # => "activeRecord::Errors"
   #
-  # +camelize+ is also aliased as +camelcase+.
-  #
   # See ActiveSupport::Inflector.camelize.
   def camelize(first_letter = :upper)
     case first_letter
@@ -114,7 +112,7 @@ class String
 
   # Capitalizes all the words and replaces some characters in the string to create
   # a nicer looking title. +titleize+ is meant for creating pretty output. It is not
-  # used in the Rails internals.
+  # used in the \Rails internals.
   #
   # The trailing '_id','Id'.. can be kept and capitalized by setting the
   # optional parameter +keep_id_suffix+ to true.
@@ -123,8 +121,6 @@ class String
   #   'man from the boondocks'.titleize                       # => "Man From The Boondocks"
   #   'x-men: the last stand'.titleize                        # => "X Men: The Last Stand"
   #   'string_ending_with_id'.titleize(keep_id_suffix: true)  # => "String Ending With Id"
-  #
-  # +titleize+ is also aliased as +titlecase+.
   #
   # See ActiveSupport::Inflector.titleize.
   def titleize(keep_id_suffix: false)
@@ -220,7 +216,7 @@ class String
     ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case, locale: locale)
   end
 
-  # Creates the name of a table like Rails does for models to table names. This method
+  # Creates the name of a table like \Rails does for models to table names. This method
   # uses the +pluralize+ method on the last word in the string.
   #
   #   'RawScaledScorer'.tableize # => "raw_scaled_scorers"
@@ -232,7 +228,7 @@ class String
     ActiveSupport::Inflector.tableize(self)
   end
 
-  # Creates a class name from a plural table name like Rails does for table names to models.
+  # Creates a class name from a plural table name like \Rails does for table names to models.
   # Note that this returns a string and not a class. (To convert to an actual class
   # follow +classify+ with +constantize+.)
   #

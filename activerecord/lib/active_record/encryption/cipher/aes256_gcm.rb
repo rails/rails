@@ -79,6 +79,10 @@ module ActiveRecord
           raise ActiveRecord::Encryption::Errors::Decryption
         end
 
+        def inspect # :nodoc:
+          "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+        end
+
         private
           def generate_iv(cipher, clear_text)
             if @deterministic

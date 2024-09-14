@@ -39,9 +39,31 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "passing callstack as `caller` is deprecated" do
+    assert_deprecated(/Passing the result of `caller` to ActiveSupport::Deprecation#warn/, ActiveSupport.deprecator) do
+      assert_deprecated(@deprecator) do
+        @deprecator.warn("Yo dawg!", caller)
+      end
+    end
+  end
+
+  test "assert_deprecated requires a deprecator" do
+    assert_raises(ArgumentError) do
+      assert_deprecated do
+        ActiveSupport::Deprecation._instance.warn
+      end
+    end
+  end
+
   test "assert_not_deprecated" do
     assert_not_deprecated(@deprecator) do
       1 + 1
+    end
+  end
+
+  test "assert_not_deprecated requires a deprecator" do
+    assert_raises(ArgumentError) do
+      assert_not_deprecated { }
     end
   end
 
@@ -53,6 +75,12 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal 2, result.size
     assert_equal :result, result.first
     assert_match "DEPRECATION WARNING:", result.last.sole
+  end
+
+  test "collect_deprecations requires a deprecator" do
+    assert_raises(ArgumentError) do
+      collect_deprecations { }
+    end
   end
 
   test "Module::deprecate" do
@@ -88,9 +116,22 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "Module::deprecate requires a deprecator" do
+    klass = Class.new(Deprecatee)
+    assert_raises(ArgumentError) do
+      klass.deprecate :zero
+    end
+  end
+
   test "DeprecatedObjectProxy" do
     deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:", @deprecator)
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
+  end
+
+  test "DeprecatedObjectProxy requires a deprecator" do
+    assert_raises(ArgumentError) do
+      ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
+    end
   end
 
   test "nil behavior is ignored" do
@@ -236,6 +277,17 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test ":report_error behavior" do
+    @deprecator = ActiveSupport::Deprecation.new("horizon", "MyGem::Custom")
+    @deprecator.behavior = :report
+    report = assert_error_reported(ActiveSupport::DeprecationException) do
+      @deprecator.warn
+    end
+    assert_equal true, report.handled
+    assert_equal :warning, report.severity
+    assert_equal "application", report.source
+  end
+
   test "invalid behavior" do
     e = assert_raises(ArgumentError) do
       @deprecator.behavior = :invalid
@@ -246,7 +298,7 @@ class DeprecationTest < ActiveSupport::TestCase
 
   test "DeprecatedInstanceVariableProxy" do
     instance = Deprecatee.new
-    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", @deprecator)
+    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", deprecator: @deprecator)
     instance.foo_bar = "foo bar!"
 
     fubar_size = assert_deprecated("@fubar.size", @deprecator) { instance.fubar.size }
@@ -258,11 +310,17 @@ class DeprecationTest < ActiveSupport::TestCase
 
   test "DeprecatedInstanceVariableProxy does not warn on inspect" do
     instance = Deprecatee.new
-    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", @deprecator)
+    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", deprecator: @deprecator)
     instance.foo_bar = "foo bar!"
 
     fubar_inspected = assert_not_deprecated(@deprecator) { instance.fubar.inspect }
     assert_equal instance.foo_bar.inspect, fubar_inspected
+  end
+
+  test "DeprecatedInstanceVariableProxy requires a deprecator" do
+    assert_raises(ArgumentError) do
+      ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(Deprecatee.new, :foobar, "@fubar")
+    end
   end
 
   test "DeprecatedConstantProxy" do
@@ -292,6 +350,12 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "DeprecatedConstantProxy requires a deprecator" do
+    assert_raise(ArgumentError) do
+      ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Fuu", "Undeprecated::Foo")
+    end
+  end
+
   test "deprecate_constant" do
     legacy = Module.new { def self.name; "Legacy"; end }
     legacy.include ActiveSupport::Deprecation::DeprecatedConstantAccessor
@@ -315,6 +379,13 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "deprecate_constant requires a deprecator" do
+    legacy = Module.new.include(ActiveSupport::Deprecation::DeprecatedConstantAccessor)
+    assert_raises(ArgumentError) do
+      legacy.deprecate_constant "OLD", "NEW"
+    end
+  end
+
   test "assert_deprecated raises when no deprecation warning" do
     assert_raises(Minitest::Assertion) do
       assert_deprecated(@deprecator) { 1 + 1 }
@@ -328,8 +399,8 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   test "assert_deprecated without match argument" do
-    assert_deprecated do
-      ActiveSupport::Deprecation.warn
+    assert_deprecated(@deprecator) do
+      @deprecator.warn
     end
   end
 
@@ -514,7 +585,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   test "disallowed_warnings is empty by default" do
-    assert_equal @deprecator.disallowed_warnings, []
+    assert_equal [], @deprecator.disallowed_warnings
   end
 
   test "disallowed_warnings can be configured" do
@@ -710,9 +781,45 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal __LINE__ - 2, @callstack.first.lineno
   end
 
+  class_eval(<<~RUBY, "/path/to/template.html.erb", 1)
+    def generated_method_that_call_deprecation(deprecator)
+      deprecator.warn("Here", caller_locations(0, 10))
+    end
+  RUBY
+
+  test "warn deprecation can blame code generated with eval" do
+    @deprecator.behavior = ->(message, *) { @message = message }
+    generated_method_that_call_deprecation(@deprecator)
+    if RUBY_VERSION >= "3.4"
+      assert_equal "DEPRECATION WARNING: Here (called from DeprecationTest#generated_method_that_call_deprecation at /path/to/template.html.erb:2)", @message
+    else
+      assert_equal "DEPRECATION WARNING: Here (called from generated_method_that_call_deprecation at /path/to/template.html.erb:2)", @message
+    end
+  end
+
+  test "warn deprecation can blame code from internal methods" do
+    @deprecator.behavior = ->(message, *) { @message = message }
+    method_that_emits_deprecation_with_internal_method(@deprecator)
+
+    assert_includes(@message, "/path/to/user/code.rb")
+  end
+
+  class_eval(<<~RUBY, "/path/to/user/code.rb", 1)
+    def method_that_emits_deprecation_with_internal_method(deprecator)
+      [1].each { deprecator.warn }
+    end
+  RUBY
+
   private
     def method_that_emits_deprecation(deprecator)
       deprecator.warn
+    end
+
+    def with_rails_application_deprecators(&block)
+      application = Struct.new(:deprecators).new(ActiveSupport::Deprecation::Deprecators.new)
+      rails = Struct.new(:application).new(application)
+      rails.application.deprecators[:deprecator] = @deprecator
+      stub_const(Object, :Rails, rails, &block)
     end
 
     def deprecator_with_messages

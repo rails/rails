@@ -14,7 +14,7 @@ module ActiveRecord
           klass = record.class
           if klass.deterministic_encrypted_attributes&.include?(attribute)
             encrypted_type = klass.type_for_attribute(attribute)
-            [ encrypted_type, *encrypted_type.previous_types ].each do |type|
+            encrypted_type.previous_types.each do |type|
               encrypted_value = type.serialize(value)
               ActiveRecord::Encryption.without_encryption do
                 super(record, attribute, encrypted_value)

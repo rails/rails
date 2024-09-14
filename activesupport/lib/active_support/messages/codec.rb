@@ -1,26 +1,22 @@
 # frozen_string_literal: true
 
-require "active_support/messages/metadata"
+require "active_support/core_ext/class/attribute"
+require_relative "metadata"
+require_relative "serializer_with_fallback"
 
 module ActiveSupport
   module Messages # :nodoc:
     class Codec # :nodoc:
       include Metadata
 
-      def initialize(serializer:, url_safe:)
-        @serializer =
-          case serializer
-          when :marshal
-            Marshal
-          when :hybrid
-            JsonWithMarshalFallback
-          when :json
-            JSON
-          else
-            serializer
-          end
+      class_attribute :default_serializer, default: :marshal,
+        instance_accessor: false, instance_predicate: false
 
-        @url_safe = url_safe
+      def initialize(**options)
+        @serializer = options[:serializer] || self.class.default_serializer
+        @serializer = SerializerWithFallback[@serializer] if @serializer.is_a?(Symbol)
+        @url_safe = options[:url_safe]
+        @force_legacy_metadata_serializer = options[:force_legacy_metadata_serializer]
       end
 
       private
@@ -32,7 +28,7 @@ module ActiveSupport
 
         def decode(encoded, url_safe: @url_safe)
           url_safe ? ::Base64.urlsafe_decode64(encoded) : ::Base64.strict_decode64(encoded)
-        rescue ArgumentError => error
+        rescue StandardError => error
           throw :invalid_message_format, error
         end
 
@@ -59,6 +55,10 @@ module ActiveSupport
           end
           error = as.new(error.to_s) if as
           raise error
+        end
+
+        def use_message_serializer_for_metadata?
+          !@force_legacy_metadata_serializer && super
         end
     end
   end

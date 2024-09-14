@@ -1,25 +1,29 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController
-  # Includes +url_for+ into the host class. The class has to provide a +RouteSet+ by implementing
-  # the <tt>_routes</tt> method. Otherwise, an exception will be raised.
+  # # Action Controller UrlFor
   #
-  # In addition to AbstractController::UrlFor, this module accesses the HTTP layer to define
-  # URL options like the +host+. In order to do so, this module requires the host class
-  # to implement +env+ which needs to be Rack-compatible, and +request+ which
-  # returns an ActionDispatch::Request instance.
+  # Includes `url_for` into the host class. The class has to provide a `RouteSet`
+  # by implementing the `_routes` method. Otherwise, an exception will be raised.
   #
-  #   class RootUrl
-  #     include ActionController::UrlFor
-  #     include Rails.application.routes.url_helpers
+  # In addition to AbstractController::UrlFor, this module accesses the HTTP layer
+  # to define URL options like the `host`. In order to do so, this module requires
+  # the host class to implement `env` which needs to be Rack-compatible, and
+  # `request` which returns an ActionDispatch::Request instance.
   #
-  #     delegate :env, :request, to: :controller
+  #     class RootUrl
+  #       include ActionController::UrlFor
+  #       include Rails.application.routes.url_helpers
   #
-  #     def initialize(controller)
-  #       @controller = controller
-  #       @url        = root_path # named route from the application.
+  #       delegate :env, :request, to: :controller
+  #
+  #       def initialize(controller)
+  #         @controller = controller
+  #         @url        = root_path # named route from the application.
+  #       end
   #     end
-  #   end
   module UrlFor
     extend ActiveSupport::Concern
 

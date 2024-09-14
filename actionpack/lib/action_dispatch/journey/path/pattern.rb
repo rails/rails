@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
@@ -32,7 +34,8 @@ module ActionDispatch
         end
 
         def requirements_anchored?
-          # each required param must not be surrounded by a literal, otherwise it isn't simple to chunk-match the url piecemeal
+          # each required param must not be surrounded by a literal, otherwise it isn't
+          # simple to chunk-match the url piecemeal
           terminals = ast.terminals
 
           terminals.each_with_index { |s, index|

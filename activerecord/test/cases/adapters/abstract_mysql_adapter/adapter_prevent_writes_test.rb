@@ -7,7 +7,7 @@ class AdapterPreventWritesTest < ActiveRecord::AbstractMysqlTestCase
   include DdlHelper
 
   def setup
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
   end
 
   def test_errors_when_an_insert_query_is_called_while_preventing_writes
@@ -64,7 +64,7 @@ class AdapterPreventWritesTest < ActiveRecord::AbstractMysqlTestCase
 
   def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
     ActiveRecord::Base.while_preventing_writes do
-      assert_nil @conn.execute("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci")
+      assert_nothing_raised { @conn.execute("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci") }
     end
   end
 
@@ -91,7 +91,16 @@ class AdapterPreventWritesTest < ActiveRecord::AbstractMysqlTestCase
   def test_doesnt_error_when_a_use_query_is_called_while_preventing_writes
     ActiveRecord::Base.while_preventing_writes do
       db_name = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
-      assert_nil @conn.execute("USE #{db_name}")
+      assert_nothing_raised { @conn.execute("USE #{db_name}") }
+    end
+  end
+
+  def test_doesnt_error_when_a_kill_query_is_called_while_preventing_writes
+    ActiveRecord::Base.while_preventing_writes do
+      conn_id = @conn.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
+      assert_raises(ActiveRecord::QueryCanceled) do
+        @conn.execute("KILL QUERY #{conn_id}")
+      end
     end
   end
 

@@ -15,6 +15,16 @@ module ActiveSupport
         extend ActiveSupport::NumberHelper
       end
 
+      class NumberWithToD
+        def initialize(number)
+          @number = number
+        end
+
+        def to_d
+          @number.to_d
+        end
+      end
+
       def setup
         @instance_with_helpers = TestClassWithInstanceNumberHelpers.new
       end
@@ -69,6 +79,7 @@ module ActiveSupport
 
       def test_number_to_currency
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal("$123,456,789,012,345,678.91", number_helper.number_to_currency("123456789012345678.91"))
           assert_equal("$1,234,567,890.50", number_helper.number_to_currency(1234567890.50))
           assert_equal("$1,234,567,890.51", number_helper.number_to_currency(1234567890.506))
           assert_equal("-$1,234,567,890.50", number_helper.number_to_currency(-1234567890.50))
@@ -94,6 +105,7 @@ module ActiveSupport
           assert_equal("-$,11", number_helper.number_to_currency("-,11"))
           assert_equal("$0.00", number_helper.number_to_currency(-0.0))
           assert_equal("$0.00", number_helper.number_to_currency("-0.0"))
+          assert_equal("$1.23", number_helper.number_to_currency(NumberWithToD.new(1.23)))
         end
       end
 
@@ -267,6 +279,18 @@ module ActiveSupport
           assert_equal "1 Byte",   number_helper.number_to_human_size(1.1)
           assert_equal "10 Bytes", number_helper.number_to_human_size(10)
           assert_equal "16 ZB", number_helper.number_to_human_size(zettabytes(16))
+        end
+      end
+
+      def test_number_number_to_human_size_with_negative_number
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal "-1 Bytes",   number_helper.number_to_human_size(-1)
+          assert_equal "-3 Bytes",   number_helper.number_to_human_size(-3.14159265)
+          assert_equal "-123 Bytes", number_helper.number_to_human_size(-123)
+          assert_equal "-12.1 KB",   number_helper.number_to_human_size(-12345)
+          assert_equal "-444 KB",    number_helper.number_to_human_size(kilobytes(-444))
+          assert_equal "-1.12 TB",   number_helper.number_to_human_size(-1234567890123)
+          assert_equal "-1.01 KB",   number_helper.number_to_human_size(kilobytes(-1.0100), precision: 4)
         end
       end
 

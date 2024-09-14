@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/account"
 require "models/entry"
+require "models/essay"
 require "models/message"
 require "models/recipient"
 require "models/comment"
@@ -11,17 +12,21 @@ require "models/uuid_message"
 require "models/uuid_comment"
 
 class DelegatedTypeTest < ActiveRecord::TestCase
-  fixtures :comments, :accounts, :posts
+  fixtures :comments, :accounts, :essays
 
   setup do
     @entry_with_message = Entry.create! entryable: Message.new(subject: "Hello world!"), account: accounts(:signals37)
     @entry_with_comment = Entry.create! entryable: comments(:greetings), account: accounts(:signals37)
-    @entry_with_post = Entry.create! thing: posts(:welcome), account: accounts(:signals37)
+    @entry_with_essay = Entry.create! thing: essays(:mary_stay_home), account: accounts(:signals37)
 
     if current_adapter?(:PostgreSQLAdapter)
       @uuid_entry_with_message = UuidEntry.create! uuid: SecureRandom.uuid, entryable: UuidMessage.new(uuid: SecureRandom.uuid, subject: "Hello world!")
       @uuid_entry_with_comment = UuidEntry.create! uuid: SecureRandom.uuid, entryable: UuidComment.new(uuid: SecureRandom.uuid, content: "comment")
     end
+  end
+
+  test "delegated types" do
+    assert_equal ["Message", "Comment"], Entry.entryable_types
   end
 
   test "delegated class" do
@@ -32,38 +37,38 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   test "delegated class with custom foreign_type" do
     assert_equal Message, @entry_with_message.thing_class
     assert_equal Comment, @entry_with_comment.thing_class
-    assert_equal Post, @entry_with_post.thing_class
+    assert_equal Essay, @entry_with_essay.thing_class
   end
 
   test "delegated type name" do
     assert_equal "message", @entry_with_message.entryable_name
-    assert @entry_with_message.entryable_name.message?
+    assert_predicate @entry_with_message.entryable_name, :message?
 
     assert_equal "comment", @entry_with_comment.entryable_name
-    assert @entry_with_comment.entryable_name.comment?
+    assert_predicate @entry_with_comment.entryable_name, :comment?
   end
 
   test "delegated type predicates" do
-    assert @entry_with_message.message?
+    assert_predicate @entry_with_message, :message?
     assert_not @entry_with_message.comment?
 
-    assert @entry_with_comment.comment?
+    assert_predicate @entry_with_comment, :comment?
     assert_not @entry_with_comment.message?
   end
 
   test "delegated type predicates with custom foreign_type" do
-    assert @entry_with_post.post?
-    assert_not @entry_with_message.post?
-    assert_not @entry_with_comment.post?
+    assert_predicate @entry_with_essay, :essay?
+    assert_not @entry_with_message.essay?
+    assert_not @entry_with_comment.essay?
   end
 
   test "scope" do
-    assert Entry.messages.first.message?
-    assert Entry.comments.first.comment?
+    assert_predicate Entry.messages.first, :message?
+    assert_predicate Entry.comments.first, :comment?
   end
 
   test "scope with custom foreign_type" do
-    assert Entry.posts.first.post?
+    assert_predicate Entry.essays.first, :essay?
   end
 
   test "accessor" do
@@ -92,10 +97,19 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert_nil @uuid_entry_with_comment.uuid_message_uuid
   end
 
+  test "association inverse_of" do
+    created = @entry_with_message.message
+    updated = @entry_with_message.build_entryable subject: "Goodbye world!"
+
+    assert_changes -> { @entry_with_message.reload.message }, from: created, to: updated do
+      updated.save!
+    end
+  end
+
   test "touch account" do
     previous_account_updated_at  = @entry_with_message.account.updated_at
     previous_entry_updated_at    = @entry_with_message.updated_at
-    previous_messsage_updated_at = @entry_with_message.entryable.updated_at
+    previous_message_updated_at  = @entry_with_message.entryable.updated_at
 
     travel 5.seconds do
       Recipient.create! message: @entry_with_message.entryable, email_address: "test@test.com"
@@ -103,7 +117,7 @@ class DelegatedTypeTest < ActiveRecord::TestCase
 
     assert_not_equal @entry_with_message.reload.account.updated_at, previous_account_updated_at
     assert_not_equal @entry_with_message.reload.updated_at, previous_entry_updated_at
-    assert_not_equal @entry_with_message.reload.entryable.updated_at, previous_messsage_updated_at
+    assert_not_equal @entry_with_message.reload.entryable.updated_at, previous_message_updated_at
   end
 
   test "builder method" do

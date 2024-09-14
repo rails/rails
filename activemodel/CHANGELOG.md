@@ -1,160 +1,67 @@
-*   `has_secure_password` now generates an `#{attribute}_salt` method that returns the salt
-    used to compute the password digest. The salt will change whenever the password is changed,
-    so it can be used to create single-use password reset tokens with `generates_token_for`:
+*   Add a default token generator for password reset tokens when using `has_secure_password`.
 
     ```ruby
-    class User < ActiveRecord::Base
+    class User < ApplicationRecord
       has_secure_password
+    end
 
-      generates_token_for :password_reset, expires_in: 15.minutes do
-        password_salt&.last(10)
+    user = User.create!(name: "david", password: "123", password_confirmation: "123")
+    token = user.password_reset_token
+    User.find_by_password_reset_token(token) # returns user
+
+    # 16 minutes later...
+    User.find_by_password_reset_token(token) # returns nil
+
+    # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
+    User.find_by_password_reset_token!(token)
+    ```
+
+    *DHH*
+
+*   Add a load hook `active_model_translation` for `ActiveModel::Translation`.
+
+    *Shouichi Kamiya*
+
+*   Add `raise_on_missing_translations` option to `ActiveModel::Translation`.
+    When the option is set, `human_attribute_name` raises an error if a translation of the given attribute is missing.
+
+    ```ruby
+    # ActiveModel::Translation.raise_on_missing_translations = false
+    Post.human_attribute_name("title")
+    => "Title"
+
+    # ActiveModel::Translation.raise_on_missing_translations = true
+    Post.human_attribute_name("title")
+    => Translation missing. Options considered were: (I18n::MissingTranslationData)
+        - en.activerecord.attributes.post.title
+        - en.attributes.title
+
+                raise exception.respond_to?(:to_exception) ? exception.to_exception : exception
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ```
+
+    *Shouichi Kamiya*
+
+*   Introduce `ActiveModel::AttributeAssignment#attribute_writer_missing`
+
+    Provide instances with an opportunity to gracefully handle assigning to an
+    unknown attribute:
+
+    ```ruby
+    class Rectangle
+      include ActiveModel::AttributeAssignment
+
+      attr_accessor :length, :width
+
+      def attribute_writer_missing(name, value)
+        Rails.logger.warn "Tried to assign to unknown attribute #{name}"
       end
     end
+
+    rectangle = Rectangle.new
+    rectangle.assign_attributes(height: 10) # => Logs "Tried to assign to unknown attribute 'height'"
     ```
 
-    *Lázaro Nixon*
+    *Sean Doyle*
 
-*   Improve typography of user facing error messages. In English contractions,
-    the Unicode APOSTROPHE (`U+0027`) is now RIGHT SINGLE QUOTATION MARK
-    (`U+2019`). For example, "can't be blank" is now "can’t be blank".
-
-    *Jon Dufresne*
-
-*   Add class to `ActiveModel::MissingAttributeError` error message.
-
-    Show which class is missing the attribute in the error message:
-
-    ```ruby
-    user = User.first
-    user.pets.select(:id).first.user_id
-    # => ActiveModel::MissingAttributeError: missing attribute 'user_id' for Pet
-    ```
-
-    *Petrik de Heus*
-
-*   Raise `NoMethodError` in `ActiveModel::Type::Value#as_json` to avoid unpredictable
-    results.
-
-    *Vasiliy Ermolovich*
-
-*   Custom attribute types that inherit from Active Model built-in types and do
-    not override the `serialize` method will now benefit from an optimization
-    when serializing attribute values for the database.
-
-    For example, with a custom type like the following:
-
-    ```ruby
-    class DowncasedString < ActiveModel::Type::String
-      def cast(value)
-        super&.downcase
-      end
-    end
-
-    ActiveRecord::Type.register(:downcased_string, DowncasedString)
-
-    class User < ActiveRecord::Base
-      attribute :email, :downcased_string
-    end
-
-    user = User.new(email: "FooBar@example.com")
-    ```
-
-    Serializing the `email` attribute for the database will be roughly twice as
-    fast.  More expensive `cast` operations will likely see greater improvements.
-
-    *Jonathan Hefner*
-
-*   `has_secure_password` now supports password challenges via a
-    `password_challenge` accessor and validation.
-
-    A password challenge is a safeguard to verify that the current user is
-    actually the password owner.  It can be used when changing sensitive model
-    fields, such as the password itself.  It is different than a password
-    confirmation, which is used to prevent password typos.
-
-    When `password_challenge` is set, the validation checks that the value's
-    digest matches the *currently persisted* `password_digest` (i.e.
-    `password_digest_was`).
-
-    This allows a password challenge to be done as part of a typical `update`
-    call, just like a password confirmation.  It also allows a password
-    challenge error to be handled in the same way as other validation errors.
-
-    For example, in the controller, instead of:
-
-    ```ruby
-    password_params = params.require(:password).permit(
-      :password_challenge,
-      :password,
-      :password_confirmation,
-    )
-
-    password_challenge = password_params.delete(:password_challenge)
-    @password_challenge_failed = !current_user.authenticate(password_challenge)
-
-    if !@password_challenge_failed && current_user.update(password_params)
-      # ...
-    end
-    ```
-
-    You can now write:
-
-    ```ruby
-    password_params = params.require(:password).permit(
-      :password_challenge,
-      :password,
-      :password_confirmation,
-    ).with_defaults(password_challenge: "")
-
-    if current_user.update(password_params)
-      # ...
-    end
-    ```
-
-    And, in the view, instead of checking `@password_challenge_failed`, you can
-    render an error for the `password_challenge` field just as you would for
-    other form fields, including utilizing `config.action_view.field_error_proc`.
-
-    *Jonathan Hefner*
-
-*   Support infinite ranges for `LengthValidator`s `:in`/`:within` options
-
-    ```ruby
-    validates_length_of :first_name, in: ..30
-    ```
-
-    *fatkodima*
-
-*   Add support for beginless ranges to inclusivity/exclusivity validators:
-
-    ```ruby
-    validates_inclusion_of :birth_date, in: -> { (..Date.today) }
-    ```
-
-    *Bo Jeanes*
-
-*   Make validators accept lambdas without record argument
-
-    ```ruby
-    # Before
-    validates_comparison_of :birth_date, less_than_or_equal_to: ->(_record) { Date.today }
-
-    # After
-    validates_comparison_of :birth_date, less_than_or_equal_to: -> { Date.today }
-    ```
-
-    *fatkodima*
-
-*   Fix casting long strings to `Date`, `Time` or `DateTime`
-
-    *fatkodima*
-
-*   Use different cache namespace for proxy calls
-
-    Models can currently have different attribute bodies for the same method
-    names, leading to conflicts. Adding a new namespace `:active_model_proxy`
-    fixes the issue.
-
-    *Chris Salzberg*
-
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activemodel/CHANGELOG.md) for previous changes.

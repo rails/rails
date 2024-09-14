@@ -18,13 +18,15 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_to_fs_with_alphabets
-    alphabet_range = ("a".."z")
-    assert_equal "BETWEEN 'a' AND 'z'", alphabet_range.to_fs(:db)
+    assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_fs(:db)
+    assert_equal ">= 'a'", ("a"..).to_fs(:db)
+    assert_equal "<= 'z'", (.."z").to_fs(:db)
   end
 
   def test_to_fs_with_numeric
-    number_range = (1..100)
-    assert_equal "BETWEEN '1' AND '100'", number_range.to_fs(:db)
+    assert_equal "BETWEEN '1' AND '100'", (1..100).to_fs(:db)
+    assert_equal ">= '1'", (1..).to_fs(:db)
+    assert_equal "<= '100'", (..100).to_fs(:db)
   end
 
   def test_to_fs_with_format_invalid_format
@@ -39,28 +41,94 @@ class RangeTest < ActiveSupport::TestCase
     assert_instance_of Range, DateTime.new..DateTime::Infinity.new
   end
 
-  def test_overlaps_last_inclusive
-    assert((1..5).overlaps?(5..10))
+  def test_overlap_last_inclusive
+    assert((1..5).overlap?(5..10))
   end
 
-  def test_overlaps_last_exclusive
-    assert_not (1...5).overlaps?(5..10)
+  def test_overlap_last_exclusive
+    assert_not (1...5).overlap?(5..10)
   end
 
-  def test_overlaps_first_inclusive
-    assert((5..10).overlaps?(1..5))
+  def test_overlap_first_inclusive
+    assert((5..10).overlap?(1..5))
   end
 
-  def test_overlaps_first_exclusive
-    assert_not (5..10).overlaps?(1...5)
+  def test_overlap_first_exclusive
+    assert_not (5..10).overlap?(1...5)
   end
 
-  def test_overlaps_with_beginless_range
-    assert((1..5).overlaps?(..10))
+  def test_overlap_with_beginless_range
+    assert((1..5).overlap?(..10))
   end
 
-  def test_overlaps_with_two_beginless_ranges
-    assert((..5).overlaps?(..10))
+  def test_overlap_with_two_beginless_ranges
+    assert((..5).overlap?(..10))
+  end
+
+  def test_overlaps_alias
+    assert (1..5).overlaps?(5..10)
+    assert_not (1...5).overlaps?(6..10)
+  end
+
+  def test_overlap_behaves_like_ruby
+    assert_not_operator(0..2, :overlap?, -2..-1)
+    assert_not_operator(0..2, :overlap?, -2...0)
+    assert_operator(0..2, :overlap?, -1..0)
+    assert_operator(0..2, :overlap?, 1..2)
+    assert_operator(0..2, :overlap?, 2..3)
+    assert_not_operator(0..2, :overlap?, 3..4)
+    assert_not_operator(0...2, :overlap?, 2..3)
+    assert_operator(..0, :overlap?, -1..0)
+    assert_operator(...0, :overlap?, -1..0)
+    assert_operator(..0, :overlap?, 0..1)
+    assert_operator(..0, :overlap?, ..1)
+    assert_not_operator(..0, :overlap?, 1..2)
+    assert_not_operator(...0, :overlap?, 0..1)
+    assert_not_operator(0.., :overlap?, -2..-1)
+    assert_not_operator(0.., :overlap?, ...0)
+    assert_operator(0.., :overlap?, -1..0)
+    assert_operator(0.., :overlap?, ..0)
+    assert_operator(0.., :overlap?, 0..1)
+    assert_operator(0.., :overlap?, 1..2)
+    assert_operator(0.., :overlap?, 1..)
+
+    assert_not_operator((1..3), :overlap?, ("a".."d"))
+
+    assert_raise(TypeError) { (0..).overlap?(1) }
+    assert_raise(TypeError) { (0..).overlap?(nil) }
+
+    assert_operator((1..3), :overlap?, (2..4))
+    assert_operator((1...3), :overlap?, (2..3))
+    assert_operator((2..3), :overlap?, (1..2))
+    assert_operator((..3), :overlap?, (3..))
+    assert_operator((nil..nil), :overlap?, (3..))
+    assert_operator((nil...nil), :overlap?, (nil..))
+
+    assert_raise(TypeError) { (1..3).overlap?(1) }
+
+    assert_not_operator((1..2), :overlap?, (2...2))
+    assert_not_operator((2...2), :overlap?, (1..2))
+
+    assert_not_operator((4..1), :overlap?, (2..3))
+    assert_not_operator((4..1), :overlap?, (..3))
+    assert_not_operator((4..1), :overlap?, (2..))
+
+    assert_not_operator((1..4), :overlap?, (3..2))
+    assert_not_operator((..4), :overlap?, (3..2))
+    assert_not_operator((1..), :overlap?, (3..2))
+
+    assert_not_operator((4..5), :overlap?, (2..3))
+    assert_not_operator((4..5), :overlap?, (2...4))
+
+    assert_not_operator((1..2), :overlap?, (3..4))
+    assert_not_operator((1...3), :overlap?, (3..4))
+
+    assert_not_operator((4..5), :overlap?, (2..3))
+    assert_not_operator((4..5), :overlap?, (2...4))
+
+    assert_not_operator((1..2), :overlap?, (3..4))
+    assert_not_operator((1...3), :overlap?, (3..4))
+    assert_not_operator((...3), :overlap?, (3..))
   end
 
   def test_should_include_identical_inclusive
@@ -166,16 +234,16 @@ class RangeTest < ActiveSupport::TestCase
     assert range.method(:include?) != range.method(:cover?)
   end
 
-  def test_overlaps_on_time
+  def test_overlap_on_time
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 00)..Time.utc(2005, 12, 10, 18, 00)
-    assert time_range_1.overlaps?(time_range_2)
+    assert time_range_1.overlap?(time_range_2)
   end
 
-  def test_no_overlaps_on_time
+  def test_no_overlap_on_time
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 31)..Time.utc(2005, 12, 10, 18, 00)
-    assert_not time_range_1.overlaps?(time_range_2)
+    assert_not time_range_1.overlap?(time_range_2)
   end
 
   def test_each_on_time_with_zone

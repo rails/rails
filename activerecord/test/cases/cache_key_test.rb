@@ -15,7 +15,7 @@ module ActiveRecord
     end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table(:cache_mes, force: true) { |t| t.timestamps }
       @connection.create_table(:cache_me_with_versions, force: true) { |t| t.timestamps }
     end
@@ -51,7 +51,7 @@ module ActiveRecord
     end
 
     test "cache_version is the same when it comes from the DB or from the user" do
-      skip("Mysql2 and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+      skip("Mysql2, Trilogy, and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
 
       record = CacheMeWithVersion.create
       record_from_db = CacheMeWithVersion.find(record.id)
@@ -63,7 +63,7 @@ module ActiveRecord
     end
 
     test "cache_version does not truncate zeros when timestamp ends in zeros" do
-      skip("Mysql2 and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+      skip("Mysql2, Trilogy, and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
 
       travel_to Time.now.beginning_of_day do
         record = CacheMeWithVersion.create
@@ -84,7 +84,7 @@ module ActiveRecord
     end
 
     test "cache_version does NOT call updated_at when value is from the database" do
-      skip("Mysql2 and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+      skip("Mysql2, Trilogy, and PostgreSQL don't return a string value for updated_at") if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
 
       record = CacheMeWithVersion.create
       record_from_db = CacheMeWithVersion.find(record.id)

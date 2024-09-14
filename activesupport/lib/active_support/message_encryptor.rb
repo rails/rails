@@ -8,6 +8,8 @@ require "active_support/messages/rotator"
 require "active_support/message_verifier"
 
 module ActiveSupport
+  # = Active Support Message Encryptor
+  #
   # MessageEncryptor is a simple way to encrypt values which get stored
   # somewhere you don't trust.
   #
@@ -25,7 +27,7 @@ module ActiveSupport
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
   #
   # The +decrypt_and_verify+ method will raise an
-  # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
+  # +ActiveSupport::MessageEncryptor::InvalidMessage+ exception if the data
   # provided cannot be decrypted or verified.
   #
   #   crypt.decrypt_and_verify('not encrypted data') # => ActiveSupport::MessageEncryptor::InvalidMessage
@@ -89,7 +91,6 @@ module ActiveSupport
     prepend Messages::Rotator
 
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
-    cattr_accessor :default_message_encryptor_serializer, instance_accessor: false, default: :marshal
 
     class << self
       def default_cipher # :nodoc:
@@ -123,26 +124,69 @@ module ActiveSupport
     # key by using ActiveSupport::KeyGenerator or a similar key
     # derivation function.
     #
-    # First additional parameter is used as the signature key for MessageVerifier.
-    # This allows you to specify keys to encrypt and sign data.
+    # The first additional parameter is used as the signature key for
+    # MessageVerifier. This allows you to specify keys to encrypt and sign
+    # data. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     #
     #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')
     #
-    # Options:
-    # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
-    #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-gcm'.
-    # * <tt>:digest</tt> - String of digest to use for signing. Default is
-    #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
-    # * <tt>:serializer</tt> - Object serializer to use. Default is +JSON+.
-    # * <tt>:url_safe</tt> - Whether to encode messages using a URL-safe
-    #   encoding. Default is +false+ for backward compatibility.
-    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, url_safe: false)
-      super(serializer: serializer || @@default_message_encryptor_serializer, url_safe: url_safe)
+    # ==== Options
+    #
+    # [+:cipher+]
+    #   Cipher to use. Can be any cipher returned by +OpenSSL::Cipher.ciphers+.
+    #   Default is 'aes-256-gcm'.
+    #
+    # [+:digest+]
+    #   Digest used for signing. Ignored when using an AEAD cipher like
+    #   'aes-256-gcm'.
+    #
+    # [+:serializer+]
+    #   The serializer used to serialize message data. You can specify any
+    #   object that responds to +dump+ and +load+, or you can choose from
+    #   several preconfigured serializers: +:marshal+, +:json_allow_marshal+,
+    #   +:json+, +:message_pack_allow_marshal+, +:message_pack+.
+    #
+    #   The preconfigured serializers include a fallback mechanism to support
+    #   multiple deserialization formats. For example, the +:marshal+ serializer
+    #   will serialize using +Marshal+, but can deserialize using +Marshal+,
+    #   ActiveSupport::JSON, or ActiveSupport::MessagePack. This makes it easy
+    #   to migrate between serializers.
+    #
+    #   The +:marshal+, +:json_allow_marshal+, and +:message_pack_allow_marshal+
+    #   serializers support deserializing using +Marshal+, but the others do
+    #   not. Beware that +Marshal+ is a potential vector for deserialization
+    #   attacks in cases where a message signing secret has been leaked. <em>If
+    #   possible, choose a serializer that does not support +Marshal+.</em>
+    #
+    #   The +:message_pack+ and +:message_pack_allow_marshal+ serializers use
+    #   ActiveSupport::MessagePack, which can roundtrip some Ruby types that are
+    #   not supported by JSON, and may provide improved performance. However,
+    #   these require the +msgpack+ gem.
+    #
+    #   When using \Rails, the default depends on +config.active_support.message_serializer+.
+    #   Otherwise, the default is +:marshal+.
+    #
+    # [+:url_safe+]
+    #   By default, MessageEncryptor generates RFC 4648 compliant strings
+    #   which are not URL-safe. In other words, they can contain "+" and "/".
+    #   If you want to generate URL-safe strings (in compliance with "Base 64
+    #   Encoding with URL and Filename Safe Alphabet" in RFC 4648), you can
+    #   pass +true+.
+    #
+    # [+:force_legacy_metadata_serializer+]
+    #   Whether to use the legacy metadata serializer, which serializes the
+    #   message first, then wraps it in an envelope which is also serialized. This
+    #   was the default in \Rails 7.0 and below.
+    #
+    #   If you don't pass a truthy value, the default is set using
+    #   +config.active_support.use_message_serializer_for_metadata+.
+    def initialize(secret, sign_secret = nil, **options)
+      super(**options)
       @secret = secret
-      @cipher = cipher || self.class.default_cipher
+      @cipher = options[:cipher] || self.class.default_cipher
       @aead_mode = new_cipher.authenticated?
       @verifier = if !@aead_mode
-        MessageVerifier.new(sign_secret || secret, digest: digest || "SHA1", serializer: NullSerializer, url_safe: url_safe)
+        MessageVerifier.new(sign_secret || secret, **options, serializer: NullSerializer)
       end
     end
 
@@ -215,6 +259,10 @@ module ActiveSupport
 
     def read_message(message, **options) # :nodoc:
       deserialize_with_metadata(decrypt(verify(message)), **options)
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
     end
 
     private

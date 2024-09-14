@@ -44,7 +44,7 @@ class SubscriptionsTestChannelTest < ActionCable::Channel::TestCase
   def test_subscribe
     subscribe
 
-    assert subscription.confirmed?
+    assert_predicate subscription, :confirmed?
     assert_not subscription.rejected?
     assert_equal 1, connection.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:confirmation],
@@ -77,7 +77,7 @@ class RejectionTestChannelTest < ActionCable::Channel::TestCase
     subscribe
 
     assert_not subscription.confirmed?
-    assert subscription.rejected?
+    assert_predicate subscription, :rejected?
     assert_equal 1, connection.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:rejection],
                  connection.transmissions.last["type"]
@@ -87,6 +87,10 @@ end
 class StreamsTestChannel < ActionCable::Channel::Base
   def subscribed
     stream_from "test_#{params[:id] || 0}"
+  end
+
+  def unsubscribed
+    stop_stream_from "test_#{params[:id] || 0}"
   end
 end
 
@@ -102,11 +106,36 @@ class StreamsTestChannelTest < ActionCable::Channel::TestCase
 
     assert_has_stream "test_42"
   end
+
+  def test_not_stream_without_params
+    subscribe
+    unsubscribe
+
+    assert_has_no_stream "test_0"
+  end
+
+  def test_not_stream_with_params
+    subscribe id: 42
+    perform :unsubscribed, id: 42
+
+    assert_has_no_stream "test_42"
+  end
+
+  def test_unsubscribe_from_stream
+    subscribe
+    unsubscribe
+
+    assert_no_streams
+  end
 end
 
 class StreamsForTestChannel < ActionCable::Channel::Base
   def subscribed
     stream_for User.new(params[:id])
+  end
+
+  def unsubscribed
+    stop_stream_for User.new(params[:id])
   end
 end
 
@@ -115,6 +144,13 @@ class StreamsForTestChannelTest < ActionCable::Channel::TestCase
     subscribe id: 42
 
     assert_has_stream_for User.new(42)
+  end
+
+  def test_not_stream_with_params
+    subscribe id: 42
+    perform :unsubscribed, id: 42
+
+    assert_has_no_stream_for User.new(42)
   end
 end
 

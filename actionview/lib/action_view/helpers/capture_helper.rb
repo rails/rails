@@ -49,7 +49,13 @@ module ActionView
         @output_buffer ||= ActionView::OutputBuffer.new
         buffer = @output_buffer.capture { value = yield(*args) }
 
-        case string = buffer.presence || value
+        string = if @output_buffer.equal?(value)
+          buffer
+        else
+          buffer.presence || value
+        end
+
+        case string
         when OutputBuffer
           string.to_s
         when ActiveSupport::SafeBuffer

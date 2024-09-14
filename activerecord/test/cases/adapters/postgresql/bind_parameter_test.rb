@@ -10,45 +10,42 @@ module ActiveRecord
         fixtures :posts
 
         def test_where_with_string_for_string_column_using_bind_parameters
-          count = Post.where("title = ?", "Welcome to the weblog").count
-          assert_equal 1, count
+          assert_quoted_as "'Welcome to the weblog'", "Welcome to the weblog", match: 1
         end
 
         def test_where_with_integer_for_string_column_using_bind_parameters
-          assert_raises ActiveRecord::StatementInvalid do
-            Post.where("title = ?", 0).count
-          end
+          assert_quoted_as "0", 0
         end
 
         def test_where_with_float_for_string_column_using_bind_parameters
-          assert_raises ActiveRecord::StatementInvalid do
-            Post.where("title = ?", 0.0).count
-          end
+          assert_quoted_as "0.0", 0.0
         end
 
         def test_where_with_boolean_for_string_column_using_bind_parameters
-          assert_raises ActiveRecord::StatementInvalid do
-            Post.where("title = ?", false).count
-          end
+          assert_quoted_as "FALSE", false
         end
 
         def test_where_with_decimal_for_string_column_using_bind_parameters
-          assert_raises ActiveRecord::StatementInvalid do
-            Post.where("title = ?", BigDecimal(0)).count
-          end
+          assert_quoted_as "0.0", BigDecimal(0)
         end
 
         def test_where_with_rational_for_string_column_using_bind_parameters
-          assert_raises ActiveRecord::StatementInvalid do
-            Post.where("title = ?", Rational(0)).count
-          end
+          assert_quoted_as "0/1", Rational(0)
         end
 
-        def test_where_with_duration_for_string_column_using_bind_parameters
-          assert_raises ActiveRecord::StatementInvalid do
-            assert_deprecated(ActiveRecord.deprecator) { Post.where("title = ?", 0.seconds).count }
+        private
+          def assert_quoted_as(expected, value, match: 0)
+            relation = Post.where("title = ?", value)
+            assert_equal(
+              %{SELECT "posts".* FROM "posts" WHERE (title = #{expected})},
+              relation.to_sql,
+            )
+            if match == 0
+              assert_empty relation.to_a
+            else
+              assert_equal match, relation.count
+            end
           end
-        end
       end
     end
   end

@@ -29,7 +29,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  if ENV["CI"]
+  if ENV["BUILDKITE"]
     MEMCACHE_UP = true
   else
     begin
@@ -49,6 +49,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     (@_stores ||= []) << cache
     cache
   end
+
+  parallelize(workers: 1)
 
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
@@ -77,12 +79,32 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
+  include CacheStoreCompressionBehavior
+  include CacheStoreSerializerBehavior
+  include CacheStoreFormatVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+  include CacheLoggingBehavior
   include EncodedKeyCacheBehavior
   include ConnectionPoolBehavior
   include FailureSafetyBehavior
+
+  test "validate pool arguments" do
+    assert_raises TypeError do
+      ActiveSupport::Cache::MemCacheStore.new(pool: { size: [] })
+    end
+
+    assert_raises TypeError do
+      ActiveSupport::Cache::MemCacheStore.new(pool: { timeout: [] })
+    end
+
+    ActiveSupport::Cache::MemCacheStore.new(pool: { size: "12", timeout: "1.5" })
+  end
+
+  test "instantiating the store doesn't connect to Memcache" do
+    ActiveSupport::Cache::MemCacheStore.new("memcached://localhost:1")
+  end
 
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
@@ -185,6 +207,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write("foo", 1)
+    assert_equal false, @cache.write("foo", 1, unless_exist: true)
+  end
+
   def test_increment_expires_in
     cache = lookup_store(raw: true, namespace: nil)
     assert_called_with client(cache), :incr, [ "foo", 1, 60, 1 ] do
@@ -252,7 +279,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     compressed = Zlib::Deflate.deflate(val)
 
     assert_called(
-      Zlib::Deflate,
+      Zlib,
       :deflate,
       "Memcached writes should not perform duplicate compression.",
       times: 1,
@@ -267,14 +294,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
     assert_called_with client(cache), :add, ["foo", Object, 1], namespace: nil, pool: false, compress_threshold: 1024, expires_in: 1, socket_timeout: 60, unless_exist: true do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
-    end
-  end
-
-  def test_uses_provided_dalli_client_if_present
-    assert_deprecated(ActiveSupport.deprecator) do
-      host = "custom_host"
-      cache = lookup_store(Dalli::Client.new(host))
-      assert_equal [host], servers(cache)
     end
   end
 
@@ -307,14 +326,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
       assert_equal ["custom_host"], servers(cache)
     end
-  end
-
-  def test_large_string_with_default_compression_settings
-    assert_compressed(LARGE_STRING)
-  end
-
-  def test_large_object_with_default_compression_settings
-    assert_compressed(LARGE_OBJECT)
   end
 
   def test_can_load_raw_values_from_dalli_store
@@ -360,14 +371,12 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal({}, @cache.send(:read_multi_entries, [key]))
   end
 
-  def test_deprecated_connection_pool_works
-    assert_deprecated(ActiveSupport.deprecator) do
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
-      pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 2, pool.size
-      assert_equal 1, pool.instance_variable_get(:@timeout)
-    end
+  def test_pool_options_work
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool: { size: 2, timeout: 1 })
+    pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
+    assert_kind_of ::ConnectionPool, pool
+    assert_equal 2, pool.size
+    assert_equal 1, pool.instance_variable_get(:@timeout)
   end
 
   def test_connection_pooling_by_default
@@ -430,37 +439,4 @@ class MemCacheStoreTest < ActiveSupport::TestCase
         ENV["MEMCACHE_SERVERS"] = original_value
       end
     end
-end
-
-class OptimizedMemCacheStoreTest < MemCacheStoreTest
-  def setup
-    @previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 7.0
-    super
-  end
-
-  def teardown
-    super
-    ActiveSupport::Cache.format_version = @previous_format
-  end
-
-  def test_forward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @old_store.write("foo", "bar")
-    assert_equal "bar", @cache.read("foo")
-  end
-
-  def test_backward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @cache.write("foo", "bar")
-    assert_equal "bar", @old_store.read("foo")
-  end
 end

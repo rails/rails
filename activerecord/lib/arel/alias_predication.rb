@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module AliasPredication
     def as(other)
-      Nodes::As.new self, Nodes::SqlLiteral.new(other)
+      Nodes::As.new self, Nodes::SqlLiteral.new(other, retryable: true)
     end
   end
 end

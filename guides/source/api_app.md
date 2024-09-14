@@ -24,7 +24,7 @@ With the advent of client-side frameworks, more developers are using Rails to
 build a back-end that is shared between their web application and other native
 applications.
 
-For example, Twitter uses its [public API](https://developer.twitter.com/) in its web
+For example, X uses its [public API](https://developer.x.com/) in its web
 application, which is built as a static site that consumes JSON resources.
 
 Instead of using Rails to generate HTML that communicates with the server
@@ -221,7 +221,7 @@ class GroupsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def group_params
-      params.require(:group).permit(:name)
+      params.expect(group: [:name])
     end
 end
 ```
@@ -450,7 +450,7 @@ built (like `config/application.rb`) and pass them to your preferred middleware,
 
 ```ruby
 # This also configures session_options for use below
-config.session_store :cookie_store, key: '_interslice_session'
+config.session_store :cookie_store, key: '_your_app_session'
 
 # Required for all session management (regardless of session_store)
 config.middleware.use ActionDispatch::Cookies

@@ -2,6 +2,7 @@
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods \Serialization
     module Serialization
       extend ActiveSupport::Concern
 
@@ -47,7 +48,7 @@ module ActiveRecord
         #     +dump+ method may return +nil+ to serialize the value as +NULL+.
         # * +type+ - Optional. What the type of the serialized object should be.
         #   * Attempting to serialize another type will raise an
-        #     <tt>ActiveRecord::SerializationTypeMismatch</tt> error.
+        #     ActiveRecord::SerializationTypeMismatch error.
         #   * If the column is +NULL+ or starting from a new record, the default value
         #     will set to +type.new+
         # * +yaml+ - Optional. Yaml specific options. The allowed config is:
@@ -179,29 +180,7 @@ module ActiveRecord
         #     serialize :preferences, coder: Rot13JSON
         #   end
         #
-        def serialize(attr_name, class_name_or_coder = nil, coder: nil, type: Object, yaml: {}, **options)
-          unless class_name_or_coder.nil?
-            if class_name_or_coder == ::JSON || [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
-              ActiveRecord.deprecator.warn(<<~MSG)
-                Passing the coder as positional argument is deprecated and will be removed in Rails 7.2.
-
-                Please pass the coder as a keyword argument:
-
-                  serialize #{attr_name.inspect}, coder: #{class_name_or_coder}
-              MSG
-              coder = class_name_or_coder
-            else
-              ActiveRecord.deprecator.warn(<<~MSG)
-                Passing the class as positional argument is deprecated and will be removed in Rails 7.2.
-
-                Please pass the class as a keyword argument:
-
-                  serialize #{attr_name.inspect}, type: #{class_name_or_coder.name}
-              MSG
-              type = class_name_or_coder
-            end
-          end
-
+        def serialize(attr_name, coder: nil, type: Object, yaml: {}, **options)
           coder ||= default_column_serializer
           unless coder
             raise ArgumentError, <<~MSG.squish
@@ -213,7 +192,9 @@ module ActiveRecord
 
           column_serializer = build_column_serializer(attr_name, coder, type, yaml)
 
-          attribute(attr_name, **options) do |cast_type|
+          attribute(attr_name, **options)
+
+          decorate_attributes([attr_name]) do |attr_name, cast_type|
             if type_incompatible_with_serialize?(cast_type, coder, type)
               raise ColumnNotSerializableError.new(attr_name, cast_type)
             end

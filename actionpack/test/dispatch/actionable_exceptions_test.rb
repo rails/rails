@@ -20,7 +20,11 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
   Noop = -> env { [200, {}, [""]] }
 
   setup do
-    @app = ActionDispatch::ActionableExceptions.new(Noop)
+    @app = Rack::Lint.new(
+      ActionDispatch::ActionableExceptions.new(
+        Rack::Lint.new(Noop),
+      ),
+    )
 
     Actions.clear
   end
@@ -76,5 +80,15 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
         location: "/",
       }, headers: { "action_dispatch.show_detailed_exceptions" => true }
     end
+  end
+
+  test "catches invalid redirections" do
+    post ActionDispatch::ActionableExceptions.endpoint, params: {
+      error: ActionError.name,
+      action: "Successful action",
+      location: "wss://example.com",
+    }, headers: { "action_dispatch.show_detailed_exceptions" => true }
+
+    assert_equal 400, response.status
   end
 end

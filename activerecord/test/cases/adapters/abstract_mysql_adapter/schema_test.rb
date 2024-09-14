@@ -10,7 +10,7 @@ module ActiveRecord
       fixtures :posts
 
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         db          = Post.connection_pool.db_config.database
         table       = Post.table_name
         @db_name    = db
@@ -96,9 +96,11 @@ module ActiveRecord
         def test_drop_temporary_table
           @connection.transaction do
             @connection.create_table(:temp_table, temporary: true)
-            # if it doesn't properly say DROP TEMPORARY TABLE, the transaction commit
-            # will complain that no transaction is active
-            @connection.drop_table(:temp_table, temporary: true)
+            assert_nothing_raised do
+              # if it doesn't properly say DROP TEMPORARY TABLE, the transaction commit
+              # will complain that no transaction is active
+              @connection.drop_table(:temp_table, temporary: true)
+            end
           end
         end
       end
@@ -106,9 +108,9 @@ module ActiveRecord
   end
 end
 
-class Mysql2AnsiQuotesTest < ActiveRecord::Mysql2TestCase
+class MysqlAnsiQuotesTest < ActiveRecord::AbstractMysqlTestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute("SET SESSION sql_mode='ANSI_QUOTES'")
   end
 

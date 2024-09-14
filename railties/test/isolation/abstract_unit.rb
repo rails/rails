@@ -24,6 +24,8 @@ if ENV["BUILDKITE"]
   Minitest::Retry.use!(verbose: false, retry_count: 1)
 end
 
+require_relative "../../../tools/test_common"
+
 RAILS_FRAMEWORK_ROOT = File.expand_path("../../..", __dir__)
 
 # These files do not require any others and are needed
@@ -32,7 +34,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/testing/isolation"
 require "active_support/core_ext/kernel/reporting"
 require "tmpdir"
-require "rails/secrets"
 
 module TestHelpers
   module Paths
@@ -140,6 +141,11 @@ module TestHelpers
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
       RUBY
+
+      add_to_env_config :development, "config.action_view.annotate_rendered_view_with_filenames = false"
+
+      remove_from_env_config("development", "config.generators.apply_rubocop_autocorrect_after_generate!")
+      add_to_env_config :production, "config.log_level = :error"
     end
 
     def teardown_app
@@ -227,6 +233,22 @@ module TestHelpers
       YAML
     end
 
+    def with_unhealthy_database(&block)
+      # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3Adapter objects
+      require "active_record/connection_adapters/sqlite3_adapter"
+
+      # We need to change the `database_version` to match what is expected for MySQL
+      dump_path = File.join(app_path, "db/schema_cache.yml")
+      if File.exist?(dump_path)
+        schema_cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(dump_path)
+        schema_cache.instance_variable_set(:@database_version, ActiveRecord::ConnectionAdapters::AbstractAdapter::Version.new("8.8.8"))
+        File.write(dump_path, YAML.dump(schema_cache))
+      end
+
+      # We load the app while pointing at a non-existing MySQL server
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1", &block)
+    end
+
     # Make a very basic app, without creating the whole directory structure.
     # This is faster and simpler than the method above.
     def make_basic_app
@@ -241,8 +263,9 @@ module TestHelpers
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
-      @app.config.log_level = :info
-      @app.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+      @app.config.log_level = :error
+      @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+      @app.config.active_support.to_time_preserves_timezone = :zone
 
       yield @app if block_given?
       @app.initialize!
@@ -430,7 +453,7 @@ module TestHelpers
 
     def remove_from_file(file, str)
       contents = File.read(file)
-      contents.sub!(/#{str}/, "")
+      contents.gsub!(/#{str}/, "")
       File.write(file, contents)
     end
 
@@ -500,6 +523,56 @@ module TestHelpers
       end
       database_name
     end
+
+    def use_mysql2(multi_db: false)
+      database_name = "railties_#{Process.pid}"
+      if multi_db
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: mysql2
+            pool: 5
+            username: root
+          <% if ENV['MYSQL_HOST'] %>
+            host: <%= ENV['MYSQL_HOST'] %>
+          <% end %>
+          <% if ENV['MYSQL_SOCK'] %>
+            socket: "<%= ENV['MYSQL_SOCK'] %>"
+          <% end %>
+          development:
+            primary:
+              <<: *default
+              database: #{database_name}_test
+            animals:
+              <<: *default
+              database: #{database_name}_animals_test
+              migrations_paths: db/animals_migrate
+          YAML
+        end
+      else
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: mysql2
+            pool: 5
+            username: root
+          <% if ENV['MYSQL_HOST'] %>
+            host: <%= ENV['MYSQL_HOST'] %>
+          <% end %>
+          <% if ENV['MYSQL_SOCK'] %>
+            socket: "<%= ENV['MYSQL_SOCK'] %>"
+          <% end %>
+          development:
+            <<: *default
+            database: #{database_name}_development
+          test:
+            <<: *default
+            database: #{database_name}_test
+          YAML
+        end
+      end
+      database_name
+    end
   end
 
   module Reload
@@ -531,7 +604,7 @@ Module.new do
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
 
-  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --no-rc --quiet"
+  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --asset-pipeline=sprockets --skip-bundle --no-rc --quiet"
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts 'require "bootsnap/setup" if ENV["BOOTSNAP_CACHE_DIR"]'
     f.puts 'require "rails/all"'

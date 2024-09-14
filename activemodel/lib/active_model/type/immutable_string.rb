@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \ImmutableString \Type
+    #
     # Attribute type to represent immutable strings. It casts incoming values to
     # frozen strings.
     #

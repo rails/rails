@@ -25,7 +25,7 @@ module ActiveSupport
           unstub_object(stub)
         end
 
-        new_name = "__simple_stub__#{method_name}"
+        new_name = "__simple_stub__#{method_name}__#{object_id}"
 
         @stubs[object.object_id][method_name] = Stub.new(object, method_name, new_name)
 
@@ -163,11 +163,16 @@ module ActiveSupport
           now = date_or_time.midnight.to_time
         elsif date_or_time.is_a?(String)
           now = Time.zone.parse(date_or_time)
-        elsif with_usec
-          now = date_or_time.to_time
         else
-          now = date_or_time.to_time.change(usec: 0)
+          now = date_or_time
+          now = now.to_time unless now.is_a?(Time)
         end
+
+        now = now.change(usec: 0) unless with_usec
+
+        # +now+ must be in local system timezone, because +Time.at(now)+
+        # and +now.to_date+ (see stubs below) will use +now+'s timezone too!
+        now = now.getlocal
 
         stubs = simple_stubs
         stubbed_time = Time.now if stubs.stubbing(Time, :now)

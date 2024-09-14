@@ -172,7 +172,7 @@ Error-reporting libraries can register their subscribers in a `Railtie`:
 ```ruby
 module MySdk
   class Railtie < ::Rails::Railtie
-    initializer "error_subscribe.my_sdk" do
+    initializer "my_sdk.error_subscribe" do
       Rails.error.subscribe(MyErrorSubscriber.new)
     end
   end

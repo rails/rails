@@ -55,7 +55,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_add_routes
     run_generator
-    assert_file "config/routes.rb", /^  get 'account\/foo'/, /^  get 'account\/bar'/
+    assert_file "config/routes.rb", /^  get "account\/foo"/, /^  get "account\/bar"/
   end
 
   def test_skip_routes
@@ -94,14 +94,14 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_namespaced_routes_are_created_in_routes
     run_generator ["admin/dashboard", "index"]
     assert_file "config/routes.rb" do |route|
-      assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n  end$/, route)
+      assert_match(/^  namespace :admin do\n    get "dashboard\/index"\n  end$/, route)
     end
   end
 
   def test_namespaced_routes_with_multiple_actions_are_created_in_routes
     run_generator ["admin/dashboard", "index", "show"]
     assert_file "config/routes.rb" do |route|
-      assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n    get 'dashboard\/show'\n  end$/, route)
+      assert_match(/^  namespace :admin do\n    get "dashboard\/index"\n    get "dashboard\/show"\n  end$/, route)
     end
   end
 

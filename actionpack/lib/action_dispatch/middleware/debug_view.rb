@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "pp"
 
 require "action_view"
@@ -13,10 +15,15 @@ module ActionDispatch
       paths = RESCUES_TEMPLATE_PATHS.dup
       lookup_context = ActionView::LookupContext.new(paths)
       super(lookup_context, assigns, nil)
+      @exception_wrapper = assigns[:exception_wrapper]
     end
 
     def compiled_method_container
       self.class
+    end
+
+    def error_highlight_available?
+      @exception_wrapper.error_highlight_available?
     end
 
     def debug_params(params)

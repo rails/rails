@@ -145,10 +145,16 @@ module ActiveModel
     end
 
     test "duping does not eagerly type cast if we have not yet type cast" do
-      @type.define_singleton_method(:deserialize) { flunk }
-      attribute = Attribute.from_database(nil, "a value", @type)
+      deserialize_called = false
+      deserialize_called_with = nil
+      @type.define_singleton_method(:deserialize) do |value|
+        deserialize_called_with = value
+        deserialize_called = true
+      end
+      attribute = Attribute.from_database(nil, "my_attribute_value", @type)
 
       attribute.dup
+      assert_not deserialize_called, "deserialize should not have been called, but was called with #{deserialize_called_with}"
     end
 
     class MyType
@@ -275,8 +281,29 @@ module ActiveModel
       changed = attribute.with_value_from_user("foo")
       forgotten = changed.forgetting_assignment
 
-      assert changed.changed? # Check to avoid a false positive
+      assert_predicate changed, :changed? # Check to avoid a false positive
       assert_not_predicate forgotten, :changed?
+    end
+
+    test "#forgetting_assignment on an unchanged .from_database attribute re-deserializes its value" do
+      deserialized_value_class = Struct.new(:id) do
+        def initialize_dup(*)
+          self.id = nil # a la ActiveRecord::Base#dup
+        end
+      end
+
+      type = Type::Value.new
+      type.define_singleton_method(:deserialize) do |value|
+        deserialized_value_class.new(value)
+      end
+
+      original = Attribute.from_database(:foo, 123, type)
+      assert_equal 123, original.value.id
+
+      forgotten = original.forgetting_assignment
+      assert_equal 123, forgotten.value.id
+
+      assert_not_same original.value, forgotten.value
     end
 
     test "with_value_from_user validates the value" do

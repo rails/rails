@@ -204,18 +204,20 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
   end
 
   private
+    def app
+      @app ||= self.class.build_app do |middleware|
+        @cache = ActiveSupport::Cache::MemoryStore.new
+        middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache
+        middleware.delete ActionDispatch::ShowExceptions
+      end
+    end
+
     def with_test_route_set
       with_routing do |set|
         set.draw do
           ActionDispatch.deprecator.silence do
             get ":action", to: ::CacheStoreTest::TestController
           end
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          @cache = ActiveSupport::Cache::MemoryStore.new
-          middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache
-          middleware.delete ActionDispatch::ShowExceptions
         end
 
         yield

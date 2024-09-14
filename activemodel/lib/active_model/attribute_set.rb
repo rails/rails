@@ -104,7 +104,7 @@ module ActiveModel
     end
 
     def ==(other)
-      attributes == other.attributes
+      other.is_a?(AttributeSet) && attributes == other.send(:attributes)
     end
 
     protected

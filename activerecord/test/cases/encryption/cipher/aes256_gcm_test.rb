@@ -36,6 +36,11 @@ class ActiveRecord::Encryption::Aes256GcmTest < ActiveRecord::EncryptionTestCase
     assert_not_equal cipher.encrypt("Some text").headers.iv, cipher.encrypt("Some other text").headers.iv
   end
 
+  test "inspect_does not show secrets" do
+    cipher = ActiveRecord::Encryption::Cipher::Aes256Gcm.new(@key)
+    assert_match(/\A#<ActiveRecord::Encryption::Cipher::Aes256Gcm:0x[0-9a-f]+>\z/, cipher.inspect)
+  end
+
   private
     def assert_cipher_encrypts(cipher, content_to_encrypt)
       encrypted_content = cipher.encrypt(content_to_encrypt)

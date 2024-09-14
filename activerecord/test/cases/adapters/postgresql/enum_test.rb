@@ -11,16 +11,16 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlEnum < ActiveRecord::Base
     self.table_name = "postgresql_enums"
 
-    enum current_mood: {
+    enum :current_mood, {
       sad: "sad",
       okay: "ok", # different spelling
       happy: "happy",
       aliased_field: "happy"
-    }, _prefix: true
+    }, prefix: true
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.transaction do
       @connection.create_enum("mood", ["sad", "ok", "happy"])
       @connection.create_table("postgresql_enums") do |t|
@@ -111,6 +111,38 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     assert_includes output, 't.enum "good_mood", default: "happy", null: false, enum_type: "mood"'
   end
 
+  def test_schema_dump_renamed_enum
+    @connection.rename_enum :mood, to: :feeling
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "feeling", ["sad", "ok", "happy"]'
+
+    assert_includes output, 't.enum "current_mood", enum_type: "feeling"'
+  end
+
+  def test_schema_dump_added_enum_value
+    skip("Adding enum values can not be run in a transaction") if @connection.database_version < 10_00_00
+
+    @connection.add_enum_value :mood, :angry, before: :ok
+    @connection.add_enum_value :mood, :nervous, after: :ok
+    @connection.add_enum_value :mood, :glad
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "mood", ["sad", "angry", "ok", "nervous", "happy", "glad"]'
+  end
+
+  def test_schema_dump_renamed_enum_value
+    skip("Renaming enum values is only supported in PostgreSQL 10 or later") if @connection.database_version < 10_00_00
+
+    @connection.rename_enum_value :mood, from: :ok, to: :okay
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "mood", ["sad", "okay", "happy"]'
+  end
+
   def test_schema_load
     original, $stdout = $stdout, StringIO.new
 
@@ -154,7 +186,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     model.save!
 
     model = PostgresqlEnum.find(model.id)
-    assert model.current_mood_happy?
+    assert_predicate model, :current_mood_happy?
   end
 
   def test_enum_type_scoped_to_schemas

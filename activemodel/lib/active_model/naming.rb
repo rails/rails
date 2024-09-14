@@ -230,7 +230,7 @@ module ActiveModel
       end
   end
 
-  # == Active \Model \Naming
+  # = Active \Model \Naming
   #
   # Creates a +model_name+ method on your object.
   #

@@ -157,15 +157,18 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
   end
 
   private
+    def app
+      @app ||= self.class.build_app do |middleware|
+        middleware.use(EarlyParse)
+      end
+    end
+
     def assert_parses(expected, actual)
       with_routing do |set|
         set.draw do
           ActionDispatch.deprecator.silence do
             get ":action", to: ::QueryStringParsingTest::TestController
           end
-        end
-        @app = self.class.build_app(set) do |middleware|
-          middleware.use(EarlyParse)
         end
 
         get "/parse", params: actual

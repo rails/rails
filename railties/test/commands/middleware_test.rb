@@ -202,6 +202,12 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
     assert_includes middleware, "ActionDispatch::SSL"
   end
 
+  test "silence healthcheck" do
+    add_to_config "config.silence_healthcheck_path = '/up'"
+    boot!
+    assert_includes middleware, "Rails::Rack::SilenceRequest"
+  end
+
   test "ActionDispatch::SSL is configured with options when given" do
     add_to_config "config.force_ssl = true"
     add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
@@ -269,7 +275,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
-    add_to_config "config.action_dispatch.show_exceptions = false"
+    add_to_config "config.action_dispatch.show_exceptions = :none"
     boot!
     assert_includes middleware, "ActionDispatch::ShowExceptions"
     assert_includes middleware, "ActionDispatch::DebugExceptions"

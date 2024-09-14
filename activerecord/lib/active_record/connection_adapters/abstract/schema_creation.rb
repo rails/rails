@@ -16,7 +16,8 @@ module ActiveRecord
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
-        :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_keys?,
+        :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_constraints?,
+        :supports_nulls_not_distinct?,
         to: :@conn, private: true
 
       private
@@ -64,8 +65,8 @@ module ActiveRecord
             statements.concat(o.exclusion_constraints.map { |exc| accept exc })
           end
 
-          if supports_unique_keys?
-            statements.concat(o.unique_keys.map { |exc| accept exc })
+          if supports_unique_constraints?
+            statements.concat(o.unique_constraints.map { |exc| accept exc })
           end
 
           create_sql << "(#{statements.join(', ')})" if statements.present?
@@ -79,10 +80,12 @@ module ActiveRecord
         end
 
         def visit_ForeignKeyDefinition(o)
+          quoted_columns = Array(o.column).map { |c| quote_column_name(c) }
+          quoted_primary_keys = Array(o.primary_key).map { |c| quote_column_name(c) }
           sql = +<<~SQL
             CONSTRAINT #{quote_column_name(o.name)}
-            FOREIGN KEY (#{quote_column_name(o.column)})
-              REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
+            FOREIGN KEY (#{quoted_columns.join(", ")})
+              REFERENCES #{quote_table_name(o.to_table)} (#{quoted_primary_keys.join(", ")})
           SQL
           sql << " #{action_sql('DELETE', o.on_delete)}" if o.on_delete
           sql << " #{action_sql('UPDATE', o.on_update)}" if o.on_update
@@ -110,6 +113,7 @@ module ActiveRecord
           sql << "USING #{index.using}" if supports_index_using? && index.using
           sql << "(#{quoted_columns(index)})"
           sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
+          sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
           sql.join(" ")

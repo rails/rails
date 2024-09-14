@@ -324,9 +324,9 @@ module ActionController
     tests TestController
 
     def assert_stream_closed
-      assert response.stream.closed?, "stream should be closed"
-      assert response.committed?,     "response should be committed"
-      assert response.sent?,          "response should be sent"
+      assert_predicate response.stream, :closed?, "stream should be closed"
+      assert_predicate response, :committed?,     "response should be committed"
+      assert_predicate response, :sent?,          "response should be sent"
     end
 
     def capture_log_output
@@ -373,6 +373,19 @@ module ActionController
       assert_match "my.csv", @response.headers["Content-Disposition"]
     end
 
+    def test_send_stream_instrumentation
+      payload = nil
+      subscriber = proc { |event| payload = event.payload }
+
+      ActiveSupport::Notifications.subscribed(subscriber, "send_stream.action_controller") do
+        get :send_stream_with_explicit_content_type
+      end
+
+      assert_equal "sample.csv", payload[:filename]
+      assert_equal "attachment", payload[:disposition]
+      assert_equal "text/csv", payload[:type]
+    end
+
     def test_send_stream_with_options
       get :send_stream_with_options
       assert_equal %[{ name: "David", age: 41 }], @response.body
@@ -417,6 +430,7 @@ module ActionController
       res = get :write_sleep_autoload
       res.each { }
       ActiveSupport::Dependencies.interlock.done_running
+      pass
     end
 
     def test_async_stream
@@ -595,6 +609,16 @@ module ActionController
       @request.if_none_match = %(W/"#{ActiveSupport::Digest.hexdigest('123')}")
       get :with_stale
       assert_equal 304, response.status.to_i
+    end
+
+    def test_response_buffer_do_not_respond_to_to_ary
+      get :basic_stream
+      # `response.to_a` wraps the response with RackBody.
+      # RackBody is the body we return to Rack.
+      # Therefore we want to assert directly on it.
+      # The Rack spec requires bodies that cannot be
+      # buffered to return false to `respond_to?(:to_ary)`
+      assert_not response.to_a.last.respond_to? :to_ary
     end
   end
 

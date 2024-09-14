@@ -1,9 +1,9 @@
 {
   "name": "@rails/actiontext",
-  "version": "7.1.0-alpha",
+  "version": "8.0.0-alpha",
   "description": "Edit and display rich text in Rails applications",
+  "module": "app/assets/javascripts/actiontext.esm.js",
   "main": "app/assets/javascripts/actiontext.js",
-  "type": "module",
   "files": [
     "app/assets/javascripts/*.js"
   ],
@@ -22,8 +22,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@rails/activestorage": ">= 7.0.0-alpha1",
-    "webpack": "^4.17.1"
+    "@rails/activestorage": ">= 8.0.0-alpha"
   },
   "peerDependencies": {
     "trix": "^2.0.0"

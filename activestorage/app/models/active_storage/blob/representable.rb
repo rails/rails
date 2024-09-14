@@ -35,7 +35,7 @@ module ActiveStorage::Blob::Representable
     if variable?
       variant_class.new(self, ActiveStorage::Variation.wrap(transformations).default_to(default_variant_transformations))
     else
-      raise ActiveStorage::InvariableError
+      raise ActiveStorage::InvariableError, "Can't transform blob with ID=#{id} and content_type=#{content_type}"
     end
   end
 
@@ -64,7 +64,7 @@ module ActiveStorage::Blob::Representable
     if previewable?
       ActiveStorage::Preview.new(self, transformations)
     else
-      raise ActiveStorage::UnpreviewableError
+      raise ActiveStorage::UnpreviewableError, "No previewer found for blob with ID=#{id} and content_type=#{content_type}"
     end
   end
 
@@ -89,13 +89,25 @@ module ActiveStorage::Blob::Representable
     when variable?
       variant transformations
     else
-      raise ActiveStorage::UnrepresentableError
+      raise ActiveStorage::UnrepresentableError, "No previewer found and can't transform blob with ID=#{id} and content_type=#{content_type}"
     end
   end
 
   # Returns true if the blob is variable or previewable.
   def representable?
     variable? || previewable?
+  end
+
+  def preview_image_needed_before_processing_variants? # :nodoc:
+    previewable? && !preview_image.attached?
+  end
+
+  def create_preview_image_later(variations) # :nodoc:
+    ActiveStorage::PreviewImageJob.perform_later(self, variations) if representable?
+  end
+
+  def preprocessed(transformations) # :nodoc:
+    ActiveStorage::TransformJob.perform_later(self, transformations) if representable?
   end
 
   private

@@ -7,7 +7,7 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid
 
       def initialize(
         table, name,
@@ -20,6 +20,7 @@ module ActiveRecord
         type: nil,
         using: nil,
         include: nil,
+        nulls_not_distinct: nil,
         comment: nil,
         valid: true
       )
@@ -34,6 +35,7 @@ module ActiveRecord
         @type = type
         @using = using
         @include = include
+        @nulls_not_distinct = nulls_not_distinct
         @comment = comment
         @valid = valid
       end
@@ -50,13 +52,14 @@ module ActiveRecord
         }
       end
 
-      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, **options)
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, **options)
         columns = options[:column] if columns.blank?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
           (valid.nil? || self.valid == valid) &&
-          (include.nil? || Array(self.include) == Array(include))
+          (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
+          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
       end
 
       private
@@ -159,7 +162,7 @@ module ActiveRecord
       def defined_for?(to_table: nil, validate: nil, **options)
         (to_table.nil? || to_table.to_s == self.to_table) &&
           (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
-          options.all? { |k, v| self.options[k].to_s == v.to_s }
+          options.all? { |k, v| Array(self.options[k]).map(&:to_s) == Array(v).map(&:to_s) }
       end
 
       private
@@ -337,13 +340,15 @@ module ActiveRecord
       end
     end
 
+    # = Active Record Connection Adapters \Table \Definition
+    #
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[7.1]
+    #   class SomeMigration < ActiveRecord::Migration[8.0]
     #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
@@ -485,14 +490,7 @@ module ActiveRecord
         name = name.to_s
         type = type.to_sym if type
 
-        if @columns_hash[name]
-          if @columns_hash[name].primary_key?
-            raise ArgumentError, "you can't redefine the primary key column '#{name}' on '#{@name}'. To define a custom primary key, pass { id: false } to create_table."
-          else
-            raise ArgumentError, "you can't define an already defined column '#{name}' on '#{@name}'."
-          end
-        end
-
+        raise_on_duplicate_column(name)
         @columns_hash[name] = new_column_definition(name, type, **options)
 
         if index
@@ -608,6 +606,16 @@ module ActiveRecord
         def integer_like_primary_key_type(type, options)
           type
         end
+
+        def raise_on_duplicate_column(name)
+          if @columns_hash[name]
+            if @columns_hash[name].primary_key?
+              raise ArgumentError, "you can't redefine the primary key column '#{name}' on '#{@name}'. To define a custom primary key, pass { id: false } to create_table."
+            else
+              raise ArgumentError, "you can't define an already defined column '#{name}' on '#{@name}'."
+            end
+          end
+        end
     end
 
     class AlterTable # :nodoc:
@@ -649,6 +657,8 @@ module ActiveRecord
       end
     end
 
+    # = Active Record Connection Adapters \Table
+    #
     # Represents an SQL table in an abstract way for updating a table.
     # Also see TableDefinition and {connection.create_table}[rdoc-ref:SchemaStatements#create_table]
     #

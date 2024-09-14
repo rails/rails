@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/core_ext/object/with"
 require "active_support/encrypted_file"
 
 class EncryptedFileTest < ActiveSupport::TestCase
@@ -51,6 +52,14 @@ class EncryptedFileTest < ActiveSupport::TestCase
     assert_equal "#{@content} and went by the lake", @encrypted_file.read
   end
 
+  test "change sets restricted permissions" do
+    @encrypted_file.write(@content)
+    @encrypted_file.change do |file|
+      assert_predicate file, :owned?
+      assert_equal "100600", file.stat.mode.to_s(8), "Incorrect mode for #{file}"
+    end
+  end
+
   test "raise MissingKeyError when key is missing" do
     assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
       encrypted_file(@content_path, key_path: "", env_key: "").read
@@ -84,14 +93,14 @@ class EncryptedFileTest < ActiveSupport::TestCase
   end
 
   test "key? is true when key file exists" do
-    assert @encrypted_file.key?
+    assert_predicate @encrypted_file, :key?
   end
 
   test "key? is true when env key is present" do
     FileUtils.rm_rf @key_path
     ENV["CONTENT_KEY"] = @key
 
-    assert @encrypted_file.key?
+    assert_predicate @encrypted_file, :key?
   end
 
   test "key? is false and does not raise when the key is missing" do
@@ -144,16 +153,14 @@ class EncryptedFileTest < ActiveSupport::TestCase
     FileUtils.rm_rf symlink_path
   end
 
-  test "can read encrypted file after changing MessageEncryptor.default_message_encryptor_serializer" do
-    original_serializer = ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
+  test "can read encrypted file after changing default_serializer" do
+    ActiveSupport::Messages::Codec.with(default_serializer: :marshal) do
+      encrypted_file(@content_path).write(@content)
+    end
 
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = :marshal
-    encrypted_file(@content_path).write(@content)
-
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = :json
-    assert_equal @content, encrypted_file(@content_path).read
-  ensure
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = original_serializer
+    ActiveSupport::Messages::Codec.with(default_serializer: :json) do
+      assert_equal @content, encrypted_file(@content_path).read
+    end
   end
 
   private

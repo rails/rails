@@ -32,8 +32,7 @@ module ActionMailer
 
       add_delivery_method :sendmail, Mail::Sendmail,
         location:  "/usr/sbin/sendmail",
-        # See breaking change in the mail gem - https://github.com/mikel/mail/commit/7e1196bd29815a0901d7290c82a332c0959b163a
-        arguments: Gem::Version.new(Mail::VERSION.version) >= Gem::Version.new("2.8.0") ? %w[-i] : "-i"
+        arguments: %w[-i]
 
       add_delivery_method :test, Mail::TestMailer
     end

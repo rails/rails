@@ -11,6 +11,6 @@ class SqlTypesTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def type_to_sql(type, limit = nil)
-    ActiveRecord::Base.connection.type_to_sql(type, limit: limit)
+    ActiveRecord::Base.lease_connection.type_to_sql(type, limit: limit)
   end
 end

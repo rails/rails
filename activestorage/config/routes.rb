@@ -32,16 +32,17 @@ Rails.application.routes.draw do
 
   direct :rails_storage_proxy do |model, options|
     expires_in = options.delete(:expires_in) { ActiveStorage.urls_expire_in }
+    expires_at = options.delete(:expires_at)
 
     if model.respond_to?(:signed_id)
       route_for(
         :rails_service_blob_proxy,
-        model.signed_id(expires_in: expires_in),
+        model.signed_id(expires_in: expires_in, expires_at: expires_at),
         model.filename,
         options
       )
     else
-      signed_blob_id = model.blob.signed_id(expires_in: expires_in)
+      signed_blob_id = model.blob.signed_id(expires_in: expires_in, expires_at: expires_at)
       variation_key  = model.variation.key
       filename       = model.blob.filename
 
@@ -57,16 +58,17 @@ Rails.application.routes.draw do
 
   direct :rails_storage_redirect do |model, options|
     expires_in = options.delete(:expires_in) { ActiveStorage.urls_expire_in }
+    expires_at = options.delete(:expires_at)
 
     if model.respond_to?(:signed_id)
       route_for(
         :rails_service_blob,
-        model.signed_id(expires_in: expires_in),
+        model.signed_id(expires_in: expires_in, expires_at: expires_at),
         model.filename,
         options
       )
     else
-      signed_blob_id = model.blob.signed_id(expires_in: expires_in)
+      signed_blob_id = model.blob.signed_id(expires_in: expires_in, expires_at: expires_at)
       variation_key  = model.variation.key
       filename       = model.blob.filename
 

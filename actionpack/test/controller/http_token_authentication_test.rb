@@ -180,6 +180,16 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_nil actual
   end
 
+  test "token_and_options ignores empty elements in header value" do
+    token = "foo,,bar,  ,   , baz=qux"
+    expected_token = "foo"
+    expected_options = { "bar" => nil, "baz" => "qux" }
+
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token, {}))
+    assert_equal expected_token, actual.first
+    assert_equal expected_options, actual.last
+  end
+
   test "raw_params returns a tuple of two key value pair strings" do
     auth = sample_request("rcHu+HzSFw89Ypyhn/896A=").authorization.to_s
     actual = ActionController::HttpAuthentication::Token.raw_params(auth)
@@ -229,7 +239,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     end
 
     def mock_authorization_request(authorization)
-      OpenStruct.new(authorization: authorization)
+      Struct.new(:authorization).new(authorization)
     end
 
     def encode_credentials(token, options = {})

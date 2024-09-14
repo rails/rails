@@ -138,7 +138,7 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.other = OpenStruct.new(value: 123)
+            config.other = Struct.new(:value).new(123)
           end
         RUBY
 
@@ -232,8 +232,6 @@ module ApplicationTests
 
       def with_bad_permissions
         Dir.chdir(app_path) do
-          skip "Can't avoid permissions as root" if Process.uid.zero?
-
           set_database_url
           FileUtils.chmod("-w", "db")
           yield
@@ -241,14 +239,25 @@ module ApplicationTests
         end
       end
 
-      test "db:create failure because bad permissions" do
-        with_bad_permissions do
-          output = rails("db:create", allow_failure: true)
-          assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
-          assert_equal 1, $?.exitstatus
+      unless Process.uid.zero?
+        test "db:create failure because bad permissions" do
+          with_bad_permissions do
+            output = rails("db:create", allow_failure: true)
+            assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
+            assert_equal 1, $?.exitstatus
+          end
+        end
+
+        test "db:drop failure because bad permissions" do
+          with_database_existing do
+            with_bad_permissions do
+              output = rails("db:drop", allow_failure: true)
+              assert_match(/Couldn't drop/, output)
+              assert_equal 1, $?.exitstatus
+            end
+          end
         end
       end
-
       test "db:create works when schema cache exists and database does not exist" do
         use_postgresql
 
@@ -268,16 +277,6 @@ module ApplicationTests
         assert_match(/does not exist/, output)
       end
 
-      test "db:drop failure because bad permissions" do
-        with_database_existing do
-          with_bad_permissions do
-            output = rails("db:drop", allow_failure: true)
-            assert_match(/Couldn't drop/, output)
-            assert_equal 1, $?.exitstatus
-          end
-        end
-      end
-
       test "db:truncate_all truncates all non-internal tables" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
@@ -285,18 +284,18 @@ module ApplicationTests
           require "#{app_path}/config/environment"
           Book.create!(title: "Remote")
           assert_equal 1, Book.count
-          schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
-          internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+          schema_migrations = ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+          internal_metadata = ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
 
           rails "db:truncate_all"
 
           assert_equal(
             schema_migrations,
-            ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+            ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
           )
           assert_equal(
             internal_metadata,
-            ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+            ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
           )
           assert_equal 0, Book.count
         end
@@ -310,23 +309,23 @@ module ApplicationTests
             require "#{app_path}/config/environment"
             Book.create!(title: "Remote")
             assert_equal 1, Book.count
-            schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
-            internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
-            books = ActiveRecord::Base.connection.execute("SELECT * from \"books\"")
+            schema_migrations = ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+            internal_metadata = ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+            books = ActiveRecord::Base.lease_connection.execute("SELECT * from \"books\"")
 
             output = rails("db:truncate_all", allow_failure: true)
             assert_match(/ActiveRecord::ProtectedEnvironmentError/, output)
 
             assert_equal(
               schema_migrations,
-              ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+              ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
             )
             assert_equal(
               internal_metadata,
-              ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+              ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
             )
             assert_equal 1, Book.count
-            assert_equal(books, ActiveRecord::Base.connection.execute("SELECT * from \"books\""))
+            assert_equal(books, ActiveRecord::Base.lease_connection.execute("SELECT * from \"books\""))
           end
         end
       end
@@ -349,6 +348,19 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         set_database_url
         db_migrate_and_status database_url_db_name
+      end
+
+      test "db:migrate on new db loads schema" do
+        app_file "db/schema.rb", <<-RUBY
+          ActiveRecord::Schema.define(version: 20140423102712) do
+            create_table(:comments) {}
+          end
+        RUBY
+
+        rails "db:migrate"
+        list_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+
+        assert_equal "[\"ar_internal_metadata\", \"comments\", \"schema_migrations\"]", list_tables[]
       end
 
       def db_schema_dump
@@ -404,8 +416,8 @@ module ApplicationTests
         Dir.chdir(app_path) do
           rails "db:schema:cache:dump"
 
-          cache_size = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip }
-          cache_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip }
+          cache_size = lambda { rails("runner", "p ActiveRecord::Base.schema_cache.size").strip }
+          cache_tables = lambda { rails("runner", "p ActiveRecord::Base.schema_cache.columns('books')").strip }
 
           assert_equal "12", cache_size[]
           assert_includes cache_tables[], "id", "expected cache_tables to include an id entry"
@@ -440,17 +452,6 @@ module ApplicationTests
         db_schema_cache_dump
       end
 
-      test "db:schema:cache:dump custom env" do
-        @old_schema_cache_env = ENV["SCHEMA_CACHE"]
-        filename = "db/special_schema_cache.yml"
-        ENV["SCHEMA_CACHE"] = filename
-
-        db_schema_dump
-        db_schema_cache_dump
-      ensure
-        ENV["SCHEMA_CACHE"] = @old_schema_cache_env
-      end
-
       test "db:schema:cache:dump first config wins" do
         Dir.chdir(app_path) do
           File.open("#{app_path}/config/database.yml", "w") do |f|
@@ -483,7 +484,7 @@ module ApplicationTests
           rails "db:drop", "db:create"
 
           rails "runner", <<~RUBY
-            ActiveRecord::Base.connection.create_table(:books) do |t|
+            ActiveRecord::Base.lease_connection.create_table(:books) do |t|
               t.integer :pages
               t.virtual :pages_plus_1, type: :integer, as: "pages + 1", stored: true
             end
@@ -491,8 +492,23 @@ module ApplicationTests
 
           rails "db:schema:cache:dump"
 
-          virtual_column_exists = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')[2].virtual?").strip
+          virtual_column_exists = rails("runner", "p ActiveRecord::Base.schema_cache.columns('books')[2].virtual?").strip
           assert_equal "true", virtual_column_exists
+        end
+      end
+
+      test "db:schema:cache:dump ignores expired version" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:schema:cache:dump"
+          rails "generate", "model", "cat", "color:string"
+          rails "db:migrate"
+
+          expired_warning = capture(:stderr) do
+            cache_size = rails("runner", "p ActiveRecord::Base.schema_cache.size", stderr: true).strip
+            assert_equal "0", cache_size
+          end
+          assert_match(/Ignoring .*\.yml because it has expired/, expired_warning)
         end
       end
 
@@ -530,7 +546,7 @@ module ApplicationTests
       end
 
       test "db:schema:load does not purge the existing database" do
-        rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
+        rails "runner", "ActiveRecord::Base.lease_connection.create_table(:posts) {|t| t.string :title }"
 
         app_file "db/schema.rb", <<-RUBY
           ActiveRecord::Schema.define(version: 20140423102712) do
@@ -538,11 +554,11 @@ module ApplicationTests
           end
         RUBY
 
-        list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
+        list_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
 
         assert_equal '["posts"]', list_tables[]
         rails "db:schema:load"
-        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[]
+        assert_equal '["ar_internal_metadata", "comments", "posts", "schema_migrations"]', list_tables[]
 
         add_to_config "config.active_record.schema_format = :sql"
         app_file "db/structure.sql", <<-SQL
@@ -550,7 +566,7 @@ module ApplicationTests
         SQL
 
         rails "db:schema:load"
-        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
+        assert_equal '["ar_internal_metadata", "comments", "posts", "schema_migrations", "users"]', list_tables[]
       end
 
       test "db:schema:load with inflections" do
@@ -572,11 +588,11 @@ module ApplicationTests
 
         rails "db:schema:load"
 
-        tables = rails("runner", "p ActiveRecord::Base.connection.tables").strip
+        tables = rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip
         assert_match(/"geese"/, tables)
 
-        columns = rails("runner", "p ActiveRecord::Base.connection.columns('geese').map(&:name)").strip
-        assert_equal columns, '["gooseid", "name"]'
+        columns = rails("runner", "p ActiveRecord::Base.lease_connection.columns('geese').map(&:name)").strip
+        assert_equal '["gooseid", "name"]', columns
       end
 
       test "db:schema:load fails if schema.rb doesn't exist yet" do
@@ -613,8 +629,8 @@ module ApplicationTests
         app_file "db/schema.rb", ""
         rails "db:setup"
 
-        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
-        development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
+        development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
         assert_equal "test", test_environment.call
         assert_equal "development", development_environment.call
@@ -634,7 +650,7 @@ module ApplicationTests
         app_file "db/schema.rb", ""
         rails "db:test:prepare"
 
-        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
         assert_equal "test", test_environment.call
 
@@ -655,8 +671,8 @@ module ApplicationTests
           require "#{app_path}/config/environment"
           Book.create!(title: "Remote")
           assert_equal 1, Book.count
-          schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
-          internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+          schema_migrations = ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+          internal_metadata = ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
 
           app_file "db/seeds.rb", <<-RUBY
             Book.create!(title: "Rework")
@@ -667,11 +683,11 @@ module ApplicationTests
 
           assert_equal(
             schema_migrations,
-            ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+            ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
           )
           assert_equal(
             internal_metadata,
-            ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+            ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
           )
           assert_equal 2, Book.count
           assert_not_predicate Book.where(title: "Remote"), :exists?
@@ -688,9 +704,9 @@ module ApplicationTests
             require "#{app_path}/config/environment"
             Book.create!(title: "Remote")
             assert_equal 1, Book.count
-            schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
-            internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
-            books = ActiveRecord::Base.connection.execute("SELECT * from \"books\"")
+            schema_migrations = ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+            internal_metadata = ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+            books = ActiveRecord::Base.lease_connection.execute("SELECT * from \"books\"")
 
             app_file "db/seeds.rb", <<-RUBY
               Book.create!(title: "Rework")
@@ -701,14 +717,14 @@ module ApplicationTests
 
             assert_equal(
               schema_migrations,
-              ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+              ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
             )
             assert_equal(
               internal_metadata,
-              ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+              ActiveRecord::Base.lease_connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
             )
             assert_equal 1, Book.count
-            assert_equal(books, ActiveRecord::Base.connection.execute("SELECT * from \"books\""))
+            assert_equal(books, ActiveRecord::Base.lease_connection.execute("SELECT * from \"books\""))
             assert_not_predicate Book.where(title: "Rework"), :exists?
           end
         end
@@ -733,11 +749,11 @@ module ApplicationTests
           assert_match(/create_table "books"/, schema)
           assert_match(/create_table "recipes"/, schema)
 
-          tables = rails("runner", "p ActiveRecord::Base.connection.tables.sort").strip
+          tables = rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip
           assert_equal('["ar_internal_metadata", "books", "recipes", "schema_migrations"]', tables)
 
-          test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
-          development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+          test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
+          development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
           assert_equal "development", development_environment.call
           assert_equal "test", test_environment.call
@@ -751,7 +767,7 @@ module ApplicationTests
         output = rails("db:prepare")
         assert_no_match(/CreateBooks: migrated/, output)
 
-        tables = rails("runner", "p ActiveRecord::Base.connection.tables.sort").strip
+        tables = rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip
         assert_equal('["ar_internal_metadata", "books", "schema_migrations"]', tables)
       end
 
@@ -775,7 +791,7 @@ module ApplicationTests
         Dir.chdir(app_path) do
           db_name = use_postgresql
           rails "db:drop", "db:create"
-          rails "runner", "ActiveRecord::Base.connection.drop_database(:#{db_name}_test)"
+          rails "runner", "ActiveRecord::Base.lease_connection.drop_database(:#{db_name}_test)"
 
           output = rails("db:prepare")
           assert_match(%r{Created database '#{db_name}_test'}, output)

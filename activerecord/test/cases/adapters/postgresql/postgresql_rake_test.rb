@@ -26,7 +26,7 @@ module ActiveRecord
       mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
       mock.expect(:call, nil, [db_config])
 
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         ActiveRecord::Base.stub(:establish_connection, mock) do
           ActiveRecord::Tasks::DatabaseTasks.create(db_config)
         end
@@ -87,7 +87,7 @@ module ActiveRecord
       mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
       mock.expect(:call, nil, [db_config])
 
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         ActiveRecord::Base.stub(:establish_connection, mock) do
           ActiveRecord::Tasks::DatabaseTasks.create(db_config)
         end
@@ -97,7 +97,7 @@ module ActiveRecord
     end
 
     def test_db_create_with_error_prints_message
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         ActiveRecord::Base.stub(:establish_connection, -> * { raise Exception }) do
           assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration }
           assert_match "Couldn't create '#{@configuration['database']}' database. Please check your configuration.", $stderr.string
@@ -115,7 +115,7 @@ module ActiveRecord
 
     def test_create_when_database_exists_outputs_info_to_stderr
       with_stubbed_connection_establish_connection do
-        ActiveRecord::Base.connection.stub(
+        ActiveRecord::Base.lease_connection.stub(
           :create_database,
           proc { raise ActiveRecord::DatabaseAlreadyExists }
         ) do
@@ -128,7 +128,7 @@ module ActiveRecord
 
     private
       def with_stubbed_connection_establish_connection(&block)
-        ActiveRecord::Base.stub(:connection, @connection) do
+        ActiveRecord::Base.stub(:lease_connection, @connection) do
           ActiveRecord::Base.stub(:establish_connection, nil, &block)
         end
       end
@@ -150,7 +150,7 @@ module ActiveRecord
     end
 
     def test_establishes_connection_to_postgresql_database
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called_with(
           ActiveRecord::Base,
           :establish_connection,
@@ -187,7 +187,7 @@ module ActiveRecord
 
     private
       def with_stubbed_connection_establish_connection(&block)
-        ActiveRecord::Base.stub(:connection, @connection) do
+        ActiveRecord::Base.stub(:lease_connection, @connection) do
           ActiveRecord::Base.stub(:establish_connection, nil, &block)
         end
       end
@@ -273,7 +273,7 @@ module ActiveRecord
 
     private
       def with_stubbed_connection(&block)
-        ActiveRecord::Base.stub(:connection, @connection, &block)
+        ActiveRecord::Base.stub(:lease_connection, @connection, &block)
       end
   end
 
@@ -290,7 +290,7 @@ module ActiveRecord
     end
 
     def test_db_retrieves_charset
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(@connection, :encoding) do
           ActiveRecord::Tasks::DatabaseTasks.charset @configuration
         end
@@ -308,7 +308,7 @@ module ActiveRecord
     end
 
     def test_db_retrieves_collation
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(@connection, :collation) do
           ActiveRecord::Tasks::DatabaseTasks.collation @configuration
         end
@@ -407,7 +407,7 @@ module ActiveRecord
     end
 
     def test_structure_dump_with_ignore_tables
-      ActiveRecord::Base.connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+      ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,

@@ -77,10 +77,6 @@ module ActiveSupport # :nodoc:
       @html_safe = other.html_safe?
     end
 
-    def clone_empty
-      self[0, 0]
-    end
-
     def concat(value)
       unless value.nil?
         super(implicit_html_escape_interpolated_argument(value))

@@ -279,8 +279,8 @@ class NamingHelpersTest < ActiveModel::TestCase
   end
 
   private
-    def method_missing(method, *args)
-      ActiveModel::Naming.public_send(method, *args)
+    def method_missing(method, ...)
+      ActiveModel::Naming.public_send(method, ...)
     end
 end
 

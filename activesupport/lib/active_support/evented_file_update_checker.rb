@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-gem "listen"
+gem "listen", "~> 3.5"
 require "listen"
 
 require "set"
 require "pathname"
 require "concurrent/atomic/atomic_boolean"
-require "active_support/fork_tracker"
 
 module ActiveSupport
   # Allows you to "listen" to changes in a file system.

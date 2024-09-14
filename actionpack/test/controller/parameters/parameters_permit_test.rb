@@ -190,7 +190,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
         tabstops:   [4, 8, 12, 16],
         suspicious: [true, Object.new, false, /yo!/],
         dubious:    [{ a: :a, b: /wtf!/ }, { c: :c }],
-        injected:   Object.new
+        injected:   Object.new,
+        nested:     [[1, 2], [3, 4]]
       },
       hacked: 1 # not a hash
     )
@@ -205,6 +206,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal [true, false],     permitted[:preferences][:suspicious]
     assert_equal :a,                permitted[:preferences][:dubious][0][:a]
     assert_equal :c,                permitted[:preferences][:dubious][1][:c]
+    assert_equal [[1, 2], [3, 4]],  permitted[:preferences][:nested]
 
     assert_filtered_out permitted[:preferences][:dubious][0], :b
     assert_filtered_out permitted[:preferences], :injected
@@ -315,6 +317,62 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     assert_equal "1234", @params[:id]
     assert_equal "32", @params[:person][:age]
+  end
+
+  test "not permitted is sticky beyond deep merges" do
+    assert_not_predicate @params.deep_merge(a: "b"), :permitted?
+  end
+
+  test "permitted is sticky beyond deep merges" do
+    @params.permit!
+    assert_predicate @params.deep_merge(a: "b"), :permitted?
+  end
+
+  test "not permitted is sticky beyond deep_merge!" do
+    assert_not_predicate @params.deep_merge!(a: "b"), :permitted?
+  end
+
+  test "permitted is sticky beyond deep_merge!" do
+    @params.permit!
+    assert_predicate @params.deep_merge!(a: "b"), :permitted?
+  end
+
+  test "deep_merge with other Hash" do
+    first, last = @params.dig(:person, :name).values_at(:first, :last)
+    merged_params = @params.deep_merge(person: { name: { last: "A." } })
+
+    assert_equal first, merged_params.dig(:person, :name, :first)
+    assert_not_equal last, merged_params.dig(:person, :name, :last)
+    assert_equal "A.", merged_params.dig(:person, :name, :last)
+  end
+
+  test "deep_merge! with other Hash" do
+    first, last = @params.dig(:person, :name).values_at(:first, :last)
+    @params.deep_merge!(person: { name: { last: "A." } })
+
+    assert_equal first, @params.dig(:person, :name, :first)
+    assert_not_equal last, @params.dig(:person, :name, :last)
+    assert_equal "A.", @params.dig(:person, :name, :last)
+  end
+
+  test "deep_merge with other Parameters" do
+    first, last = @params.dig(:person, :name).values_at(:first, :last)
+    other_params = ActionController::Parameters.new(person: { name: { last: "A." } }).permit!
+    merged_params = @params.deep_merge(other_params)
+
+    assert_equal first, merged_params.dig(:person, :name, :first)
+    assert_not_equal last, merged_params.dig(:person, :name, :last)
+    assert_equal "A.", merged_params.dig(:person, :name, :last)
+  end
+
+  test "deep_merge! with other Parameters" do
+    first, last = @params.dig(:person, :name).values_at(:first, :last)
+    other_params = ActionController::Parameters.new(person: { name: { last: "A." } }).permit!
+    @params.deep_merge!(other_params)
+
+    assert_equal first, @params.dig(:person, :name, :first)
+    assert_not_equal last, @params.dig(:person, :name, :last)
+    assert_equal "A.", @params.dig(:person, :name, :last)
   end
 
   test "#reverse_merge with parameters" do

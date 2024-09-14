@@ -4,10 +4,6 @@ require "abstract_unit"
 
 class BaseRequestTest < ActiveSupport::TestCase
   def setup
-    @env = {
-      :ip_spoofing_check => true,
-      "rack.input" => "foo"
-    }
     @original_tld_length = ActionDispatch::Http::URL.tld_length
   end
 
@@ -23,14 +19,23 @@ class BaseRequestTest < ActiveSupport::TestCase
   private
     def stub_request(env = {})
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
-      @additional_trusted_proxy ||= nil
-      trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [@additional_trusted_proxy]
-      ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, trusted_proxies)
       ActionDispatch::Http::URL.tld_length = env.delete(:tld_length) if env.key?(:tld_length)
 
+      uri = env["HTTPS"] == "on" ? "https://www.example.org" : "http://www.example.org"
+
+      env = Rack::MockRequest.env_for(uri, env)
+      @additional_trusted_proxy ||= nil
+      trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [@additional_trusted_proxy]
+
+      ip_app = Rack::Lint.new(
+        ActionDispatch::RemoteIp.new(
+          Rack::Lint.new(Proc.new { [200, {}, []] }),
+          ip_spoofing_check,
+          trusted_proxies,
+        )
+      )
       ip_app.call(env)
 
-      env = @env.merge(env)
       ActionDispatch::Request.new(env)
     end
 end
@@ -306,7 +311,7 @@ class RequestDomain < BaseRequestTest
     assert_equal %w( 192 168 1 ), request.subdomains
     assert_equal "192.168.1", request.subdomain
 
-    request = stub_request "HTTP_HOST" => nil
+    request = stub_request "HTTP_HOST" => ""
     assert_equal [], request.subdomains
     assert_equal "", request.subdomain
 
@@ -378,7 +383,7 @@ class RequestPort < BaseRequestTest
     request = stub_request "SERVER_PORT" => "80"
     assert_equal 80, request.server_port
 
-    request = stub_request "SERVER_PORT" => ""
+    request = stub_request "SERVER_PORT" => "0"
     assert_equal 0, request.server_port
   end
 end
@@ -597,9 +602,9 @@ class RequestParamsParsing < BaseRequestTest
   test "doesn't break when content type has charset" do
     request = stub_request(
       "REQUEST_METHOD" => "POST",
-      "CONTENT_LENGTH" => "flamenco=love".length,
+      "CONTENT_LENGTH" => "flamenco=love".length.to_s,
       "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
-      "rack.input" => StringIO.new("flamenco=love")
+      :input => "flamenco=love"
     )
 
     assert_equal({ "flamenco" => "love" }, request.request_parameters)
@@ -616,7 +621,7 @@ class RequestParamsParsing < BaseRequestTest
       "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
       "CONTENT_LENGTH" => "9", # lower than data length
       "REQUEST_METHOD" => "POST",
-      "rack.input" => StringIO.new("0123456789")
+      :input => "0123456789"
     )
 
     err = assert_raises(ActionController::BadRequest) do
@@ -632,7 +637,7 @@ class RequestParamsParsing < BaseRequestTest
       "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
       "CONTENT_LENGTH" => "11", # higher than data length
       "REQUEST_METHOD" => "POST",
-      "rack.input" => StringIO.new("0123456789")
+      :input => "0123456789"
     )
 
     err = assert_raises(ActionController::BadRequest) do
@@ -648,8 +653,8 @@ if Rack.release < "3"
     test "body should be rewound" do
       data = "rewind"
       env = {
-        "rack.input" => StringIO.new(data),
-        "CONTENT_LENGTH" => data.length,
+        :input => data,
+        "CONTENT_LENGTH" => data.length.to_s,
         "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8"
       }
 
@@ -658,13 +663,13 @@ if Rack.release < "3"
       request.request_parameters
 
       # Should have rewound the body.
-      assert_equal 0, request.body.pos
+      assert_equal "rewind", request.body.read
     end
 
     test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
       request = stub_request(
-        "rack.input" => StringIO.new("raw"),
-        "CONTENT_LENGTH" => 3
+        :input => "raw",
+        "CONTENT_LENGTH" => "3"
       )
       assert_equal "raw", request.raw_post
       assert_equal "raw", request.env["rack.input"].read
@@ -919,15 +924,16 @@ class RequestFormat < BaseRequestTest
 
   test "format does not throw exceptions when invalid POST parameters" do
     body = "{record:{content:127.0.0.1}}"
+
     request = stub_request(
       "REQUEST_METHOD" => "POST",
-      "CONTENT_LENGTH" => body.length,
+      "CONTENT_LENGTH" => body.length.to_s,
       "CONTENT_TYPE" => "application/json",
-      "rack.input" => StringIO.new(body),
+      :input => body,
       "action_dispatch.logger" => Logger.new(output = StringIO.new)
     )
     assert request.formats
-    assert request.format.html?
+    assert_predicate request.format, :html?
 
     output.rewind && (err = output.read)
     assert_match(/Error occurred while parsing request parameters/, err)
@@ -1069,7 +1075,7 @@ end
 class RequestParameters < BaseRequestTest
   test "parameters" do
     request = stub_request "CONTENT_TYPE" => "application/json",
-                           "CONTENT_LENGTH" => 9,
+                           "CONTENT_LENGTH" => "9",
                            "RAW_POST_DATA" => '{"foo":1}',
                            "QUERY_STRING" => "bar=2"
 
@@ -1131,9 +1137,9 @@ class RequestParameters < BaseRequestTest
     data = "foo=%81E"
     request = stub_request(
       "REQUEST_METHOD" => "POST",
-      "CONTENT_LENGTH" => data.length,
+      "CONTENT_LENGTH" => data.length.to_s,
       "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
-      "rack.input" => StringIO.new(data)
+      :input => data
     )
 
     err = assert_raises(ActionController::BadRequest) { request.parameters }
@@ -1146,7 +1152,9 @@ class RequestParameters < BaseRequestTest
     request = stub_request("QUERY_STRING" => "foo=%81E")
 
     ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
-      request.parameters
+      assert_nothing_raised do
+        request.parameters
+      end
     end
   end
 
@@ -1154,22 +1162,24 @@ class RequestParameters < BaseRequestTest
     data = "foo=%81E"
     request = stub_request(
       "REQUEST_METHOD" => "POST",
-      "CONTENT_LENGTH" => data.length,
+      "CONTENT_LENGTH" => data.length.to_s,
       "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
-      "rack.input" => StringIO.new(data)
+      :input => data
     )
 
     ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
-      request.parameters
+      assert_nothing_raised do
+        request.parameters
+      end
     end
   end
 
   test "parameters not accessible after rack parse error 1" do
     request = stub_request(
       "REQUEST_METHOD" => "POST",
-      "CONTENT_LENGTH" => "a%=".length,
+      "CONTENT_LENGTH" => "a%=".length.to_s,
       "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
-      "rack.input" => StringIO.new("a%=")
+      :input => "a%="
     )
 
     assert_raises(ActionController::BadRequest) do
@@ -1188,6 +1198,13 @@ class RequestParameters < BaseRequestTest
 
     assert_not_nil e.cause
     assert_equal e.cause.backtrace, e.backtrace
+  end
+
+  test "raw_post does not raise when rack.input is nil" do
+    request = stub_request
+
+    # "" on Rack < 3.1, nil on Rack 3.1+
+    assert_predicate request.raw_post, :blank?
   end
 end
 
@@ -1398,13 +1415,12 @@ end
 class EarlyHintsRequestTest < BaseRequestTest
   def setup
     super
-    @env["rack.early_hints"] = lambda { |links| links }
-    @request = stub_request
+    @request = stub_request({ "rack.early_hints" => lambda { |links| links } })
   end
 
   test "when early hints is set in the env link headers are sent" do
-    early_hints = @request.send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
-    expected_hints = { "Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload" }
+    early_hints = @request.send_early_hints("link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload")
+    expected_hints = { "link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload" }
 
     assert_equal expected_hints, early_hints
   end

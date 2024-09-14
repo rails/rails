@@ -10,7 +10,7 @@ require "active_support/core_ext/object/with_options"
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Date \Helpers
+    # = Action View \Date \Helpers
     #
     # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
     # elements. All of the select-type methods share a number of common options that are as follows:
@@ -72,7 +72,7 @@ module ActionView
       #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                        # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
-      # With the <tt>scope</tt> option, you can define a custom scope for Rails
+      # With the <tt>scope</tt> option, you can define a custom scope for \Rails
       # to look up the translation.
       #
       # For example you can define the following in your locale (e.g. en.yml).
@@ -217,7 +217,7 @@ module ActionView
       # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> to
       #   customize the order in which the select fields are shown. If you leave out any of the symbols, the respective
       #   select will not be shown (like when you set <tt>discard_xxx: true</tt>. Defaults to the order defined in
-      #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
+      #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with \Rails).
       # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
       #   dates.
       # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is +nil+.
@@ -319,6 +319,10 @@ module ActionView
       #
       #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
       #   time_select 'game', 'game_time', { ampm: true }
+      #
+      #   # You can set :ignore_date option to true which will remove the hidden inputs for day,
+      #   # month, and year that are set by default on this helper when you only want the time inputs
+      #   time_select 'game', 'game_time', { ignore_date: true }
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #

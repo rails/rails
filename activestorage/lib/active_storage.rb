@@ -35,7 +35,7 @@ require "active_storage/errors"
 require "marcel"
 
 # :markup: markdown
-# :include: activestorage/README.md
+# :include: ../README.md
 module ActiveStorage
   extend ActiveSupport::Autoload
 
@@ -354,6 +354,7 @@ module ActiveStorage
   mattr_accessor :unsupported_image_processing_arguments
 
   mattr_accessor :service_urls_expire_in, default: 5.minutes
+  mattr_accessor :touch_attachment_records, default: true
   mattr_accessor :urls_expire_in
 
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
@@ -363,22 +364,6 @@ module ActiveStorage
   mattr_accessor :track_variants, default: false
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
-
-  def self.replace_on_assign_to_many
-    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
-  end
-
-  def self.replace_on_assign_to_many=(value)
-    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
-  end
-
-  def self.silence_invalid_content_types_warning
-    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
-  end
-
-  def self.silence_invalid_content_types_warning=(value)
-    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
-  end
 
   module Transformers
     extend ActiveSupport::Autoload

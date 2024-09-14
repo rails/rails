@@ -47,7 +47,7 @@ branch.
 ## Day of release
 
 If making multiple releases. Publish them in order from oldest to newest, to
-ensure that the "greatest" version also shows up in NPM and GitHub Releases as
+ensure that the "greatest" version also shows up in npm and GitHub Releases as
 "latest".
 
 ### Put the new version in the RAILS_VERSION file.
@@ -82,8 +82,8 @@ for setup instructions.
 
 IMPORTANT: Several gems have JavaScript components that are released as npm
 packages, so you must have Node.js installed, have an npm account (npmjs.com),
-and be a package owner for `@rails/actioncable`, `@rails/actiontext`,
-`@rails/activestorage`, and `@rails/ujs`. You can check this by making sure your
+and be a package owner for `@rails/actioncable`, `@rails/actiontext`, and
+`@rails/activestorage`. You can check this by making sure your
 npm user (`npm whoami`) is listed as an owner (`npm owner ls <pkg>`) of each
 package. Do not release until you're set up with npm!
 
@@ -159,7 +159,7 @@ Add some context for users as to the purpose of this release (bugfix/security).
 If this is a part of the latest release series, update `_data/version.yml` so
 that the homepage points to the latest version.
 
-### Post the announcement to the Rails Twitter account.
+### Post the announcement to the Rails X account.
 
 ## Security releases
 
@@ -179,7 +179,7 @@ and links to each patch. Some people may not be able to upgrade right away,
 so we need to give them the security fixes in patch form.
 
 * Blog announcements
-* Twitter announcements
+* X announcements
 * Merge the release branch to the stable branch
 * Drink beer (or other cocktail)
 

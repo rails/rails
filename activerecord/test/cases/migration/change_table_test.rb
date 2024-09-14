@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       def with_change_table
-        yield ActiveRecord::Base.connection.update_table_definition(:delete_me, @connection)
+        yield ActiveRecord::Base.lease_connection.update_table_definition(:delete_me, @connection)
       end
 
       if Minitest::Mock.instance_method(:expect).parameters.map(&:first).include?(:keyrest)
@@ -177,17 +177,17 @@ module ActiveRecord
           end
         end
 
-        def test_unique_key_creates_unique_key
+        def test_unique_constraint_creates_unique_constraint
           with_change_table do |t|
-            expect :add_unique_key, nil, [:delete_me, :foo, deferrable: :deferred, name: "unique_key"]
-            t.unique_key :foo, deferrable: :deferred, name: "unique_key"
+            expect :add_unique_constraint, nil, [:delete_me, :foo, deferrable: :deferred, name: "unique_constraint"]
+            t.unique_constraint :foo, deferrable: :deferred, name: "unique_constraint"
           end
         end
 
-        def test_remove_unique_key_removes_unique_key
+        def test_remove_unique_constraint_removes_unique_constraint
           with_change_table do |t|
-            expect :remove_unique_key, nil, [:delete_me, name: "unique_key"]
-            t.remove_unique_key name: "unique_key"
+            expect :remove_unique_constraint, nil, [:delete_me, name: "unique_constraint"]
+            t.remove_unique_constraint name: "unique_constraint"
           end
         end
       end
@@ -336,6 +336,26 @@ module ActiveRecord
         with_change_table do |t|
           expect :remove_check_constraint, nil, [:delete_me], name: "price_check"
           t.remove_check_constraint name: "price_check"
+        end
+      end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_validate_check_constraint
+          with_change_table do |t|
+            expect :add_check_constraint, nil, [:delete_me, "price > discounted_price"], name: "price_check", validate: false
+            t.check_constraint "price > discounted_price", name: "price_check", validate: false
+            expect :validate_check_constraint, :nil, [:delete_me, "price_check"]
+            t.validate_check_constraint "price_check"
+          end
+        end
+
+        def test_validate_constraint
+          with_change_table do |t|
+            expect :add_check_constraint, nil, [:delete_me, "price > discounted_price"], name: "price_check", validate: false
+            t.check_constraint "price > discounted_price", name: "price_check", validate: false
+            expect :validate_constraint, :nil, [:delete_me, "price_check"]
+            t.validate_constraint "price_check"
+          end
         end
       end
 

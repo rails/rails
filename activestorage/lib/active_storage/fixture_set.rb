@@ -26,8 +26,12 @@ module ActiveStorage
   #     has_one_attached :thumbnail
   #   end
   #
+  # <code></code>
+  #
   #   # fixtures/active_storage/blobs.yml
   #   first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob filename: "first.png" %>
+  #
+  # <code></code>
   #
   #   # fixtures/active_storage/attachments.yml
   #   first_thumbnail_attachment:
@@ -48,7 +52,7 @@ module ActiveStorage
     #
     # === Examples
     #
-    #   # tests/fixtures/action_text/blobs.yml
+    #   # tests/fixtures/active_storage/blobs.yml
     #   second_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
     #     filename: "second.svg",
     #   ) %>

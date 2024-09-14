@@ -282,6 +282,12 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_since_with_instance_of_time_deprecated
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time.now.since(Time.now)
+    end
+  end
+
   def test_since
     assert_equal Time.local(2005, 2, 22, 10, 10, 11), Time.local(2005, 2, 22, 10, 10, 10).since(1)
     assert_equal Time.local(2005, 2, 22, 11, 10, 10), Time.local(2005, 2, 22, 10, 10, 10).since(3600)
@@ -516,6 +522,16 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
       assert_equal one_am_2, two_am.change(hour: 1)
       assert_equal midnight, two_am.change(hour: 0)
+    end
+  end
+
+  def test_change_preserves_fractional_seconds_on_zoned_time
+    with_tz_default "US/Eastern" do
+      time = Time.new(2005, 10, 30, 00, 00, 0.99r, Time.zone) + 0
+      time2 = time.change(month: 1)
+
+      assert_equal "2005-10-30 00:00:00.99 -0400", time.inspect
+      assert_equal "2005-01-30 00:00:00.99 -0500", time2.inspect
     end
   end
 
@@ -819,13 +835,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_to_default_s
-    time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
-    assert_deprecated(ActiveSupport.deprecator) do
-      assert_equal time.to_default_s, time.to_s
-    end
-  end
-
   def test_to_fs
     time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
     assert_equal time.to_s,                         time.to_fs(:doesnt_exist)
@@ -839,11 +848,14 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "February 21st, 2005 17:44",       time.to_fs(:long_ordinal)
     with_env_tz "UTC" do
       assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_fs(:rfc822)
+      assert_equal "Mon, 21 Feb 2005 17:44:30 -0000", time.to_fs(:rfc2822)
       assert_equal "2005-02-21 17:44:30.123456789 +0000", time.to_fs(:inspect)
     end
     with_env_tz "US/Central" do
       assert_equal "Thu, 05 Feb 2009 14:30:05 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_fs(:rfc822)
       assert_equal "Mon, 09 Jun 2008 04:05:01 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_fs(:rfc822)
+      assert_equal "Thu, 05 Feb 2009 14:30:05 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_fs(:rfc2822)
+      assert_equal "Mon, 09 Jun 2008 04:05:01 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_fs(:rfc2822)
       assert_equal "2009-02-05T14:30:05-06:00", Time.local(2009, 2, 5, 14, 30, 5).to_fs(:iso8601)
       assert_equal "2008-06-09T04:05:01-05:00", Time.local(2008, 6, 9, 4, 5, 1).to_fs(:iso8601)
       assert_equal "2009-02-05T14:30:05Z", Time.utc(2009, 2, 5, 14, 30, 5).to_fs(:iso8601)

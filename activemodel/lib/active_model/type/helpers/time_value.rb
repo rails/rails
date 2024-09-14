@@ -70,18 +70,33 @@ module ActiveModel
           /x
 
           if RUBY_VERSION >= "3.2"
-            def fast_string_to_time(string)
-              return unless ISO_DATETIME.match?(string)
+            if Time.new(2000, 1, 1, 0, 0, 0, "-00:00").yday != 1 # Early 3.2.x had a bug
+              # BUG: Wrapping the Time object with Time.at because Time.new with `in:` in Ruby 3.2.0
+              # used to return an invalid Time object
+              # see: https://bugs.ruby-lang.org/issues/19292
+              def fast_string_to_time(string)
+                return unless string.include?("-") #  Time.new("1234") # => 1234-01-01 00:00:00
 
-              if is_utc?
-                # XXX: Wrapping the Time object with Time.at because Time.new with `in:` in Ruby 3.2.0 used to return an invalid Time object
-                # see: https://bugs.ruby-lang.org/issues/19292
-                ::Time.at(::Time.new(string, in: "UTC"))
-              else
-                ::Time.new(string)
+                if is_utc?
+                  ::Time.at(::Time.new(string, in: "UTC"))
+                else
+                  ::Time.new(string)
+                end
+              rescue ArgumentError
+                nil
               end
-            rescue ArgumentError
-              nil
+            else
+              def fast_string_to_time(string)
+                return unless string.include?("-") #  Time.new("1234") # => 1234-01-01 00:00:00
+
+                if is_utc?
+                  ::Time.new(string, in: "UTC")
+                else
+                  ::Time.new(string)
+                end
+              rescue ArgumentError
+                nil
+              end
             end
           else
             def fast_string_to_time(string)
@@ -94,7 +109,13 @@ module ActiveModel
               end
 
               if $8
-                offset = $8 == "Z" ? 0 : $8.to_i * 3600 + $9.to_i * 60
+                offset = \
+                  if $8 == "Z"
+                    0
+                  else
+                    offset_h, offset_m = $8.to_i, $9.to_i
+                    offset_h.to_i * 3600 + (offset_h.negative? ? -1 : 1) * offset_m * 60
+                  end
               end
 
               new_time($1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, usec, offset)

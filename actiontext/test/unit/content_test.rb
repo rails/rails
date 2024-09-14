@@ -132,6 +132,56 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_not defined?(::ApplicationController)
   end
 
+  test "does basic sanitization" do
+    html = "<div onclick='action()'>safe<script>unsafe</script></div>"
+    rendered = content_from_html(html).to_rendered_html_with_layout
+
+    assert_not_includes rendered, "<script>"
+    assert_not_includes rendered, "action"
+  end
+
+  test "does custom tag sanitization" do
+    old_tags = ActionText::ContentHelper.allowed_tags
+    old_attrs = ActionText::ContentHelper.allowed_attributes
+    ActionText::ContentHelper.allowed_tags = ["div"] # not 'span'
+    ActionText::ContentHelper.allowed_attributes = ["size"] # not 'class'
+
+    html = "<div size='large' class='high'>safe<span>unsafe</span></div>"
+    rendered = content_from_html(html).to_rendered_html_with_layout
+
+    assert_includes rendered, "<div"
+    assert_not_includes rendered, "<span"
+    assert_includes rendered, "large"
+    assert_not_includes rendered, "high"
+  ensure
+    ActionText::ContentHelper.allowed_tags = old_tags
+    ActionText::ContentHelper.allowed_attributes = old_attrs
+  end
+
+  test "sanitizes attachment markup for Trix" do
+    html = '<action-text-attachment content="<img src=\&quot;.\&quot; onerror=alert>"></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;content&quot;:&quot;<img src=\\&quot;\\\\%22.\\\\%22\\&quot;>&quot;}"></figure>'
+    assert_equal trix_html, content_from_html(html).to_trix_html.strip
+  end
+
+  test "removes content attribute if it's value is empty" do
+    html = '<action-text-attachment sgid="123" content=""></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
+    assert_equal trix_html, content_from_html(html).to_trix_html.strip
+  end
+
+  test "removes content attribute if it's value is empty after sanitization" do
+    html = '<action-text-attachment sgid="123" content="<script></script>"></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
+    assert_equal trix_html, content_from_html(html).to_trix_html.strip
+  end
+
+  test "does not add missing content attribute" do
+    html = '<action-text-attachment sgid="123"></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
+    assert_equal trix_html, content_from_html(html).to_trix_html.strip
+  end
+
   test "renders with layout when in a new thread" do
     html = "<h1>Hello world</h1>"
     rendered = nil
@@ -166,6 +216,20 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     end
 
     assert_equal expected_html.strip, replaced_fragment.to_html
+  end
+
+  test "delegates pattern matching to Nokogiri" do
+    content = ActionText::Content.new <<~HTML
+      <h1 id="hello-world">Hello, world</h1>
+
+      <div>The body</div>
+    HTML
+
+    content => [h1, div]
+
+    assert_pattern { h1 => { name: "h1", content: "Hello, world", attributes: [{ name: "id", value: "hello-world" }] } }
+    refute_pattern { h1 => { name: "h1", content: "Goodbye, world" } }
+    assert_pattern { div => { content: "The body" } }
   end
 
   private

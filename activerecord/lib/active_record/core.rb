@@ -2,11 +2,11 @@
 
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
 require "concurrent/map"
 
 module ActiveRecord
+  # = Active Record \Core
   module Core
     extend ActiveSupport::Concern
     include ActiveModel::Access
@@ -15,9 +15,10 @@ module ActiveRecord
       ##
       # :singleton-method:
       #
-      # Accepts a logger conforming to the interface of Log4r which is then
-      # passed on to any new database connections made and which can be
-      # retrieved on both a class and instance level by calling +logger+.
+      # Accepts a logger conforming to the interface of Log4r or the default
+      # Ruby +Logger+ class, which is then passed on to any new database
+      # connections made. You can retrieve this logger by calling +logger+ on
+      # either an Active Record model class or an Active Record model instance.
       class_attribute :logger, instance_writer: false
 
       class_attribute :_destroy_association_async_job, instance_accessor: false, default: "ActiveRecord::DestroyAssociationAsyncJob"
@@ -39,10 +40,10 @@ module ActiveRecord
       # :singleton-method:
       #
       # Specifies the maximum number of records that will be destroyed in a
-      # single background job by the +dependent: :destroy_async+ association
-      # option. When +nil+ (default), all dependent records will be destroyed
-      # in a single background job. If specified, the records to be destroyed
-      # will be split into multiple background jobs.
+      # single background job by the <tt>dependent: :destroy_async</tt>
+      # association option. When +nil+ (default), all dependent records will be
+      # destroyed in a single background job. If specified, the records to be
+      # destroyed will be split into multiple background jobs.
       class_attribute :destroy_association_async_batch_size, instance_writer: false, instance_predicate: false, default: nil
 
       ##
@@ -72,7 +73,7 @@ module ActiveRecord
       end
       self.configurations = {}
 
-      # Returns fully resolved ActiveRecord::DatabaseConfigurations object
+      # Returns a fully resolved ActiveRecord::DatabaseConfigurations object.
       def self.configurations
         @@configurations
       end
@@ -88,6 +89,7 @@ module ActiveRecord
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
+      class_attribute :strict_loading_mode, instance_accessor: false, default: :all
 
       class_attribute :has_many_inversing, instance_accessor: false, default: false
 
@@ -100,6 +102,9 @@ module ActiveRecord
       class_attribute :default_shard, instance_writer: false
 
       class_attribute :shard_selector, instance_accessor: false, default: nil
+
+      # Specifies the attributes that will be included in the output of the #inspect method
+      class_attribute :attributes_for_inspect, instance_accessor: false, default: [:id]
 
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
@@ -271,10 +276,25 @@ module ActiveRecord
           elsif reflection.belongs_to? && !reflection.polymorphic?
             key = reflection.join_foreign_key
             pkey = reflection.join_primary_key
-            value = value.public_send(pkey) if value.respond_to?(pkey)
+
+            if pkey.is_a?(Array)
+              if pkey.all? { |attribute| value.respond_to?(attribute) }
+                value = pkey.map do |attribute|
+                  if attribute == "id"
+                    value.id_value
+                  else
+                    value.public_send(attribute)
+                  end
+                end
+                composite_primary_key = true
+              end
+            else
+              value = value.public_send(pkey) if value.respond_to?(pkey)
+            end
           end
 
-          if !columns_hash.key?(key) || StatementCache.unsupported_value?(value)
+          if !composite_primary_key &&
+            (!columns_hash.key?(key) || StatementCache.unsupported_value?(value))
             return super
           end
 
@@ -334,8 +354,8 @@ module ActiveRecord
           super
         elsif abstract_class?
           "#{super}(abstract)"
-        elsif !connected?
-          "#{super} (call '#{super}.connection' to establish a connection)"
+        elsif !schema_loaded? && !connected?
+          "#{super} (call '#{super}.load_schema' to load schema informations)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
@@ -344,12 +364,7 @@ module ActiveRecord
         end
       end
 
-      # Override the default class equality method to provide support for decorated models.
-      def ===(object) # :nodoc:
-        object.is_a?(self)
-      end
-
-      # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
+      # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
@@ -362,7 +377,7 @@ module ActiveRecord
         TypeCaster::Map.new(self)
       end
 
-      def cached_find_by_statement(key, &block) # :nodoc:
+      def cached_find_by_statement(connection, key, &block) # :nodoc:
         cache = @find_by_statement_cache[connection.prepared_statements]
         cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
       end
@@ -385,8 +400,8 @@ module ActiveRecord
             @arel_table = nil
             @predicate_builder = nil
             @inspection_filter = nil
-            @filter_attributes = nil
-            @generated_association_methods = nil
+            @filter_attributes ||= nil
+            @generated_association_methods ||= nil
           end
         end
 
@@ -405,15 +420,23 @@ module ActiveRecord
         end
 
         def cached_find_by(keys, values)
-          statement = cached_find_by_statement(keys) { |params|
-            wheres = keys.index_with { params.bind }
-            where(wheres).limit(1)
-          }
+          with_connection do |connection|
+            statement = cached_find_by_statement(connection, keys) { |params|
+              wheres = keys.index_with do |key|
+                if key.is_a?(Array)
+                  [key.map { params.bind }]
+                else
+                  params.bind
+                end
+              end
+              where(wheres).limit(1)
+            }
 
-          begin
-            statement.execute(values, connection).first
-          rescue TypeError
-            raise ActiveRecord::StatementInvalid
+            statement.execute(values.flatten, connection, allow_retry: true).then do |r|
+              r.first
+            rescue TypeError
+              raise ActiveRecord::StatementInvalid
+            end
           end
         end
     end
@@ -433,7 +456,7 @@ module ActiveRecord
       init_internals
       initialize_internals_callback
 
-      assign_attributes(attributes) if attributes
+      super
 
       yield self if block_given?
       _run_initialize_callbacks
@@ -507,7 +530,11 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       @attributes = @attributes.deep_dup
-      @attributes.reset(@primary_key)
+      if self.class.composite_primary_key?
+        @primary_key.each { |key| @attributes.reset(key) }
+      else
+        @attributes.reset(@primary_key)
+      end
 
       _run_initialize_callbacks
 
@@ -536,6 +563,35 @@ module ActiveRecord
       coder["new_record"] = new_record?
       coder["active_record_yaml_version"] = 2
     end
+
+    ##
+    # :method: slice
+    #
+    # :call-seq: slice(*methods)
+    #
+    # Returns a hash of the given methods with their names as keys and returned
+    # values as values.
+    #
+    #   topic = Topic.new(title: "Budget", author_name: "Jason")
+    #   topic.slice(:title, :author_name)
+    #   => { "title" => "Budget", "author_name" => "Jason" }
+    #
+    #--
+    # Implemented by ActiveModel::Access#slice.
+
+    ##
+    # :method: values_at
+    #
+    # :call-seq: values_at(*methods)
+    #
+    # Returns an array of the values returned by the given methods.
+    #
+    #   topic = Topic.new(title: "Budget", author_name: "Jason")
+    #   topic.values_at(:title, :author_name)
+    #   => ["Budget", "Jason"]
+    #
+    #--
+    # Implemented by ActiveModel::Access#values_at.
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
     # is of the same type and +self+ has an ID and it is equal to +comparison_object.id+.
@@ -611,7 +667,9 @@ module ActiveRecord
     #
     #   user = User.first
     #   user.strict_loading! # => true
-    #   user.comments
+    #   user.address.city
+    #   => ActiveRecord::StrictLoadingViolationError
+    #   user.comments.to_a
     #   => ActiveRecord::StrictLoadingViolationError
     #
     # ==== Parameters
@@ -625,12 +683,13 @@ module ActiveRecord
     #
     #   user = User.first
     #   user.strict_loading!(false) # => false
-    #   user.comments
-    #   => #<ActiveRecord::Associations::CollectionProxy>
+    #   user.address.city # => "Tatooine"
+    #   user.comments.to_a # => [#<Comment:0x00...]
     #
     #   user.strict_loading!(mode: :n_plus_one_only)
     #   user.address.city # => "Tatooine"
-    #   user.comments
+    #   user.comments.to_a # => [#<Comment:0x00...]
+    #   user.comments.first.ratings.to_a
     #   => ActiveRecord::StrictLoadingViolationError
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
@@ -648,7 +707,16 @@ module ActiveRecord
       @strict_loading_mode == :n_plus_one_only
     end
 
+    # Returns +true+ if the record uses strict_loading with +:all+ mode enabled.
+    def strict_loading_all?
+      @strict_loading_mode == :all
+    end
+
     # Marks this record as read only.
+    #
+    #   customer = Customer.first
+    #   customer.readonly!
+    #   customer.save # Raises an ActiveRecord::ReadOnlyRecord
     def readonly!
       @readonly = true
     end
@@ -657,21 +725,14 @@ module ActiveRecord
       self.class.connection_handler
     end
 
-    # Returns the contents of the record as a nicely formatted string.
+    # Returns the attributes specified by <tt>.attributes_for_inspect</tt> as a nicely formatted string.
     def inspect
-      # We check defined?(@attributes) not to issue warnings if the object is
-      # allocated but not initialized.
-      inspection = if defined?(@attributes) && @attributes
-        attribute_names.filter_map do |name|
-          if _has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
-          end
-        end.join(", ")
-      else
-        "not initialized"
-      end
+      inspect_with_attributes(attributes_for_inspect)
+    end
 
-      "#<#{self.class} #{inspection}>"
+    # Returns the full contents of the record as a nicely formatted string.
+    def full_inspect
+      inspect_with_attributes(attribute_names)
     end
 
     # Takes a PP and prettily prints this record to it, allowing you to get a nice result from <tt>pp record</tt>
@@ -679,17 +740,17 @@ module ActiveRecord
     def pretty_print(pp)
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
-        if defined?(@attributes) && @attributes
-          attr_names = self.class.attribute_names.select { |name| _has_attribute?(name) }
+        if @attributes
+          attr_names = attributes_for_inspect.select { |name| _has_attribute?(name.to_s) }
           pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
+            attr_name = attr_name.to_s
             pp.breakable " "
             pp.group(1) do
               pp.text attr_name
               pp.text ":"
               pp.breakable
-              value = _read_attribute(attr_name)
-              value = inspection_filter.filter_param(attr_name, value) unless value.nil?
-              pp.pp value
+              value = attribute_for_inspect(attr_name)
+              pp.text value
             end
           end
         else
@@ -698,27 +759,6 @@ module ActiveRecord
         end
       end
     end
-
-    ##
-    # :method: slice
-    #
-    # :call-seq: slice(*methods)
-    #
-    # Returns a hash of the given methods with their names as keys and returned
-    # values as values.
-    #
-    #--
-    # Implemented by ActiveModel::Access#slice.
-
-    ##
-    # :method: values_at
-    #
-    # :call-seq: values_at(*methods)
-    #
-    # Returns an array of the values returned by the given methods.
-    #
-    #--
-    # Implemented by ActiveModel::Access#values_at.
 
     private
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
@@ -745,7 +785,7 @@ module ActiveRecord
 
         @primary_key         = klass.primary_key
         @strict_loading      = klass.strict_loading_by_default
-        @strict_loading_mode = :all
+        @strict_loading_mode = klass.strict_loading_mode
 
         klass.define_attribute_methods
       end
@@ -766,6 +806,25 @@ module ActiveRecord
 
       def inspection_filter
         self.class.inspection_filter
+      end
+
+      def inspect_with_attributes(attributes_to_list)
+        inspection = if @attributes
+          attributes_to_list.filter_map do |name|
+            name = name.to_s
+            if _has_attribute?(name)
+              "#{name}: #{attribute_for_inspect(name)}"
+            end
+          end.join(", ")
+        else
+          "not initialized"
+        end
+
+        "#<#{self.class} #{inspection}>"
+      end
+
+      def attributes_for_inspect
+        self.class.attributes_for_inspect == :all ? attribute_names : self.class.attributes_for_inspect
       end
   end
 end

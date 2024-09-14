@@ -12,7 +12,7 @@ module Rails
       class_option :key, aliases: "-k", type: :string,
         default: "config/master.key", desc: "The Rails.root relative path to the encryption key"
 
-      desc "edit", "Open the decrypted file in `$EDITOR` for editing"
+      desc "edit", "Open the decrypted file in `$VISUAL` or `$EDITOR` for editing"
       def edit(*)
         load_environment_config!
 
