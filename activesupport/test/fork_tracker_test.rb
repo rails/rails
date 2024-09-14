@@ -7,16 +7,22 @@ class ForkTrackerTest < ActiveSupport::TestCase
     super
 
     @read, @write = IO.pipe
-    @called = false
+    @before_called = false
+    @after_called = false
 
-    @handler = ActiveSupport::ForkTracker.after_fork do
-      @called = true
+    @before_handler = ActiveSupport::ForkTracker.before_fork do
+      @before_called = true
+    end
+
+    @after_handler = ActiveSupport::ForkTracker.after_fork do
+      @after_called = true
       @write.write "forked"
     end
   end
 
   def teardown
-    ActiveSupport::ForkTracker.unregister(@handler)
+    ActiveSupport::ForkTracker.unregister_before_fork(@before_handler)
+    ActiveSupport::ForkTracker.unregister_after_fork(@after_handler)
 
     super
   end
@@ -35,7 +41,8 @@ class ForkTrackerTest < ActiveSupport::TestCase
     assert_equal "forked", @read.read
     @read.close
 
-    assert_not @called
+    assert @before_called
+    assert_not @after_called
   end
 
   def test_object_fork_without_block
@@ -44,7 +51,8 @@ class ForkTrackerTest < ActiveSupport::TestCase
       Process.waitpid(pid)
       assert_equal "forked", @read.read
       @read.close
-      assert_not @called
+      assert @before_called
+      assert_not @after_called
     else
       @read.close
       @write.close
@@ -64,7 +72,8 @@ class ForkTrackerTest < ActiveSupport::TestCase
     Process.waitpid(pid)
     assert_equal "forked", @read.read
     @read.close
-    assert_not @called
+    assert @before_called
+    assert_not @after_called
   end
 
   def test_process_fork_without_block
@@ -73,7 +82,8 @@ class ForkTrackerTest < ActiveSupport::TestCase
       Process.waitpid(pid)
       assert_equal "forked", @read.read
       @read.close
-      assert_not @called
+      assert @before_called
+      assert_not @after_called
     else
       @read.close
       @write.close
@@ -93,7 +103,8 @@ class ForkTrackerTest < ActiveSupport::TestCase
     Process.waitpid(pid)
     assert_equal "forked", @read.read
     @read.close
-    assert_not @called
+    assert @before_called
+    assert_not @after_called
   end
 
   def test_kernel_fork_without_block
@@ -102,7 +113,8 @@ class ForkTrackerTest < ActiveSupport::TestCase
       Process.waitpid(pid)
       assert_equal "forked", @read.read
       @read.close
-      assert_not @called
+      assert @before_called
+      assert_not @after_called
     else
       @read.close
       @write.close
@@ -132,18 +144,21 @@ class ForkTrackerTest < ActiveSupport::TestCase
     assert_equal "forked", @read.read
     @read.close
 
-    assert_not @called
+    assert @before_called
+    assert_not @after_called
   end
 
   def test_unregister_callback
-    ActiveSupport::ForkTracker.unregister(@handler)
+    ActiveSupport::ForkTracker.unregister_before_fork(@before_handler)
+    ActiveSupport::ForkTracker.unregister_after_fork(@after_handler)
 
     if pid = Process.fork
       @write.close
       Process.waitpid(pid)
       assert_equal "", @read.read
       @read.close
-      assert_not @called
+      assert_not @before_called
+      assert_not @after_called
     else
       @read.close
       @write.close

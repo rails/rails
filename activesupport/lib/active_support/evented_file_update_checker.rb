@@ -99,7 +99,7 @@ module ActiveSupport
       def finalizer
         proc do
           stop
-          ActiveSupport::ForkTracker.unregister(@after_fork)
+          ActiveSupport::ForkTracker.unregister_after_fork(@after_fork)
         end
       end
 

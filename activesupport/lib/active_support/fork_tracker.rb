@@ -4,6 +4,7 @@ module ActiveSupport
   module ForkTracker # :nodoc:
     module CoreExt
       def _fork
+        ForkTracker.before_fork_callback
         pid = super
         if pid == 0
           ForkTracker.after_fork_callback
@@ -13,13 +14,18 @@ module ActiveSupport
     end
 
     @pid = Process.pid
-    @callbacks = []
+    @before_callbacks = []
+    @after_callbacks = []
 
     class << self
+      def before_fork_callback
+        @before_callbacks.each(&:call)
+      end
+
       def after_fork_callback
         new_pid = Process.pid
         if @pid != new_pid
-          @callbacks.each(&:call)
+          @after_callbacks.each(&:call)
           @pid = new_pid
         end
       end
@@ -28,13 +34,22 @@ module ActiveSupport
         ::Process.singleton_class.prepend(CoreExt)
       end
 
-      def after_fork(&block)
-        @callbacks << block
+      def before_fork(&block)
+        @before_callbacks << block
         block
       end
 
-      def unregister(callback)
-        @callbacks.delete(callback)
+      def after_fork(&block)
+        @after_callbacks << block
+        block
+      end
+
+      def unregister_before_fork(callback)
+        @before_callbacks.delete(callback)
+      end
+
+      def unregister_after_fork(callback)
+        @after_callbacks.delete(callback)
       end
     end
   end
