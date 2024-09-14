@@ -16,7 +16,9 @@ gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 # Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
 gem "solid_cache"
 gem "solid_queue"
+<% unless options.skip_action_cable? -%>
 gem "solid_cable"
+<% end -%>
 <% end -%>
 <% if depend_on_bootsnap? -%>
 

@@ -150,7 +150,7 @@ module Rails
         end
 
         def system_test_configuration
-          optimize_indentation(<<-'RUBY', 2)
+          optimize_indentation(<<-'RUBY', 2).chomp
             if ENV["CAPYBARA_SERVER_PORT"]
               served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
 

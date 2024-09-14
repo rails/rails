@@ -1,3 +1,7 @@
+*   Print test names when running `rails test -v` for parallel tests.
+
+    *John Hawthorn*, *Abeid Ahmed*
+
 *   Deprecate `Benchmark.ms` core extension.
 
     The `benchmark` gem will become bundled in Ruby 3.5
