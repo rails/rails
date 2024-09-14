@@ -23,8 +23,9 @@ Rails.application.configure do
   config.action_controller.perform_caching = false
   config.cache_store = :null_store
 
-  # Set the default url your application is reachable by e.g. https://www.example.com
-  config.application_url = false
+  # Set canonical url for your application that'll be accessible via Rails.application.url.
+  # Used by Action Controller, Action Mailer, Active Storage for generating urls outside of active requests.
+  config.application_url = "https://example.com"
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
