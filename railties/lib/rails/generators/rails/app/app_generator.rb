@@ -466,7 +466,9 @@ module Rails
       end
 
       def nullify_javascript_option_if_api_option
-        options[:javascript] = nil
+        if options[:api]
+          options[:javascript] = nil
+        end
       end
 
       def delete_app_assets_if_api_option
