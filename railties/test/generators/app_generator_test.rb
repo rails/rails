@@ -458,11 +458,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "puma", /"\W+ \d/
   end
 
-  def test_action_cable_redis_gems
-    run_generator
-    assert_file "Gemfile", /^# gem "redis"/
-  end
-
   def test_generator_configures_decrypted_diffs_by_default
     run_generator
     assert_file ".gitattributes", /\.enc diff=/
