@@ -469,10 +469,28 @@ to pass the `multiline: true` option in case you use any of these two anchors in
 the provided regular expression. In most cases, you should be using `\A` and
 `\z`.
 
-### `inclusion`
+### `inclusion` and `exclusion`
 
-This helper validates that the attributes' values are included in a given set.
-In fact, this set can be any enumerable object.
+Both of these helpers validate whether an attribute’s value is included or
+excluded from a given set. The set can be any enumerable object such as an
+array, range, or a dynamically generated collection using a proc, lambda, or
+symbol.
+
+- **`inclusion`** ensures that the value is present in the set.
+- **`exclusion`** ensures that the value is *not* present in the set.
+
+In both cases, the option `:in` receives the set of values, and `:within` can be
+used as an alias. For full options on customizing error messages, see the
+[message documentation](#message).
+
+If the enumerable is a numerical, time, or datetime range, the test is performed
+using `Range#cover?`, otherwise, it uses `include?`. When using a proc or
+lambda, the instance under validation is passed as an argument, allowing for
+dynamic validation.
+
+#### Examples
+
+For `inclusion`:
 
 ```ruby
 class Coffee < ApplicationRecord
@@ -481,21 +499,17 @@ class Coffee < ApplicationRecord
 end
 ```
 
-The `inclusion` helper has an option `:in` that receives the set of values that
-will be accepted. The `:in` option has an alias called `:within` that you can
-use for the same purpose, if you'd like to. The previous example uses the
-`:message` option to show how you can include the attribute's value. For full
-options please see the [message documentation](#message).
+For `exclusion`:
 
-The default error message for this helper is _"is not included in the list"_.
+```ruby
+class Account < ApplicationRecord
+  validates :subdomain, exclusion: { in: %w(www us ca jp),
+    message: "%{value} is reserved." }
+end
+```
 
-As an alternative to a traditional enumerable (like an Array), you can supply a
-proc, lambda, or symbol that returns an enumerable. If the enumerable is a
-numerical, time, or datetime range, then the test is performed with
-Range#cover?, otherwise with include?. When using a proc or lambda, the instance
-under validation is passed as an argument.
-
-Here’s an example using a proc:
+Both helpers allow the use of dynamic validation through methods that return an
+enumerable. Here’s an example using a proc for `inclusion`:
 
 ```ruby
 class Coffee < ApplicationRecord
@@ -507,43 +521,7 @@ class Coffee < ApplicationRecord
 end
 ```
 
-In this example, the `available_sizes` method returns an array of sizes that
-should be included. The proc passed to the `:in` option dynamically evaluates
-this list based on the instance of `Coffee` being validated.
-
-
-### `exclusion`
-
-Naturally, the opposite of `inclusion` is `exclusion`.
-
-This helper validates that the attributes' values are not included in a given
-set. In fact, this set can be any enumerable object.
-
-The `exclusion` helper has an option `:in` that receives the set of values that
-will not be accepted for the validated attributes. The `:in` option has an
-alias called `:within` that you can use for the same purpose.
-This example uses the `:message` option to show how you can include the
-attribute's value.
-
-```ruby
-class Account < ApplicationRecord
-  validates :subdomain, exclusion: { in: %w(www us ca jp),
-    message: "%{value} is reserved." }
-end
-```
-
-For full options to the message argument please see the
-[message documentation](#message).
-
-The default error message is _"is reserved"_.
-
-As an alternate to a traditional enumerable (like an Array), you can supply a
-proc, lambda, or symbol which returns an enumerable. If the enumerable is a
-numerical, time, or datetime range, then the test is performed with `Range#cover?`,
-otherwise with `include?`. When using a proc or lambda the instance under
-validation is passed as an argument.
-
-Here’s an example using a proc:
+Similarly, for `exclusion`:
 
 ```ruby
 class Account < ApplicationRecord
@@ -554,10 +532,6 @@ class Account < ApplicationRecord
   end
 end
 ```
-
-In this example, the `reserved_subdomains` method returns an array of subdomains
-that should be excluded. The proc passed to the `:in` option dynamically evaluates
-this list based on the instance of `Account` being validated.
 
 ### `length`
 
