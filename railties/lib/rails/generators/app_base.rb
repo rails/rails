@@ -155,7 +155,6 @@ module Rails
           hotwire_gemfile_entry,
           css_gemfile_entry,
           jbuilder_gemfile_entry,
-          cable_gemfile_entry,
         ].flatten.compact.select(&@gem_filter)
       end
 
@@ -620,13 +619,6 @@ module Rails
         else
           GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
         end
-      end
-
-      def cable_gemfile_entry
-        return if options[:skip_action_cable]
-
-        comment = "Use Redis adapter to run Action Cable in production"
-        GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
       end
 
       def bundle_command(command, env = {})
