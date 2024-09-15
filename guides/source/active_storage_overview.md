@@ -1578,7 +1578,7 @@ end
 
 ### Configuring services
 
-You can add `config/storage/test.yml` to configure services to be used in test environment
+You can add `config/storage/test.yml` to configure services to be used in test environment.
 This is useful when the `service` option is used.
 
 ```ruby
