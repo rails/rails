@@ -1600,7 +1600,7 @@ WHERE reviews.id IS NULL
 Which means "return all customers that have not made any reviews".
 
 Using Common Table Expressions (CTE)
------------------------------
+------------------------------------
 
 [Common Table
 Expressions](https://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL#Common_table_expression)
