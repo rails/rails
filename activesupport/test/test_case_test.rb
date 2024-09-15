@@ -74,6 +74,8 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_no_difference_with_multiple_expressions_fail
+    prism_skip
+
     another_object = @object.dup
     assert_raises(Minitest::Assertion) do
       assert_no_difference ["@object.num", -> { another_object.num }], "Another Object Changed" do
@@ -172,6 +174,7 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_difference_message_with_lambda
     skip if !defined?(RubyVM::AbstractSyntaxTree)
+    prism_skip
 
     error = assert_raises Minitest::Assertion do
       assert_difference(-> { @object.num }, 1, "Object Changed") do
@@ -248,6 +251,7 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_changes_message_with_lambda
     skip if !defined?(RubyVM::AbstractSyntaxTree)
+    prism_skip
 
     error = assert_raises Minitest::Assertion do
       assert_changes -> { @object.num }, to: 0 do
@@ -376,6 +380,7 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_no_changes_message_with_lambda
     skip if !defined?(RubyVM::AbstractSyntaxTree)
+    prism_skip
 
     error = assert_raises Minitest::Assertion do
       assert_no_changes -> { @object.num } do
@@ -420,6 +425,8 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_no_changes_message_with_multi_line_lambda
+    prism_skip
+
     check = lambda {
       "title".upcase
       @object.num
@@ -505,6 +512,8 @@ class ExceptionsInsideAssertionsTest < ActiveSupport::TestCase
   end
 
   def test_warning_is_not_logged_if_assertions_are_nested_correctly
+    prism_skip
+
     error = assert_raises(Minitest::Assertion) do
       run_test_that_should_fail_but_not_log_a_warning
     end

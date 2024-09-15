@@ -43,6 +43,11 @@ class ActiveSupport::TestCase
 
   include ActiveSupport::Testing::MethodCallAssertions
   include ActiveSupport::Testing::ErrorReporterAssertions
+
+  private
+    def prism_skip(message = "")
+      skip message if RUBY_DESCRIPTION =~ /\+PRISM/
+    end
 end
 
 require_relative "../../tools/test_common"
