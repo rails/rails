@@ -15,8 +15,6 @@ After reading this guide, you will know:
 * How to implement exclusion constraints.
 * How to implement full text search with PostgreSQL.
 * How to back your Active Record models with database views.
-* How to use Explain options to gain insights that could potentially further
-  improve PostgreSQL's query performance
 
 --------------------------------------------------------------------------------
 
