@@ -3,8 +3,8 @@
 Active Record Validations
 =========================
 
-This guide teaches you how to validate the state of objects before they go into
-the database using Active Record's validations feature.
+This guide teaches you how to validate Ruby objects before saving them to the
+database using Active Record's validations feature.
 
 After reading this guide, you will know:
 
@@ -34,9 +34,7 @@ irb> Person.new(name: nil).valid?
 => false
 ```
 
-As you can see, our validation lets us know that our `Person` is not valid
-without a `name` attribute. The second `Person` will not be persisted to the
-database.
+As you can see, the `Person` is not valid without a `name` attribute.
 
 Before we dig into more details, let's talk about how validations fit into the
 big picture of your application.
@@ -47,7 +45,7 @@ Validations are used to ensure that only valid data is saved into your
 database. For example, it may be important to your application to ensure that
 every user provides a valid email address and mailing address. Model-level
 validations are the best way to ensure that only valid data is saved into your
-database. They are database agnostic, cannot be bypassed by end users, and are
+database. They can be used with any database, cannot be bypassed by end users, and are
 convenient to test and maintain. Rails provides built-in helpers for common
 needs, and allows you to create your own validation methods as well.
 
@@ -74,9 +72,9 @@ controller-level validations. Here's a summary of the pros and cons:
   idea to keep your controllers simple, as it will make working with your
   application easier in the long run.
 
-It's the opinion of the Rails framework that model-level validations are the
-most appropriate in most circumstances, however there may specific cases where
-you want to complement it with alternate validations.
+Rails recommends using model-level validations in most circumstances, however
+there may be specific cases where you want to complement them with alternate
+validations.
 
 ### Validation Triggers
 
@@ -121,7 +119,8 @@ WARNING: While validations usually prevent invalid data from being saved to the
 database, it's important to be aware that not all methods in Rails trigger
 validations. Some methods allow changes to be made directly to the database
 without performing validations. As a result, if you're not careful, it’s
-possible to bypass validations and save an object in an invalid state.
+possible to [bypass validations](#skipping-validations) and save an object in an
+invalid state.
 
 The following methods trigger validations, and will save the object to the
 database only if the object is valid:
@@ -170,7 +169,7 @@ Refer to the method documentation to learn more.
 * [`upsert`][]
 * [`upsert_all`][]
 
-Note that `save` also has the ability to skip validations if `validate:
+NOTE: `save` also has the ability to skip validations if `validate:
 false` is passed as an argument. This technique should be used with caution.
 
 * `save(validate: false)`
@@ -222,7 +221,7 @@ through the [`errors`][] instance method, which returns a collection of errors.
 By definition, an object is valid if the collection is empty after running
 validations.
 
-Note that an object instantiated with `new` will not report errors
+NOTE: An object instantiated with `new` will not report errors
 even if it's technically invalid, because validations are automatically run
 only when the object is saved, such as with the `create` or `save` methods.
 
@@ -233,25 +232,20 @@ end
 ```
 
 ```irb
-irb> p = Person.new
+irb> person = Person.new
 => #<Person id: nil, name: nil>
-irb> p.errors.size
+irb> person.errors.size
 => 0
 
-irb> p.valid?
+irb> person.valid?
 => false
-irb> p.errors.objects.first.full_message
+irb> person.errors.objects.first.full_message
 => "Name can't be blank"
 
-irb> p = Person.new
-=> #<Person id: nil, name: nil>
-irb> p.errors.objects.first.full_message
-=> "Name can't be blank"
-
-irb> p.save
+irb> person.save
 => false
 
-irb> p.save!
+irb> person.save!
 ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
 irb> Person.create!
@@ -298,7 +292,7 @@ class Person < ApplicationRecord
 end
 ```
 
-To read about validation errors in greater depth refer to the [Working with Validation
+NOTE: To read about validation errors in greater depth refer to the [Working with Validation
 Errors](#working-with-validation-errors) section.
 
 [Errors#squarebrackets]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-5B-5D
@@ -345,7 +339,7 @@ You can also pass in a custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
-  validates :terms_of_service, acceptance: { message: 'must be accepted' }
+  validates :terms_of_service, acceptance: { message: 'must be agreed to' }
 end
 ```
 
@@ -388,7 +382,7 @@ In your view template you could use something like
 
 NOTE: This check is performed only if `email_confirmation` is not `nil`. To require
 confirmation, make sure to add a presence check for the confirmation attribute
-(we'll take a look at [the `presence` check](#presence) later on in this guide):
+(we'll take a look at the [`presence`](#presence) check later on in this guide):
 
 ```ruby
 class Person < ApplicationRecord
@@ -601,14 +595,13 @@ class Person < ApplicationRecord
 end
 ```
 
-Note that the default error messages are plural (e.g. "is too short (minimum
-is %{count} characters)"). For this reason, when `:minimum` is 1 you should
-provide a custom message or use `presence: true` instead. Similarly, when
-`:in` or `:within` have a lower limit of 1, you should either provide a
-custom message or call `presence` prior to `length`.
-
-NOTE: Only one constraint option can be used at a time apart from the `:minimum`
-and `:maximum` options which can be combined together.
+NOTE: The default error messages are plural (e.g. "is too short (minimum is
+%{count} characters)"). For this reason, when `:minimum` is 1 you should provide
+a custom message or use `presence: true` instead. Similarly, when `:in` or
+`:within` have a lower limit of 1, you should either provide a custom message or
+call `presence` prior to `length`. Only one constraint option can be used at a
+time apart from the `:minimum` and `:maximum` options which can be combined
+together.
 
 ### `numericality`
 
@@ -625,7 +618,7 @@ value.
 ```
 
 Otherwise, it will try to convert the value to a number using `Float`. `Float`s
-are cast to `BigDecimal` using the column's precision value or a maximum of 15
+are converted to `BigDecimal` using the column's precision value or a maximum of 15
 digits.
 
 ```ruby
@@ -677,7 +670,7 @@ end
 
 To check that an association is present, you'll need to test that the associated
 object is present, and not the foreign key used to map the association. Testing
-the association will help you to determine that the foreign is not empty and
+the association will help you to determine that the foreign key is not empty and
 also that the referenced object exists.
 
 ```ruby
@@ -756,7 +749,7 @@ end
 
 NOTE: If you want to ensure that the association is both present and valid, you
 also need to use `validates_associated`. More on that in the
-[validates_associated section](#validates-associated)
+[validates_associated section](#validates-associated).
 
 If you validate the absence of an object associated via a
 [`has_one`](association_basics.html#the-has-one-association) or
@@ -820,7 +813,7 @@ class Person < ApplicationRecord
 end
 ```
 
-WARNING: Note that some databases are configured to perform case-insensitive
+WARNING: Some databases are configured to perform case-insensitive
 searches anyway.
 
 A `:conditions` option can be used to specify additional conditions as a
@@ -958,7 +951,7 @@ class Person < ApplicationRecord
 end
 ```
 
-Note that the validator will be initialized *only once* for the whole application
+NOTE: The validator will be initialized *only once* for the whole application
 life cycle, and not on each validation run, so be careful about using instance
 variables inside it.
 
@@ -1186,8 +1179,8 @@ You can read more about use-cases for `on:` in the [Custom Contexts section](#cu
 Conditional Validations
 -----------------------
 
-Sometimes it will make sense to validate an object only when a given predicate
-is satisfied. You can do that by using the `:if` and `:unless` options, which
+Sometimes it will make sense to validate an object only when a given condition
+is met. You can do that by using the `:if` and `:unless` options, which
 can take a symbol, a `Proc` or an `Array`. You may use the `:if` option when you
 want to specify when the validation **should** happen. Alternatively, if you
 want to specify when the validation **should not** happen, then you may use the
@@ -1550,10 +1543,10 @@ messages for the given attribute, each string with one error message. If there
 are no errors related to the attribute, it returns an empty array.
 
 This method is only useful _after_ validations have been run, because it only
-inspects the errors collection and does not trigger validations itself. It's
+inspects the `errors` collection and does not trigger validations itself. It's
 different from the `ActiveRecord::Base#invalid?` method explained above because
-it doesn't verify the validity of the object as a whole. It only checks to see
-whether there are errors found on an individual attribute of the object.
+it doesn't verify the validity of the object as a whole. `errors[]` only checks
+to see whether there are errors found on an individual attribute of the object.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1761,12 +1754,12 @@ Once you've defined a model and added validations, you'll want to display an
 error message when a validation fails during the creation of that model via a
 web form.
 
-Since every application handles this kind of thing differently, Rails does not
-include any view helpers to help you generate these messages directly. However,
-due to the rich number of methods Rails gives you to interact with validations
-in general, you can build your own. In addition, when generating a scaffold,
-Rails will put some generated ERB into the `_form.html.erb` that displays the
-full list of errors on that model.
+Since every application handles displaying validation errors differently, Rails
+does not include any view helpers for generating these messages. However, Rails
+gives you a rich number of methods to interact with validations that you can use
+to build your own. In addition, when generating a scaffold, Rails will put some
+generated ERB into the `_form.html.erb` that displays the full list of errors on
+that model.
 
 Assuming we have a model that's been saved in an instance variable named
 `@article`, it looks like this:
