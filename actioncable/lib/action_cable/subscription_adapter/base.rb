@@ -16,6 +16,10 @@ module ActionCable
         raise NotImplementedError
       end
 
+      def broadcast_list(channel, payload)
+        raise NotImplementedError
+      end
+
       def subscribe(channel, message_callback, success_callback = nil)
         raise NotImplementedError
       end

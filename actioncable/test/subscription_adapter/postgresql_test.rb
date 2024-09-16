@@ -60,6 +60,15 @@ class PostgresqlAdapterTest < ActionCable::TestCase
       assert_equal "hello world", queue.pop
     end
 
+    subscribe_as_queue("channel:2-3", adapter) do |queue|
+      subscribe_as_queue("channel:3-4", adapter) do |queue2|
+        adapter.broadcast_list("channel:2", "hello world")
+        sleep WAIT_WHEN_NOT_EXPECTING_EVENT
+        assert_empty queue2
+      end
+      assert_equal "hello world", queue.pop
+    end
+
     ActiveRecord::Base.connection_handler.clear_reloadable_connections!
 
     assert_predicate adapter, :active?

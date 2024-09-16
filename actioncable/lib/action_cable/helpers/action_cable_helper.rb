@@ -40,6 +40,27 @@ module ActionCable
           raise("No Action Cable URL configured -- please configure this at config.action_cable.url")
         )
       end
+
+      # Returns a list of channels that match the broadcast_to_list nomenclature
+      # For example, if channel is "posts:1", and channels is ["posts:1-2", "posts:2-3", "posts:1-3"],
+      # this method will return ["posts:1-2", "post:1-3"].
+      # channel attr must have parts separated by ":" and must have at least 2 parts
+      # channels must have parts separated by ":" and must have at least 2 parts, and in the last part
+      # which represents the identifiers, they must be separated by "-"
+      def find_matching_channels(channel, channels)
+        parts = channel.split(":")
+        return [] if parts.length == 1
+
+        id = parts.pop
+        base_channel = parts.join(":")
+
+        channels.filter_map do |ch|
+          if ch.start_with?(base_channel)
+            ids = ch.split(":").last
+            ch if ids != ch && ids.split("-").include?(id)
+          end
+        end
+      end
     end
   end
 end

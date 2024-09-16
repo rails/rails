@@ -73,6 +73,30 @@ module ActionCable
     #       end
     #     end
     #
+    # You can stream for a list of models, so a client can subscribe to multiple
+    # models on a single subscription rather than N subscriptions, N being the number
+    # of models the subscriber wishes to subscribe to.
+    # Here's an example of a channel
+    # that allows subscribers to get all new comments on multiple pages:
+    #
+    #     class CommentsChannel < ApplicationCable::Channel
+    #       def follow
+    #         records = Page.all
+    #         stream_for_list(records)
+    #       end
+    #
+    #       def unfollow
+    #         stop_all_streams
+    #       end
+    #     end
+    #
+    # If Page.all returns 3 Page records, with respectively
+    # IDs 3, 10 and 55, the subscribers of this channel will get whatever
+    # data is put into the three broadcasting possibilities :
+    #     CommentsChannel.broadcast_to_list(Page.find(3), { author: 'xamey', content: 'Men will literally use Rails instead of going to therapy' })
+    #     CommentsChannel.broadcast_to_list(Page.find(10), { author: 'xamey', content: 'Men will literally use Rails instead of going to therapy' })
+    #     CommentsChannel.broadcast_to_list(Page.find(55), { author: 'xamey', content: 'Men will literally use Rails instead of going to therapy' })
+    #
     # You can stop streaming from all broadcasts by calling #stop_all_streams.
     module Streams
       extend ActiveSupport::Concern
@@ -117,6 +141,18 @@ module ActionCable
         stream_from(broadcasting_for(model), callback || block, coder: coder)
       end
 
+      # Start streaming the pubsub queue for a list of `model`
+      # in this channel. Optionally,
+      # you can pass a `callback` that'll be used instead of the default of just
+      # transmitting the updates straight to the subscriber.
+      #
+      # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to
+      # the callback. Defaults to `coder: nil` which does no decoding, passes raw
+      # messages.
+      def stream_for_list(broadcasting_list, callback = nil, coder: nil, &block)
+        stream_from(broadcasting_for_list(broadcasting_list), callback || block, coder: coder)
+      end
+
       # Unsubscribes streams from the named `broadcasting`.
       def stop_stream_from(broadcasting)
         callback = streams.delete(broadcasting)
@@ -129,6 +165,11 @@ module ActionCable
       # Unsubscribes streams for the `model`.
       def stop_stream_for(model)
         stop_stream_from(broadcasting_for(model))
+      end
+
+      # Unsubscribes streams for a list of `model`.
+      def stop_stream_for_list(broadcasting_list)
+        stop_stream_from(broadcasting_for(broadcasting_list.map { |broadcasting| broadcasting_for(broadcasting) }.join("-")))
       end
 
       # Unsubscribes all streams associated with this channel from the pubsub queue.

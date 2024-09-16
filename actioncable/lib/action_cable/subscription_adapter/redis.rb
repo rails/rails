@@ -11,6 +11,7 @@ module ActionCable
   module SubscriptionAdapter
     class Redis < Base # :nodoc:
       prepend ChannelPrefix
+      include ActionCable::Helpers::ActionCableHelper
 
       # Overwrite this factory method for Redis connections if you want to use a
       # different Redis library than the redis gem. This is needed, for example, when
@@ -27,6 +28,20 @@ module ActionCable
 
       def broadcast(channel, payload)
         redis_connection_for_broadcasts.publish(channel, payload)
+      end
+
+      def broadcast_list(channel, payload)
+        channel_prefix = self.config_options[:channel_prefix]
+
+        if channel_prefix
+          channel = channel.prepend("#{self.config_options[:channel_prefix]}:")
+        end
+
+        channels = find_matching_channels(channel, redis_connection_for_broadcasts.pubsub(:channels))
+
+        channels.each do |channel|
+          redis_connection_for_broadcasts.publish(channel, payload)
+        end
       end
 
       def subscribe(channel, callback, success_callback = nil)

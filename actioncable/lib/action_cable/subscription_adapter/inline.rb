@@ -14,6 +14,10 @@ module ActionCable
         subscriber_map.broadcast(channel, payload)
       end
 
+      def broadcast_list(channel, payload)
+        subscriber_map.broadcast_list(channel, payload)
+      end
+
       def subscribe(channel, callback, success_callback = nil)
         subscriber_map.add_subscriber(channel, callback, success_callback)
       end

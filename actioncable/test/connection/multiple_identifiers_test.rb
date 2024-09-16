@@ -18,7 +18,7 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
     run_in_eventmachine do
       open_connection
 
-      assert_equal "Room#my-room:User#lifo", @connection.connection_identifier
+      assert_equal "Room#myroom:User#lifo", @connection.connection_identifier
     end
   end
 

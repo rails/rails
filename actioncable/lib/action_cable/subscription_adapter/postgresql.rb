@@ -5,11 +5,13 @@
 gem "pg", "~> 1.1"
 require "pg"
 require "openssl"
+require "json"
 
 module ActionCable
   module SubscriptionAdapter
     class PostgreSQL < Base # :nodoc:
       prepend ChannelPrefix
+      include ActionCable::Helpers::ActionCableHelper
 
       def initialize(*)
         super
@@ -19,6 +21,12 @@ module ActionCable
       def broadcast(channel, payload)
         with_broadcast_connection do |pg_conn|
           pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel_identifier(channel))}, '#{pg_conn.escape_string(payload)}'")
+        end
+      end
+
+      def broadcast_list(channel, payload)
+        with_subscriptions_connection do |pg_conn|
+          pg_conn.exec("NOTIFY global_channel, '#{pg_conn.escape_string({ channel: channel, message: payload }.to_json)}'")
         end
       end
 
@@ -75,7 +83,6 @@ module ActionCable
         class Listener < SubscriberMap
           def initialize(adapter, event_loop)
             super()
-
             @adapter = adapter
             @event_loop = event_loop
             @queue = Queue.new
@@ -96,16 +103,32 @@ module ActionCable
                     case action
                     when :listen
                       pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
+                      pg_conn.exec("LISTEN global_channel")
                       @event_loop.post(&callback) if callback
                     when :unlisten
                       pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
+                      pg_conn.exec("UNLISTEN global_channel")
                     when :shutdown
                       throw :shutdown
                     end
                   end
 
                   pg_conn.wait_for_notify(1) do |chan, pid, message|
-                    broadcast(chan, message)
+                    # As there is no way to know listeners for every sessions
+                    # of a PSQL instance, I use a global listener
+                    # which is shared by any PostreSQL adapter
+                    # to dispatch broadcast to lists
+                    if chan == "global_channel"
+                      payload = JSON.parse(message)
+
+                      channels = find_matching_channels(payload["channel"], pg_conn.exec("SELECT * FROM pg_listening_channels()").values.flat_map(&:itself))
+
+                      channels.each do |channel|
+                        broadcast(channel, payload["message"])
+                      end
+                    else
+                      broadcast(chan, message)
+                    end
                   end
                 end
               end

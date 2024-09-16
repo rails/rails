@@ -4,6 +4,9 @@ class SuccessAdapter < ActionCable::SubscriptionAdapter::Base
   def broadcast(channel, payload)
   end
 
+  def broadcast_list(channel, payload)
+  end
+
   def subscribe(channel, callback, success_callback = nil)
     subscriber_map[channel] << callback
     @@subscribe_called = { channel: channel, callback: callback, success_callback: success_callback }

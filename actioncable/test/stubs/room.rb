@@ -9,7 +9,7 @@ class Room
   end
 
   def to_global_id
-    GlobalID.new("Room##{id}-#{name}")
+    GlobalID.new("Room##{id}#{name}")
   end
 
   def to_gid_param

@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 # :markup: markdown
-
 module ActionCable
   module SubscriptionAdapter
     class SubscriberMap
+      include ActionCable::Helpers::ActionCableHelper
+
       def initialize
         @subscribers = Hash.new { |h, k| h[k] = [] }
         @sync = Mutex.new
@@ -35,13 +36,22 @@ module ActionCable
         end
       end
 
-      def broadcast(channel, message)
-        list = @sync.synchronize do
-          return if !@subscribers.key?(channel)
-          @subscribers[channel].dup
-        end
+      attr_reader :subscribers
 
-        list.each do |subscriber|
+      def broadcast(channel, message)
+        subscribers_list = fetch_subscribers(channel)
+        return if subscribers_list.nil?
+
+        subscribers_list.each do |subscriber|
+          invoke_callback(subscriber, message)
+        end
+      end
+
+      def broadcast_list(channel, message)
+        subscribers_list = fetch_matching_subscribers(channel)
+        return if subscribers_list.nil?
+
+        subscribers_list.each do |subscriber|
           invoke_callback(subscriber, message)
         end
       end
@@ -56,6 +66,20 @@ module ActionCable
       def invoke_callback(callback, message)
         callback.call message
       end
+
+      private
+        def fetch_subscribers(channel)
+          @sync.synchronize do
+            return nil unless @subscribers.key?(channel)
+            @subscribers[channel].dup
+          end
+        end
+
+        def fetch_matching_subscribers(channel)
+          matching_channels = find_matching_channels(channel, @subscribers.keys)
+          return nil if matching_channels.empty?
+          matching_channels.flat_map { |name| @subscribers[name].dup }
+        end
     end
   end
 end

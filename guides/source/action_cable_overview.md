@@ -383,10 +383,44 @@ You can then broadcast to this channel by calling [`broadcast_to`][]:
 PostsChannel.broadcast_to(@post, @comment)
 ```
 
+In case you want to stream for multiple models or identifiers on the same subscription, and broadcast to this channel without knowing the list of models or identifiers but only one of them, you can use [`stream_from_list`][] to stream for a list of models or identifiers along with [`broadcast_to_list`][]. This allow us to subscribe once and avoid the need to subscribe to N broadcastings, which can be costly and induce locking periods as subscriptions are subjects to a mutex operation.
+
+
+Using a full-stack example, if I want to subscribe to a list of rooms:
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    room_ids = [1, 2, 5, 7]
+    stream_from_list room_ids
+  end
+end
+```
+
+Broadcasting name must respect the following nomenclature:
+
+- identifiers must be separated with `-`
+- identifiers must be grouped after the last iteration of `:`
+
+`chat:work:1-5-6` is a correct broadcasting name.
+`chat:work/1-5-6` and `chat:work:1_5_6` are incorrect broadcasting names.
+
+You can then broadcast to this channel using one of the identifiers by calling [`broadcast_to_list`][]:
+
+```ruby
+ChatChannel.broadcast_to_list("1", @comment)
+```
+
+As the identifier "1" is included in the list of identifiers indicated in the broadcasting name (i.e., `chat:work:1-5-6`), the comment will be broadcasted to this subscriber.
+It won't be broadcasted to a subscribed which used the name `chat:work:2-5`.
+
 [`broadcast`]: https://api.rubyonrails.org/classes/ActionCable/Server/Broadcasting.html#method-i-broadcast
 [`broadcast_to`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Broadcasting/ClassMethods.html#method-i-broadcast_to
+[`broadcast_to_list`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Broadcasting/ClassMethods.html#method-i-broadcast_to_list
 [`stream_for`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_for
 [`stream_from`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_from
+[`stream_from_list`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_from_list
 
 ### Broadcastings
 

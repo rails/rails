@@ -55,6 +55,34 @@ module CommonSubscriptionAdapterTest
     end
   end
 
+  def test_broadcast_list
+    subscribe_as_queue("channel:1-2-3") do |queue|
+      subscribe_as_queue("channel:2-3-4") do |queue2|
+        subscribe_as_queue("channel:1-4") do |queue3|
+          subscribe_as_queue("channel-1-4") do |queue4|
+            @tx_adapter.broadcast_list("channel:1", "hello world")
+            sleep WAIT_WHEN_NOT_EXPECTING_EVENT
+            assert_empty queue4
+          end
+          assert_equal "hello world", queue3.pop
+        end
+        sleep WAIT_WHEN_NOT_EXPECTING_EVENT
+        assert_empty queue2
+      end
+      assert_equal "hello world", queue.pop
+    end
+  end
+
+  def test_broadcast_list_with_invalid_channel
+    subscribe_as_queue("channel:1-2-3") do |queue|
+      @tx_adapter.broadcast_list("channel-1", "hello world")
+
+      sleep WAIT_WHEN_NOT_EXPECTING_EVENT
+      assert_empty queue
+    end
+  end
+
+
   def test_broadcast_after_unsubscribe
     keep_queue = nil
     subscribe_as_queue("channel") do |queue|

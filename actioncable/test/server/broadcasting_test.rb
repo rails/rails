@@ -31,6 +31,25 @@ class BroadcastingTest < ActionCable::TestCase
     ActiveSupport::Notifications.unsubscribe "broadcast.action_cable"
   end
 
+  test "broadcast_list generates notification" do
+    server = TestServer.new
+
+    events = []
+    ActiveSupport::Notifications.subscribe("broadcast.action_cable") { |event| events << event }
+
+    broadcasting = "test_queue:1-2-3"
+    message = { body: "test message" }
+    server.broadcast_list(broadcasting, message)
+
+    assert_equal 1, events.length
+    assert_equal "broadcast.action_cable", events[0].name
+    assert_equal broadcasting, events[0].payload[:broadcasting]
+    assert_equal message, events[0].payload[:message]
+    assert_equal ActiveSupport::JSON, events[0].payload[:coder]
+  ensure
+    ActiveSupport::Notifications.unsubscribe "broadcast.action_cable"
+  end
+
   test "broadcaster from broadcaster_for generates notification" do
     server = TestServer.new
 

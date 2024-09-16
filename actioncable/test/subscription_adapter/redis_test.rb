@@ -16,6 +16,16 @@ class RedisAdapterTest < ActionCable::TestCase
     end
   end
 
+  def test_broadcast_list
+    subscribe_as_queue("queue:1-2") do |queue|
+      subscribe_as_queue("queue:2-3") do |queue_2|
+        @tx_adapter.broadcast_list("queue:1", "bonjour le monde")
+        assert_empty queue_2
+      end
+      assert_equal "bonjour le monde", queue.pop
+    end
+  end
+
   def test_reconnections
     subscribe_as_queue("channel") do |queue|
       subscribe_as_queue("other channel") do |queue_2|
