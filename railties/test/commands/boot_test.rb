@@ -17,7 +17,10 @@ class Rails::Command::BootTest < ActiveSupport::TestCase
       File.write(#{test_file.inspect}, Rails.env)
     RUBY
 
-    rails "boot"
+    assert_equal <<~OUTPUT, rails("boot")
+      Booting the application.
+      All is good!
+    OUTPUT
 
     assert_equal "development", File.read(test_file)
   end
@@ -29,7 +32,10 @@ class Rails::Command::BootTest < ActiveSupport::TestCase
       File.write(#{test_file.inspect}, Rails.env)
     RUBY
 
-    rails "boot", "-e", "test"
+    assert_equal <<~OUTPUT, rails("boot", "-e", "test")
+      Booting the application.
+      All is good!
+    OUTPUT
 
     assert_equal "test", File.read(test_file)
   end

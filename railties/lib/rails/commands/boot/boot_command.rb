@@ -8,7 +8,11 @@ module Rails
       include EnvironmentArgument
 
       desc "boot", "Boot the application and exit"
-      def perform(*) = boot_application!
+      def perform(*)
+        puts "Booting the application."
+        boot_application!
+        puts "All is good!"
+      end
     end
   end
 end
