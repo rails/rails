@@ -213,7 +213,7 @@ and results in this:
 # Columns `created_at` and `updated_at` are added by `t.timestamps`.
 
 # db/migrate/20240220143807_create_books.rb
-class CreateBooks < ActiveRecord::Migration
+class CreateBooks < ActiveRecord::Migration[8.0]
   def change
     create_table :books do |t|
       t.string :title
@@ -493,8 +493,10 @@ book = Book.find(42)
 The above resulting in this SQL:
 
 ```sql
-SELECT "books".* FROM "books" WHERE "books"."author" = ? LIMIT ?  [["author", "J.R.R. Tolkien"], ["LIMIT", 1]]
+-- Book.find_by(title: "Metaprogramming Ruby 2")
+SELECT "books".* FROM "books" WHERE "books"."title" = ? LIMIT ?  [["title", "Metaprogramming Ruby 2"], ["LIMIT", 1]]
 
+-- Book.find(42)
 SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIMIT", 1]]
 ```
 

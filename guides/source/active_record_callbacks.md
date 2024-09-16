@@ -283,7 +283,7 @@ end
 ```irb
 irb> user = User.create(name: "Jane Doe", password: "password", email: "jane.doe@example.com")
 
-Password encrypted for user with email: jane.doe@example.com
+Password hashed for user with email: jane.doe@example.com
 Saving user with email: jane.doe@example.com
 User saved with email: jane.doe@example.com
 Update Cache
@@ -983,7 +983,7 @@ class Author < ApplicationRecord
   has_many :books, before_add: :check_limit
 
   private
-    def check_limit
+    def check_limit(_book)
       if books.count >= 5
         errors.add(:base, "Cannot add more than 5 books for this author")
         throw(:abort)
@@ -1004,7 +1004,7 @@ callback for you to use.
 class Author < ApplicationRecord
   has_many :books, before_add: [:check_limit, :calculate_shipping_charges]
 
-  def check_limit
+  def check_limit(_book)
     if books.count >= 5
       errors.add(:base, "Cannot add more than 5 books for this author")
       throw(:abort)

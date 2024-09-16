@@ -1581,7 +1581,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render plain: params.require(:post).permit(:name)
+          render plain: params.permit(post: [:name])
         end
       end
       RUBY
@@ -1602,6 +1602,33 @@ module ApplicationTests
 
       post "/posts", post: { "title" => "zomg" }
       assert_match "We're sorry, but something went wrong", last_response.body
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters = :raise is ignored with expect" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render plain: params.expect(post: [:name])
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      app "development"
+
+      require "action_controller/base"
+      require "action_controller/api"
+
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", post: { "title" => "zomg" }
+      assert_match "The server cannot process the request due to a client error", last_response.body
     end
 
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do

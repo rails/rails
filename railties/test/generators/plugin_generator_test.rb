@@ -60,6 +60,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/routes.rb
   test/dummy/config/storage.yml
   test/dummy/log/.keep
+  test/dummy/public/400.html
   test/dummy/public/404.html
   test/dummy/public/406-unsupported-browser.html
   test/dummy/public/422.html
@@ -639,7 +640,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_dummy_application_skips_asset_pipeline_when_simple_railtie
     run_generator
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_file "test/dummy/config/initializers/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
@@ -657,7 +658,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full"]
 
     assert_gem "propshaft"
-    assert_no_gem "sprockets-rails"
     assert_file "test/dummy/config/initializers/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
@@ -667,18 +667,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_dummy_application_skips_asset_pipeline_when_flag_skip_asset_pipeline
     run_generator [destination_root, "--mountable", "--skip-asset-pipeline"]
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_file "test/dummy/config/initializers/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
     end
-  end
-
-  def test_dummy_application_respects_asset_pipeline_gem_choice
-    run_generator [destination_root, "--mountable", "--asset-pipeline=sprockets"]
-
-    assert_gem "sprockets-rails"
-    assert_file "test/dummy/app/assets/config/manifest.js"
   end
 
   def test_no_asset_pipeline_gem_when_no_dummy_application

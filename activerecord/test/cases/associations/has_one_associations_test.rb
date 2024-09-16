@@ -943,3 +943,37 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     MESSAGE
   end
 end
+
+class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
+  include WaitForAsyncTestHelper
+
+  self.use_transactional_tests = false
+
+  fixtures :companies, :accounts
+
+  unless in_memory_db?
+    def test_async_load_has_one
+      firm = companies(:first_firm)
+      first_account = Account.find(1)
+
+      firm.association(:account).async_load_target
+      wait_for_async_query
+
+      events = []
+      callback = -> (event) do
+        events << event unless event.payload[:name] == "SCHEMA"
+      end
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        firm.account
+      end
+
+      assert_no_queries do
+        assert_equal first_account, firm.account
+        assert_equal first_account.credit_limit, firm.account.credit_limit
+      end
+
+      assert_equal 1, events.size
+      assert_equal true, events.first.payload[:async]
+    end
+  end
+end

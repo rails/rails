@@ -479,7 +479,7 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_respects_updated_at_precision_when_touched_implicitly
-    skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
+    skip unless supports_insert_on_duplicate_update?
 
     Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
 
@@ -569,7 +569,7 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_respects_created_at_precision_when_touched_implicitly
-    skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
+    skip unless supports_insert_on_duplicate_update?
 
     # A single upsert can occur exactly at the seconds boundary (when usec is naturally zero), so try multiple times.
     has_subsecond_precision = (1..100).any? do |i|

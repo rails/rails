@@ -258,13 +258,10 @@ class BasicsTest < ActiveRecord::TestCase
       "The written_on attribute should be of the Time class"
     )
 
-    # For adapters which support microsecond resolution.
-    if supports_datetime_with_precision?
-      assert_equal 11, Topic.find(1).written_on.sec
-      assert_equal 223300, Topic.find(1).written_on.usec
-      assert_equal 9900, Topic.find(2).written_on.usec
-      assert_equal 129346, Topic.find(3).written_on.usec
-    end
+    assert_equal 11, Topic.find(1).written_on.sec
+    assert_equal 223300, Topic.find(1).written_on.usec
+    assert_equal 9900, Topic.find(2).written_on.usec
+    assert_equal 129346, Topic.find(3).written_on.usec
   end
 
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc

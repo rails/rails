@@ -78,6 +78,13 @@ module GeneratorsTestHelper
     File.write File.join(destination, "Gemfile"), gemfile
   end
 
+  def copy_application_system_test_case
+    content = File.read(File.expand_path("../fixtures/test/application_system_test_case.rb", __dir__))
+    destination = File.join(destination_root, "test")
+    mkdir_p(destination)
+    File.write File.join(destination, "application_system_test_case.rb"), content
+  end
+
   def copy_dockerfile
     dockerfile = File.expand_path("../fixtures/Dockerfile.test", __dir__)
     dockerfile = evaluate_template_docker(dockerfile)
@@ -150,7 +157,6 @@ module GeneratorsTestHelper
         depend_on_bootsnap: false,
         depends_on_system_test: false,
         options: ActiveSupport::OrderedOptions.new,
-        skip_sprockets: false,
         bundler_windows_platforms: "windows",
       }
     end

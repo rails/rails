@@ -19,7 +19,6 @@ module Rails
 
       JAVASCRIPT_OPTIONS = %w( importmap bun webpack esbuild rollup )
       CSS_OPTIONS = %w( tailwind bootstrap bulma postcss sass )
-      ASSET_PIPELINE_OPTIONS = %w( none sprockets propshaft )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -74,10 +73,6 @@ module Rails
 
         class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil
 
-        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "propshaft",
-                                           enum: ASSET_PIPELINE_OPTIONS,
-                                           desc: "Choose your asset pipeline"
-
         class_option :skip_javascript,     type: :boolean, aliases: ["-J", "--skip-js"], default: (true if name == "plugin"),
                                            desc: "Skip JavaScript files"
 
@@ -111,13 +106,16 @@ module Rails
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
-        class_option :skip_kamal,          type: :boolean, default: false,
+        class_option :skip_kamal,          type: :boolean, default: nil,
                                            desc: "Skip Kamal setup"
+
+        class_option :skip_solid,          type: :boolean, default: nil,
+                                           desc: "Skip Solid Cache & Queue setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :devcontainer,        type: :boolean, default: false,
+        class_option :devcontainer,        type: :boolean, default: nil,
                                            desc: "Generate devcontainer files"
 
         class_option :edge,                type: :boolean, default: nil,
@@ -203,7 +201,7 @@ module Rails
 
       OPTION_IMPLICATIONS = { # :nodoc:
         skip_active_job:     [:skip_action_mailer, :skip_active_storage],
-        skip_active_record:  [:skip_active_storage],
+        skip_active_record:  [:skip_active_storage, :skip_solid],
         skip_active_storage: [:skip_action_mailbox, :skip_action_text],
         skip_javascript:     [:skip_hotwire],
       }
@@ -293,12 +291,7 @@ module Rails
       end
 
       def asset_pipeline_gemfile_entry
-        return if skip_asset_pipeline?
-
-        if options[:asset_pipeline] == "sprockets"
-          GemfileEntry.floats "sprockets-rails",
-            "The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]"
-        elsif options[:asset_pipeline] == "propshaft"
+        unless skip_asset_pipeline?
           GemfileEntry.floats "propshaft", "The modern asset pipeline for Rails [https://github.com/rails/propshaft]"
         end
       end
@@ -392,14 +385,6 @@ module Rails
         options[:skip_asset_pipeline]
       end
 
-      def skip_sprockets?
-        skip_asset_pipeline? || options[:asset_pipeline] != "sprockets"
-      end
-
-      def skip_propshaft?
-        skip_asset_pipeline? || options[:asset_pipeline] != "propshaft"
-      end
-
       def skip_thruster?
         options[:skip_thruster]
       end
@@ -426,6 +411,10 @@ module Rails
 
       def skip_kamal?
         options[:skip_kamal]
+      end
+
+      def skip_solid?
+        options[:skip_solid]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -586,7 +575,7 @@ module Rails
       end
 
       def dockerfile_base_packages
-        # Add curl to work with the default healthcheck strategy in Kamal
+        # Add curl to work with the default health check strategy in Kamal
         packages = ["curl"]
 
         # ActiveRecord databases
@@ -744,6 +733,15 @@ module Rails
         remove_file ".env"
         template "env.erb", ".env.erb"
         template "config/deploy.yml", force: true
+      end
+
+      def run_solid
+        return if skip_solid? || !bundle_install?
+
+        commands = "solid_cache:install solid_queue:install"
+        commands += " solid_cable:install" unless skip_action_cable?
+
+        rails_command commands
       end
 
       def add_bundler_platforms

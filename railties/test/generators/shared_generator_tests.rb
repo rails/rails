@@ -279,6 +279,7 @@ module SharedGeneratorTests
     assert_gitattributes_does_not_have_schema_file
 
     assert_file "Gemfile" do |contents|
+      assert_no_match(/solid_cache/, contents)
       assert_no_match(/sqlite/, contents)
     end
   end
@@ -339,24 +340,13 @@ module SharedGeneratorTests
     end
   end
 
-  def test_generator_when_sprockets_is_not_used
-    run_generator [destination_root, "-a", "none"]
+  def test_generator_when_asset_pipeline_is_not_used
+    run_generator [destination_root, "--skip-asset-pipeline"]
 
     assert_no_file "#{application_path}/config/initializers/assets.rb"
-    assert_no_file "#{application_path}/app/assets/config/manifest.js"
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/sass-rails/, content)
-    end
-
-    assert_file "#{application_path}/config/environments/development.rb" do |content|
-      assert_no_match(/config\.assets\.debug/, content)
-    end
-
-    assert_file "#{application_path}/config/environments/production.rb" do |content|
-      assert_no_match(/config\.assets\.digest/, content)
-      assert_no_match(/config\.assets\.css_compressor/, content)
-      assert_no_match(/config\.assets\.compile/, content)
+      assert_no_match(/propshaft/, content)
     end
   end
 

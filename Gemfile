@@ -21,6 +21,9 @@ gem "cssbundling-rails"
 gem "importmap-rails", ">= 1.2.3"
 gem "tailwindcss-rails"
 gem "dartsass-rails"
+gem "solid_cache"
+gem "solid_queue"
+gem "solid_cable"
 gem "kamal", require: false
 gem "thruster", require: false
 # require: false so bcrypt is loaded only when has_secure_password is used.
@@ -37,6 +40,9 @@ gem "json", ">= 2.0.0", "!=2.7.0"
 
 # Workaround until Ruby ships with cgi version 0.3.6 or higher.
 gem "cgi", ">= 0.3.6", require: false
+
+# Workaround until all supported Ruby versions ship with uri version 0.13.1 or higher.
+gem "uri", ">= 0.13.1", require: false
 
 gem "prism"
 
@@ -98,7 +104,6 @@ group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
-  gem "sucker_punch", require: false
   gem "delayed_job", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false

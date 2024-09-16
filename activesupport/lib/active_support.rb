@@ -58,6 +58,7 @@ module ActiveSupport
   eager_autoload do
     autoload :BacktraceCleaner
     autoload :ProxyObject
+    autoload :Benchmark
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks

@@ -1235,7 +1235,7 @@ end
 
 private
   def person_params
-    params.require(:person).permit(:name, addresses_attributes: [:id, :kind, :street])
+    params.expect(person: [ :name, addresses_attributes: [[ :id, :kind, :street ]] ])
   end
 ```
 

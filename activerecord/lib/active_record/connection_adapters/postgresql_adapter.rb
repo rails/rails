@@ -575,16 +575,18 @@ module ActiveRecord
       end
 
       # Rename an existing enum type to something else.
-      def rename_enum(name, options = {})
+      def rename_enum(name, **options)
         to = options.fetch(:to) { raise ArgumentError, ":to is required" }
 
         exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{to}").tap { reload_type_map }
       end
 
       # Add enum value to an existing enum type.
-      def add_enum_value(type_name, value, options = {})
+      def add_enum_value(type_name, value, **options)
         before, after = options.values_at(:before, :after)
-        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE '#{value}'"
+        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE"
+        sql << " IF NOT EXISTS" if options[:if_not_exists]
+        sql << " '#{value}'"
 
         if before && after
           raise ArgumentError, "Cannot have both :before and :after at the same time"
@@ -598,7 +600,7 @@ module ActiveRecord
       end
 
       # Rename enum value on an existing enum type.
-      def rename_enum_value(type_name, options = {})
+      def rename_enum_value(type_name, **options)
         unless database_version >= 10_00_00 # >= 10.0
           raise ArgumentError, "Renaming enum values is only supported in PostgreSQL 10 or later"
         end

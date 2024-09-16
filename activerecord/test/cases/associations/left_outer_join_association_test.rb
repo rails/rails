@@ -9,6 +9,9 @@ require "models/essay"
 require "models/category"
 require "models/categorization"
 require "models/person"
+require "models/friendship"
+require "models/reference"
+require "models/job"
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :ratings, :categorizations, :people
@@ -119,5 +122,13 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     author.categorizations.create! special: true
 
     assert_equal [author], Author.where(id: author).left_outer_joins(:special_categorizations)
+  end
+
+  def test_left_outer_joins_includes_all_nested_associations
+    sql, = capture_sql { Friendship.left_outer_joins(:friend_favorite_reference_job, :follower_favorite_reference_job).to_a }
+
+    escape = -> name { Regexp.escape(Friendship.lease_connection.quote_table_name(name)) }
+    assert_match %r(#{escape["friendships.friend_id"]}), sql
+    assert_match %r(#{escape["friendships.follower_id"]}), sql
   end
 end

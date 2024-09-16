@@ -409,7 +409,7 @@ default, Rails filters out passwords by adding the following filters in
 
 ```ruby
 Rails.application.config.filter_parameters += [
-  :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
+  :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn, :cvv, :cvc
 ]
 ```
 
@@ -592,6 +592,14 @@ config.session_store :my_custom_store
 ```
 
 The default store is a cookie store with the application name as the session key.
+
+#### `config.silence_healthcheck_path`
+
+Specifies the path of the health check that should be silenced in the logs. Uses `Rails::Rack::SilenceRequest` to implement the silencing. All in service of keeping health checks from clogging the production logs, especially for early-stage applications.
+
+```
+config.silence_healthcheck_path = "/up"
+```
 
 #### `config.ssl_options`
 
@@ -2134,7 +2142,7 @@ Setting the value to `:none` configures Action Pack raise all exceptions.
 
 Configures whether the `ActionDispatch::ETag` middleware should prefer the `ETag` header over the `Last-Modified` header when both are present in the response.
 
-If set to `true`, when both headers are present only the `ETag` is considered as specificed by RFC 7232 section 6.
+If set to `true`, when both headers are present only the `ETag` is considered as specified by RFC 7232 section 6.
 
 If set to `false`, when both headers are present, both headers are checked and both need to match for the response to be considered fresh.
 

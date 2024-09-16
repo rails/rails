@@ -1,3 +1,21 @@
+*   Use [Solid Cable](https://github.com/rails/solid_cable) as the default Action Cable adapter in production, configured as a separate queue database in config/database.yml. It keeps messages in a table and continuously polls for updates. This makes it possible to drop the common dependency on Redis, if it isn't needed for any other purpose. Despite polling, the performance of Solid Cable is comparable to Redis in most situations. And in all circumstances, it makes it easier to deploy Rails when Redis is no longer a required dependency for Action Cable functionality.
+
+    *DHH*
+
+*   Use [Solid Queue](https://github.com/rails/solid_queue) as the default Active Job backend in production, configured as a separate queue database in config/database.yml. In a single-server deployment, it'll run as a Puma plugin. This is configured in `config/deploy.yml` and can easily be changed to use a dedicated jobs machine.
+
+    *DHH*
+
+*   Use [Solid Cache](https://github.com/rails/solid_cache) as the default Rails.cache backend in production, configured as a separate cache database in config/database.yml.
+
+    *DHH*
+
+*   Add Rails::Rack::SilenceRequest middleware and use it via `config.silence_healthcheck_path = path`
+    to silence requests to "/up". This prevents the Kamal-required health checks from clogging up
+    the production logs.
+
+    *DHH*
+
 *   Introduce `mariadb-mysql` and `mariadb-trilogy` database options for `rails new`
 
     When used with the `--devcontainer` flag, these options will use `mariadb` as the database for the

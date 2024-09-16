@@ -5,15 +5,25 @@ source "https://rubygems.org"
 <% end -%>
 <% unless options.minimal? -%>
 
-# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
-# gem "kredis"
-
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 <% end -%>
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
+<% unless options.skip_solid? -%>
+
+<% if options.skip_action_cable? -%>
+# Use the database-backed adapters for Rails.cache and Active Job
+<% else -%>
+# Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
+<% end -%>
+gem "solid_cache"
+gem "solid_queue"
+<% unless options.skip_action_cable? -%>
+gem "solid_cable"
+<% end -%>
+<% end -%>
 <% if depend_on_bootsnap? -%>
 
 # Reduces boot times through caching; required in config/boot.rb

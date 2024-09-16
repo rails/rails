@@ -576,23 +576,23 @@ module ActiveRecord
       end
 
       # This is meant to be implemented by the adapters that support custom enum types
-      def create_enum(*) # :nodoc:
+      def create_enum(...) # :nodoc:
       end
 
       # This is meant to be implemented by the adapters that support custom enum types
-      def drop_enum(*) # :nodoc:
+      def drop_enum(...) # :nodoc:
       end
 
       # This is meant to be implemented by the adapters that support custom enum types
-      def rename_enum(*) # :nodoc:
+      def rename_enum(...) # :nodoc:
       end
 
       # This is meant to be implemented by the adapters that support custom enum types
-      def add_enum_value(*) # :nodoc:
+      def add_enum_value(...) # :nodoc:
       end
 
       # This is meant to be implemented by the adapters that support custom enum types
-      def rename_enum_value(*) # :nodoc:
+      def rename_enum_value(...) # :nodoc:
       end
 
       # This is meant to be implemented by the adapters that support virtual tables

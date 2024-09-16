@@ -61,6 +61,7 @@ DEFAULT_APP_FILES = %w(
   db/seeds.rb
   lib/tasks/.keep
   log/.keep
+  public/400.html
   public/404.html
   public/406-unsupported-browser.html
   public/422.html
@@ -108,11 +109,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_invalid_javascript_option_raises_an_error
     content = capture(:stderr) { run_generator([destination_root, "-j", "unknown"]) }
     assert_match(/Expected '--javascript' to be one of/, content)
-  end
-
-  def test_invalid_asset_pipeline_option_raises_an_error
-    content = capture(:stderr) { run_generator([destination_root, "-a", "unknown"]) }
-    assert_match(/Expected '--asset-pipeline' to be one of/, content)
   end
 
   def test_invalid_css_option_raises_an_error
@@ -226,12 +222,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "public/406-unsupported-browser.html"
   end
 
-  def test_app_update_does_not_generate_assets_initializer_when_sprockets_and_propshaft_are_not_used
-    run_generator [destination_root, "-a", "none"]
+  def test_app_update_does_not_generate_assets_initializer_when_asset_pipeline_is_not_used
+    run_generator [destination_root, "--skip-asset-pipeline"]
     run_app_update
 
     assert_no_file "config/initializers/assets.rb"
-    assert_no_file "app/assets/config/manifest.js"
   end
 
   def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
@@ -241,6 +236,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/cable.yml"
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.action_cable/, content)
+    end
+    assert_file "config/database.yml" do |content|
+      assert_no_match(/cable:/, content)
     end
   end
 
@@ -324,17 +322,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       config = "config/application.rb"
       assert_file config, /generators\.system_tests/
       assert_no_changes -> { File.readlines(config).grep(/generators\.system_tests/) } do
-        run_app_update
-      end
-    end
-  end
-
-  def test_app_update_preserves_sprockets
-    run_generator [destination_root, "-a", "sprockets"]
-
-    FileUtils.cd(destination_root) do
-      config = "config/environments/production.rb"
-      assert_no_changes -> { File.readlines(config).grep(/config\.assets/) } do
         run_app_update
       end
     end
@@ -559,7 +546,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/javascript"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+:all %>/, contents)
+      assert_match(/stylesheet_link_tag\s+:app %>/, contents)
     end
   end
 
@@ -636,6 +623,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file ".github/workflows/ci.yml"
     assert_no_file ".github/dependabot.yml"
+  end
+
+  def test_configuration_of_solid
+    generator [destination_root]
+    run_generator_instance
+
+    assert_gem "solid_cache"
+    assert_gem "solid_queue"
+    assert_gem "solid_cable"
+
+    assert_file "config/database.yml" do |content|
+      assert_match(%r{cache:}, content)
+      assert_match(%r{queue:}, content)
+      assert_match(%r{cable:}, content)
+    end
   end
 
   def test_inclusion_of_kamal_files
@@ -793,6 +795,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/active_job/, content)
       end
     end
+  end
+
+  def test_skip_solid_option
+    generator([destination_root], skip_solid: true)
+    run_generator_instance
+
+    assert_not_includes @rails_commands, "solid_cache:install solid_queue:install solid_cable:install", "`solid_cache:install solid_queue:install solid_cable:install` expected to not be called."
+    assert_no_gem "solid_cache"
+    assert_no_gem "solid_queue"
+    assert_no_gem "solid_cable"
   end
 
   def test_skip_javascript_option
@@ -969,7 +981,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     expected_commands = [
-      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install"
+      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install", "solid_cache:install solid_queue:install solid_cable:install"
     ]
     assert_equal expected_commands, @rails_commands
   end
@@ -1365,7 +1377,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes content["forwardPorts"], 3306
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
     end
   end
 
@@ -1393,7 +1405,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
     end
   end
 
@@ -1421,7 +1433,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
     end
   end
 
@@ -1448,7 +1460,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
     end
   end
 

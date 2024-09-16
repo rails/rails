@@ -1,3 +1,15 @@
+*   Enable DependencyTracker to evaluate renders with trailing interpolation.
+
+    ```erb
+    <%= render "maintenance_tasks/runs/info/#{run.status}" %>
+    ```
+
+    Previously, the DependencyTracker would ignore this render, but now it will
+    mark all partials in the "maintenance_tasks/runs/info" folder as
+    dependencies.
+
+    *Hartley McGuire*
+
 *   Rename `text_area` methods into `textarea`
 
     Old names are still available as aliases.

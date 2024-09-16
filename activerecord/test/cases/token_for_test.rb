@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/matey"
 require "models/user"
+require "models/cpk"
 require "active_support/message_verifier"
 
 class TokenForTest < ActiveRecord::TestCase
@@ -142,6 +143,13 @@ class TokenForTest < ActiveRecord::TestCase
 
     assert_equal custom_pk_user, custom_pk.find_by_token_for(:lookup, custom_pk_lookup_token)
     assert_nil custom_pk.find_by_token_for(:lookup, @lookup_token)
+  end
+
+  test "finds record with a composite primary key" do
+    book = Cpk::Book.create!(id: [1, 3], shop_id: 2)
+    token = book.generate_token_for(:test)
+
+    assert_equal book, Cpk::Book.find_by_token_for(:test, token)
   end
 
   test "raises when no primary key has been declared" do

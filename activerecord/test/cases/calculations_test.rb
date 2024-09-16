@@ -623,6 +623,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 4, Account.distinct.select(Account.arel_table[:firm_id]).count
   end
 
+  def test_count_selected_arel_attributes
+    # Only MySQL supports COUNT with multiple columns, and only with DISTINCT.
+    skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+
+    assert_equal 5, Account.distinct.select(Account.arel_table[:id], Account.arel_table[:firm_id]).count
+  end
+
   def test_count_with_column_parameter
     assert_equal 5, Account.count(:firm_id)
   end
@@ -1459,8 +1466,6 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def assert_minimum_and_maximum_on_time_attributes(time_class)
-    skip unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
-
     actual = Topic.minimum(:written_on)
     assert_equal Time.utc(2003, 7, 16, 14, 28, 11, 223300), actual
     assert_instance_of time_class, actual

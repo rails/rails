@@ -448,7 +448,7 @@ module ActiveModel
     def init_internals
       super
       @errors = nil
-      @validation_context = nil
+      @context_for_validation = nil
     end
 
     def run_validations!

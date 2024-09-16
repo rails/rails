@@ -1,3 +1,21 @@
+*   Include options when instrumenting `ActiveSupport::Cache::Store#delete` and `ActiveSupport::Cache::Store#delete_multi`.
+
+    *Adam Renberg Tamm*
+
+*   Print test names when running `rails test -v` for parallel tests.
+
+    *John Hawthorn*, *Abeid Ahmed*
+
+*   Deprecate `Benchmark.ms` core extension.
+
+    The `benchmark` gem will become bundled in Ruby 3.5
+
+    *Earlopain*
+
+*   `ActiveSupport::TimeWithZone#inspect` now uses ISO 8601 style time like `Time#inspect`
+
+    *John Hawthorn*
+
 *   `ActiveSupport::ErrorReporter#report` now assigns a backtrace to unraised exceptions.
 
     Previously reporting an un-raised exception would result in an error report without
@@ -60,5 +78,9 @@
 *   Align instrumentation `payload[:key]` in ActiveSupport::Cache to follow the same pattern, with namespaced and normalized keys.
 
     *Frederik Erbs Spang Thomsen*
+
+*   Fix `travel_to` to set usec 0 when `with_usec` is `false` and the given argument String or DateTime.
+
+    *mopp*
 
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activesupport/CHANGELOG.md) for previous changes.

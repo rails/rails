@@ -683,7 +683,7 @@ module ActiveRecord
               binds,
               prepare: prepare,
             )
-            if supports_concurrent_connections? && current_transaction.closed?
+            if supports_concurrent_connections? && !current_transaction.joinable?
               future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
             else
               future_result.execute!(self)

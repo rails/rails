@@ -635,8 +635,12 @@ module ActiveRecord
 
           adapter_class = model.adapter_class
           select_values.map do |field|
-            column = arel_column(field.to_s) do |attr_name|
-              Arel.sql(attr_name)
+            column = if Arel.arel_node?(field)
+              field
+            else
+              arel_column(field.to_s) do |attr_name|
+                Arel.sql(attr_name)
+              end
             end
 
             if column.is_a?(Arel::Nodes::SqlLiteral)
