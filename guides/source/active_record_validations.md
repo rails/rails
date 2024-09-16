@@ -79,12 +79,12 @@ validations.
 ### Validation Triggers
 
 There are two kinds of Active Record objects - those that correspond to a row
-inside your database and those that do not. When you create a new object, using
-the `new` method, the object does not get saved in the database as yet.
+inside your database and those that do not. When you instantiate a new object,
+using the `new` method, the object does not get saved in the database as yet.
 Once you call `save` on that object then will it be saved into the appropriate
-database table. Active Record uses an instance method called `persisted?` (and its inverse `new_record?`) to
-determine whether an object is already in the database or not.
-Consider the following Active Record class:
+database table. Active Record uses an instance method called `persisted?` (and
+its inverse `new_record?`) to determine whether an object is already in the
+database or not. Consider the following Active Record class:
 
 ```ruby
 class Person < ApplicationRecord
@@ -100,11 +100,17 @@ irb> p = Person.new(name: "Jane Doe")
 irb> p.new_record?
 => true
 
+irb> p.persisted?
+=> false
+
 irb> p.save
 => true
 
 irb> p.new_record?
 => false
+
+irb> p.persisted?
+=> true
 ```
 
 Saving a new record will send an SQL `INSERT` operation to the
@@ -264,7 +270,9 @@ returning true if any errors were found in the object, and false otherwise.
 To verify whether or not a particular attribute of an object is valid, you can
 use [`errors[:attribute]`][Errors#squarebrackets]. It returns an array of all
 the error messages for `:attribute`. If there are no errors on the specified
-attribute, an empty array is returned.
+attribute, an empty array is returned.  This allows you to easily determine whether there are any validation issues with a specific attribute.
+
+Here’s an example illustrating how to check for errors on an attribute:
 
 ```ruby
 class Person < ApplicationRecord
@@ -273,18 +281,22 @@ end
 ```
 
 ```irb
-irb> Person.new.errors[:name].any?
+irb> new_person = Person.new
+irb> new_person.errors[:name]
+=> [] # no errors since validations are not run until saved
+irb> new_person.errors[:name].any?
 => false
-irb> Person.create.errors[:name].any?
+
+irb> saved_person = Person.create
+irb> saved_person.errors[:name]
+=> ["can't be blank"] # validation error because `name` is required
+irb> saved_person.errors[:name].any?
 => true
 ```
 
-The
-[`errors.add`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-add)
-method creates an error object using the attribute, error type, and options,
-which is useful for defining specific error scenarios in custom validators.
+Additionally, you can use the [`errors.add`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-add) method to manually add error messages for specific attributes. This is particularly useful when defining custom validation scenarios.
 
-```
+```ruby
 class Person < ApplicationRecord
   validate do |person|
     errors.add :name, :too_short, message: "is not long enough"
@@ -302,23 +314,34 @@ Validation Helpers
 
 Active Record offers many pre-defined validation helpers that you can use
 directly inside your class definitions. These helpers provide common validation
-rules. Every time a validation fails, an error is added to the object's `errors`
-collection, and this is associated with the attribute being validated.
+rules. Each time a validation fails, an error message is added to the object's
+`errors` collection, and this and this error is associated with the specific
+attribute being validated.
 
-Each helper accepts an arbitrary number of attribute names, so with a single
-line of code you can add the same kind of validation to several attributes.
+When a validation fails, the error message is stored in the `errors` collection
+under the attribute name that triggered the validation. This means you can
+easily access the errors related to any specific attribute. For instance, if you
+validate the `:name` attribute and the validation fails, you will find the error
+message under `errors[:name]`.
 
-All of them accept the `:on` and `:message` options, which define when the
-validation should be run and what message should be added to the `errors`
-collection if it fails, respectively. The `:on` option takes one of the values
-`:create` or `:update`. There is a default error message for each one of the
-validation helpers. These messages are used when the `:message` option isn't
-specified. Let's take a look at each one of the available helpers.
+Each validation helper accepts an arbitrary number of attribute names, allowing
+you to apply the same type of validation to multiple attributes in a single line
+of code.
+
+Additionally, all validation helpers accept the `:on` and `:message` options.
+The `:on` option specifies when the validation should be triggered, with
+possible values being `:create` or `:update`. The `:message` option allows you
+to define a custom error message that will be added to the errors collection if
+the validation fails. If you do not specify a message, Rails will use a default
+error message for that validation helper.
 
 INFO: To see a list of the available default helpers, take a look at
 [`ActiveModel::Validations::HelperMethods`][].
 
-[`ActiveModel::Validations::HelperMethods`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html
+[`ActiveModel::Validations::HelperMethods`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html
+
+Below we outline the most commonly used validation helpers.
 
 ### `acceptance`
 
@@ -1016,6 +1039,8 @@ irb> Topic.create(title: "").valid?
 => true
 irb> Topic.create(title: nil).valid?
 => true
+irb> Topic.create(title: "short").valid?
+=> false # 'short' is not of length 5, so validation fails even though it's not blank
 ```
 
 ### `:message`
@@ -1029,8 +1054,9 @@ The `:message` option accepts either a `String` or `Proc` as its value.
 
 A `String` `:message` value can optionally contain any/all of `%{value}`,
 `%{attribute}`, and `%{model}` which will be dynamically replaced when
-validation fails. This replacement is done using the i18n gem, and the
-placeholders must match exactly, no spaces are allowed.
+validation fails. This replacement is done using the
+[i18n gem](https://github.com/ruby-i18n/i18n), and the placeholders must match
+exactly, no spaces are allowed.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1250,6 +1276,13 @@ irb> Person.new.valid?
 ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
+Strict validations ensure that an exception is raised immediately when
+validation fails, which can be useful in situations where you want to enforce
+immediate feedback or halt processing when invalid data is encountered. For
+example, you might use strict validations in a scenario where invalid input
+should prevent further operations, such as when processing critical transactions
+or performing data integrity checks.
+
 There is also the ability to pass a custom exception to the `:strict` option.
 
 ```ruby
@@ -1406,17 +1439,13 @@ See the section above for more details about [`:on`](#on).
 
 ### Custom Contexts
 
-You can define your own custom validation contexts for callbacks. This can be
-useful when you want to perform validations based on specific scenarios, or you
-want to group certain callbacks together and run them in a specific context. In
-these cases you may be tempted to [skip callbacks](active_record_callbacks.html#skipping-callbacks)
-altogether, but defining a custom context can sometimes be an alternative
-structured approach. You will need to combine a `context` with the `on` option
-to define a custom context for a callback.
+You can define your own custom validation contexts for callbacks, which is
+useful when you want to perform validations based on specific scenarios or group
+certain callbacks together and run them in a specific context. A common scenario
+for custom contexts is when you have a multi-step form and want to perform
+validations per step.
 
-A common scenario for custom contexts is when you have a multi-step form where
-you want to perform validations per step. You can define custom context for each
-step of the form:
+For instance, you might define custom contexts for each step of the form:
 
 ```ruby
 class User < ApplicationRecord
@@ -1442,7 +1471,13 @@ class User < ApplicationRecord
 end
 ```
 
-Then, you can use this custom context to trigger the validations:
+In these cases, you may be tempted to
+[skip callbacks](active_record_callbacks.html#skipping-callbacks) altogether, but
+defining a custom context can be a more structured approach. You will need to
+combine a context with the on option to define a custom context for a callback.
+
+Once you've defined the custom context, you can use it to trigger the
+validations:
 
 ```irb
 irb> user = User.new(name: "John Doe", age: 17, email: "jane@example.com", phone: "1234567890", address: "123 Main St")
