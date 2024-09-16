@@ -55,7 +55,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     # Only allow a list of trusted parameters through.
     def <%= "#{singular_table_name}_params" %>
       <%- if attributes_names.empty? -%>
-      params.expect(<%= singular_table_name %>: {})
+      params.fetch(:<%= singular_table_name %>, {})
       <%- else -%>
       params.expect(<%= singular_table_name %>: [ <%= permitted_params %> ])
       <%- end -%>

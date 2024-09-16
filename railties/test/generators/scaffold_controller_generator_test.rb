@@ -67,7 +67,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/users_controller.rb" do |content|
       assert_match(/def user_params/, content)
-      assert_match(/params\.expect\(user: \{\}\)/, content)
+      assert_match(/params\.fetch\(:user, \{\}\)/, content)
     end
   end
 
@@ -354,6 +354,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_match(/def message_params/, content)
       assert_match(/params\.expect\(message: \[ :video, photos: \[\] \]\)/, content)
+    end
+  end
+
+  def test_api_only_doesnt_use_require_or_permit_if_there_are_no_attributes
+    run_generator ["User", "--api"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match(/def user_params/, content)
+      assert_match(/params\.fetch\(:user, \{\}\)/, content)
     end
   end
 
