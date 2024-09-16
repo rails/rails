@@ -24,7 +24,7 @@ jobs:
         run: bin/brakeman --no-pager
 
 <% end -%>
-<%- if options[:javascript] == "importmap" -%>
+<%- if options[:javascript] == "importmap"  && !options[:api] -%>
   scan_js:
     runs-on: ubuntu-latest
 
