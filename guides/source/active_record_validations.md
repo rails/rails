@@ -174,11 +174,11 @@ Refer to the method documentation to learn more.
 * [`update_counters`][]
 * [`upsert`][]
 * [`upsert_all`][]
-
-NOTE: `save` also has the ability to skip validations if `validate:
-false` is passed as an argument. This technique should be used with caution.
-
 * `save(validate: false)`
+
+NOTE: `save` also has the ability to skip validations if `validate: false` is
+passed as an argument. This technique should be used with caution.
+
 
 [`decrement!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
 [`decrement_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
@@ -688,7 +688,7 @@ end
 
 NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
-[below](#validates-associated)
+[below](#validates-associated).
 
 If you validate the presence of an object associated via a
 [`has_one`](association_basics.html#the-has-one-association) or
@@ -1273,7 +1273,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-ActiveModel::StrictValidationFailed: Name can't be blank
+=> ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
 Strict validations ensure that an exception is raised immediately when
@@ -1293,7 +1293,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-TokenGenerationException: Token can't be blank
+=> TokenGenerationException: Token can't be blank
 ```
 
 ### Listing Validators
