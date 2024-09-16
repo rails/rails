@@ -722,7 +722,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select "#Application-Trace-0" do
-      assert_select "code", /syntax error, unexpected/
+      assert_select "code", /syntax error, unexpected|syntax errors found/
     end
   end
 
@@ -749,7 +749,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select "#Application-Trace-0" do
-      assert_select "code", /syntax error, unexpected/
+      assert_select "code", /syntax error, unexpected|syntax errors found/
     end
     assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
