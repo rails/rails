@@ -22,6 +22,8 @@ module ActionController
     # database on the main thread, so they could open a txn, then the controller
     # thread will open a new connection and try to access data that's only visible
     # to the main thread's txn. This is the problem in #23483.
+    alias_method :original_new_controller_thread, :new_controller_thread
+
     silence_redefinition_of_method :new_controller_thread
     def new_controller_thread # :nodoc:
       yield
