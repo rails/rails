@@ -41,11 +41,11 @@ big picture of your application.
 
 ### Why Use Validations?
 
-Validations are used to ensure that only valid data is saved into your
-database. For example, it may be important to your application to ensure that
-every user provides a valid email address and mailing address. Model-level
-validations are the best way to ensure that only valid data is saved into your
-database. They can be used with any database, cannot be bypassed by end users, and are
+Validations are used to ensure that only valid data is saved into your database.
+For example, it may be important to your application to ensure that every user
+provides a valid email address and mailing address. Model-level validations are
+the best way to ensure that only valid data is saved into your database. They
+can be used with any database, cannot be bypassed by end users, and are
 convenient to test and maintain. Rails provides built-in helpers for common
 needs, and allows you to create your own validation methods as well.
 
@@ -58,19 +58,19 @@ controller-level validations. Here's a summary of the pros and cons:
 
 * Database constraints and/or stored procedures make the validation mechanisms
   database-dependent and can make testing and maintenance more difficult.
-  However, if your database is used by other applications, it may be a good
-  idea to use some constraints at the database level. Additionally,
-  database-level validations can safely handle some things (such as uniqueness
-  in heavily-used tables) that can be difficult to implement otherwise.
+  However, if your database is used by other applications, it may be a good idea
+  to use some constraints at the database level. Additionally, database-level
+  validations can safely handle some things (such as uniqueness in heavily-used
+  tables) that can be difficult to implement otherwise.
 * Client-side validations can be useful, but are generally unreliable if used
   alone. If they are implemented using JavaScript, they may be bypassed if
   JavaScript is turned off in the user's browser. However, if combined with
   other techniques, client-side validation can be a convenient way to provide
   users with immediate feedback as they use your site.
-* Controller-level validations can be tempting to use, but often become
-  unwieldy and difficult to test and maintain. Whenever possible, it's a good
-  idea to keep your controllers simple, as it will make working with your
-  application easier in the long run.
+* Controller-level validations can be tempting to use, but often become unwieldy
+  and difficult to test and maintain. Whenever possible, it's a good idea to
+  keep your controllers simple, as it will make working with your application
+  easier in the long run.
 
 Rails recommends using model-level validations in most circumstances, however
 there may be specific cases where you want to complement them with alternate
@@ -113,13 +113,13 @@ irb> p.persisted?
 => true
 ```
 
-Saving a new record will send an SQL `INSERT` operation to the
-database, whereas updating an existing record will send an SQL `UPDATE`
-operation. Validations are typically run before these commands are sent to the
-database. If any validations fail, the object will be marked as invalid and
-Active Record will not perform the `INSERT` or `UPDATE` operation. This helps
-to avoid storing an invalid object in the database. You can choose to have
-specific validations run when an object is created, saved, or updated.
+Saving a new record will send an SQL `INSERT` operation to the database, whereas
+updating an existing record will send an SQL `UPDATE` operation. Validations are
+typically run before these commands are sent to the database. If any validations
+fail, the object will be marked as invalid and Active Record will not perform
+the `INSERT` or `UPDATE` operation. This helps to avoid storing an invalid
+object in the database. You can choose to have specific validations run when an
+object is created, saved, or updated.
 
 WARNING: While validations usually prevent invalid data from being saved to the
 database, it's important to be aware that not all methods in Rails trigger
@@ -138,22 +138,28 @@ database only if the object is valid:
 * [`update`][]
 * [`update!`][]
 
-The bang versions (methods that end with an exclamation mark, like `save!`) raise an exception if the record is invalid.
-The non-bang versions - `save` and `update` returns `false`, and `create`
-returns the object.
+The bang versions (methods that end with an exclamation mark, like `save!`)
+raise an exception if the record is invalid. The non-bang versions - `save` and
+`update` returns `false`, and `create` returns the object.
 
-[`create`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create
-[`create!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create-21
-[`save`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save
-[`save!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save-21
-[`update`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update
-[`update!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update-21
+[`create`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create
+[`create!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create-21
+[`save`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save
+[`save!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save-21
+[`update`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update
+[`update!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update-21
 
 ### Skipping Validations
 
-The following methods skip validations, and will save the object to the
-database regardless of its validity. They should be used with caution.
-Refer to the method documentation to learn more.
+The following methods skip validations, and will save the object to the database
+regardless of its validity. They should be used with caution. Refer to the
+method documentation to learn more.
 
 * [`decrement!`][]
 * [`decrement_counter`][]
@@ -180,34 +186,53 @@ NOTE: `save` also has the ability to skip validations if `validate: false` is
 passed as an argument. This technique should be used with caution.
 
 
-[`decrement!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
-[`decrement_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
-[`increment!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-increment-21
-[`increment_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
-[`insert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
-[`insert!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
-[`insert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
-[`insert_all!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
-[`toggle!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-toggle-21
-[`touch`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch
-[`touch_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
-[`update_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_all
-[`update_attribute`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_attribute
-[`update_attribute!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_attribute-21
-[`update_column`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column
-[`update_columns`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_columns
-[`update_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
-[`upsert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
-[`upsert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
+[`decrement!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
+[`decrement_counter`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
+[`increment!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-increment-21
+[`increment_counter`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
+[`insert`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
+[`insert!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
+[`insert_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
+[`insert_all!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
+[`toggle!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-toggle-21
+[`touch`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch
+[`touch_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
+[`update_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_all
+[`update_attribute`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_attribute
+[`update_attribute!`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_attribute-21
+[`update_column`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column
+[`update_columns`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_columns
+[`update_counters`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
+[`upsert`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
+[`upsert_all`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
 
 ### Checking Validity
 
-Before saving an Active Record object, Rails runs your validations, and
-if these validations produce any validation errors, then Rails will not save the object.
+Before saving an Active Record object, Rails runs your validations, and if these
+validations produce any validation errors, then Rails will not save the object.
 
-You can also run the validations on your own. [`valid?`][] triggers your validations
-and returns true if no errors are found in the object, and false otherwise.
-As you saw above:
+You can also run the validations on your own. [`valid?`][] triggers your
+validations and returns true if no errors are found in the object, and false
+otherwise. As you saw above:
 
 ```ruby
 class Person < ApplicationRecord
@@ -227,9 +252,9 @@ through the [`errors`][] instance method, which returns a collection of errors.
 By definition, an object is valid if the collection is empty after running
 validations.
 
-NOTE: An object instantiated with `new` will not report errors
-even if it's technically invalid, because validations are automatically run
-only when the object is saved, such as with the `create` or `save` methods.
+NOTE: An object instantiated with `new` will not report errors even if it's
+technically invalid, because validations are automatically run only when the
+object is saved, such as with the `create` or `save` methods.
 
 ```ruby
 class Person < ApplicationRecord
@@ -261,16 +286,20 @@ ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 [`invalid?`][] is the inverse of `valid?`. It triggers your validations,
 returning true if any errors were found in the object, and false otherwise.
 
-[`errors`]: https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-errors
-[`invalid?`]: https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-invalid-3F
-[`valid?`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations.html#method-i-valid-3F
+[`errors`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-errors
+[`invalid?`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-invalid-3F
+[`valid?`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Validations.html#method-i-valid-3F
 
 ### Inspecting and Handling Errors
 
 To verify whether or not a particular attribute of an object is valid, you can
 use [`errors[:attribute]`][Errors#squarebrackets]. It returns an array of all
 the error messages for `:attribute`. If there are no errors on the specified
-attribute, an empty array is returned.  This allows you to easily determine whether there are any validation issues with a specific attribute.
+attribute, an empty array is returned. This allows you to easily determine
+whether there are any validation issues with a specific attribute.
 
 Here’s an example illustrating how to check for errors on an attribute:
 
@@ -294,7 +323,10 @@ irb> saved_person.errors[:name].any?
 => true
 ```
 
-Additionally, you can use the [`errors.add`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-add) method to manually add error messages for specific attributes. This is particularly useful when defining custom validation scenarios.
+Additionally, you can use the
+[`errors.add`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-add)
+method to manually add error messages for specific attributes. This is
+particularly useful when defining custom validation scenarios.
 
 ```ruby
 class Person < ApplicationRecord
@@ -304,10 +336,11 @@ class Person < ApplicationRecord
 end
 ```
 
-NOTE: To read about validation errors in greater depth refer to the [Working with Validation
-Errors](#working-with-validation-errors) section.
+NOTE: To read about validation errors in greater depth refer to the [Working
+with Validation Errors](#working-with-validation-errors) section.
 
-[Errors#squarebrackets]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-5B-5D
+[Errors#squarebrackets]:
+    https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-5B-5D
 
 Validation Helpers
 ------------------
@@ -356,9 +389,9 @@ class Person < ApplicationRecord
 end
 ```
 
-This check is performed only if `terms_of_service` is not `nil`.
-The default error message for this helper is _"must be accepted"_.
-You can also pass in a custom message via the `message` option.
+This check is performed only if `terms_of_service` is not `nil`. The default
+error message for this helper is _"must be accepted"_. You can also pass in a
+custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
@@ -403,9 +436,10 @@ In your view template you could use something like
 <%= text_field :person, :email_confirmation %>
 ```
 
-NOTE: This check is performed only if `email_confirmation` is not `nil`. To require
-confirmation, make sure to add a presence check for the confirmation attribute
-(we'll take a look at the [`presence`](#presence) check later on in this guide):
+NOTE: This check is performed only if `email_confirmation` is not `nil`. To
+require confirmation, make sure to add a presence check for the confirmation
+attribute (we'll take a look at the [`presence`](#presence) check later on in
+this guide):
 
 ```ruby
 class Person < ApplicationRecord
@@ -424,8 +458,8 @@ class Person < ApplicationRecord
 end
 ```
 
-The default error message for this helper is _"doesn't match confirmation"_.
-You can also pass in a custom message via the `message` option.
+The default error message for this helper is _"doesn't match confirmation"_. You
+can also pass in a custom message via the `message` option.
 
 Generally when using this validator, you will want to combine it with the `:if`
 option to only validate the "_confirmation" field when the initial field has
@@ -449,8 +483,8 @@ class Promotion < ApplicationRecord
 end
 ```
 
-The default error message for this helper is _"failed comparison"_.
-You can also pass in a custom message via the `message` option.
+The default error message for this helper is _"failed comparison"_. You can also
+pass in a custom message via the `message` option.
 
 These options are all supported:
 
@@ -602,9 +636,8 @@ together.
 
 ### `numericality`
 
-This helper validates that your attributes have only numeric values. By
-default, it will match an optional sign followed by an integer or floating
-point number.
+This helper validates that your attributes have only numeric values. By default,
+it will match an optional sign followed by an integer or floating point number.
 
 To specify that only integer numbers are allowed, set `:only_integer` to true.
 Then it will use the following regular expression to validate the attribute's
@@ -615,8 +648,8 @@ value.
 ```
 
 Otherwise, it will try to convert the value to a number using `Float`. `Float`s
-are converted to `BigDecimal` using the column's precision value or a maximum of 15
-digits.
+are converted to `BigDecimal` using the column's precision value or a maximum of
+15 digits.
 
 ```ruby
 class Player < ApplicationRecord
@@ -632,8 +665,8 @@ which specifies the value must be an instance of `Numeric` and attempts to parse
 the value if it is a `String`.
 
 NOTE: By default, `numericality` doesn't allow `nil` values. You can use
-`allow_nil: true` option to permit it. For `Integer` and `Float`
-columns empty strings are converted to `nil`.
+`allow_nil: true` option to permit it. For `Integer` and `Float` columns empty
+strings are converted to `nil`.
 
 The default error message when no options are specified is _"is not a number"_.
 
@@ -686,8 +719,8 @@ class Order < ApplicationRecord
 end
 ```
 
-NOTE: If you want to ensure that the association is both present and valid,
-you also need to use `validates_associated`. More on that
+NOTE: If you want to ensure that the association is both present and valid, you
+also need to use `validates_associated`. More on that
 [below](#validates-associated).
 
 If you validate the presence of an object associated via a
@@ -710,7 +743,8 @@ which would result in a `NULL` value in most cases.
 
 The default error message is _"can't be blank"_.
 
-[`Object#blank?`]: https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
+[`Object#blank?`]:
+    https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
 
 ### `absence`
 
@@ -725,8 +759,8 @@ end
 ```
 
 If you want to be sure that an association is absent, you'll need to test
-whether the associated object itself is absent, and not the foreign key used
-to map the association.
+whether the associated object itself is absent, and not the foreign key used to
+map the association.
 
 ```ruby
 class LineItem < ApplicationRecord
@@ -753,12 +787,14 @@ If you validate the absence of an object associated via a
 [`has_many`](association_basics.html#the-has-many-association) relationship, it
 will check that the object is neither `present?` nor `marked_for_destruction?`.
 
-Since `false.present?` is false, if you want to validate the absence of a boolean
-field you should use `validates :field_name, exclusion: { in: [true, false] }`.
+Since `false.present?` is false, if you want to validate the absence of a
+boolean field you should use `validates :field_name, exclusion: { in: [true,
+false] }`.
 
 The default error message is _"must be blank"_.
 
-[`Object#present?`]: https://api.rubyonrails.org/classes/Object.html#method-i-present-3F
+[`Object#present?`]:
+    https://api.rubyonrails.org/classes/Object.html#method-i-present-3F
 
 ### `uniqueness`
 
@@ -774,8 +810,8 @@ end
 The validation happens by performing an SQL query into the model's table,
 searching for an existing record with the same value in that attribute.
 
-There is a `:scope` option that you can use to specify one or more attributes that
-are used to limit the uniqueness check:
+There is a `:scope` option that you can use to specify one or more attributes
+that are used to limit the uniqueness check:
 
 ```ruby
 class Holiday < ApplicationRecord
@@ -785,9 +821,10 @@ end
 ```
 
 WARNING. This validation does not create a uniqueness constraint in the
-database, so a scenario can occur whereby two different database connections create two
-records with the same value for a column that you intended to be unique. To avoid
-this, you must create a unique index on that column in your database.
+database, so a scenario can occur whereby two different database connections
+create two records with the same value for a column that you intended to be
+unique. To avoid this, you must create a unique index on that column in your
+database.
 
 In order to add a uniqueness database constraint on your database, use the
 [`add_index`][] statement in a migration and include the `unique: true` option.
@@ -810,28 +847,32 @@ class Person < ApplicationRecord
 end
 ```
 
-WARNING: Some databases are configured to perform case-insensitive
-searches anyway.
+WARNING: Some databases are configured to perform case-insensitive searches
+anyway.
 
-A `:conditions` option can be used to specify additional conditions as a
-`WHERE` SQL fragment to limit the uniqueness constraint lookup (e.g.
-`conditions: -> { where(status: 'active') }`).
+A `:conditions` option can be used to specify additional conditions as a `WHERE`
+SQL fragment to limit the uniqueness constraint lookup (e.g. `conditions: -> {
+where(status: 'active') }`).
 
 The default error message is _"has already been taken"_.
 
 See [`validates_uniqueness_of`][] for more information.
 
-[`validates_uniqueness_of`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_uniqueness_of
-[`add_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
-[the MySQL manual]: https://dev.mysql.com/doc/refman/en/multiple-column-indexes.html
+[`validates_uniqueness_of`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_uniqueness_of
+[`add_index`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
+[the MySQL manual]:
+    https://dev.mysql.com/doc/refman/en/multiple-column-indexes.html
 [the MariaDB manual]: https://mariadb.com/kb/en/compound-composite-indexes/
-[the PostgreSQL manual]: https://www.postgresql.org/docs/current/static/ddl-constraints.html
+[the PostgreSQL manual]:
+    https://www.postgresql.org/docs/current/static/ddl-constraints.html
 
 ### `validates_associated`
 
 You should use this helper when your model has associations that always need to
-be validated. Every time you try to save your object, `valid?` will be called
-on each one of the associated objects.
+be validated. Every time you try to save your object, `valid?` will be called on
+each one of the associated objects.
 
 ```ruby
 class Library < ApplicationRecord
@@ -853,7 +894,8 @@ NOTE: [`validates_associated`][] can only be used with ActiveRecord objects,
 everything up until now can also be used on any object which includes
 [`ActiveModel::Validations`][].
 
-[`validates_associated`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_associated
+[`validates_associated`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_associated
 
 ### `validates_each`
 
@@ -878,7 +920,8 @@ You can do anything you like to check for valid data within the block. If your
 validation fails, you should add an error to the model, therefore making it
 invalid.
 
-[`validates_each`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_each
+[`validates_each`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_each
 
 ### `validates_with`
 
@@ -919,7 +962,8 @@ def validate(record)
 end
 ```
 
-We will cover [validation errors](#working-with-validation-errors) in greater detail later.
+We will cover [validation errors](#working-with-validation-errors) in greater
+detail later.
 
 The [`validates_with`][] helper takes a class, or a list of classes to use for
 validation.
@@ -979,7 +1023,8 @@ end
 
 We will cover [custom validations](#performing-custom-validations) more later.
 
-[`validates_with`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with
+[`validates_with`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with
 
 Validation Options
 -------------------------
@@ -998,7 +1043,8 @@ There are several common options supported by the validators. These options are:
 NOTE: Not all of these options are supported by every validator, please refer to
 the API documentation for [`ActiveModel::Validations`][].
 
-[`ActiveModel::Validations`]: https://api.rubyonrails.org/classes/ActiveModel/Validations.html
+[`ActiveModel::Validations`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Validations.html
 
 ### `:allow_nil`
 
@@ -1046,9 +1092,9 @@ irb> Topic.create(title: "short").valid?
 ### `:message`
 
 As you've already seen, the `:message` option lets you specify the message that
-will be added to the `errors` collection when validation fails. When this
-option is not used, Active Record will use the respective default error message
-for each validation helper.
+will be added to the `errors` collection when validation fails. When this option
+is not used, Active Record will use the respective default error message for
+each validation helper.
 
 The `:message` option accepts either a `String` or `Proc` as its value.
 
@@ -1070,8 +1116,8 @@ class Person < ApplicationRecord
 end
 ```
 
-A `Proc` `:message` value is given two arguments: the object being validated, and
-a hash with `:model`, `:attribute`, and `:value` key-value pairs.
+A `Proc` `:message` value is given two arguments: the object being validated,
+and a hash with `:model`, `:attribute`, and `:value` key-value pairs.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1086,16 +1132,16 @@ class Person < ApplicationRecord
 end
 ```
 
-To translate error messages, see the [I18n guide](i18n.html#error-message-scopes).
+To translate error messages, see the [I18n
+guide](i18n.html#error-message-scopes).
 
 ### `:on`
 
-The `:on` option lets you specify when the validation should happen. The
-default behavior for all the built-in validation helpers is to be run on save
-(both when you're creating a new record and when you're updating it). If you
-want to change it, you can use `on: :create` to run the validation only when a
-new record is created or `on: :update` to run the validation only when a record
-is updated.
+The `:on` option lets you specify when the validation should happen. The default
+behavior for all the built-in validation helpers is to be run on save (both when
+you're creating a new record and when you're updating it). If you want to change
+it, you can use `on: :create` to run the validation only when a new record is
+created or `on: :update` to run the validation only when a record is updated.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1111,8 +1157,8 @@ end
 ```
 
 You can also use `on:` to define custom contexts. Custom contexts need to be
-triggered explicitly by passing the name of the context to `valid?`,
-`invalid?`, or `save`.
+triggered explicitly by passing the name of the context to `valid?`, `invalid?`,
+or `save`.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1131,8 +1177,8 @@ irb> person.errors.messages
 => {:email=>["has already been taken"], :age=>["is not a number"]}
 ```
 
-`person.valid?(:account_setup)` executes both the validations without saving
-the model. `person.save(context: :account_setup)` validates `person` in the
+`person.valid?(:account_setup)` executes both the validations without saving the
+model. `person.save(context: :account_setup)` validates `person` in the
 `account_setup` context before saving.
 
 Passing an array of symbols is also acceptable.
@@ -1155,8 +1201,8 @@ irb> book.errors.messages
 => {:title=>["can't be blank"]}
 ```
 
-When triggered by an explicit context, validations are run for that context,
-as well as any validations _without_ a context.
+When triggered by an explicit context, validations are run for that context, as
+well as any validations _without_ a context.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1174,23 +1220,24 @@ irb> person.errors.messages
 => {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
 ```
 
-You can read more about use-cases for `on:` in the [Custom Contexts section](#custom-contexts).
+You can read more about use-cases for `on:` in the [Custom Contexts
+section](#custom-contexts).
 
 Conditional Validations
 -----------------------
 
 Sometimes it will make sense to validate an object only when a given condition
-is met. You can do that by using the `:if` and `:unless` options, which
-can take a symbol, a `Proc` or an `Array`. You may use the `:if` option when you
-want to specify when the validation **should** happen. Alternatively, if you
-want to specify when the validation **should not** happen, then you may use the
+is met. You can do that by using the `:if` and `:unless` options, which can take
+a symbol, a `Proc` or an `Array`. You may use the `:if` option when you want to
+specify when the validation **should** happen. Alternatively, if you want to
+specify when the validation **should not** happen, then you may use the
 `:unless` option.
 
 ### Using a Symbol with `:if` and `:unless`
 
-You can associate the `:if` and `:unless` options with a symbol corresponding
-to the name of a method that will get called right before validation happens.
-This is the most commonly used option.
+You can associate the `:if` and `:unless` options with a symbol corresponding to
+the name of a method that will get called right before validation happens. This
+is the most commonly used option.
 
 ```ruby
 class Order < ApplicationRecord
@@ -1204,9 +1251,9 @@ end
 
 ### Using a Proc with `:if` and `:unless`
 
-It is possible to associate `:if` and `:unless` with a `Proc` object
-which will be called. Using a `Proc` object gives you the ability to write an
-inline condition instead of a separate method. This option is best suited for
+It is possible to associate `:if` and `:unless` with a `Proc` object which will
+be called. Using a `Proc` object gives you the ability to write an inline
+condition instead of a separate method. This option is best suited for
 one-liners.
 
 ```ruby
@@ -1225,8 +1272,8 @@ validates :password, confirmation: true, unless: -> { password.blank? }
 
 ### Grouping Conditional Validations
 
-Sometimes it is useful to have multiple validations use one condition. It can
-be easily achieved using [`with_options`][].
+Sometimes it is useful to have multiple validations use one condition. It can be
+easily achieved using [`with_options`][].
 
 ```ruby
 class User < ApplicationRecord
@@ -1240,7 +1287,8 @@ end
 All validations inside of the `with_options` block will have automatically
 passed the condition `if: :is_admin?`
 
-[`with_options`]: https://api.rubyonrails.org/classes/Object.html#method-i-with_options
+[`with_options`]:
+    https://api.rubyonrails.org/classes/Object.html#method-i-with_options
 
 ### Combining Validation Conditions
 
@@ -1331,7 +1379,8 @@ irb> Person.validators_on(:name)
       @attributes=[:name], @options={on: :create}>]
 ```
 
-[`validate`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate
+[`validate`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate
 
 Performing Custom Validations
 -----------------------------
@@ -1360,8 +1409,8 @@ class Person < ApplicationRecord
 end
 ```
 
-The easiest way to add custom validators for validating individual attributes
-is with the convenient [`ActiveModel::EachValidator`][]. In this case, the custom
+The easiest way to add custom validators for validating individual attributes is
+with the convenient [`ActiveModel::EachValidator`][]. In this case, the custom
 validator class must implement a `validate_each` method which takes three
 arguments: record, attribute, and value. These correspond to the instance, the
 attribute to be validated, and the value of the attribute in the passed
@@ -1381,11 +1430,13 @@ class Person < ApplicationRecord
 end
 ```
 
-As shown in the example, you can also combine standard validations with your
-own custom validators.
+As shown in the example, you can also combine standard validations with your own
+custom validators.
 
-[`ActiveModel::EachValidator`]: https://api.rubyonrails.org/classes/ActiveModel/EachValidator.html
-[`ActiveModel::Validator`]: https://api.rubyonrails.org/classes/ActiveModel/Validator.html
+[`ActiveModel::EachValidator`]:
+    https://api.rubyonrails.org/classes/ActiveModel/EachValidator.html
+[`ActiveModel::Validator`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Validator.html
 
 ### Custom Methods
 
@@ -1397,9 +1448,9 @@ validation methods' names.
 You can pass more than one symbol for each class method and the respective
 validations will be run in the same order as they were registered.
 
-The `valid?` method will verify that the `errors` collection is empty,
-so your custom validation methods should add errors to it when you
-wish validation to fail:
+The `valid?` method will verify that the `errors` collection is empty, so your
+custom validation methods should add errors to it when you wish validation to
+fail:
 
 ```ruby
 class Invoice < ApplicationRecord
@@ -1507,7 +1558,8 @@ methods from the [`errors`][] collection.
 The following is a list of the most commonly used methods. Please refer to the
 [`ActiveModel::Errors`][] documentation for a list of all the available methods.
 
-[`ActiveModel::Errors`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html
+[`ActiveModel::Errors`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Errors.html
 
 ### `errors`
 
@@ -1542,7 +1594,8 @@ irb> person.errors.first.details
 => {:error=>:too_short, :count=>3}
 ```
 
-[`ActiveModel::Error`]: https://api.rubyonrails.org/classes/ActiveModel/Error.html
+[`ActiveModel::Error`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Error.html
 
 ### `errors[]`
 
@@ -1652,8 +1705,10 @@ The [`full_message`][] method generates a more user-friendly message, with the
 capitalized attribute name prepended. (To customize the format that
 `full_message` uses, see the [I18n guide](i18n.html#active-model-methods).)
 
-[`full_message`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-full_message
-[`where`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-where
+[`full_message`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-full_message
+[`where`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-where
 
 ### `errors.add`
 
@@ -1677,7 +1732,8 @@ irb> person.errors.where(:name).first.full_message
 => "Name is not cool enough"
 ```
 
-[`add`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-add
+[`add`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-add
 
 ### `errors[:base]`
 
@@ -1787,9 +1843,9 @@ Assuming we have a model that's been saved in an instance variable named
 <% end %>
 ```
 
-Furthermore, if you use the Rails form helpers to generate your forms, when
-a validation error occurs on a field, it will generate an extra `<div>` around
-the entry.
+Furthermore, if you use the Rails form helpers to generate your forms, when a
+validation error occurs on a field, it will generate an extra `<div>` around the
+entry.
 
 ```html
 <div class="field_with_errors">
@@ -1797,8 +1853,8 @@ the entry.
 </div>
 ```
 
-You can then style this div however you'd like. The default scaffold that
-Rails generates, for example, adds this CSS rule:
+You can then style this div however you'd like. The default scaffold that Rails
+generates, for example, adds this CSS rule:
 
 ```css
 .field_with_errors {
