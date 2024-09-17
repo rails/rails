@@ -93,10 +93,10 @@ namespace :changelog do
 end
 
 namespace :all do
-  task build: Releaser::FRAMEWORKS.map { |f| "#{f}:build"           } + ["rails:build"]
+  task build: Releaser::FRAMEWORKS.map { |f| "#{f}:build" } + ["rails:build"]
   task update_versions: Releaser::FRAMEWORKS.map { |f| "#{f}:update_versions" } + ["rails:update_versions"]
-  task install: Releaser::FRAMEWORKS.map { |f| "#{f}:install"         } + ["rails:install"]
-  task push: Releaser::FRAMEWORKS.map { |f| "#{f}:push"            } + ["rails:push"]
+  task install: Releaser::FRAMEWORKS.map { |f| "#{f}:install" } + ["rails:install"]
+  task push: Releaser::FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
 
   task :ensure_clean_state do
     unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|gem_version.rb\\|tasks/release.rb'`.strip.empty?
