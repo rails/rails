@@ -46,22 +46,6 @@ namespace :changelog do
 end
 
 namespace :all do
-  task build: Releaser::FRAMEWORKS.map { |f| "#{f}:build" } + ["rails:build"]
-  task update_versions: Releaser::FRAMEWORKS.map { |f| "#{f}:update_versions" } + ["rails:update_versions"]
-  task install: Releaser::FRAMEWORKS.map { |f| "#{f}:install" } + ["rails:install"]
-  task push: Releaser::FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
-
-  task :ensure_clean_state do
-    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|gem_version.rb\\|tasks/release.rb'`.strip.empty?
-      abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
-    end
-
-    unless ENV["SKIP_TAG"] || `git tag | grep '^#{releaser.tag}$'`.strip.empty?
-      abort "[ABORTING] `git tag` shows that #{releaser.tag} already exists. Has this version already\n"\
-            "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
-    end
-  end
-
   task verify: :install do
     require "tmpdir"
 
@@ -131,33 +115,6 @@ namespace :all do
       # Server passes along interrupt. Prevent halting verify task.
     end
   end
-
-  task :bundle do
-    sh "bundle check"
-  end
-
-  task :commit do
-    unless `git status -s`.strip.empty?
-      File.open("pkg/commit_message.txt", "w") do |f|
-        f.puts "# Preparing for #{releaser.version} release\n"
-        f.puts
-        f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
-      end
-
-      sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
-      rm_f "pkg/commit_message.txt"
-    end
-  end
-
-  task :tag do
-    sh "git push"
-    sh "git tag -s -m '#{releaser.tag} release' #{releaser.tag}"
-    sh "git push --tags"
-  end
-
-  task prep_release: %w(ensure_clean_state changelog:header build bundle)
-
-  task release: %w(prep_release commit tag)
 end
 
 module Announcement

@@ -67,6 +67,56 @@ class Releaser < Rake::TaskLib
         end
       end
     end
+
+
+    desc "Install gems for all projects."
+    task install: FRAMEWORKS.map { |f| "#{f}:install" } + ["rails:install"]
+
+    desc "Build gem files for all projects"
+    task build: FRAMEWORKS.map { |f| "#{f}:build" } + ["rails:build"]
+
+    task :bundle do
+      sh "bundle check"
+    end
+
+    task :ensure_clean_state do
+      if tree_dirty?
+        abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
+      end
+
+      unless ENV["SKIP_TAG"] || inexistent_tag?
+        abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
+              "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
+      end
+    end
+
+    desc "Prepare the release"
+    task prep_release: %w(ensure_clean_state changelog:header build bundle)
+
+    task :commit do
+      unless `git status -s`.strip.empty?
+        File.open("pkg/commit_message.txt", "w") do |f|
+          f.puts "# Preparing for #{version} release\n"
+          f.puts
+          f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
+        end
+
+        sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
+        rm_f "pkg/commit_message.txt"
+      end
+    end
+
+    task :tag do
+      sh "git push"
+      sh "git tag -s -m '#{tag} release' #{tag}"
+      sh "git push --tags"
+    end
+
+    desc "Release all gems and create a tag"
+    task release: %w(prep_release commit tag)
+
+    desc "Push the gem to rubygems.org and the npm package to npmjs.com"
+    task push: FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
   end
 
   def pre_release?
@@ -162,6 +212,22 @@ class Releaser < Rake::TaskLib
   end
 
   private
+    FILES_TO_IGNORE = %w(
+      RAILS_VERSION
+      CHANGELOG
+      Gemfile.lock
+      package.json
+      gem_version.rb
+      tasks/release.rb
+    )
+    def tree_dirty?
+      !`git status -s | grep -v '#{FILES_TO_IGNORE.join("\\|")}'`.strip.empty?
+    end
+
+    def inexistent_tag?
+      `git tag | grep '^#{tag}$'`.strip.empty?
+    end
+
     def ykman(service)
       `ykman oath accounts code -s #{service}`.chomp
     end
