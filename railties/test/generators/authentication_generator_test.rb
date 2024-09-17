@@ -24,7 +24,9 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
   def test_authentication_generator
     run_generator
 
-    assert_file "app/models/user.rb"
+    assert_file "app/models/user.rb" do |content|
+      assert_match(/validates :email_address, presence: true, uniqueness: true/, content)
+    end
     assert_file "app/models/current.rb"
     assert_file "app/models/session.rb"
     assert_file "app/controllers/sessions_controller.rb"
@@ -55,7 +57,9 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
   def test_authentication_generator_with_api_flag
     run_generator(["--api"])
 
-    assert_file "app/models/user.rb"
+    assert_file "app/models/user.rb" do |content|
+      assert_match(/validates :email_address, presence: true, uniqueness: true/, content)
+    end
     assert_file "app/models/current.rb"
     assert_file "app/models/session.rb"
     assert_file "app/controllers/sessions_controller.rb"

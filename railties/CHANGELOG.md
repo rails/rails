@@ -1,3 +1,10 @@
+*   Add validations to email address field on authentication generator.
+
+    These validations reflect the database constraints present on the
+    `email_address` field in the generated migration.
+
+    *Matheus Richard*
+
 *   Do not include redis by default in generated Dev Containers.
 
     Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis
