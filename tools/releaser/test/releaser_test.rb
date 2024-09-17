@@ -134,6 +134,19 @@ class TestReleaser < Minitest::Test
     end
   end
 
+  def test_update_versions_with_rails_does_nothing
+    Dir.mktmpdir("rails") do |root|
+      FileUtils.cp_r(File.expand_path("fixtures", __dir__), root)
+
+      root = "#{root}/fixtures"
+
+      releaser = Releaser.new(root, "5.0.0")
+      releaser.update_versions("rails")
+
+      assert_equal false, File.exist?("#{root}/rails/lib/rails/gem_version.rb")
+    end
+  end
+
   def test_release_notes_returns_the_release_notes_for_a_framework
     Dir.mktmpdir("rails") do |root|
       FileUtils.cp_r(File.expand_path("fixtures", __dir__), root)

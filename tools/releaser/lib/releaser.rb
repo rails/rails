@@ -190,12 +190,10 @@ class Releaser < Rake::TaskLib
   end
 
   def update_versions(framework)
+    return if framework == "rails"
+
     Dir.chdir(root) do
-      if framework == "rails"
-        glob = "version.rb"
-      else
-        glob = "#{framework}/lib/*/gem_version.rb"
-      end
+      glob = "#{framework}/lib/*/gem_version.rb"
 
       file = Dir[glob].first
       ruby = File.read(file)
@@ -258,7 +256,7 @@ class Releaser < Rake::TaskLib
       CHANGELOG
       Gemfile.lock
       package.json
-      version.rb
+      gem_version.rb
       tasks/release.rb
       releaser.rb
     )
