@@ -172,8 +172,28 @@ module ActiveRecord
       end
 
       def test_invert_drop_table_without_a_block_nor_option
-        assert_raises(ActiveRecord::IrreversibleMigration) do
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty).") do
           @recorder.inverse_of :drop_table, [:people_reminders]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables_and_options
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists, id: false]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables_and_block
+        block = Proc.new { }
+
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists], &block
         end
       end
 

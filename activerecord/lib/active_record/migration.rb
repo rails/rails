@@ -355,7 +355,7 @@ module ActiveRecord
   #
   # === Deletion
   #
-  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>drop_table(*names)</tt>: Drops the given tables.
   # * <tt>drop_join_table(table_1, table_2, options)</tt>: Drops the join table
   #   specified by the given arguments.
   # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
@@ -602,7 +602,7 @@ module ActiveRecord
         end
       end
 
-      def drop_table(table_name, **options)
+      def drop_table(*table_names, **options)
         if block_given?
           super { |t| yield compatible_table_definition(t) }
         else
