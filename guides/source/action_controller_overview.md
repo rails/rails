@@ -480,6 +480,8 @@ end
 
 NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the `key` to a `nil` value does not delete te cookie.
 
+### Encrypted and Signed Cookies
+
 Since cookies are stored on the client browser, they can be susceptible to
 tampering and are not considered secure for storing sensitive data. Rails does
 provide a signed cookie jar and an encrypted cookie jar for storing sensitive
@@ -523,67 +525,7 @@ If you use the cookie session store, the above applies to the `session` and
 Session
 -------
 
-Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of several of different storage mechanisms:
-
-* [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
-* [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
-* [`ActionDispatch::Session::MemCacheStore`][] - Stores the data in a memcached cluster (this is a legacy implementation; consider using `CacheStore` instead).
-* [`ActionDispatch::Session::ActiveRecordStore`][activerecord-session_store] -
-  Stores the data in a database using Active Record (requires the
-  [`activerecord-session_store`][activerecord-session_store] gem)
-* A custom store or a store provided by a third party gem
-
-All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
-
-For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight, and it requires zero setup in a new application to use the session. The cookie data is cryptographically signed to make it tamper-proof. And it is also encrypted so anyone with access to it can't read its contents. (Rails will not accept it if it has been edited).
-
-The CookieStore can store around 4 kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (such as model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
-
-If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using `ActionDispatch::Session::CacheStore`. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
-
-Read more about session storage in the [Security Guide](security.html).
-
-If you need a different session storage mechanism, you can change it in an initializer:
-
-```ruby
-Rails.application.config.session_store :cache_store
-```
-
-See [`config.session_store`](configuring.html#config-session-store) in the
-configuration guide for more information.
-
-Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
-
-```ruby
-# Be sure to restart your server when you modify this file.
-Rails.application.config.session_store :cookie_store, key: '_your_app_session'
-```
-
-You can also pass a `:domain` key and specify the domain name for the cookie:
-
-```ruby
-# Be sure to restart your server when you modify this file.
-Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
-```
-
-Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `bin/rails credentials:edit`.
-
-```yaml
-# aws:
-#   access_key_id: 123
-#   secret_access_key: 345
-
-# Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
-secret_key_base: 492f...
-```
-
-NOTE: Changing the secret_key_base when using the `CookieStore` will invalidate all existing sessions.
-
-[`ActionDispatch::Session::CookieStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
-[`ActionDispatch::Session::CacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
-[`ActionDispatch::Session::MemCacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/MemCacheStore.html
-[activerecord-session_store]: https://github.com/rails/activerecord-session_store
-
+Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view. 
 
 ### Accessing the Session
 
@@ -735,6 +677,69 @@ end
 ```
 
 [`flash.now`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-now
+
+### Session Storage Options
+
+Sessions can use one of several of different storage mechanisms:
+
+* [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
+* [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
+* [`ActionDispatch::Session::MemCacheStore`][] - Stores the data in a memcached cluster (this is a legacy implementation; consider using `CacheStore` instead).
+* [`ActionDispatch::Session::ActiveRecordStore`][activerecord-session_store] -
+  Stores the data in a database using Active Record (requires the
+  [`activerecord-session_store`][activerecord-session_store] gem)
+* A custom store or a store provided by a third party gem
+
+All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
+
+For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight, and it requires zero setup in a new application to use the session. The cookie data is cryptographically signed to make it tamper-proof. And it is also encrypted so anyone with access to it can't read its contents. (Rails will not accept it if it has been edited).
+
+The CookieStore can store around 4 kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (such as model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+
+If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using `ActionDispatch::Session::CacheStore`. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
+
+Read more about session storage in the [Security Guide](security.html).
+
+If you need a different session storage mechanism, you can change it in an initializer:
+
+```ruby
+Rails.application.config.session_store :cache_store
+```
+
+See [`config.session_store`](configuring.html#config-session-store) in the
+configuration guide for more information.
+
+Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
+
+```ruby
+# Be sure to restart your server when you modify this file.
+Rails.application.config.session_store :cookie_store, key: '_your_app_session'
+```
+
+You can also pass a `:domain` key and specify the domain name for the cookie:
+
+```ruby
+# Be sure to restart your server when you modify this file.
+Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+```
+
+Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `bin/rails credentials:edit`.
+
+```yaml
+# aws:
+#   access_key_id: 123
+#   secret_access_key: 345
+
+# Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
+secret_key_base: 492f...
+```
+
+NOTE: Changing the secret_key_base when using the `CookieStore` will invalidate all existing sessions.
+
+[`ActionDispatch::Session::CookieStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
+[`ActionDispatch::Session::CacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
+[`ActionDispatch::Session::MemCacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/MemCacheStore.html
+[activerecord-session_store]: https://github.com/rails/activerecord-session_store
 
 Rendering
 ---------
