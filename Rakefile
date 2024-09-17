@@ -19,6 +19,9 @@ task prep_release: "all:prep_release"
 desc "Release all gems to rubygems and create a tag"
 task release: "all:release"
 
+desc "Push all gems to rubygems and npm"
+task push: "all:push"
+
 desc "Run all tests by default"
 task default: %w(test test:isolated)
 

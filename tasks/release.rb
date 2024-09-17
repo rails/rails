@@ -130,7 +130,7 @@ pre = pre ? pre.inspect : "nil"
             npm_tag = " --tag latest"
           end
 
-          sh "npm publish#{npm_tag}#{npm_otp}"
+          sh "npm publish#{npm_tag}#{npm_otp} --provenance --access public"
         end
       end
     end
