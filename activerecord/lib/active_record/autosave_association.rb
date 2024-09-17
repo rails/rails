@@ -424,14 +424,14 @@ module ActiveRecord
               records -= records_to_destroy
             end
 
-            records.each do |record|
-              next if record.destroyed?
-
+            records.reject(&:destroyed?).each do |record|
+              if autosave != false && (new_record_before_save || record.new_record?)
+                association.set_inverse_instance(record)
+              end
+            end.each do |record|
               saved = true
 
               if autosave != false && (new_record_before_save || record.new_record?)
-                association.set_inverse_instance(record)
-
                 if autosave
                   saved = association.insert_record(record, false)
                 elsif !reflection.nested?
