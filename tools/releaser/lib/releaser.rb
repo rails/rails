@@ -2,8 +2,9 @@
 
 require "open3"
 require "json"
+require "rake/tasklib"
 
-class Releaser
+class Releaser < Rake::TaskLib
   # Order dependent. E.g. Action Mailbox depends on Active Record so it should be after.
   FRAMEWORKS = %w(
     activesupport
@@ -27,6 +28,45 @@ class Releaser
     @version = version
     @tag = "v#{version}"
     @major, @minor, @tiny, @pre = @version.split(".", 4)
+    define
+  end
+
+  def define
+    directory "pkg"
+
+    (FRAMEWORKS + ["rails"]).each do |framework|
+      namespace framework do
+        task :clean do
+          rm_f gem_path(framework)
+        end
+
+        task :update_versions do
+          update_versions(framework)
+        end
+
+        task gem_path(framework) => %w(update_versions pkg) do
+          cmd = ""
+          cmd += "cd #{framework} && " unless framework == "rails"
+          cmd += "gem build #{gemspec(framework)} && mv #{gem_file(framework)} #{root}/pkg/"
+          sh cmd
+        end
+
+        task build: [:clean, gem_path(framework)]
+        task install: :build do
+          sh "gem install --pre #{gem_path(framework)}"
+        end
+
+        task push: :build do
+          sh "gem push #{gem_path(framework)}#{gem_otp}"
+
+          if File.exist?("#{framework}/package.json")
+            Dir.chdir("#{framework}") do
+              sh "npm publish --tag #{npm_tag}#{npm_otp}"
+            end
+          end
+        end
+      end
+    end
   end
 
   def pre_release?
@@ -112,8 +152,8 @@ class Releaser
 
     if File.exist?(package_json) && JSON.parse(File.read(package_json))["version"] != npm_version
       Dir.chdir("#{framework_folder}") do
-        if sh "which npm"
-          sh "npm version #{npm_version} --no-git-tag-version"
+        if sh("which npm > /dev/null 2>&1", verbose: false)
+          sh "npm version #{npm_version} --no-git-tag-version > /dev/null 2>&1", verbose: false
         else
           raise "You must have npm installed to release Rails."
         end
@@ -122,13 +162,6 @@ class Releaser
   end
 
   private
-    def sh(command)
-      Open3.capture3(command) do |_, _, _, wait_thread|
-        exit_status = wait_thread.value
-        exit_status.success?
-      end
-    end
-
     def ykman(service)
       `ykman oath accounts code -s #{service}`.chomp
     end

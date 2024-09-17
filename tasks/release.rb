@@ -8,42 +8,6 @@ root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
 releaser = Releaser.new(root, version)
 
-directory "pkg"
-
-(Releaser::FRAMEWORKS + ["rails"]).each do |framework|
-  namespace framework do
-    task :clean do
-      rm_f releaser.gem_path(framework)
-    end
-
-    task :update_versions do
-      releaser.update_versions(framework)
-    end
-
-    task releaser.gem_path(framework) => %w(update_versions pkg) do
-      cmd = ""
-      cmd += "cd #{framework} && " unless framework == "rails"
-      cmd += "gem build #{releaser.gemspec(framework)} && mv #{releaser.gem_file(framework)} #{root}/pkg/"
-      sh cmd
-    end
-
-    task build: [:clean, releaser.gem_path(framework)]
-    task install: :build do
-      sh "gem install --pre #{releaser.gem_path(framework)}"
-    end
-
-    task push: :build do
-      sh "gem push #{releaser.gem_path(framework)}#{releaser.gem_otp}"
-
-      if File.exist?("#{framework}/package.json")
-        Dir.chdir("#{framework}") do
-          sh "npm publish --tag #{releaser.npm_tag}#{releaser.npm_otp}"
-        end
-      end
-    end
-  end
-end
-
 namespace :changelog do
   task :header do
     (Releaser::FRAMEWORKS + ["guides"]).each do |fw|
