@@ -22,17 +22,6 @@ namespace :changelog do
     end
   end
 
-  task :release_date do
-    (Releaser::FRAMEWORKS + ["guides"]).each do |fw|
-      require "date"
-      replace = "## Rails #{releaser.version} (#{Date.today.strftime('%B %d, %Y')}) ##\n"
-      fname = File.join fw, "CHANGELOG.md"
-
-      contents = File.read(fname).sub(/^(## Rails .*)\n/, replace)
-      File.write(fname, contents)
-    end
-  end
-
   task :release_summary, [:base_release, :release] do |_, args|
     release_regexp = args[:base_release] ? Regexp.escape(args[:base_release]) : /\d+\.\d+\.\d+/
 
