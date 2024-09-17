@@ -1256,14 +1256,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_devcontainer_json_file do |content|
       assert_equal "my_app", content["name"]
-      assert_equal "redis://redis:6379/1", content["containerEnv"]["REDIS_URL"]
       assert_equal "45678", content["containerEnv"]["CAPYBARA_SERVER_PORT"]
       assert_equal "selenium", content["containerEnv"]["SELENIUM_HOST"]
       assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/activestorage"
       assert_includes content["features"].keys, "ghcr.io/devcontainers/features/github-cli:1"
       assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite3"
       assert_includes(content["forwardPorts"], 3000)
-      assert_includes(content["forwardPorts"], 6379)
     end
     assert_file(".devcontainer/Dockerfile") do |content|
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
@@ -1284,7 +1282,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
         },
         "volumes" => ["../..:/workspaces:cached"],
         "command" => "sleep infinity",
-        "depends_on" => ["selenium", "redis"]
+        "depends_on" => ["selenium"]
       }
 
       assert_equal expected_rails_app_config, compose_config["services"]["rails-app"]
@@ -1295,6 +1293,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
       }
 
       assert_equal expected_selenium_conifg, compose_config["services"]["selenium"]
+    end
+  end
+
+  def test_devcontainer_include_redis_skipping_solid
+    run_generator [destination_root, "--devcontainer", "--name=my-app", "--skip-solid"]
+
+    assert_devcontainer_json_file do |content|
+      assert_equal "redis://redis:6379/1", content["containerEnv"]["REDIS_URL"]
+      assert_includes content["forwardPorts"], 6379
+    end
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
 
       expected_redis_config = {
         "image" => "redis:7.2",
@@ -1303,12 +1314,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
       }
 
       assert_equal expected_redis_config, compose_config["services"]["redis"]
-      assert_equal ["redis-data"], compose_config["volumes"].keys
+      assert_includes compose_config["volumes"].keys, "redis-data"
     end
   end
 
-  def test_devcontainer_no_redis_skipping_action_cable_and_active_job
-    run_generator [ destination_root, "--devcontainer", "--skip-action-cable", "--skip-active-job" ]
+  def test_devcontainer_no_redis_skipping_solid_action_cable_and_active_job
+    run_generator [ destination_root, "--devcontainer", "--skip-action-cable", "--skip-active-job", "--skip-solid" ]
 
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
@@ -1468,11 +1479,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [ destination_root, "--devcontainer", "--skip-system-test" ]
 
     assert_compose_file do |compose_config|
-      assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "selenium"
+      assert_nil compose_config["services"]["rails-app"]["depends_on"]
       assert_not_includes compose_config["services"].keys, "selenium"
     end
     assert_devcontainer_json_file do |content|
-      assert_nil content["containerEnv"]["CAPYBARA_SERVER_PORT"]
+      assert_nil content["containerEnv"]
     end
   end
 

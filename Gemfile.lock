@@ -547,7 +547,7 @@ GEM
       rake
       serverengine (~> 2.0.5)
       thor
-    solid_cable (1.1.0)
+    solid_cable (2.0.2)
       rails (>= 7.2)
     solid_cache (1.0.4)
       activejob (>= 7.2)
@@ -584,8 +584,6 @@ GEM
     stimulus-rails (1.3.0)
       railties (>= 6.0.0)
     stringio (3.1.1)
-    sucker_punch (3.2.0)
-      concurrent-ruby (~> 1.0)
     syntax_tree (6.1.1)
       prettier_print (>= 1.2.0)
     tailwindcss-rails (2.1.0)
@@ -713,7 +711,6 @@ DEPENDENCIES
   sqlite3 (>= 2.0)
   stackprof
   stimulus-rails
-  sucker_punch
   syntax_tree (= 6.1.1)
   tailwindcss-rails
   terser (>= 1.1.4)
