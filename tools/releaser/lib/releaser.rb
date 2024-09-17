@@ -157,7 +157,7 @@ class Releaser < Rake::TaskLib
     end
 
     desc "Release all gems and create a tag"
-    task release: %w(check_gh_client prep_release commit tag create_release push)
+    task release: %w(check_gh_client prep_release commit tag create_release)
 
     desc "Push the gem to rubygems.org and the npm package to npmjs.com"
     task push: FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
@@ -288,7 +288,7 @@ class Releaser < Rake::TaskLib
     def npm_otp
       " --otp " + ykman("npmjs.com")
     rescue
-      ""
+      " --provenance --access public"
     end
 
     def gem_otp
