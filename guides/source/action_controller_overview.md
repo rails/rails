@@ -266,7 +266,7 @@ method may be used to extract arrays out of any delimited parameters.
 
 ### The `default_url_options` Method
 
-You can set global default parameters by defining a method called `default_url_options` in your controller. This method must return a hash with the desired defaults, whose keys must be symbols:
+You can set global default parameters for `url_for` by defining a method called `default_url_options` in your controller. This method must return a hash with the desired defaults, whose keys must be symbols:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -276,13 +276,14 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed to `url_for` calls.
+These options will be used as a starting point when generating URLs. They can be overridden by the options passed to `url_for` calls.
 
-If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only applys URLs generated for that controller.
+If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only applies to URLs generated for that controller.
 
-In a given request, the method is not actually called for every single generated URL. For performance reasons, the returned hash is cached.
+In a given request, the method is not actually called for every single generated URL. For performance reasons the returned hash is cached.
 
-### Strong Parameters
+Strong Parameters
+-----------------
 
 With Action Controller [strong
 parameters](https://api.rubyonrails.org/classes/ActionController/StrongParameters.html),
@@ -320,65 +321,64 @@ class PeopleController < ActionController::Base
 end
 ```
 
-#### Permitted Scalar Values
+### Permitting Values
 
-Calling [`permit`][] like:
+Calling [`permit`][] allows the specified key (`:id` below) for inclusion if it
+appears in `params`:
 
 ```ruby
 params.permit(:id)
 ```
 
-permits the specified key (`:id`) for inclusion if it appears in `params` and
-it has a permitted scalar value associated. Otherwise, the key is going
-to be filtered out, so arrays, hashes, or any other objects cannot be
-injected.
+For the permitted key `:id`, its value also needs to be one of these
+permitted scalar values: `String`, `Symbol`, `NilClass`, `Numeric`, `TrueClass`,
+`FalseClass`, `Date`, `Time`, `DateTime`, `StringIO`, `IO`,
+`ActionDispatch::Http::UploadedFile`, and `Rack::Test::UploadedFile`.
 
-The permitted scalar types are `String`, `Symbol`, `NilClass`,
-`Numeric`, `TrueClass`, `FalseClass`, `Date`, `Time`, `DateTime`,
-`StringIO`, `IO`, `ActionDispatch::Http::UploadedFile`, and
-`Rack::Test::UploadedFile`.
+If you have not called `permit` on the key, it will be filtered out. Arrays,
+hashes, or any other objects are not injected by default.
 
-To declare that the value in `params` must be an array of permitted
-scalar values, map the key to an empty array:
+To include a value in `params` that's an array of one of the permitted scalar
+values, you can map the key to an empty array like this:
 
 ```ruby
 params.permit(id: [])
 ```
 
-Sometimes it is not possible or convenient to declare the valid keys of
-a hash parameter or its internal structure. Just map to an empty hash:
+To include hash values, you can map to an empty hash:
 
 ```ruby
-params.permit(preferences: {})
+params.permit(options: {})
 ```
 
-but be careful because this opens the door to arbitrary input. In this
-case, `permit` ensures values in the returned structure are permitted
-scalars and filters out anything else.
+The above `permit` call ensures that values in `options` are permitted scalars
+and filters out anything else. But be careful because the above opens the door
+to arbitrary input. Sometimes it is not possible or convenient to declare each
+valid key of a hash parameter or its internal structure. 
 
-To permit an entire hash of parameters, the [`permit!`][] method can be
-used:
+There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking values.
 
 ```ruby
 params.require(:log_entry).permit!
 ```
 
-This marks the `:log_entry` parameters hash and any sub-hash of it as
+The above marks the `:log_entry` parameters hash and any sub-hash of it as
 permitted and does not check for permitted scalars, anything is accepted.
-Extreme care should be taken when using `permit!`, as it will allow all current
-and future model attributes to be mass-assigned.
+
+WARNING: Extreme care should be taken when using `permit!`, as it will allow all
+current and future model attributes to be mass-assigned.
 
 [`permit`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit
 [`permit!`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit-21
 
-#### Nested Parameters
+### Nested Parameters
 
 You can also use `permit` on nested parameters, like:
 
 ```ruby
-params.permit(:name, { emails: [] },
-              friends: [ :name,
-                         { family: [ :name ], hobbies: [] }])
+params.permit(:name, 
+              { emails: [] },
+              friends: [ :name, { family: [ :name ], hobbies: [] }])
 ```
 
 This declaration permits the `name`, `emails`, and `friends`
@@ -389,7 +389,7 @@ permitted scalar values allowed), a `hobbies` attribute as an array of
 permitted scalar values, and a `family` attribute which is restricted
 to having a `name` (any permitted scalar values allowed here, too).
 
-#### More Examples
+### More Examples
 
 You may want to also use the permitted attributes in your `new`
 action. This raises the problem that you can't use [`require`][] on the
@@ -436,13 +436,6 @@ end
 ```
 
 [`require`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-require
-
-#### Outside the Scope of Strong Parameters
-
-The strong parameter API was designed with the most common use cases
-in mind. It is not meant as a silver bullet to handle all of your
-parameter filtering problems. However, you can easily mix the API with your
-own code to adapt to your situation.
 
 Session
 -------
