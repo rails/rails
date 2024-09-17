@@ -440,6 +440,86 @@ end
 
 [`require`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-require
 
+Cookies
+-------
+
+The concept of a cookie is not specific to Rails. A cookie (also known as an
+HTTP cookie or a web cookie) is a small piece of data from the server that is
+saved in the user's browser. The browser may store cookies, create new cookies,
+modify existing ones, and send them back to the server with later requests.
+Cookies persist data across web requests and therefore enable web applications
+to remember user preferences.
+
+Rails provides an easy way to access cookies via the [`cookies`][] method, which
+works like a hash:
+
+```ruby
+class CommentsController < ApplicationController
+  def new
+    # Auto-fill the commenter's name if it has been stored in a cookie
+    @comment = Comment.new(author: cookies[:commenter_name])
+  end
+
+  def create
+    @comment = Comment.new(comment_params)
+    if @comment.save
+      if params[:remember_name]
+        # Save the commenter's name in a cookie.
+        cookies[:commenter_name] = @comment.author
+      else
+        # Delete cookie for the commenter's name, if any.
+        cookies.delete(:commenter_name)
+      end
+      redirect_to @comment.article
+    else
+      render action: "new"
+    end
+  end
+end
+```
+
+NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the `key` to a `nil` value does not delete te cookie.
+
+Since cookies are stored on the client browser, they can be susceptible to
+tampering and are not considered secure for storing sensitive data. Rails does
+provide a signed cookie jar and an encrypted cookie jar for storing sensitive
+data. The signed cookie jar appends a cryptographic signature on the cookie
+values to protect their integrity. The encrypted cookie jar encrypts the values
+in addition to signing them, so that they cannot be read by the user. Refer to
+the [API
+documentation](https://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+for more details.
+
+These special cookie jars use a serializer to serialize the cookie values into
+strings and deserialize them into Ruby objects when read back. You can specify
+which serializer to use via [`config.action_dispatch.cookies_serializer`][]. The default serializer for new applications is `:json`. 
+
+NOTE: Be aware that JSON has limited support serializing Ruby objects suck as
+`Date`, `Time`, and `Symbol`. These will be serialized and deserialized into
+`String`s:
+
+```ruby
+class CookiesController < ApplicationController
+  def set_cookie
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
+    redirect_to action: 'read_cookie'
+  end
+
+  def read_cookie
+    cookies.encrypted[:expiration_date] # => "2014-03-20"
+  end
+end
+```
+
+If you need to store these or more complex objects, you may need to manually
+convert their values when reading them in subsequent requests.
+
+If you use the cookie session store, the above applies to the `session` and
+`flash` hash as well.
+
+[`config.action_dispatch.cookies_serializer`]: configuring.html#config-action-dispatch-cookies-serializer
+[`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
+
 Session
 -------
 
@@ -655,77 +735,6 @@ end
 ```
 
 [`flash.now`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-now
-
-Cookies
--------
-
-Your application can store small amounts of data on the client - called cookies - that will be persisted across requests and even sessions. Rails provides easy access to cookies via the [`cookies`][] method, which - much like the `session` - works like a hash:
-
-```ruby
-class CommentsController < ApplicationController
-  def new
-    # Auto-fill the commenter's name if it has been stored in a cookie
-    @comment = Comment.new(author: cookies[:commenter_name])
-  end
-
-  def create
-    @comment = Comment.new(comment_params)
-    if @comment.save
-      flash[:notice] = "Thanks for your comment!"
-      if params[:remember_name]
-        # Remember the commenter's name.
-        cookies[:commenter_name] = @comment.author
-      else
-        # Delete cookie for the commenter's name cookie, if any.
-        cookies.delete(:commenter_name)
-      end
-      redirect_to @comment.article
-    else
-      render action: "new"
-    end
-  end
-end
-```
-
-Note that while for session values you can set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
-
-Rails also provides a signed cookie jar and an encrypted cookie jar for storing
-sensitive data. The signed cookie jar appends a cryptographic signature on the
-cookie values to protect their integrity. The encrypted cookie jar encrypts the
-values in addition to signing them, so that they cannot be read by the end-user.
-Refer to the [API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
-for more details.
-
-These special cookie jars use a serializer to serialize the assigned values into
-strings and deserialize them into Ruby objects on read. You can specify which
-serializer to use via [`config.action_dispatch.cookies_serializer`][].
-
-The default serializer for new applications is `:json`. Be aware that JSON has
-limited support for roundtripping Ruby objects. For example, `Date`, `Time`, and
-`Symbol` objects (including `Hash` keys) will be serialized and deserialized
-into `String`s:
-
-```ruby
-class CookiesController < ApplicationController
-  def set_cookie
-    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
-    redirect_to action: 'read_cookie'
-  end
-
-  def read_cookie
-    cookies.encrypted[:expiration_date] # => "2014-03-20"
-  end
-end
-```
-
-If you need to store these or more complex objects, you may need to manually
-convert their values when reading them in subsequent requests.
-
-If you use the cookie session store, the above applies to the `session` and
-`flash` hash as well.
-
-[`config.action_dispatch.cookies_serializer`]: configuring.html#config-action-dispatch-cookies-serializer
-[`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
 
 Rendering
 ---------
