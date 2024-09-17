@@ -26,7 +26,7 @@ task default: %w(test test:isolated)
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
-    FRAMEWORKS.each do |project|
+    Releaser::FRAMEWORKS.each do |project|
       system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
@@ -35,10 +35,10 @@ end
 
 desc "Smoke-test all projects"
 task :smoke, [:frameworks, :isolated] do |task, args|
-  frameworks = args[:frameworks] ? args[:frameworks].split(" ") : FRAMEWORKS
+  frameworks = args[:frameworks] ? args[:frameworks].split(" ") : Releaser::FRAMEWORKS
   # The arguments are positional, and users may want to specify only the isolated flag.. so we allow 'all' as a default for the first argument:
   if frameworks.include?("all")
-    frameworks = FRAMEWORKS
+    frameworks = Releaser::FRAMEWORKS
   end
 
   isolated = args[:isolated].nil? ? true : args[:isolated] == "true"
