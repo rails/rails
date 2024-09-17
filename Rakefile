@@ -7,15 +7,6 @@ require "tasks/release"
 require "railties/lib/rails/api/task"
 require "tools/preview_docs"
 
-desc "Build gem files for all projects"
-task build: "all:build"
-
-desc "Prepare the release"
-task prep_release: "all:prep_release"
-
-desc "Release all gems to rubygems and create a tag"
-task release: "all:release"
-
 desc "Run all tests by default"
 task default: %w(test test:isolated)
 
@@ -23,7 +14,7 @@ task default: %w(test test:isolated)
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
-    FRAMEWORKS.each do |project|
+    Releaser::FRAMEWORKS.each do |project|
       system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
@@ -32,10 +23,10 @@ end
 
 desc "Smoke-test all projects"
 task :smoke, [:frameworks, :isolated] do |task, args|
-  frameworks = args[:frameworks] ? args[:frameworks].split(" ") : FRAMEWORKS
+  frameworks = args[:frameworks] ? args[:frameworks].split(" ") : Releaser::FRAMEWORKS
   # The arguments are positional, and users may want to specify only the isolated flag.. so we allow 'all' as a default for the first argument:
   if frameworks.include?("all")
-    frameworks = FRAMEWORKS
+    frameworks = Releaser::FRAMEWORKS
   end
 
   isolated = args[:isolated].nil? ? true : args[:isolated] == "true"
@@ -50,9 +41,6 @@ task :smoke, [:frameworks, :isolated] do |task, args|
     system %(cd activerecord && #{$0} #{test_task} --trace)
   end
 end
-
-desc "Install gems for all projects."
-task install: "all:install"
 
 desc "Generate documentation for the Rails framework"
 if ENV["EDGE"]
@@ -74,9 +62,6 @@ task :preview_docs do
 
   system("tar -czf preview.tar.gz -C preview .")
 end
-
-desc "Bump all versions to match RAILS_VERSION"
-task update_versions: "all:update_versions"
 
 # We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
