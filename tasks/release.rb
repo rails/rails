@@ -1,56 +1,19 @@
 # frozen_string_literal: true
 
-# Order dependent. E.g. Action Mailbox depends on Active Record so it should be after.
-FRAMEWORKS = %w(
-  activesupport
-  activemodel
-  activerecord
-  actionview
-  actionpack
-  activejob
-  actionmailer
-  actioncable
-  activestorage
-  actionmailbox
-  actiontext
-  railties
-)
+require_relative "../tools/releaser/lib/releaser"
+
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
 root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
-tag     = "v#{version}"
+releaser = Releaser.new(root, version)
 
 directory "pkg"
 
-major, minor, tiny, pre = version.split(".", 4)
-
-# This "npm-ifies" the current version number
-# With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
-# versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
-# "5.0.0"     --> "5.0.0"
-# "5.0.1"     --> "5.0.100"
-# "5.0.0.1"   --> "5.0.1"
-# "5.0.1.1"   --> "5.0.101"
-# "5.0.0.rc1" --> "5.0.0-rc1"
-if pre
-  pre_release = pre.match?(/rc|beta|alpha/) ? pre : nil
-  npm_pre = pre.to_i
-else
-  npm_pre = 0
-  pre_release = nil
-end
-
-npm_version = "#{major}.#{minor}.#{(tiny.to_i * 100) + npm_pre}#{pre_release ? "-#{pre_release}" : ""}"
-pre = pre ? pre.inspect : "nil"
-
-(FRAMEWORKS + ["rails"]).each do |framework|
+(Releaser::FRAMEWORKS + ["rails"]).each do |framework|
   namespace framework do
-    gem     = "pkg/#{framework}-#{version}.gem"
-    gemspec = "#{framework}.gemspec"
-
     task :clean do
-      rm_f gem
+      rm_f releaser.gem_path(framework)
     end
 
     task :update_versions do
@@ -65,25 +28,25 @@ pre = pre ? pre.inspect : "nil"
       file = Dir[glob].first
       ruby = File.read(file)
 
-      ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
+      ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{releaser.major}")
       raise "Could not insert MAJOR in #{file}" unless $1
 
-      ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{minor}")
+      ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{releaser.minor}")
       raise "Could not insert MINOR in #{file}" unless $1
 
-      ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{tiny}")
+      ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{releaser.tiny}")
       raise "Could not insert TINY in #{file}" unless $1
 
-      ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre}")
+      ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{releaser.pre.inspect}")
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, "w") { |f| f.write ruby }
 
       require "json"
-      if File.exist?("#{framework}/package.json") && JSON.parse(File.read("#{framework}/package.json"))["version"] != npm_version
+      if File.exist?("#{framework}/package.json") && JSON.parse(File.read("#{framework}/package.json"))["version"] != releaser.npm_version
         Dir.chdir("#{framework}") do
           if sh "which npm"
-            sh "npm version #{npm_version} --no-git-tag-version"
+            sh "npm version #{releaser.npm_version} --no-git-tag-version"
           else
             raise "You must have npm installed to release Rails."
           end
@@ -91,17 +54,17 @@ pre = pre ? pre.inspect : "nil"
       end
     end
 
-    task gem => %w(update_versions pkg) do
+    task releaser.gem_path(framework) => %w(update_versions pkg) do
       cmd = ""
       cmd += "cd #{framework} && " unless framework == "rails"
       cmd += "bundle exec rake package && " unless framework == "rails"
-      cmd += "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
+      cmd += "gem build #{releaser.gemspec(framework)} && mv #{releaser.gem_file(framework)} #{root}/pkg/"
       sh cmd
     end
 
-    task build: [:clean, gem]
+    task build: [:clean, releaser.gem_path(framework)]
     task install: :build do
-      sh "gem install --pre #{gem}"
+      sh "gem install --pre #{releaser.gem_path(framework)}"
     end
 
     task push: :build do
@@ -112,7 +75,7 @@ pre = pre ? pre.inspect : "nil"
         # User doesn't have ykman
       end
 
-      sh "gem push #{gem}#{otp}"
+      sh "gem push #{releaser.gem_path(framework)}#{otp}"
 
       if File.exist?("#{framework}/package.json")
         Dir.chdir("#{framework}") do
@@ -124,7 +87,7 @@ pre = pre ? pre.inspect : "nil"
           end
 
           npm_tag = ""
-          if /[a-z]/.match?(version)
+          if /[a-z]/.match?(releaser.version)
             npm_tag = " --tag pre"
           else
             npm_tag = " --tag latest"
@@ -139,12 +102,12 @@ end
 
 namespace :changelog do
   task :header do
-    (FRAMEWORKS + ["guides"]).each do |fw|
+    (Releaser::FRAMEWORKS + ["guides"]).each do |fw|
       require "date"
       fname = File.join fw, "CHANGELOG.md"
       current_contents = File.read(fname)
 
-      header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
+      header = "## Rails #{releaser.version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
       header += "*   No changes.\n\n\n" if current_contents.start_with?("##")
       contents = header + current_contents
       File.write(fname, contents)
@@ -152,9 +115,9 @@ namespace :changelog do
   end
 
   task :release_date do
-    (FRAMEWORKS + ["guides"]).each do |fw|
+    (Releaser::FRAMEWORKS + ["guides"]).each do |fw|
       require "date"
-      replace = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n"
+      replace = "## Rails #{releaser.version} (#{Date.today.strftime('%B %d, %Y')}) ##\n"
       fname = File.join fw, "CHANGELOG.md"
 
       contents = File.read(fname).sub(/^(## Rails .*)\n/, replace)
@@ -167,7 +130,7 @@ namespace :changelog do
 
     puts args[:release]
 
-    FRAMEWORKS.each do |fw|
+    Releaser::FRAMEWORKS.each do |fw|
       puts "## #{FRAMEWORK_NAMES[fw]}"
       fname    = File.join fw, "CHANGELOG.md"
       contents = File.readlines fname
@@ -186,18 +149,18 @@ namespace :changelog do
 end
 
 namespace :all do
-  task build: FRAMEWORKS.map { |f| "#{f}:build"           } + ["rails:build"]
-  task update_versions: FRAMEWORKS.map { |f| "#{f}:update_versions" } + ["rails:update_versions"]
-  task install: FRAMEWORKS.map { |f| "#{f}:install"         } + ["rails:install"]
-  task push: FRAMEWORKS.map { |f| "#{f}:push"            } + ["rails:push"]
+  task build: Releaser::FRAMEWORKS.map { |f| "#{f}:build"           } + ["rails:build"]
+  task update_versions: Releaser::FRAMEWORKS.map { |f| "#{f}:update_versions" } + ["rails:update_versions"]
+  task install: Releaser::FRAMEWORKS.map { |f| "#{f}:install"         } + ["rails:install"]
+  task push: Releaser::FRAMEWORKS.map { |f| "#{f}:push"            } + ["rails:push"]
 
   task :ensure_clean_state do
     unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|version.rb\\|tasks/release.rb'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
-    unless ENV["SKIP_TAG"] || `git tag | grep '^#{tag}$'`.strip.empty?
-      abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
+    unless ENV["SKIP_TAG"] || `git tag | grep '^#{releaser.tag}$'`.strip.empty?
+      abort "[ABORTING] `git tag` shows that #{releaser.tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
     end
   end
@@ -206,8 +169,8 @@ namespace :all do
     require "tmpdir"
 
     cd Dir.tmpdir
-    app_name = "verify-#{version}-#{Time.now.to_i}"
-    sh "rails _#{version}_ new #{app_name} --skip-bundle" # Generate with the right version.
+    app_name = "verify-#{releaser.version}-#{Time.now.to_i}"
+    sh "rails _#{releaser.version}_ new #{app_name} --skip-bundle" # Generate with the right version.
     cd app_name
 
     substitute = -> (file_name, regex, replacement) do
@@ -215,7 +178,7 @@ namespace :all do
     end
 
     # Replace the generated gemfile entry with the exact version.
-    substitute.call("Gemfile", /^gem "rails.*/, %{gem "rails", "#{version}"})
+    substitute.call("Gemfile", /^gem "rails.*/, %{gem "rails", "#{releaser.version}"})
     substitute.call("Gemfile", /^# gem "image_processing/, 'gem "image_processing')
     sh "bundle"
     sh "rails action_mailbox:install"
@@ -279,7 +242,7 @@ namespace :all do
   task :commit do
     unless `git status -s`.strip.empty?
       File.open("pkg/commit_message.txt", "w") do |f|
-        f.puts "# Preparing for #{version} release\n"
+        f.puts "# Preparing for #{releaser.version} release\n"
         f.puts
         f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
       end
@@ -290,7 +253,7 @@ namespace :all do
   end
 
   task :tag do
-    sh "git tag -s -m '#{tag} release' #{tag}"
+    sh "git tag -s -m '#{releaser.tag} release' #{releaser.tag}"
     sh "git push --tags"
   end
 
@@ -325,7 +288,7 @@ end
 
 task :announce do
   Dir.chdir("pkg/") do
-    versions = ENV["VERSIONS"] ? ENV["VERSIONS"].split(",") : [ version ]
+    versions = ENV["VERSIONS"] ? ENV["VERSIONS"].split(",") : [ releaser.version ]
     versions = versions.sort.map { |v| Announcement::Version.new(v) }
 
     raise "Only valid for patch releases" if versions.any?(&:major_or_security?)
