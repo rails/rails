@@ -10,9 +10,6 @@ require "tools/preview_docs"
 desc "Build gem files for all projects"
 task build: "all:build"
 
-desc "Build, install and verify the gem files in a generated Rails app."
-task verify: "all:verify"
-
 desc "Prepare the release"
 task prep_release: "all:prep_release"
 
