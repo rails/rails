@@ -166,9 +166,9 @@ namespace :all do
     sh "git push --tags"
   end
 
-  task prep_release: %w(ensure_clean_state build bundle commit)
+  task prep_release: %w(ensure_clean_state build bundle)
 
-  task release: %w(prep_release tag)
+  task release: %w(prep_release commit tag)
 end
 
 module Announcement
