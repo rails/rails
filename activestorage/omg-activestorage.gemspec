@@ -4,17 +4,17 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "actionmailbox"
+  s.name        = "omg-activestorage"
   s.version     = version
-  s.summary     = "Inbound email handling framework."
-  s.description = "Receive and process incoming emails in Rails applications."
+  s.summary     = "Local and cloud file storage framework."
+  s.description = "Attach cloud and local files in Rails applications."
 
   s.required_ruby_version = ">= 3.1.0"
 
-  s.license  = "MIT"
+  s.license = "MIT"
 
-  s.authors  = ["David Heinemeier Hansson", "George Claghorn"]
-  s.email    = ["david@loudthinking.com", "george@basecamp.com"]
+  s.author   = "David Heinemeier Hansson"
+  s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
   s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/**/*", "config/**/*", "db/**/*"]
@@ -22,21 +22,20 @@ Gem::Specification.new do |s|
 
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
-    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/actionmailbox/CHANGELOG.md",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activestorage/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
     "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
-    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actionmailbox",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activestorage",
     "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "activerecord",  version
-  s.add_dependency "activestorage", version
-  s.add_dependency "activejob",     version
-  s.add_dependency "actionpack",    version
+  s.add_dependency "omg-activesupport", version
+  s.add_dependency "omg-actionpack",    version
+  s.add_dependency "omg-activejob",     version
+  s.add_dependency "omg-activerecord",  version
 
-  s.add_dependency "mail", ">= 2.8.0"
+  s.add_dependency "marcel",    "~> 1.0"
 end

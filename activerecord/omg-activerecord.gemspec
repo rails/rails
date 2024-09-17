@@ -4,10 +4,10 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "activemodel"
+  s.name        = "omg-activerecord"
   s.version     = version
-  s.summary     = "A toolkit for building modeling frameworks (part of Rails)."
-  s.description = "A toolkit for building modeling frameworks like Active Record. Rich support for attributes, callbacks, validations, serialization, internationalization, and testing."
+  s.summary     = "Object-relational mapper framework (part of Rails)."
+  s.description = "Databases on Rails. Build a persistent domain model by mapping database tables to Ruby classes. Strong conventions for associations, validations, aggregations, migrations, and testing come baked-in."
 
   s.required_ruby_version = ">= 3.1.0"
 
@@ -17,20 +17,25 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "lib/**/*"]
+  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "examples/**/*", "lib/**/*"]
   s.require_path = "lib"
+
+  s.extra_rdoc_files = %w(README.rdoc)
+  s.rdoc_options.concat ["--main",  "README.rdoc"]
 
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
-    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activemodel/CHANGELOG.md",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activerecord/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
     "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
-    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activemodel",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activerecord",
     "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
+  s.add_dependency "omg-activesupport", version
+  s.add_dependency "omg-activemodel",   version
+  s.add_dependency "timeout", ">= 0.4.0"
 end

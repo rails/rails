@@ -46,8 +46,8 @@ pre = pre ? pre.inspect : "nil"
 
 (FRAMEWORKS + ["rails"]).each do |framework|
   namespace framework do
-    gem     = "pkg/#{framework}-#{version}.gem"
-    gemspec = "#{framework}.gemspec"
+    gem     = "pkg/omg-#{framework}-#{version}.gem"
+    gemspec = "omg-#{framework}.gemspec"
 
     task :clean do
       rm_f gem
@@ -95,7 +95,7 @@ pre = pre ? pre.inspect : "nil"
       cmd = ""
       cmd += "cd #{framework} && " unless framework == "rails"
       cmd += "bundle exec rake package && " unless framework == "rails"
-      cmd += "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
+      cmd += "gem build #{gemspec} && mv omg-#{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
 

@@ -4,7 +4,7 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "actiontext"
+  s.name        = "omg-actiontext"
   s.version     = version
   s.summary     = "Rich text framework."
   s.description = "Edit and display rich text in Rails applications."
@@ -32,10 +32,10 @@ Gem::Specification.new do |s|
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "activerecord",  version
-  s.add_dependency "activestorage", version
-  s.add_dependency "actionpack",    version
+  s.add_dependency "omg-activesupport", version
+  s.add_dependency "omg-activerecord",  version
+  s.add_dependency "omg-activestorage", version
+  s.add_dependency "omg-actionpack",    version
 
   s.add_dependency "nokogiri", ">= 1.8.5"
   s.add_dependency "globalid", ">= 0.6.0"

@@ -4,10 +4,10 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "activestorage"
+  s.name        = "omg-activemodel"
   s.version     = version
-  s.summary     = "Local and cloud file storage framework."
-  s.description = "Attach cloud and local files in Rails applications."
+  s.summary     = "A toolkit for building modeling frameworks (part of Rails)."
+  s.description = "A toolkit for building modeling frameworks like Active Record. Rich support for attributes, callbacks, validations, serialization, internationalization, and testing."
 
   s.required_ruby_version = ">= 3.1.0"
 
@@ -17,25 +17,20 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/**/*", "config/**/*", "db/**/*"]
+  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "lib/**/*"]
   s.require_path = "lib"
 
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
-    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activestorage/CHANGELOG.md",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activemodel/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
     "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
-    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activestorage",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activemodel",
     "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "actionpack",    version
-  s.add_dependency "activejob",     version
-  s.add_dependency "activerecord",  version
-
-  s.add_dependency "marcel",    "~> 1.0"
+  s.add_dependency "omg-activesupport", version
 end

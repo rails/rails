@@ -4,7 +4,7 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "actionview"
+  s.name        = "omg-actionview"
   s.version     = version
   s.summary     = "Rendering framework putting the V in MVC (part of Rails)."
   s.description = "Simple, battle-tested conventions and helpers for building web pages."
@@ -33,13 +33,13 @@ Gem::Specification.new do |s|
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
+  s.add_dependency "omg-activesupport", version
 
   s.add_dependency "builder",       "~> 3.1"
   s.add_dependency "erubi",         "~> 1.11"
   s.add_dependency "rails-html-sanitizer", "~> 1.6"
   s.add_dependency "rails-dom-testing", "~> 2.2"
 
-  s.add_development_dependency "actionpack",  version
-  s.add_development_dependency "activemodel", version
+  s.add_development_dependency "omg-actionpack",  version
+  s.add_development_dependency "omg-activemodel", version
 end

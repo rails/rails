@@ -4,7 +4,7 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "activejob"
+  s.name        = "omg-activejob"
   s.version     = version
   s.summary     = "Job framework with pluggable queues."
   s.description = "Declare job classes that can be run by a variety of queuing backends."
@@ -32,6 +32,6 @@ Gem::Specification.new do |s|
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
+  s.add_dependency "omg-activesupport", version
   s.add_dependency "globalid", ">= 0.3.6"
 end

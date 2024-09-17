@@ -4,7 +4,7 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "actioncable"
+  s.name        = "omg-actioncable"
   s.version     = version
   s.summary     = "WebSocket framework for Rails."
   s.description = "Structure many real-time application concerns into channels over a single WebSocket connection."
@@ -32,8 +32,8 @@ Gem::Specification.new do |s|
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "actionpack", version
+  s.add_dependency "omg-activesupport", version
+  s.add_dependency "omg-actionpack", version
 
   s.add_dependency "nio4r",            "~> 2.0"
   s.add_dependency "websocket-driver", ">= 0.6.1"

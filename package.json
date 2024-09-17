@@ -1,8 +1,8 @@
 {
   "private": true,
   "workspaces": [
-    "actioncable",
-    "actiontext",
-    "activestorage"
+    "omg-actioncable",
+    "omg-actiontext",
+    "omg-activestorage"
   ]
 }

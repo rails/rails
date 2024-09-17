@@ -2,7 +2,7 @@
   "name": "dummy",
   "private": true,
   "dependencies": {
-    "@rails/actioncable": "file:../../../../actioncable",
-    "@rails/activestorage": "file:../../../../activestorage"
+    "omg-actioncable": "file:../../../../actioncable",
+    "omg-activestorage": "file:../../../../activestorage"
   }
 }

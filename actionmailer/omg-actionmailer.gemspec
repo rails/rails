@@ -4,10 +4,10 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "actionpack"
+  s.name        = "omg-actionmailer"
   s.version     = version
-  s.summary     = "Web-flow and rendering framework putting the VC in MVC (part of Rails)."
-  s.description = "Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server."
+  s.summary     = "Email composition and delivery framework (part of Rails)."
+  s.description = "Email on Rails. Compose, deliver, and test emails using the familiar controller/view pattern. First-class support for multipart email and attachments."
 
   s.required_ruby_version = ">= 3.1.0"
 
@@ -23,26 +23,21 @@ Gem::Specification.new do |s|
 
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
-    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/actionpack/CHANGELOG.md",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/actionmailer/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
     "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
-    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actionpack",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actionmailer",
     "rubygems_mfa_required" => "true",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
+  s.add_dependency "omg-activesupport", version
+  s.add_dependency "omg-actionpack", version
+  s.add_dependency "omg-actionview", version
+  s.add_dependency "omg-activejob", version
 
-  s.add_dependency "nokogiri", ">= 1.8.5"
-  s.add_dependency "rack",      ">= 2.2.4"
-  s.add_dependency "rack-session", ">= 1.0.1"
-  s.add_dependency "rack-test", ">= 0.6.3"
-  s.add_dependency "rails-html-sanitizer", "~> 1.6"
+  s.add_dependency "mail", ">= 2.8.0"
   s.add_dependency "rails-dom-testing", "~> 2.2"
-  s.add_dependency "useragent", "~> 0.16"
-  s.add_dependency "actionview", version
-
-  s.add_development_dependency "activemodel", version
 end

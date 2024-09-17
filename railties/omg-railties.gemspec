@@ -4,7 +4,7 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "railties"
+  s.name        = "omg-railties"
   s.version     = version
   s.summary     = "Tools for creating, working with, and running Rails applications."
   s.description = "Rails internals: application bootup, plugins, generators, and rake tasks."
@@ -37,8 +37,8 @@ Gem::Specification.new do |s|
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "actionpack",    version
+  s.add_dependency "omg-activesupport", version
+  s.add_dependency "omg-actionpack",    version
 
   s.add_dependency "rackup", ">= 1.0.0"
   s.add_dependency "rake", ">= 12.2"

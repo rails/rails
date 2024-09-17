@@ -4,7 +4,7 @@ version = File.read(File.expand_path("RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "rails"
+  s.name        = "omg-rails"
   s.version     = version
   s.summary     = "Full-stack web application framework."
   s.description = "Ruby on Rails is a full-stack web framework optimized for programmer happiness and sustainable productivity. It encourages beautiful code by favoring convention over configuration."
@@ -29,18 +29,18 @@ Gem::Specification.new do |s|
     "rubygems_mfa_required" => "true",
   }
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "actionpack",    version
-  s.add_dependency "actionview",    version
-  s.add_dependency "activemodel",   version
-  s.add_dependency "activerecord",  version
-  s.add_dependency "actionmailer",  version
-  s.add_dependency "activejob",     version
-  s.add_dependency "actioncable",   version
-  s.add_dependency "activestorage", version
-  s.add_dependency "actionmailbox", version
-  s.add_dependency "actiontext",    version
-  s.add_dependency "railties",      version
+  s.add_dependency "omg-activesupport", version
+  s.add_dependency "omg-actionpack",    version
+  s.add_dependency "omg-actionview",    version
+  s.add_dependency "omg-activemodel",   version
+  s.add_dependency "omg-activerecord",  version
+  s.add_dependency "omg-actionmailer",  version
+  s.add_dependency "omg-activejob",     version
+  s.add_dependency "omg-actioncable",   version
+  s.add_dependency "omg-activestorage", version
+  s.add_dependency "omg-actionmailbox", version
+  s.add_dependency "omg-actiontext",    version
+  s.add_dependency "omg-railties",      version
 
   s.add_dependency "bundler", ">= 1.15.0"
 end
