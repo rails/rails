@@ -289,6 +289,7 @@ namespace :all do
   end
 
   task :tag do
+    sh "git push"
     sh "git tag -s -m '#{tag} release' #{tag}"
     sh "git push --tags"
   end
