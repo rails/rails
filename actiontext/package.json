@@ -1,6 +1,6 @@
 {
   "name": "omg-actiontext",
-  "version": "8.0.0-alpha2",
+  "version": "8.0.0-alpha3",
   "description": "Edit and display rich text in Rails applications",
   "module": "app/assets/javascripts/actiontext.esm.js",
   "main": "app/assets/javascripts/actiontext.js",
@@ -10,10 +10,10 @@
   "homepage": "https://rubyonrails.org/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rails/rails.git"
+    "url": "git+https://github.com/rafaelfranca/omg-rails.git"
   },
   "bugs": {
-    "url": "https://github.com/rails/rails/issues"
+    "url": "https://github.com/rafaelfranca/omg-rails/issues"
   },
   "author": "37signals LLC",
   "contributors": [

@@ -1,6 +1,6 @@
 {
   "name": "omg-actioncable",
-  "version": "8.0.0-alpha2",
+  "version": "8.0.0-alpha3",
   "description": "WebSocket framework for Ruby on Rails.",
   "module": "app/assets/javascripts/actioncable.esm.js",
   "main": "app/assets/javascripts/actioncable.js",
@@ -10,7 +10,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "rails/rails"
+    "url": "rafaelfranca/omg-rails"
   },
   "keywords": [
     "websockets",
@@ -20,7 +20,7 @@
   "author": "David Heinemeier Hansson <david@loudthinking.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rails/rails/issues"
+    "url": "https://github.com/rafaelfranca/omg-rails/issues"
   },
   "homepage": "https://rubyonrails.org/",
   "devDependencies": {

@@ -1,6 +1,6 @@
 {
   "name": "omg-activestorage",
-  "version": "8.0.0-alpha2",
+  "version": "8.0.0-alpha3",
   "description": "Attach cloud and local files in Rails applications",
   "module": "app/assets/javascripts/activestorage.esm.js",
   "main": "app/assets/javascripts/activestorage.js",
@@ -11,10 +11,10 @@
   "homepage": "https://rubyonrails.org/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rails/rails.git"
+    "url": "git+https://github.com/rafaelfranca/omg-rails.git"
   },
   "bugs": {
-    "url": "https://github.com/rails/rails/issues"
+    "url": "https://github.com/rafaelfranca/omg-rails/issues"
   },
   "author": "Javan Makhmali <javan@javan.us>",
   "license": "MIT",
