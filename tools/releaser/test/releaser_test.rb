@@ -46,6 +46,24 @@ class TestReleaser < ActiveSupport::TestCase
     assert_nil releaser.pre
   end
 
+  test "knows if the release is a pre-release" do
+    releaser = Releaser.new(__dir__, "2.0.0.beta1")
+    assert_equal true, releaser.pre_release?
+
+    releaser = Releaser.new(__dir__, "2.0.0.1")
+    assert_equal false, releaser.pre_release?
+  end
+
+  test "#npm_tag returns the pre tag for a pre-release" do
+    releaser = Releaser.new(__dir__, "2.0.0.beta1")
+    assert_equal "pre", releaser.npm_tag
+  end
+
+  test "#npm_tag returns the latest tag for a pre-release" do
+    releaser = Releaser.new(__dir__, "2.0.0")
+    assert_equal "latest", releaser.npm_tag
+  end
+
   test "#npm_version transforms version with rc to npm format" do
     releaser = Releaser.new(__dir__, "5.0.0.rc1")
     assert_equal "5.0.0-rc1", releaser.npm_version

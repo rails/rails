@@ -51,14 +51,7 @@ directory "pkg"
             # User doesn't have ykman
           end
 
-          npm_tag = ""
-          if /[a-z]/.match?(releaser.version)
-            npm_tag = " --tag pre"
-          else
-            npm_tag = " --tag latest"
-          end
-
-          sh "npm publish#{npm_tag}#{npm_otp}"
+          sh "npm publish --tag #{releaser.npm_tag}#{npm_otp}"
         end
       end
     end

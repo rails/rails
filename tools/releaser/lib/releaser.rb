@@ -29,6 +29,14 @@ class Releaser
     @major, @minor, @tiny, @pre = @version.split(".", 4)
   end
 
+  def pre_release?
+    @pre_release ||= pre && pre.match?(/rc|beta|alpha/)
+  end
+
+  def npm_tag
+    pre_release? ? "pre" : "latest"
+  end
+
   # This "npm-ifies" the current version number
   # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
   # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
@@ -40,7 +48,7 @@ class Releaser
   # "5.0.0.beta1.1" --> "5.0.0-beta1-1"
   def npm_version
     @npm_version ||= begin
-      if pre && pre.match?(/rc|beta|alpha/)
+      if pre_release?
         pre_release = pre.tr(".", "-")
         npm_pre = 0
       else
