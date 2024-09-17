@@ -204,7 +204,7 @@ namespace :all do
 
   task prep_release: %w(ensure_clean_state build bundle commit)
 
-  task release: %w(prep_release tag push)
+  task release: %w(prep_release tag)
 end
 
 module Announcement
