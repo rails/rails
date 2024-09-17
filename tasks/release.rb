@@ -94,7 +94,6 @@ pre = pre ? pre.inspect : "nil"
     task gem => %w(update_versions pkg) do
       cmd = ""
       cmd += "cd #{framework} && " unless framework == "rails"
-      cmd += "bundle exec rake package && " unless framework == "rails"
       cmd += "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end

@@ -22,7 +22,7 @@ task release: "all:release"
 desc "Run all tests by default"
 task default: %w(test test:isolated)
 
-%w(test test:isolated package gem).each do |task_name|
+%w(test test:isolated gem).each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
