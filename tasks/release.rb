@@ -33,25 +33,11 @@ directory "pkg"
     end
 
     task push: :build do
-      otp = ""
-      begin
-        otp = " --otp " + `ykman oath accounts code -s rubygems.org`.chomp
-      rescue
-        # User doesn't have ykman
-      end
-
-      sh "gem push #{releaser.gem_path(framework)}#{otp}"
+      sh "gem push #{releaser.gem_path(framework)}#{releaser.gem_otp}"
 
       if File.exist?("#{framework}/package.json")
         Dir.chdir("#{framework}") do
-          npm_otp = ""
-          begin
-            npm_otp = " --otp " + `ykman oath accounts code -s npmjs.com`.chomp
-          rescue
-            # User doesn't have ykman
-          end
-
-          sh "npm publish --tag #{releaser.npm_tag}#{npm_otp}"
+          sh "npm publish --tag #{releaser.npm_tag}#{releaser.npm_otp}"
         end
       end
     end

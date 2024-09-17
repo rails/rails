@@ -60,6 +60,18 @@ class Releaser
     end
   end
 
+  def npm_otp
+    " --otp " + ykman("npmjs.com")
+  rescue
+    ""
+  end
+
+  def gem_otp
+    " --otp " + ykman("rubygems.org")
+  rescue
+    ""
+  end
+
   def gem_path(framework)
     "pkg/#{gem_file(framework)}"
   end
@@ -109,10 +121,15 @@ class Releaser
     end
   end
 
-  def sh(command)
-    Open3.capture3(command) do |_, _, _, wait_thread|
-      exit_status = wait_thread.value
-      exit_status.success?
+  private
+    def sh(command)
+      Open3.capture3(command) do |_, _, _, wait_thread|
+        exit_status = wait_thread.value
+        exit_status.success?
+      end
     end
-  end
+
+    def ykman(service)
+      `ykman oath accounts code -s #{service}`.chomp
+    end
 end
