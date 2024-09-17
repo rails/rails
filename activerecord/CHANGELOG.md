@@ -1,3 +1,10 @@
+*   Fix `ActiveRecord::Type::Json.changed_in_place?` by casting new_value
+
+    Previously, when making in-place updates to a JSON field, the new_value was not type-casted, leading to inaccurate change detection.
+    This fix ensures that the new_value is properly casted during in-place changes, as it is when assigning the entire field.
+
+    *Ahmad Mohsen*
+
 *   Make Float distinguish between `float4` and `float8` in PostgreSQL.
 
     Fixes #52742
