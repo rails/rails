@@ -17,41 +17,7 @@ directory "pkg"
     end
 
     task :update_versions do
-      glob = root.dup
-      if framework == "rails"
-        glob << "/version.rb"
-      else
-        glob << "/#{framework}/lib/*"
-        glob << "/gem_version.rb"
-      end
-
-      file = Dir[glob].first
-      ruby = File.read(file)
-
-      ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{releaser.major}")
-      raise "Could not insert MAJOR in #{file}" unless $1
-
-      ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{releaser.minor}")
-      raise "Could not insert MINOR in #{file}" unless $1
-
-      ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{releaser.tiny}")
-      raise "Could not insert TINY in #{file}" unless $1
-
-      ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{releaser.pre.inspect}")
-      raise "Could not insert PRE in #{file}" unless $1
-
-      File.open(file, "w") { |f| f.write ruby }
-
-      require "json"
-      if File.exist?("#{framework}/package.json") && JSON.parse(File.read("#{framework}/package.json"))["version"] != releaser.npm_version
-        Dir.chdir("#{framework}") do
-          if sh "which npm"
-            sh "npm version #{releaser.npm_version} --no-git-tag-version"
-          else
-            raise "You must have npm installed to release Rails."
-          end
-        end
-      end
+      releaser.update_versions(framework)
     end
 
     task releaser.gem_path(framework) => %w(update_versions pkg) do

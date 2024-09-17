@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "releaser/version"
+require "open3"
+require "json"
 
 class Releaser
   # Order dependent. E.g. Action Mailbox depends on Active Record so it should be after.
@@ -61,5 +62,51 @@ class Releaser
 
   def gemspec(framework)
     "#{framework}.gemspec"
+  end
+
+  def update_versions(framework)
+    if framework == "rails"
+      glob = root + "version.rb"
+    else
+      glob = root + "#{framework}/lib/*/gem_version.rb"
+    end
+
+    file = Dir[glob].first
+    ruby = File.read(file)
+
+    ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
+    raise "Could not insert MAJOR in #{file}" unless $1
+
+    ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{minor}")
+    raise "Could not insert MINOR in #{file}" unless $1
+
+    ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{tiny}")
+    raise "Could not insert TINY in #{file}" unless $1
+
+    ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre.inspect}")
+    raise "Could not insert PRE in #{file}" unless $1
+
+    File.open(file, "w") { |f| f.write ruby }
+
+    framework_folder = "#{root}/#{framework}"
+
+    package_json = "#{framework_folder}/package.json"
+
+    if File.exist?(package_json) && JSON.parse(File.read(package_json))["version"] != npm_version
+      Dir.chdir("#{framework_folder}") do
+        if sh "which npm"
+          sh "npm version #{npm_version} --no-git-tag-version"
+        else
+          raise "You must have npm installed to release Rails."
+        end
+      end
+    end
+  end
+
+  def sh(command)
+    Open3.capture3(command) do |_, _, _, wait_thread|
+      exit_status = wait_thread.value
+      exit_status.success?
+    end
   end
 end

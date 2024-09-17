@@ -85,4 +85,34 @@ class TestReleaser < ActiveSupport::TestCase
     releaser = Releaser.new(__dir__, "5.0.0")
     assert_equal "rails.gemspec", releaser.gemspec("rails")
   end
+
+  test "#update_versions updates the version of a gem and the npm package" do
+    Dir.mktmpdir("rails") do |root|
+      FileUtils.cp_r(File.expand_path("fixtures", __dir__), root)
+
+      root = "#{root}/fixtures"
+
+      releaser = Releaser.new(root, "5.0.0")
+      releaser.update_versions("activestorage")
+
+      gem_version_file = File.read("#{root}/activestorage/lib/active_storage/gem_version.rb")
+
+      assert_equal "5", gem_version_file[/MAJOR = (\d+)/, 1]
+      assert_equal "0", gem_version_file[/MINOR = (\d+)/, 1]
+      assert_equal "0", gem_version_file[/TINY  = (\d+)/, 1]
+      assert_equal "nil", gem_version_file[/PRE   = (.*?)$/, 1]
+      assert_equal "5.0.0", JSON.parse(File.read("#{root}/activestorage/package.json"))["version"]
+
+      releaser = Releaser.new(root, "5.0.0.beta1")
+      releaser.update_versions("activestorage")
+
+      gem_version_file = File.read("#{root}/activestorage/lib/active_storage/gem_version.rb")
+
+      assert_equal "5", gem_version_file[/MAJOR = (\d+)/, 1]
+      assert_equal "0", gem_version_file[/MINOR = (\d+)/, 1]
+      assert_equal "0", gem_version_file[/TINY  = (\d+)/, 1]
+      assert_equal "\"beta1\"", gem_version_file[/PRE   = (.*?)$/, 1]
+      assert_equal "5.0.0-beta1", JSON.parse(File.read("#{root}/activestorage/package.json"))["version"]
+    end
+  end
 end
