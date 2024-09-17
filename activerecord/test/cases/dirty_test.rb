@@ -1002,7 +1002,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     admin = Admin::User.create!(name: "John", json_options: { extra_details: { nick_name: "Jo" } })
 
-    admin.json_options.merge!(extra_details: { nick_name: :Jo })
+    admin.json_options.merge!("extra_details" => { "nick_name" => :Jo })
 
     assert_empty admin.changes
   end
