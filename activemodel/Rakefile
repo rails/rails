@@ -4,8 +4,6 @@ require "rake/testtask"
 
 task default: :test
 
-task :package
-
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 Rake::TestTask.new do |t|

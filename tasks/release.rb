@@ -23,7 +23,6 @@ directory "pkg"
     task releaser.gem_path(framework) => %w(update_versions pkg) do
       cmd = ""
       cmd += "cd #{framework} && " unless framework == "rails"
-      cmd += "bundle exec rake package && " unless framework == "rails"
       cmd += "gem build #{releaser.gemspec(framework)} && mv #{releaser.gem_file(framework)} #{root}/pkg/"
       sh cmd
     end
