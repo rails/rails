@@ -7,9 +7,6 @@ require "tasks/release"
 require "railties/lib/rails/api/task"
 require "tools/preview_docs"
 
-desc "Build, install and verify the gem files in a generated Rails app."
-task verify: "all:verify"
-
 desc "Run all tests by default"
 task default: %w(test test:isolated)
 

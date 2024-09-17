@@ -52,6 +52,7 @@ class Releaser < Rake::TaskLib
         end
 
         task build: [:clean, gem_path(framework)]
+
         task install: :build do
           sh "gem install --pre #{gem_path(framework)}"
         end
@@ -67,7 +68,6 @@ class Releaser < Rake::TaskLib
         end
       end
     end
-
 
     desc "Install gems for all projects."
     task install: FRAMEWORKS.map { |f| "#{f}:install" } + ["rails:install"]
