@@ -115,4 +115,17 @@ class TestReleaser < ActiveSupport::TestCase
       assert_equal "5.0.0-beta1", JSON.parse(File.read("#{root}/activestorage/package.json"))["version"]
     end
   end
+
+  test "#update_versions with rails does nothing" do
+    Dir.mktmpdir("rails") do |root|
+      FileUtils.cp_r(File.expand_path("fixtures", __dir__), root)
+
+      root = "#{root}/fixtures"
+
+      releaser = Releaser.new(root, "5.0.0")
+      releaser.update_versions("rails")
+
+      assert_equal false, File.exist?("#{root}/rails/lib/rails/gem_version.rb")
+    end
+  end
 end

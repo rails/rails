@@ -65,11 +65,9 @@ class Releaser
   end
 
   def update_versions(framework)
-    if framework == "rails"
-      glob = root + "version.rb"
-    else
-      glob = root + "#{framework}/lib/*/gem_version.rb"
-    end
+    return if framework == "rails"
+
+    glob = root + "#{framework}/lib/*/gem_version.rb"
 
     file = Dir[glob].first
     ruby = File.read(file)
