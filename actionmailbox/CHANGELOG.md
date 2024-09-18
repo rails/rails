@@ -1,3 +1,8 @@
+## Rails 8.0.0.alpha6 (September 18, 2024) ##
+
+*   No changes.
+
+
 ## Rails 8.0.0.alpha5 (September 18, 2024) ##
 
 *   No changes.
