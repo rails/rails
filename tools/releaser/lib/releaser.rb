@@ -118,6 +118,14 @@ class Releaser < Rake::TaskLib
     desc "Prepare the release"
     task prep_release: %w(ensure_clean_state changelog:header build bundle)
 
+    task :check_gh_client do
+      sh "gh auth status" do |ok, res|
+        unless ok
+          raise "GitHub CLI is not logged in. Please run `gh auth login` to log in."
+        end
+      end
+    end
+
     task :commit do
       Dir.chdir(root) do
         unless `git status -s`.strip.empty?
@@ -139,8 +147,17 @@ class Releaser < Rake::TaskLib
       sh "git push --tags"
     end
 
+    desc "Create GitHub release"
+    task create_release: :check_gh_client do
+      Dir.chdir(root) do
+        File.write("pkg/#{version}.md", release_notes)
+
+        sh "gh release create #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
+      end
+    end
+
     desc "Release all gems and create a tag"
-    task release: %w(prep_release commit tag push)
+    task release: %w(check_gh_client prep_release commit tag create_release push)
 
     desc "Push the gem to rubygems.org and the npm package to npmjs.com"
     task push: FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
@@ -227,7 +244,7 @@ class Releaser < Rake::TaskLib
   end
 
   def release_notes
-    release_notes = "#{version}\n"
+    release_notes = +""
 
     (FRAMEWORKS + ["guides"]).each do |framework|
       release_notes << "## #{framework_name(framework)}\n"
