@@ -139,12 +139,15 @@ class Releaser < Rake::TaskLib
       sh "git push --tags"
     end
 
-    desc "Release all gems and create a tag"
-    task release: %w(check_gh_client prep_release commit tag) do
+    desc "Create GitHub release"
+    task create_release: %w(check_gh_client) do
       File.write("pkg/#{version}.md", release_notes)
 
-      sh "gh release create #{tag} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
+      sh "gh release create #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
     end
+
+    desc "Release all gems and create a tag"
+    task release: %w(check_gh_client prep_release commit tag create_release)
 
     desc "Push the gem to rubygems.org and the npm package to npmjs.com"
     task push: FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
@@ -231,7 +234,7 @@ class Releaser < Rake::TaskLib
   end
 
   def release_notes
-    release_notes = "#{version}\n"
+    release_notes = +""
 
     (FRAMEWORKS + ["guides"]).each do |framework|
       release_notes << "## #{framework_name(framework)}\n"
