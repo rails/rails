@@ -253,6 +253,10 @@ class Releaser < Rake::TaskLib
     release_notes
   end
 
+  def framework_name(framework)
+    framework.split(/(?<=active|action)/).map(&:capitalize).join(" ")
+  end
+
   private
     FILES_TO_IGNORE = %w(
       RAILS_VERSION
@@ -284,10 +288,6 @@ class Releaser < Rake::TaskLib
 
     def ykman(service)
       `ykman oath accounts code -s #{service}`.chomp
-    end
-
-    def framework_name(framework)
-      framework.split(/(?<=active|action)/).map(&:capitalize).join(" ")
     end
 
     def end_of_notes?(contents)
