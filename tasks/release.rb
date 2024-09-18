@@ -2,8 +2,6 @@
 
 require_relative "../tools/releaser/lib/releaser"
 
-FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
-
 root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
 releaser = Releaser.new(root, version)
