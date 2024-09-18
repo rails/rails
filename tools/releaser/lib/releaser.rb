@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "open3"
 require "json"
 require "rake/tasklib"
 
