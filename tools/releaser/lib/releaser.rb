@@ -45,7 +45,7 @@ class Releaser < Rake::TaskLib
           update_versions(framework)
         end
 
-        task gem_path(framework) => %w(update_versions pkg) do
+        task gem_path(framework) => [:update_versions, "#{root}/pkg"] do
           dir = if framework == "rails"
             root
           else
