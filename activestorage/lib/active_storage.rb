@@ -364,6 +364,7 @@ module ActiveStorage
   mattr_accessor :track_variants, default: false
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
+  mattr_accessor :key_prefix
 
   module Transformers
     extend ActiveSupport::Autoload

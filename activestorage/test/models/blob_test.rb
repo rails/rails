@@ -8,6 +8,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
   include ActiveJob::TestHelper
 
+  setup do
+    @prefix_was = ActiveStorage.key_prefix
+  end
+
+  teardown do
+    ActiveStorage.key_prefix = @prefix_was
+  end
+
   test "unattached scope" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       User.create! name: "DHH", avatar: blobs.first
@@ -94,6 +102,34 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_raises(ArgumentError) do
       ActiveStorage::Blob.create_and_upload!(io: file_fixture("racecar.jpg"), filename: "racecar.jpg")
     end
+  end
+
+  test "blob key does not include a prefix if none is set" do
+    ActiveStorage.key_prefix = nil
+
+    key  = SecureRandom.base36(28)
+    data = "Hello world!"
+    blob = create_blob key: key, data: data
+
+    assert_equal key, blob.key
+  end
+
+  test "blob key includes string prefix" do
+    ActiveStorage.key_prefix = "string_prefix"
+
+    data = "Hello world!"
+    blob = create_blob data: data
+
+    assert blob.key.starts_with?("string_prefix")
+  end
+
+  test "blob key inlcudes dynamic prefix" do
+    ActiveStorage.key_prefix = -> { "dynamic_prefix" }
+
+    data = "Hello world!"
+    blob = create_blob data: data
+
+    assert blob.key.starts_with?("dynamic_prefix")
   end
 
   test "record touched after analyze" do

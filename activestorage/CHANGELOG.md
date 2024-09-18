@@ -1,3 +1,11 @@
+*   Allow blob key to use a global configurable prefix.
+
+    ```ruby
+    Rails.application.configure.active_storage.key_prefix = -> { Current.tenant_id }
+    ```
+
+    *Andi Staub*
+
 *   Deprecate `ActiveStorage::Service::AzureStorageService`.
 
     *zzak*
