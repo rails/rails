@@ -72,13 +72,6 @@ class Releaser < Rake::TaskLib
     desc "Install gems for all projects."
     task install: FRAMEWORKS.map { |f| "#{f}:install" } + ["rails:install"]
 
-    desc "Build gem files for all projects"
-    task build: FRAMEWORKS.map { |f| "#{f}:build" } + ["rails:build"]
-
-    task :bundle do
-      sh "bundle check"
-    end
-
     task :ensure_clean_state do
       if tree_dirty?
         abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
@@ -88,6 +81,29 @@ class Releaser < Rake::TaskLib
         abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
               "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
       end
+    end
+
+    namespace :changelog do
+      task :header do
+        require "date"
+
+        (FRAMEWORKS + ["guides"]).each do |fw|
+          fname = File.join fw, "CHANGELOG.md"
+          current_contents = File.read(fname)
+
+          header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
+          header += "*   No changes.\n\n\n" if current_contents.start_with?("##")
+          contents = header + current_contents
+          File.write(fname, contents)
+        end
+      end
+    end
+
+    desc "Build gem files for all projects"
+    task build: FRAMEWORKS.map { |f| "#{f}:build" } + ["rails:build"]
+
+    task :bundle do
+      sh "bundle check"
     end
 
     desc "Prepare the release"

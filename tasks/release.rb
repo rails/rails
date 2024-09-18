@@ -9,19 +9,6 @@ version = File.read("#{root}/RAILS_VERSION").strip
 releaser = Releaser.new(root, version)
 
 namespace :changelog do
-  task :header do
-    (Releaser::FRAMEWORKS + ["guides"]).each do |fw|
-      require "date"
-      fname = File.join fw, "CHANGELOG.md"
-      current_contents = File.read(fname)
-
-      header = "## Rails #{releaser.version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
-      header += "*   No changes.\n\n\n" if current_contents.start_with?("##")
-      contents = header + current_contents
-      File.write(fname, contents)
-    end
-  end
-
   task :release_summary, [:base_release, :release] do |_, args|
     release_regexp = args[:base_release] ? Regexp.escape(args[:base_release]) : /\d+\.\d+\.\d+/
 
