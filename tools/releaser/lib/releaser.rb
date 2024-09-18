@@ -271,7 +271,7 @@ class Releaser < Rake::TaskLib
     def npm_otp
       " --otp " + ykman("npmjs.com")
     rescue
-      ""
+      " --provenance --access public"
     end
 
     def gem_otp
