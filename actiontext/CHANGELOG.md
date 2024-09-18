@@ -1,3 +1,25 @@
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Dispatch direct-upload events on attachment uploads
 
     When using Action Text's rich textarea,  it's possible to attach files to the

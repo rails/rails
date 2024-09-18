@@ -1,3 +1,25 @@
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Do not include redis by default in generated Dev Containers.
 
     Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis

@@ -1,3 +1,25 @@
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Enable DependencyTracker to evaluate renders with trailing interpolation.
 
     ```erb

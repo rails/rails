@@ -1,3 +1,25 @@
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Add an `identifier` to the event payload for the ActiveSupport::Notification `transmit_subscription_confirmation.action_cable` and `transmit_subscription_rejection.action_cable`.
 
     *Keith Schacht*

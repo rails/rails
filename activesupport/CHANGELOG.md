@@ -1,3 +1,25 @@
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Include options when instrumenting `ActiveSupport::Cache::Store#delete` and `ActiveSupport::Cache::Store#delete_multi`.
 
     *Adam Renberg Tamm*
