@@ -186,11 +186,11 @@ class Releaser < Rake::TaskLib
   end
 
   def gem_file(framework)
-    "#{framework}-#{version}.gem"
+    "omg-#{framework}-#{version}.gem"
   end
 
   def gemspec(framework)
-    "#{framework}.gemspec"
+    "omg-#{framework}.gemspec"
   end
 
   def update_versions(framework)

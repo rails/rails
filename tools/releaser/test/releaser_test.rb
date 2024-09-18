@@ -91,17 +91,17 @@ class TestReleaser < ActiveSupport::TestCase
 
   test "#gem_file returns the gem file name" do
     releaser = Releaser.new(__dir__, "5.0.0")
-    assert_equal "rails-5.0.0.gem", releaser.gem_file("rails")
+    assert_equal "omg-rails-5.0.0.gem", releaser.gem_file("rails")
   end
 
   test "#gem_path returns the gem name" do
     releaser = Releaser.new(__dir__, "5.0.0")
-    assert_equal "pkg/rails-5.0.0.gem", releaser.gem_path("rails")
+    assert_equal "pkg/omg-rails-5.0.0.gem", releaser.gem_path("rails")
   end
 
   test "#gemspect returns the gemspec name" do
     releaser = Releaser.new(__dir__, "5.0.0")
-    assert_equal "rails.gemspec", releaser.gemspec("rails")
+    assert_equal "omg-rails.gemspec", releaser.gemspec("rails")
   end
 
   test "#update_versions updates the version of a gem and the npm package" do
