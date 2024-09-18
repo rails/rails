@@ -210,7 +210,7 @@ NOTE: Support for parsing XML parameters has been extracted into a gem named `ac
 ### Routing Parameters
 
 Parameters specified as part of a route declaration in the `routes.rb` file are
-also made available in the `params` hash. 
+also made available in the `params` hash.
 
 For example, we can add a route that captures the `:status` parameter for a
 client:
@@ -265,6 +265,7 @@ composite key value `["4", "2"]` and pass it to `Book.find`. The `extract_value`
 method may be used to extract arrays out of any delimited parameters.
 
 TODO: this section may not go here. Also test this out in code.
+
 ### The `default_url_options` Method
 
 You can set global default parameters for [`url_for`]( https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for) by defining a method called `default_url_options` in your controller. This method must return a hash with the desired defaults, whose keys must be symbols:
@@ -355,7 +356,7 @@ params.permit(options: {})
 The above `permit` call ensures that values in `options` are permitted scalars
 and filters out anything else. But be careful because the above opens the door
 to arbitrary input. Sometimes it is not possible or convenient to declare each
-valid key of a hash parameter or its internal structure. 
+valid key of a hash parameter or its internal structure.
 
 There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking values.
 
@@ -377,24 +378,27 @@ current and future model attributes to be mass-assigned.
 You can use `permit` on more complex nested parameters. Here is an example followed by an explanation:
 
 ```ruby
-params.permit(:name, 
+params.permit(:name,
               { emails: [] },
               friends: [ :name, { family: [ :name ], hobbies: [] }])
 ```
 
 This declaration permits the `name`, `emails`, and `friends` attributes. It is
 expected that `emails` will be an array of permitted scalar values, and that
-`friends` will be an array of resources with specific attributes. 
+`friends` will be an array of resources with specific attributes.
 
 The `friends` array should have a `name` attribute (any permitted scalar values
 allowed), a `family` attribute which is restricted to having a `name`, and a
 `hobbies` attribute as an array of permitted scalar values.
+
 TODO: do something about the 1, 2, 3, 4.
+
 ### Examples
 
 Here are some examples of how to use `permit` for different use cases.
 
-1. You may want to also use the permitted attributes in your `new`
+1.
+You may want to also use the permitted attributes in your `new`
 action. This raises the problem that you can't use [`require`][] on the
 root key because, normally, it does not exist when calling `new`:
 
@@ -404,7 +408,8 @@ root key because, normally, it does not exist when calling `new`:
 params.fetch(:blog, {}).permit(:title, :author)
 ```
 
-2. The model class method `accepts_nested_attributes_for` allows you to
+2.
+The model class method `accepts_nested_attributes_for` allows you to
 update and destroy associated records. This is based on the `id` and `_destroy`
 parameters:
 
@@ -413,7 +418,8 @@ parameters:
 params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
 ```
 
-3. Hashes with integer keys are treated differently, and you can declare
+3.
+Hashes with integer keys are treated differently, and you can declare
 the attributes as if they were direct children. You get these kinds of
 parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
@@ -427,7 +433,8 @@ with a `has_many` association:
 params.require(:book).permit(:title, chapters_attributes: [:title])
 ```
 
-4. Imagine a scenario where you have parameters representing a product
+4.
+Imagine a scenario where you have parameters representing a product
 name, and a hash of arbitrary data associated with that product, and
 you want to permit the product name attribute and also the whole
 data hash:
@@ -494,7 +501,7 @@ for more details.
 
 These special cookie jars use a serializer to serialize the cookie values into
 strings and deserialize them into Ruby objects when read back. You can specify
-which serializer to use via [`config.action_dispatch.cookies_serializer`][]. The default serializer for new applications is `:json`. 
+which serializer to use via [`config.action_dispatch.cookies_serializer`][]. The default serializer for new applications is `:json`.
 
 NOTE: Be aware that JSON has limited support serializing Ruby objects suck as
 `Date`, `Time`, and `Symbol`. These will be serialized and deserialized into
@@ -525,39 +532,36 @@ If you use the cookie session store, the above applies to the `session` and
 Session
 -------
 
-Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view. 
+While cookies are stored client-side, session data is stored server-side (in
+memory, a database, or a cache), and the duration is usually temporary and tied
+to the user's session (e.g. until they close the browser). An example use case
+for session is storing sensitive data like user authentication.
 
-### Accessing the Session
+In a Rails application, the session is available in the controller and the view.
 
-In your controller, you can access the session through the `session` instance method.
+### Working With the Session
 
-NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence, you will never need to disable sessions, just not accessing them will do the job.
-
-Session values are stored using key/value pairs like a hash:
+You can use the `session` instance method to access the session in your controllers. Session values are stored as key/value pairs like a hash:
 
 ```ruby
 class ApplicationController < ActionController::Base
   private
-    # Finds the User with the ID stored in the session with the key
-    # :current_user_id This is a common way to handle user login in
+    # Look up the key `:current_user_id` in the session and use it to
+    # find the current `User`. This is a common way to handle user login in
     # a Rails application; logging in sets the session value and
     # logging out removes it.
     def current_user
-      @_current_user ||= session[:current_user_id] &&
-        User.find_by(id: session[:current_user_id])
+      @current_user ||= User.find_by(id: session[:current_user_id]) if session[:current_user_id]
     end
 end
 ```
 
-To store something in the session, just assign it to the key like a hash:
+To store something in the session, you can assign it to a key similar to adding a value to a hash. After a user is authenticated, its `id` is saved in the session to be used for subsequent requests:
 
 ```ruby
-class LoginsController < ApplicationController
-  # "Create" a login, aka "log the user in"
+class SessionsController < ApplicationController
   def create
     if user = User.authenticate(params[:username], params[:password])
-      # Save the user ID in the session so it can be used in
-      # subsequent requests
       session[:current_user_id] = user.id
       redirect_to root_url
     end
@@ -565,22 +569,22 @@ class LoginsController < ApplicationController
 end
 ```
 
-To remove something from the session, delete the key/value pair:
+To remove something from the session, delete the key/value pair. Deleting the `current_user_id` key from the session is a typical way to log the user out:
 
 ```ruby
-class LoginsController < ApplicationController
-  # "Delete" a login, aka "log the user out"
+class SessionsController < ApplicationController
   def destroy
-    # Remove the user id from the session
     session.delete(:current_user_id)
-    # Clear the memoized current user
-    @_current_user = nil
+    # Clear the current user as well
+    @current_user = nil
     redirect_to root_url, status: :see_other
   end
 end
 ```
 
-To reset the entire session, use [`reset_session`][].
+It is possible to reset the entire session with [`reset_session`][]. It is recommended to use `reset_session` after logging in to avoid session fixation attacks. Please refer to the [Security Guide](https://edgeguides.rubyonrails.org/security.html#session-fixation-countermeasures) for details.
+
+NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence, you will never need to disable sessions, just not accessing them will do the job.
 
 [`reset_session`]: https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-reset_session
 
