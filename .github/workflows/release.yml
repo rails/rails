@@ -19,7 +19,6 @@ jobs:
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        bundler-cache: true
         ruby-version: ruby
     - uses: actions/setup-node@v4
       with:
@@ -27,9 +26,13 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
     - name: Configure trusted publishing credentials
       uses: rubygems/configure-rubygems-credentials@v1.0.0
+    - name: Bundle install
+      run: bundle install
+      working-directory: tools/releaser
     - name: Run release rake task
       run: bundle exec rake push
       shell: bash
+      working-directory: tools/releaser
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     - name: Wait for release to propagate

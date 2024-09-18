@@ -15,13 +15,15 @@ jobs:
   releaser_tests:
     name: releaser tests
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      - name: Remove Gemfile.lock
-        run: rm -f Gemfile.lock
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ruby
-          bundler-cache: true
-      - run: cd tools/releaser && bundle exec rake
+      - name: Bundle install
+        run: bundle install
+        working-directory: tools/releaser
+      - run: bundle exec rake
+        working-directory: tools/releaser

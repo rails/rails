@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../tools/releaser/lib/releaser"
+require "releaser"
 
 root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
