@@ -155,7 +155,6 @@ class TestReleaser < ActiveSupport::TestCase
 
       releaser = Releaser.new(root, "5.0.0")
       assert_equal(<<~RELEASE_NOTES, releaser.release_notes)
-        5.0.0
         ## Active Support
 
         *  Change in Active Support
