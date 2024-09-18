@@ -223,4 +223,11 @@ class TestReleaser < ActiveSupport::TestCase
       RELEASE_NOTES
     end
   end
+
+  test "#framework_name humanizes the framework name" do
+    releaser = Releaser.new(__dir__, "5.0.0")
+    assert_equal "Action View", releaser.framework_name("actionview")
+    assert_equal "Active Record", releaser.framework_name("activerecord")
+    assert_equal "Railties", releaser.framework_name("railties")
+  end
 end
