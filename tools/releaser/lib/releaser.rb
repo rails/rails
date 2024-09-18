@@ -31,7 +31,7 @@ class Releaser < Rake::TaskLib
   end
 
   def define
-    directory "pkg"
+    directory "#{root}/pkg"
 
     (FRAMEWORKS + ["rails"]).each do |framework|
       namespace framework do
