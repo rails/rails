@@ -24,7 +24,7 @@ gem "dartsass-rails"
 gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
-gem "kamal", require: false
+gem "kamal", ">= 2.0.0.beta1", require: false
 gem "thruster", require: false
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
