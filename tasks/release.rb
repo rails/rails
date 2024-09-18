@@ -8,30 +8,6 @@ root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
 releaser = Releaser.new(root, version)
 
-namespace :changelog do
-  task :release_summary, [:base_release, :release] do |_, args|
-    release_regexp = args[:base_release] ? Regexp.escape(args[:base_release]) : /\d+\.\d+\.\d+/
-
-    puts args[:release]
-
-    Releaser::FRAMEWORKS.each do |fw|
-      puts "## #{FRAMEWORK_NAMES[fw]}"
-      fname    = File.join fw, "CHANGELOG.md"
-      contents = File.readlines fname
-      contents.shift
-      changes = []
-      until contents.first =~ /^## Rails #{release_regexp}.*$/ ||
-          contents.first =~ /^Please check.*for previous changes\.$/ ||
-          contents.empty?
-        changes << contents.shift
-      end
-
-      puts changes.join
-      puts
-    end
-  end
-end
-
 module Announcement
   class Version
     def initialize(version)

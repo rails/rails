@@ -97,6 +97,10 @@ class Releaser < Rake::TaskLib
           File.write(fname, contents)
         end
       end
+
+      task :release_notes do
+        puts releaser.release_notes
+      end
     end
 
     desc "Build gem files for all projects"
@@ -166,18 +170,6 @@ class Releaser < Rake::TaskLib
     end
   end
 
-  def npm_otp
-    " --otp " + ykman("npmjs.com")
-  rescue
-    ""
-  end
-
-  def gem_otp
-    " --otp " + ykman("rubygems.org")
-  rescue
-    ""
-  end
-
   def gem_path(framework)
     "pkg/#{gem_file(framework)}"
   end
@@ -227,6 +219,26 @@ class Releaser < Rake::TaskLib
     end
   end
 
+  def release_notes
+    release_notes = "#{version}\n"
+
+    FRAMEWORKS.each do |framework|
+      release_notes << "## #{framework_name(framework)}\n"
+      file_name = File.join root, framework, "CHANGELOG.md"
+      contents = File.readlines file_name
+      contents.shift # Remove the header
+      changes = []
+
+      until end_of_notes?(contents) || contents.empty?
+        changes << contents.shift
+      end
+
+      release_notes << changes.join
+    end
+
+    release_notes
+  end
+
   private
     FILES_TO_IGNORE = %w(
       RAILS_VERSION
@@ -244,7 +256,31 @@ class Releaser < Rake::TaskLib
       `git tag | grep '^#{tag}$'`.strip.empty?
     end
 
+    def npm_otp
+      " --otp " + ykman("npmjs.com")
+    rescue
+      ""
+    end
+
+    def gem_otp
+      " --otp " + ykman("rubygems.org")
+    rescue
+      ""
+    end
+
     def ykman(service)
       `ykman oath accounts code -s #{service}`.chomp
+    end
+
+    def framework_name(framework)
+      framework.split(/(?<=active|action)/).map(&:capitalize).join(" ")
+    end
+
+    def end_of_notes?(contents)
+      line = contents.first
+
+      line =~ /^## Rails \d+\.\d+\.\d+.*$/ ||
+        line =~ /^Please check.*for previous changes\.$/ ||
+        contents.empty?
     end
 end

@@ -146,4 +146,77 @@ class TestReleaser < ActiveSupport::TestCase
       assert_equal false, File.exist?("#{root}/rails/lib/rails/gem_version.rb")
     end
   end
+
+  test "#release_notes returns the release notes for a framework" do
+    Dir.mktmpdir("rails") do |root|
+      FileUtils.cp_r(File.expand_path("fixtures", __dir__), root)
+
+      root = "#{root}/fixtures"
+
+      releaser = Releaser.new(root, "5.0.0")
+      assert_equal(<<~RELEASE_NOTES, releaser.release_notes)
+        5.0.0
+        ## Active Support
+
+        *  Change in Active Support
+
+
+        ## Active Model
+
+        *  Changes in Active Model
+
+
+        ## Active Record
+
+        *  Changes in Active Record
+
+
+        ## Action View
+
+        *  Changes in Action View
+
+
+        ## Action Pack
+
+        *  Changes in Action Pack
+
+
+        ## Active Job
+
+        *  Changes in Active Job
+
+
+        ## Action Mailer
+
+        *  Changes in Action Mailer
+
+
+        ## Action Cable
+
+        *  Changes in Active Cable
+
+
+        ## Active Storage
+
+        *  Change in Active Storage
+
+
+        ## Action Mailbox
+
+        *  Changes in Action Mailbox
+
+
+        ## Action Text
+
+        *  Changes in Action Text
+
+
+        ## Railties
+
+        *  Changes in Railties
+
+
+      RELEASE_NOTES
+    end
+  end
 end
