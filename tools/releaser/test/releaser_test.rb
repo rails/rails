@@ -216,6 +216,11 @@ class TestReleaser < ActiveSupport::TestCase
         *  Changes in Railties
 
 
+        ## Guides
+
+        *  Change in guides
+
+
       RELEASE_NOTES
     end
   end

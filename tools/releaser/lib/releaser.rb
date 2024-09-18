@@ -234,7 +234,7 @@ class Releaser < Rake::TaskLib
   def release_notes
     release_notes = "#{version}\n"
 
-    FRAMEWORKS.each do |framework|
+    (FRAMEWORKS + ["guides"]).each do |framework|
       release_notes << "## #{framework_name(framework)}\n"
       file_name = File.join root, framework, "CHANGELOG.md"
       contents = File.readlines file_name
