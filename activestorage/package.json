@@ -1,6 +1,6 @@
 {
   "name": "omg-activestorage",
-  "version": "8.0.0-alpha6",
+  "version": "8.0.0-alpha7",
   "description": "Attach cloud and local files in Rails applications",
   "module": "app/assets/javascripts/activestorage.esm.js",
   "main": "app/assets/javascripts/activestorage.js",
