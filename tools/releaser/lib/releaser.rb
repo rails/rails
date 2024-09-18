@@ -58,7 +58,6 @@ class Releaser < Rake::TaskLib
         end
 
         task build: [:clean, gem_path(framework)]
-
         task install: :build do
           Dir.chdir(root) do
             sh "gem install --pre #{gem_path(framework)}"
@@ -149,7 +148,7 @@ class Releaser < Rake::TaskLib
     end
 
     desc "Create GitHub release"
-    task create_release: %w(check_gh_client) do
+    task create_release: :check_gh_client do
       Dir.chdir(root) do
         File.write("pkg/#{version}.md", release_notes)
 

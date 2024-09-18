@@ -77,7 +77,7 @@ are correct. If everything is fine, publish the release.
 
 ### Publish the gems
 
-To publish the gems approve the [Release workflow in GitHub Actions](https://github.com/rafael/rails/actions/workflows/release.yml),
+To publish the gems approve the [Release workflow in GitHub Actions](https://github.com/rails/rails/actions/workflows/release.yml),
 that was created after the release was published.
 
 ### Send Rails release announcements
