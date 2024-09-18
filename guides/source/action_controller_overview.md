@@ -590,14 +590,20 @@ NOTE: Sessions are lazily loaded. If you don't access sessions in your action's 
 
 ### The Flash
 
-The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages, etc.
+The [flash](https://api.rubyonrails.org/classes/ActionDispatch/Flash.html)
+provides a way to pass temporary data between actions. Anything you place in the
+flash will be available to the very next action and then cleared. The flash is
+typically used for setting notices and alerts in a controller action before
+redirecting to an action that displays the message to the user.
 
-The flash is accessed via the [`flash`][] method. Like the session, the flash is represented as a hash.
+The flash is accessed via the [`flash`][] method. Similar to the session, the
+flash values are stored as key/value pairs similar to a hash.
 
-Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
+For example, in the controller action for logging out a user, the controller can
+set a flash message which can be displayed to the user on the next request:
 
 ```ruby
-class LoginsController < ApplicationController
+class SessionsController < ApplicationController
   def destroy
     session.delete(:current_user_id)
     flash[:notice] = "You have successfully logged out."
@@ -606,15 +612,39 @@ class LoginsController < ApplicationController
 end
 ```
 
-Note that it is also possible to assign a flash message as part of the redirection. You can assign `:notice`, `:alert` or the general-purpose `:flash`:
+Displaying a message after a user performs some interactive action in your
+application is a good practice to give the user feedback that their action was
+successful (or that there were errors).
+
+In addition to `:notice`, you can also set `:alert`. These are typically styled
+(using CSS) with different colors to indicate their meaning (e.g. green for
+notices and orange/red for alerts).
+
+It is also possible to assign a flash message as part of the redirection as a
+parameter to `redirect_to`:
 
 ```ruby
 redirect_to root_url, notice: "You have successfully logged out."
-redirect_to root_url, alert: "You're stuck here!"
+redirect_to root_url, alert: "There was an issue."
 redirect_to root_url, flash: { referral_code: 1234 }
 ```
 
-The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display any error alerts or notices from the flash in the application's layout:
+You can set any key in a flash (similar to sessions); you're not limited to `notice` and `alert`:
+
+```erb
+<% if flash[:just_signed_up] %>
+  <p class="welcome">Welcome to our site!</p>
+<% end %>
+```
+
+In the above logout example, the `destroy` action redirects to the application's
+`root_url`, where the message is available to be displayed. However, it's not
+displayed automatically. It's up to the next action to decide what, if anything,
+it will do with what the previous action put in the flash.
+
+#### Displaying flash messages
+
+If a previous action _has_ set a flash messages, it's a good idea of display that to the user typically. We can accomplish this consistently by adding the HTML for displaying any flash messages in the application's default layout. Here's an example from `app/views/layouts/application.html.erb`:
 
 ```erb
 <html>
@@ -625,19 +655,16 @@ The `destroy` action redirects to the application's `root_url`, where the messag
     <% end -%>
 
     <!-- more content -->
+    <%= yield %>
   </body>
 </html>
 ```
 
-This way, if an action sets a notice or an alert message, the layout will display it automatically.
+The `name` above indicates the type of flash message, such as `notice` or `alert`. This information is typically used to style how the message is displayed to the user.
 
-You can pass anything that the session can store; you're not limited to notices and alerts:
+Including the reading and displaying of flash messages in the layout ensures that your application will display these automatically, without each view having to include logic to read the flash.
 
-```erb
-<% if flash[:just_signed_up] %>
-  <p class="welcome">Welcome to our site!</p>
-<% end %>
-```
+#### `flash.keep` and `flash.now`
 
 If you want a flash value to be carried over to another request, use [`flash.keep`][]:
 
@@ -659,10 +686,6 @@ class MainController < ApplicationController
 end
 ```
 
-[`flash`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/RequestMethods.html#method-i-flash
-[`flash.keep`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-keep
-
-#### `flash.now`
 
 By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the `create` action fails to save a resource, and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use [`flash.now`][] in the same way you use the normal `flash`:
 
@@ -680,6 +703,8 @@ class ClientsController < ApplicationController
 end
 ```
 
+[`flash`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/RequestMethods.html#method-i-flash
+[`flash.keep`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-keep
 [`flash.now`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-now
 
 ### Session Storage Options
