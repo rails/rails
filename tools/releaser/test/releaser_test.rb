@@ -216,6 +216,11 @@ class TestReleaser < Minitest::Test
         *  Changes in Railties
 
 
+        ## Guides
+
+        *  Change in guides
+
+
       RELEASE_NOTES
     end
   end
