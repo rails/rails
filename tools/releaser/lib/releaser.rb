@@ -107,10 +107,6 @@ class Releaser < Rake::TaskLib
           File.write(fname, contents)
         end
       end
-
-      task :release_notes do
-        releaser.release_notes
-      end
     end
 
     desc "Build gem files for all projects"
