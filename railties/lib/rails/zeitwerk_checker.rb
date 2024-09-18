@@ -12,4 +12,8 @@ class Rails::ZeitwerkChecker # :nodoc:
     unchecked.select! { |dir| Dir.exist?(dir) && !Dir.empty?(dir)  }
     unchecked
   end
+
+  def self.check_boot
+    Zeitwerk::Registry.loaders.flat_map { |loader| loader.__to_unload.keys }
+  end
 end
