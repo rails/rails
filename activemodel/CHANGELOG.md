@@ -20,6 +20,11 @@
 
 ## Rails 8.0.0.alpha4 (September 18, 2024) ##
 
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Add a default token generator for password reset tokens when using `has_secure_password`.
 
     ```ruby

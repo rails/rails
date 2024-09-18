@@ -20,6 +20,11 @@
 
 ## Rails 8.0.0.alpha4 (September 18, 2024) ##
 
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Remove `sucker_punch` as an adapter option [since author himself recommends using AJ's own AsyncAdapter](https://github.com/brandonhilkert/sucker_punch?tab=readme-ov-file#faq).
     If you're using this adapter, change to `adapter: async` for the same functionality.
 

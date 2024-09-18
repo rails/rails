@@ -20,6 +20,11 @@
 
 ## Rails 8.0.0.alpha4 (September 18, 2024) ##
 
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Update `ActionController::Live` to use a thread-pool to reuse threads across requests.
 
     *Adam Renberg Tamm*

@@ -20,6 +20,11 @@
 
 ## Rails 8.0.0.alpha4 (September 18, 2024) ##
 
+*   No changes.
+
+
+## Rails 8.0.0.alpha4 (September 18, 2024) ##
+
 *   Allow `drop_table` to accept an array of table names.
 
     This will let you to drop multiple tables in a single call.
