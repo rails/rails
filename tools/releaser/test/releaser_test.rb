@@ -2,8 +2,8 @@
 
 require "test_helper"
 
-class TestReleaser < ActiveSupport::TestCase
-  test "framework list" do
+class TestReleaser < Minitest::Test
+  def test_framework_list
     assert_equal(
       [
         "activesupport",
@@ -23,22 +23,22 @@ class TestReleaser < ActiveSupport::TestCase
     )
   end
 
-  test "has a root" do
+  def test_has_a_root
     releaser = Releaser.new(__dir__, "2.0.0")
     assert_equal Pathname.new(__dir__), releaser.root
   end
 
-  test "has a version" do
+  def test_has_a_version
     releaser = Releaser.new(__dir__, "2.0.0")
     assert_equal "2.0.0", releaser.version
   end
 
-  test "knows about the tag name" do
+  def test_knows_about_the_tag_name
     releaser = Releaser.new(__dir__, "2.0.0")
     assert_equal "v2.0.0", releaser.tag
   end
 
-  test "knows about the parts that make up a version" do
+  def test_knows_about_the_parts_that_make_up_a_version
     releaser = Releaser.new(__dir__, "2.0.1")
     assert_equal "2", releaser.major
     assert_equal "0", releaser.minor
@@ -46,7 +46,7 @@ class TestReleaser < ActiveSupport::TestCase
     assert_nil releaser.pre
   end
 
-  test "knows if the release is a pre-release" do
+  def test_knows_if_the_release_is_a_pre_release
     releaser = Releaser.new(__dir__, "2.0.0.beta1")
     assert_equal true, releaser.pre_release?
 
@@ -54,57 +54,57 @@ class TestReleaser < ActiveSupport::TestCase
     assert_equal false, releaser.pre_release?
   end
 
-  test "#npm_tag returns the pre tag for a pre-release" do
+  def test_npm_tag_returns_the_pre_tag_for_a_pre_release
     releaser = Releaser.new(__dir__, "2.0.0.beta1")
     assert_equal "pre", releaser.npm_tag
   end
 
-  test "#npm_tag returns the latest tag for a pre-release" do
+  def test_npm_tag_returns_the_latest_tag_for_a_pre_release
     releaser = Releaser.new(__dir__, "2.0.0")
     assert_equal "latest", releaser.npm_tag
   end
 
-  test "#npm_version transforms version with rc to npm format" do
+  def test_npm_version_transforms_version_with_rc_to_npm_format
     releaser = Releaser.new(__dir__, "5.0.0.rc1")
     assert_equal "5.0.0-rc1", releaser.npm_version
   end
 
-  test "#npm_version transforms version with beta to npm format with security patch" do
+  def test_npm_version_transforms_version_with_beta_to_npm_format_with_security_patch
     releaser = Releaser.new(__dir__, "5.0.0.beta1.1")
     assert_equal "5.0.0-beta1-1", releaser.npm_version
   end
 
-  test "#npm_version when the patch level is 0" do
+  def test_npm_version_when_the_patch_level_is_0
     releaser = Releaser.new(__dir__, "5.0.0")
     assert_equal "5.0.0", releaser.npm_version
   end
 
-  test "#npm_version when the patch level is 0 and there is a security patch" do
+  def test_npm_version_when_the_patch_level_is_0_and_there_is_a_security_patch
     releaser = Releaser.new(__dir__, "5.0.0.1")
     assert_equal "5.0.1", releaser.npm_version
   end
 
-  test "#npm_version when the patch level is different from 0 and there is a security path" do
+  def test_npm_version_when_the_patch_level_is_different_from_0_and_there_is_a_security_path
     releaser = Releaser.new(__dir__, "5.0.2.1")
     assert_equal "5.0.201", releaser.npm_version
   end
 
-  test "#gem_file returns the gem file name" do
+  def test_gem_file_returns_the_gem_file_name
     releaser = Releaser.new(__dir__, "5.0.0")
     assert_equal "rails-5.0.0.gem", releaser.gem_file("rails")
   end
 
-  test "#gem_path returns the gem name" do
+  def test_gem_path_returns_the_gem_name
     releaser = Releaser.new(__dir__, "5.0.0")
     assert_equal "pkg/rails-5.0.0.gem", releaser.gem_path("rails")
   end
 
-  test "#gemspect returns the gemspec name" do
+  def test_gemspect_returns_the_gemspec_name
     releaser = Releaser.new(__dir__, "5.0.0")
     assert_equal "rails.gemspec", releaser.gemspec("rails")
   end
 
-  test "#update_versions updates the version of a gem and the npm package" do
+  def test_update_versions_updates_the_version_of_a_gem_and_the_npm_package
     Dir.mktmpdir("rails") do |root|
       FileUtils.cp_r(File.expand_path("fixtures", __dir__), root)
 
@@ -134,7 +134,7 @@ class TestReleaser < ActiveSupport::TestCase
     end
   end
 
-  test "#update_versions with rails does nothing" do
+  def test_update_versions_with_rails_does_nothing
     Dir.mktmpdir("rails") do |root|
       FileUtils.cp_r(File.expand_path("fixtures", __dir__), root)
 
@@ -147,7 +147,7 @@ class TestReleaser < ActiveSupport::TestCase
     end
   end
 
-  test "#release_notes returns the release notes for a framework" do
+  def test_release_notes_returns_the_release_notes_for_a_framework
     Dir.mktmpdir("rails") do |root|
       FileUtils.cp_r(File.expand_path("fixtures", __dir__), root)
 
@@ -224,7 +224,7 @@ class TestReleaser < ActiveSupport::TestCase
     end
   end
 
-  test "#framework_name humanizes the framework name" do
+  def test_framework_name_humanizes_the_framework_name
     releaser = Releaser.new(__dir__, "5.0.0")
     assert_equal "Action View", releaser.framework_name("actionview")
     assert_equal "Active Record", releaser.framework_name("activerecord")

@@ -36,7 +36,9 @@ class Releaser < Rake::TaskLib
     (FRAMEWORKS + ["rails"]).each do |framework|
       namespace framework do
         task :clean do
-          rm_f gem_path(framework)
+          Dir.chdir(root) do
+            rm_f gem_path(framework)
+          end
         end
 
         task :update_versions do
@@ -44,24 +46,33 @@ class Releaser < Rake::TaskLib
         end
 
         task gem_path(framework) => %w(update_versions pkg) do
-          cmd = ""
-          cmd += "cd #{framework} && " unless framework == "rails"
-          cmd += "gem build #{gemspec(framework)} && mv #{gem_file(framework)} #{root}/pkg/"
-          sh cmd
+          dir = if framework == "rails"
+            root
+          else
+            root + framework
+          end
+
+          Dir.chdir(dir) do
+            sh "gem build #{gemspec(framework)} && mv #{gem_file(framework)} #{root}/pkg/"
+          end
         end
 
         task build: [:clean, gem_path(framework)]
 
         task install: :build do
-          sh "gem install --pre #{gem_path(framework)}"
+          Dir.chdir(root) do
+            sh "gem install --pre #{gem_path(framework)}"
+          end
         end
 
         task push: :build do
-          sh "gem push #{gem_path(framework)}#{gem_otp}"
+          Dir.chdir(root) do
+            sh "gem push #{gem_path(framework)}#{gem_otp}"
 
-          if File.exist?("#{framework}/package.json")
-            Dir.chdir("#{framework}") do
-              sh "npm publish --tag #{npm_tag}#{npm_otp}"
+            if File.exist?("#{framework}/package.json")
+              Dir.chdir("#{framework}") do
+                sh "npm publish --tag #{npm_tag}#{npm_otp}"
+              end
             end
           end
         end
@@ -87,7 +98,7 @@ class Releaser < Rake::TaskLib
         require "date"
 
         (FRAMEWORKS + ["guides"]).each do |fw|
-          fname = File.join fw, "CHANGELOG.md"
+          fname = File.join root, fw, "CHANGELOG.md"
           current_contents = File.read(fname)
 
           header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
@@ -98,7 +109,7 @@ class Releaser < Rake::TaskLib
       end
 
       task :release_notes do
-        puts releaser.release_notes
+        releaser.release_notes
       end
     end
 
@@ -121,15 +132,17 @@ class Releaser < Rake::TaskLib
     end
 
     task :commit do
-      unless `git status -s`.strip.empty?
-        File.open("pkg/commit_message.txt", "w") do |f|
-          f.puts "# Preparing for #{version} release\n"
-          f.puts
-          f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
-        end
+      Dir.chdir(root) do
+        unless `git status -s`.strip.empty?
+          File.open("pkg/commit_message.txt", "w") do |f|
+            f.puts "# Preparing for #{version} release\n"
+            f.puts
+            f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
+          end
 
-        sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
-        rm_f "pkg/commit_message.txt"
+          sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
+          rm_f "pkg/commit_message.txt"
+        end
       end
     end
 
@@ -141,9 +154,11 @@ class Releaser < Rake::TaskLib
 
     desc "Create GitHub release"
     task create_release: %w(check_gh_client) do
-      File.write("pkg/#{version}.md", release_notes)
+      Dir.chdir(root) do
+        File.write("pkg/#{version}.md", release_notes)
 
-      sh "gh release create #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
+        sh "gh release create #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
+      end
     end
 
     desc "Release all gems and create a tag"
@@ -199,35 +214,35 @@ class Releaser < Rake::TaskLib
   def update_versions(framework)
     return if framework == "rails"
 
-    glob = root + "#{framework}/lib/*/gem_version.rb"
+    Dir.chdir(root) do
+      glob = "#{framework}/lib/*/gem_version.rb"
 
-    file = Dir[glob].first
-    ruby = File.read(file)
+      file = Dir[glob].first
+      ruby = File.read(file)
 
-    ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
-    raise "Could not insert MAJOR in #{file}" unless $1
+      ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
+      raise "Could not insert MAJOR in #{file}" unless $1
 
-    ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{minor}")
-    raise "Could not insert MINOR in #{file}" unless $1
+      ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{minor}")
+      raise "Could not insert MINOR in #{file}" unless $1
 
-    ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{tiny}")
-    raise "Could not insert TINY in #{file}" unless $1
+      ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{tiny}")
+      raise "Could not insert TINY in #{file}" unless $1
 
-    ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre.inspect}")
-    raise "Could not insert PRE in #{file}" unless $1
+      ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre.inspect}")
+      raise "Could not insert PRE in #{file}" unless $1
 
-    File.open(file, "w") { |f| f.write ruby }
+      File.open(file, "w") { |f| f.write ruby }
 
-    framework_folder = "#{root}/#{framework}"
+      package_json = "#{framework}/package.json"
 
-    package_json = "#{framework_folder}/package.json"
-
-    if File.exist?(package_json) && JSON.parse(File.read(package_json))["version"] != npm_version
-      Dir.chdir("#{framework_folder}") do
-        if sh("which npm > /dev/null 2>&1", verbose: false)
-          sh "npm version #{npm_version} --no-git-tag-version > /dev/null 2>&1", verbose: false
-        else
-          raise "You must have npm installed to release Rails."
+      if File.exist?(package_json) && JSON.parse(File.read(package_json))["version"] != npm_version
+        Dir.chdir("#{framework}") do
+          if sh("which npm > /dev/null 2>&1", verbose: false)
+            sh "npm version #{npm_version} --no-git-tag-version > /dev/null 2>&1", verbose: false
+          else
+            raise "You must have npm installed to release Rails."
+          end
         end
       end
     end
@@ -265,6 +280,7 @@ class Releaser < Rake::TaskLib
       package.json
       gem_version.rb
       tasks/release.rb
+      releaser.rb
     )
     def tree_dirty?
       !`git status -s | grep -v '#{FILES_TO_IGNORE.join("\\|")}'`.strip.empty?
