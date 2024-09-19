@@ -235,6 +235,18 @@ module SharedTrackerTests
 
     assert_equal ["events/_completed", "events/_event", "events/index"], tracker.dependencies
   end
+
+  def test_dependencies_with_interpolation_non_trailing
+    view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
+
+    template = FakeTemplate.new(%q{
+      <%= render "#{type}/comments" %>
+    }, :erb)
+
+    tracker = make_tracker("interpolation/_string", template, view_paths)
+
+    assert_equal [ "*/comments" ], tracker.dependencies
+  end
 end
 
 class ERBTrackerTest < ActiveSupport::TestCase
