@@ -47,8 +47,12 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller allows requests when all requests are considered local" do
+    @request.env["REMOTE_ADDR"] = "example.org"
+    Rails.application.config.consider_all_requests_local = true
     get :properties
     assert_response :success
+  ensure
+    Rails.application.config.consider_all_requests_local = false
   end
 
   test "info controller allows local requests" do
@@ -82,7 +86,7 @@ class InfoControllerTest < ActionController::TestCase
     assert_select("table tr") do
       assert_select("td", text: "test_nested_route_path")
       assert_select("td", text: "test/test#show")
-      assert_select("td", text: "#{__FILE__}:75")
+      assert_select("td", text: "#{__FILE__}:79")
     end
   end
 
