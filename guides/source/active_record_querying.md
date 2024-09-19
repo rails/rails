@@ -1668,7 +1668,7 @@ SELECT "books".*
 FROM "books"
 ```
 
-It is recommended to pass a query as `ActiveRecord::Relation`.
+It is recommended to pass queries as `ActiveRecord::Relation` objects instead of raw, untrusted inputs to prevent SQL injection attacks.
 
 WARNING: You should be very careful to avoid SQL injection vulnerabilities,
 especially when you pass non-relation values via Arel or other techniques to
