@@ -53,17 +53,17 @@ module ActiveRecord
     private
       # The check for an existing value should be run from a class that
       # isn't abstract. This means working down from the current class
-      # (self), to the first non-abstract class. Since classes don't know
-      # their subclasses, we have to build the hierarchy between self and
-      # the record's class.
+      # (self), to the first non-abstract class.
       def find_finder_class_for(record)
-        class_hierarchy = [record.class]
-
-        while class_hierarchy.first != @klass
-          class_hierarchy.unshift(class_hierarchy.first.superclass)
+        current_class = record.class
+        found_class = nil
+        loop do
+          found_class = current_class unless current_class.abstract_class?
+          break if current_class == @klass
+          current_class = current_class.superclass
         end
 
-        class_hierarchy.detect { |klass| !klass.abstract_class? }
+        found_class
       end
 
       def validation_needed?(klass, record, attribute)
