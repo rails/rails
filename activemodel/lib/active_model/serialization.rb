@@ -128,7 +128,7 @@ module ActiveModel
       return serializable_attributes(attribute_names) if options.blank?
 
       if only = options[:only]
-        attribute_names &= Array(only).map(&:to_s)
+        attribute_names = Array(only).map(&:to_s) & attribute_names
       elsif except = options[:except]
         attribute_names -= Array(except).map(&:to_s)
       end
