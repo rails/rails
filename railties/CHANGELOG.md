@@ -1,3 +1,7 @@
+*   Display list of development tools (router/notes/properties/mailer previews) under the `/rails/` path when running in development mode.
+
+    *Aidan Haran*
+
 *   Do not include redis by default in generated Dev Containers.
 
     Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis

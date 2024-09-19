@@ -1,0 +1,13 @@
+<h2>
+  Tools
+</h2>
+
+<% @grouped_options.each do |group_name, tools| %>
+  <h3><%= group_name %></h3>
+
+  <ul>
+    <% tools.each do |name, path| %>
+      <li><%= link_to name, path %></li>
+    <% end %>
+  </ul>
+<% end %>

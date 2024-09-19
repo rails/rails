@@ -27,6 +27,7 @@ module Rails
   extend ActiveSupport::Autoload
   extend ActiveSupport::Benchmarkable
 
+  autoload :ToolsController
   autoload :Info
   autoload :InfoController
   autoload :MailersController

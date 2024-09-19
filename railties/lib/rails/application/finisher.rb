@@ -141,6 +141,7 @@ module Rails
       initializer :add_internal_routes do |app|
         if Rails.env.development?
           app.routes.prepend do
+            get "/rails"                 => "rails/tools#index",     internal: true
             get "/rails/info/properties" => "rails/info#properties", internal: true
             get "/rails/info/routes"     => "rails/info#routes",     internal: true
             get "/rails/info/notes"      => "rails/info#notes",      internal: true
