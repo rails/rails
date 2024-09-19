@@ -379,6 +379,7 @@ file.
 
 If your front-end server supports accelerated file sending, `Rack::Sendfile`
 will offload the actual file sending work to the front-end server.
+This enables Rails to finish request handling and free resources earlier.
 
 You can configure the name of the header that your front-end server uses for
 this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
