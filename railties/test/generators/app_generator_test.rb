@@ -462,7 +462,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_action_cable_redis_gems
-    run_generator
+    run_generator [destination_root, "--skip-solid"]
     assert_file "Gemfile", /^# gem "redis"/
   end
 
@@ -645,7 +645,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_file "config/deploy.yml"
-    assert_file ".env.erb"
+    assert_file ".kamal/secrets"
   end
 
   def test_kamal_files_are_skipped_if_required
@@ -656,7 +656,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_empty @bundle_commands.grep("exec kamal init")
 
     assert_no_file "config/deploy.yml"
-    assert_no_file ".env.erb"
+    assert_no_file ".kamal/secrets"
   end
 
   def test_inclusion_of_kamal_storage_volume
