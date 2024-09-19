@@ -154,7 +154,8 @@ module ActionController
     end
 
     add :json do |json, options|
-      json = json.to_json(options) unless json.kind_of?(String)
+      json_options = options.except(:callback, :content_type, :status)
+      json = json.to_json(json_options) unless json.kind_of?(String)
 
       if options[:callback].present?
         if media_type.nil? || media_type == Mime[:json]
