@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Build and install all gems as the version specified in RAILS_VERSION for local testing.
+
+VERSION=$(cat RAILS_VERSION)
+
+bundle
+
+gems=("activesupport" "activemodel" "activerecord" "actionpack" "actionview" "activejob" "actioncable" "activestorage" "actiontext" "railties")
+
+for gem in "${gems[@]}"; do
+  if [ -d "$gem" ]; then
+    cd "$gem"
+    gem build "$gem.gemspec"
+    gem install --no-document "$gem-$VERSION.gem"
+    rm "$gem-$VERSION.gem"
+    cd -
+  fi
+done
