@@ -218,14 +218,13 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_raises(ActionController::UnfilteredParameters) { params.to_h { |key, value| [key, value] } }
   end
 
-  test "[]= does not convert hashes to parameters" do
+  test "[]= converts hashes to parameters" do
     params = ActionController::Parameters.new(name: "Bruce")
     guitar = { "make" => "Fender", "model" => "Telecaster" }
     params[:guitar] = guitar
-
     assert_equal(
-      guitar,
-      params.instance_variable_get(:@parameters)[:guitar], # bypass #Parameters#[], which itself converts hashes to parameters
+      ActionController::Parameters.new(guitar),
+      params.instance_variable_get(:@parameters)[:guitar], # bypass #Parameters#[], which also converts hashes to parameters
     )
   end
 end

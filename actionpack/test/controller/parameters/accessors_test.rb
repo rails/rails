@@ -444,15 +444,12 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_nil(params.extract_value(:non_existent_key))
   end
 
-  def test_to_h_raises_error_when_unpermitted_only_after_access
+  def test_to_h_raises_error_when_unpermitted
     params = ActionController::Parameters.new(name: "Bruce").permit(:name)
     assert_equal({ "name" => "Bruce" }, params.to_h)
 
     guitar = { "make" => "Fender", "model" => "Telecaster" }
     params[:guitar] = guitar
-    assert_equal({ "name" => "Bruce", "guitar" => guitar }, params.to_h)
-
-    assert_equal(ActionController::Parameters.new(guitar), params[:guitar])
     assert_raises(ActionController::UnfilteredParameters) { params.to_h }
   end
 end
