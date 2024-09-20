@@ -14,6 +14,7 @@ module ActiveRecord
         end
         super
         @klass = options[:class]
+        @klass = @klass.superclass if @klass.singleton_class?
       end
 
       def validate_each(record, attribute, value)
