@@ -404,6 +404,16 @@ module SharedGeneratorTests
     assert_file "myproject/Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
   end
 
+  def test_generated_files_have_no_rubocop_warnings
+    run_generator
+
+    Dir.chdir(destination_root) do
+      output = `./bin/rubocop`
+
+      assert_predicate $?, :success?, "bin/rubocop did not exit successfully:\n#{output}"
+    end
+  end
+
   private
     def fixtures_root
       File.expand_path("../fixtures", __dir__)
