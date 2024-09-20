@@ -18,7 +18,7 @@ After reading this guide, you will know:
 What is Action Mailer?
 ----------------------
 
-Action Mailer allows you to send emails from your Rails application. It's one of the two email related components in the Rails framework. Action Mailer, which is for sending emails and [Action Mailbox](action_mailbox_basics.html), which deals with receiving emails.
+Action Mailer allows you to send emails from your Rails application. It's one of the two email related components in the Rails framework. The other is [Action Mailbox](action_mailbox_basics.html), which deals with _receiving_ emails.
 
 Action Mailer uses classes (called "mailers") and views to create and configure the email to send. Mailers are classes that inherit from [`ActionMailer::Base`][]. Mailer classes are similar to controller classes. Both have:
 
@@ -99,6 +99,8 @@ class UserMailer < ApplicationMailer
 end
 ```
 
+NOTE: The method names in mailers do not have to end in `_email`.
+
 Here is a quick explanation of the Mailer related methods used above:
 
 * The [`default`][] method sets default values for all emails sent from
@@ -116,6 +118,11 @@ $ bin/rails generate mailer User welcome_email
 ```
 
 The above will generate the `UserMailer` with an empty `welcome_email` method.
+
+You can also send multiple emails from a single mailer class. It can be
+convenient to group related emails together. For example, the above `UserMailer`
+can have a `goodbye_email` (and corresponding view) in addition to the
+`welcome_email`.
 
 [`default`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-default
 [`mail`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-mail
@@ -639,8 +646,8 @@ carbon copy (bcc) recipients, by setting the `:cc` and `:bcc` keys respectively 
 
 ### Sending Email with Name
 
-It's possible to show the name, instead of the email address, of the person who
-receives the email or sends the email.
+It's possible to show the name, in addition to the email address, of the person
+who receives the email or sends the email.
 
 To show the name of the person when they receive the email, you can use
 [`email_address_with_name`][] method in `to:`:
