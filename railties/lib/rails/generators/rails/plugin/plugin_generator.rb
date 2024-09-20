@@ -489,9 +489,11 @@ module Rails
 
       def test_command
         if engine? && !options[:skip_active_record] && with_dummy_app?
-          "db:test:prepare test"
+          "bin/rails db:test:prepare test"
+        elsif engine?
+          "bin/rails test"
         else
-          "test"
+          "bin/test"
         end
       end
     end
