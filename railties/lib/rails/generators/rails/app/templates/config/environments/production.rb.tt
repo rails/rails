@@ -52,7 +52,6 @@ Rails.application.configure do
   <%- unless options[:skip_active_job] -%>
   # Replace the default in-process and non-durable queuing backend for Active Job.
   # config.active_job.queue_adapter = :resque
-  # config.active_job.queue_name_prefix = "<%= app_name %>_production"
 
   <%- end -%>
   <%- unless options.skip_action_mailer? -%>
