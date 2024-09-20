@@ -915,6 +915,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     Object.send(:remove_const, "ENGINE_ROOT")
   end
 
+  def test_railtie_test_command
+    run_generator [destination_root]
+    assert_file ".github/workflows/ci.yml", /run: bin\/test/
+  end
+
+  def test_engine_test_command
+    run_generator [destination_root, "--full"]
+    assert_file ".github/workflows/ci.yml", /run: bin\/rails db:test:prepare test/
+  end
+
+  def test_engine_without_active_record_test_command
+    run_generator [destination_root, "--full", "--skip-active-record"]
+    assert_file ".github/workflows/ci.yml", /run: bin\/rails test/
+  end
+
   private
     def action(*args, &block)
       silence(:stdout) { generator.send(*args, &block) }
