@@ -3,8 +3,8 @@
 # Build and install all gems as the version specified in RAILS_VERSION for local testing.
 VERSION=$(cat RAILS_VERSION)
 
-# Gems are listed in order of dependency
-gems=("activesupport" "activemodel" "activerecord" "actionpack" "actionview" "activejob" "actioncable" "activestorage" "actiontext" "railties")
+# Install gems in order of dependency
+gems=("activesupport" "activemodel" "activerecord" "actionpack" "actionview" "activejob" "actioncable" "activestorage" "actiontext" "actionmailbox" "actionmailer" "railties")
 
 for gem in "${gems[@]}"; do
   if [ -d "$gem" ]; then
@@ -15,3 +15,8 @@ for gem in "${gems[@]}"; do
     cd -
   fi
 done
+
+# Install the master gem
+gem build rails.gemspec
+gem install --no-document rails-$VERSION.gem
+rm rails-$VERSION.gem
