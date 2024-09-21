@@ -241,6 +241,17 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(expected_comments.sort, comments.sort)
   end
 
+  def test_foreign_key_is_in_ignored_columns
+    assert_raises ArgumentError do
+      model = Class.new(ActiveRecord::Base) do
+        self.table_name = "comments"
+        self.ignored_columns = %w[post_id]
+
+        belongs_to :post
+      end
+    end
+  end
+
   def test_query_constraints_over_three_without_defining_explicit_foreign_key_query_constraints_raises
     Sharded::BlogPostWithRevision.has_many :comments_without_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
     blog_post = sharded_blog_posts(:great_post_blog_one)
