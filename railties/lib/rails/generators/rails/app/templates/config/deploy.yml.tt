@@ -58,7 +58,7 @@ env:
     # Match this to any external database server to configure Active Record correctly
     # DB_HOST: 192.168.0.2
 
-    # # Log everything from Rails
+    # Log everything from Rails
     # RAILS_LOG_LEVEL: debug
 <% end -%>
 
