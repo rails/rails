@@ -242,7 +242,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_foreign_key_is_in_ignored_columns
-    assert_raises ArgumentError do
+    assert_raises ArgumentError, match: /the column post_id is ignored/ do
       Class.new(ActiveRecord::Base) do
         self.table_name = "comments"
         self.ignored_columns = %w[post_id]
