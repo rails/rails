@@ -40,6 +40,9 @@ env:
 
   #   # Match this to any external database server to configure Active Record correctly
   #   DB_HOST: 192.168.0.2
+
+  #   # Log everything from Rails
+  #   RAILS_LOG_LEVEL: debug
 <% else -%>
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
@@ -54,6 +57,9 @@ env:
 
     # Match this to any external database server to configure Active Record correctly
     # DB_HOST: 192.168.0.2
+
+    # # Log everything from Rails
+    # RAILS_LOG_LEVEL: debug
 <% end -%>
 
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
