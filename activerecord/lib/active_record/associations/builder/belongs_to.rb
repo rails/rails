@@ -17,6 +17,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
       [:destroy, :delete, :destroy_async]
     end
 
+    def self.validate_reflection!(model, reflection)
+      if reflection.belongs_to? && model.ignored_columns.include?(reflection.foreign_key.to_s)
+        raise ArgumentError, "You tried to define a belongs_to association for #{name}, but the column #{reflection.foreign_key} is ignored. You can remove it from the ignored_columns list if you want to use it."
+      end
+    end
+
     def self.define_callbacks(model, reflection)
       super
       add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
