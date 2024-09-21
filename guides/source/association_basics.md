@@ -3137,7 +3137,7 @@ Although the `:counter_cache` option is specified on the model with the
 `books_count` column to the `Author` model:
 
 ```ruby
-class AddBooksCountToAuthors < ActiveRecord::Migration[6.0]
+class AddBooksCountToAuthors < ActiveRecord::Migration[8.0]
   def change
     add_column :authors, :books_count, :integer, default: 0, null: false
   end
