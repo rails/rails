@@ -1676,7 +1676,6 @@ module ActiveRecord
         #   belongs_to :note, query_constraints: [:organization_id, :note_id]
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
-
           Reflection.add_reflection self, name, reflection
         end
 
