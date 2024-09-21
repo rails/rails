@@ -425,7 +425,8 @@ module Rails
         end
 
         def gem_ruby_version
-          Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
+          version = Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
+          version.to_s.gsub(".preview", "-preview")
         end
     end
   end
