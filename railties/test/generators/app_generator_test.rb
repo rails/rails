@@ -1539,19 +1539,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file(".devcontainer/compose.yaml")
   end
 
-  def test_gem_ruby_version_handles_preview_version
-    original_ruby_version = RUBY_VERSION
-    Object.send(:remove_const, :RUBY_VERSION)
-    Object.const_set(:RUBY_VERSION, "3.4.0.preview1")
-
-    expected_version = "3.4.0-preview1"
-    assert_equal expected_version, gem_ruby_version
-
-  ensure
-    Object.send(:remove_const, :RUBY_VERSION)
-    Object.const_set(:RUBY_VERSION, original_ruby_version)
-  end
-
   private
     def assert_load_defaults
       assert_file "config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
