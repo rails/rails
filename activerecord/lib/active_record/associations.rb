@@ -1677,10 +1677,6 @@ module ActiveRecord
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
 
-          if self.ignored_columns.include?(reflection.foreign_key.to_s)
-            raise ArgumentError, "You tried to define a belongs_to association for #{name}, but the column #{reflection.foreign_key} is ignored. You can remove it from the ignored_columns list if you want to use it."
-          end
-
           Reflection.add_reflection self, name, reflection
         end
 

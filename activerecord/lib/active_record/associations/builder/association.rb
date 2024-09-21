@@ -30,6 +30,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       reflection = create_reflection(model, name, scope, options, &block)
+
+      if reflection.belongs_to? && model.ignored_columns.include?(reflection.foreign_key.to_s)
+        raise ArgumentError, "You tried to define a belongs_to association for #{name}, but the column #{reflection.foreign_key} is ignored. You can remove it from the ignored_columns list if you want to use it."
+      end
+
       define_accessors(model, reflection)
       define_callbacks(model, reflection)
       define_validations(model, reflection)
