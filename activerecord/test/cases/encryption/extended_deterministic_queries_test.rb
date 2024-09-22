@@ -20,6 +20,39 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
     assert EncryptedBook.where("id > 0").find_by(name: "Dune") # relation
   end
 
+  test "WHERE queries on encrypted fields return the appropriate records with a mix of unencrypted and encrypted data" do
+    enc_a1 = EncryptedBook.create!(name: "A")
+    enc_b1 = EncryptedBook.create!(name: "B")
+    unenc_a = UnencryptedBook.create!(name: "A")
+    unenc_b = UnencryptedBook.create!(name: "B")
+    enc_a2 = EncryptedBook.find(unenc_a.id)
+    enc_b2 = EncryptedBook.find(unenc_b.id)
+
+    assert EncryptedBook.where(name: "A").include?(enc_a1)
+    assert EncryptedBook.where(name: "A").exclude?(enc_b1)
+    assert EncryptedBook.where(name: "A").include?(enc_a2)
+    assert EncryptedBook.where(name: "A").exclude?(enc_b2)
+
+    assert EncryptedBook.where(name: "A").to_sql.include?("IN") # at risk of testing an implementation detail
+  end
+
+  test "WHERE NOT queries on encrypted fields return the appropriate records with a mix of unencrypted and encrypted data" do
+    enc_a1 = EncryptedBook.create!(name: "A")
+    enc_b1 = EncryptedBook.create!(name: "B")
+    unenc_a = UnencryptedBook.create!(name: "A")
+    unenc_b = UnencryptedBook.create!(name: "B")
+    enc_a2 = EncryptedBook.find(unenc_a.id)
+    enc_b2 = EncryptedBook.find(unenc_b.id)
+
+    assert EncryptedBook.where.not(name: "A").include?(enc_b1)
+    assert EncryptedBook.where.not(name: "A").exclude?(enc_a1)
+    assert EncryptedBook.where.not(name: "A").include?(enc_b2)
+    # FAILS! The query should return all records where name is NOT "A", but it returns the `enc_a2` record, which has name "A".
+    assert EncryptedBook.where.not(name: "A").exclude?(enc_a2)
+
+    # assert EncryptedBook.where.not(name: "A").to_sql.include?("NOT IN") # at risk of testing an implementation detail
+  end
+
   test "Works well with downcased attributes" do
     EncryptedBookWithDowncaseName.create! name: "Dune"
     assert EncryptedBookWithDowncaseName.find_by(name: "DUNE")
