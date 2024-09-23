@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
+require "models/entryable"
+
 # `counter_cache` requires association class before `attr_readonly`.
 class Post < ActiveRecord::Base; end
 
 class Comment < ActiveRecord::Base
+  include Entryable
+
   scope :limit_by, lambda { |l| limit(l) }
   scope :containing_the_letter_e, -> { where("comments.body LIKE '%e%'") }
   scope :not_again, -> { where("comments.body NOT LIKE '%again%'") }
