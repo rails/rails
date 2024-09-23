@@ -18,7 +18,7 @@ Rails.application.configure do
 
   # Set canonical url for your application that'll be accessible via Rails.application.url.
   # Used by Action Controller, Action Mailer, Active Storage for generating urls outside of active requests.
-  # config.application_url = "https://app.example.com"
+  # config.application_url = ENV["APP_URL"] || "https://app.example.com"
 
   # Ensures that a master key has been made available in ENV["RAILS_MASTER_KEY"], config/master.key, or an environment
   # key such as config/credentials/production.key. This key is used to decrypt credentials (and other encrypted files).
