@@ -37,6 +37,10 @@ class CoreTest < ActiveRecord::TestCase
     assert_match(/Topic id: nil/, Topic.new.inspect)
   end
 
+  def test_inspect_singleton_instance
+    assert_match(/#<Class:#<Topic:\w+>>/, Topic.new.singleton_class.inspect)
+  end
+
   def test_inspect_limited_select_instance
     assert_equal %(#<Topic id: 1>), Topic.all.merge!(select: "id", where: "id = 1").first.inspect
     assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(select: "id, title", where: "id = 1").first.inspect

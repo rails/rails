@@ -346,7 +346,7 @@ module ActiveRecord
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect # :nodoc:
-        if self == Base
+        if self == Base || singleton_class?
           super
         elsif abstract_class?
           "#{super}(abstract)"
