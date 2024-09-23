@@ -114,4 +114,47 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert_respond_to Entry.new, :build_entryable
     assert_equal Message, Entry.new(entryable_type: "Message").build_entryable.class
   end
+
+  test "skip inferring inverse_of when not automatic_scope_inversing is false" do
+    entryable = Message.new(subject: "Hello world!")
+    entry = Entry.create!(entryable: entryable, account: accounts(:signals37))
+
+    created = entry.message
+    updated = entry.build_entryable subject: "Goodbye world!"
+
+    assert_no_changes -> { entry.reload.message }, from: created do
+      updated.save!
+    end
+  end
+
+  test "automatically infer inverse_of when automatic_scope_inversing is true" do
+    with_automatic_scope_inversing Entry => -> { delegated_type :entryable, types: %w[ Message Comment ] } do
+      entryable = Message.new(subject: "Hello world!")
+      entry = Entry.create!(entryable: entryable, account: accounts(:signals37))
+
+      created = entry.message
+      updated = entry.build_entryable subject: "Goodbye world!"
+
+      assert_changes -> { entry.reload.message }, from: created, to: updated do
+        updated.save!
+      end
+    end
+  end
+
+  def with_automatic_scope_inversing(model_classes_to_callables)
+    configurations = {}
+
+    model_classes_to_callables.each do |model_class, callable|
+      configurations[model_class] = model_class.automatic_scope_inversing
+      model_class.automatic_scope_inversing = true
+      silence_warnings { model_class.instance_exec(&callable) }
+    end
+
+    yield
+  ensure
+    model_classes_to_callables.each do |model_class, callable|
+      model_class.automatic_scope_inversing = configurations.fetch(model_class)
+      silence_warnings { model_class.instance_exec(&callable) }
+    end
+  end
 end
