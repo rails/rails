@@ -105,17 +105,6 @@
 
     *Justin Talbott*
 
-*   Infer default `:inverse_of` option for `delegated_type` definitions.
-
-    ```ruby
-    class Entry < ApplicationRecord
-      delegated_type :entryable, types: %w[ Message ]
-      # => defaults to inverse_of: :entry
-    end
-    ```
-
-    *Sean Doyle*
-
 *   Add support for `ActiveRecord::Point` type casts using `Hash` values
 
     This allows `ActiveRecord::Point` to be cast or serialized from a hash
