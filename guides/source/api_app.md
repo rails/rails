@@ -379,6 +379,7 @@ file.
 
 If your front-end server supports accelerated file sending, `Rack::Sendfile`
 will offload the actual file sending work to the front-end server.
+This enables Rails to finish request handling and free resources earlier.
 
 You can configure the name of the header that your front-end server uses for
 this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
@@ -412,17 +413,14 @@ format and make them available in your controller inside `params`.
 To use this, your client will need to make a request with JSON-encoded parameters
 and specify the `Content-Type` as `application/json`.
 
-Here's an example in jQuery:
+Here's an example:
 
 ```js
-jQuery.ajax({
-  type: 'POST',
-  url: '/people',
-  dataType: 'json',
-  contentType: 'application/json',
-  data: JSON.stringify({ person: { firstName: "Yehuda", lastName: "Katz" } }),
-  success: function(json) { }
-});
+fetch('/people', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ person: { firstName: 'Yehuda', lastName: 'Katz' } })
+}).then(response => response.json())
 ```
 
 `ActionDispatch::Request` will see the `Content-Type` and your parameters

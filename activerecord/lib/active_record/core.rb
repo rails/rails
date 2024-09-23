@@ -104,7 +104,7 @@ module ActiveRecord
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
       # Specifies the attributes that will be included in the output of the #inspect method
-      class_attribute :attributes_for_inspect, instance_accessor: false, default: [:id]
+      class_attribute :attributes_for_inspect, instance_accessor: false, default: :all
 
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
@@ -350,7 +350,7 @@ module ActiveRecord
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect # :nodoc:
-        if self == Base
+        if self == Base || singleton_class?
           super
         elsif abstract_class?
           "#{super}(abstract)"
@@ -732,7 +732,7 @@ module ActiveRecord
 
     # Returns the full contents of the record as a nicely formatted string.
     def full_inspect
-      inspect_with_attributes(attribute_names)
+      inspect_with_attributes(all_attributes_for_inspect)
     end
 
     # Takes a PP and prettily prints this record to it, allowing you to get a nice result from <tt>pp record</tt>
@@ -824,7 +824,13 @@ module ActiveRecord
       end
 
       def attributes_for_inspect
-        self.class.attributes_for_inspect == :all ? attribute_names : self.class.attributes_for_inspect
+        self.class.attributes_for_inspect == :all ? all_attributes_for_inspect : self.class.attributes_for_inspect
+      end
+
+      def all_attributes_for_inspect
+        return [] unless @attributes
+
+        attribute_names
       end
   end
 end

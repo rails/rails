@@ -1,3 +1,7 @@
+*   Include options when instrumenting `ActiveSupport::Cache::Store#delete` and `ActiveSupport::Cache::Store#delete_multi`.
+
+    *Adam Renberg Tamm*
+
 *   Print test names when running `rails test -v` for parallel tests.
 
     *John Hawthorn*, *Abeid Ahmed*

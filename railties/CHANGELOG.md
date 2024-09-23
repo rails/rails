@@ -24,6 +24,17 @@
 
     *Tim Aßmann*
 
+*   Do not include redis by default in generated Dev Containers.
+
+    Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis
+    in the Dev Container. We will only include redis if `--skip-solid` is used when generating an app that uses
+    Active Job or Action Cable.
+
+    When generating a Dev Container for an existing app, we will not include redis if either of the solid gems
+    are in use.
+
+    *Andrew Novoselac*
+
 *   Use [Solid Cable](https://github.com/rails/solid_cable) as the default Action Cable adapter in production, configured as a separate queue database in config/database.yml. It keeps messages in a table and continuously polls for updates. This makes it possible to drop the common dependency on Redis, if it isn't needed for any other purpose. Despite polling, the performance of Solid Cable is comparable to Redis in most situations. And in all circumstances, it makes it easier to deploy Rails when Redis is no longer a required dependency for Action Cable functionality.
 
     *DHH*

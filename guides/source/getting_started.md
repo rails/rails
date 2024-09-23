@@ -64,8 +64,9 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
-TIP: New Rails apps come with a preconfigured Dev Container development environment. This
-is the fastest way to get started with Rails. For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
+TIP: You can create new Rails apps come with a preconfigured Dev Container development environment. This
+is the fastest way to get started with Rails.
+For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
 
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
@@ -412,7 +413,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[7.2]
+class CreateArticles < ActiveRecord::Migration[8.0]
   def change
     create_table :articles do |t|
       t.string :title
@@ -1351,7 +1352,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[7.2]
+class CreateComments < ActiveRecord::Migration[8.0]
   def change
     create_table :comments do |t|
       t.string :commenter

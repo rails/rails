@@ -677,7 +677,7 @@ module ActiveSupport
         options = merged_options(options)
         key = normalize_key(name, options)
 
-        instrument(:delete, key) do
+        instrument(:delete, key, options) do
           delete_entry(key, **options)
         end
       end
@@ -692,7 +692,7 @@ module ActiveSupport
         options = merged_options(options)
         names.map! { |key| normalize_key(key, options) }
 
-        instrument_multi :delete_multi, names do
+        instrument_multi(:delete_multi, names, options) do
           delete_multi_entries(names, **options)
         end
       end
@@ -945,9 +945,12 @@ module ActiveSupport
         #
         #   namespace_key 'foo', namespace: -> { 'cache' }
         #   # => 'cache:foo'
-        def namespace_key(key, options = nil)
-          options = merged_options(options)
-          namespace = options[:namespace]
+        def namespace_key(key, call_options = nil)
+          namespace = if call_options&.key?(:namespace)
+            call_options[:namespace]
+          else
+            options[:namespace]
+          end
 
           if namespace.respond_to?(:call)
             namespace = namespace.call

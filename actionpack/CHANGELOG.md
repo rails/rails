@@ -5,6 +5,10 @@
 
     *Tim Aßmann*
 
+*   Update `ActionController::Live` to use a thread-pool to reuse threads across requests.
+
+    *Adam Renberg Tamm*
+
 *   Introduce safer, more explicit params handling method with `params#expect` such that
     `params.expect(table: [ :attr ])` replaces `params.require(:table).permit(:attr)`
 

@@ -13,6 +13,12 @@ servers:
   #     - 192.168.0.1
   #   cmd: bin/jobs
 
+# Enable SSL auto certification via Let's Encrypt (and allow for multiple apps on one server).
+# Set ssl: false if using something like Cloudflare to terminate SSL (but keep host!).
+proxy:
+  ssl: true
+  host: app.example.com
+
 # Credentials for your image host.
 registry:
   # Specify the registry server, if you're not using Docker Hub
@@ -23,8 +29,7 @@ registry:
   password:
     - KAMAL_REGISTRY_PASSWORD
 
-# Inject ENV variables into containers (secrets come from .env).
-# Remember to run `kamal env push` after making changes!
+# Inject ENV variables into containers (secrets come from .kamal/secrets).
 env:
   secret:
     - RAILS_MASTER_KEY
@@ -40,6 +45,9 @@ env:
 
   #   # Match this to any external database server to configure Active Record correctly
   #   DB_HOST: 192.168.0.2
+
+  #   # Log everything from Rails
+  #   RAILS_LOG_LEVEL: debug
 <% else -%>
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
@@ -54,7 +62,18 @@ env:
 
     # Match this to any external database server to configure Active Record correctly
     # DB_HOST: 192.168.0.2
+
+    # Log everything from Rails
+    # RAILS_LOG_LEVEL: debug
 <% end -%>
+
+# Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
+# "bin/kamal logs -r job" will tail logs from the first server in the job section.
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole"
 
 <% unless skip_storage? %>
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
@@ -68,27 +87,25 @@ volumes:
 # version inside the asset_path.
 asset_path: /rails/public/assets
 
+# Configure the image builder.
+builder:
+  arch: amd64
+
+  # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
+  # remote: ssh://docker@docker-builder-server
+  #
+  # # Pass arguments and secrets to the Docker build process
+  # args:
+  #   RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+  # secrets:
+  #   - GITHUB_TOKEN
+  #   - RAILS_MASTER_KEY
+
 # Use a different ssh user than root
 # ssh:
 #   user: app
 
-# Configure builder setup (defaults to multi-arch images).
-# builder:
-#   # Build same-arch image locally (use for x86->x86)
-#   multiarch: false
-#
-#   # Build diff-arch image via remote server
-#   remote:
-#     arch: amd64
-#     host: ssh://app@192.168.0.1
-#
-#   args:
-#     RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
-#   secrets:
-#     - GITHUB_TOKEN
-#     - RAILS_MASTER_KEY
-
-# Use accessory services (secrets come from .env).
+# Use accessory services (secrets come from .kamal/secrets).
 # accessories:
 #   db:
 #     image: mysql:8.0

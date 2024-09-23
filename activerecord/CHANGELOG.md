@@ -1,3 +1,18 @@
+*   Allow `drop_table` to accept an array of table names.
+
+    This will let you to drop multiple tables in a single call.
+
+    ```ruby
+    ActiveRecord::Base.connection.drop_table(:users, :posts)
+    ```
+
+    *Gabriel Sobrinho*
+
+*   Add support for PostgreSQL `IF NOT EXISTS` via the `:if_not_exists` option
+    on the `add_enum_value` method.
+
+    *Ariel Rzezak*
+
 *   When running `db:migrate` on a fresh database, load the database schema before running migrations.
 
     *Andrew Novoselac*

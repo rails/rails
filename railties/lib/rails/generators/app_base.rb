@@ -19,7 +19,6 @@ module Rails
 
       JAVASCRIPT_OPTIONS = %w( importmap bun webpack esbuild rollup )
       CSS_OPTIONS = %w( tailwind bootstrap bulma postcss sass )
-      ASSET_PIPELINE_OPTIONS = %w( none sprockets propshaft )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -73,10 +72,6 @@ module Rails
                                            desc: "Skip Action Cable files"
 
         class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil
-
-        class_option :asset_pipeline,      type: :string, aliases: "-a", default: "propshaft",
-                                           enum: ASSET_PIPELINE_OPTIONS,
-                                           desc: "Choose your asset pipeline"
 
         class_option :skip_javascript,     type: :boolean, aliases: ["-J", "--skip-js"], default: (true if name == "plugin"),
                                            desc: "Skip JavaScript files"
@@ -296,12 +291,7 @@ module Rails
       end
 
       def asset_pipeline_gemfile_entry
-        return if skip_asset_pipeline?
-
-        if options[:asset_pipeline] == "sprockets"
-          GemfileEntry.floats "sprockets-rails",
-            "The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]"
-        elsif options[:asset_pipeline] == "propshaft"
+        unless skip_asset_pipeline?
           GemfileEntry.floats "propshaft", "The modern asset pipeline for Rails [https://github.com/rails/propshaft]"
         end
       end
@@ -393,14 +383,6 @@ module Rails
 
       def skip_asset_pipeline? # :doc:
         options[:skip_asset_pipeline]
-      end
-
-      def skip_sprockets?
-        skip_asset_pipeline? || options[:asset_pipeline] != "sprockets"
-      end
-
-      def skip_propshaft?
-        skip_asset_pipeline? || options[:asset_pipeline] != "propshaft"
       end
 
       def skip_thruster?
@@ -641,10 +623,10 @@ module Rails
       end
 
       def cable_gemfile_entry
-        return if options[:skip_action_cable]
-
-        comment = "Use Redis adapter to run Action Cable in production"
-        GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
+        if !options[:skip_action_cable] && options[:skip_solid]
+          comment = "Use Redis adapter to run Action Cable in production"
+          GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
+        end
       end
 
       def bundle_command(command, env = {})
@@ -748,8 +730,7 @@ module Rails
         bundle_command "binstubs kamal"
         bundle_command "exec kamal init"
 
-        remove_file ".env"
-        template "env.erb", ".env.erb"
+        template "kamal-secrets.tt", ".kamal/secrets", force: true
         template "config/deploy.yml", force: true
       end
 

@@ -283,7 +283,7 @@ end
 ```irb
 irb> user = User.create(name: "Jane Doe", password: "password", email: "jane.doe@example.com")
 
-Password encrypted for user with email: jane.doe@example.com
+Password hashed for user with email: jane.doe@example.com
 Saving user with email: jane.doe@example.com
 User saved with email: jane.doe@example.com
 Update Cache

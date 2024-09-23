@@ -69,6 +69,7 @@ module ActiveRecord
         Rails.logger.broadcast_to(console)
       end
       ActiveRecord.verbose_query_logs = false
+      ActiveRecord::Base.attributes_for_inspect = :all if Rails.env.production?
     end
 
     runner do
@@ -432,16 +433,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
         ActiveSupport.on_load(:active_record) do
           require "active_record/message_pack"
           ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
-        end
-      end
-    end
-
-    initializer "active_record.attributes_for_inspect" do |app|
-      ActiveSupport.on_load(:active_record) do
-        if app.config.consider_all_requests_local
-          if app.config.active_record.attributes_for_inspect.nil?
-            ActiveRecord::Base.attributes_for_inspect = :all
-          end
         end
       end
     end

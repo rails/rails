@@ -46,16 +46,6 @@ module RailtiesTest
       ActiveRecord::MigrationContext.new(migration_root, sm, im).migrations
     end
 
-    test "serving sprocket's assets" do
-      @plugin.write "app/assets/javascripts/engine.js.erb", "<%= :alert %>();"
-      add_to_env_config "development", "config.assets.digest = false"
-
-      boot_rails
-
-      get "/assets/engine.js"
-      assert_match "alert()", last_response.body
-    end
-
     test "rake environment can be called in the engine" do
       boot_rails
 
@@ -1534,10 +1524,10 @@ en:
       assert_equal "App's bar partial", last_response.body.strip
 
       get("/assets/foo.js")
-      assert_match "// Bukkit's foo js", last_response.body.strip
+      assert_predicate last_response, :not_found?
 
       get("/assets/bar.js")
-      assert_match "// App's bar js", last_response.body.strip
+      assert_predicate last_response, :not_found?
 
       assert_equal <<~EXPECTED, Rails.application.send(:ordered_railties).flatten.map(&:class).map(&:name).join("\n") << "\n"
         I18n::Railtie
@@ -1550,7 +1540,7 @@ en:
         ActiveJob::Railtie
         ActionMailer::Railtie
         Rails::TestUnitRailtie
-        Sprockets::Railtie
+        Propshaft::Railtie
         ActionView::Railtie
         ActiveStorage::Engine
         ActionCable::Engine

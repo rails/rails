@@ -228,8 +228,22 @@ module ActionController
         response.stream.close
       end
 
+      def no_thread_locals
+        tc.assert_nil Thread.current[:setting]
+
+        response.headers["Content-Type"] = "text/event-stream"
+        %w{ hello world }.each do |word|
+          response.stream.write word
+        end
+        response.stream.close
+      end
+
       def isolated_state
         render plain: CurrentState.id.inspect
+      end
+
+      def raw_isolated_state
+        render plain: ActiveSupport::IsolatedExecutionState[:raw_isolated_state].inspect
       end
 
       def with_stale
@@ -344,7 +358,7 @@ module ActionController
       super
 
       def @controller.new_controller_thread(&block)
-        Thread.new(&block)
+        original_new_controller_thread(&block)
       end
     end
 
@@ -525,6 +539,34 @@ module ActionController
       assert_stream_closed
     end
 
+    def test_thread_locals_get_reset
+      @controller.tc = self
+
+      Thread.current[:originating_thread] = Thread.current.object_id
+      Thread.current[:setting]            = "aaron"
+
+      get :thread_locals
+
+      Thread.current[:setting] = nil
+
+      get :no_thread_locals
+    end
+
+    def test_isolated_state_get_reset
+      @controller.tc = self
+      ActiveSupport::IsolatedExecutionState[:raw_isolated_state] = "buffy"
+
+      get :raw_isolated_state
+      assert_equal "buffy".inspect, response.body
+      assert_stream_closed
+
+      ActiveSupport::IsolatedExecutionState.clear
+
+      get :isolated_state
+      assert_equal nil.inspect, response.body
+      assert_stream_closed
+    end
+
     def test_live_stream_default_header
       get :default_header
       assert response.headers["Content-Type"]
@@ -565,13 +607,8 @@ module ActionController
     end
 
     def test_exception_callback_when_committed
-      current_threads = Thread.list
-
       capture_log_output do |output|
         get :exception_with_callback, format: "text/event-stream"
-
-        # Wait on the execution of all threads
-        (Thread.list - current_threads).each(&:join)
 
         assert_equal %(data: "500 Internal Server Error"\n\n), response.body
         assert_match "An exception occurred...", output.rewind && output.read

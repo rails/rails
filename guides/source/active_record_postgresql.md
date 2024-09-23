@@ -102,7 +102,7 @@ NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
-class CreateProfiles < ActiveRecord::Migration[7.0]
+class CreateProfiles < ActiveRecord::Migration[8.0]
   enable_extension 'hstore' unless extension_enabled?('hstore')
   create_table :profiles do |t|
     t.hstore 'settings'
@@ -332,6 +332,7 @@ def up
   add_enum_value :article_state, "archived" # will be at the end after published
   add_enum_value :article_state, "in review", before: "published"
   add_enum_value :article_state, "approved", after: "in review"
+  add_enum_value :article_state, "rejected", if_not_exists: true # won't raise an error if the value already exists
 end
 ```
 
