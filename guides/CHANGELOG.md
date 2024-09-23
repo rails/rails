@@ -7,4 +7,10 @@
 
     *Petrik de Heus*
 
+*   The guide _Active Record Multiple Databases_ has been updated to explain that
+    when you switch to a multi database setup, the DATABASE_URL environment
+    variable is no longer automatically used for the primary database.
+
+    *Hampton Lintorn-Catlin*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/guides/CHANGELOG.md) for previous changes.

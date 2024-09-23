@@ -102,6 +102,17 @@ Lastly, for new writer databases, you need to set the `migrations_paths` key to 
 where you will store migrations for that database. We'll look more at `migrations_paths`
 later on in this guide.
 
+NOTE: Multiple database configurations do not automatically use the
+DATABASE_URL environment variable. If you want to use the DATABASE_URL
+environment variable, you can pass it directly in the configuration file.
+
+```yaml
+production:
+   primary:
+      url: <%= ENV['DATABASE_URL'] %>
+   ...
+```
+
 You can also configure the schema dump file by setting `schema_dump` to a custom schema file name
 or completely skip the schema dumping by setting `schema_dump: false`.
 
