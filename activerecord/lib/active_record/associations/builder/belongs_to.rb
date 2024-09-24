@@ -122,8 +122,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       if reflection.options[:polymorphic].is_a?(Array)
+        reflection.options[:polymorphic] = reflection.options[:polymorphic].map(&:to_s)
+
         model.validates reflection.foreign_type,
-          inclusion: { in: reflection.options[:polymorphic].map { |klass| klass.to_s } },
+          inclusion: { in: reflection.options[:polymorphic] },
           allow_blank: true
       end
 

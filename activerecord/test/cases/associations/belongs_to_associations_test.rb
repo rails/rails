@@ -1396,6 +1396,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal ["Wheelable type is not included in the list"], wheel.errors.full_messages
   end
 
+  def test_polymorphic_unpermitted_class
+    citation = Citation.create!
+
+    wheel = TestPolymorphicArrayAllowed.new(wheelable_type: "Citation", wheelable_id: citation.id)
+    assert_equal "Citation", wheel.wheelable_type
+    assert_equal citation.id, wheel.wheelable_id
+    assert_nil wheel.wheelable
+  end
+
+  def test_polymorphic_unknown_class
+    wheel = TestPolymorphicArrayAllowed.new(wheelable_type: "FakeModel", wheelable_id: 1)
+
+    assert_equal "FakeModel", wheel.wheelable_type
+    assert_equal 1, wheel.wheelable_id
+    assert_nil wheel.wheelable
+  end
+
   def test_polymorphic_with_custom_foreign_type
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
     groucho = members(:groucho)
