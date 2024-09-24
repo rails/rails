@@ -855,6 +855,16 @@ module ActiveRecord
       #
       # Note: only supported by PostgreSQL.
       #
+      # ====== Creating an index where NULLs are treated equally
+      #
+      #   add_index(:people, :last_name, nulls_not_distinct: true)
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_people_on_last_name ON people (last_name) NULLS NOT DISTINCT
+      #
+      # Note: only supported by PostgreSQL version 15.0.0 and greater.
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
