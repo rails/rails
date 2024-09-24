@@ -1,3 +1,7 @@
+*   Do not generate unused routes in the authentication generator
+
+    *Matheus Richard*
+
 *   Do not include redis by default in generated Dev Containers.
 
     Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis

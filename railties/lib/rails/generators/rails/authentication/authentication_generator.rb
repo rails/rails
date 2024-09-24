@@ -32,8 +32,8 @@ module Rails
       end
 
       def configure_authentication_routes
-        route "resources :passwords, param: :token"
-        route "resource :session"
+        route "resources :passwords, param: :token, only: %i[new create edit update]"
+        route "resource :session, only: %i[new create destroy]"
       end
 
       def enable_bcrypt
