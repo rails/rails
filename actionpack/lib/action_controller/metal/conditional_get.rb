@@ -76,8 +76,7 @@ module ActionController
     # `:cache_control`
     # :   When given, will overwrite an existing `Cache-Control` header. For a list
     #     of `Cache-Control` directives, see the [article on
-    #     MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Contr
-    #     ol).
+    #     MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
     #
     # `:template`
     # :   By default, the template digest for the current controller/action is
