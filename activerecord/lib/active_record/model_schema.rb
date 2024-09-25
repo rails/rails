@@ -431,7 +431,6 @@ module ActiveRecord
       end
 
       def columns
-        load_schema unless @columns
         @columns ||= columns_hash.values.freeze
       end
 

@@ -8,6 +8,8 @@ gem "minitest"
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
 
+gem "releaser", path: "tools/releaser"
+
 gem "sprockets-rails", ">= 2.0.0", require: false
 gem "propshaft", ">= 0.1.7"
 gem "capybara", ">= 3.39"
@@ -158,7 +160,7 @@ platforms :ruby, :windows do
   gem "nokogiri", ">= 1.8.1", "!= 1.11.0"
 
   # Active Record.
-  gem "sqlite3", ">= 2.0"
+  gem "sqlite3", ">= 2.1"
 
   group :db do
     gem "pg", "~> 1.3"

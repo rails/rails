@@ -11,8 +11,11 @@ require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", ">= 2.0"
+gem "sqlite3", ">= 2.1"
 require "sqlite3"
+
+# Suppress the warning that SQLite3 issues when open writable connections are carried across fork()
+SQLite3::ForkSafety.suppress_warnings!
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
