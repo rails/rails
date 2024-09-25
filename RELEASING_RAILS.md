@@ -54,6 +54,15 @@ ensure that the "greatest" version also shows up in npm and GitHub Releases as
 
 Include an RC number if appropriate, e.g. `6.0.0.rc1`.
 
+### Build and test the gem.
+
+Run `rake install` to generate the gems and install them locally. You can now
+use the version installed locally to generate a new app and check if everything
+is working as expected.
+
+This will stop you from looking silly when you push an RC to rubygems.org and
+then realize it is broken.
+
 ### Check credentials for GitHub
 
 For GitHub run `gh auth status` to check that you are logged in (run `gh login` if not).

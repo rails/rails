@@ -26,7 +26,7 @@ gem "dartsass-rails"
 gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
-gem "kamal", require: false
+gem "kamal", ">= 2.0.0.rc2", require: false
 gem "thruster", require: false
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
@@ -160,7 +160,7 @@ platforms :ruby, :windows do
   gem "nokogiri", ">= 1.8.1", "!= 1.11.0"
 
   # Active Record.
-  gem "sqlite3", ">= 2.0"
+  gem "sqlite3", ">= 2.1"
 
   group :db do
     gem "pg", "~> 1.3"

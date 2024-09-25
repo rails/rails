@@ -122,23 +122,26 @@ module ActionView
             wildcard_dependency = +""
 
             while !scanner.eos?
-              next unless scanner.scan_until(/\#{/)
+              if scanner.scan_until(/\#{/)
+                unmatched_brackets = 1
+                wildcard_dependency << scanner.pre_match
 
-              unmatched_brackets = 1
-              wildcard_dependency << scanner.pre_match
+                while unmatched_brackets > 0 && !scanner.eos?
+                  scanner.scan_until(/[{}]/)
 
-              while unmatched_brackets > 0 && !scanner.eos?
-                scanner.scan_until(/[{}]/)
-
-                case scanner.matched
-                when "{"
-                  unmatched_brackets += 1
-                when "}"
-                  unmatched_brackets -= 1
+                  case scanner.matched
+                  when "{"
+                    unmatched_brackets += 1
+                  when "}"
+                    unmatched_brackets -= 1
+                  end
                 end
-              end
 
-              wildcard_dependency << "*"
+                wildcard_dependency << "*"
+              else
+                wildcard_dependency << scanner.rest
+                scanner.terminate
+              end
             end
 
             dependencies << wildcard_dependency

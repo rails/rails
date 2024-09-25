@@ -945,9 +945,12 @@ module ActiveSupport
         #
         #   namespace_key 'foo', namespace: -> { 'cache' }
         #   # => 'cache:foo'
-        def namespace_key(key, options = nil)
-          options = merged_options(options)
-          namespace = options[:namespace]
+        def namespace_key(key, call_options = nil)
+          namespace = if call_options&.key?(:namespace)
+            call_options[:namespace]
+          else
+            options[:namespace]
+          end
 
           if namespace.respond_to?(:call)
             namespace = namespace.call

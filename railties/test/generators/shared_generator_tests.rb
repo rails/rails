@@ -91,7 +91,6 @@ module SharedGeneratorTests
     end
     assert_file "#{application_path}/config/environments/production.rb" do |content|
       assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
-      assert_match(/^  # config\.require_master_key = true/, content)
       assert_match(/config\.active_storage/, content)
     end
 
@@ -383,6 +382,16 @@ module SharedGeneratorTests
   def test_target_rails_prerelease_with_relative_app_path
     run_generator_using_prerelease ["myproject", "--main"]
     assert_file "myproject/Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+  end
+
+  def test_generated_files_have_no_rubocop_warnings
+    run_generator
+
+    Dir.chdir(destination_root) do
+      output = `./bin/rubocop`
+
+      assert_predicate $?, :success?, "bin/rubocop did not exit successfully:\n#{output}"
+    end
   end
 
   private
