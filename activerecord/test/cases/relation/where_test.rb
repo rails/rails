@@ -139,6 +139,16 @@ module ActiveRecord
       assert_equal [book_two], Cpk::Book.where(title: "The Alchemist", [:author_id, :id] => [[3, 4]])
     end
 
+    def test_with_tuple_syntax_and_large_values_list
+      # sqlite3 raises "Expression tree is too large (maximum depth 1000)"
+      skip if current_adapter?(:SQLite3Adapter)
+
+      assert_nothing_raised do
+        ids = [[1, 2]] * 1500
+        Cpk::Book.where([:author_id, :id] => ids).to_sql
+      end
+    end
+
     def test_belongs_to_shallow_where
       author = Author.new
       author.id = 1
