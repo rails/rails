@@ -24,7 +24,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_invoke_when_generator_is_not_found
-    name = :unknown   
+    name = :unknown
     output = capture(:stdout) { 
       assert_raises SystemExit do
         Rails::Generators.invoke name
