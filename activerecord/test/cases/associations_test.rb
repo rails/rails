@@ -249,7 +249,7 @@ class AssociationsTest < ActiveRecord::TestCase
         belongs_to :post
       end
 
-    assert_raises ArgumentError, match: 'Cannot add a belongs_to association for ignored column(s) [post_id]' do
+    assert_raises ArgumentError, match: "Cannot add a belongs_to association for ignored column(s) [post_id]" do
       comment_class.new.post
     end
   end
