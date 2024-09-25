@@ -1,3 +1,9 @@
+*   Exit `rails g` with code 1 if generator could not be found.
+
+    Previously `rails g` returned 0, which would make it harder to catch typos in scripts calling `rails g`.
+
+    *Christopher Özbek*
+
 *   Remove `require_*` statements from application.css to align with the transition from Sprockets to Propshaft.
 
     With Propshaft as the default asset pipeline in Rails 8, the require_tree and require_self clauses in application.css are no longer necessary, as they were specific to Sprockets. Additionally, the comment has been updated to clarify that CSS precedence now follows standard cascading order without automatic prioritization by the asset pipeline.
