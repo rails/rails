@@ -571,10 +571,10 @@ GEM
       actionpack (>= 6.1)
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
-    sqlite3 (2.0.0)
+    sqlite3 (2.1.0)
       mini_portile2 (~> 2.8.0)
-    sqlite3 (2.0.0-x86_64-darwin)
-    sqlite3 (2.0.0-x86_64-linux-gnu)
+    sqlite3 (2.1.0-x86_64-darwin)
+    sqlite3 (2.1.0-x86_64-linux-gnu)
     sshkit (1.23.1)
       base64
       net-scp (>= 1.1.2)
@@ -709,7 +709,7 @@ DEPENDENCIES
   solid_cache
   solid_queue
   sprockets-rails (>= 2.0.0)
-  sqlite3 (>= 2.0)
+  sqlite3 (>= 2.1)
   stackprof
   stimulus-rails
   syntax_tree (= 6.1.1)
