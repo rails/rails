@@ -6,11 +6,77 @@ require "active_model/attribute_set/builder"
 require "active_model/attribute_set/yaml_encoder"
 
 module ActiveModel
+  class ReadOnlyAttributeSet # :nodoc:
+    delegate :each_value, :fetch, :except, to: :attributes
+
+    def initialize(attributes)
+      @attributes = attributes
+      raise ArgumentError, "all attributes should be initialized" unless all_initialized?
+    end
+
+    def [](name)
+      @attributes[name] || default_attribute(name)
+    end
+
+    def cast_types
+      attributes.transform_values(&:type)
+    end
+
+    def keys
+      attributes.keys
+    end
+
+    def key?(name)
+      attributes.key?(name)
+    end
+    alias :include? :key?
+
+    def values
+      attributes.values
+    end
+
+    def writable
+      ReadWriteAttributeSet.new(self, {})
+    end
+
+    def to_hash
+      keys.index_with { |name| self[name].value }
+    end
+
+    alias :to_h :to_hash
+
+    def map(&block)
+      new_attributes = attributes.transform_values(&block)
+      self.class.new(new_attributes)
+    end
+
+    def deep_dup
+      self.class.new(attributes.transform_values(&:deep_dup))
+    end
+
+      attr_reader :attributes
+    protected
+
+    private
+
+      def all_initialized?
+        attributes.values.all? { |v| v.initialized? }
+      end
+
+      def default_attribute(name)
+        Attribute.null(name)
+      end
+  end
+
   class AttributeSet # :nodoc:
     delegate :each_value, :fetch, :except, to: :attributes
 
     def initialize(attributes)
       @attributes = attributes
+    end
+
+    def read_only
+      ReadOnlyAttributeSet.new(attributes)
     end
 
     def [](name)
