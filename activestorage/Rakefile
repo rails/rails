@@ -20,6 +20,4 @@ if ENV["encrypted_0fb9444d0374_key"] && ENV["encrypted_0fb9444d0374_iv"]
   task test: "test/service/configurations.yml"
 end
 
-task :package
-
 task default: :test
