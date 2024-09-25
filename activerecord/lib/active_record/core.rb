@@ -472,7 +472,7 @@ module ActiveRecord
     def initialize(attributes = nil)
       @new_record = true
       @attributes = self.class.attributes_builder.build_from_database(
-        {}, {}, self.class._default_attributes.send(:attributes).transform_values(&:deep_dup)
+        {}, {}, self.class._default_attributes
       )
 
       init_internals

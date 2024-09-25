@@ -261,7 +261,7 @@ module ActiveRecord
 
           attribute_set = ActiveModel::AttributeSet.new(attributes_hash)
           apply_pending_attribute_modifications(attribute_set)
-          attribute_set
+          attribute_set.read_only
         end
       end
 
