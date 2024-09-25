@@ -25,7 +25,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_invoke_when_generator_is_not_found
     name = :unknown
-    output = capture(:stdout) { 
+    output = capture(:stdout) {
       assert_raises SystemExit do
         Rails::Generators.invoke name
       end
@@ -37,7 +37,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_generator_suggestions
     name = :migrationz
-    output = capture(:stdout) { 
+    output = capture(:stdout) {
       assert_raises SystemExit do
         Rails::Generators.invoke name
       end
@@ -51,7 +51,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     I18n.available_locales = :ja
     I18n.default_locale = :ja
     name = :tas
-    output = capture(:stdout) { 
+    output = capture(:stdout) {
       assert_raises SystemExit do
         Rails::Generators.invoke name
       end
