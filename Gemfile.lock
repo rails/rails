@@ -107,6 +107,13 @@ PATH
       thor (~> 1.0, >= 1.2.2)
       zeitwerk (~> 2.6)
 
+PATH
+  remote: tools/releaser
+  specs:
+    releaser (1.0.0)
+      minitest
+      rake (~> 13.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -606,6 +613,7 @@ DEPENDENCIES
   redcarpet (~> 3.2.3)
   redis (>= 4.0.1)
   redis-namespace
+  releaser!
   resque
   resque-scheduler
   rexml
