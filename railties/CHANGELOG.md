@@ -1,3 +1,10 @@
+*   Introduce `zeitwerk:check:boot` task
+
+    This task boots your application and reports if any autoloaded constants were loaded during the boot
+    process.
+
+    *Andrew Novoselac*
+
 *   Do not include redis by default in generated Dev Containers.
 
     Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis

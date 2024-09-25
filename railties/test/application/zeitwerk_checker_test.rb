@@ -80,4 +80,23 @@ class ZeitwerkCheckerTest < ActiveSupport::TestCase
 
     assert_equal ["#{app_path}/dir1", "#{app_path}/dir2"], Rails::ZeitwerkChecker.check.sort
   end
+
+  test "booting the app does not load any autoload constants by default" do
+    boot
+
+    assert_empty Rails::ZeitwerkChecker.check_boot
+  end
+
+  test "loading an autoloaded constant during the boot process is reported" do
+    app_file "app/models/user.rb", "class User < ActiveRecord::Base; end"
+    app_file "config/initializers/extra_config.rb", <<~INITIALIZER
+      Rails.application.config.to_prepare do
+        Rails.application.config.my_favourite_model = User
+      end
+    INITIALIZER
+
+    boot
+
+    assert_equal ["User"], Rails::ZeitwerkChecker.check_boot
+  end
 end
