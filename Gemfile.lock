@@ -162,10 +162,6 @@ GEM
       faraday_middleware (~> 1.0, >= 1.0.0.rc1)
       net-http-persistent (~> 4.0)
       nokogiri (~> 1, >= 1.10.8)
-    backburner (1.6.1)
-      beaneater (~> 1.0)
-      concurrent-ruby (~> 1.0, >= 1.0.1)
-      dante (> 0.1.5)
     base64 (0.2.0)
     bcrypt (3.1.20)
     bcrypt_pbkdf (1.1.1)
@@ -651,7 +647,6 @@ DEPENDENCIES
   aws-sdk-s3
   aws-sdk-sns
   azure-storage-blob (~> 2.0)
-  backburner
   bcrypt (~> 3.1.11)
   bootsnap (>= 1.4.4)
   brakeman

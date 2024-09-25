@@ -141,18 +141,6 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
-  if adapter_is?(:backburner)
-    test "should run job with higher priority first in Backburner" do
-      jobs_manager.tube.pause(3)
-      TestJob.set(priority: 20).perform_later "#{@id}.1"
-      TestJob.set(priority: 10).perform_later "#{@id}.2"
-      wait_for_jobs_to_finish_for(10.seconds)
-      assert_job_executed "#{@id}.1"
-      assert_job_executed "#{@id}.2"
-      assert_job_executed_before("#{@id}.2", "#{@id}.1")
-    end
-  end
-
   private
     def assert_job_executed(id = @id)
       assert job_executed(id), "Job #{id} was not executed"

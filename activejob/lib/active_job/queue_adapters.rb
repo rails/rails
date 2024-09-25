@@ -5,7 +5,6 @@ module ActiveJob
   #
   # Active Job has adapters for the following queuing backends:
   #
-  # * {Backburner}[https://github.com/nesquena/backburner]
   # * {Delayed Job}[https://github.com/collectiveidea/delayed_job]
   # * {Que}[https://github.com/chanks/que]
   # * {queue_classic}[https://github.com/QueueClassic/queue_classic]
@@ -24,7 +23,6 @@ module ActiveJob
   #
   #   |                   | Async | Queues | Delayed    | Priorities | Timeout | Retries |
   #   |-------------------|-------|--------|------------|------------|---------|---------|
-  #   | Backburner        | Yes   | Yes    | Yes        | Yes        | Job     | Global  |
   #   | Delayed Job       | Yes   | Yes    | Yes        | Job        | Global  | Global  |
   #   | Que               | Yes   | Yes    | Yes        | Job        | No      | Job     |
   #   | queue_classic     | Yes   | Yes    | Yes*       | No         | No      | No      |
@@ -115,7 +113,6 @@ module ActiveJob
     autoload :AbstractAdapter
     autoload :AsyncAdapter
     autoload :InlineAdapter
-    autoload :BackburnerAdapter
     autoload :DelayedJobAdapter
     autoload :QueueClassicAdapter
     autoload :ResqueAdapter

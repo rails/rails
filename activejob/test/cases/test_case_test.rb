@@ -29,8 +29,6 @@ class ActiveJobTestCaseTest < ActiveJob::TestCase
                  ActiveJob::QueueAdapters::InlineAdapter
                when :async
                  ActiveJob::QueueAdapters::AsyncAdapter
-               when :backburner
-                 ActiveJob::QueueAdapters::BackburnerAdapter
                when :delayed_job
                  ActiveJob::QueueAdapters::DelayedJobAdapter
                when :queue_classic
