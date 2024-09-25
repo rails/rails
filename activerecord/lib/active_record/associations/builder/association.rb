@@ -31,17 +31,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       reflection = create_reflection(model, name, scope, options, &block)
 
-      validate_reflection!(model, reflection)
-
       define_accessors(model, reflection)
       define_callbacks(model, reflection)
       define_validations(model, reflection)
       define_change_tracking_methods(model, reflection)
       reflection
-    end
-
-    def self.validate_reflection!(model, reflection)
-      # noop
     end
 
     def self.create_reflection(model, name, scope, options, &block)

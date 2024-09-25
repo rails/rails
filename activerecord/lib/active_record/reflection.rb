@@ -949,6 +949,14 @@ module ActiveRecord
         end
       end
 
+      def check_validity!
+        if Array(foreign_key).any? { |fk| active_record.ignored_columns.include?(fk.to_s) }
+          raise ArgumentError, "Cannot add a belongs_to association for ignored column(s) [#{Array(foreign_key).join(', ')}]"
+        end
+
+        super
+      end
+
       def join_primary_key(klass = nil)
         polymorphic? ? association_primary_key(klass) : association_primary_key
       end
