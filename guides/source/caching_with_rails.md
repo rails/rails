@@ -404,6 +404,32 @@ config.cache_store = :mem_cache_store, "cache.example.com", { pool: { size: 32, 
 
 * `:timeout` - This option sets the number of seconds to wait for a connection (defaults to 5). If no connection is available within the timeout, a `Timeout::Error` will be raised.
 
+#### Compression options
+
+The default cache compressor is Zlib. To define a new custom compressor that also decompresses old cache entries, you can check compressed values for Zlib's `"\x78"` signature.
+
+Here's how you can configure a [zstd-ruby](https://github.com/SpringMT/zstd-ruby), which offers better performance and compression ratios than Zlib.
+
+```ruby
+require "zstd-ruby"
+
+module ZSTDCompressor
+  def self.deflate(payload)
+    ::Zstd.compress(payload, level: 10)
+  end
+
+  def self.inflate(payload)
+    if payload.start_with?("\x78")
+      Zlib.inflate(payload)
+    else
+      ::Zstd.decompress(payload)
+    end
+  end
+end
+
+config.cache_store = :mem_cache_store, { compressor: ZSTDCompressor }
+```
+
 ### `ActiveSupport::Cache::Store`
 
 [`ActiveSupport::Cache::Store`][] provides the foundation for interacting with the cache in Rails. This is an abstract class, and you cannot use it on its own. Instead, you must use a concrete implementation of the class tied to a storage engine. Rails ships with several implementations, documented below.
