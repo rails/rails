@@ -157,11 +157,13 @@ module ActiveRecord
         end
 
         def enable_query_cache!
-          query_cache.enabled, query_cache.dirties = true, true
+          query_cache.enabled = true
+          query_cache.dirties = true
         end
 
         def disable_query_cache!
-          query_cache.enabled, query_cache.dirties = false, true
+          query_cache.enabled = false
+          query_cache.dirties = true
         end
 
         def query_cache_enabled
