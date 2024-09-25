@@ -1,3 +1,9 @@
+*   Exit `rails g` with code 1 if generator could not be found.
+
+    Previously `rails g` returned 0, which would make it harder to catch typos in scripts calling `rails g`.
+
+    *Christopher Özbek*
+  
 *   Do not include redis by default in generated Dev Containers.
 
     Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis
