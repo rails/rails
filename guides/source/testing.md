@@ -389,7 +389,7 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 
 You'll see the usage of some of these assertions in the next chapter.
 
-### Test Cases
+### Assertions in Our Test Cases
 
 All the basic assertions such as `assert_equal` defined in `Minitest::Assertions` are also available in the classes we use in our own test cases. In fact, Rails provides the following classes for you to inherit from:
 
@@ -397,20 +397,18 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 * [`ActionMailer::TestCase`](https://api.rubyonrails.org/classes/ActionMailer/TestCase.html)
 * [`ActionView::TestCase`](https://api.rubyonrails.org/classes/ActionView/TestCase.html)
 * [`ActiveJob::TestCase`](https://api.rubyonrails.org/classes/ActiveJob/TestCase.html)
-* [`ActionDispatch::IntegrationTest`](https://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest.html)
+* [`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html)
 * [`ActionDispatch::SystemTestCase`](https://api.rubyonrails.org/classes/ActionDispatch/SystemTestCase.html)
 * [`Rails::Generators::TestCase`](https://api.rubyonrails.org/classes/Rails/Generators/TestCase.html)
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
-NOTE: For more information on `Minitest`, refer to [its
-documentation](http://docs.seattlerb.org/minitest).
+NOTE: For more information on `Minitest`, refer to its [documentation](http://docs.seattlerb.org/minitest).
 
 ### Transactions
 
 By default, Rails automatically wraps tests in a database transaction that is
-rolled back after they finish. This makes tests independent of each other and
-changes to the database are only visible within a single test.
+rolled back after they finish. This makes tests independent of each other and means that changes to the database are only visible within a single test.
 
 ```ruby
 class MyTest < ActiveSupport::TestCase
@@ -429,7 +427,7 @@ though:
 class MyTest < ActiveSupport::TestCase
   test "current_transaction" do
     # The implicit transaction around tests does not interfere with the
-    # application-level semantics of current_transaction.
+    # application-level semantics of the current_transaction.
     assert User.current_transaction.blank?
   end
 end
@@ -458,6 +456,7 @@ Or we can run a single test file by passing the `bin/rails test` command the fil
 
 ```bash
 $ bin/rails test test/models/article_test.rb
+Running 1 tests in a single process (parallelization threshold is 50)
 Run options: --seed 1559
 
 # Running:
@@ -476,6 +475,7 @@ You can also run a particular test method from the test case by providing the
 
 ```bash
 $ bin/rails test test/models/article_test.rb -n test_the_truth
+Running 1 tests in a single process (parallelization threshold is 50)
 Run options: -n test_the_truth --seed 43583
 
 # Running:
@@ -535,7 +535,6 @@ minitest options:
         --no-plugins                 Bypass minitest plugin auto-loading (or set $MT_NO_PLUGINS).
     -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
     -v, --verbose                    Verbose. Show progress processing files.
-    -q, --quiet                      Quiet. Show no progress processing files.
         --show-skips                 Show skipped at the end of run.
     -n, --name PATTERN               Filter run on /regexp/ or string.
         --exclude PATTERN            Exclude /regexp/ or string from run.
@@ -586,7 +585,7 @@ _Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your 
 
 NOTE: Fixtures are not designed to create every object that your tests need, and are best managed when only used for default data that can be applied to the common case.
 
-You'll find fixtures under your `test/fixtures` directory. When you run `bin/rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
+Fixtures can be stored in your `test/fixtures` directory.
 
 #### YAML
 
@@ -659,7 +658,7 @@ first:
   title: An Article
 ```
 
-Assuming that there is an [image/png][] encoded file at
+Assuming that there is an image/png encoded file at
 `test/fixtures/files/first.png`, the following YAML fixture entries will
 generate the related `ActiveStorage::Blob` and `ActiveStorage::Attachment`
 records:
@@ -679,7 +678,7 @@ first_thumbnail_attachment:
 
 [image/png]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types#image_types
 
-#### ERB'in It Up
+#### ERB and Fixtures
 
 ERB allows you to embed Ruby code within templates. The YAML fixture format is pre-processed with ERB when Rails loads fixtures. This allows you to use Ruby to help you generate some sample data. For example, the following code generates a thousand users:
 
@@ -704,7 +703,7 @@ TIP: In order to remove existing data from the database, Rails tries to disable 
 
 #### Fixtures are Active Record Objects
 
-Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically available as a method whose scope is local of the test case. For example:
+Fixtures are instances of Active Record. As mentioned above, you can access the object directly because it is automatically available as a method whose scope is local of the test case. For example:
 
 ```ruby
 # this will return the User object for the fixture named david
@@ -729,7 +728,7 @@ users(:david, :steve)
 Model Testing
 -------------
 
-Model tests are used to test the various models of your application.
+Model tests are used to test the various models of your application and their associated logic.
 
 Rails model tests are stored under the `test/models` directory. Rails provides
 a generator to create a model test skeleton for you.
@@ -737,7 +736,6 @@ a generator to create a model test skeleton for you.
 ```bash
 $ bin/rails generate test_unit:model article title:string body:text
 create  test/models/article_test.rb
-create  test/fixtures/articles.yml
 ```
 
 Model tests don't have their own superclass like `ActionMailer::TestCase`. Instead, they inherit from [`ActiveSupport::TestCase`](https://api.rubyonrails.org/classes/ActiveSupport/TestCase.html).
@@ -746,7 +744,7 @@ System Testing
 --------------
 
 System tests allow you to test user interactions with your application, running tests
-in either a real or a headless browser. System tests use Capybara under the hood.
+in either a real or a headless browser (which runs in the background without opening a visible window). System tests use Capybara under the hood.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
@@ -827,7 +825,7 @@ end
 
 If you want to use a remote browser, e.g.
 [Headless Chrome in Docker](https://github.com/SeleniumHQ/docker-selenium),
-you have to add remote `url`  and set `browser` as remote through `options`.
+you have to add a remote `url` and set `browser` as remote through `options`.
 
 ```ruby
 require "test_helper"
@@ -843,13 +841,13 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-Now you should get a connection to remote browser.
+Now you should get a connection to the remote browser.
 
 ```bash
 $ SELENIUM_REMOTE_URL=http://localhost:4444/wd/hub bin/rails test:system
 ```
 
-If your application in test is running remote too, e.g. Docker container,
+If your application in test is running remote too, e.g. within a Docker container,
 Capybara needs more input about how to
 [call remote servers](https://github.com/teamcapybara/capybara#calling-remote-servers).
 
@@ -866,8 +864,8 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-Now you should get a connection to remote browser and server, regardless if it
-is running in Docker container or CI.
+Now you should get a connection to a remote browser and server, regardless if it
+is running in a Docker container or CI.
 
 If your Capybara configuration requires more setup than provided by Rails, this
 additional configuration could be added into the `application_system_test_case.rb`
@@ -878,7 +876,7 @@ for additional settings.
 
 ### Screenshot Helper
 
-The `ScreenshotHelper` is a helper designed to capture screenshots of your tests.
+The [`ScreenshotHelper`](https://api.rubyonrails.org/v5.1.7/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html) is a helper designed to capture screenshots of your tests.
 This can be helpful for viewing the browser at the point a test failed, or
 to view screenshots later for debugging.
 
