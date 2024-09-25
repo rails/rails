@@ -30,7 +30,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       reflection = create_reflection(model, name, scope, options, &block)
-
       define_accessors(model, reflection)
       define_callbacks(model, reflection)
       define_validations(model, reflection)
