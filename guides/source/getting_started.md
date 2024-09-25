@@ -64,7 +64,7 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
-TIP: You can create new Rails apps come with a preconfigured Dev Container development environment. This
+TIP: You can create new Rails apps with a preconfigured Dev Container development environment. This
 is the fastest way to get started with Rails.
 For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
 
