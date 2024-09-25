@@ -77,12 +77,15 @@ module ActionController
     # Writing an object will convert it into standard SSE format with whatever
     # options you have configured. You may choose to set the following options:
     #
-    #     1) Event. If specified, an event with this name will be dispatched on
-    #     the browser.
-    #     2) Retry. The reconnection time in milliseconds used when attempting
-    #     to send the event.
-    #     3) Id. If the connection dies while sending an SSE to the browser, then
-    #     the server will receive a +Last-Event-ID+ header with value equal to +id+.
+    # `:event`
+    # :   If specified, an event with this name will be dispatched on the browser.
+    #
+    # `:retry`
+    # :   The reconnection time in milliseconds used when attempting to send the event.
+    #
+    # `:id`
+    # :   If the connection dies while sending an SSE to the browser, then the
+    #     server will receive a `Last-Event-ID` header with value equal to `id`.
     #
     # After setting an option in the constructor of the SSE object, all future SSEs
     # sent across the stream will use those options unless overridden.
