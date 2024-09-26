@@ -950,8 +950,10 @@ module ActiveRecord
       end
 
       def check_validity!
-        if Array(foreign_key).any? { |fk| active_record.ignored_columns.include?(fk.to_s) }
-          raise ArgumentError, "Cannot add a belongs_to association for ignored column(s) [#{Array(foreign_key).join(', ')}]"
+        ignored_foreign_keys = Array(foreign_key).select { |fk| active_record.ignored_columns.include?(fk.to_s) }
+
+        if  ignored_foreign_keys.any?
+          raise ArgumentError, "Cannot add a belongs_to association for ignored column(s) [#{ignored_foreign_keys.join(', ')}]"
         end
 
         super
