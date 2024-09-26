@@ -185,7 +185,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # Always refer to blobs using the signed_id or a verified form of the key.
   def key
     # We can't wait until the record is first saved to have a key for it
-    self[:key] ||= self.class.generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
+    self[:key] ||= generate_key
   end
 
   # Returns an ActiveStorage::Filename instance of the filename that can be
@@ -390,6 +390,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def update_service_metadata
       service.update_metadata key, **service_metadata if service_metadata.any?
+    end
+
+    def generate_key
+      generated_key = self.class.generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
+      return generated_key if ActiveStorage.key_prefix.nil?
+
+      prefix = ActiveStorage.key_prefix
+      prefix = prefix.call if prefix.respond_to?(:call)
+
+      "#{prefix}#{generated_key}"
     end
 end
 
