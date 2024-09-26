@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
-
 module ActionView
   module Helpers # :nodoc:
     # = Action View Atom Feed \Helpers
