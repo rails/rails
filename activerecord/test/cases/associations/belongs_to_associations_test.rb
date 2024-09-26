@@ -1374,6 +1374,45 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  class TestPolymorphicArrayAllowed < ActiveRecord::Base
+    self.table_name = "wheels"
+    belongs_to :wheelable, polymorphic: ["Book", :Essay], optional: false
+  end
+
+  def test_polymorphic_with_allowed_class_string_array
+    wheel = TestPolymorphicArrayAllowed.new
+
+    assert_not_predicate wheel, :valid?
+    assert_equal ["Wheelable must exist"], wheel.errors.full_messages
+
+    wheel.wheelable = Book.create!
+    assert_predicate wheel, :valid?
+
+    wheel.wheelable = Essay.create!
+    assert_predicate wheel, :valid?
+
+    wheel.wheelable = Citation.create!
+    assert_not_predicate wheel, :valid?
+    assert_equal ["Wheelable type is not included in the list"], wheel.errors.full_messages
+  end
+
+  def test_polymorphic_unpermitted_class
+    citation = Citation.create!
+
+    wheel = TestPolymorphicArrayAllowed.new(wheelable_type: "Citation", wheelable_id: citation.id)
+    assert_equal "Citation", wheel.wheelable_type
+    assert_equal citation.id, wheel.wheelable_id
+    assert_nil wheel.wheelable
+  end
+
+  def test_polymorphic_unknown_class
+    wheel = TestPolymorphicArrayAllowed.new(wheelable_type: "FakeModel", wheelable_id: 1)
+
+    assert_equal "FakeModel", wheel.wheelable_type
+    assert_equal 1, wheel.wheelable_id
+    assert_nil wheel.wheelable
+  end
+
   def test_polymorphic_with_custom_foreign_type
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
     groucho = members(:groucho)

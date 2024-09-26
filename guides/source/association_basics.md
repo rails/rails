@@ -1642,6 +1642,15 @@ class CreatePictures < ActiveRecord::Migration[8.0]
 end
 ```
 
+In this example, `imageable` can have any model assigned to it. If you wanted to ensure that the `imageable_type` is only `Employee` or `Product`, you can set the `polymorphic` option to an array of allowed class names. This will [add an inclusion validator][inclusion validator] to the `imageable_type` column, which adds a validation error if `imageable` is not one of the expected classes:
+
+[inclusion validator]: active_record_validations.html#inclusion
+
+```ruby
+class Picture < ApplicationRecord
+  belongs_to :imageable, polymorphic: ["Employee", "Product"]
+end
+
 WARNING: Since polymorphic associations rely on storing class names in the
 database, that data must remain synchronized with the class name used by the
 Ruby code. When renaming a class, make sure to update the data in the

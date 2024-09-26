@@ -6,7 +6,9 @@ module ActiveRecord
     class BelongsToPolymorphicAssociation < BelongsToAssociation # :nodoc:
       def klass
         type = owner[reflection.foreign_type]
-        type.presence && owner.class.polymorphic_class_for(type)
+        return unless type.present? && valid_polymorphic_type?(reflection, type)
+
+        owner.class.polymorphic_class_for(type)
       end
 
       def target_changed?
@@ -22,6 +24,13 @@ module ActiveRecord
       end
 
       private
+        def valid_polymorphic_type?(reflection, type)
+          polymorphic = reflection.options[:polymorphic]
+
+          return polymorphic.include?(type) if polymorphic.is_a?(Array)
+          !!polymorphic
+        end
+
         def replace_keys(record, force: false)
           super
 
