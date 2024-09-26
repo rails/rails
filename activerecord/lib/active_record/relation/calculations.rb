@@ -673,7 +673,11 @@ module ActiveRecord
         subquery_alias = Arel.sql("subquery_for_count", retryable: true)
         select_value = operation_over_aggregate_column(column_alias, "count", false)
 
-        relation.build_subquery(subquery_alias, select_value)
+        if column_name == :all
+          relation.unscope(:order).build_subquery(subquery_alias, select_value)
+        else
+          relation.build_subquery(subquery_alias, select_value)
+        end
       end
   end
 end

@@ -309,6 +309,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_match(/OFFSET/, queries.first)
   end
 
+  def test_no_order_by_when_counting_all
+    queries = capture_sql { Account.order(id: :desc).limit(10).count }
+    assert_equal 1, queries.length
+    assert_no_match(/ORDER BY/, queries.first)
+  end
+
   def test_count_on_invalid_columns_raises
     error = assert_raises(ActiveRecord::StatementInvalid) do
       Account.select("credit_limit, firm_name").count
