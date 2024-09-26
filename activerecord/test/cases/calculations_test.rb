@@ -255,6 +255,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [2, 6], c.keys.compact
   end
 
+  def test_order_should_apply_before_count
+    accounts = Account.order(id: :desc).limit(4)
+
+    assert_equal 4, accounts.count(:firm_id)
+    assert_equal 4, accounts.select(:firm_id).count
+  end
+
   def test_limit_should_apply_before_count
     accounts = Account.order(:id).limit(4)
 
