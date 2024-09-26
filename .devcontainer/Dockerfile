@@ -29,6 +29,7 @@ COPY activerecord/activerecord.gemspec /tmp/rails/activerecord/
 COPY activestorage/activestorage.gemspec /tmp/rails/activestorage/
 COPY activesupport/activesupport.gemspec /tmp/rails/activesupport/
 COPY railties/railties.gemspec /tmp/rails/railties/
+COPY tools/releaser/releaser.gemspec /tmp/rails/tools/releaser/
 # Docker does not support COPY as users other than root. So we need to chown this dir so we
 # can bundle as vscode user and then remove the tmp dir
 RUN chown -R vscode:vscode /tmp/rails
