@@ -53,9 +53,9 @@ class InsertAllTest < ActiveRecord::TestCase
     book_name = ["Array"]
     created_book_id = Book.create!(name: book_name).id
     inserted_book_id = Book.insert!({ name: book_name }, returning: :id).first["id"]
-    raw_created_book_name = Book.connection.select_value(Book.select(:name).where(id: created_book_id))
-    raw_inserted_book_name = Book.connection.select_value(Book.select(:name).where(id: inserted_book_id))
-    assert_equal raw_created_book_name, raw_inserted_book_name
+    created_book = Book.find_by!(id: created_book_id)
+    inserted_book = Book.find_by!(id: inserted_book_id)
+    assert_equal created_book.name, inserted_book.name
   end
 
   def test_insert_all
