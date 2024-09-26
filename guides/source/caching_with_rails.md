@@ -408,7 +408,7 @@ config.cache_store = :mem_cache_store, "cache.example.com", { pool: { size: 32, 
 
 The default cache compressor is Zlib. To define a new custom compressor that also decompresses old cache entries, you can check compressed values for Zlib's `"\x78"` signature.
 
-Here's how you can configure a [zstd-ruby](https://github.com/SpringMT/zstd-ruby), which offers better performance and compression ratios than Zlib.
+Here's how you can configure a [zstd-ruby](https://github.com/SpringMT/zstd-ruby) compressor, which offers better performance and compression ratios than Zlib.
 
 ```ruby
 require "zstd-ruby"
