@@ -97,7 +97,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby --version
-ruby 3.1.0
+ruby 3.2.0
 ```
 
 Rails requires Ruby version 3.1.0 or later. It is preferred to use the latest Ruby version.
