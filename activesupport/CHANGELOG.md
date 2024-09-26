@@ -68,11 +68,6 @@
 
     *Igor Depolli*
 
-*   Improve error message when using `assert_difference` or `assert_changes` with a
-    proc by printing the proc's source code (MRI only).
-
-    *Richard Böhme*, *Jean Boussier*
-
 *   Add a new configuration value `:zone` for `ActiveSupport.to_time_preserves_timezone` and rename the previous `true` value to `:offset`. The new default value is `:zone`.
 
     *Jason Kim*, *John Hawthorn*
