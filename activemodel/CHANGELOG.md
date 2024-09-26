@@ -1,3 +1,26 @@
+*   Add `ActiveModel::Serializers::JSON.key_format`
+
+    ```ruby
+    class User
+      include ActiveModel::API
+      include ActiveModel::Serializers::JSON
+
+      key_format from_json: :underscore,
+                 to_json: ->(key) { key.camelize :lower }
+
+      attr_accessor :name, :born_on
+    end
+
+    json = { name: "Ruby on Rails", bornOn: "2004-11-24" }.to_json
+
+    user = User.new.from_json(json)
+    user.name                       # => "Ruby on Rails"
+    user.born_on                    # => "2004-11-24"
+    user.to_json == json            # => true
+    ```
+
+    *Sean Doyle*
+
 *   Add a default token generator for password reset tokens when using `has_secure_password`.
 
     ```ruby
