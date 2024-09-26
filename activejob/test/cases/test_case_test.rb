@@ -41,6 +41,8 @@ class ActiveJobTestCaseTest < ActiveJob::TestCase
                  ActiveJob::QueueAdapters::SidekiqAdapter
                when :sneakers
                  ActiveJob::QueueAdapters::SneakersAdapter
+               when :sucker_punch
+                 ActiveJob::QueueAdapters::SuckerPunchAdapter
                else
                  raise NotImplementedError.new
     end
