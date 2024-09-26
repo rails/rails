@@ -628,7 +628,7 @@ add_reference :alias, :person, foreign_key: { deferrable: :deferred }
 If the reference was created with the `foreign_key: true` option, the following transaction would fail when executing the first `INSERT` statement. It does not fail when the `deferrable: :deferred` option is set though.
 
 ```ruby
-ActiveRecord::Base.connection.transaction do
+ActiveRecord::Base.lease_connection.transaction do
   person = Person.create(id: SecureRandom.uuid, alias_id: SecureRandom.uuid, name: "John Doe")
   Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
 end
@@ -637,8 +637,8 @@ end
 When the `:deferrable` option is set to `:immediate`, let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `set_constraints` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
 
 ```ruby
-ActiveRecord::Base.connection.transaction do
-  ActiveRecord::Base.connection.set_constraints(:deferred)
+ActiveRecord::Base.lease_connection.transaction do
+  ActiveRecord::Base.lease_connection.set_constraints(:deferred)
   person = Person.create(alias_id: SecureRandom.uuid, name: "John Doe")
   Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
 end

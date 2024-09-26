@@ -3,7 +3,7 @@
     This will let you to drop multiple tables in a single call.
 
     ```ruby
-    ActiveRecord::Base.connection.drop_table(:users, :posts)
+    ActiveRecord::Base.lease_connection.drop_table(:users, :posts)
     ```
 
     *Gabriel Sobrinho*
