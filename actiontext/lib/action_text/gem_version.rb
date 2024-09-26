@@ -12,7 +12,7 @@ module ActionText
     MAJOR = 8
     MINOR = 0
     TINY  = 0
-    PRE   = "alpha"
+    PRE   = "beta1"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

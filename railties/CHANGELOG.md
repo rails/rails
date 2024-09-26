@@ -1,3 +1,5 @@
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
 *   Exit `rails g` with code 1 if generator could not be found.
 
     Previously `rails g` returned 0, which would make it harder to catch typos in scripts calling `rails g`.

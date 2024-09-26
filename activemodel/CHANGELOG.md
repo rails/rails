@@ -1,3 +1,5 @@
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
 *   Make `ActiveModel::Serialization#read_attribute_for_serialization` public
 
     *Sean Doyle*

@@ -1,3 +1,5 @@
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
 *   Deprecate `sucker_punch` as an adapter option.
 
     If you're using this adapter, change to `adapter: async` for the same functionality.
