@@ -1,3 +1,7 @@
+*   Make `ActiveModel::Serialization#read_attribute_for_serialization` public
+
+    *Sean Doyle*
+
 *   Add a default token generator for password reset tokens when using `has_secure_password`.
 
     ```ruby
