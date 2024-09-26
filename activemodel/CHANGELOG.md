@@ -1,3 +1,8 @@
+*   Added optional `cost` argument to `has_secure_password` to set a custom
+    cost value for the generated password hash.
+
+    *Tony Drake*
+
 *   Add a default token generator for password reset tokens when using `has_secure_password`.
 
     ```ruby
