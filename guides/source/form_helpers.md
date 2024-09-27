@@ -56,7 +56,7 @@ Here is how to create a search form with `form_with`:
 ```erb
 <%= form_with url: "/search", method: :get do |form| %>
   <%= form.label :query, "Search for:" %>
-  <%= form.text_field :query %>
+  <%= form.search_field :query %>
   <%= form.submit "Search" %>
 <% end %>
 ```
@@ -66,7 +66,7 @@ This will generate the following HTML:
 ```html
 <form action="/search" accept-charset="UTF-8" method="get">
   <label for="query">Search for:</label>
-  <input type="text" name="query" id="query">
+  <input type="search" name="query" id="query">
   <input type="submit" name="commit" value="Search" data-disable-with="Search">
 </form>
 ```
