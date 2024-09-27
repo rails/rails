@@ -47,7 +47,7 @@ module ActionCable
     #
     def assert_broadcasts(stream, number, &block)
       if block_given?
-        new_messages = new_broadcasts_from(broadcasts(stream), stream, "assert_broadcasts", &block)
+        new_messages = capture_broadcasts(stream, assertion: "assert_broadcasts", &block)
 
         actual_count = new_messages.size
         assert_equal number, actual_count, "#{number} broadcasts to #{stream} expected, but #{actual_count} were sent"
@@ -81,6 +81,9 @@ module ActionCable
       assert_broadcasts stream, 0, &block
     end
 
+    ##
+    # :call-seq: capture_broadcasts(stream, &block)
+    #
     # Returns the messages that are broadcasted in the block.
     #
     #     def test_broadcasts
@@ -93,8 +96,18 @@ module ActionCable
     #       assert_equal({ text: 'how are you?' }, messages.last)
     #     end
     #
-    def capture_broadcasts(stream, &block)
-      new_broadcasts_from(broadcasts(stream), stream, "capture_broadcasts", &block).map { |m| ActiveSupport::JSON.decode(m) }
+    def capture_broadcasts(stream, assertion: "capture_broadcasts", &block)
+      old_messages = broadcasts(stream)
+      clear_messages(stream)
+
+      _assert_nothing_raised_or_warn(assertion, &block)
+      new_messages = broadcasts(stream)
+      clear_messages(stream)
+
+      # Restore all sent messages
+      (old_messages + new_messages).each { |m| pubsub_adapter.broadcast(stream, m) }
+
+      new_messages.map { |m| ActiveSupport::JSON.decode(m) }
     end
 
     # Asserts that the specified message has been sent to the stream.
@@ -121,16 +134,16 @@ module ActionCable
 
       new_messages = broadcasts(stream)
       if block_given?
-        new_messages = new_broadcasts_from(new_messages, stream, "assert_broadcast_on", &block)
+        new_messages = capture_broadcasts(stream, assertion: "assert_broadcast_on", &block)
       end
 
-      message = new_messages.find { |msg| ActiveSupport::JSON.decode(msg) == serialized_msg }
+      message = new_messages.find { |msg| msg == serialized_msg }
 
       error_message = "No messages sent with #{data} to #{stream}"
 
       if new_messages.any?
         error_message = new_messages.inject("#{error_message}\nMessage(s) found:\n") do |error_message, new_message|
-          error_message + "#{ActiveSupport::JSON.decode(new_message)}\n"
+          error_message + "#{new_message}\n"
         end
       else
         error_message = "#{error_message}\nNo message found for #{stream}"
@@ -144,20 +157,5 @@ module ActionCable
     end
 
     delegate :broadcasts, :clear_messages, to: :pubsub_adapter
-
-    private
-      def new_broadcasts_from(current_messages, stream, assertion, &block)
-        old_messages = current_messages
-        clear_messages(stream)
-
-        _assert_nothing_raised_or_warn(assertion, &block)
-        new_messages = broadcasts(stream)
-        clear_messages(stream)
-
-        # Restore all sent messages
-        (old_messages + new_messages).each { |m| pubsub_adapter.broadcast(stream, m) }
-
-        new_messages
-      end
   end
 end
