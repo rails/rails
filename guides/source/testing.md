@@ -874,19 +874,6 @@ file.
 Please see [Capybara's documentation](https://github.com/teamcapybara/capybara#setup)
 for additional settings.
 
-### Screenshot Helper
-
-The [`ScreenshotHelper`](https://api.rubyonrails.org/v5.1.7/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html) is a helper designed to capture screenshots of your tests.
-This can be helpful for viewing the browser at the point a test failed, or
-to view screenshots later for debugging.
-
-Two methods are provided: `take_screenshot` and `take_failed_screenshot`.
-`take_failed_screenshot` is automatically included in `before_teardown` inside
-Rails.
-
-The `take_screenshot` helper method can be included anywhere in your tests to
-take a screenshot of the browser.
-
 ### Implementing a System Test
 
 Now we're going to add a system test to our blog application. We'll demonstrate
@@ -993,11 +980,22 @@ class PostsTest < MobileSystemTestCase
   end
 end
 ```
+#### Screenshot Helper
+
+The [`ScreenshotHelper`](https://api.rubyonrails.org/v5.1.7/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html) is a helper designed to capture screenshots of your tests.
+This can be helpful for viewing the browser at the point a test failed, or
+to view screenshots later for debugging.
+
+Two methods are provided: `take_screenshot` and `take_failed_screenshot`.
+`take_failed_screenshot` is automatically included in `before_teardown` inside
+Rails.
+
+The `take_screenshot` helper method can be included anywhere in your tests to
+take a screenshot of the browser.
 
 #### Taking It Further
 
-The beauty of system testing is that it is similar to integration testing in
-that it tests the user's interaction with your controller, model, and view, but
+The beauty of system testing is that it is similar to [integration testing](testing.html#integration-testing) in that it tests the user's interaction with your controller, model, and view, but
 system testing is much more robust and actually tests your application as if
 a real user were using it. Going forward, you can test anything that the user
 themselves would do in your application such as commenting, deleting articles,
