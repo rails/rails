@@ -100,7 +100,7 @@ $ ruby --version
 ruby 3.2.0
 ```
 
-Rails requires Ruby version 3.1.0 or later. It is preferred to use the latest Ruby version.
+Rails requires Ruby version 3.2.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
