@@ -87,19 +87,19 @@ module Rails
         def method_missing_module
           @method_missing_module ||= Module.new do
             private
-              def method_missing(method_name, *args, &block)
+              def method_missing(...)
                 if Rails.application&.reload_routes_unless_loaded
-                  public_send(method_name, *args, &block)
+                  public_send(...)
                 else
-                  super(method_name, *args, &block)
+                  super
                 end
               end
 
-              def respond_to_missing?(method_name, *args)
+              def respond_to_missing?(...)
                 if Rails.application&.reload_routes_unless_loaded
-                  respond_to?(method_name, *args)
+                  respond_to?(...)
                 else
-                  super(method_name, *args)
+                  super
                 end
               end
           end
