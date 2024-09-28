@@ -1127,6 +1127,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, :"topics.id")
   end
 
+  def test_pluck_with_join_alias
+    assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, :"topic.id")
+  end
+
   def test_group_by_with_order_by_virtual_count_attribute
     expected = { "SpecialPost" => 1, "StiPost" => 2 }
     actual = Post.group(:type).order(:count).limit(2).maximum(:comments_count)
