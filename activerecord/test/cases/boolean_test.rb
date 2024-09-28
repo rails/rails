@@ -14,7 +14,7 @@ class BooleanTest < ActiveRecord::TestCase
     assert_predicate Boolean.find(b_true.id), :value?
   end
 
-  def test_boolean_without_questionmark
+  def test_boolean_without_question_mark
     b_true = Boolean.create!(value: true)
 
     subclass   = Class.new(Boolean).find(b_true.id)
