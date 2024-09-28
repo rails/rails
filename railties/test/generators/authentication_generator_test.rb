@@ -12,7 +12,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     Rails.application.config.root = Pathname(destination_root)
 
     self.class.tests Rails::Generators::AppGenerator
-    run_generator([destination_root])
+    run_generator([destination_root, "--no-skip-bundle"])
 
     self.class.tests Rails::Generators::AuthenticationGenerator
   end
@@ -49,6 +49,16 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_users.rb" do |content|
       assert_match(/t.string :password_digest, null: false/, content)
+    end
+  end
+
+  def test_authentication_generator_without_bcrypt_in_gemfile
+    File.write("Gemfile", File.read("Gemfile").sub(/# gem "bcrypt".*\n/, ""))
+
+    run_generator
+
+    assert_file "Gemfile" do |content|
+      assert_match(/\ngem "bcrypt"/, content)
     end
   end
 
