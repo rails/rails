@@ -1,3 +1,7 @@
+*   Include the `immutable` directive in the `cache-control` header.
+
+    *Guillaume Briday*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Exit `rails g` with code 1 if generator could not be found.
