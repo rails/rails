@@ -1934,8 +1934,7 @@ module ActiveRecord
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
           table[field]
-        elsif field.match?(/\A\w+\.\w+\z/)
-          table, column = field.split(".")
+        elsif /\A(?<table>(?:\w+\.)?\w+)\.(?<column>\w+)\z/ =~ field
           self.references_values |= [Arel.sql(table, retryable: true)]
           predicate_builder.resolve_arel_attribute(table, column) do
             lookup_table_klass_from_join_dependencies(table)

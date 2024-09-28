@@ -292,6 +292,16 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal '"schema.name"."table.name"', @connection.quote_table_name('"schema.name"."table.name"')
   end
 
+  def test_where_with_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    assert_equal ["thing1"], Thing1.where("test_schema.things.name": "thing1").map(&:name)
+  end
+
+  def test_pluck_with_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    assert_equal ["thing1"], Thing1.pluck(:"test_schema.things.name")
+  end
+
   def test_classes_with_qualified_schema_name
     assert_equal 0, Thing1.count
     assert_equal 0, Thing2.count
