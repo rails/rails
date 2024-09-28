@@ -32,7 +32,7 @@ module Rails
       end
 
       def configure_authentication_routes
-        route "resources :passwords, param: :token"
+        route "resource :password"
         route "resource :session"
       end
 
