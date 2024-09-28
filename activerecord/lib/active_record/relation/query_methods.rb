@@ -1956,6 +1956,7 @@ module ActiveRecord
           table[field]
         elsif field.match?(/\A\w+\.\w+\z/)
           table, column = field.split(".")
+          self.references_values |= [Arel.sql(table, retryable: true)]
           predicate_builder.resolve_arel_attribute(table, column) do
             lookup_table_klass_from_join_dependencies(table)
           end
