@@ -1932,12 +1932,8 @@ module ActiveRecord
       def arel_columns(columns)
         columns.flat_map do |field|
           case field
-          when Symbol
-            arel_column(field.to_s) do |attr_name|
-              model.adapter_class.quote_table_name(attr_name)
-            end
-          when String
-            arel_column(field, &:itself)
+          when Symbol, String
+            arel_column(field)
           when Proc
             field.call
           when Hash
@@ -1949,6 +1945,8 @@ module ActiveRecord
       end
 
       def arel_column(field)
+        field = field.name if is_symbol = field.is_a?(Symbol)
+
         field = model.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
@@ -1959,8 +1957,10 @@ module ActiveRecord
           predicate_builder.resolve_arel_attribute(table, column) do
             lookup_table_klass_from_join_dependencies(table)
           end
-        else
+        elsif block_given?
           yield field
+        else
+          Arel.sql(is_symbol ? model.adapter_class.quote_table_name(field) : field)
         end
       end
 
@@ -2194,18 +2194,14 @@ module ActiveRecord
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
-              arel_column("#{key}.#{column}") do
-                predicate_builder.resolve_arel_attribute(key.to_s, column)
-              end.as(column_alias.to_s)
+              arel_column("#{key}.#{column}").as(column_alias.to_s)
             end
           when Array
             columns_aliases.map do |column|
               arel_column("#{key}.#{column}", &:itself)
             end
           when String, Symbol
-            arel_column(key.to_s) do
-              predicate_builder.resolve_arel_attribute(model.table_name, key.to_s)
-            end.as(columns_aliases.to_s)
+            arel_column(key).as(columns_aliases.to_s)
           end
         end
       end

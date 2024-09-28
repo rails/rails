@@ -447,10 +447,13 @@ module ActiveRecord
       end
 
       def aggregate_column(column_name)
-        return column_name if Arel::Expressions === column_name
-
-        arel_column(column_name.to_s) do |name|
-          column_name == :all ? Arel.sql("*", retryable: true) : Arel.sql(name)
+        case column_name
+        when Arel::Expressions
+          column_name
+        when :all
+          Arel.star
+        else
+          arel_column(column_name)
         end
       end
 
@@ -630,27 +633,12 @@ module ActiveRecord
       end
 
       def select_for_count
-        if select_values.present?
-          return select_values.first if select_values.one?
-
-          adapter_class = model.adapter_class
-          select_values.map do |field|
-            column = if Arel.arel_node?(field)
-              field
-            else
-              arel_column(field.to_s) do |attr_name|
-                Arel.sql(attr_name)
-              end
-            end
-
-            if column.is_a?(Arel::Nodes::SqlLiteral)
-              column
-            else
-              "#{adapter_class.quote_table_name(column.relation.name)}.#{adapter_class.quote_column_name(column.name)}"
-            end
-          end.join(", ")
-        else
+        if select_values.empty?
           :all
+        else
+          with_connection do |conn|
+            arel_columns(select_values).map { |column| conn.visitor.compile(column) }.join(", ")
+          end
         end
       end
 
