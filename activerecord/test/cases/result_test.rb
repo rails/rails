@@ -129,5 +129,24 @@ module ActiveRecord
         assert_equal "col 2", row["foo"]
       end
     end
+
+    test "hash methods on rows" do
+      result = Result.new(["col_1", "col_2"], [
+        ["row 1 col 1", "row 1 col 2"],
+        ["row 2 col 1", "row 2 col 2"],
+      ])
+
+      result.each do |row|
+        assert row.respond_to?(:transform_keys)
+        assert_equal ["COL_1", "COL_2"], row.transform_keys(&:upcase).keys
+
+        # It does not accept Hash destructive methods.
+        assert_not row.respond_to?(:transform_keys!)
+
+        assert_raises(NoMethodError, match: /undefined method `transform_keys!'/) do
+          row.transform_keys!(&:upcase)
+        end
+      end
+    end
   end
 end

@@ -87,6 +87,18 @@ module ActiveRecord
         @column_indexes.transform_values { |index| @row[index] }
       end
       alias_method :to_hash, :to_h
+
+      def method_missing(method_name, ...)
+        if method_name.end_with?("!")
+          super
+        else
+          to_hash.public_send(method_name, ...)
+        end
+      end
+
+      def respond_to_missing?(method_name, include_all = false)
+        super || (!method_name.end_with?("!") && to_hash.respond_to?(method_name, include_all))
+      end
     end
 
     attr_reader :columns, :rows, :column_types
