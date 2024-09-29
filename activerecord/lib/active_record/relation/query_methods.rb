@@ -2201,7 +2201,9 @@ module ActiveRecord
               arel_column("#{key}.#{column}", &:itself)
             end
           when String, Symbol
-            arel_column(key).as(columns_aliases.to_s)
+            arel_column(key) do
+              predicate_builder.resolve_arel_attribute(model.table_name, key)
+            end.as(columns_aliases.to_s)
           end
         end
       end
