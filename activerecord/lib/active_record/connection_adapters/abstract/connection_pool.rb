@@ -285,6 +285,8 @@ module ActiveRecord
 
         @schema_cache = nil
 
+        @activated = false
+
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
       end
@@ -319,6 +321,14 @@ module ActiveRecord
 
       def internal_metadata # :nodoc:
         InternalMetadata.new(self)
+      end
+
+      def activate
+        @activated = true
+      end
+
+      def activated?
+        @activated
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -714,10 +724,30 @@ module ActiveRecord
       end
 
       # Disconnect all currently idle connections. Connections currently checked
-      # out are unaffected.
+      # out are unaffected. The pool will stop maintaining its minimum size until
+      # it is reactivated.
       def flush!
         reap
         flush(-1)
+
+        # Stop maintaining the minimum size until reactivated
+        @activated = false
+      end
+
+      # Ensure that the pool contains at least the configured minimum number of
+      # connections.
+      def prepopulate
+        return if self.discarded?
+
+        # We don't want to start prepopulating until we know the pool is wanted,
+        # so we can avoid maintaining full pools in one-off scripts etc.
+        return unless @activated
+
+        if @connections.size < @min_size
+          while new_conn = try_to_checkout_new_connection { @connections.size < @min_size }
+            checkin(new_conn)
+          end
+        end
       end
 
       def num_waiting_in_queue # :nodoc:
@@ -1080,6 +1110,9 @@ module ActiveRecord
 
         # If the pool is not at a <tt>@max_size</tt> limit, establish new connection. Connecting
         # to the DB is done outside main synchronized section.
+        #
+        # If a block is supplied, it is an additional constraint (checked while holding the
+        # pool lock) on whether a new connection should be established.
         #--
         # Implementation constraint: a newly established connection returned by this
         # method must be in the +.leased+ state.
@@ -1088,7 +1121,7 @@ module ActiveRecord
           # and increment @now_connecting, to prevent overstepping this pool's @max_size
           # constraint
           do_checkout = synchronize do
-            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_size
+            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_size && (!block_given? || yield)
               @now_connecting += 1
             end
           end

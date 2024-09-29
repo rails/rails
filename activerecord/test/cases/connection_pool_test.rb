@@ -282,6 +282,16 @@ module ActiveRecord
         assert_equal 0, @pool.connections.length
       end
 
+      def test_min_size_configuration
+        @pool.disconnect!
+
+        @pool = new_pool_with_options(min_size: 1)
+
+        @pool.activate
+        @pool.prepopulate
+        assert_equal 1, @pool.connections.length
+      end
+
       def test_idle_timeout_configuration_with_min_size
         @pool.disconnect!
 
