@@ -38,9 +38,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_equal "  include Authentication\n", includes_line, "includes module on first line of class definition"
     end
 
-    assert_file "Gemfile" do |content|
-      assert_match(/\ngem "bcrypt"/, content)
-    end
+    assert_gem "bcrypt"
 
     assert_file "config/routes.rb" do |content|
       assert_match(/resource :session/, content)
@@ -82,9 +80,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_equal "  include Authentication\n", includes_line, "includes module on first line of class definition"
     end
 
-    assert_file "Gemfile" do |content|
-      assert_match(/\ngem "bcrypt"/, content)
-    end
+    assert_gem "bcrypt"
 
     assert_file "config/routes.rb" do |content|
       assert_match(/resource :session/, content)

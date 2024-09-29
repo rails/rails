@@ -436,13 +436,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
-    assert_gem "sqlite3", '">= 2.1"'
+    assert_gem "sqlite3", ">= 2.1"
   end
 
   def test_config_mysql_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
-    assert_gem "mysql2", '"~> 0.5"'
+    assert_gem "mysql2", "~> 0.5"
   end
 
   def test_config_database_app_name_with_period
@@ -453,7 +453,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_postgresql_database
     run_generator([destination_root, "-d", "postgresql"])
     assert_file "config/database.yml", /postgresql/
-    assert_gem "pg", '"~> 1.1"'
+    assert_gem "pg", "~> 1.1"
   end
 
   def test_generator_defaults_to_puma_version
