@@ -1,3 +1,11 @@
+*   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
+
+    ```bash
+    $ bin/rails credentials:fetch kamal_registry/password
+    ```
+
+    *Matthew Nguyen*, *Jean Boussier*
+
 *   Generate static BCrypt password digests in fixtures instead of dynamic ERB expressions.
 
     Previously, fixtures with password digest attributes used `<%= BCrypt::Password.create("secret") %>`,
