@@ -820,7 +820,7 @@ module ActiveRecord
       def strict_loaded_associations(checked = nil)
         checked ||= Set.new
         checked.add(self)
-        @association_cache.map do |name, assoc|
+        @association_cache.filter_map do |name, assoc|
           if assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
             target = Array.wrap(assoc.target).first
 
@@ -830,7 +830,7 @@ module ActiveRecord
               name
             end
           end
-        end.compact
+        end
       end
 
       def _find_record(options)
