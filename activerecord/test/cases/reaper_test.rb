@@ -29,6 +29,9 @@ module ActiveRecord
         def discarded?
           @discarded
         end
+
+        def prepopulate
+        end
       end
 
       # A reaper with nil time should never reap connections

@@ -54,6 +54,7 @@ module ActiveRecord
                     @pools[frequency].each do |p|
                       p.reap
                       p.flush
+                      p.prepopulate
                     rescue WeakRef::RefError
                     end
 
