@@ -18,9 +18,13 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       @app = app
     end
 
+    def populate_rack_cache(env)
+      Rack::Request.new(env).params
+    end
+
     def call(env)
       # Trigger a Rack parse so that env caches the query params
-      Rack::Request.new(env).params
+      populate_rack_cache(env)
       @app.call(env)
     end
   end
