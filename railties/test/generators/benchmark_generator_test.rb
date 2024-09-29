@@ -15,9 +15,7 @@ module Rails
       test "generate benchmark" do
         run_generator ["my_benchmark"]
 
-        assert_file("Gemfile") do |content|
-          assert_match "gem \"benchmark-ips\"", content
-        end
+        assert_gem "benchmark-ips"
 
         assert_file("script/benchmarks/my_benchmark.rb") do |content|
           assert_equal <<~RUBY, content
