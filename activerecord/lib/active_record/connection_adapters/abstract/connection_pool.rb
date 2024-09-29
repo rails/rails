@@ -286,6 +286,7 @@ module ActiveRecord
         @schema_cache = nil
 
         @activated = false
+        @original_context = ActiveSupport::IsolatedExecutionState.context
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
@@ -725,7 +726,7 @@ module ActiveRecord
 
       # Disconnect all currently idle connections. Connections currently checked
       # out are unaffected. The pool will stop maintaining its minimum size until
-      # it is reactivated.
+      # it is reactivated (such as by a subsequent checkout).
       def flush!
         reap
         flush(-1)
@@ -1122,6 +1123,10 @@ module ActiveRecord
           # constraint
           do_checkout = synchronize do
             if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_size && (!block_given? || yield)
+              if @connections.size > 0 || @original_context != ActiveSupport::IsolatedExecutionState.context
+                @activated = true
+              end
+
               @now_connecting += 1
             end
           end
