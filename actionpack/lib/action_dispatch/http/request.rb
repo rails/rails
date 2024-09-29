@@ -7,6 +7,7 @@ require "stringio"
 require "active_support/inflector"
 require "action_dispatch/http/headers"
 require "action_controller/metal/exceptions"
+require "action_controller/metal/rate_limiting"
 require "rack/request"
 require "action_dispatch/http/cache"
 require "action_dispatch/http/mime_negotiation"
@@ -19,6 +20,7 @@ require "active_support/core_ext/array/conversions"
 module ActionDispatch
   class Request
     include Rack::Request::Helpers
+    include ActionController::RateLimiting::Request
     include ActionDispatch::Http::Cache::Request
     include ActionDispatch::Http::MimeNegotiation
     include ActionDispatch::Http::Parameters

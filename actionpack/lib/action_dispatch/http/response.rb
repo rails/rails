@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "active_support/core_ext/module/attribute_accessors"
+require "action_controller/metal/rate_limiting"
 require "action_dispatch/http/filter_redirect"
 require "action_dispatch/http/cache"
 require "monitor"
@@ -93,6 +94,7 @@ module ActionDispatch # :nodoc:
     alias :_cache_control :cache_control
     alias :_cache_control= :cache_control=
 
+    include ActionController::RateLimiting::Response
     include ActionDispatch::Http::FilterRedirect
     include ActionDispatch::Http::Cache::Response
     include MonitorMixin
