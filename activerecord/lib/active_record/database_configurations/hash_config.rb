@@ -73,6 +73,10 @@ module ActiveRecord
         (configuration_hash[:pool] || 5).to_i
       end
 
+      def min_size
+        (configuration_hash[:min_size] || 0).to_i
+      end
+
       def min_threads
         (configuration_hash[:min_threads] || 0).to_i
       end
