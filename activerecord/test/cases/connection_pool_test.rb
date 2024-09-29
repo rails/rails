@@ -384,6 +384,58 @@ module ActiveRecord
         @pool.checkin active_conn
       end
 
+      def test_automatic_activation
+        assert_not_predicate @pool, :activated?
+
+        # Checkout on root thread does not activate the pool
+        own_conn = @pool.checkout
+
+        assert_not_predicate @pool, :activated?
+
+        new_thread do
+          # Checkout on new thread activates the pool
+          conn = @pool.checkout
+
+          assert_predicate @pool, :activated?
+          @pool.checkin conn
+        end.join
+
+        @pool.checkin own_conn
+
+        # Pool remains activated
+        assert_predicate @pool, :activated?
+
+        # flush! deactivates the pool
+        @pool.flush!
+
+        assert_not_predicate @pool, :activated?
+
+        new_thread do
+          @pool.checkin(@pool.checkout)
+        end.join
+
+        # Off-thread checkout re-activates
+        assert_predicate @pool, :activated?
+      end
+
+      def test_prepopulate
+        pool = new_pool_with_options(min_size: 3, max_size: 3, async: false)
+
+        assert_equal 0, pool.connections.length
+        assert_not_predicate pool, :activated?
+
+        # Pool is not activated, so prepopulate is a no-op
+        pool.prepopulate
+
+        assert_equal 0, pool.connections.length
+        pool.activate
+
+        assert_predicate pool, :activated?
+        pool.prepopulate
+
+        assert_equal 3, pool.connections.length
+      end
+
       def test_remove_connection
         conn = @pool.checkout
         assert_predicate conn, :in_use?
