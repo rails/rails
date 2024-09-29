@@ -164,6 +164,32 @@ class RateLimitingTest < ActionController::TestCase
     assert_response :forbidden
   end
 
+  test "exceeding limit writes to the request and response" do
+    freeze_time
+
+    5.times do
+      get :limited
+      travel 1.second
+
+      assert_response :ok
+      assert_nil request.rate_limit
+      assert_nil response.retry_after
+    end
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited
+    end
+
+    assert_equal "long-term", request.rate_limit.name
+    assert_equal RateLimitedController.controller_name, request.rate_limit.scope
+    assert_equal 5, request.rate_limit.limit
+    assert_equal 6, request.rate_limit.count
+    assert_equal "rate-limit:rate_limited:long-term:#{request.remote_ip}", request.rate_limit.cache_key
+    assert_equal request.remote_ip, request.rate_limit.by
+    assert_equal 1.minute.from_now.httpdate, response.retry_after
+    assert_equal 1.minute.from_now.httpdate, response.headers["Retry-After"]
+  end
+
   test "cross-controller rate limit" do
     @controller = RateLimitedSharedOneController.new
     get :limited_shared_one

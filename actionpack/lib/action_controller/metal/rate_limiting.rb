@@ -3,6 +3,40 @@
 # :markup: markdown
 
 module ActionController # :nodoc:
+  # Information derived from a request that has exceeded a rate limit
+  class RateLimit
+    # The number of requests within the time frame
+    attr_reader :count
+
+    # The maximum number of requests allowed within the time frame
+    attr_reader :limit
+
+    # The time frame as a ActiveSupport::Duration instance
+    attr_reader :within
+
+    # The value returned by the identity function used to differentiate the source of the request
+    attr_reader :by
+
+    # The name of the rate limit
+    attr_reader :name
+
+    # The cache store used to count requests. Defaults to `config.action_controller.cache_store`.
+    attr_reader :scope
+
+    # The key used to count requests in the cache store
+    attr_reader :cache_key
+
+    def initialize(count:, limit:, within:, by:, name:, scope:, cache_key:) # :nodoc:
+      @count = count
+      @limit = limit
+      @within = within
+      @by = by
+      @name = name
+      @scope = scope
+      @cache_key = cache_key
+    end
+  end
+
   module RateLimiting
     extend ActiveSupport::Concern
 
@@ -75,6 +109,17 @@ module ActionController # :nodoc:
         cache_key = ["rate-limit", scope, name, by].compact.join(":")
         count = store.increment(cache_key, 1, expires_in: within)
         if count && count > to
+          request.rate_limit = RateLimit.new(
+            limit: to,
+            count: count,
+            within: within,
+            by: by,
+            name: name,
+            scope: scope,
+            cache_key: cache_key
+          )
+          response.retry_after = within.from_now.httpdate
+
           ActiveSupport::Notifications.instrument("rate_limit.action_controller",
               request: request,
               count: count,
