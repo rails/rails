@@ -14,6 +14,7 @@ class TestSocket
     @current_user = user
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
     @server = TestServer.new(subscription_adapter: subscription_adapter)
+    @subscriptions = ActionCable::Connection::Subscriptions.new(self)
     @transmissions = []
   end
 
