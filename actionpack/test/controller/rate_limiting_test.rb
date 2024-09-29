@@ -15,6 +15,20 @@ class RateLimitedController < ActionController::Base
   def limited_with
     head :ok
   end
+
+  rate_limit to: 2, within: 2.seconds, by: :by_method, with: :head_forbidden, only: :limited_with_methods
+  def limited_with_methods
+    head :ok
+  end
+
+  private
+    def by_method
+      params[:rate_limit_key]
+    end
+
+    def head_forbidden
+      head :forbidden
+    end
 end
 
 class RateLimitedBaseController < ActionController::Base
@@ -116,7 +130,7 @@ class RateLimitingTest < ActionController::TestCase
     end
   end
 
-  test "limit by" do
+  test "limit by callable" do
     get :limited_with
     get :limited_with
     get :limited_with
@@ -126,10 +140,27 @@ class RateLimitingTest < ActionController::TestCase
     assert_response :ok
   end
 
-  test "limited with" do
+  test "limited with callable" do
     get :limited_with
     get :limited_with
     get :limited_with
+    assert_response :forbidden
+  end
+
+  test "limit by method" do
+    get :limited_with_methods
+    get :limited_with_methods
+    get :limited_with_methods
+    assert_response :forbidden
+
+    get :limited_with_methods, params: { rate_limit_key: "other" }
+    assert_response :ok
+  end
+
+  test "limited with method" do
+    get :limited_with_methods
+    get :limited_with_methods
+    get :limited_with_methods
     assert_response :forbidden
   end
 
