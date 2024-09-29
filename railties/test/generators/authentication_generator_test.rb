@@ -32,7 +32,10 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/sessions/new.html.erb"
 
     assert_file "app/controllers/application_controller.rb" do |content|
-      assert_match(/include Authentication/, content)
+      class_line, includes_line = content.lines.first(2)
+
+      assert_equal "class ApplicationController < ActionController::Base\n", class_line, "does not affect class definition"
+      assert_equal "  include Authentication\n", includes_line, "includes module on first line of class definition"
     end
 
     assert_file "Gemfile" do |content|
@@ -63,7 +66,10 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/views/sessions/new.html.erb"
 
     assert_file "app/controllers/application_controller.rb" do |content|
-      assert_match(/include Authentication/, content)
+      class_line, includes_line = content.lines.first(2)
+
+      assert_equal "class ApplicationController < ActionController::Base\n", class_line, "does not affect class definition"
+      assert_equal "  include Authentication\n", includes_line, "includes module on first line of class definition"
     end
 
     assert_file "Gemfile" do |content|
