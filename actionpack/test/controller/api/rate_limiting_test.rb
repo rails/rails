@@ -23,8 +23,9 @@ class ApiRateLimitingTest < ActionController::TestCase
     get :limited_to_two
     assert_response :ok
 
-    get :limited_to_two
-    assert_response :too_many_requests
+    assert_raises ActionController::TooManyRequests do
+      get :limited_to_two
+    end
   end
 
   test "limit resets after time" do
