@@ -1,3 +1,18 @@
+*   Update `ActionController::Metal::RateLimiting` to support passing method names to `:by` and `:with`
+
+    ```ruby
+    class SignupsController < ApplicationController
+      rate_limit to: 10, within: 1.minute, with: :redirect_with_flash
+
+      private
+        def redirect_with_flash
+          redirect_to root_url, alert: "Too many requests!"
+        end
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Add "Copy as text" button to error pages
 
     *Mikkel Malmberg*

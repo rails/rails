@@ -16,6 +16,7 @@ class ApiRateLimitingTest < ActionController::TestCase
 
   setup do
     ApiRateLimitedController.cache_store.clear
+    freeze_time
   end
 
   test "exceeding basic limit" do
@@ -23,8 +24,9 @@ class ApiRateLimitingTest < ActionController::TestCase
     get :limited_to_two
     assert_response :ok
 
-    get :limited_to_two
-    assert_response :too_many_requests
+    assert_raises ActionController::TooManyRequests do
+      get :limited_to_two
+    end
   end
 
   test "limit resets after time" do
@@ -32,9 +34,8 @@ class ApiRateLimitingTest < ActionController::TestCase
     get :limited_to_two
     assert_response :ok
 
-    travel_to Time.now + 3.seconds do
-      get :limited_to_two
-      assert_response :ok
-    end
+    travel 3.seconds
+    get :limited_to_two
+    assert_response :ok
   end
 end
