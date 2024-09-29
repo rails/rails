@@ -103,4 +103,9 @@ module ActionController
       super(message)
     end
   end
+
+  # Raised when a Rate Limit is exceeded by too many requests within a period of
+  # time.
+  class TooManyRequests < ActionControllerError
+  end
 end
