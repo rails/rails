@@ -1080,12 +1080,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     pool = connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     assert_called_with(pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool)
@@ -1107,12 +1114,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     fire_connection_notification(connection.pool)
     teardown_fixtures
@@ -1131,12 +1145,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     assert_called_with(connection.pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool, shard: :shard_two)
