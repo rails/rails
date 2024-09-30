@@ -937,14 +937,8 @@ class EachTest < ActiveRecord::TestCase
   test ".find_each respects table alias" do
     assert_queries_count(1) do
       table_alias = Post.arel_table.alias("omg_posts")
-      table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
-      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      posts = ActiveRecord::Relation.create(
-        Post,
-        table: table_alias,
-        predicate_builder: predicate_builder
-      )
+      posts = ActiveRecord::Relation.create(Post, table: table_alias)
       posts.find_each { }
     end
   end

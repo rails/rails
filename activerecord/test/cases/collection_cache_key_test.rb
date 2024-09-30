@@ -72,14 +72,8 @@ module ActiveRecord
 
     test "cache_key for relation with table alias" do
       table_alias = Developer.arel_table.alias("omg_developers")
-      table_metadata = ActiveRecord::TableMetadata.new(Developer, table_alias)
-      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      developers = ActiveRecord::Relation.create(
-        Developer,
-        table: table_alias,
-        predicate_builder: predicate_builder
-      )
+      developers = ActiveRecord::Relation.create(Developer, table: table_alias)
       developers = developers.where(salary: 100000).order(updated_at: :desc)
       last_developer_timestamp = developers.first.updated_at
 
