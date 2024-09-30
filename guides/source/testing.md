@@ -773,8 +773,6 @@ By default, system tests are run with the Selenium driver, using the Chrome
 browser, and a screen size of 1400x1400. The next section explains how to
 change the default settings.
 
-By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
-
 ### Changing the Default Settings
 
 Rails makes changing the default settings for system tests very simple. All
@@ -997,20 +995,20 @@ take a screenshot of the browser.
 
 The beauty of system testing is that it is similar to [integration testing](testing.html#integration-testing) in that it tests the user's interaction with your controller, model, and view, but
 system testing is much more robust and actually tests your application as if
-a real user were using it. Going forward, you can test anything that the user
+a real user were using it. With system tests, you can test anything that the user
 themselves would do in your application such as commenting, deleting articles,
 publishing draft articles, etc.
 
 Integration Testing
 -------------------
 
-Integration tests are used to test how various parts of our application interact. They are generally used to test important workflows within our application.
+Integration tests are another way of testing how various parts of our application interact. They are generally used to test important workflows within our application.
 
-For creating Rails integration tests, we use the `test/integration` directory for our application. Rails provides a generator to create an integration test skeleton for us.
+Rails integration tests can be created in the `test/integration` directory. Rails provides a generator to create an integration test skeleton for us.
 
 ```bash
 $ bin/rails generate integration_test user_flows
-      exists  test/integration/
+      invoke  test_unit
       create  test/integration/user_flows_test.rb
 ```
 
@@ -1027,8 +1025,6 @@ end
 ```
 
 Here the test is inheriting from `ActionDispatch::IntegrationTest`. This makes some additional helpers available for us to use in our integration tests.
-
-By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
 
 ### Helpers Available for Integration Tests
 
@@ -1228,8 +1224,6 @@ NOTE: If you followed the steps in the [Basic Authentication](getting_started.ht
 ```ruby
 post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
 ```
-
-By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
 
 ### Available Request Types for Functional Tests
 
@@ -2418,6 +2412,10 @@ end
 
 Additional Testing Resources
 ----------------------------
+
+### Errors
+
+In system tests, integration tests and functional controller tests, Rails will attempt to rescue from exceptions raised and respond with HTML error pages by default. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
 
 ### Testing Time-Dependent Code
 
