@@ -866,6 +866,7 @@ ActiveRecord::Schema.define do
     t.decimal :decimal_number_with_default, precision: 3, scale: 2, default: 2.78
     t.numeric :numeric_number
     t.float   :temperature
+    t.float   :temperature_with_limit, limit: 24
     t.decimal :decimal_number_big_precision, precision: 20
     t.decimal :atoms_in_universe, precision: 55, scale: 0
   end

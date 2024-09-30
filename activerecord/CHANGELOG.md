@@ -1,3 +1,9 @@
+*   Make Float distinguish between `float4` and `float8` in PostgreSQL.
+
+    Fixes #52742
+
+    *Ryota Kitazawa*, *Takayuki Nagatomi*
+
 *   Fix an issue where `.left_outer_joins` used with multiple associations that have
     the same child association but different parents does not join all parents.
 

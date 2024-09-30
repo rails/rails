@@ -419,6 +419,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
     end
+
+    def test_schema_dump_include_limit_for_float4_field
+      output = dump_table_schema "numeric_data"
+      assert_match %r{t\.float\s+"temperature_with_limit",\s+limit: 24$}, output
+    end
   end
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
