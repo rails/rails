@@ -671,8 +671,8 @@ module ActiveRecord
           m.register_type "int4", Type::Integer.new(limit: 4)
           m.register_type "int8", Type::Integer.new(limit: 8)
           m.register_type "oid", OID::Oid.new
-          m.register_type "float4", Type::Float.new
-          m.alias_type "float8", "float4"
+          m.register_type "float4", Type::Float.new(limit: 24)
+          m.register_type "float8", Type::Float.new
           m.register_type "text", Type::Text.new
           register_class_with_limit m, "varchar", Type::String
           m.alias_type "char", "varchar"

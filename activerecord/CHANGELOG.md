@@ -1,3 +1,9 @@
+*   Make Float distinguish between `float4` and `float8` in PostgreSQL.
+
+    Fixes #52742
+
+    *Ryota Kitazawa*, *Takayuki Nagatomi*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Allow `drop_table` to accept an array of table names.
