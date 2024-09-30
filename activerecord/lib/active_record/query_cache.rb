@@ -43,10 +43,6 @@ module ActiveRecord
         pool.disable_query_cache!
         pool.clear_query_cache
       end
-
-      ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
-        pool.release_connection if pool.active_connection? && !pool.lease_connection.transaction_open?
-      end
     end
 
     def self.install_executor_hooks(executor = ActiveSupport::Executor)

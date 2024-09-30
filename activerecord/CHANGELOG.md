@@ -1,3 +1,13 @@
+*   Properly release pinned connections with non joinable connections
+
+    Fixes #52973
+
+    When running system tests with transactional fixtures on, it could happen that
+    the connection leased by the Puma thread wouldn't be properly released back to the pool,
+    causing "Cannot expire connection, it is owned by a different thread" errors in later tests.
+
+    *Jean Boussier*
+
 *   Make Float distinguish between `float4` and `float8` in PostgreSQL.
 
     Fixes #52742
