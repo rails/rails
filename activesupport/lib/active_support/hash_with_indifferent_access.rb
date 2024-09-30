@@ -313,10 +313,6 @@ module ActiveSupport
     end
     alias_method :without, :except
 
-    def stringify_keys!; self end
-    def deep_stringify_keys!; self end
-    def stringify_keys; dup end
-    def deep_stringify_keys; dup end
     undef :symbolize_keys!
     undef :deep_symbolize_keys!
     def symbolize_keys; to_hash.symbolize_keys! end
