@@ -1063,7 +1063,7 @@ When we visit our root path, we should see `welcome/index.html.erb` rendered for
 
 #### Creating Articles Integration
 
-How about testing our ability to create a new article in our blog and see the resulting article.
+We can also test our ability to create a new article in our blog and display the resulting article.
 
 ```ruby
 test "can create an article" do
@@ -1104,7 +1104,7 @@ We were able to successfully test a very small workflow for visiting our blog an
 
 ### Helpers Available for Integration Tests
 
-Let's get briefly introduced to some of the helpers we can choose from.
+Let's get briefly introduced to some of the helpers we can choose from in our integration tests.
 
 For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
 
@@ -1117,7 +1117,7 @@ If we need to modify the session, or state of our integration test, take a look 
 Functional Tests for Controllers
 -------------------------------------
 
-In Rails, testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you are testing how your actions handle the requests and the expected result or response, in some cases an HTML view.
+In Rails, testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you are testing how your actions handle the requests and the expected result or response - in some cases, an HTML view.
 
 ### What to Include in Your Functional Tests
 
