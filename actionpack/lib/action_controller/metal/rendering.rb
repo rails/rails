@@ -208,7 +208,7 @@ module ActionController
       end
 
       def _set_html_content_type
-        self.content_type = Mime[:html].to_s
+        self.content_type = :html
       end
 
       def _set_rendered_content_type(format)
