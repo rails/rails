@@ -36,11 +36,19 @@ module ActiveRecord
       class_attribute :pre_loaded_fixtures, default: false
       class_attribute :lock_threads, default: true
       class_attribute :fixture_sets, default: {}
+      class_attribute :database_transactions_config, default: {}
 
       ActiveSupport.run_load_hooks(:active_record_fixtures, self)
     end
 
     module ClassMethods
+      # Enable or disable transactions per database. This overrides the default
+      # setting as defined by `use_transactional_tests`, which applies to all
+      # database connection pools not explicitly configured here.
+      def set_database_transactions(name, enabled)
+        self.database_transactions_config = database_transactions_config.merge(name => enabled)
+      end
+
       # Sets the model class for a fixture when the class name cannot be inferred from the fixture name.
       #
       # Examples:
@@ -106,7 +114,8 @@ module ActiveRecord
 
     private
       def run_in_transaction?
-        use_transactional_tests &&
+        has_explicit_config = database_transactions_config.any? { |_, enabled| enabled }
+        (use_transactional_tests || has_explicit_config) &&
           !self.class.uses_transaction?(name)
       end
 
@@ -174,6 +183,21 @@ module ActiveRecord
 
         # Begin transactions for connections already established
         @fixture_connection_pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
+
+        transaction_disabled_dbnames = database_transactions_config.select { |_, enabled| !enabled }.keys
+        transaction_enabled_dbnames = database_transactions_config.select { |_, enabled| enabled }.keys
+
+        # Remove any pools that we don't want to use with transactions
+        @fixture_connection_pools.reject! { |pool|
+          if use_transactional_tests
+            # If the default is to use transactions, remove pools that are explicitly DISabled
+            transaction_disabled_dbnames.include?(pool.db_config.name.to_sym)
+          else
+            # Otherwise the default is NOT to use transactions, so remove any pools that are NOT explicitly ENabled
+            !transaction_enabled_dbnames.include?(pool.db_config.name.to_sym)
+          end
+        }
+
         @fixture_connection_pools.each do |pool|
           pool.pin_connection!(lock_threads)
           pool.lease_connection
@@ -189,7 +213,12 @@ module ActiveRecord
             if pool
               setup_shared_connection_pool
 
-              unless @fixture_connection_pools.include?(pool)
+              # Don't begin a transaction if we've already done so, or are not
+              # using transactions for this database
+              @disable_transactions =
+                (use_transactional_tests && transaction_disabled_dbnames.include?(pool.db_config.name.to_sym)) ||
+                (!use_transactional_tests && !transaction_enabled_dbnames.include?(pool.db_config.name.to_sym))
+              unless @fixture_connection_pools.include?(pool) || @disable_transactions
                 pool.pin_connection!(lock_threads)
                 pool.lease_connection
                 @fixture_connection_pools << pool
