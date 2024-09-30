@@ -40,9 +40,6 @@ gem "terser", ">= 1.1.4", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0", "!=2.7.0"
 
-# Workaround until Ruby ships with cgi version 0.3.6 or higher.
-gem "cgi", ">= 0.3.6", require: false
-
 # Workaround until all supported Ruby versions ship with uri version 0.13.1 or higher.
 gem "uri", ">= 0.13.1", require: false
 
