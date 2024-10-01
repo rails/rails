@@ -436,6 +436,24 @@ module ActiveRecord
         assert_equal 3, pool.connections.length
       end
 
+      def test_preconnect
+        pool = new_pool_with_options(min_size: 3, max_size: 3, async: false)
+        pool.activate
+        pool.prepopulate
+
+        assert_equal 3, pool.connections.length
+        pool.connections.each do |conn|
+          assert_not_predicate conn, :connected?
+        end
+
+        pool.preconnect
+
+        assert_equal 3, pool.connections.length
+        pool.connections.each do |conn|
+          assert_predicate conn, :connected?
+        end
+      end
+
       def test_remove_connection
         conn = @pool.checkout
         assert_predicate conn, :in_use?
