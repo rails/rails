@@ -1,9 +1,5 @@
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
-*   Make `ActionController::AllowBrowser::BrowserBlocker` private
-
-    *Sean Doyle*
-
 *   Fix non-GET requests not updating cookies in `ActionController::TestCase`.
 
     *Jon Moss*, *Hartley McGuire*
