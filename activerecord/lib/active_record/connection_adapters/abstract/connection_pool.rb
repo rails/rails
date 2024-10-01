@@ -220,7 +220,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :max_size, :min_size, :keepalive, :reaper, :pool_config, :async_executor, :role, :shard
+      attr_reader :db_config, :max_size, :min_size, :max_age, :keepalive, :reaper, :pool_config, :async_executor, :role, :shard
       alias :size :max_size
 
       delegate :schema_reflection, :server_version, to: :pool_config
@@ -243,6 +243,7 @@ module ActiveRecord
         @idle_timeout = db_config.idle_timeout
         @max_size = db_config.pool
         @min_size = db_config.min_size
+        @max_age = db_config.max_age
         @keepalive = db_config.keepalive
 
         # This variable tracks the cache of threads mapped to reserved connections, with the
@@ -726,6 +727,16 @@ module ActiveRecord
           while new_conn = try_to_checkout_new_connection { @connections.size < @min_size }
             checkin(new_conn)
           end
+        end
+      end
+
+      def retire_old_connections(max_age = @max_age)
+        max_age ||= Float::INFINITY
+
+        sequential_maintenance -> c { c.connection_age&.>= max_age } do |conn|
+          # Disconnect, then return the adapter to the pool. Preconnect will
+          # handle the rest.
+          conn.disconnect!
         end
       end
 

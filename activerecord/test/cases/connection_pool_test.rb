@@ -454,6 +454,30 @@ module ActiveRecord
         end
       end
 
+      def test_max_age
+        pool = new_pool_with_options(max_age: 10, async: false)
+
+        conn = pool.checkout
+
+        assert_not_predicate conn, :connected?
+        assert_nil conn.connection_age
+
+        conn.connect!
+
+        assert_predicate conn, :connected?
+        assert_operator conn.connection_age, :>=, 0
+        assert_operator conn.connection_age, :<, 1
+
+        conn.instance_variable_set(:@connected_since, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 11)
+
+        assert_operator conn.connection_age, :>, 10
+
+        pool.checkin conn
+        pool.retire_old_connections
+
+        assert_not_predicate conn, :connected?
+      end
+
       def test_keepalive
         pool = new_pool_with_options(keepalive: 100, async: false)
         conn = pool.checkout

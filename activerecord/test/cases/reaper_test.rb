@@ -38,6 +38,9 @@ module ActiveRecord
 
         def keep_alive
         end
+
+        def retire_old_connections
+        end
       end
 
       # A reaper with nil time should never reap connections

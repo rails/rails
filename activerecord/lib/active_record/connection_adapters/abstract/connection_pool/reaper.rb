@@ -55,6 +55,7 @@ module ActiveRecord
                       p.reap
                       p.flush
                       p.prepopulate
+                      p.retire_old_connections
                       p.keep_alive
                       p.preconnect
                     rescue WeakRef::RefError
