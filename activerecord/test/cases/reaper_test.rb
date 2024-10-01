@@ -32,6 +32,9 @@ module ActiveRecord
 
         def prepopulate
         end
+
+        def preconnect
+        end
       end
 
       # A reaper with nil time should never reap connections

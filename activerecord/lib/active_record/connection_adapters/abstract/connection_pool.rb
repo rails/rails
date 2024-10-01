@@ -728,6 +728,20 @@ module ActiveRecord
         end
       end
 
+      # Preconnect all connections in the pool. This saves pool users from
+      # having to wait for a connection to be established when first using it
+      # after checkout.
+      def preconnect
+        sequential_maintenance -> c { (!c.connected? || !c.verified?) && c.allow_preconnect } do |conn|
+          conn.connect!
+        rescue
+          # Wholesale rescue: there's nothing we can do but move on. The
+          # connection will go back to the pool, and the next consumer will
+          # presumably try to connect again -- which will either work, or
+          # fail and they'll be able to report the exception.
+        end
+      end
+
       def num_waiting_in_queue # :nodoc:
         @available.num_waiting
       end

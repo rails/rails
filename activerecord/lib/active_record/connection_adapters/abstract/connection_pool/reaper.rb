@@ -55,6 +55,7 @@ module ActiveRecord
                       p.reap
                       p.flush
                       p.prepopulate
+                      p.preconnect
                     rescue WeakRef::RefError
                     end
 
