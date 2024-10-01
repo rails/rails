@@ -114,12 +114,6 @@ class ActiveSupport::TestCase
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
       ActiveStorage::Blob.service = old_service
     end
-
-    def subscribe_events_from(name)
-      events = []
-      ActiveSupport::Notifications.subscribe(name) { |event| events << event }
-      events
-    end
 end
 
 require "global_id"

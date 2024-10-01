@@ -44,7 +44,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
     size = 3
     size.times { |i| @cache.write(i.to_s, i) }
 
-    events = with_instrumentation "cleanup" do
+    events = capture_notifications("cache_cleanup.active_support") do
       @cache.cleanup
     end
 

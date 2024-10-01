@@ -1141,12 +1141,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_association_loading_notification
-    notifications = messages_for("instantiation.active_record") do
+    payload = capture_notifications("instantiation.active_record") do
       Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
-    end
-
-    message = notifications.first
-    payload = message.last
+    end.first.payload
     count = Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
 
     # eagerloaded row count should be greater than just developer count
@@ -1155,25 +1152,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_base_messages
-    notifications = messages_for("instantiation.active_record") do
+    payload = capture_notifications("instantiation.active_record") do
       Developer.all.to_a
-    end
-    message = notifications.first
-    payload = message.last
+    end.first.payload
 
     assert_equal Developer.all.to_a.count, payload[:record_count]
     assert_equal Developer.name, payload[:class_name]
-  end
-
-  def messages_for(name)
-    notifications = []
-    ActiveSupport::Notifications.subscribe(name) do |*args|
-      notifications << args
-    end
-    yield
-    notifications
-  ensure
-    ActiveSupport::Notifications.unsubscribe(name)
   end
 
   def test_load_with_sti_sharing_association

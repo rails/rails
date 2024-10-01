@@ -84,7 +84,7 @@ class AllowBrowserTest < ActionController::TestCase
   end
 
   test "a blocked request instruments a browser_block.action_controller event" do
-    event, *rest = capture_instrumentation_events "browser_block.action_controller" do
+    event, *rest = capture_notifications "browser_block.action_controller" do
       get_with_agent :modern, CHROME_118
     end
 
@@ -97,11 +97,5 @@ class AllowBrowserTest < ActionController::TestCase
     def get_with_agent(action, agent)
       @request.headers["User-Agent"] = agent
       get action
-    end
-
-    def capture_instrumentation_events(pattern, &block)
-      events = []
-      ActiveSupport::Notifications.subscribed(->(e) { events << e }, pattern, &block)
-      events
     end
 end
