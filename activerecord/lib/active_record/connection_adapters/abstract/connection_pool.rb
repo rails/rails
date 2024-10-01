@@ -771,6 +771,21 @@ module ActiveRecord
         end
       end
 
+      # Immediately mark all current connections as due for replacement,
+      # equivalent to them having reached +max_age+ -- even if there is
+      # no +max_age+ configured.
+      def recycle!
+        synchronize do
+          return if self.discarded?
+
+          @connections.each do |conn|
+            conn.force_retirement
+          end
+        end
+
+        retire_old_connections
+      end
+
       def num_waiting_in_queue # :nodoc:
         @available.num_waiting
       end
