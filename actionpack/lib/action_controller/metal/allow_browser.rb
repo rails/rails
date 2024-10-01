@@ -60,7 +60,7 @@ module ActionController # :nodoc:
         end
       end
 
-      class BrowserBlocker
+      class BrowserBlocker # :nodoc:
         SETS = {
           modern: { safari: 17.2, chrome: 120, firefox: 121, opera: 106, ie: false }
         }
