@@ -85,6 +85,15 @@ module ActiveRecord
         (configuration_hash[:max_threads] || pool).to_i
       end
 
+      def max_age
+        v = configuration_hash[:max_age]&.to_i
+        if v && v > 0
+          v
+        else
+          Float::INFINITY
+        end
+      end
+
       def query_cache
         configuration_hash[:query_cache]
       end
