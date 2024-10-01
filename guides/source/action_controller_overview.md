@@ -709,25 +709,24 @@ end
 
 ### Session Storage Options
 
-Sessions can use one of several of different storage mechanisms:
+All sessions have a unique Id that represents the session object; these Ids are stored in a cookie. The actual session objects use one of the following storage mechanisms:
 
 * [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
 * [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
-* [`ActionDispatch::Session::MemCacheStore`][] - Stores the data in a memcached cluster (this is a legacy implementation; consider using `CacheStore` instead).
 * [`ActionDispatch::Session::ActiveRecordStore`][activerecord-session_store] -
   Stores the data in a database using Active Record (requires the
   [`activerecord-session_store`][activerecord-session_store] gem)
 * A custom store or a store provided by a third party gem
 
-All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
+For most session stores, the unique Id in the cookie is used to look up session data on the server (e.g. a database table). Rails does not allow you to pass the session ID in the URL as this is less secure.
 
-For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight, and it requires zero setup in a new application to use the session. The cookie data is cryptographically signed to make it tamper-proof. And it is also encrypted so anyone with access to it can't read its contents. (Rails will not accept it if it has been edited).
+The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the ID is still available to you if you need it). The cookie data is cryptographically signed to prevent tampering. It's also encrypted so anyone with access to it can't read its contents. The `CookieStore` is lightweight and does not require any configuration to use in a new application. 
 
-The CookieStore can store around 4 kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (such as model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+The `CookieStore`` can store 4 kB of data - much less than the other storage options - but this is usually enough. Storing large amounts of data in the session is discouraged. You should especially avoid storing complex objects (such as model instances) in the session.
 
-If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using `ActionDispatch::Session::CacheStore`. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
+You can use the `CacheStore` if your sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging). This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
-Read more about session storage in the [Security Guide](security.html).
+Read more about session storage in the [Security Guide](security.html#sessions).
 
 If you need a different session storage mechanism, you can change it in an initializer:
 
