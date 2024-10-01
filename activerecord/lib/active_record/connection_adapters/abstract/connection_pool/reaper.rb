@@ -51,7 +51,9 @@ module ActiveRecord
                       pool.weakref_alive? && !pool.discarded?
                     end
 
-                    @pools[frequency].each do |p|
+                    @pools[frequency].each do |ref|
+                      p = ref.__getobj__
+
                       p.reap
                       p.flush
                       p.prepopulate
