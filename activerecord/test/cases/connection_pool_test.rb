@@ -478,6 +478,30 @@ module ActiveRecord
         assert_not_predicate conn, :connected?
       end
 
+      def test_explicit_retirement
+        pool = new_pool_with_options(max_age: nil, async: false)
+
+        conn = pool.checkout
+
+        assert_not_predicate conn, :connected?
+        assert_nil conn.connection_age
+
+        conn.connect!
+
+        assert_predicate conn, :connected?
+        assert_operator conn.connection_age, :>=, 0
+        assert_operator conn.connection_age, :<, 1
+
+        pool.recycle!
+
+        assert_equal Float::INFINITY, conn.connection_age
+
+        pool.checkin conn
+        pool.retire_old_connections
+
+        assert_not_predicate conn, :connected?
+      end
+
       def test_keepalive
         pool = new_pool_with_options(keepalive: 100, async: false)
         conn = pool.checkout
