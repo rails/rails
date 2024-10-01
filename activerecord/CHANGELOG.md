@@ -1,3 +1,16 @@
+*   Add support for enabling or disabling transactions per database.
+
+    This allows you to enable or disable transactions for a specific database,
+    overriding the default setting specified by use_transactions_tests. This
+    can be useful for read-only connections.
+
+    ```ruby
+    ActiveRecord::TestFixture.use_transactions_tests = true
+    ActiveRecord::TestFixture.set_database_transactions(:readonly, false)
+    ```
+
+    *Matthew Cheetham*, *Morgan Mareve*
+
 *   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
 
     *David Stosik*
