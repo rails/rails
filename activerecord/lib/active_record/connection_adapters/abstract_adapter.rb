@@ -128,6 +128,7 @@ module ActiveRecord
 
         @raw_connection = nil
         @unconfigured_connection = nil
+        @connected_since = nil
 
         if config_or_deprecated_connection.is_a?(Hash)
           @config = config_or_deprecated_connection.symbolize_keys
@@ -140,6 +141,7 @@ module ActiveRecord
           # Soft-deprecated for now; we'll probably warn in future.
 
           @unconfigured_connection = config_or_deprecated_connection
+          @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @logger = deprecated_logger || ActiveRecord::Base.logger
           if deprecated_config
             @config = (deprecated_config || {}).symbolize_keys
@@ -344,6 +346,15 @@ module ActiveRecord
       def seconds_since_last_activity # :nodoc:
         if @raw_connection && @last_activity
           Process.clock_gettime(Process::CLOCK_MONOTONIC) - @last_activity
+        end
+      end
+
+      # Seconds since this connection was established. nil if not
+      # connected; infinity if the connection has been explicitly
+      # retired.
+      def connection_age # :nodoc:
+        if @raw_connection && @connected_since
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - @connected_since
         end
       end
 
@@ -680,7 +691,7 @@ module ActiveRecord
 
           enable_lazy_transactions!
           @raw_connection_dirty = false
-          @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          @last_activity = @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @verified = true
           @allow_preconnect = true
 
@@ -715,6 +726,7 @@ module ActiveRecord
           clear_cache!(new_connection: true)
           reset_transaction
           @raw_connection_dirty = false
+          @connected_since = nil
         end
       end
 
