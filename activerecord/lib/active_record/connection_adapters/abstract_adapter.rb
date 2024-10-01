@@ -42,6 +42,7 @@ module ActiveRecord
 
       attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
+      attr_accessor :allow_preconnect
       alias :in_use? :owner
 
       def pool=(value)
@@ -152,6 +153,7 @@ module ActiveRecord
         @owner = nil
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        @allow_preconnect = true
         @visitor = arel_visitor
         @statements = build_statement_pool
         self.lock_thread = nil
@@ -664,12 +666,15 @@ module ActiveRecord
         deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
 
         @lock.synchronize do
+          @allow_preconnect = false
+
           reconnect
 
           enable_lazy_transactions!
           @raw_connection_dirty = false
           @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @verified = true
+          @allow_preconnect = true
 
           reset_transaction(restore: restore_transactions) do
             clear_cache!(new_connection: true)
@@ -765,6 +770,7 @@ module ActiveRecord
               configure_connection
               @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
               @verified = true
+              @allow_preconnect = true
               return
             end
 
@@ -783,6 +789,10 @@ module ActiveRecord
       def clean! # :nodoc:
         @raw_connection_dirty = false
         @verified = nil
+      end
+
+      def verified? # :nodoc:
+        @verified
       end
 
       # Provides access to the underlying database driver for this adapter. For
