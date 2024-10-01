@@ -51,7 +51,16 @@ module Rails
       end
     end
 
-    class Reloader < IRB::Command::Base
+    class ReloadHelper < RailsHelperBase
+      description "Reloads the Rails application."
+
+      def execute
+        puts "Reloading..."
+        Rails.application.reloader.reload!
+      end
+    end
+
+    class ReloadCommand < IRB::Command::Base
       include ConsoleMethods
 
       category "Rails console"
@@ -67,7 +76,8 @@ module Rails
     IRB::HelperMethod.register(:controller, ControllerInstance)
     IRB::HelperMethod.register(:new_session, NewSession)
     IRB::HelperMethod.register(:app, AppInstance)
-    IRB::Command.register(:reload!, Reloader)
+    IRB::HelperMethod.register(:reload!, ReloadHelper)
+    IRB::Command.register(:reload!, ReloadCommand)
 
     class IRBConsole
       def initialize(app)
