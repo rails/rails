@@ -220,7 +220,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :max_size, :min_size, :reaper, :pool_config, :async_executor, :role, :shard
+      attr_reader :db_config, :max_size, :min_size, :keepalive, :reaper, :pool_config, :async_executor, :role, :shard
       alias :size :max_size
 
       delegate :schema_reflection, :server_version, to: :pool_config
@@ -243,6 +243,7 @@ module ActiveRecord
         @idle_timeout = db_config.idle_timeout
         @max_size = db_config.pool
         @min_size = db_config.min_size
+        @keepalive = db_config.keepalive
 
         # This variable tracks the cache of threads mapped to reserved connections, with the
         # sole purpose of speeding up the +connection+ method. It is not the authoritative
@@ -739,6 +740,23 @@ module ActiveRecord
           # connection will go back to the pool, and the next consumer will
           # presumably try to connect again -- which will either work, or
           # fail and they'll be able to report the exception.
+        end
+      end
+
+      # Prod any connections that have been idle for longer than the configured
+      # keepalive time. This will incidentally verify the connection is still
+      # alive, but the main purpose is to show the server (and any intermediate
+      # network hops) that we're still here and using the connection.
+      def keep_alive(threshold = @keepalive)
+        return if threshold.nil?
+
+        sequential_maintenance -> c { (c.seconds_since_last_activity || 0) > threshold } do |conn|
+          # conn.active? will cause some amount of network activity, which is all
+          # we need to provide a keepalive signal.
+          #
+          # If it returns false, the connection is already broken; disconnect,
+          # so it can be found and repaired.
+          conn.disconnect! unless conn.active?
         end
       end
 

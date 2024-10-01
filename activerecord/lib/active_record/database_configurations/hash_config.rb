@@ -108,6 +108,11 @@ module ActiveRecord
         timeout if timeout > 0
       end
 
+      def keepalive
+        keepalive = (configuration_hash[:keepalive] || 600).to_f
+        keepalive if keepalive > 0
+      end
+
       def adapter
         configuration_hash[:adapter]&.to_s
       end
