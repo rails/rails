@@ -9,6 +9,7 @@ module ActiveRecord
   class WithTest < ActiveRecord::TestCase
     fixtures :comments, :posts, :companies
 
+    SPECIAL_POSTS = [2].freeze
     POSTS_WITH_TAGS = [1, 2, 7, 8, 9, 10, 11].freeze
     POSTS_WITH_COMMENTS = [1, 2, 4, 5, 7].freeze
     POSTS_WITH_MULTIPLE_COMMENTS = [1, 4, 5].freeze
@@ -63,13 +64,14 @@ module ActiveRecord
 
       def test_with_when_passing_arrays
         relation = Post
-          .with(posts_with_tags_or_comments: [
-            Post.where("tags_count > 0"),
+          .with(posts_with_special_type_or_tags_or_comments: [
+            Post.where(type: "SpecialPost"),
+            Arel.sql("SELECT * FROM posts WHERE tags_count > 0"), # arel node on purpose
             Post.where("legacy_comments_count > 0")
           ])
-          .from("posts_with_tags_or_comments AS posts")
+          .from("posts_with_special_type_or_tags_or_comments AS posts")
 
-        assert_equal (POSTS_WITH_TAGS + POSTS_WITH_COMMENTS).sort, relation.order(:id).pluck(:id)
+        assert_equal (SPECIAL_POSTS + POSTS_WITH_TAGS + POSTS_WITH_COMMENTS).sort, relation.order(:id).pluck(:id)
       end
 
       def test_with_recursive
