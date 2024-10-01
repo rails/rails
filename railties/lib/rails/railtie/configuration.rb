@@ -96,7 +96,7 @@ module Rails
         !@@options.key?(key) && respond_to?(key)
       end
 
-      def method_missing(name, *args, &blk)
+      def method_missing(name, *args, **)
         if name.end_with?("=")
           key = name[0..-2].to_sym
           if actual_method?(key)

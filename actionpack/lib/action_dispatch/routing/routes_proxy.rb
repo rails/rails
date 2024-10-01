@@ -29,9 +29,8 @@ module ActionDispatch
         super || @helpers.respond_to?(method)
       end
 
-      def method_missing(method, *args)
+      def method_missing(method, *, **options)
         if @helpers.respond_to?(method)
-          options = args.extract_options!
           options = url_options.merge((options || {}).symbolize_keys)
 
           if @script_namer
@@ -41,8 +40,7 @@ module ActionDispatch
             )
           end
 
-          args << options
-          @helpers.public_send(method, *args)
+          @helpers.public_send(method, *, **options)
         else
           super
         end

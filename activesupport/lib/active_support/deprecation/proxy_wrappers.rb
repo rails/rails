@@ -19,9 +19,9 @@ module ActiveSupport
       end
 
       private
-        def method_missing(called, *args, &block)
-          warn caller_locations, called, args
-          target.__send__(called, *args, &block)
+        def method_missing(called, *args, **kwargs, &block)
+          warn caller_locations, called, args, kwargs
+          target.__send__(called, *args, **kwargs, &block)
         end
     end
 
