@@ -7,12 +7,29 @@ module ActiveRecord
     class ConnectionPool
       # = Active Record Connection Pool \Reaper
       #
-      # Every +frequency+ seconds, the reaper will call +reap+ and +flush+ on
-      # +pool+. A reaper instantiated with a zero frequency will never reap
-      # the connection pool.
+      # The reaper is a singleton that exists in the background of the process
+      # and is responsible for general maintenance of all the connection pools.
       #
-      # Configure the frequency by setting +reaping_frequency+ in your database
-      # YAML file (default 60 seconds).
+      # It will reclaim connections that are leased to now-dead threads,
+      # ensuring that a bad thread can't leak a pool slot forever. By definition,
+      # this involves touching currently-leased connections, but that is safe
+      # because the owning thread is known to be dead.
+      #
+      # Beyond that, it manages the health of available / unleased connections:
+      #  * retiring connections that have been idle[1] for too long
+      #  * creating occasional activity on inactive[1] connections
+      #  * keeping the pool prepopulated up to its minimum size
+      #  * proactively connecting to the target database from any pooled
+      #    connections that had lazily deferred that step
+      #  * resetting or replacing connections that are known to be broken
+      #
+      #
+      # [1]: "idle" and "inactive" here distinguish between connections that
+      # have not been requested by the application in a while (idle) and those
+      # that have not spoken to their remote server in a while (inactive). The
+      # former is a desirable opportunity to reduce our connection count
+      # (`idle_timeout`); the latter is a risk that the server or a firewall may
+      # drop a connection we still anticipate using (avoided by `keepalive`).
       class Reaper
         attr_reader :pool, :frequency
 
