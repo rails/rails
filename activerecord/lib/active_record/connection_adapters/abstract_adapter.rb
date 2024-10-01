@@ -786,6 +786,7 @@ module ActiveRecord
           end
         end
 
+        @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @verified = true
       end
 
