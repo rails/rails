@@ -354,6 +354,12 @@ module ActiveRecord
         end
       end
 
+      # Mark the connection as needing to be retired, as if the age has
+      # exceeded the maximum allowed.
+      def force_retirement # :nodoc:
+        @connected_since &&= -Float::INFINITY
+      end
+
       def unprepared_statement
         cache = prepared_statements_disabled_cache.add?(object_id) if @prepared_statements
         yield
