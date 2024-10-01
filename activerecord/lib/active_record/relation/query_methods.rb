@@ -1890,12 +1890,24 @@ module ActiveRecord
         end
       end
 
-      def build_with_expression_from_value(value)
+      def build_with_expression_from_value(value, nested = false)
         case value
         when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
-        when ActiveRecord::Relation then value.arel
+        when ActiveRecord::Relation
+          if nested
+            value.arel.ast
+          else
+            value.arel
+          end
         when Arel::SelectManager then value
-        when Array then value.map { |q| build_with_expression_from_value(q) }.reduce { |result, value| result.union(:all, value) }
+        when Array
+          parts = value.map do |query|
+            build_with_expression_from_value(query, true)
+          end
+
+          parts.reduce do |result, value|
+            Arel::Nodes::UnionAll.new(result, value)
+          end
         else
           raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
         end

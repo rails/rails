@@ -1,4 +1,17 @@
-*   Properly release pinned connections with non joinable connections
+*   Fix `ActiveRecord::Base.with` to accept more than two sub queries.
+
+    Fixes #53110.
+
+    ```ruby
+    User.with(foo: [User.select(:id), User.select(:id), User.select(:id)]).to_sql
+    undefined method `union' for an instance of Arel::Nodes::UnionAll (NoMethodError)
+    ```
+
+    The above now works as expected.
+
+    *fatkodima*
+
+*   Properly release pinned connections with non joinable connections.
 
     Fixes #52973
 
