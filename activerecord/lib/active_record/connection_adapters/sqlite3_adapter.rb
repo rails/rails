@@ -725,8 +725,6 @@ module ActiveRecord
             end
 
             basic_structure.map do |column|
-              column = column.to_h
-
               column_name = column["name"]
 
               if collation_hash.has_key? column_name
