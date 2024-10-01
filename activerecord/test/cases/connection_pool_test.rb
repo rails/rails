@@ -454,6 +454,115 @@ module ActiveRecord
         end
       end
 
+      def test_keepalive
+        pool = new_pool_with_options(keepalive: 100, async: false)
+        conn = pool.checkout
+        conn.connect!
+        pool.checkin conn
+
+        assert_operator conn.seconds_since_last_activity, :<, 5
+
+        conn.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 50)
+
+        assert_in_epsilon 50, conn.seconds_since_last_activity, 10
+
+        # we're currently below the threshold, so this is a no-op
+        pool.keep_alive
+
+        # still about the same age
+        assert_in_epsilon 50, conn.seconds_since_last_activity, 10
+
+        conn.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 200)
+
+        pool.keep_alive
+
+        # keep-alive query occurred, so our activity time has reset
+        assert_operator conn.seconds_since_last_activity, :<, 5
+      end
+
+      def test_keepalive_notices_problems
+        pool = new_pool_with_options(keepalive: 100, async: false)
+        conn = pool.checkout
+        conn.connect!
+        pool.checkin conn
+
+        original_broken_connection = conn.instance_variable_get(:@raw_connection)
+
+        assert_predicate conn, :connected?
+
+        # This is a definite API violation -- several nearby tests overstep by
+        # poking around unowned connections' bookkeeping, but actually querying
+        # (as #remote_disconnect does) without owning the connection is extreme.
+        # In practice, though, it should be fine: the pool belongs to this test,
+        # so the only other thread we could be competing with is the pool's
+        # reaper.
+        remote_disconnect conn
+
+        assert_same original_broken_connection, conn.instance_variable_get(:@raw_connection)
+
+        # we're below the threshold; no keep-alive occurs
+        pool.keep_alive
+
+        # connection is still [unknowingly] broken
+        assert_same original_broken_connection, conn.instance_variable_get(:@raw_connection)
+        assert_predicate conn, :connected?
+        assert_not_predicate conn, :active?
+
+        conn.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 200)
+        pool.keep_alive
+
+        # keep-alive noticed the problem and disconnected
+        assert_not_predicate conn, :connected?
+
+        # .. so now preconnect can repair the connection
+        pool.preconnect
+
+        assert_not_same original_broken_connection, conn.instance_variable_get(:@raw_connection)
+        assert_predicate conn, :connected?
+        assert_predicate conn, :active?
+      end
+
+      def test_idle_through_keepalive
+        pool = new_pool_with_options(keepalive: 0.1, idle_timeout: 0.5, async: false)
+        conn = pool.checkout
+        conn.connect!
+        pool.checkin conn
+
+        assert_predicate conn, :connected?
+        assert_operator conn.seconds_since_last_activity, :<, 0.1
+        assert_operator conn.seconds_idle, :<, 0.1
+
+        # This test is about the interaction between multiple "last use"
+        # timers, so manual fudging is a bit too intimate / relies on
+        # knowledge of the implementation. So instead, we have to live
+        # with a bit of sleeping (and hope we don't lose any races).
+
+        sleep 0.2
+
+        assert_operator conn.seconds_since_last_activity, :>, 0.1
+        assert_operator conn.seconds_idle, :>, 0.1
+        assert_operator conn.seconds_idle, :<, 0.5
+
+        pool.keep_alive # sends a keep-alive query
+        pool.flush # no-op
+
+        assert_predicate conn, :connected?
+        assert_operator conn.seconds_since_last_activity, :<, 0.1
+        assert_operator conn.seconds_idle, :>, 0.1
+        assert_operator conn.seconds_idle, :<, 0.5
+
+        sleep 0.4
+
+        assert_predicate conn, :connected?
+        assert_operator conn.seconds_since_last_activity, :>, 0.1
+        assert_operator conn.seconds_idle, :>, 0.5
+
+        pool.keep_alive # sends another query, though it doesn't matter
+        pool.flush # drops the idle connection
+
+        assert_not_predicate conn, :connected?
+      end
+
       def test_remove_connection
         conn = @pool.checkout
         assert_predicate conn, :in_use?
