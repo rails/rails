@@ -575,11 +575,8 @@ associated model.
 @account = @supplier.create_account(terms: "Net 30")
 ```
 
-Finally, `create_association!` does the same, but raises
-`ActiveRecord::RecordInvalid` if the record is invalid.
-
-`create_association!` does the same as `create_association` above, but raises
-`ActiveRecord::RecordInvalid` if the record is invalid.
+Finally, `create_association!` does the same as `create_association` above,
+but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 ```ruby
 # This will raise ActiveRecord::RecordInvalid because the terms is blank
