@@ -55,7 +55,8 @@ Rails.application.configure do
 
   <%- unless options[:skip_active_job] -%>
   # Replace the default in-process and non-durable queuing backend for Active Job.
-  # config.active_job.queue_adapter = :resque
+  # config.active_job.queue_adapter = :solid_queue
+  # config.solid_queue.connects_to = { database: { writing: :queue } }
 
   <%- end -%>
   <%- unless options.skip_action_mailer? -%>

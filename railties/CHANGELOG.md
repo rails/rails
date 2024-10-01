@@ -1,3 +1,9 @@
+*   Use Solid Queue commented out by default in the generated production.rb environment file.
+
+    Previously, :resque was suggested as the queue in the production.rb environment file.
+
+    *Hampton Lintorn-Catlin*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Exit `rails g` with code 1 if generator could not be found.
