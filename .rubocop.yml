@@ -6,399 +6,66 @@ require:
   - rubocop-md
 
 AllCops:
-  # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
-  # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
   SuggestExtensions: false
   Exclude:
-    - '**/tmp/**/*'
-    - '**/templates/**/*'
-    - '**/vendor/**/*'
-    - 'actionmailbox/test/dummy/**/*'
-    - 'activestorage/test/dummy/**/*'
-    - 'actiontext/test/dummy/**/*'
+    - '**/{tmp,templates,vendor}/**/*'
+    - '**/{actionmailbox,activestorage,actiontext}/test/dummy/**/*'
     - 'tools/rail_inspector/test/fixtures/*'
-    - guides/source/debugging_rails_applications.md
-    - guides/source/active_support_instrumentation.md
-    - '**/node_modules/**/*'
-    - '**/CHANGELOG.md'
-    - '**/2_*_release_notes.md'
-    - '**/3_*_release_notes.md'
-    - '**/4_*_release_notes.md'
-    - '**/5_*_release_notes.md'
-    - '**/6_*_release_notes.md'
-
+    - guides/source/{debugging_rails_applications,active_support_instrumentation}.md
+    - '**/{node_modules,CHANGELOG.md,2_*_release_notes.md,3_*_release_notes.md,4_*_release_notes.md,5_*_release_notes.md,6_*_release_notes.md}'
 
 Performance:
   Exclude:
     - '**/test/**/*'
 
-# Prefer assert_not over assert !
 Rails/AssertNot:
   Include:
     - '**/test/**/*'
 
-# Prefer assert_not_x over refute_x
 Rails/RefuteMethods:
   Include:
     - '**/test/**/*'
 
-Rails/IndexBy:
-  Enabled: true
-
-Rails/IndexWith:
-  Enabled: true
-
-# Prefer &&/|| over and/or.
-Style/AndOr:
-  Enabled: true
-
-Layout/ClosingHeredocIndentation:
-  Enabled: true
-
-Layout/ClosingParenthesisIndentation:
-  Enabled: true
-
-# Align comments with method definitions.
-Layout/CommentIndentation:
-  Enabled: true
-
-Layout/DefEndAlignment:
-  Enabled: true
-
-Layout/ElseAlignment:
-  Enabled: true
-
-# Align `end` with the matching keyword or starting expression except for
-# assignments, where it should be aligned with the LHS.
-Layout/EndAlignment:
-  Enabled: true
-  EnforcedStyleAlignWith: variable
-  AutoCorrect: true
-
-Layout/EndOfLine:
-  Enabled: true
-
-Layout/EmptyLineAfterMagicComment:
-  Enabled: true
-
-Layout/EmptyLinesAroundAccessModifier:
-  Enabled: true
-  EnforcedStyle: only_before
-
-Layout/EmptyLinesAroundBlockBody:
-  Enabled: true
-
-# In a regular class definition, no empty lines around the body.
-Layout/EmptyLinesAroundClassBody:
-  Enabled: true
-
-# In a regular method definition, no empty lines around the body.
-Layout/EmptyLinesAroundMethodBody:
-  Enabled: true
-
-# In a regular module definition, no empty lines around the body.
-Layout/EmptyLinesAroundModuleBody:
-  Enabled: true
-
-# Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
-Style/HashSyntax:
-  Enabled: true
-  EnforcedShorthandSyntax: either
-
-# Method definitions after `private` or `protected` isolated calls need one
-# extra level of indentation.
-Layout/IndentationConsistency:
-  Enabled: true
-  EnforcedStyle: indented_internal_methods
-  Exclude:
-    - '**/*.md'
-
-# Two spaces, no tabs (for indentation).
-Layout/IndentationWidth:
-  Enabled: true
-
-Layout/LeadingCommentSpace:
-  Enabled: true
-
-Layout/SpaceAfterColon:
-  Enabled: true
-
-Layout/SpaceAfterComma:
-  Enabled: true
-
-Layout/SpaceAfterSemicolon:
-  Enabled: true
-
-Layout/SpaceAroundEqualsInParameterDefault:
-  Enabled: true
-
-Layout/SpaceAroundKeyword:
-  Enabled: true
-
-Layout/SpaceAroundOperators:
-  Enabled: true
-
-Layout/SpaceBeforeComma:
-  Enabled: true
-
-Layout/SpaceBeforeComment:
-  Enabled: true
-
-Layout/SpaceBeforeFirstArg:
-  Enabled: true
-
-Style/DefWithParentheses:
-  Enabled: true
-
-# Defining a method with parameters needs parentheses.
-Style/MethodDefParentheses:
-  Enabled: true
-
-Style/ExplicitBlockArgument:
-  Enabled: true
-
-Style/FrozenStringLiteralComment:
-  Enabled: true
-  EnforcedStyle: always
-  Exclude:
-    - 'actionview/test/**/*.builder'
-    - 'actionview/test/**/*.ruby'
-    - 'actionpack/test/**/*.builder'
-    - 'actionpack/test/**/*.ruby'
-    - 'activestorage/db/migrate/**/*.rb'
-    - 'activestorage/db/update_migrate/**/*.rb'
-    - 'actionmailbox/db/migrate/**/*.rb'
-    - 'actiontext/db/migrate/**/*.rb'
-    - '**/*.md'
-
-Style/MapToHash:
-  Enabled: true
-
-Style/RedundantFreeze:
-  Enabled: true
-
-# Use `foo {}` not `foo{}`.
-Layout/SpaceBeforeBlockBraces:
-  Enabled: true
-
-# Use `foo { bar }` not `foo {bar}`.
-Layout/SpaceInsideBlockBraces:
-  Enabled: true
-  EnforcedStyleForEmptyBraces: space
-
-# Use `{ a: 1 }` not `{a:1}`.
-Layout/SpaceInsideHashLiteralBraces:
-  Enabled: true
-
-Layout/SpaceInsideParens:
-  Enabled: true
-
-# Check quotes usage according to lint rule below.
-Style/StringLiterals:
-  Enabled: true
-  EnforcedStyle: double_quotes
-
-# Detect hard tabs, no hard tabs.
-Layout/IndentationStyle:
-  Enabled: true
-
-# Empty lines should not have any spaces.
-Layout/TrailingEmptyLines:
-  Enabled: true
-
-# No trailing whitespace.
-Layout/TrailingWhitespace:
-  Enabled: true
-
-# Use quotes for string literals when they are enough.
-Style/RedundantPercentQ:
-  Enabled: true
-
-Lint/AmbiguousOperator:
-  Enabled: true
-
-Lint/AmbiguousRegexpLiteral:
-  Enabled: true
-
-Lint/Debugger:
-  Enabled: true
-  DebuggerRequires:
-    - debug
-
-Lint/DuplicateRequire:
-  Enabled: true
-
-Lint/DuplicateMagicComment:
-  Enabled: true
-
-Lint/DuplicateMethods:
-  Enabled: true
-
-Lint/ErbNewArguments:
-  Enabled: true
-
-Lint/EnsureReturn:
-  Enabled: true
-
-Lint/MissingCopEnableDirective:
-  Enabled: true
-
-# Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
-Lint/RequireParentheses:
-  Enabled: true
-
-Lint/RedundantCopDisableDirective:
-  Enabled: true
-
-Lint/RedundantCopEnableDirective:
-  Enabled: true
-
-Lint/RedundantRequireStatement:
-  Enabled: true
-
-Lint/RedundantStringCoercion:
-  Enabled: true
-
-Lint/RedundantSafeNavigation:
-  Enabled: true
-
-Lint/UriEscapeUnescape:
-  Enabled: true
-
-Lint/UselessAssignment:
-  Enabled: true
-
-Lint/DeprecatedClassMethods:
-  Enabled: true
-
-Lint/InterpolationCheck:
-  Enabled: true
-  Exclude:
-    - '**/test/**/*'
-
-Lint/SafeNavigationChain:
-  Enabled: true
-
-Style/EvalWithLocation:
-  Enabled: true
-  Exclude:
-    - '**/test/**/*'
-
-Style/ParenthesesAroundCondition:
-  Enabled: true
-
-Style/HashTransformKeys:
-  Enabled: true
-
-Style/HashTransformValues:
-  Enabled: true
-
-Style/RedundantBegin:
-  Enabled: true
-
-Style/RedundantReturn:
-  Enabled: true
-  AllowMultipleReturnValues: true
-
-Style/RedundantRegexpEscape:
-  Enabled: true
-
-Style/Semicolon:
-  Enabled: true
-  AllowAsExpressionSeparator: true
-
-# Prefer Foo.method over Foo::method
-Style/ColonMethodCall:
-  Enabled: true
-
-Style/TrivialAccessors:
-  Enabled: true
-
-# Prefer a = b || c over a = b ? b : c
-Style/RedundantCondition:
-  Enabled: true
-
-Style/RedundantDoubleSplatHashBraces:
-  Enabled: true
-
-Style/OpenStructUse:
-  Enabled: true
-
-Style/ArrayIntersect:
-  Enabled: true
-
-Performance/BindCall:
-  Enabled: true
-
-Performance/FlatMap:
-  Enabled: true
-
-Performance/MapCompact:
-  Enabled: true
-
-Performance/SelectMap:
-  Enabled: true
-
-Performance/RedundantMerge:
-  Enabled: true
-
-Performance/StartWith:
-  Enabled: true
-
-Performance/EndWith:
-  Enabled: true
-
-Performance/RegexpMatch:
-  Enabled: true
-
-Performance/ReverseEach:
-  Enabled: true
-
-Performance/StringReplacement:
-  Enabled: true
-
-Performance/DeletePrefix:
-  Enabled: true
-
-Performance/DeleteSuffix:
-  Enabled: true
-
-Performance/InefficientHashSearch:
-  Enabled: true
-
-Performance/ConstantRegexp:
-  Enabled: true
-
-Performance/RedundantStringChars:
-  Enabled: true
-
-Performance/StringInclude:
-  Enabled: true
-
-Minitest/AssertPredicate:
-  Enabled: true
-
-Minitest/AssertRaisesWithRegexpArgument:
-  Enabled: true
-
-Minitest/AssertWithExpectedArgument:
-  Enabled: true
-
-Minitest/LiteralAsActualArgument:
-  Enabled: true
-
-Minitest/NonExecutableTestMethod:
-  Enabled: true
-
-Minitest/SkipEnsure:
-  Enabled: true
-
-Minitest/UnreachableAssertion:
-  Enabled: true
-
-Markdown:
-  # Whether to run RuboCop against non-valid snippets
-  WarnInvalid: true
-  # Whether to lint codeblocks without code attributes
-  Autodetect: false
+Rails/IndexBy, Rails/IndexWith, Style/AndOr:
+  Enabled: true
+
+Layout:
+  ClosingHeredocIndentation: true
+  ClosingParenthesisIndentation: true
+  CommentIndentation: true
+  DefEndAlignment: true
+  ElseAlignment: true
+  EndAlignment:
+    EnforcedStyleAlignWith: variable
+    AutoCorrect: true
+  EndOfLine: true
+  EmptyLineAfterMagicComment: true
+  EmptyLinesAroundAccessModifier:
+    EnforcedStyle: only_before
+  EmptyLinesAroundBlockBody, EmptyLinesAroundClassBody, EmptyLinesAroundMethodBody, EmptyLinesAroundModuleBody: true
+  IndentationConsistency:
+    EnforcedStyle: indented_internal_methods
+  IndentationWidth: true
+  LeadingCommentSpace: true
+  SpaceAroundKeyword, SpaceAroundOperators, SpaceBeforeBlockBraces, SpaceInsideBlockBraces: true
+
+Style:
+  HashSyntax:
+    EnforcedShorthandSyntax: either
+  DefWithParentheses, MethodDefParentheses: true
+  FrozenStringLiteralComment:
+    EnforcedStyle: always
+    Exclude:
+      - 'actionview/test/**/*.builder'
+      - 'actionview/test/**/*.ruby'
+      - '**/*.md'
+  StringLiterals:
+    EnforcedStyle: double_quotes
+  RedundantFreeze: true
+  RedundantReturn:
+    AllowMultipleReturnValues: true
+
+Lint:
+  AmbiguousOperator, AmbiguousRegexpLiteral, Debugger, DuplicateRequire, DuplicateMagicComment, EnsureReturn, SafeNavigationChain: true
+  RedundantCopDisableDirective, RedundantRequireStatement, UselessAssignment: true
