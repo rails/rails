@@ -678,10 +678,6 @@ module ActiveRecord
           paths = all_configs.flat_map { |config| config.migrations_paths || Migrator.migrations_paths }.uniq
           @file_watcher.new([], paths.index_with(["rb"]), &block)
         end
-
-        def connection
-          ActiveRecord::Tasks::DatabaseTasks.migration_connection
-        end
     end
 
     class << self
