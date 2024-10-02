@@ -358,6 +358,7 @@ module ActiveRecord
           end
 
           if @pinned_connection.nil?
+            connection.steal!
             connection.lock_thread = nil
             checkin(connection)
           end

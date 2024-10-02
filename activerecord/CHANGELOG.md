@@ -1,3 +1,14 @@
+*   Properly handle lazily pinned connection pools.
+
+    Fixes #53147.
+
+    When using transactional fixtures with system tests to similar tools
+    such as capybara, it could happen that a connection end up pinned by the
+    server thread rather than the test thread, causing
+    `"Cannot expire connection, it is owned by a different thread"` errors.
+
+    *Jean Boussier*
+
 *   Fix `ActiveRecord::Base.with` to accept more than two sub queries.
 
     Fixes #53110.
