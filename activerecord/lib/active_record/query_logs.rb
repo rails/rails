@@ -112,7 +112,7 @@ module ActiveRecord
       if Thread.respond_to?(:each_caller_location)
         def query_source_location # :nodoc:
           Thread.each_caller_location do |location|
-            frame = LogSubscriber.backtrace_cleaner.clean_frame(location.path)
+            frame = LogSubscriber.backtrace_cleaner.clean_frame(location)
             return frame if frame
           end
           nil
