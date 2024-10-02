@@ -808,39 +808,20 @@ For example, to exclude comments from your structure dump, add this to an initia
 ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
 ```
 
-Explain options to give deeper insight into Query Performance
---------------
+Explain
+-------
 
-### Buffer
-
-The Buffer option that comes with PostgreSQL's `Explain` command gives one
-insights with regard to the data it is reading or writing when performing a
-query operation and which of that data comes from cache or another source like
-disk.
-
-The buffer option is intended to give you one or more hints into what
-specifically within the query your executing could be a potential cause of
-slowness and thereby has room for further improvement.
-
-
-An example Active Record query that uses `explain` with the `buffers` option:
+Along with the standard [`explain`][explain-options] options, the PostgreSQL adapter supports [`buffers`][explain-analayze-buffers].
 
 ```ruby
 Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
+#=> EXPLAIN (ANALYZE, BUFFERS) SELECT "companies".* FROM "companies"
+# ...
+# Seq Scan on companies  (cost=0.00..2.21 rows=3 width=64)
+# ...
 ```
 
-Output of above query:
+See their documentation for more details.
 
-```sql
-=> EXPLAIN (ANALYZE, BUFFERS) SELECT "companies".* FROM "companies"
-WHERE "companies"."id" IN ($1, $2, $3) [["id", 365], ["id", 364], ["id", 360]]
-QUERY PLAN
--------------------------------------------------------------------------------
- Seq Scan on companies  (cost=0.00..2.21 rows=3 width=64)
- (actual time=0.009..0.012 rows=3 loops=1)
-   Filter: (id = ANY ('{365,364,360}'::bigint[]))
-   Rows Removed by Filter: 10
-   Buffers: shared hit=1
- Planning Time: 0.023 ms
- Execution Time: 0.011 ms
- ```
+[explain-options]: active_record_querying.html#explain-options
+[explain-analayze-buffers]: https://www.postgresql.org/docs/current/sql-explain.html
