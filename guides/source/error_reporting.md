@@ -110,8 +110,12 @@ across environments as needed.
 ### Using the Error Reporter
 
 Rails error reporter has four methods that allow you to report methods in
-different ways: `Rails.error.handle`, `Rails.error.record`,
-`Rails.error.report`, and `Rails.error.unexpected`.
+different ways:
+
+* `Rails.error.handle`
+* `Rails.error.record`
+* `Rails.error.report`
+* `Rails.error.unexpected`
 
 #### Reporting and Swallowing Errors
 
