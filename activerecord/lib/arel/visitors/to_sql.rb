@@ -45,6 +45,11 @@ module Arel # :nodoc: all
           collector = visit o.relation, collector
           collect_nodes_for o.values, collector, " SET "
 
+          if o.from
+            collector << " FROM "
+            visit(o.from, collector)
+          end
+
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
