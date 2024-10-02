@@ -56,6 +56,7 @@ env:
     # WEB_CONCURRENCY: 2
 
     # Match this to any external database server to configure Active Record correctly
+    # Use <%= app_name %>-db for a db accessory server on same machine via local kamal docker network.
     # DB_HOST: 192.168.0.2
 
     # Log everything from Rails
@@ -105,7 +106,8 @@ builder:
 #   db:
 #     image: mysql:8.0
 #     host: 192.168.0.2
-#     port: 3306
+#     # Change to 3306 to expose port to the world instead of just local network.
+#     port: "127.0.0.1:3306:3306"
 #     env:
 #       clear:
 #         MYSQL_ROOT_HOST: '%'
