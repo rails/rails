@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "benchmark"
-require "set"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
@@ -356,7 +354,7 @@ module ActiveRecord
   #
   # === Deletion
   #
-  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>drop_table(*names)</tt>: Drops the given tables.
   # * <tt>drop_join_table(table_1, table_2, options)</tt>: Drops the join table
   #   specified by the given arguments.
   # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
@@ -603,7 +601,7 @@ module ActiveRecord
         end
       end
 
-      def drop_table(table_name, **options)
+      def drop_table(*table_names, **options)
         if block_given?
           super { |t| yield compatible_table_definition(t) }
         else
@@ -975,16 +973,16 @@ module ActiveRecord
       when :down then announce "reverting"
       end
 
-      time = nil
+      time_elapsed = nil
       ActiveRecord::Tasks::DatabaseTasks.migration_connection.pool.with_connection do |conn|
-        time = Benchmark.measure do
+        time_elapsed = ActiveSupport::Benchmark.realtime do
           exec_migration(conn, direction)
         end
       end
 
       case direction
-      when :up   then announce "migrated (%.4fs)" % time.real; write
-      when :down then announce "reverted (%.4fs)" % time.real; write
+      when :up   then announce "migrated (%.4fs)" % time_elapsed; write
+      when :down then announce "reverted (%.4fs)" % time_elapsed; write
       end
     end
 
@@ -1025,8 +1023,8 @@ module ActiveRecord
     def say_with_time(message)
       say(message)
       result = nil
-      time = Benchmark.measure { result = yield }
-      say "%.4fs" % time.real, :subitem
+      time_elapsed = ActiveSupport::Benchmark.realtime { result = yield }
+      say "%.4fs" % time_elapsed, :subitem
       say("#{result} rows", :subitem) if result.is_a?(Integer)
       result
     end

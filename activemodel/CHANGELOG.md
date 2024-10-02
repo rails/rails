@@ -1,3 +1,9 @@
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
+*   Make `ActiveModel::Serialization#read_attribute_for_serialization` public
+
+    *Sean Doyle*
+
 *   Add a default token generator for password reset tokens when using `has_secure_password`.
 
     ```ruby

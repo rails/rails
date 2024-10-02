@@ -64,8 +64,9 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
-TIP: New Rails apps come with a preconfigured Dev Container development environment. This
-is the fastest way to get started with Rails. For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
+TIP: You can create new Rails apps with a preconfigured Dev Container development environment. This
+is the fastest way to get started with Rails.
+For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
 
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
@@ -96,10 +97,10 @@ current version of Ruby installed:
 
 ```bash
 $ ruby --version
-ruby 3.1.0
+ruby 3.2.0
 ```
 
-Rails requires Ruby version 3.1.0 or later. It is preferred to use the latest Ruby version.
+Rails requires Ruby version 3.2.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -412,7 +413,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[7.2]
+class CreateArticles < ActiveRecord::Migration[8.0]
   def change
     create_table :articles do |t|
       t.string :title
@@ -927,7 +928,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1105,7 +1106,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1262,7 +1263,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1351,7 +1352,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[7.2]
+class CreateComments < ActiveRecord::Migration[8.0]
   def change
     create_table :comments do |t|
       t.string :commenter
@@ -1516,7 +1517,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body)
+      params.expect(comment: [:commenter, :body])
     end
 end
 ```
@@ -1739,7 +1740,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 
   private
     def article_params
-      params.require(:article).permit(:title, :body, :status)
+      params.expect(article: [:title, :body, :status])
     end
 ```
 
@@ -1749,7 +1750,7 @@ and in `app/controllers/comments_controller.rb`:
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.expect(comment: [:commenter, :body, :status])
     end
 ```
 
@@ -1995,7 +1996,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.expect(comment: [:commenter, :body, :status])
     end
 end
 ```

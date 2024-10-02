@@ -150,7 +150,7 @@ module ApplicationTests
 
       assert_nothing_raised do
         get("/foo", {}, "HTTPS" => "on")
-        assert_match "The page you were looking for doesn't exist.", last_response.body
+        assert_match "The page you were looking for doesn’t exist.", last_response.body
       end
     end
 

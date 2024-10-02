@@ -101,4 +101,14 @@ production:
     <<: *primary_production
     database: <%= app_name %>_production_cache
     migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: <%= app_name %>_production_queue
+    migrations_paths: db/queue_migrate
+  <%- unless options.skip_action_cable? -%>
+  cable:
+    <<: *primary_production
+    database: <%= app_name %>_production_cable
+    migrations_paths: db/cable_migrate
+  <%- end -%>
 <%- end -%>

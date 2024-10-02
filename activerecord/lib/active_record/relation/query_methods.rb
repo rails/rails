@@ -1910,12 +1910,24 @@ module ActiveRecord
         end
       end
 
-      def build_with_expression_from_value(value)
+      def build_with_expression_from_value(value, nested = false)
         case value
         when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
-        when ActiveRecord::Relation then value.arel
+        when ActiveRecord::Relation
+          if nested
+            value.arel.ast
+          else
+            value.arel
+          end
         when Arel::SelectManager then value
-        when Array then value.map { |q| build_with_expression_from_value(q) }.reduce { |result, value| result.union(:all, value) }
+        when Array
+          parts = value.map do |query|
+            build_with_expression_from_value(query, true)
+          end
+
+          parts.reduce do |result, value|
+            Arel::Nodes::UnionAll.new(result, value)
+          end
         else
           raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
         end
@@ -1932,12 +1944,8 @@ module ActiveRecord
       def arel_columns(columns)
         columns.flat_map do |field|
           case field
-          when Symbol
-            arel_column(field.to_s) do |attr_name|
-              model.adapter_class.quote_table_name(attr_name)
-            end
-          when String
-            arel_column(field, &:itself)
+          when Symbol, String
+            arel_column(field)
           when Proc
             field.call
           when Hash
@@ -1949,18 +1957,22 @@ module ActiveRecord
       end
 
       def arel_column(field)
+        field = field.name if is_symbol = field.is_a?(Symbol)
+
         field = model.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
         if model.columns_hash.key?(field) && (!from || table_name_matches?(from))
           table[field]
-        elsif field.match?(/\A\w+\.\w+\z/)
-          table, column = field.split(".")
+        elsif /\A(?<table>(?:\w+\.)?\w+)\.(?<column>\w+)\z/ =~ field
+          self.references_values |= [Arel.sql(table, retryable: true)]
           predicate_builder.resolve_arel_attribute(table, column) do
             lookup_table_klass_from_join_dependencies(table)
           end
-        else
+        elsif block_given?
           yield field
+        else
+          Arel.sql(is_symbol ? model.adapter_class.quote_table_name(field) : field)
         end
       end
 
@@ -2194,21 +2206,15 @@ module ActiveRecord
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
-              if values[:joins]&.include?(key)
-                references = PredicateBuilder.references({ key.to_s => fields[key] })
-                self.references_values |= references unless references.empty?
-              end
-              arel_column("#{key}.#{column}") do
-                predicate_builder.resolve_arel_attribute(key.to_s, column)
-              end.as(column_alias.to_s)
+              arel_column("#{key}.#{column}").as(column_alias.to_s)
             end
           when Array
             columns_aliases.map do |column|
               arel_column("#{key}.#{column}", &:itself)
             end
           when String, Symbol
-            arel_column(key.to_s) do
-              predicate_builder.resolve_arel_attribute(model.table_name, key.to_s)
+            arel_column(key) do
+              predicate_builder.resolve_arel_attribute(model.table_name, key)
             end.as(columns_aliases.to_s)
           end
         end

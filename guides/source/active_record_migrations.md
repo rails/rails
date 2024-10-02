@@ -643,7 +643,7 @@ change_column_default :products, :approved, from: true, to: false
 
 This changes the default value of the `:approved` field from true to false. This
 change will only be applied to future records, any existing records do not
-change. Use [`change_column_default`][] to change a null constraint.
+change. Use [`change_column_null`][] to change a null constraint.
 
 ```ruby
 change_column_null :products, :name, false

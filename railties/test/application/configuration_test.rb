@@ -3,7 +3,6 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
-require "set"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -1581,7 +1580,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render plain: params.require(:post).permit(:name)
+          render plain: params.permit(post: [:name])
         end
       end
       RUBY
@@ -1601,7 +1600,34 @@ module ApplicationTests
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
       post "/posts", post: { "title" => "zomg" }
-      assert_match "We're sorry, but something went wrong", last_response.body
+      assert_match "We’re sorry, but something went wrong", last_response.body
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters = :raise is ignored with expect" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render plain: params.expect(post: [:name])
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      app "development"
+
+      require "action_controller/base"
+      require "action_controller/api"
+
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", post: { "title" => "zomg" }
+      assert_match "The server cannot process the request due to a client error", last_response.body
     end
 
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
@@ -4701,24 +4727,7 @@ module ApplicationTests
       assert_equal(:html4, Rails.application.config.dom_testing_default_html_version)
     end
 
-    test "sets ActiveRecord::Base.attributes_for_inspect to [:id] when config.consider_all_requests_local = false" do
-      add_to_config "config.consider_all_requests_local = false"
-
-      app "production"
-
-      assert_equal [:id], ActiveRecord::Base.attributes_for_inspect
-    end
-
-    test "sets ActiveRecord::Base.attributes_for_inspect to :all when config.consider_all_requests_local = true" do
-      add_to_config "config.consider_all_requests_local = true"
-
-      app "development"
-
-      assert_equal :all, ActiveRecord::Base.attributes_for_inspect
-    end
-
-    test "app configuration takes precedence over default" do
-      add_to_config "config.consider_all_requests_local = true"
+    test "app attributes_for_inspect configuration takes precedence over default" do
       add_to_config "config.active_record.attributes_for_inspect = [:foo]"
 
       app "development"
@@ -4726,8 +4735,7 @@ module ApplicationTests
       assert_equal [:foo], ActiveRecord::Base.attributes_for_inspect
     end
 
-    test "model's configuration takes precedence over default" do
-      add_to_config "config.consider_all_requests_local = true"
+    test "model's attributes_for_inspect configuration takes precedence over default" do
       app_file "app/models/foo.rb", <<-RUBY
         class Foo < ApplicationRecord
           self.attributes_for_inspect = [:foo]

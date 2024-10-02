@@ -212,8 +212,7 @@ module ActiveRecord
       #--
       # Implemented by ActiveModel::AttributeRegistration#attribute.
 
-      # This is the low level API which sits beneath +attribute+. It only
-      # accepts type objects, and will do its work immediately instead of
+      # This API only accepts type objects, and will do its work immediately instead of
       # waiting for the schema to load. While this method
       # is provided so it can be used by plugin authors, application code
       # should probably use ClassMethods#attribute.

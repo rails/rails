@@ -22,6 +22,8 @@ module ActionController
     # database on the main thread, so they could open a txn, then the controller
     # thread will open a new connection and try to access data that's only visible
     # to the main thread's txn. This is the problem in #23483.
+    alias_method :original_new_controller_thread, :new_controller_thread
+
     silence_redefinition_of_method :new_controller_thread
     def new_controller_thread # :nodoc:
       yield
@@ -427,9 +429,7 @@ module ActionController
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
       def get(action, **args)
-        res = process(action, method: "GET", **args)
-        cookies.update res.cookies
-        res
+        process(action, method: "GET", **args)
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
@@ -637,6 +637,7 @@ module ActionController
               unless @request.cookie_jar.committed?
                 @request.cookie_jar.write(@response)
                 cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
+                cookies.update(@response.cookies)
               end
             end
             @response.prepare!

@@ -168,8 +168,8 @@ module ActiveSupport
           end
         end
 
-        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/"
-        LIB_DIR = RbConfig::CONFIG["libdir"]
+        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/" # :nodoc:
+        LIB_DIR = RbConfig::CONFIG["libdir"] # :nodoc:
 
         def ignored_callstack?(path)
           path.start_with?(RAILS_GEM_ROOT, LIB_DIR) || path.include?("<internal:")

@@ -68,6 +68,22 @@ module ApplicationTests
       assert_includes I18n.load_path, "#{app_path}/config/another_locale.yml"
     end
 
+    test "load_path handles Pathname argument correctly" do
+      app_file "config/another_locale.yml", "en:\nfoo: ~"
+
+      add_to_config <<-RUBY
+        config.i18n.load_path << config.root.join("config/another_locale.yml")
+      RUBY
+
+      load_app
+      assert_equal [
+        "#{app_path}/config/locales/en.yml", Pathname.new("#{app_path}/config/another_locale.yml")
+      ], Rails.application.config.i18n.load_path
+
+      assert_includes I18n.load_path, "#{app_path}/config/locales/en.yml"
+      assert_includes I18n.load_path, Pathname.new("#{app_path}/config/another_locale.yml")
+    end
+
     test "load_path is populated before eager loaded models" do
       add_to_config <<-RUBY
         config.enable_reloading = false

@@ -73,21 +73,13 @@ module Rails
               skip_rubocop:        skip_gem?("rubocop"),
               skip_test:           !defined?(Rails::TestUnitRailtie),
               skip_system_test:    Rails.application.config.generators.system_tests.nil?,
-              asset_pipeline:      asset_pipeline,
               skip_asset_pipeline: asset_pipeline.nil?,
               skip_bootsnap:       !defined?(Bootsnap),
             }.merge(options)
           end
 
           def asset_pipeline
-            case
-            when defined?(Sprockets::Railtie)
-              "sprockets"
-            when defined?(Propshaft::Railtie)
-              "propshaft"
-            else
-              nil
-            end
+            "propshaft" if defined?(Propshaft::Railtie)
           end
 
           def skip_gem?(gem_name)

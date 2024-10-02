@@ -1,6 +1,11 @@
+## Rails 8.0.0.beta1 (September 26, 2024) ##
 *   Add support for **Before** and **After** callbacks to `ActiveRecord::Base` attachments and attachments variants.
 
     *Aaron Patterson, Gary Tou, Matt Boldt, and Robert Peralta*
+    
+*   Deprecate `ActiveStorage::Service::AzureStorageService`.
+
+    *zzak*
 
 *   Improve `ActiveStorage::Filename#sanitized` method to handle special characters more effectively.
     Replace the characters `"*?<>` with `-` if they exist in the Filename to match the Filename convention of Win OS.

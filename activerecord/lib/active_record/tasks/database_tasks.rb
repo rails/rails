@@ -178,22 +178,9 @@ module ActiveRecord
         dump_db_configs = []
 
         each_current_configuration(env) do |db_config|
-          with_temporary_pool(db_config) do
-            begin
-              database_initialized = migration_connection_pool.schema_migration.table_exists?
-            rescue ActiveRecord::NoDatabaseError
-              create(db_config)
-              retry
-            end
+          database_initialized = initialize_database(db_config)
 
-            unless database_initialized
-              if File.exist?(schema_dump_path(db_config))
-                load_schema(db_config, ActiveRecord.schema_format, nil)
-              end
-
-              seed = true
-            end
-          end
+          seed = true if database_initialized
         end
 
         each_current_environment(env) do |environment|
@@ -258,6 +245,8 @@ module ActiveRecord
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
         check_target_version
+
+        initialize_database(migration_connection_pool.db_config)
 
         migration_connection_pool.migration_context.migrate(target_version) do |migration|
           if version.blank?
@@ -665,6 +654,26 @@ module ActiveRecord
               raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
             end
           rescue ActiveRecord::NoDatabaseError
+          end
+        end
+
+        def initialize_database(db_config)
+          with_temporary_pool(db_config) do
+            begin
+              database_already_initialized = migration_connection_pool.schema_migration.table_exists?
+            rescue ActiveRecord::NoDatabaseError
+              create(db_config)
+              retry
+            end
+
+            unless database_already_initialized
+              schema_dump_path = schema_dump_path(db_config)
+              if schema_dump_path && File.exist?(schema_dump_path)
+                load_schema(db_config, ActiveRecord.schema_format, nil)
+              end
+            end
+
+            !database_already_initialized
           end
         end
     end

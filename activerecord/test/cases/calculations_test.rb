@@ -255,6 +255,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [2, 6], c.keys.compact
   end
 
+  def test_order_should_apply_before_count
+    accounts = Account.order(id: :desc).limit(4)
+
+    assert_equal 4, accounts.count(:firm_id)
+    assert_equal 4, accounts.select(:firm_id).count
+  end
+
   def test_limit_should_apply_before_count
     accounts = Account.order(:id).limit(4)
 
@@ -300,6 +307,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, queries.length
     assert_no_match(/LIMIT/, queries.first)
     assert_no_match(/OFFSET/, queries.first)
+  end
+
+  def test_no_order_by_when_counting_all
+    queries = capture_sql { Account.order(id: :desc).limit(10).count }
+    assert_equal 1, queries.length
+    assert_no_match(/ORDER BY/, queries.first)
   end
 
   def test_count_on_invalid_columns_raises
@@ -1131,7 +1144,13 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_join
+    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, topics: [:id])
     assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, :"topics.id")
+  end
+
+  def test_pluck_with_join_alias
+    assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, topic: [:id])
+    assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, :"topic.id")
   end
 
   def test_group_by_with_order_by_virtual_count_attribute
@@ -1466,8 +1485,6 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def assert_minimum_and_maximum_on_time_attributes(time_class)
-    skip unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
-
     actual = Topic.minimum(:written_on)
     assert_equal Time.utc(2003, 7, 16, 14, 28, 11, 223300), actual
     assert_instance_of time_class, actual

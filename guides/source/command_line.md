@@ -512,7 +512,7 @@ $ bin/rails destroy model Oops
 $ bin/rails about
 About your application's environment
 Rails version             8.0.0
-Ruby version              3.1.0 (x86_64-linux)
+Ruby version              3.2.0 (x86_64-linux)
 RubyGems version          3.3.7
 Rack version              3.0.8
 JavaScript Runtime        Node.js (V8)

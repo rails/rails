@@ -65,11 +65,9 @@ class Object
   end
 end
 
-if RUBY_VERSION >= "3.2"
-  class Data # :nodoc:
-    def as_json(options = nil)
-      to_h.as_json(options)
-    end
+class Data # :nodoc:
+  def as_json(options = nil)
+    to_h.as_json(options)
   end
 end
 
@@ -165,7 +163,8 @@ end
 class Array
   def as_json(options = nil) # :nodoc:
     if options
-      map { |v| v.as_json(options.dup) }
+      options = options.dup.freeze unless options.frozen?
+      map { |v| v.as_json(options) }
     else
       map { |v| v.as_json }
     end
@@ -189,7 +188,8 @@ class Hash
 
     result = {}
     if options
-      subset.each { |k, v| result[k.to_s] = v.as_json(options.dup) }
+      options = options.dup.freeze unless options.frozen?
+      subset.each { |k, v| result[k.to_s] = v.as_json(options) }
     else
       subset.each { |k, v| result[k.to_s] = v.as_json }
     end

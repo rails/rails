@@ -419,6 +419,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
     end
+
+    def test_schema_dump_include_limit_for_float4_field
+      output = dump_table_schema "numeric_data"
+      assert_match %r{t\.float\s+"temperature_with_limit",\s+limit: 24$}, output
+    end
   end
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
@@ -934,13 +939,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
-
-    if supports_datetime_with_precision?
-      assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
-    else
-      assert_match %r{t\.datetime\s+"datetime_with_default",\s+precision: nil,\s+default: "2014-06-05 07:17:04"}, output
-    end
-
+    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
     assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
     assert_match %r{t\.decimal\s+"decimal_with_default",\s+precision: 20,\s+scale: 10,\s+default: "1234567890.0123456789"}, output
   end

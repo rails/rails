@@ -216,7 +216,8 @@ module ActiveRecord
           end
         end
 
-        def find_target
+        def find_target(async: false)
+          raise NotImplementedError, "No async loading for HasManyThroughAssociation yet" if async
           return [] unless target_reflection_has_associated_record?
           return scope.to_a if disable_joins
           super

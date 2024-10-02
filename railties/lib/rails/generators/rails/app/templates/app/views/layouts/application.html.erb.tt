@@ -4,19 +4,25 @@
     <title><%%= content_for(:title) || "<%= app_name.titleize %>" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
 
     <%%= yield :head %>
 
-    <!-- link rel="manifest" href="/manifest.json" -->
+    <%%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
-    <% style_link_target = options[:asset_pipeline] == "propshaft" ? ":all" : "\"application\"" %>
+
+    <%- style_link_target = options[:skip_asset_pipeline] ? "\"application\"" : ":app" -%>
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
+    <%%# Includes all stylesheet files in app/views/stylesheets %>
     <%%= stylesheet_link_tag <%= style_link_target %> %>
     <%- else -%>
+    <%%# Includes all stylesheet files in app/views/stylesheets %>
     <%%= stylesheet_link_tag <%= style_link_target %>, "data-turbo-track": "reload" %>
     <%- end -%>
   </head>

@@ -208,45 +208,43 @@ module RenderTestCases
     end
   end
 
-  if RUBY_VERSION >= "3.2"
-    def test_render_runtime_error
-      ex = assert_raises(ActionView::Template::Error) {
-        @view.render(template: "test/runtime_error")
-      }
-      erb_btl = ex.backtrace_locations.first
+  def test_render_runtime_error
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
 
-      # Get the spot information from ErrorHighlight
-      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-      translated_spot = translating_frame.spot(ex.cause)
+    # Get the spot information from ErrorHighlight
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+    translated_spot = translating_frame.spot(ex.cause)
 
-      assert_equal 6, translated_spot[:first_column]
-    end
+    assert_equal 6, translated_spot[:first_column]
+  end
 
-    def test_render_location_conditional_append
-      ex = assert_raises(ActionView::Template::Error) {
-        @view.render(template: "test/unparseable_runtime_error")
-      }
-      erb_btl = ex.backtrace_locations.first
+  def test_render_location_conditional_append
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/unparseable_runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
 
-      # Get the spot information from ErrorHighlight
-      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-      translated_spot = translating_frame.spot(ex.cause)
+    # Get the spot information from ErrorHighlight
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+    translated_spot = translating_frame.spot(ex.cause)
 
-      assert_equal 8, translated_spot[:first_column]
-    end
+    assert_equal 8, translated_spot[:first_column]
+  end
 
-    def test_render_location_conditional_append_2
-      ex = assert_raises(ActionView::Template::Error) {
-        @view.render(template: "test/unparseable_runtime_error_2")
-      }
-      erb_btl = ex.backtrace_locations.first
+  def test_render_location_conditional_append_2
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/unparseable_runtime_error_2")
+    }
+    erb_btl = ex.backtrace_locations.first
 
-      # Get the spot information from ErrorHighlight
-      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-      translated_spot = translating_frame.spot(ex.cause)
+    # Get the spot information from ErrorHighlight
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+    translated_spot = translating_frame.spot(ex.cause)
 
-      assert_instance_of Integer, translated_spot[:first_column]
-    end
+    assert_instance_of Integer, translated_spot[:first_column]
   end
 
   def test_render_partial

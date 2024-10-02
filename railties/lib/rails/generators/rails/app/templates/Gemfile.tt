@@ -5,9 +5,6 @@ source "https://rubygems.org"
 <% end -%>
 <% unless options.minimal? -%>
 
-# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
-# gem "kredis"
-
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 <% end -%>
@@ -16,8 +13,16 @@ source "https://rubygems.org"
 gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 <% unless options.skip_solid? -%>
 
-# Use the database-backed Solid Cache adapter for Rails.cache [https://github.com/rails/solid_cache]
+<% if options.skip_action_cable? -%>
+# Use the database-backed adapters for Rails.cache and Active Job
+<% else -%>
+# Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
+<% end -%>
 gem "solid_cache"
+gem "solid_queue"
+<% unless options.skip_action_cable? -%>
+gem "solid_cable"
+<% end -%>
 <% end -%>
 <% if depend_on_bootsnap? -%>
 
@@ -27,7 +32,7 @@ gem "bootsnap", require: false
 <% unless options.skip_kamal? -%>
 
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
-gem "kamal", require: false
+gem "kamal", ">= 2.0.0.rc2", require: false
 <% end -%>
 <% unless options.skip_thruster? -%>
 

@@ -138,7 +138,7 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        mariadb? || database_version >= "5.6.4"
+        true
       end
 
       def supports_virtual_columns?
@@ -332,7 +332,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name, **options)
       end
 
-      # Drops a table from the database.
+      # Drops a table or tables from the database.
       #
       # [<tt>:force</tt>]
       #   Set to +:cascade+ to drop dependent objects as well.
@@ -346,10 +346,10 @@ module ActiveRecord
       #
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +options+ and the block will be used by create_table.
-      def drop_table(table_name, **options)
-        schema_cache.clear_data_source_cache!(table_name.to_s)
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+      # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
+      def drop_table(*table_names, **options)
+        table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
+        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
       end
 
       def rename_index(table_name, old_name, new_name)
@@ -668,8 +668,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "5.5.8"
-          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
+        if database_version < "5.6.4"
+          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.6.4."
         end
       end
 
