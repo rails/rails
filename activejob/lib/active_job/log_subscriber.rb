@@ -196,22 +196,12 @@ module ActiveJob
         end
       end
 
-      if Thread.respond_to?(:each_caller_location)
-        def enqueue_source_location
-          Thread.each_caller_location do |location|
-            frame = backtrace_cleaner.clean_frame(location)
-            return frame if frame
-          end
-          nil
+      def enqueue_source_location
+        Thread.each_caller_location do |location|
+          frame = backtrace_cleaner.clean_frame(location)
+          return frame if frame
         end
-      else
-        def enqueue_source_location
-          caller_locations(2).each do |location|
-            frame = backtrace_cleaner.clean_frame(location)
-            return frame if frame
-          end
-          nil
-        end
+        nil
       end
 
       def enqueued_jobs_message(adapter, enqueued_jobs)
