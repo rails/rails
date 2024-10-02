@@ -315,7 +315,7 @@ GEM
       railties (>= 6.0.0)
     json (2.7.1)
     jwt (2.7.1)
-    kamal (2.0.0.rc2)
+    kamal (2.1.0)
       activesupport (>= 7.0)
       base64 (~> 0.2)
       bcrypt_pbkdf (~> 1.0)
@@ -671,7 +671,7 @@ DEPENDENCIES
   jbuilder
   jsbundling-rails
   json (>= 2.0.0, != 2.7.0)
-  kamal (>= 2.0.0.rc2)
+  kamal (>= 2.1.0)
   launchy
   libxml-ruby
   listen (~> 3.3)

@@ -32,7 +32,7 @@ gem "bootsnap", require: false
 <% unless options.skip_kamal? -%>
 
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
-gem "kamal", ">= 2.0.0.rc2", require: false
+gem "kamal", require: false
 <% end -%>
 <% unless options.skip_thruster? -%>
 
