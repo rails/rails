@@ -1115,18 +1115,17 @@ If we need to upload files, take a look at [`ActionDispatch::TestProcess::Fixtur
 If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
 
 Functional Tests for Controllers
--------------------------------------
+--------------------------------
 
-In Rails, testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you are testing how your actions handle the requests and the expected result or response - in some cases, an HTML view.
+In Rails, a focus on testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you are focusing on testing how your actions handle the requests and the expected result or response. Functional controller tests are sometimes used in cases where system tests are not appropriate, e.g., to confirm an API response.
 
 ### What to Include in Your Functional Tests
 
-You should test for things such as:
+You could test for things such as:
 
 * was the web request successful?
 * was the user redirected to the right page?
 * was the user successfully authenticated?
-* was the appropriate message displayed to the user in the view?
 * was the correct information displayed in the response?
 
 The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
