@@ -29,6 +29,7 @@ require "active_support/core_ext/module/attribute_accessors"
 
 require "action_pack"
 require "rack"
+require "uri"
 require "action_dispatch/deprecator"
 
 module Rack # :nodoc:
@@ -52,6 +53,9 @@ module ActionDispatch
   deprecate_constant "IllegalStateError", "ActionDispatch::DeprecatedIllegalStateError",
     message: "ActionDispatch::IllegalStateError is deprecated without replacement.",
     deprecator: ActionDispatch.deprecator
+
+  RFC2396_PARSER = defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::RFC2396_Parser.new
+  private_constant :RFC2396_PARSER
 
   class MissingController < NameError
   end
