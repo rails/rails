@@ -7,6 +7,8 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugView::RESCUES_TEMPLATE_PATHS
   layout -> { request.xhr? ? false : "application" }
 
+  RFC2396_PARSER = defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::RFC2396_Parser.new
+
   before_action :require_local!
 
   def index
@@ -20,7 +22,7 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
 
   def routes
     if query = params[:query]
-      query = URI::DEFAULT_PARSER.escape query
+      query = RFC2396_PARSER.escape query
 
       render json: {
         exact: matching_routes(query: query, exact_match: true),
@@ -53,7 +55,7 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
         match ||= (query === route_wrapper.verb)
 
         unless match
-          controller_action = URI::DEFAULT_PARSER.escape(route_wrapper.reqs)
+          controller_action = RFC2396_PARSER.escape(route_wrapper.reqs)
           match = exact_match ? (query === controller_action) : controller_action.include?(query)
         end
 

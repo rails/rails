@@ -30,6 +30,7 @@ require "active_support/core_ext/module/attribute_accessors"
 
 require "action_pack"
 require "rack"
+require "uri"
 require "action_dispatch/deprecator"
 
 module Rack # :nodoc:
@@ -46,6 +47,9 @@ end
 # handling HTTP caching logic, cookies and sessions.
 module ActionDispatch
   extend ActiveSupport::Autoload
+
+  RFC2396_PARSER = defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::RFC2396_Parser.new
+  private_constant :RFC2396_PARSER
 
   class MissingController < NameError
   end
