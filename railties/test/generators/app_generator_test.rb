@@ -1576,7 +1576,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../../tmp:/workspaces/tmp:cached"],
+        "volumes" => ["../../tmp:/workspaces/tmp:cached", "bundle-cache:/home/vscode/.local/share"],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }
@@ -1629,7 +1629,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
       assert_nil compose_config["services"]["redis"]
-      assert_nil compose_config["volumes"]
+      assert_includes compose_config["volumes"].keys, "bundle-cache"
     end
 
     assert_devcontainer_json_file do |content|
