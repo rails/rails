@@ -740,11 +740,482 @@ create  test/models/article_test.rb
 
 Model tests don't have their own superclass like `ActionMailer::TestCase`. Instead, they inherit from [`ActiveSupport::TestCase`](https://api.rubyonrails.org/classes/ActiveSupport/TestCase.html).
 
+Functional Testing for Controllers
+----------------------------------
+
+In Rails, a focus on testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you are focusing on testing how your actions handle the requests and the expected result or response. Functional controller tests are sometimes used in cases where system tests are not appropriate, e.g., to confirm an API response.
+
+### What to Include in Your Functional Tests
+
+You could test for things such as:
+
+* was the web request successful?
+* was the user redirected to the right page?
+* was the user successfully authenticated?
+* was the correct information displayed in the response?
+
+The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
+
+```bash
+$ bin/rails generate scaffold_controller article title:string body:text
+...
+create  app/controllers/articles_controller.rb
+...
+invoke  test_unit
+create    test/controllers/articles_controller_test.rb
+...
+```
+
+This will generate the controller code and tests for an `Article` resource.
+You can take a look at the file `articles_controller_test.rb` in the `test/controllers` directory.
+
+If you already have a controller and just want to generate the test scaffold code for
+each of the seven default actions, you can use the following command:
+
+```bash
+$ bin/rails generate test_unit:scaffold article
+...
+invoke  test_unit
+create    test/controllers/articles_controller_test.rb
+...
+```
+
+Let's take a look at one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
+
+```ruby
+# articles_controller_test.rb
+class ArticlesControllerTest < ActionDispatch::IntegrationTest
+  test "should get index" do
+    get articles_url
+    assert_response :success
+  end
+end
+```
+
+In the `test_should_get_index` test, Rails simulates a request on the action called `index`, making sure the request was successful
+and also ensuring that the right response body has been generated.
+
+The `get` method kicks off the web request and populates the results into the `@response`. It can accept up to 6 arguments:
+
+* The URI of the controller action you are requesting.
+  This can be in the form of a string or a route helper (e.g. `articles_url`).
+* `params`: option with a hash of request parameters to pass into the action
+  (e.g. query string parameters or article variables).
+* `headers`: for setting the headers that will be passed with the request.
+* `env`: for customizing the request environment as needed.
+* `xhr`: whether the request is Ajax request or not. Can be set to true for marking the request as Ajax.
+* `as`: for encoding the request with different content type.
+
+All of these keyword arguments are optional.
+
+Example: Calling the `:show` action for the first `Article`, passing in an `HTTP_REFERER` header:
+
+```ruby
+get article_url(Article.first), headers: { "HTTP_REFERER" => "http://example.com/home" }
+```
+
+Another example: Calling the `:update` action for the last `Article`, passing in new text for the `title` in `params`, as an Ajax request:
+
+```ruby
+patch article_url(Article.last), params: { article: { title: "updated" } }, xhr: true
+```
+
+One more example: Calling the `:create` action to create a new article, passing in
+text for the `title` in `params`, as JSON request:
+
+```ruby
+post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
+```
+
+NOTE: If you try running the `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
+
+Let us modify the `test_should_create_article` test in `articles_controller_test.rb` so that all our tests pass:
+
+```ruby
+test "should create article" do
+  assert_difference("Article.count") do
+    post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }
+  end
+
+  assert_redirected_to article_path(Article.last)
+end
+```
+
+Now you can try running all the tests and they should pass.
+
+NOTE: If you followed the steps in the [Basic Authentication](getting_started.html#basic-authentication) section, you'll need to add authorization to every request header to get all the tests passing:
+
+```ruby
+post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
+```
+
+### Available Request Types for Functional Tests
+
+If you're familiar with the HTTP protocol, you'll know that `get` is a type of request. There are 6 request types supported in Rails functional tests:
+
+* `get`
+* `post`
+* `patch`
+* `put`
+* `head`
+* `delete`
+
+All of request types have equivalent methods that you can use. In a typical C.R.U.D. application you'll be using `get`, `post`, `put`, and `delete` more often.
+
+NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
+
+### Testing XHR (Ajax) Requests
+
+An AJAX request (Asynchronous Javscript and XML) is a type of request where information is sent over a server without the page reloading. To test Ajax requests, you can specify the `xhr: true`
+option to `get`, `post`, `patch`, `put`, and `delete` methods. For example:
+
+```ruby
+test "ajax request" do
+  article = articles(:one)
+  get article_url(article), xhr: true
+
+  assert_equal "hello world", @response.body
+  assert_equal "text/javascript", @response.media_type
+end
+```
+
+### Testing Other Request Objects
+
+After a request has been made and processed, you will have 3 Hash objects ready for use:
+
+* `cookies` - Any cookies that are set
+* `flash` - Any objects living in the flash
+* `session` - Any object living in session variables
+
+As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
+
+```ruby
+flash["gordon"]               # or flash[:gordon]
+session["shmession"]          # or session[:shmession]
+cookies["are_good_for_u"]     # or cookies[:are_good_for_u]
+```
+
+### Instance Variables Available
+
+You also have access to three instance variables in your functional tests after a request is made:
+
+* `@controller` - The controller processing the request
+* `@request` - The request object
+* `@response` - The response object
+
+
+```ruby
+class ArticlesControllerTest < ActionDispatch::IntegrationTest
+  test "should get index" do
+    get articles_url
+
+    assert_equal "index", @controller.action_name
+    assert_equal "application/x-www-form-urlencoded", @request.media_type
+    assert_match "Articles", @response.body
+  end
+end
+```
+
+### Setting Headers and CGI Variables
+
+HTTP headers are pieces of information sent along with HTTP requests to provide important metadata along with that request.
+CGI variables are environment variables used to exchange information between the web server and the application. 
+
+HTTP headers and CGI variables can be tested by being passed as headers:
+
+```ruby
+# setting an HTTP Header
+get articles_url, headers: { "Content-Type": "text/plain" } # simulate the request with custom header
+
+# setting a CGI variable
+get articles_url, headers: { "HTTP_REFERER": "http://example.com/home" } # simulate the request with custom env variable
+```
+
+### Testing `flash` Notices
+
+If you remember from earlier, one of the three hash objects we have access to was `flash`.
+
+We want to add a `flash` message to our blog application whenever someone
+successfully creates a new Article.
+
+Let's start by adding this assertion to our `test_should_create_article` test:
+
+```ruby
+test "should create article" do
+  assert_difference("Article.count") do
+    post articles_url, params: { article: { title: "Some title" } }
+  end
+
+  assert_redirected_to article_path(Article.last)
+  assert_equal "Article was successfully created.", flash[:notice]
+end
+```
+
+If we run our test now, we should see a failure:
+
+```bash
+$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
+Running 1 tests in a single process (parallelization threshold is 50)
+Run options: -n test_should_create_article --seed 32266
+
+# Running:
+
+F
+
+Finished in 0.114870s, 8.7055 runs/s, 34.8220 assertions/s.
+
+  1) Failure:
+ArticlesControllerTest#test_should_create_article [/test/controllers/articles_controller_test.rb:16]:
+--- expected
++++ actual
+@@ -1 +1 @@
+-"Article was successfully created."
++nil
+
+1 runs, 4 assertions, 1 failures, 0 errors, 0 skips
+```
+
+Let's implement the flash message now in our controller. Our `:create` action should now look like this:
+
+```ruby
+def create
+  @article = Article.new(article_params)
+
+  if @article.save
+    flash[:notice] = "Article was successfully created."
+    redirect_to @article
+  else
+    render "new"
+  end
+end
+```
+
+Now if we run our tests, we should see it pass:
+
+```bash
+$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
+Running 1 tests in a single process (parallelization threshold is 50)
+Run options: -n test_should_create_article --seed 18981
+
+# Running:
+
+.
+
+Finished in 0.081972s, 12.1993 runs/s, 48.7972 assertions/s.
+
+1 runs, 4 assertions, 0 failures, 0 errors, 0 skips
+```
+
+### Putting It Together
+
+At this point our Articles controller tests the `:index` as well as `:new` and `:create` actions. What about dealing with existing data?
+
+Let's write a test for the `:show` action:
+
+```ruby
+test "should show article" do
+  article = articles(:one)
+  get article_url(article)
+  assert_response :success
+end
+```
+
+Remember from our discussion earlier on fixtures, the `articles()` method will give us access to our Articles fixtures.
+
+How about deleting an existing Article?
+
+```ruby
+test "should destroy article" do
+  article = articles(:one)
+  assert_difference("Article.count", -1) do
+    delete article_url(article)
+  end
+
+  assert_redirected_to articles_path
+end
+```
+
+We can also add a test for updating an existing Article.
+
+```ruby
+test "should update article" do
+  article = articles(:one)
+
+  patch article_url(article), params: { article: { title: "updated" } }
+
+  assert_redirected_to article_path(article)
+  # Reload association to fetch updated data and assert that title is updated.
+  article.reload
+  assert_equal "updated", article.title
+end
+```
+
+Notice we're starting to see some duplication in these three tests, they both access the same Article fixture data. We can D.R.Y. this up by using the `setup` and `teardown` methods provided by `ActiveSupport::Callbacks`.
+
+Our test should now look something like the below. Disregard the other tests for now, we're leaving them out for brevity.
+
+```ruby
+require "test_helper"
+
+class ArticlesControllerTest < ActionDispatch::IntegrationTest
+  # called before every single test
+  setup do
+    @article = articles(:one)
+  end
+
+  # called after every single test
+  teardown do
+    # when controller is using cache it may be a good idea to reset it afterwards
+    Rails.cache.clear
+  end
+
+  test "should show article" do
+    # Reuse the @article instance variable from setup
+    get article_url(@article)
+    assert_response :success
+  end
+
+  test "should destroy article" do
+    assert_difference("Article.count", -1) do
+      delete article_url(@article)
+    end
+
+    assert_redirected_to articles_path
+  end
+
+  test "should update article" do
+    patch article_url(@article), params: { article: { title: "updated" } }
+
+    assert_redirected_to article_path(@article)
+    # Reload association to fetch updated data and assert that title is updated.
+    @article.reload
+    assert_equal "updated", @article.title
+  end
+end
+```
+
+Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
+
+Integration Testing
+-------------------
+
+Integration tests take functional controller tests one step further, as they are focussed on testing how various parts of our application interact. They are generally used to test important workflows within our application. Rails integration tests can be created in the `test/integration` directory. 
+
+Rails provides a generator to create an integration test skeleton for us.
+
+```bash
+$ bin/rails generate integration_test user_flows
+      invoke  test_unit
+      create  test/integration/user_flows_test.rb
+```
+
+Here's what a freshly generated integration test looks like:
+
+```ruby
+require "test_helper"
+
+class UserFlowsTest < ActionDispatch::IntegrationTest
+  # test "the truth" do
+  #   assert true
+  # end
+end
+```
+
+Here the test is inheriting from `ActionDispatch::IntegrationTest`. This makes some additional [helpers](testing.html#helpers-available-for-integration-tests) available for us to use in our integration tests, alongside the standard testing helpers.
+
+### Implementing an Integration Test
+
+Let's add an integration test to our blog application. We'll start with a basic workflow of creating a new blog article, to verify that everything is working properly.
+
+We'll start by generating our integration test skeleton:
+
+```bash
+$ bin/rails generate integration_test blog_flow
+```
+
+It should have created a test file placeholder for us. With the output of the
+previous command we should see:
+
+```
+      invoke  test_unit
+      create    test/integration/blog_flow_test.rb
+```
+
+Now let's open that file and write our first assertion:
+
+```ruby
+require "test_helper"
+
+class BlogFlowTest < ActionDispatch::IntegrationTest
+  test "can see the welcome page" do
+    get "/"
+    assert_select "h1", "Welcome#index"
+  end
+end
+```
+
+We will take a look at `assert_select` to query the resulting HTML of a request in the [Testing Views](#testing-views) section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
+
+When we visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
+
+#### Creating Articles Integration
+
+We can also test our ability to create a new article in our blog and display the resulting article.
+
+```ruby
+test "can create an article" do
+  get "/articles/new"
+  assert_response :success
+
+  post "/articles",
+    params: { article: { title: "can create", body: "article successfully." } }
+  assert_response :redirect
+  follow_redirect!
+  assert_response :success
+  assert_select "p", "Title:\n  can create"
+end
+```
+
+Let's break this test down so we can understand it.
+
+We start by calling the `:new` action on our Articles controller. This response should be successful.
+
+After this we make a post request to the `:create` action of our Articles controller:
+
+```ruby
+post "/articles",
+  params: { article: { title: "can create", body: "article successfully." } }
+assert_response :redirect
+follow_redirect!
+```
+
+The two lines following the request are to handle the redirect we setup when creating a new article.
+
+NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent requests after a redirect is made.
+
+Finally we can assert that our response was successful and our new article is readable on the page.
+
+#### Taking It Further
+
+We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editing comments. Integration tests are a great place to experiment with all kinds of use cases for our applications.
+
+### Helpers Available for Integration Tests
+
+Here are some of the helpers we can choose from in our integration tests.
+
+For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
+
+When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use.
+
+If we need to upload files, take a look at [`ActionDispatch::TestProcess::FixtureFile`](https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html) to help.
+
+If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
+
 System Testing
 --------------
 
-System tests allow you to test user interactions with your application, running tests
-in either a real or a headless browser (which runs in the background without opening a visible window). System tests use Capybara under the hood.
+Similarly to integration testing, system testing also allows you to test how the components of your app work together, but from the point of view of a user. It does this by running tests
+in either a real or a headless browser (a browser which runs in the background without opening a visible window). System tests use Capybara under the hood.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
@@ -998,475 +1469,6 @@ system testing is much more robust and actually tests your application as if
 a real user were using it. With system tests, you can test anything that the user
 themselves would do in your application such as commenting, deleting articles,
 publishing draft articles, etc.
-
-Integration Testing
--------------------
-
-Integration tests are another way of testing how various parts of our application interact. They are generally used to test important workflows within our application.
-
-Rails integration tests can be created in the `test/integration` directory. Rails provides a generator to create an integration test skeleton for us.
-
-```bash
-$ bin/rails generate integration_test user_flows
-      invoke  test_unit
-      create  test/integration/user_flows_test.rb
-```
-
-Here's what a freshly generated integration test looks like:
-
-```ruby
-require "test_helper"
-
-class UserFlowsTest < ActionDispatch::IntegrationTest
-  # test "the truth" do
-  #   assert true
-  # end
-end
-```
-
-Here the test is inheriting from `ActionDispatch::IntegrationTest`. This makes some additional [helpers](testing.html#helpers-available-for-integration-tests) available for us to use in our integration tests, alongside the standard testing helpers.
-
-### Implementing an Integration Test
-
-Let's add an integration test to our blog application. We'll start with a basic workflow of creating a new blog article, to verify that everything is working properly.
-
-We'll start by generating our integration test skeleton:
-
-```bash
-$ bin/rails generate integration_test blog_flow
-```
-
-It should have created a test file placeholder for us. With the output of the
-previous command we should see:
-
-```
-      invoke  test_unit
-      create    test/integration/blog_flow_test.rb
-```
-
-Now let's open that file and write our first assertion:
-
-```ruby
-require "test_helper"
-
-class BlogFlowTest < ActionDispatch::IntegrationTest
-  test "can see the welcome page" do
-    get "/"
-    assert_select "h1", "Welcome#index"
-  end
-end
-```
-
-We will take a look at `assert_select` to query the resulting HTML of a request in the [Testing Views](#testing-views) section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
-
-When we visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
-
-#### Creating Articles Integration
-
-We can also test our ability to create a new article in our blog and display the resulting article.
-
-```ruby
-test "can create an article" do
-  get "/articles/new"
-  assert_response :success
-
-  post "/articles",
-    params: { article: { title: "can create", body: "article successfully." } }
-  assert_response :redirect
-  follow_redirect!
-  assert_response :success
-  assert_select "p", "Title:\n  can create"
-end
-```
-
-Let's break this test down so we can understand it.
-
-We start by calling the `:new` action on our Articles controller. This response should be successful.
-
-After this we make a post request to the `:create` action of our Articles controller:
-
-```ruby
-post "/articles",
-  params: { article: { title: "can create", body: "article successfully." } }
-assert_response :redirect
-follow_redirect!
-```
-
-The two lines following the request are to handle the redirect we setup when creating a new article.
-
-NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent requests after a redirect is made.
-
-Finally we can assert that our response was successful and our new article is readable on the page.
-
-#### Taking It Further
-
-We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editing comments. Integration tests are a great place to experiment with all kinds of use cases for our applications.
-
-### Helpers Available for Integration Tests
-
-Let's get briefly introduced to some of the helpers we can choose from in our integration tests.
-
-For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
-
-When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use.
-
-If we need to upload files, take a look at [`ActionDispatch::TestProcess::FixtureFile`](https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html) to help.
-
-If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
-
-Functional Tests for Controllers
---------------------------------
-
-In Rails, a focus on testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you are focusing on testing how your actions handle the requests and the expected result or response. Functional controller tests are sometimes used in cases where system tests are not appropriate, e.g., to confirm an API response.
-
-### What to Include in Your Functional Tests
-
-You could test for things such as:
-
-* was the web request successful?
-* was the user redirected to the right page?
-* was the user successfully authenticated?
-* was the correct information displayed in the response?
-
-The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
-
-```bash
-$ bin/rails generate scaffold_controller article title:string body:text
-...
-create  app/controllers/articles_controller.rb
-...
-invoke  test_unit
-create    test/controllers/articles_controller_test.rb
-...
-```
-
-This will generate the controller code and tests for an `Article` resource.
-You can take a look at the file `articles_controller_test.rb` in the `test/controllers` directory.
-
-If you already have a controller and just want to generate the test scaffold code for
-each of the seven default actions, you can use the following command:
-
-```bash
-$ bin/rails generate test_unit:scaffold article
-...
-invoke  test_unit
-create    test/controllers/articles_controller_test.rb
-...
-```
-
-Let's take a look at one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
-
-```ruby
-# articles_controller_test.rb
-class ArticlesControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
-    get articles_url
-    assert_response :success
-  end
-end
-```
-
-In the `test_should_get_index` test, Rails simulates a request on the action called `index`, making sure the request was successful
-and also ensuring that the right response body has been generated.
-
-The `get` method kicks off the web request and populates the results into the `@response`. It can accept up to 6 arguments:
-
-* The URI of the controller action you are requesting.
-  This can be in the form of a string or a route helper (e.g. `articles_url`).
-* `params`: option with a hash of request parameters to pass into the action
-  (e.g. query string parameters or article variables).
-* `headers`: for setting the headers that will be passed with the request.
-* `env`: for customizing the request environment as needed.
-* `xhr`: whether the request is Ajax request or not. Can be set to true for marking the request as Ajax.
-* `as`: for encoding the request with different content type.
-
-All of these keyword arguments are optional.
-
-Example: Calling the `:show` action for the first `Article`, passing in an `HTTP_REFERER` header:
-
-```ruby
-get article_url(Article.first), headers: { "HTTP_REFERER" => "http://example.com/home" }
-```
-
-Another example: Calling the `:update` action for the last `Article`, passing in new text for the `title` in `params`, as an Ajax request:
-
-```ruby
-patch article_url(Article.last), params: { article: { title: "updated" } }, xhr: true
-```
-
-One more example: Calling the `:create` action to create a new article, passing in
-text for the `title` in `params`, as JSON request:
-
-```ruby
-post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
-```
-
-NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
-
-Let us modify `test_should_create_article` test in `articles_controller_test.rb` so that all our test pass:
-
-```ruby
-test "should create article" do
-  assert_difference("Article.count") do
-    post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }
-  end
-
-  assert_redirected_to article_path(Article.last)
-end
-```
-
-Now you can try running all the tests and they should pass.
-
-NOTE: If you followed the steps in the [Basic Authentication](getting_started.html#basic-authentication) section, you'll need to add authorization to every request header to get all the tests passing:
-
-```ruby
-post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
-```
-
-### Available Request Types for Functional Tests
-
-If you're familiar with the HTTP protocol, you'll know that `get` is a type of request. There are 6 request types supported in Rails functional tests:
-
-* `get`
-* `post`
-* `patch`
-* `put`
-* `head`
-* `delete`
-
-All of request types have equivalent methods that you can use. In a typical C.R.U.D. application you'll be using `get`, `post`, `put`, and `delete` more often.
-
-NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
-
-### Testing XHR (Ajax) Requests
-
-To test Ajax requests, you can specify the `xhr: true` option to `get`, `post`,
-`patch`, `put`, and `delete` methods. For example:
-
-```ruby
-test "ajax request" do
-  article = articles(:one)
-  get article_url(article), xhr: true
-
-  assert_equal "hello world", @response.body
-  assert_equal "text/javascript", @response.media_type
-end
-```
-
-### The Three Hashes of the Apocalypse
-
-After a request has been made and processed, you will have 3 Hash objects ready for use:
-
-* `cookies` - Any cookies that are set
-* `flash` - Any objects living in the flash
-* `session` - Any object living in session variables
-
-As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
-
-```ruby
-flash["gordon"]               # or flash[:gordon]
-session["shmession"]          # or session[:shmession]
-cookies["are_good_for_u"]     # or cookies[:are_good_for_u]
-```
-
-### Instance Variables Available
-
-**After** a request is made, you also have access to three instance variables in your functional tests:
-
-* `@controller` - The controller processing the request
-* `@request` - The request object
-* `@response` - The response object
-
-
-```ruby
-class ArticlesControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
-    get articles_url
-
-    assert_equal "index", @controller.action_name
-    assert_equal "application/x-www-form-urlencoded", @request.media_type
-    assert_match "Articles", @response.body
-  end
-end
-```
-
-### Setting Headers and CGI Variables
-
-[HTTP headers](https://datatracker.ietf.org/doc/html/rfc2616#section-5.3)
-and
-[CGI variables](https://datatracker.ietf.org/doc/html/rfc3875#section-4.1)
-can be passed as headers:
-
-```ruby
-# setting an HTTP Header
-get articles_url, headers: { "Content-Type": "text/plain" } # simulate the request with custom header
-
-# setting a CGI variable
-get articles_url, headers: { "HTTP_REFERER": "http://example.com/home" } # simulate the request with custom env variable
-```
-
-### Testing `flash` Notices
-
-If you remember from earlier, one of the Three Hashes of the Apocalypse was `flash`.
-
-We want to add a `flash` message to our blog application whenever someone
-successfully creates a new Article.
-
-Let's start by adding this assertion to our `test_should_create_article` test:
-
-```ruby
-test "should create article" do
-  assert_difference("Article.count") do
-    post articles_url, params: { article: { title: "Some title" } }
-  end
-
-  assert_redirected_to article_path(Article.last)
-  assert_equal "Article was successfully created.", flash[:notice]
-end
-```
-
-If we run our test now, we should see a failure:
-
-```bash
-$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
-Run options: -n test_should_create_article --seed 32266
-
-# Running:
-
-F
-
-Finished in 0.114870s, 8.7055 runs/s, 34.8220 assertions/s.
-
-  1) Failure:
-ArticlesControllerTest#test_should_create_article [/test/controllers/articles_controller_test.rb:16]:
---- expected
-+++ actual
-@@ -1 +1 @@
--"Article was successfully created."
-+nil
-
-1 runs, 4 assertions, 1 failures, 0 errors, 0 skips
-```
-
-Let's implement the flash message now in our controller. Our `:create` action should now look like this:
-
-```ruby
-def create
-  @article = Article.new(article_params)
-
-  if @article.save
-    flash[:notice] = "Article was successfully created."
-    redirect_to @article
-  else
-    render "new"
-  end
-end
-```
-
-Now if we run our tests, we should see it pass:
-
-```bash
-$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
-Run options: -n test_should_create_article --seed 18981
-
-# Running:
-
-.
-
-Finished in 0.081972s, 12.1993 runs/s, 48.7972 assertions/s.
-
-1 runs, 4 assertions, 0 failures, 0 errors, 0 skips
-```
-
-### Putting It Together
-
-At this point our Articles controller tests the `:index` as well as `:new` and `:create` actions. What about dealing with existing data?
-
-Let's write a test for the `:show` action:
-
-```ruby
-test "should show article" do
-  article = articles(:one)
-  get article_url(article)
-  assert_response :success
-end
-```
-
-Remember from our discussion earlier on fixtures, the `articles()` method will give us access to our Articles fixtures.
-
-How about deleting an existing Article?
-
-```ruby
-test "should destroy article" do
-  article = articles(:one)
-  assert_difference("Article.count", -1) do
-    delete article_url(article)
-  end
-
-  assert_redirected_to articles_path
-end
-```
-
-We can also add a test for updating an existing Article.
-
-```ruby
-test "should update article" do
-  article = articles(:one)
-
-  patch article_url(article), params: { article: { title: "updated" } }
-
-  assert_redirected_to article_path(article)
-  # Reload association to fetch updated data and assert that title is updated.
-  article.reload
-  assert_equal "updated", article.title
-end
-```
-
-Notice we're starting to see some duplication in these three tests, they both access the same Article fixture data. We can D.R.Y. this up by using the `setup` and `teardown` methods provided by `ActiveSupport::Callbacks`.
-
-Our test should now look something as what follows. Disregard the other tests for now, we're leaving them out for brevity.
-
-```ruby
-require "test_helper"
-
-class ArticlesControllerTest < ActionDispatch::IntegrationTest
-  # called before every single test
-  setup do
-    @article = articles(:one)
-  end
-
-  # called after every single test
-  teardown do
-    # when controller is using cache it may be a good idea to reset it afterwards
-    Rails.cache.clear
-  end
-
-  test "should show article" do
-    # Reuse the @article instance variable from setup
-    get article_url(@article)
-    assert_response :success
-  end
-
-  test "should destroy article" do
-    assert_difference("Article.count", -1) do
-      delete article_url(@article)
-    end
-
-    assert_redirected_to articles_path
-  end
-
-  test "should update article" do
-    patch article_url(@article), params: { article: { title: "updated" } }
-
-    assert_redirected_to article_path(@article)
-    # Reload association to fetch updated data and assert that title is updated.
-    @article.reload
-    assert_equal "updated", @article.title
-  end
-end
-```
-
-Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
 
 Test Helpers
 ------------
