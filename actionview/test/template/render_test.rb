@@ -706,55 +706,32 @@ module RenderTestCases
 
   def test_render_partial_provides_spellcheck
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
-    if e.respond_to?(:detailed_message)
-      assert_match %r{Did you mean\?  test/partial\e\[m\n\e\[1m *test/partialhtml}, e.detailed_message
-    else
-      assert_match %r{Did you mean\?  test/partial\n *test/partialhtml}, e.message
-    end
+    assert_match %r{Did you mean\?  test/partial\e\[m\n\e\[1m *test/partialhtml}, e.detailed_message
   end
 
   def test_spellcheck_doesnt_list_directories
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/directory") }
-    if e.respond_to?(:detailed_message)
-      assert_match %r{Did you mean\?}, e.detailed_message
-      assert_no_match %r{Did you mean\?  test/directory\n}, e.detailed_message # test/hello is a directory
-    else
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/directory\n}, e.message # test/hello is a directory
-    end
+    assert_match %r{Did you mean\?}, e.detailed_message
+    assert_no_match %r{Did you mean\?  test/directory\n}, e.detailed_message # test/hello is a directory
   end
 
   def test_spellcheck_only_lists_templates
     e = assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/partial") }
 
-    if e.respond_to?(:detailed_message)
-      assert_match %r{Did you mean\?}, e.detailed_message
-      assert_no_match %r{Did you mean\?  test/partial\n}, e.detailed_message
-    else
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/partial\n}, e.message
-    end
+    assert_match %r{Did you mean\?}, e.detailed_message
+    assert_no_match %r{Did you mean\?  test/partial\n}, e.detailed_message
   end
 
   def test_spellcheck_only_lists_partials
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/template") }
 
-    if e.respond_to?(:detailed_message)
-      assert_match %r{Did you mean\?}, e.detailed_message
-      assert_no_match %r{Did you mean\?  test/template\n}, e.detailed_message
-    else
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/template\n}, e.message
-    end
+    assert_match %r{Did you mean\?}, e.detailed_message
+    assert_no_match %r{Did you mean\?  test/template\n}, e.detailed_message
   end
 
   def test_render_partial_wrong_details_no_spellcheck
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partial_with_only_html_version", formats: [:xml]) }
-    if e.respond_to?(:detailed_message)
-      assert_no_match %r{Did you mean\?}, e.detailed_message
-    else
-      assert_no_match %r{Did you mean\?}, e.message
-    end
+    assert_no_match %r{Did you mean\?}, e.detailed_message
   end
 
   def test_render_with_nested_layout
