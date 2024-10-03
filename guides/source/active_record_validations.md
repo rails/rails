@@ -9,7 +9,7 @@ database using Active Record's validations feature.
 After reading this guide, you will know:
 
 * How to use the built-in Active Record validation helpers and options.
-* Checking the validity of objects.
+* How to check the validity of objects.
 * How to create conditional and strict validations.
 * How to create your own custom validation methods.
 * How to work with the validation error messages and displaying them in views.
