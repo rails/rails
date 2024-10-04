@@ -1,3 +1,14 @@
+*   Add support for disabling transactions per database.
+
+    This allows you to disable transactions for a specific database, which can
+    be useful for read-only connections.
+
+    ```ruby
+    ActiveRecord::TestFixture.ignore_transactions_dbnames = [:readonly, :not_this_one]
+    ```
+
+    *Matthew Cheetham*, *Morgan Mareve*
+
 *   Make Float distinguish between `float4` and `float8` in PostgreSQL.
 
     Fixes #52742

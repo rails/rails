@@ -37,6 +37,12 @@ module ActiveRecord
       class_attribute :lock_threads, default: true
       class_attribute :fixture_sets, default: {}
 
+      # Specify which databases we should or should not use transactions with
+      # when use_transactional_tests is true.
+      #  [ :readonly ]
+      # All databases not in the array default to true (enable transactions).
+      class_attribute :ignore_transactions_dbnames, default: []
+
       ActiveSupport.run_load_hooks(:active_record_fixtures, self)
     end
 
@@ -174,6 +180,12 @@ module ActiveRecord
 
         # Begin transactions for connections already established
         @fixture_connection_pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
+
+        # Remove any pools that we don't want to use with transactions
+        @fixture_connection_pools.reject! { |pool|
+          ignore_transactions_dbnames.include?(pool.db_config.name.to_sym)
+        }
+
         @fixture_connection_pools.each do |pool|
           pool.pin_connection!(lock_threads)
           pool.lease_connection
@@ -189,7 +201,14 @@ module ActiveRecord
             if pool
               setup_shared_connection_pool
 
-              unless @fixture_connection_pools.include?(pool)
+              # Get the db config for the connection (if it exists)
+              pool_manager = ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager)[connection_name]
+              config = pool_manager&.get_pool_config(ActiveRecord::Base.current_role, shard)
+
+              # Don't begin a transaction if we've already done so, or are not
+              # using transactions for this database
+              @disable_transactions = config.respond_to?(:db_config) && ignore_transactions_dbnames.include?(config.db_config.name.to_sym)
+              unless @fixture_connection_pools.include?(pool) || @disable_transactions
                 pool.pin_connection!(lock_threads)
                 pool.lease_connection
                 @fixture_connection_pools << pool
