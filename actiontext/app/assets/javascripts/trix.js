@@ -1,5 +1,5 @@
 /*
-Trix 2.1.1
+Trix 2.1.6
 Copyright © 2024 37signals, LLC
  */
 (function (global, factory) {
@@ -9,7 +9,7 @@ Copyright © 2024 37signals, LLC
 })(this, (function () { 'use strict';
 
   var name = "trix";
-  var version = "2.1.1";
+  var version = "2.1.6";
   var description = "A rich text editor for everyday writing";
   var main = "dist/trix.umd.min.js";
   var module = "dist/trix.esm.min.js";
@@ -1059,6 +1059,12 @@ $\
       return text === null || text === void 0 ? void 0 : text.length;
     }
   };
+  const dataTransferIsMsOfficePaste = _ref => {
+    let {
+      dataTransfer
+    } = _ref;
+    return dataTransfer.types.includes("Files") && dataTransfer.types.includes("text/html") && dataTransfer.getData("text/html").includes("urn:schemas-microsoft-com:office:office");
+  };
   const dataTransferIsWritable = function (dataTransfer) {
     if (!(dataTransfer !== null && dataTransfer !== void 0 && dataTransfer.setData)) return false;
     for (const key in testTransferData) {
@@ -1707,6 +1713,116 @@ $\
     }
   }
 
+  const DEFAULT_ALLOWED_ATTRIBUTES = "style href src width height language class".split(" ");
+  const DEFAULT_FORBIDDEN_PROTOCOLS = "javascript:".split(" ");
+  const DEFAULT_FORBIDDEN_ELEMENTS = "script iframe form noscript".split(" ");
+  class HTMLSanitizer extends BasicObject {
+    static setHTML(element, html) {
+      const sanitizedElement = new this(html).sanitize();
+      const sanitizedHtml = sanitizedElement.getHTML ? sanitizedElement.getHTML() : sanitizedElement.outerHTML;
+      element.innerHTML = sanitizedHtml;
+    }
+    static sanitize(html, options) {
+      const sanitizer = new this(html, options);
+      sanitizer.sanitize();
+      return sanitizer;
+    }
+    constructor(html) {
+      let {
+        allowedAttributes,
+        forbiddenProtocols,
+        forbiddenElements
+      } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      super(...arguments);
+      this.allowedAttributes = allowedAttributes || DEFAULT_ALLOWED_ATTRIBUTES;
+      this.forbiddenProtocols = forbiddenProtocols || DEFAULT_FORBIDDEN_PROTOCOLS;
+      this.forbiddenElements = forbiddenElements || DEFAULT_FORBIDDEN_ELEMENTS;
+      this.body = createBodyElementForHTML(html);
+    }
+    sanitize() {
+      this.sanitizeElements();
+      return this.normalizeListElementNesting();
+    }
+    getHTML() {
+      return this.body.innerHTML;
+    }
+    getBody() {
+      return this.body;
+    }
+
+    // Private
+
+    sanitizeElements() {
+      const walker = walkTree(this.body);
+      const nodesToRemove = [];
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        switch (node.nodeType) {
+          case Node.ELEMENT_NODE:
+            if (this.elementIsRemovable(node)) {
+              nodesToRemove.push(node);
+            } else {
+              this.sanitizeElement(node);
+            }
+            break;
+          case Node.COMMENT_NODE:
+            nodesToRemove.push(node);
+            break;
+        }
+      }
+      nodesToRemove.forEach(node => removeNode(node));
+      return this.body;
+    }
+    sanitizeElement(element) {
+      if (element.hasAttribute("href")) {
+        if (this.forbiddenProtocols.includes(element.protocol)) {
+          element.removeAttribute("href");
+        }
+      }
+      Array.from(element.attributes).forEach(_ref => {
+        let {
+          name
+        } = _ref;
+        if (!this.allowedAttributes.includes(name) && name.indexOf("data-trix") !== 0) {
+          element.removeAttribute(name);
+        }
+      });
+      return element;
+    }
+    normalizeListElementNesting() {
+      Array.from(this.body.querySelectorAll("ul,ol")).forEach(listElement => {
+        const previousElement = listElement.previousElementSibling;
+        if (previousElement) {
+          if (tagName(previousElement) === "li") {
+            previousElement.appendChild(listElement);
+          }
+        }
+      });
+      return this.body;
+    }
+    elementIsRemovable(element) {
+      if ((element === null || element === void 0 ? void 0 : element.nodeType) !== Node.ELEMENT_NODE) return;
+      return this.elementIsForbidden(element) || this.elementIsntSerializable(element);
+    }
+    elementIsForbidden(element) {
+      return this.forbiddenElements.includes(tagName(element));
+    }
+    elementIsntSerializable(element) {
+      return element.getAttribute("data-trix-serialize") === "false" && !nodeIsAttachmentElement(element);
+    }
+  }
+  const createBodyElementForHTML = function () {
+    let html = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+    // Remove everything after </html>
+    html = html.replace(/<\/html[^>]*>[^]*$/i, "</html>");
+    const doc = document.implementation.createHTMLDocument("");
+    doc.documentElement.innerHTML = html;
+    Array.from(doc.head.querySelectorAll("style")).forEach(element => {
+      doc.body.appendChild(element);
+    });
+    return doc.body;
+  };
+
   const {
     css: css$2
   } = config;
@@ -1741,7 +1857,7 @@ $\
         figure.appendChild(innerElement);
       }
       if (this.attachment.hasContent()) {
-        innerElement.innerHTML = this.attachment.getContent();
+        HTMLSanitizer.setHTML(innerElement, this.attachment.getContent());
       } else {
         this.createContentNodes().forEach(node => {
           innerElement.appendChild(node);
@@ -1869,7 +1985,7 @@ $\
   });
   const htmlContainsTagName = function (html, tagName) {
     const div = makeElement("div");
-    div.innerHTML = html || "";
+    HTMLSanitizer.setHTML(div, html || "");
     return div.querySelector(tagName);
   };
 
@@ -6816,111 +6932,6 @@ $\
     return attributes;
   };
 
-  const DEFAULT_ALLOWED_ATTRIBUTES = "style href src width height language class".split(" ");
-  const DEFAULT_FORBIDDEN_PROTOCOLS = "javascript:".split(" ");
-  const DEFAULT_FORBIDDEN_ELEMENTS = "script iframe form noscript".split(" ");
-  class HTMLSanitizer extends BasicObject {
-    static sanitize(html, options) {
-      const sanitizer = new this(html, options);
-      sanitizer.sanitize();
-      return sanitizer;
-    }
-    constructor(html) {
-      let {
-        allowedAttributes,
-        forbiddenProtocols,
-        forbiddenElements
-      } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      super(...arguments);
-      this.allowedAttributes = allowedAttributes || DEFAULT_ALLOWED_ATTRIBUTES;
-      this.forbiddenProtocols = forbiddenProtocols || DEFAULT_FORBIDDEN_PROTOCOLS;
-      this.forbiddenElements = forbiddenElements || DEFAULT_FORBIDDEN_ELEMENTS;
-      this.body = createBodyElementForHTML(html);
-    }
-    sanitize() {
-      this.sanitizeElements();
-      return this.normalizeListElementNesting();
-    }
-    getHTML() {
-      return this.body.innerHTML;
-    }
-    getBody() {
-      return this.body;
-    }
-
-    // Private
-
-    sanitizeElements() {
-      const walker = walkTree(this.body);
-      const nodesToRemove = [];
-      while (walker.nextNode()) {
-        const node = walker.currentNode;
-        switch (node.nodeType) {
-          case Node.ELEMENT_NODE:
-            if (this.elementIsRemovable(node)) {
-              nodesToRemove.push(node);
-            } else {
-              this.sanitizeElement(node);
-            }
-            break;
-          case Node.COMMENT_NODE:
-            nodesToRemove.push(node);
-            break;
-        }
-      }
-      nodesToRemove.forEach(node => removeNode(node));
-      return this.body;
-    }
-    sanitizeElement(element) {
-      if (element.hasAttribute("href")) {
-        if (this.forbiddenProtocols.includes(element.protocol)) {
-          element.removeAttribute("href");
-        }
-      }
-      Array.from(element.attributes).forEach(_ref => {
-        let {
-          name
-        } = _ref;
-        if (!this.allowedAttributes.includes(name) && name.indexOf("data-trix") !== 0) {
-          element.removeAttribute(name);
-        }
-      });
-      return element;
-    }
-    normalizeListElementNesting() {
-      Array.from(this.body.querySelectorAll("ul,ol")).forEach(listElement => {
-        const previousElement = listElement.previousElementSibling;
-        if (previousElement) {
-          if (tagName(previousElement) === "li") {
-            previousElement.appendChild(listElement);
-          }
-        }
-      });
-      return this.body;
-    }
-    elementIsRemovable(element) {
-      if ((element === null || element === void 0 ? void 0 : element.nodeType) !== Node.ELEMENT_NODE) return;
-      return this.elementIsForbidden(element) || this.elementIsntSerializable(element);
-    }
-    elementIsForbidden(element) {
-      return this.forbiddenElements.includes(tagName(element));
-    }
-    elementIsntSerializable(element) {
-      return element.getAttribute("data-trix-serialize") === "false" && !nodeIsAttachmentElement(element);
-    }
-  }
-  const createBodyElementForHTML = function () {
-    let html = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
-    // Remove everything after </html>
-    html = html.replace(/<\/html[^>]*>[^]*$/i, "</html>");
-    const doc = document.implementation.createHTMLDocument("");
-    doc.documentElement.innerHTML = html;
-    Array.from(doc.head.querySelectorAll("style")).forEach(element => {
-      doc.body.appendChild(element);
-    });
-    return doc.body;
-  };
-
   /* eslint-disable
       no-case-declarations,
       no-irregular-whitespace,
@@ -6956,11 +6967,7 @@ $\
   };
   const parseTrixDataAttribute = (element, name) => {
     try {
-      const data = JSON.parse(element.getAttribute("data-trix-".concat(name)));
-      if (data.contentType === "text/html" && data.content) {
-        data.content = HTMLSanitizer.sanitize(data.content).getHTML();
-      }
-      return data;
+      return JSON.parse(element.getAttribute("data-trix-".concat(name)));
     } catch (error) {
       return {};
     }
@@ -7003,8 +7010,7 @@ $\
     parse() {
       try {
         this.createHiddenContainer();
-        const html = HTMLSanitizer.sanitize(this.html).getHTML();
-        this.containerElement.innerHTML = html;
+        HTMLSanitizer.setHTML(this.containerElement, this.html);
         const walker = walkTree(this.containerElement, {
           usingFilter: nodeFilter
         });
@@ -10527,7 +10533,7 @@ $\
         return (_this$responder4 = this.responder) === null || _this$responder4 === void 0 ? void 0 : _this$responder4.deleteInDirection(direction);
       };
       const domRange = this.getTargetDOMRange({
-        minLength: 2
+        minLength: this.composing ? 1 : 2
       });
       if (domRange) {
         return this.withTargetDOMRange(domRange, perform);
@@ -10641,6 +10647,11 @@ $\
     },
     beforeinput(event) {
       const handler = this.constructor.inputTypes[event.inputType];
+
+      // Handles bug with Siri dictation on iOS 18+.
+      if (!event.inputType) {
+        this.render();
+      }
       if (handler) {
         this.withEvent(event, handler);
         this.scheduleRender();
@@ -10905,7 +10916,6 @@ $\
       }
     },
     insertFromPaste() {
-      var _dataTransfer$files;
       const {
         dataTransfer
       } = this.event;
@@ -10948,28 +10958,28 @@ $\
           var _this$delegate21;
           return (_this$delegate21 = this.delegate) === null || _this$delegate21 === void 0 ? void 0 : _this$delegate21.inputControllerDidPaste(paste);
         };
-      } else if (html) {
+      } else if (processableFilePaste(this.event)) {
         var _this$delegate22;
-        this.event.preventDefault();
-        paste.type = "text/html";
-        paste.html = html;
+        paste.type = "File";
+        paste.file = dataTransfer.files[0];
         (_this$delegate22 = this.delegate) === null || _this$delegate22 === void 0 || _this$delegate22.inputControllerWillPaste(paste);
         this.withTargetDOMRange(function () {
           var _this$responder34;
-          return (_this$responder34 = this.responder) === null || _this$responder34 === void 0 ? void 0 : _this$responder34.insertHTML(paste.html);
+          return (_this$responder34 = this.responder) === null || _this$responder34 === void 0 ? void 0 : _this$responder34.insertFile(paste.file);
         });
         this.afterRender = () => {
           var _this$delegate23;
           return (_this$delegate23 = this.delegate) === null || _this$delegate23 === void 0 ? void 0 : _this$delegate23.inputControllerDidPaste(paste);
         };
-      } else if ((_dataTransfer$files = dataTransfer.files) !== null && _dataTransfer$files !== void 0 && _dataTransfer$files.length) {
+      } else if (html) {
         var _this$delegate24;
-        paste.type = "File";
-        paste.file = dataTransfer.files[0];
+        this.event.preventDefault();
+        paste.type = "text/html";
+        paste.html = html;
         (_this$delegate24 = this.delegate) === null || _this$delegate24 === void 0 || _this$delegate24.inputControllerWillPaste(paste);
         this.withTargetDOMRange(function () {
           var _this$responder35;
-          return (_this$responder35 = this.responder) === null || _this$responder35 === void 0 ? void 0 : _this$responder35.insertFile(paste.file);
+          return (_this$responder35 = this.responder) === null || _this$responder35 === void 0 ? void 0 : _this$responder35.insertHTML(paste.html);
         });
         this.afterRender = () => {
           var _this$delegate25;
@@ -11030,10 +11040,20 @@ $\
     var _event$dataTransfer;
     return Array.from(((_event$dataTransfer = event.dataTransfer) === null || _event$dataTransfer === void 0 ? void 0 : _event$dataTransfer.types) || []).includes("Files");
   };
+  const processableFilePaste = event => {
+    var _event$dataTransfer$f;
+    // Paste events that only have files are handled by the paste event handler,
+    // to work around Safari not supporting beforeinput.insertFromPaste for files.
+
+    // MS Office text pastes include a file with a screenshot of the text, but we should
+    // handle them as text pastes.
+    return ((_event$dataTransfer$f = event.dataTransfer.files) === null || _event$dataTransfer$f === void 0 ? void 0 : _event$dataTransfer$f[0]) && !pasteEventHasFilesOnly(event) && !dataTransferIsMsOfficePaste(event);
+  };
   const pasteEventHasFilesOnly = function (event) {
     const clipboard = event.clipboardData;
     if (clipboard) {
-      return clipboard.types.includes("Files") && clipboard.types.length === 1 && clipboard.files.length >= 1;
+      const fileTypes = Array.from(clipboard.types).filter(type => type.match(/file/i)); // "Files", "application/x-moz-file"
+      return fileTypes.length === clipboard.types.length && clipboard.files.length >= 1;
     }
   };
   const pasteEventHasPlainTextOnly = function (event) {
@@ -11956,7 +11976,7 @@ $\
       };
     }
   }();
-  installDefaultCSSForTagName("trix-editor", "%t {\n    display: block;\n}\n\n%t:empty:not(:focus)::before {\n    content: attr(placeholder);\n    color: graytext;\n    cursor: text;\n    pointer-events: none;\n    white-space: pre-line;\n}\n\n%t a[contenteditable=false] {\n    cursor: text;\n}\n\n%t img {\n    max-width: 100%;\n    height: auto;\n}\n\n%t ".concat(attachmentSelector, " figcaption textarea {\n    resize: none;\n}\n\n%t ").concat(attachmentSelector, " figcaption textarea.trix-autoresize-clone {\n    position: absolute;\n    left: -9999px;\n    max-height: 0px;\n}\n\n%t ").concat(attachmentSelector, " figcaption[data-trix-placeholder]:empty::before {\n    content: attr(data-trix-placeholder);\n    color: graytext;\n}\n\n%t [data-trix-cursor-target] {\n    display: ").concat(cursorTargetStyles.display, " !important;\n    width: ").concat(cursorTargetStyles.width, " !important;\n    padding: 0 !important;\n    margin: 0 !important;\n    border: none !important;\n}\n\n%t [data-trix-cursor-target=left] {\n    vertical-align: top !important;\n    margin-left: -1px !important;\n}\n\n%t [data-trix-cursor-target=right] {\n    vertical-align: bottom !important;\n    margin-right: -1px !important;\n}"));
+  installDefaultCSSForTagName("trix-editor", "%t {\n    display: block;\n}\n\n%t:empty::before {\n    content: attr(placeholder);\n    color: graytext;\n    cursor: text;\n    pointer-events: none;\n    white-space: pre-line;\n}\n\n%t a[contenteditable=false] {\n    cursor: text;\n}\n\n%t img {\n    max-width: 100%;\n    height: auto;\n}\n\n%t ".concat(attachmentSelector, " figcaption textarea {\n    resize: none;\n}\n\n%t ").concat(attachmentSelector, " figcaption textarea.trix-autoresize-clone {\n    position: absolute;\n    left: -9999px;\n    max-height: 0px;\n}\n\n%t ").concat(attachmentSelector, " figcaption[data-trix-placeholder]:empty::before {\n    content: attr(data-trix-placeholder);\n    color: graytext;\n}\n\n%t [data-trix-cursor-target] {\n    display: ").concat(cursorTargetStyles.display, " !important;\n    width: ").concat(cursorTargetStyles.width, " !important;\n    padding: 0 !important;\n    margin: 0 !important;\n    border: none !important;\n}\n\n%t [data-trix-cursor-target=left] {\n    vertical-align: top !important;\n    margin-left: -1px !important;\n}\n\n%t [data-trix-cursor-target=right] {\n    vertical-align: bottom !important;\n    margin-right: -1px !important;\n}"));
   class TrixEditorElement extends HTMLElement {
     // Properties
 
