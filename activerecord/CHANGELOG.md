@@ -1,3 +1,7 @@
+*   Allow to save records with polymorphic join tables that have inverse of specified.
+
+    *Markus Doits*
+
 *   Allow `ActiveRecord::Base#pluck` to accept hash arguments with symbol and string values.
 
     ```ruby
