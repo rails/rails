@@ -85,7 +85,8 @@ module ActiveRecord
       end
 
       def reset
-        super
+        @loaded = false
+        @stale_state = nil
         @target = []
         @replaced_or_added_targets = Set.new.compare_by_identity
         @association_ids = nil
@@ -336,7 +337,8 @@ module ActiveRecord
           return persisted if memory.empty?
 
           persisted.map! do |record|
-            if mem_record = memory.delete(record)
+            mem_index = memory.index(record)
+            if mem_index && (mem_record = memory[mem_index])
 
               ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save - mem_record.class._attr_readonly).each do |name|
                 mem_record._write_attribute(name, record[name])
