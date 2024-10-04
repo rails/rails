@@ -290,6 +290,10 @@ module ActiveRecord
       end
     end
 
+    def quote_table_name(name)
+      ActiveRecord::Base.adapter_class.quote_table_name(name)
+    end
+
     # Connect to the database
     ARTest.connect
     # Load database schema
