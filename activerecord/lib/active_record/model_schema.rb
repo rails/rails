@@ -276,7 +276,6 @@ module ActiveRecord
         end
 
         @table_name        = value
-        @quoted_table_name = nil
         @arel_table        = nil
         @sequence_name     = nil unless @explicit_sequence_name
         @predicate_builder = nil
@@ -284,7 +283,7 @@ module ActiveRecord
 
       # Returns a quoted version of the table name, used to construct SQL statements.
       def quoted_table_name
-        @quoted_table_name ||= adapter_class.quote_table_name(table_name)
+        adapter_class.quote_table_name(table_name)
       end
 
       # Computes the table name, (re)sets it internally, and returns it.
