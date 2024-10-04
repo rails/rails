@@ -1,3 +1,7 @@
+*   Change log level for `:retry_stopped` from `:info` to `:error`.
+
+    *Christophe Bliard*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Deprecate `sucker_punch` as an adapter option.
