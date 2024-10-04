@@ -14,7 +14,7 @@ require "active_support"
 require "active_support/core_ext/object/blank"
 require "minitest/autorun"
 
-class BugTest < Minitest::Test
+class BugTest < ActiveSupport::TestCase
   def test_stuff
     assert "zomg".present?
     refute "".present?

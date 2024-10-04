@@ -37,7 +37,7 @@ class Comment < ActiveRecord::Base
   belongs_to :post
 end
 
-class BugTest < Minitest::Test
+class BugTest < ActiveSupport::TestCase
   def test_association_stuff
     post = Post.create!
     post.comments << Comment.create!
