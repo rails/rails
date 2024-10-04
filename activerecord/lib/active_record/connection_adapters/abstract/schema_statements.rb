@@ -682,7 +682,7 @@ module ActiveRecord
       #
       # If the options provided include an +if_exists+ key, it will be used to check if the
       # column does not exist. This will silently ignore the migration rather than raising
-      # if the column was already used.
+      # if the column was already removed.
       #
       #   remove_column(:suppliers, :qualification, if_exists: true)
       def remove_column(table_name, column_name, type = nil, **options)
