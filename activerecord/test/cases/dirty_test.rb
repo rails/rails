@@ -7,6 +7,8 @@ require "models/parrot"
 require "models/person"   # For optimistic locking
 require "models/aircraft"
 require "models/numeric_data"
+require "models/admin"
+require "models/admin/user"
 
 class DirtyTest < ActiveRecord::TestCase
   include InTimeZone
@@ -993,6 +995,16 @@ class DirtyTest < ActiveRecord::TestCase
     assert parrot.breed_changed?(from: "african", to: "australian")
     assert parrot.breed_changed?(from: :african, to: :australian)
     assert parrot.breed_changed?(from: 0, to: 1)
+  end
+
+  test "changes is empty when merging equivalent symbolized values in JSON field in place" do
+    skip if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.lease_connection.mariadb?
+
+    admin = Admin::User.create!(name: "John", json_options: { extra_details: { nick_name: "Jo" } })
+
+    admin.json_options.merge!("extra_details" => { "nick_name" => :Jo })
+
+    assert_empty admin.changes
   end
 
   private

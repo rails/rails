@@ -192,6 +192,18 @@ module JSONSharedTestCases
     assert_not_predicate json, :changed?
   end
 
+  def test_change_in_place_equivelent_symbol_value
+    json = klass.create!(payload: { "one" => "two" })
+    json.payload["one"] = :two
+    assert_not_predicate json, :changed?
+  end
+
+  def test_change_in_place_different_symbol_value
+    json = klass.create!(payload: { "one" => "two" })
+    json.payload["one"] = :three
+    assert_predicate json, :changed?
+  end
+
   def test_changes_in_place_with_ruby_object
     time = Time.now.utc
     json = klass.create!(payload: time)
