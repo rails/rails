@@ -14,7 +14,7 @@ module Authentication
 
   private
     def authenticated?
-      Current.session.present?
+      resume_session
     end
 
     def require_authentication
@@ -23,7 +23,7 @@ module Authentication
 
 
     def resume_session
-      Current.session = find_session_by_cookie
+      Current.session ||= find_session_by_cookie
     end
 
     def find_session_by_cookie
