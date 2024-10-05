@@ -1,3 +1,15 @@
+*   Add `ActiveSupport::TimeZone#standard_name` method.
+
+    ``` ruby
+    zone = ActiveSupport::TimeZone['Hawaii']
+    # Old way
+    ActiveSupport::TimeZone::MAPPING[zone.name]
+    # New way
+    zone.standard_name # => 'Pacific/Honolulu'
+    ```
+
+    *Bogdan Gusiev*
+
 *   Add Structured Event Reporter, accessible via `Rails.event`.
 
     The Event Reporter provides a unified interface for producing structured events in Rails
