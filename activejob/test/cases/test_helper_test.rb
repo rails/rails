@@ -584,7 +584,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         end
       end
 
-      assert_match(/No enqueued job found with {:job=>NestedJob, :queue=>"low"}/, error.message)
+      assert_match("No enqueued job found with #{{ job: NestedJob, queue: "low" }}", error.message)
     end
 
     def test_assert_enqueued_with_with_no_block_failure
@@ -598,7 +598,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         assert_enqueued_with(job: NestedJob, queue: "low")
       end
 
-      assert_match(/No enqueued job found with {:job=>NestedJob, :queue=>"low"}/, error.message)
+      assert_match("No enqueued job found with #{{ job: NestedJob, queue: "low" }}", error.message)
     end
 
     def test_assert_enqueued_with_args
@@ -736,8 +736,8 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         end
       end
 
-      assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-      assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
+      assert_match("No enqueued job found with #{{ job: HelloJob, args: [wilma] }}", error.message)
+      assert_match(/Potential matches:.*Person.* @id="9"/, error.message)
     end
 
     def test_show_jobs_that_are_enqueued_when_job_is_not_queued_at_all
@@ -750,7 +750,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         end
       end
 
-      assert_match(/No enqueued job found with {:job=>MultipleKwargsJob, :args=>\[#{wilma.inspect}\]}/, error.message)
+      assert_match("No enqueued job found with #{{ job: MultipleKwargsJob, args: [wilma] }}", error.message)
       assert_match(/No jobs of class MultipleKwargsJob were enqueued, job classes enqueued: HelloJob/, error.message)
     end
 
@@ -760,7 +760,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         end
       end
 
-      assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[\]}/, error.message)
+      assert_match("No enqueued job found with #{{ job: HelloJob, args: [] }}", error.message)
       assert_match(/No jobs were enqueued/, error.message)
     end
 
@@ -772,8 +772,8 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         assert_enqueued_with(job: HelloJob, args: [wilma])
       end
 
-      assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-      assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
+      assert_match("No enqueued job found with #{{ job: HelloJob, args: [wilma] }}", error.message)
+      assert_match(/Potential matches: {.*?HelloJob,.*\[#<Person.* @id="9">\].*?}/, error.message)
     end
 
     def test_assert_enqueued_with_does_not_change_jobs_count
@@ -2027,8 +2027,8 @@ class PerformedJobsTest < ActiveJob::TestCase
           HelloJob.perform_later(ricardo)
         end
       end
-      assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-      assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
+      assert_match("No performed job found with #{{ job: HelloJob, args: [wilma] }}", error.message)
+      assert_match(/Potential matches:.*Person.* @id="9"/, error.message)
     end
 
     def test_assert_performed_with_without_block_failure_with_global_id_args
@@ -2040,8 +2040,8 @@ class PerformedJobsTest < ActiveJob::TestCase
         assert_performed_with(job: HelloJob, args: [wilma])
       end
 
-      assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-      assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id="9">\], :queue=>"default".*?}/, error.message)
+      assert_match("No performed job found with #{{ job: HelloJob, args: [wilma] }}", error.message)
+      assert_match(/Potential matches:.*Person.* @id="9"/, error.message)
     end
 
     def test_assert_performed_says_no_jobs_performed
@@ -2049,7 +2049,7 @@ class PerformedJobsTest < ActiveJob::TestCase
         assert_performed_with(job: HelloJob, args: [])
       end
 
-      assert_match(/No performed job found with {:job=>HelloJob, :args=>\[\]}/, error.message)
+      assert_match("No performed job found with #{{ job: HelloJob, args: [] }}", error.message)
       assert_match(/No jobs were performed/, error.message)
     end
 
@@ -2062,7 +2062,7 @@ class PerformedJobsTest < ActiveJob::TestCase
         assert_performed_with(job: MultipleKwargsJob, args: [wilma])
       end
 
-      assert_match(/No performed job found with {:job=>MultipleKwargsJob, :args=>\[#<Person.* @id=11>\]}/, error.message)
+      assert_match(/No performed job found with .*MultipleKwargsJob.*\[#<Person.* @id=11>\]}/, error.message)
       assert_match(/No jobs of class MultipleKwargsJob were performed, job classes performed: HelloJob/, error.message)
     end
 
