@@ -51,6 +51,7 @@ module ActiveJob
       _perform_job
     rescue Exception => exception
       handled = rescue_with_handler(exception)
+      ActiveJob::Base.error_reporter.report(exception, handled: handled, source: "application.active_job")
       return handled if handled
 
       run_after_discard_procs(exception)

@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/retry_job"
+require "jobs/raising_job"
 require "jobs/after_discard_retry_job"
 require "models/person"
 require "minitest/mock"
@@ -14,6 +15,29 @@ class ExceptionsTest < ActiveSupport::TestCase
         ActiveJob::QueueAdapters::AsyncAdapter,
         ActiveJob::QueueAdapters::SneakersAdapter
       ].include?(queue_adapter.class)
+    end
+  end
+
+  class ErrorSubscriber
+    attr_reader :events
+
+    def initialize
+      @events = []
+    end
+
+    def report(error, **opts)
+      @events << [error, opts]
+    end
+  end
+
+  test "errors are reported to the subscribed error reporters" do
+    subscriber = ErrorSubscriber.new
+    ActiveJob::Base.error_reporter.subscribe(subscriber)
+
+    assert_difference -> { subscriber.events.count } do
+      assert_raises StandardError do
+        RaisingJob.perform_now("StandardError")
+      end
     end
   end
 

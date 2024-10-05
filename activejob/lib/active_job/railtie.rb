@@ -18,6 +18,10 @@ module ActiveJob
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
 
+    initializer "active_job.error_reporter" do
+      ActiveSupport.on_load(:active_job) { self.error_reporter = ::Rails.error }
+    end
+
     initializer "active_job.custom_serializers" do |app|
       config.after_initialize do
         custom_serializers = app.config.active_job.custom_serializers

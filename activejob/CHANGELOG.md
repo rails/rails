@@ -10,4 +10,8 @@
 
     *heka1024*
 
+*   Report errors that happen to the Rails error reporter
+
+    *Nick Pezza*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activejob/CHANGELOG.md) for previous changes.

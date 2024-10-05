@@ -8,6 +8,7 @@ require "active_job/enqueuing"
 require "active_job/execution"
 require "active_job/callbacks"
 require "active_job/exceptions"
+require "active_job/error_reporter"
 require "active_job/log_subscriber"
 require "active_job/logging"
 require "active_job/instrumentation"
@@ -71,6 +72,7 @@ module ActiveJob # :nodoc:
     include Exceptions
     include Instrumentation
     include Logging
+    include ErrorReporter
     include Timezones
     include Translation
 
