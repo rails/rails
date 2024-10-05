@@ -53,6 +53,9 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_users.rb" do |content|
       assert_match(/t.string :password_digest, null: false/, content)
     end
+
+    assert_file "test/models/user_test.rb"
+    assert_file "test/fixtures/users.yml"
   end
 
   def test_authentication_generator_without_bcrypt_in_gemfile
@@ -97,5 +100,14 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_users.rb" do |content|
       assert_match(/t.string :password_digest, null: false/, content)
     end
+
+    assert_file "test/models/user_test.rb"
+    assert_file "test/fixtures/users.yml"
+  end
+
+  def test_model_test_is_skipped_if_test_framework_is_given
+    content = run_generator ["authentication", "-t", "rspec"]
+    assert_match(/rspec \[not found\]/, content)
+    assert_no_file "test/models/user_test.rb"
   end
 end
