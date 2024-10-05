@@ -276,11 +276,11 @@ module ActiveRecord
     #   # => [2, 3]
     #
     #   Comment.joins(:person).pluck(:id, person: :id)
-    #   # SELECT comments.id, people.id FROM comments INNER JOIN people on comments.person_id = people.id
+    #   # SELECT comments.id, person.id FROM comments INNER JOIN people person ON person.id = comments.person_id
     #   # => [[1, 2], [2, 2]]
     #
     #   Comment.joins(:person).pluck(:id, person: [:id, :name])
-    #   # SELECT comments.id, people.id, people.name FROM comments INNER JOIN people on comments.person_id = people.id
+    #   # SELECT comments.id, person.id, person.name FROM comments INNER JOIN people person ON person.id = comments.person_id
     #   # => [[1, 2, 'David'], [2, 2, 'David']]
     #
     #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
