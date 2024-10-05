@@ -1956,22 +1956,26 @@ module ActiveRecord
         end
       end
 
-      def arel_columns_from_array(columns, table_name = model.table_name)
-        columns.map do |column|
-          arel_column("#{table_name}.#{column}")
-        end
-      end
-
       def arel_columns_from_hash(fields)
         fields.flat_map do |table_name, columns|
+          table_name = table_name.name if table_name.is_a?(Symbol)
           case columns
-          when Array
-            arel_columns_from_array(columns, table_name)
           when Symbol, String
-            arel_column(columns)
+            arel_column_with_table(table_name, columns.to_s)
+          when Array
+            columns.map do |column|
+              arel_column_with_table(table_name, column.to_s)
+            end
           else
             raise TypeError, "Expected Symbol, String or Array, got: #{columns.class}"
           end
+        end
+      end
+
+      def arel_column_with_table(table_name, column_name)
+        self.references_values |= [Arel.sql(table_name, retryable: true)]
+        predicate_builder.resolve_arel_attribute(table_name, column_name) do
+          lookup_table_klass_from_join_dependencies(table_name)
         end
       end
 
@@ -1984,10 +1988,7 @@ module ActiveRecord
         if model.columns_hash.key?(field) && (!from || table_name_matches?(from))
           table[field]
         elsif /\A(?<table>(?:\w+\.)?\w+)\.(?<column>\w+)\z/ =~ field
-          self.references_values |= [Arel.sql(table, retryable: true)]
-          predicate_builder.resolve_arel_attribute(table, column) do
-            lookup_table_klass_from_join_dependencies(table)
-          end
+          arel_column_with_table(table, column)
         elsif block_given?
           yield field
         else
@@ -2222,14 +2223,15 @@ module ActiveRecord
 
       def arel_column_aliases_from_hash(fields)
         fields.flat_map do |key, columns_aliases|
+          table_name = key.is_a?(Symbol) ? key.name : key
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
-              arel_column("#{key}.#{column}").as(column_alias.to_s)
+              arel_column_with_table(table_name, column.to_s).as(column_alias.to_s)
             end
           when Array
             columns_aliases.map do |column|
-              arel_column("#{key}.#{column}", &:itself)
+              arel_column_with_table(table_name, column.to_s)
             end
           when String, Symbol
             arel_column(key) do
