@@ -16,11 +16,11 @@ module ActiveRecord
     end
 
     def test_registering_new_handlers
-      assert_match %r{#{Regexp.escape(topic_title)} ~ 'rails'}i, Topic.where(title: /rails/).to_sql
+      assert_match %r{#{Regexp.escape(quote_table_name("topics.title"))} ~ 'rails'}i, Topic.where(title: /rails/).to_sql
     end
 
     def test_registering_new_handlers_for_association
-      assert_match %r{#{Regexp.escape(topic_title)} ~ 'rails'}i, Reply.joins(:topic).where(topics: { title: /rails/ }).to_sql
+      assert_match %r{#{Regexp.escape(quote_table_name("topics.title"))} ~ 'rails'}i, Reply.joins(:topic).where(topics: { title: /rails/ }).to_sql
     end
 
     def test_references_with_schema
@@ -36,10 +36,5 @@ module ActiveRecord
       Topic.where(defaults).to_sql
       assert_equal({ topics: { title: "rails" }, "topics.approved" => true }, defaults)
     end
-
-    private
-      def topic_title
-        Topic.lease_connection.quote_table_name("topics.title")
-      end
   end
 end

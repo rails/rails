@@ -1319,11 +1319,11 @@ class BasicsTest < ActiveRecord::TestCase
 
     klass.table_name = "foo"
     assert_equal "foo", klass.table_name
-    assert_equal klass.lease_connection.quote_table_name("foo"), klass.quoted_table_name
+    assert_equal klass.adapter_class.quote_table_name("foo"), klass.quoted_table_name
 
     klass.table_name = "bar"
     assert_equal "bar", klass.table_name
-    assert_equal klass.lease_connection.quote_table_name("bar"), klass.quoted_table_name
+    assert_equal klass.adapter_class.quote_table_name("bar"), klass.quoted_table_name
   end
 
   def test_set_table_name_with_inheritance
