@@ -18,12 +18,17 @@ module ActiveStorage
 
     def metadata
       read_image do |image|
+        extract_dimensions_metadata(image)
+      end
+    end
+
+    private
+      def extract_dimensions_metadata(image)
         if rotated_image?(image)
           { width: image.height, height: image.width }
         else
           { width: image.width, height: image.height }
         end
       end
-    end
   end
 end

@@ -1,3 +1,7 @@
+*   Add `extract_dimensions_metadata` to `ActiveStorage::Analyzer::ImageAnalyzer`.
+
+    *Alexandr Borisov*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Deprecate `ActiveStorage::Service::AzureStorageService`.
