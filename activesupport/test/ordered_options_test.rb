@@ -141,6 +141,6 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     a.foo   = :bar
     a[:baz] = :quz
 
-    assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
+    assert_equal "#<ActiveSupport::OrderedOptions #{{ foo: :bar, baz: :quz }}>", a.inspect
   end
 end
