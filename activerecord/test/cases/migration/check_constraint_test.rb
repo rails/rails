@@ -275,7 +275,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
             @connection.remove_check_constraint :trades, name: "quantity_check"
           end
 
-          assert_equal "Table 'trades' has no check constraint for {:name=>\"quantity_check\"}", error.message
+          assert_equal "Table 'trades' has no check constraint for #{{ name: "quantity_check" }}", error.message
 
           assert_nothing_raised do
             @connection.remove_check_constraint :trades, name: "quantity_check", if_exists: true
