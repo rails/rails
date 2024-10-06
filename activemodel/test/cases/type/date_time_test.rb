@@ -33,7 +33,7 @@ module ActiveModel
       def test_hash_with_wrong_keys
         type = Type::DateTime.new
         error = assert_raises(ArgumentError) { type.cast(a: 1) }
-        assert_equal "Provided hash {:a=>1} doesn't contain necessary keys: [1, 2, 3]", error.message
+        assert_equal "Provided hash #{{ a: 1 }} doesn't contain necessary keys: [1, 2, 3]", error.message
       end
 
       private
