@@ -76,13 +76,16 @@ PATH
       marcel (~> 1.0)
     activesupport (7.1.4)
       base64
+      benchmark (>= 0.3)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       connection_pool (>= 2.2.5)
       drb
       i18n (>= 1.6, < 2)
+      logger (>= 1.4.2)
       minitest (>= 5.1)
       mutex_m
+      securerandom (>= 0.3)
       tzinfo (~> 2.0)
     rails (7.1.4)
       actioncable (= 7.1.4)
@@ -148,6 +151,7 @@ GEM
     base64 (0.2.0)
     bcrypt (3.1.18)
     beaneater (1.1.3)
+    benchmark (0.3.0)
     benchmark-ips (2.10.0)
     bigdecimal (3.1.8)
     bindex (0.8.1)
@@ -347,7 +351,6 @@ GEM
     net-protocol (0.2.2)
       timeout
     net-smtp (0.5.0)
-      net-protocol
     nio4r (2.5.9)
     nokogiri (1.15.4)
       mini_portile2 (~> 2.8.2)
@@ -461,6 +464,7 @@ GEM
       fugit (~> 1.1, >= 1.1.6)
     sdoc (2.6.1)
       rdoc (>= 5.0)
+    securerandom (0.3.1)
     selenium-webdriver (4.22.0)
       base64 (~> 0.2)
       logger (~> 1.4)
