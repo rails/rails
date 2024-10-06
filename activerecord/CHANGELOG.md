@@ -20,7 +20,7 @@
     ```
     In the above example `left.destroy` wouldn't destroy its associated `Right`
     record.
-    
+
     *Andy Stewart*
 
 *   Properly handle lazily pinned connection pools.
