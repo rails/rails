@@ -235,7 +235,7 @@ module CallbacksTest
     def no; false; end
     def yes; true; end
 
-    def method_missing(sym, *)
+    def method_missing(sym, ...)
       case sym
       when /^log_(.*)/
         @history << $1
@@ -473,18 +473,33 @@ module CallbacksTest
       # callbacks that have been invoked, if there are any (plus
       # whatever the callbacks do themselves, of course).
 
-      assert_equal [
-        "block in save",
-        "block in run_callbacks",
-        "tweedle_deedle",
-        "block in run_callbacks",
-        "w0tyes",
-        "block in run_callbacks",
-        "tweedle_dum",
-        "block in run_callbacks",
-        "run_callbacks",
-        "save"
-      ], call_stack.map(&:label)
+      if RUBY_VERSION >= "3.4"
+        assert_equal [
+          "block in CallbacksTest::MySlate#save",
+          "block in ActiveSupport::Callbacks#run_callbacks",
+          "CallbacksTest::AroundPerson#tweedle_deedle",
+          "block in ActiveSupport::Callbacks#run_callbacks",
+          "CallbacksTest::AroundPerson#w0tyes",
+          "block in ActiveSupport::Callbacks#run_callbacks",
+          "CallbacksTest::AroundPerson#tweedle_dum",
+          "block in ActiveSupport::Callbacks#run_callbacks",
+          "ActiveSupport::Callbacks#run_callbacks",
+          "CallbacksTest::MySlate#save",
+        ].join("\n"), call_stack.map(&:label).join("\n")
+      else
+        assert_equal [
+          "block in save",
+          "block in run_callbacks",
+          "tweedle_deedle",
+          "block in run_callbacks",
+          "w0tyes",
+          "block in run_callbacks",
+          "tweedle_dum",
+          "block in run_callbacks",
+          "run_callbacks",
+          "save",
+        ].join("\n"), call_stack.map(&:label).join("\n")
+      end
     end
 
     def test_short_call_stack
@@ -503,11 +518,19 @@ module CallbacksTest
       # there should be just one line. run_callbacks yields directly
       # back to its caller.
 
-      assert_equal [
-        "block in save",
-        "run_callbacks",
-        "save"
-      ], call_stack.map(&:label)
+      if RUBY_VERSION >= "3.4"
+        assert_equal [
+          "block in CallbacksTest::Person#save",
+          "ActiveSupport::Callbacks#run_callbacks",
+          "CallbacksTest::Person#save",
+        ].join("\n"), call_stack.map(&:label).join("\n")
+      else
+        assert_equal [
+          "block in save",
+          "run_callbacks",
+          "save",
+        ].join("\n"), call_stack.map(&:label).join("\n")
+      end
     end
   end
 
