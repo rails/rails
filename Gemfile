@@ -11,6 +11,12 @@ gem "minitest", ">= 5.15.0", "< 5.16.0"
 # Workaround until Ruby ships with cgi version 0.3.6 or higher.
 gem "cgi", ">= 0.3.6", require: false
 
+# the abandoned cookiejar gem is broken on newer uri, and `blade` among
+# other things depend on it.
+# Since 7-0-stable is is security only maintainance mode, this is the simplest
+# way to get builds working for Ruby 3.4.0dev.
+gem "uri", "< 0.13.1"
+
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
 
