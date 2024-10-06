@@ -1,3 +1,7 @@
+*   Add `migrating?` migration helper, for one-liners that need to run only when going up
+
+    *Goulven Champenois*
+
 *   Allow `ActiveRecord::Base#pluck` to accept hash arguments with symbol and string values.
 
     ```ruby

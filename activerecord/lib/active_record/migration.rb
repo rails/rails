@@ -870,6 +870,10 @@ module ActiveRecord
       connection.respond_to?(:reverting) && connection.reverting
     end
 
+    def migrating?
+      !reverting?
+    end
+
     ReversibleBlockHelper = Struct.new(:reverting) do # :nodoc:
       def up
         yield unless reverting
@@ -926,7 +930,7 @@ module ActiveRecord
     #      end
     #    end
     def up_only(&block)
-      execute_block(&block) unless reverting?
+      execute_block(&block) if migrating?
     end
 
     # Runs the given migration classes.
