@@ -1,3 +1,28 @@
+*   Fix `dependent: :destroy` for bi-directional has one through association.
+
+    Fixes #50948.
+
+    ```ruby
+    class Left < ActiveRecord::Base
+      has_one :middle, dependent: :destroy
+      has_one :right, through: :middle
+    end
+
+    class Middle < ActiveRecord::Base
+      belongs_to :left, dependent: :destroy
+      belongs_to :right, dependent: :destroy
+    end
+
+    class Right < ActiveRecord::Base
+      has_one :middle, dependent: :destroy
+      has_one :left, through: :middle
+    end
+    ```
+    In the above example `left.destroy` wouldn't destroy its associated `Right`
+    record.
+    
+    *Andy Stewart*
+
 *   Properly handle lazily pinned connection pools.
 
     Fixes #53147.
