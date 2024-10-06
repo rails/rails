@@ -1,3 +1,7 @@
+*   Add `down_only` migration helper to execute a block only when reverting.
+
+    *Goulven Champenois*
+
 *   Allow `ActiveRecord::Base#pluck` to accept hash arguments with symbol and string values.
 
     ```ruby

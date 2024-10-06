@@ -929,6 +929,24 @@ module ActiveRecord
       execute_block(&block) unless reverting?
     end
 
+    # Used to specify an operation that is only run when migrating down
+    # (for example, replacing a value with the previous default).
+    #
+    # In the following example, the column +published+ will be given the
+    # value +false+ for private records before removing the +private+ column.
+    #
+    #    class AddPrivateToPosts < ActiveRecord::Migration[8.0]
+    #      def change
+    #        down_only do
+    #          execute "update posts set published = 'false' where private = 'true'"
+    #        end
+    #        add_column :posts, :private, :boolean, default: false
+    #      end
+    #    end
+    def down_only(&block)
+      execute_block(&block) if reverting?
+    end
+
     # Runs the given migration classes.
     # Last argument can specify options:
     #
