@@ -38,6 +38,7 @@ module ActiveRecord
     config.active_record.raise_on_assign_to_attr_readonly = false
     config.active_record.belongs_to_required_validates_foreign_key = true
     config.active_record.generate_secure_token_on = :create
+    config.active_record.default_timezone = :utc
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
