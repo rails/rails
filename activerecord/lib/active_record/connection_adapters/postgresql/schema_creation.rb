@@ -52,6 +52,7 @@ module ActiveRecord
             sql = ["CONSTRAINT"]
             sql << quote_column_name(o.name)
             sql << "UNIQUE"
+            sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && o.nulls_not_distinct
 
             if o.using_index
               sql << "USING INDEX #{quote_column_name(o.using_index)}"

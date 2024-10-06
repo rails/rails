@@ -246,10 +246,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = dump_table_schema("test_unique_constraints")
       constraint_definitions = output.split(/\n/).grep(/t\.unique_constraint/)
 
-      assert_equal 3, constraint_definitions.size
+      assert_equal 4, constraint_definitions.size
       assert_match 't.unique_constraint ["position_1"], name: "test_unique_constraints_position_deferrable_false"', output
       assert_match 't.unique_constraint ["position_2"], deferrable: :immediate, name: "test_unique_constraints_position_deferrable_immediate"', output
       assert_match 't.unique_constraint ["position_3"], deferrable: :deferred, name: "test_unique_constraints_position_deferrable_deferred"', output
+      assert_match 't.unique_constraint ["position_4"], nulls_not_distinct: true, name: "test_unique_constraints_position_nulls_not_distinct"', output
     end
 
     def test_schema_does_not_dump_unique_constraints_as_indexes
