@@ -148,16 +148,40 @@ module ActiveSupport # :nodoc:
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
-      if unsafe_method.respond_to?(unsafe_method)
-        class_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
-            to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
-          end                                       # end
+      if "".respond_to?(unsafe_method)
+        parameters = "".method(unsafe_method).parameters
 
-          def #{unsafe_method}!(*args)              # def capitalize!(*args)
-            @html_safe = false                      #   @html_safe = false
-            super                                   #   super
-          end                                       # end
+        params =
+          if (parameters.map(&:first) & [:keyreq, :key, :keyrest]).any?
+            "..."
+          elsif (parameters.map(&:first) & [:opt, :rest]).any?
+            "*args"
+          else
+            defn = parameters.each.with_index(1).filter_map { |(type, arg), i| arg || "arg#{i}" if type == :req }
+            defn << "&block" if parameters.last&.first == :block
+            defn.join(", ")
+          end
+
+        params_for_super =
+          if (parameters.map(&:first) & [:keyreq, :key, :keyrest]).any?
+            "..."
+          elsif (parameters.map(&:first) & [:opt, :rest]).any?
+            "*"
+          else
+            defn = parameters.count { |type, _| type == :req }.times.map { "_" }
+            defn << "&block" if parameters.last&.first == :block
+            defn.join(", ")
+          end
+
+        class_eval <<-EOT, __FILE__, __LINE__ + 1
+          def #{unsafe_method}(#{params})       # def capitalize(*args, &block)
+            to_str.#{unsafe_method}(#{params})  #   to_str.capitalize(*args, &block)
+          end                                   # end
+
+          def #{unsafe_method}!(#{params_for_super})     # def capitalize!(*)
+            @html_safe = false                           #   @html_safe = false
+            super                                        #   super
+          end                                            # end
         EOT
       end
     end
