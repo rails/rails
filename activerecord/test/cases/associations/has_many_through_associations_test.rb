@@ -38,6 +38,9 @@ require "models/seminar"
 require "models/session"
 require "models/sharded"
 require "models/cpk"
+require "models/zine"
+require "models/interest"
+require "models/human"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -1318,6 +1321,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_with_polymorphic_source
     post = tags(:general).tagged_posts.create! title: "foo", body: "bar"
     assert_equal [tags(:general)], post.reload.tags
+  end
+
+  def test_has_many_through_with_polymorhic_join_model
+    zine = Zine.create!
+
+    assert_nothing_raised { zine.polymorphic_humans.build.save! }
+
+    assert_equal 1, zine.polymorphic_humans.count
+    assert_equal 1, zine.interests.count
   end
 
   def test_has_many_through_obeys_order_on_through_association

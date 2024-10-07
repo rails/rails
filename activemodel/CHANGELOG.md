@@ -1,3 +1,18 @@
+*   Add `:except_on` option for validations. Grants the ability to _skip_ validations in specified contexts.
+
+    ```ruby
+    class User < ApplicationRecord
+        #...
+        validates :birthday, presence: { except_on: :admin }
+        #...
+    end
+
+    user = User.new(attributes except birthday)
+    user.save(context: :admin)
+    ```
+
+    *Drew Bragg*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Make `ActiveModel::Serialization#read_attribute_for_serialization` public
