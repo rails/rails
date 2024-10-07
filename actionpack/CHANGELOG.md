@@ -1,4 +1,4 @@
-*   Raise an `ArgumentError` when invalid `:on` or `:except` options are passed into `#resource` and `#resources`.
+*   Raise an `ArgumentError` when invalid `:only` or `:except` options are passed into `#resource` and `#resources`.
 
     *Joshua Young*
 
