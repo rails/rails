@@ -345,7 +345,7 @@ with Validation Errors](#working-with-validation-errors) section.
 Validation Helpers
 ------------------
 
-Active Record offers many pre-defined validation helpers that you can use
+Active Record offers many predefined validation helpers that you can use
 directly inside your class definitions. These helpers provide common validation
 rules. Each time a validation fails, an error message is added to the object's
 `errors` collection, and this and this error is associated with the specific
@@ -516,7 +516,7 @@ Inversely, by using the `:without` option instead you can require that the
 specified attribute does _not_ match the regular expression.
 
 In either case, the provided `:with` or `:without` option must be a regular
-expression or a proc or lambda that return one.
+expression or a proc or lambda that returns one.
 
 The default error message is _"is invalid"_.
 
@@ -904,7 +904,7 @@ validation function. You should create one using a block, and every attribute
 passed to [`validates_each`][] will be tested against it.
 
 In the following example, we will reject names and surnames that begin with
-lower case.
+lowercase.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1346,7 +1346,7 @@ irb> Person.new.valid?
 
 ### Listing Validators
 
-If you want to find out all of the validators for a given objects, you can use
+If you want to find out all of the validators for a given object, you can use
 `validators`.
 
 For example, if we have the following model using a custom validator and a
