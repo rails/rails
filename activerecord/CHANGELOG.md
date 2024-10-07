@@ -1,3 +1,7 @@
+*   Fix association scopes applying on the incorrect join when using a polymorphic `has_many through:`.
+
+    *Joshua Young*
+
 *   Allow `ActiveRecord::Base#pluck` to accept hash arguments with symbol and string values.
 
     ```ruby
