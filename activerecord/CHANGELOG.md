@@ -1,3 +1,7 @@
+*   Fix association scopes applying on the incorrect join when using a polymorphic `has_many through:`.
+
+    *Joshua Young*
+
 *   Fix `dependent: :destroy` for bi-directional has one through association.
 
     Fixes #50948.
