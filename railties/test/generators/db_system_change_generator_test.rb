@@ -48,7 +48,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git libpq-dev", content
-              assert_match "curl libvips postgresql-client", content
+              assert_match "curl libjemalloc2 libvips postgresql-client", content
             end
 
             assert_devcontainer_json_file do |content|
@@ -91,7 +91,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential default-libmysqlclient-dev git", content
-              assert_match "curl default-mysql-client libvips", content
+              assert_match "curl default-mysql-client libjemalloc2 libvips", content
             end
 
             assert_devcontainer_json_file do |content|
@@ -133,7 +133,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git", content
-              assert_match "curl libvips sqlite3", content
+              assert_match "curl libjemalloc2 libvips sqlite3", content
             end
 
             assert_devcontainer_json_file do |content|
@@ -156,7 +156,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git", content
-              assert_match "curl libvips", content
+              assert_match "curl libjemalloc2 libvips", content
               assert_no_match "default-libmysqlclient-dev", content
             end
           end
