@@ -9,8 +9,11 @@ module AdapterHelper
   end
 
   def in_memory_db?
-    current_adapter?(:SQLite3Adapter) &&
-    ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
+    current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
+  end
+
+  def sqlite3_adapter_strict_strings_disabled?
+    current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.connection_pool.db_config.configuration_hash[:strict]
   end
 
   def mysql_enforcing_gtid_consistency?

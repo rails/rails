@@ -9,37 +9,58 @@ module ActiveRecord
     fixtures :posts, :comments
 
     def test_select_with_nil_argument
-      expected = Post.select(:title).to_sql
-      assert_equal expected, Post.select(nil).select(:title).to_sql
+      expected = %r/\ASELECT #{Regexp.escape(quote_table_name("posts.title"))} FROM/
+      assert_match expected, Post.select(nil).select(:title).to_sql
+    end
+
+    def test_select_with_non_field_values
+      expected = %r/\ASELECT 1, foo\(\), #{Regexp.escape(quote_table_name("bar"))} FROM/
+      assert_match expected, Post.select("1", "foo()", :bar).to_sql
+    end
+
+    def test_select_with_non_field_hash_values
+      expected = %r/\ASELECT 1 AS a, foo\(\) AS b, #{Regexp.escape(quote_table_name("bar"))} AS c FROM/
+      assert_match expected, Post.select("1" => :a, "foo()" => :b, :bar => :c).to_sql
     end
 
     def test_select_with_hash_argument
-      post = Post.select(:title, posts: { title: :post_title }).take
-      assert_not_nil post.title
-      assert_not_nil post.post_title
-      assert_equal post.title, post.post_title
+      post = Post.select("UPPER(title)" => :title, posts: { title: :post_title }).first
+
+      assert_equal "WELCOME TO THE WEBLOG", post.title
+      assert_equal "Welcome to the weblog", post.post_title
     end
 
     def test_select_with_one_level_hash_argument
-      post = Post.select(:title, title: :post_title).take
-      assert_not_nil post.title
-      assert_not_nil post.post_title
-      assert_equal post.title, post.post_title
+      post = Post.select("UPPER(title)" => :title, title: :post_title).first
+
+      assert_equal "WELCOME TO THE WEBLOG", post.title
+      assert_equal "Welcome to the weblog", post.post_title
     end
 
     def test_select_with_not_exists_field
+      expected = %r/\ASELECT #{Regexp.escape(quote_table_name("foo"))} AS post_title FROM/
+      assert_match expected, Post.select(foo: :post_title).to_sql
+
+      skip if sqlite3_adapter_strict_strings_disabled?
+
       assert_raises(ActiveRecord::StatementInvalid) do
         Post.select(foo: :post_title).take
       end
     end
 
     def test_select_with_hash_with_not_exists_field
+      expected = %r/\ASELECT #{Regexp.escape(quote_table_name("posts.bar"))} AS post_title FROM/
+      assert_match expected, Post.select(posts: { bar: :post_title }).to_sql
+
       assert_raises(ActiveRecord::StatementInvalid) do
         Post.select(posts: { boo: :post_title }).take
       end
     end
 
     def test_select_with_hash_array_value_with_not_exists_field
+      expected = %r/\ASELECT #{Regexp.escape(quote_table_name("posts.bar"))}, #{Regexp.escape(quote_table_name("posts.id"))} FROM/
+      assert_match expected, Post.select(posts: [:bar, :id]).to_sql
+
       assert_raises(ActiveRecord::StatementInvalid) do
         Post.select(posts: [:bar, :id]).take
       end
