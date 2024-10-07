@@ -88,7 +88,7 @@ If no error is raised in the block, `Rails.error.handle` will return the result 
 
 ```ruby
 user = Rails.error.handle(fallback: -> { User.anonymous }) do
-  User.find_by(params[:id])
+  User.find(params[:id])
 end
 ```
 
