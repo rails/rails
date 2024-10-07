@@ -662,6 +662,8 @@ If a previous action _has_ set a flash message, it's a good idea of display that
 
 The `name` above indicates the type of flash message, such as `notice` or `alert`. This information is typically used to style how the message is displayed to the user.
 
+TIP: You can filter by `name` if you want to limit to displaying only `notice` and `alert` in layout. Otherwise all keys set in the `flash` will be displayed.
+
 Including the reading and displaying of flash messages in the layout ensures that your application will display these automatically, without each view having to include logic to read the flash.
 
 #### `flash.keep` and `flash.now`
