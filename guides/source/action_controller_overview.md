@@ -728,30 +728,30 @@ You can use the `CacheStore` if your sessions don't store critical data or don't
 
 Read more about session storage in the [Security Guide](security.html#sessions).
 
-If you need a different session storage mechanism, you can change it in an initializer:
+There are a few configuration options related to session storage. You can configure the type of storage in an initializer:
 
 ```ruby
 Rails.application.config.session_store :cache_store
 ```
 
-See [`config.session_store`](configuring.html#config-session-store) in the
-configuration guide for more information.
-
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
 
 ```ruby
-# Be sure to restart your server when you modify this file.
 Rails.application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
-# Be sure to restart your server when you modify this file.
 Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `bin/rails credentials:edit`.
+NOTE: Be sure to restart your server when you modify an initializer file.
+
+TIP: See [`config.session_store`](configuring.html#config-session-store) in the
+configuration guide for more information.
+
+Rails sets up a secret key for `CookieStore` used for signing the session data in `config/credentials.yml.enc`. The credentials can be updated with `bin/rails credentials:edit`.
 
 ```yaml
 # aws:
@@ -762,11 +762,10 @@ Rails sets up (for the CookieStore) a secret key used for signing the session da
 secret_key_base: 492f...
 ```
 
-NOTE: Changing the secret_key_base when using the `CookieStore` will invalidate all existing sessions.
+WARNING: Changing the secret_key_base when using the `CookieStore` will invalidate all existing sessions.
 
 [`ActionDispatch::Session::CookieStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
 [`ActionDispatch::Session::CacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
-[`ActionDispatch::Session::MemCacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/MemCacheStore.html
 [activerecord-session_store]: https://github.com/rails/activerecord-session_store
 
 Rendering
