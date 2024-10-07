@@ -43,6 +43,7 @@ module ActiveStorage
   class Service
     extend ActiveSupport::Autoload
     autoload :Configurator
+    autoload :UrlConfig
     attr_accessor :name
 
     class << self
@@ -59,10 +60,18 @@ module ActiveStorage
       # Passes the configurator and all of the service's config as keyword args.
       #
       # See MirrorService for an example.
-      def build(configurator:, name:, service: nil, **service_config) # :nodoc:
+      def build(configurator:, name:, service: nil, url_config: nil, **service_config) # :nodoc:
+        if url_config
+          service_config = options_from_url(url_config)
+        end
+
         new(**service_config).tap do |service_instance|
           service_instance.name = name
         end
+      end
+
+      def options_from_url(url_config) # :nodoc:
+        raise NotImplementedError
       end
     end
 

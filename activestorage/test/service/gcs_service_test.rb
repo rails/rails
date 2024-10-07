@@ -203,3 +203,25 @@ if SERVICE_CONFIGURATIONS[:gcs]
 else
   puts "Skipping GCS Service tests because no GCS configuration was supplied"
 end
+
+# These tests shouldn't hit the network, since we're just testing configuration via URI.
+class ActiveStorage::Service::GCSServiceOptionsTest < ActiveSupport::TestCase
+  SERVICE = ActiveStorage::Service.configure(:gcs, { gcs: { service: "gcs", bucket: "test-case" } })
+
+  test "options hash" do
+    uri = URI.parse("gcs://path/to/gcs.keyfile@your_project/your-bucket")
+    url = ActiveStorage::Service::UrlConfig.new(uri)
+    options = ActiveStorage::Service::GCSService.options_from_url(url)
+    assert_equal "your-bucket", options[:bucket]
+    assert_equal "your_project", options[:project]
+    assert_equal "path/to/gcs.keyfile", options[:credentials]
+
+    uri = URI.parse("gcs://path/to/gcs.keyfile@your_project/your-bucket?cache_control=public, max-age=1800")
+    url = ActiveStorage::Service::UrlConfig.new(uri)
+    options = ActiveStorage::Service::GCSService.options_from_url(url)
+    assert_equal "your-bucket", options[:bucket]
+    assert_equal "your_project", options[:project]
+    assert_equal "path/to/gcs.keyfile", options[:credentials]
+    assert_equal "public,%20max-age=1800", options[:cache_control]
+  end
+end

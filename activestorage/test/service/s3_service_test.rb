@@ -198,3 +198,27 @@ if SERVICE_CONFIGURATIONS[:s3]
 else
   puts "Skipping S3 Service tests because no S3 configuration was supplied"
 end
+
+# These tests shouldn't hit the network, since we're just testing configuration via URI.
+class ActiveStorage::Service::S3ServiceOptionsTest < ActiveSupport::TestCase
+  SERVICE = ActiveStorage::Service.configure(:s3, { s3: { service: "s3", bucket: "test-case", region: "us-east-1" } })
+
+  test "options hash" do
+    uri = URI.parse("s3://access_key_id:secret_access_key@us-east-1/your-bucket")
+    url = ActiveStorage::Service::UrlConfig.new(uri)
+    options = ActiveStorage::Service::S3Service.options_from_url(url)
+    assert_equal "your-bucket", options[:bucket]
+    assert_equal "us-east-1", options[:region]
+    assert_equal "access_key_id", options[:access_key_id]
+    assert_equal "secret_access_key", options[:secret_access_key]
+
+    uri = URI.parse("s3://access_key_id:secret_access_key@us-east-1/your-bucket?public=true")
+    url = ActiveStorage::Service::UrlConfig.new(uri)
+    options = ActiveStorage::Service::S3Service.options_from_url(url)
+    assert_equal "your-bucket", options[:bucket]
+    assert_equal "us-east-1", options[:region]
+    assert_equal "access_key_id", options[:access_key_id]
+    assert_equal "secret_access_key", options[:secret_access_key]
+    assert_equal "true", options[:public] # public only has to be truthy to set acl to public-read
+  end
+end
