@@ -33,8 +33,11 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def spawn_console(options, wait_for_prompt: true, env: {})
+    # Test should not depend on user's irbrc file
+    home_tmp_dir = Dir.mktmpdir
+
     pid = Process.spawn(
-      { "TERM" => "dumb" }.merge(env),
+      { "TERM" => "dumb", "HOME" => home_tmp_dir }.merge(env),
       "#{app_path}/bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
@@ -44,6 +47,8 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     end
 
     pid
+  ensure
+    FileUtils.remove_entry(home_tmp_dir)
   end
 
   def test_sandbox
