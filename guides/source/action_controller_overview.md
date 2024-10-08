@@ -835,34 +835,33 @@ options, the last action callback definition will overwrite the previous ones.
 
 ### `after_action` and `around_action`
 
-In addition to "before" action callback, you can also run action callbacks after a controller action has been executed, or both before and after.
+You can also define action callbacks to run _after_ a controller action has been executed with [`after_action`][], or to run both before and after with `around_action`][].
 
-"after" action callbacks are registered via [`after_action`][]. They are similar to "before" action callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" action callbacks cannot stop the action from running. Please note that "after" action callbacks are executed only after a successful controller action, but not when an exception is raised in the request cycle.
+The `after_action` callbacks are similar to `before_action`callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client. 
 
-"around" action callbacks are registered via [`around_action`][]. They are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+NOTE: `after_action` callbacks are executed only after a successful controller action, but not if an exception is raised in the request cycle.
 
-For example, in a website where changes have an approval workflow, an administrator could preview them easily by applying them within a transaction:
+The `around_action` callbacks are useful when you want to execute code before and after a controller action, allowing you to encapsulate functionality that affects the action's execution. They are responsible for running their associated actions by yielding.
+
+For example, imagine you want to monitor the performance of specific actions. You could use an `around_action` to measure how long each action takes to complete and log this information:
 
 ```ruby
-class ChangesController < ApplicationController
-  around_action :wrap_in_transaction, only: :show
+class ApplicationController < ActionController::Base
+  around_action :measure_execution_time
 
   private
-    def wrap_in_transaction
-      ActiveRecord::Base.transaction do
-        begin
-          yield
-        ensure
-          raise ActiveRecord::Rollback
-        end
-      end
+    def measure_execution_time
+      start_time = Time.now
+      yield  # This executes the action
+      end_time = Time.now
+
+      duration = end_time - start_time
+      Rails.logger.info "Action #{action} took #{duration.round(2)} seconds to execute."
     end
 end
 ```
 
-Note that an "around" action callback also wraps rendering. In particular, in the example above, if the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
-
-You can choose not to yield and build the response yourself, in which case the controller action will not be run.
+Note that an `around_action` callback also wraps rendering. In the example above, view rendering will be included in the time.
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
 [`around_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
