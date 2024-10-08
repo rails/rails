@@ -281,7 +281,7 @@ module ActiveRecord
         @predicate_builder = nil
       end
 
-      # Returns a quoted version of the table name, used to construct SQL statements.
+      # Returns a quoted version of the table name.
       def quoted_table_name
         adapter_class.quote_table_name(table_name)
       end
