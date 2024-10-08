@@ -2227,14 +2227,16 @@ module ActiveRecord
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
-              arel_column_with_table(table_name, column.to_s).as(column_alias.to_s)
+              arel_column_with_table(table_name, column.to_s)
+                .as(model.adapter_class.quote_column_name(column_alias.to_s))
             end
           when Array
             columns_aliases.map do |column|
               arel_column_with_table(table_name, column.to_s)
             end
           when String, Symbol
-            arel_column(key).as(columns_aliases.to_s)
+            arel_column(key)
+              .as(model.adapter_class.quote_column_name(columns_aliases.to_s))
           end
         end
       end
