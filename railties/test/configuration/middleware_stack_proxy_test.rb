@@ -68,10 +68,10 @@ module Rails
 
       private
         def assert_playback(msg_names, args)
-          self.assertions += 1
           mock = Minitest::Mock.new
           Array(msg_names).each do |msg_name|
             mock.expect msg_name, nil, [args]
+            self.assertions += 1
           end
           @stack.merge_into(mock)
           mock.verify
