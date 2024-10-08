@@ -1832,3 +1832,15 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
     end
   end
 end
+
+class NamespacedFixturesTest < ActiveRecord::TestCase
+  require "models/customer"
+  require "models/customers/category"
+
+  fixtures :customers, "customers/categories"
+
+  def test_namespaced_fixtures
+    assert_equal "David", customers(:david).name
+    assert_equal "New customers", customers_categories(:new).label
+  end
+end
