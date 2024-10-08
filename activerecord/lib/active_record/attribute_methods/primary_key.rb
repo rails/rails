@@ -87,8 +87,7 @@ module ActiveRecord
             @composite_primary_key
           end
 
-          # Returns a quoted version of the primary key name, used to construct
-          # SQL statements.
+          # Returns a quoted version of the primary key name.
           def quoted_primary_key
             adapter_class.quote_column_name(primary_key)
           end
