@@ -773,11 +773,17 @@ WARNING: Changing the secret_key_base when using the `CookieStore` will invalida
 Controller Callbacks
 --------------------
 
-Controller callbacks are methods that are defined to automatically run before and/or after a controller action. A controller action callback method can be defined in a given controller or in `ApplicationController`. Since all controllers inherit from `ApplicationController`, callbacks defined here will run on every controller in your application.
+Controller callbacks are methods that are defined to automatically run before
+and/or after a controller action. A controller callback method can be defined in
+a given controller or in the `ApplicationController`. Since all controllers
+inherit from `ApplicationController`, callbacks defined here will run on every
+controller in your application.
 
 ### `before_action`
 
-The "before" action callbacks are registered via [`before_action`][]. They may halt the request cycle. A common "before" action callback is one which requires that a user is logged in for an action to be run. You can define the method this way:
+Callback methods registered via [`before_action`][] run _before_ a controller
+action. They may halt the request cycle. A common example use case for
+`before_action` is ensuring that a user is logged in:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -793,9 +799,19 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" action callback renders or redirects, the controller action will not run. If there are additional action callbacks scheduled to run after that one, they are also cancelled.
+The method stores an error message in the flash and redirects to the login form
+if the user is not already logged in. When a `before_action` callback renders or
+redirects (like in the example above), the original controller action is not
+run. If there are additional callbacks registered to run, they are also
+cancelled and not run.
 
-In this example, the action callback is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this action callback from running before particular actions with [`skip_before_action`][]:
+In this example, the `before_action` is defined in `Applicationcontroller` so
+all controllers in the application inherit it. That implies that all requests in
+the application will require the user to be logged in. This is fine except for
+the "login" page. The "login" action should succeed even when the user is not
+logged in (to allow the user to log in) otherwise the user will never be able to
+log in. You can use [`skip_before_action`][] to allow specified controller
+actions to skip a given `before_action`:
 
 ```ruby
 class LoginsController < ApplicationController
@@ -803,10 +819,16 @@ class LoginsController < ApplicationController
 end
 ```
 
-Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this action callback only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding action callbacks too, so you can add a callback which only runs for selected actions in the first place.
+Now, the `LoginsController`'s `new` and `create` actions will work without
+requiring the user to be logged in. 
 
-NOTE: Calling the same action callback multiple times with different options will not work,
-since the last action callback definition will overwrite the previous ones.
+The `:only` option skips the callback only for the listed actions; there is also
+an `:except` option which works the other way. These options can be used when
+registering action callbacks too, to add callbacks which only runs for selected
+actions.
+
+NOTE: If you register the same action callback multiple times with different
+options, the last action callback definition will overwrite the previous ones.
 
 [`before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-before_action
 [`skip_before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-skip_before_action
