@@ -24,7 +24,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
             t.integer :quantity
           end
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             @connection.create_table "constraint_test", force: true do |t|
               t.json :options, default: nil
             end
@@ -35,7 +35,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
           @connection.drop_table "trades", if_exists: true rescue nil
           @connection.drop_table "purchases", if_exists: true rescue nil
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             @connection.drop_table "constraint_test", if_exists: true rescue nil
           end
         end
@@ -54,7 +54,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
             assert_equal "price > discounted_price", constraint.expression
           end
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             begin
               @connection.add_check_constraint(:constraint_test, <<~SQL,
                 json_contains('
