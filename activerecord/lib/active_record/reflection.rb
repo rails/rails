@@ -1236,7 +1236,10 @@ module ActiveRecord
       end
 
       def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder, klass, record) + super
+        scopes = super
+        unless @previous_reflection.through_reflection?
+          scopes += @previous_reflection.join_scopes(table, predicate_builder, klass, record)
+        end
         scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 

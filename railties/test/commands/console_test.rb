@@ -18,6 +18,14 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
   end
 
+  def setup
+    @prev_rails_env = Rails.env
+  end
+
+  def teardown
+    Rails.env = @prev_rails_env
+  end
+
   def test_sandbox_option
     console = Rails::Console.new(app, parse_arguments(["--sandbox"]))
     assert_predicate console, :sandbox?

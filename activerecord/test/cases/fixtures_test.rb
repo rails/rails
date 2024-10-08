@@ -101,9 +101,9 @@ class FixturesTest < ActiveRecord::TestCase
       create_fixtures("bulbs", "movies", "computers")
 
       expected_sql = <<~EOS.chop
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("bulbs")} .*
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("movies")} .*
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("computers")} .*
+        INSERT INTO #{quote_table_name("bulbs")} .*
+        INSERT INTO #{quote_table_name("movies")} .*
+        INSERT INTO #{quote_table_name("computers")} .*
       EOS
       assert_equal 1, subscriber.events.size
       assert_match(/#{expected_sql}/, subscriber.events.first)

@@ -1334,7 +1334,6 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
-
       # Checks to see if a check constraint exists on a table for a given check constraint definition.
       #
       #   check_constraint_exists?(:products, name: "price_check")
@@ -1344,6 +1343,13 @@ module ActiveRecord
           raise ArgumentError, "At least one of :name or :expression must be supplied"
         end
         check_constraint_for(table_name, **options).present?
+      end
+
+      def remove_constraint(table_name, constraint_name) # :nodoc:
+        at = create_alter_table(table_name)
+        at.drop_constraint(constraint_name)
+
+        execute schema_creation.accept(at)
       end
 
       def dump_schema_information # :nodoc:

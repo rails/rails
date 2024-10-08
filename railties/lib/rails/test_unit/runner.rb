@@ -125,6 +125,7 @@ module Rails
           def list_tests(patterns)
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
             tests.exclude(default_test_exclude_glob) if patterns.empty?
+            tests.exclude(%r{test/isolation/assets/node_modules})
             tests
           end
 

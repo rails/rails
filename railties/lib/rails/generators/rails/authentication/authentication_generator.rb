@@ -49,6 +49,8 @@ module Rails
         generate "migration CreateUsers email_address:string!:uniq password_digest:string! --force"
         generate "migration CreateSessions user:references ip_address:string user_agent:string --force"
       end
+
+      hook_for :test_framework
     end
   end
 end

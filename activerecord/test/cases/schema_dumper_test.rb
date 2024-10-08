@@ -32,7 +32,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
     expected = <<~STR
-    INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("schema_migrations")} (version) VALUES
+    INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
     ('20100301010101'),
     ('20100201010101'),
     ('20100101010101');
