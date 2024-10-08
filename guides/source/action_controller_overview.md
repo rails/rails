@@ -770,37 +770,14 @@ WARNING: Changing the secret_key_base when using the `CookieStore` will invalida
 [`ActionDispatch::Session::CacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
 [activerecord-session_store]: https://github.com/rails/activerecord-session_store
 
-Rendering
----------
+Controller Callbacks
+--------------------
 
-ActionController makes rendering HTML, XML, or JSON data effortless. If you've generated a controller using scaffolding, it would look something like this:
+Controller callbacks are methods that are defined to automatically run before and/or after a controller action. A controller action callback method can be defined in a given controller or in `ApplicationController`. Since all controllers inherit from `ApplicationController`, callbacks defined here will run on every controller in your application.
 
-```ruby
-class UsersController < ApplicationController
-  def index
-    @users = User.all
-    respond_to do |format|
-      format.html # index.html.erb
-      format.xml  { render xml: @users }
-      format.json { render json: @users }
-    end
-  end
-end
-```
+### `before_action`
 
-You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
-
-You can learn more about rendering in the [Layouts and Rendering
-Guide](layouts_and_rendering.html).
-
-Action callbacks
-----------------
-
-Action callbacks are methods that are run "before", "after" or "around" a controller action.
-
-Action callbacks are inherited, so if you set one on an `ApplicationController`, it will be run on every controller in your application.
-
-"before" action callbacks are registered via [`before_action`][]. They may halt the request cycle. A common "before" action callback is one which requires that a user is logged in for an action to be run. You can define the method this way:
+The "before" action callbacks are registered via [`before_action`][]. They may halt the request cycle. A common "before" action callback is one which requires that a user is logged in for an action to be run. You can define the method this way:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -834,7 +811,7 @@ since the last action callback definition will overwrite the previous ones.
 [`before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-before_action
 [`skip_before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-skip_before_action
 
-### After Action and Around Action Callbacks
+### `after_action` and `around_action`
 
 In addition to "before" action callback, you can also run action callbacks after a controller action has been executed, or both before and after.
 
@@ -868,7 +845,7 @@ You can choose not to yield and build the response yourself, in which case the c
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
 [`around_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
 
-### Other Ways to Use Action Callbacks
+### Other Ways to Use Callbacks
 
 While the most common way to use action callbacks is by creating private methods and using `before_action`, `after_action`, or `around_action` to add them, there are two other ways to do the same thing.
 
