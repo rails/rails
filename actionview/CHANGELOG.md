@@ -7,7 +7,7 @@
     # renders
     <meta name="csp-nonce" nonce="..." />
 
-    app.config.action_view.csp_meta_tag_nonce_attribute = :content (current default)
+    app.config.action_view.csp_meta_tag_nonce_attribute = :content # (current default)
     # renders
     <meta name="csp-nonce" content="..." />
     ```
