@@ -1639,8 +1639,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_all_with_table_alias
-    count_alias = Post.from(Post.arel_table.alias(Post.arel_table.name)).includes(:comments).merge(Comment.where(id:2)).references(:comments).count(:all)
-    count = Post.includes(:comments).merge(Comment.where(id:2)).references(:comments).count(:all)
+    count_alias = Post.from(Post.arel_table.alias(Post.arel_table.name)).includes(:comments).merge(Comment.where(id: 2)).references(:comments).count(:all)
+    count = Post.includes(:comments).merge(Comment.where(id: 2)).references(:comments).count(:all)
     assert_equal count, count_alias
   end
 
