@@ -48,6 +48,21 @@ module AdapterHelper
     end
   end
 
+  def supports_sql_standard_drop_constraint?
+    if current_adapter?(:SQLite3Adapter)
+      false
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      conn = ActiveRecord::Base.lease_connection
+      if conn.mariadb?
+        conn.database_version >= "10.3.13"
+      else
+        conn.database_version >= "8.0.19"
+      end
+    else
+      true
+    end
+  end
+
   %w[
     supports_savepoints?
     supports_partial_index?

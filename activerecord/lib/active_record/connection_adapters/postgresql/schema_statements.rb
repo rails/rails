@@ -764,10 +764,7 @@ module ActiveRecord
         def remove_exclusion_constraint(table_name, expression = nil, **options)
           excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
 
-          at = create_alter_table(table_name)
-          at.drop_exclusion_constraint(excl_name_to_delete)
-
-          execute schema_creation.accept(at)
+          remove_constraint(table_name, excl_name_to_delete)
         end
 
         # Adds a new unique constraint to the table.
@@ -819,10 +816,7 @@ module ActiveRecord
         def remove_unique_constraint(table_name, column_name = nil, **options)
           unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
 
-          at = create_alter_table(table_name)
-          at.drop_unique_constraint(unique_name_to_delete)
-
-          execute schema_creation.accept(at)
+          remove_constraint(table_name, unique_name_to_delete)
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
