@@ -441,11 +441,11 @@ class LoadingTest < ActiveSupport::TestCase
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin
         class OmgController < ActionController::Metal
-          ActiveSupport.run_load_hooks(:action_controller, self)
           def show
             self.response_body = ["OK"]
           end
         end
+        ActiveSupport.run_load_hooks(:action_controller, ActionController::OmgController)
       rescue => e
         puts "Error loading metal: \#{e.class} \#{e.message}"
       end
@@ -492,7 +492,6 @@ class LoadingTest < ActiveSupport::TestCase
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin
         class OmgController < ActionController::Metal
-          ActiveSupport.run_load_hooks(:action_controller, self)
           def show
             if ActiveRecord::Base.lease_connection.query_cache_enabled
               self.response_body = ["Query cache is enabled."]
@@ -501,6 +500,8 @@ class LoadingTest < ActiveSupport::TestCase
             end
           end
         end
+
+        ActiveSupport.run_load_hooks(:action_controller, ActionController::OmgController)
       rescue => e
         puts "Error loading metal: \#{e.class} \#{e.message}"
       end

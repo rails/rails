@@ -295,10 +295,10 @@ module ActiveSupport
     #
     alias :assert_not_same :refute_same
 
-    ActiveSupport.run_load_hooks(:active_support_test_case, self)
-
     def inspect # :nodoc:
       Object.instance_method(:to_s).bind_call(self)
     end
   end
 end
+
+ActiveSupport.run_load_hooks(:active_support_test_case, ActiveSupport::TestCase)
