@@ -1,3 +1,18 @@
+*   Update `ActionController::AllowBrowser` to support passing method names to `:block`
+
+    ```ruby
+    class ApplicationController < ActionController::Base
+      allow_browser versions: :modern, block: :handle_outdated_browser
+
+      private
+        def handle_outdated_browser
+          render file: Rails.root.join("public/custom-error.html"), status: :not_acceptable
+        end
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Raise an `ArgumentError` when invalid `:only` or `:except` options are passed into `#resource` and `#resources`.
 
     *Joshua Young*
