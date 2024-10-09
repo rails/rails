@@ -74,6 +74,14 @@ module ActiveRecord
         assert_equal (SPECIAL_POSTS + POSTS_WITH_TAGS + POSTS_WITH_COMMENTS).sort, relation.order(:id).pluck(:id)
       end
 
+      def test_with_when_passing_single_item_array
+        relation = Post
+          .with(posts_with_special_type_or_tags_or_comments: [Post.where(type: "SpecialPost")])
+          .from("posts_with_special_type_or_tags_or_comments AS posts")
+
+        assert_equal SPECIAL_POSTS.sort, relation.order(:id).pluck(:id)
+      end
+
       def test_with_recursive
         top_companies = Company.where(firm_id: nil).to_a
         child_companies = Company.where(firm_id: top_companies).to_a
