@@ -839,7 +839,7 @@ You can also define action callbacks to run _after_ a controller action has been
 
 The `after_action` callbacks are similar to `before_action`callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client. 
 
-NOTE: `after_action` callbacks are executed only after a successful controller action, but not if an exception is raised in the request cycle.
+NOTE: `after_action` callbacks are executed only after a successful controller action, and not if an exception is raised in the request cycle.
 
 The `around_action` callbacks are useful when you want to execute code before and after a controller action, allowing you to encapsulate functionality that affects the action's execution. They are responsible for running their associated actions by yielding.
 
@@ -856,21 +856,23 @@ class ApplicationController < ActionController::Base
       end_time = Time.now
 
       duration = end_time - start_time
-      Rails.logger.info "Action #{action} took #{duration.round(2)} seconds to execute."
+      Rails.logger.info "Action #{action_name} from controller #{controller_name} took #{duration.round(2)} seconds to execute."
     end
 end
 ```
 
-Note that an `around_action` callback also wraps rendering. In the example above, view rendering will be included in the time.
+TIP: Action callbacks receive `controller_name` and `action_name` as parameters you can use, as shown in the example above.
+
+The `around_action` callback also wraps rendering. In the example above, view rendering will be included in the time. The code after the `yield` in an `around_action` is run even when there is an exception in the associated action and there is an `ensure` block in the callback. (This is different from `after_action` callbacks where exception in the action cancels the `after_action` code.)
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
 [`around_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
 
 ### Other Ways to Use Callbacks
 
-While the most common way to use action callbacks is by creating private methods and using `before_action`, `after_action`, or `around_action` to add them, there are two other ways to do the same thing.
+In addition to `before_action`, `after_action`, or `around_action`, which are more common, there are two other ways to register callbacks.
 
-The first is to use a block directly with the `*_action` methods. The block receives the controller as an argument. The `require_login` action callback from above could be rewritten to use a block:
+The first is to use a block directly with the `*_action` methods. The block receives the controller as an argument. For example, the `require_login` action callback from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -891,7 +893,7 @@ Specifically for `around_action`, the block also yields in the `action`:
 around_action { |_controller, action| time(&action) }
 ```
 
-The second way is to use a class (actually, any object that responds to the right methods will do) to handle the callback action. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login action callback again to use a class:
+The second way is to specify a class (or any object that responds to the expected methods) for the callback action. This can be useful in cases that are more complex. As an example, you could rewrite the login action callback with a class:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -908,7 +910,9 @@ class LoginActionCallback
 end
 ```
 
-Again, this is not an ideal example for this action callback, because it's not run in the scope of the controller but gets the controller passed as an argument. The class must implement a method with the same name as the action callback, so for the `before_action` action callback, the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
+The above is not an ideal example. The `LoginActionCallback` method is not run in the scope of the controller but gets `controller` as an argument. 
+
+In general, the class being used for a `*_action` callback must implement a method with the same name as the action callback. So for the `before_action` action callback, the class must implement a `before` method, and so on. Also, the `around` method must `yield` to execute the action.
 
 Request Forgery Protection
 --------------------------
