@@ -53,8 +53,7 @@ module ActiveJob
       handled = rescue_with_handler(exception)
       return handled if handled
 
-      run_after_discard_procs(exception)
-      raise
+      _default_discard(exception)
     end
 
     def perform(*)
@@ -62,6 +61,12 @@ module ActiveJob
     end
 
     private
+      def _default_discard(error)
+        instrument :discard, error: error do
+          run_after_discard_procs(error)
+        end
+      end
+      
       def _perform_job
         ActiveSupport::ExecutionContext[:job] = self
         run_callbacks :perform do
