@@ -1921,6 +1921,8 @@ module ActiveRecord
           end
         when Arel::SelectManager then value
         when Array
+          return build_with_expression_from_value(value.first, false) if value.size == 1
+
           parts = value.map do |query|
             build_with_expression_from_value(query, true)
           end
