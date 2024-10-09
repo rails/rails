@@ -175,7 +175,7 @@
     -
       name: Error Reporting in Rails Applications
       url: error_reporting.html
-      description: This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
+      description: This guide introduces ways to manage errors that occur in Ruby on Rails applications.
     -
       name: Debugging Rails Applications
       url: debugging_rails_applications.html
