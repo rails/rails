@@ -445,7 +445,7 @@ There are a number of authentication plug-ins for Rails available. Good ones, su
 
 ### Brute-Forcing Accounts
 
-NOTE: _Brute-force attacks on accounts are trial and error attacks on the login credentials. Fend them off with more generic error messages and possibly require to enter a CAPTCHA._
+NOTE: _Brute-force attacks on accounts are trial and error attacks on the login credentials. Fend them off with rate-limiting, more generic error messages and possibly require to enter a CAPTCHA._
 
 A list of usernames for your web application may be misused to brute-force the corresponding passwords, because most people don't use sophisticated passwords. Most passwords are a combination of dictionary words and possibly numbers. So armed with a list of usernames and a dictionary, an automatic program may find the correct password in a matter of minutes.
 
@@ -453,7 +453,22 @@ Because of this, most web applications will display a generic error message "use
 
 However, what most web application designers neglect, are the forgot-password pages. These pages often admit that the entered username or e-mail address has (not) been found. This allows an attacker to compile a list of usernames and brute-force the accounts.
 
-In order to mitigate such attacks, _display a generic error message on forgot-password pages, too_. Moreover, you can _require to enter a CAPTCHA after a number of failed logins from a certain IP address_. Note, however, that this is not a bullet-proof solution against automatic programs, because these programs may change their IP address exactly as often. However, it raises the barrier of an attack.
+In order to mitigate such attacks, you can use rate limiting. Rails comes with a
+built-in [rate-limiter](https://edgeapi.rubyonrails.org/classes/ActionController/RateLimiting/ClassMethods.html#method-i-rate_limit). You can enable it in your sessions controller with a single line:
+
+```
+class SessionsController < ApplicationController
+  rate_limit to: 10, within: 3.minutes, only: :create
+end
+```
+
+Refer to the [API documentation](https://edgeapi.rubyonrails.org/classes/ActionController/RateLimiting/ClassMethods.html#method-i-rate_limit) for details about the various parameters.
+
+Additionally, you can _display a generic error message on forgot-password pages, too_. Moreover, you can _require to enter a CAPTCHA after a number of failed logins from a certain IP address_.
+
+Note, however, that all of these mitigation techniques are not a bullet-proof solution against automatic programs, because these programs may change their IP address exactly as often. However, it raises the barrier of an attack.
+
+
 
 ### Account Hijacking
 
