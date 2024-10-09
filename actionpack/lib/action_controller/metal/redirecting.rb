@@ -52,8 +52,8 @@ module ActionController
     # The status code can either be a standard [HTTP Status
     # code](https://www.iana.org/assignments/http-status-codes) as an integer, or a
     # symbol representing the downcased, underscored and symbolized description.
-    # Note that the status code must be a 3xx HTTP code, or redirection will not
-    # occur.
+    # Note that the status code must be a valid 3xx HTTP code, or redirection will
+    # not occur.
     #
     # If you are using XHR requests other than GET or POST and redirecting after the
     # request then some browsers will follow the redirect using the original request
@@ -105,8 +105,14 @@ module ActionController
       raise AbstractController::DoubleRenderError if response_body
 
       allow_other_host = response_options.delete(:allow_other_host) { _allow_other_host }
-
       self.status = _extract_redirect_to_status(options, response_options)
+
+      unless response.redirect?
+        ActionController.deprecator.warn(<<~MSG.squish)
+          Passing a non-3XX status to `redirect_to` is deprecated and will raise
+          an exception in Rails 8.1.
+        MSG
+      end
 
       redirect_to_location = _compute_redirect_to_location(request, options)
       _ensure_url_is_http_header_safe(redirect_to_location)
