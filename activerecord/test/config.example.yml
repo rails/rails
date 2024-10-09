@@ -12,6 +12,9 @@ connections:
     <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
     <% end %>
+    <% if ENV['MYSQL_PORT'] %>
+      port: <%= ENV['MYSQL_PORT'] %>
+    <% end %>
     <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
     <% end %>
@@ -27,6 +30,9 @@ connections:
     <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
     <% end %>
+    <% if ENV['MYSQL_PORT'] %>
+      port: <%= ENV['MYSQL_PORT'] %>
+    <% end %>
     <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
     <% end %>
@@ -40,6 +46,9 @@ connections:
     <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
     <% end %>
+    <% if ENV['MYSQL_PORT'] %>
+      port: <%= ENV['MYSQL_PORT'] %>
+    <% end %>
     <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
     <% end %>
@@ -50,6 +59,9 @@ connections:
       prepared_statements: false
     <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
+    <% end %>
+    <% if ENV['MYSQL_PORT'] %>
+      port: <%= ENV['MYSQL_PORT'] %>
     <% end %>
     <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
