@@ -669,7 +669,7 @@ Including the reading and displaying of flash messages in the layout ensures tha
 #### `flash.keep` and `flash.now`
 
 [`flash.keep`][] is used to carry over the flash value through to an addditioanl
-request. This is useful when there are multiplle redirects. 
+request. This is useful when there are multiplle redirects.
 
 For example, assume that the `index` action in the controller below corresponds
 to the root_url. And you want all requests here to be redirected to
@@ -722,7 +722,7 @@ All sessions have a unique Id that represents the session object; these Ids are 
 
 For most session stores, the unique Id in the cookie is used to look up session data on the server (e.g. a database table). Rails does not allow you to pass the session ID in the URL as this is less secure.
 
-The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the ID is still available to you if you need it). The cookie data is cryptographically signed to prevent tampering. It's also encrypted so anyone with access to it can't read its contents. The `CookieStore` is lightweight and does not require any configuration to use in a new application. 
+The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the ID is still available to you if you need it). The cookie data is cryptographically signed to prevent tampering. It's also encrypted so anyone with access to it can't read its contents. The `CookieStore` is lightweight and does not require any configuration to use in a new application.
 
 The `CookieStore`` can store 4 kB of data - much less than the other storage options - but this is usually enough. Storing large amounts of data in the session is discouraged. You should especially avoid storing complex objects (such as model instances) in the session.
 
@@ -820,7 +820,7 @@ end
 ```
 
 Now, the `LoginsController`'s `new` and `create` actions will work without
-requiring the user to be logged in. 
+requiring the user to be logged in.
 
 The `:only` option skips the callback only for the listed actions; there is also
 an `:except` option which works the other way. These options can be used when
@@ -837,7 +837,7 @@ options, the last action callback definition will overwrite the previous ones.
 
 You can also define action callbacks to run _after_ a controller action has been executed with [`after_action`][], or to run both before and after with `around_action`][].
 
-The `after_action` callbacks are similar to `before_action`callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client. 
+The `after_action` callbacks are similar to `before_action`callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client.
 
 NOTE: `after_action` callbacks are executed only after a successful controller action, and not if an exception is raised in the request cycle.
 
@@ -910,7 +910,7 @@ class LoginActionCallback
 end
 ```
 
-The above is not an ideal example. The `LoginActionCallback` method is not run in the scope of the controller but gets `controller` as an argument. 
+The above is not an ideal example. The `LoginActionCallback` method is not run in the scope of the controller but gets `controller` as an argument.
 
 In general, the class being used for a `*_action` callback must implement a method with the same name as the action callback. So for the `before_action` action callback, the class must implement a `before` method, and so on. Also, the `around` method must `yield` to execute the action.
 
