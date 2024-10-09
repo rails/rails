@@ -1,3 +1,7 @@
+*   Add `down_only` migration helper to execute a block only when reverting.
+
+    *Goulven Champenois*
+
 *   Allow to save records with polymorphic join tables that have inverse of specified.
 
     *Markus Doits*
