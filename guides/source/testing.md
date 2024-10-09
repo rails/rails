@@ -1534,7 +1534,7 @@ require "test_helpers/multiple_assertions"
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
 
-  test "420 is a multiple of forty two" do
+  test "420 is a multiple of 42" do
     assert_multiple_of_forty_two 420
   end
 end
@@ -1574,99 +1574,49 @@ For more information on routing assertions available in Rails, see the API docum
 Testing Views
 -------------
 
-Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. Like route tests, view tests reside in `test/controllers/` or are part of controller tests. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
+Testing the response to your request by asserting the presence of key HTML elements and their content is one way to test the views of your application. Like route tests, view tests reside in `test/controllers/` or are part of controller tests. 
 
-There are two forms of `assert_select`:
+Methods like `assert_dom` and `assert_dom_equal` allow you to query HTML elements of the response by using a simple yet powerful syntax.
 
-`assert_select(selector, [equality], [message])` ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String) or an expression with substitution values.
-
-`assert_select(element, selector, [equality], [message])` ensures that the equality condition is met on all the selected elements through the selector starting from the _element_ (instance of `Nokogiri::XML::Node` or `Nokogiri::XML::NodeSet`) and its descendants.
-
-For example, you could verify the contents on the title element in your response with:
+`assert_dom` is an assertion that will return true if matching elements are found. For example, you could verify that the page title is "Welcome to the Rails Testing Guide" as follows:
 
 ```ruby
-assert_select "title", "Welcome to Rails Testing Guide"
+assert_dom "title", "Welcome to the Rails Testing Guide"
 ```
 
-You can also use nested `assert_select` blocks for deeper investigation.
+You can also use nested `assert_dom` blocks for deeper investigation.
 
-In the following example, the inner `assert_select` for `li.menu_item` runs
+In the following example, the inner `assert_dom` for `li.menu_item` runs
 within the collection of elements selected by the outer block:
 
 ```ruby
-assert_select "ul.navigation" do
-  assert_select "li.menu_item"
+assert_dom "ul.navigation" do
+  assert_dom "li.menu_item"
 end
 ```
 
-A collection of selected elements may be iterated through so that `assert_select` may be called separately for each element.
-
-For example if the response contains two ordered lists, each with four nested list elements then the following tests will both pass.
+A collection of selected elements may also be iterated through so that `assert_dom` may be called separately for each element. For example, if the response contains two ordered lists, each with four nested list elements then the following tests will both pass.
 
 ```ruby
-assert_select "ol" do |elements|
+assert_dom "ol" do |elements|
   elements.each do |element|
-    assert_select element, "li", 4
+    assert_dom element, "li", 4
   end
 end
 
-assert_select "ol" do
-  assert_select "li", 8
+assert_dom "ol" do
+  assert_dom "li", 8
 end
 ```
 
-This assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/main/lib/rails/dom/testing/assertions/selector_assertions.rb).
-
-### Additional View-Based Assertions
-
-There are more assertions that are primarily used in testing views:
-
-| Assertion                                                 | Purpose |
-| --------------------------------------------------------- | ------- |
-| `assert_select_email`                                     | Allows you to make assertions on the body of an e-mail. |
-| `assert_select_encoded`                                   | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
-| `css_select(selector)` or `css_select(element, selector)` | Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
-
-Here's an example of using `assert_select_email`:
+The `assert_dom_equal` method tests two HTML strings for equivalency, as in the example below:
 
 ```ruby
-assert_select_email do
-  assert_select "small", "Please click the 'Unsubscribe' link if you want to opt-out."
-end
+assert_dom_equal '<a href="http://www.further-reading.com">Read more</a>',
+  link_to("Read more", "http://www.further-reading.com")
 ```
 
-### Testing View Partials
-
-Partial templates - usually called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and reuse them throughout your templates.
-
-View tests provide an opportunity to test that partials render content the way you expect. View partial tests reside in `test/views/` and inherit from `ActionView::TestCase`.
-
-To render a partial, call `render` like you would in a template. The content is
-available through the test-local `#rendered` method:
-
-```ruby
-class ArticlePartialTest < ActionView::TestCase
-  test "renders a link to itself" do
-    article = Article.create! title: "Hello, world"
-
-    render "articles/article", article: article
-
-    assert_includes rendered, article.title
-  end
-end
-```
-
-Tests that inherit from `ActionView::TestCase` also have access to [`assert_select`](#testing-views) and the [other additional view-based assertions](#additional-view-based-assertions) provided by [rails-dom-testing][]:
-
-```ruby
-test "renders a link to itself" do
-  article = Article.create! title: "Hello, world"
-
-  render "articles/article", article: article
-
-  assert_select "a[href=?]", article_url(article), text: article.title
-end
-```
+These assertions are quite powerful. For more advanced usage, refer to their [documentation](https://github.com/rails/rails-dom-testing).
 
 In order to integrate with [rails-dom-testing][], tests that inherit from
 `ActionView::TestCase` declare a `document_root_element` method that returns the
@@ -1784,6 +1734,57 @@ end
 [rails-dom-testing]: https://github.com/rails/rails-dom-testing
 [RSS content]: https://www.rssboard.org/rss-specification
 
+### Additional View-Based Assertions
+
+There are more assertions that are primarily used in testing views:
+
+| Assertion                                                 | Purpose |
+| --------------------------------------------------------- | ------- |
+| `assert_dom_email`                                     | Allows you to make assertions on the body of an e-mail. |
+| `assert_dom_encoded`                                   | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
+| `css_select(selector)` or `css_select(element, selector)` | Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
+
+Here's an example of using `assert_dom_email`:
+
+```ruby
+assert_dom_email do
+  assert_dom "small", "Please click the 'Unsubscribe' link if you want to opt-out."
+end
+```
+
+### Testing View Partials
+
+[Partial](layouts_and_rendering.html#using-partials) templates - usually called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and reuse them throughout your templates.
+
+View tests provide an opportunity to test that partials render content the way you expect. View partial tests can be stored in `test/views/` and inherit from `ActionView::TestCase`.
+
+To render a partial, call `render` like you would in a template. The content is
+available through the test-local `rendered` method:
+
+```ruby
+class ArticlePartialTest < ActionView::TestCase
+  test "renders a link to itself" do
+    article = Article.create! title: "Hello, world"
+
+    render "articles/article", article: article
+
+    assert_includes rendered, article.title
+  end
+end
+```
+
+Tests that inherit from `ActionView::TestCase` also have access to [`assert_dom`](#testing-views) and the [other additional view-based assertions](#additional-view-based-assertions) provided by [rails-dom-testing][]:
+
+```ruby
+test "renders a link to itself" do
+  article = Article.create! title: "Hello, world"
+
+  render "articles/article", article: article
+
+  assert_dom "a[href=?]", article_url(article), text: article.title
+end
+```
+
 ### Testing View Helpers
 
 A helper is just a simple module where you can define methods which are
@@ -1821,10 +1822,6 @@ access to Rails' helper methods such as `link_to` or `pluralize`.
 Testing Mailers
 --------------------
 
-Testing mailer classes requires some specific tools to do a thorough job.
-
-### Keeping the Postman in Check
-
 Your mailer classes - like every other part of your Rails application - should be tested to ensure that they are working as expected.
 
 The goals of testing your mailer classes are to ensure that:
@@ -1835,13 +1832,13 @@ The goals of testing your mailer classes are to ensure that:
 
 #### From All Sides
 
-There are two aspects of testing your mailer, the unit tests and the functional tests. In the unit tests, you run the mailer in isolation with tightly controlled inputs and compare the output to a known value (a fixture). In the functional tests you don't so much test the minute details produced by the mailer; instead, we test that our controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.
+There are two aspects of testing your mailer, the unit tests and the functional tests. In the unit tests, you run the mailer in isolation with tightly controlled inputs and compare the output to a known value (a [fixture](testing.html#fixtures)). In the functional tests you don't so much test the details produced by the mailer; instead, we test that our controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.
 
 ### Unit Testing
 
 In order to test that your mailer is working as expected, you can use unit tests to compare the actual results of the mailer with pre-written examples of what should be produced.
 
-#### Revenge of the Fixtures
+#### Mailer Fixtures
 
 For the purposes of unit testing a mailer, fixtures are used to provide an example of how the output _should_ look. Because these are example emails, and not Active Record data like the other fixtures, they are kept in their own subdirectory apart from the other fixtures. The name of the directory within `test/fixtures` directly corresponds to the name of the mailer. So, for a mailer named `UserMailer`, the fixtures should reside in `test/fixtures/user_mailer` directory.
 
@@ -1888,13 +1885,15 @@ You have been invited.
 Cheers!
 ```
 
-This is the right time to understand a little more about writing tests for your mailers. The line `ActionMailer::Base.delivery_method = :test` in `config/environments/test.rb` sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (`ActionMailer::Base.deliveries`).
+#### Configuring the Delivery Method for Test
+
+The line `ActionMailer::Base.delivery_method = :test` in `config/environments/test.rb` sets the delivery method to test mode so that the email will not actually be delivered (useful to avoid spamming your users while testing). Instead, the email will be appended to an array (`ActionMailer::Base.deliveries`).
 
 NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in `ActionMailer::TestCase` and `ActionDispatch::IntegrationTest` tests. If you want to have a clean slate outside these test cases, you can reset it manually with: `ActionMailer::Base.deliveries.clear`
 
 #### Testing Enqueued Emails
 
-You can use the `assert_enqueued_email_with` assertion to confirm that the email has been enqueued with all of the expected mailer method arguments and/or parameterized mailer parameters. This allows you to match any email that have been enqueued with the `deliver_later` method.
+You can use the `assert_enqueued_email_with` assertion to confirm that the email has been enqueued with all of the expected mailer method arguments and/or parameterized mailer parameters. This allows you to match any emails that have been enqueued with the `deliver_later` method.
 
 As with the basic test case, we create the email and store the returned object in the `email` variable. The following examples include variations of passing arguments and/or parameters.
 
@@ -1927,8 +1926,8 @@ class UserMailerTest < ActionMailer::TestCase
     email = UserMailer.create_invite(from: "me@example.com", to: "friend@example.com")
 
     # Test that the email got enqueued with the correct named arguments
-    assert_enqueued_email_with UserMailer, :create_invite, args: [{ from: "me@example.com",
-                                                                    to: "friend@example.com" }] do
+    assert_enqueued_email_with UserMailer, :create_invite,
+    args: [{ from: "me@example.com", to: "friend@example.com" }] do
       email.deliver_later
     end
   end
@@ -1946,8 +1945,8 @@ class UserMailerTest < ActionMailer::TestCase
     email = UserMailer.with(all: "good").create_invite("me@example.com", "friend@example.com")
 
     # Test that the email got enqueued with the correct mailer parameters and arguments
-    assert_enqueued_email_with UserMailer, :create_invite, params: { all: "good" },
-                                                           args: ["me@example.com", "friend@example.com"] do
+    assert_enqueued_email_with UserMailer, :create_invite, 
+    params: { all: "good" }, args: ["me@example.com", "friend@example.com"] do
       email.deliver_later
     end
   end
@@ -2020,7 +2019,7 @@ Jobs can be tested in isolation (focusing on the job's behavior) and in context
 When you generate a job, an associated test file will also be generated in the
 `test/jobs` directory.
 
-Here is an example test for a billing job:
+Here is a test you could write for a billing job:
 
 ```ruby
 require "test_helper"
@@ -2235,6 +2234,8 @@ end
 Running tests in Continuous Integration (CI)
 --------------------------------------------
 
+Continuous Integration (CI) is a development practice where changes are frequently integrated into the main codebase, and as such, are automatically tested before merge.
+
 To run all tests in a CI environment, there's just one command you need:
 
 ```bash
@@ -2242,7 +2243,7 @@ $ bin/rails test
 ```
 
 If you are using [System Tests](#system-testing), `bin/rails test` will not run them, since
-they can be slow. To also run them, add an another CI step that runs `bin/rails test:system`,
+they can be slow. To also run them, add another CI step that runs `bin/rails test:system`,
 or change your first step to `bin/rails test:all`, which runs all tests including system tests.
 
 Parallel Testing
@@ -2319,13 +2320,7 @@ end
 
 Rails applications generated from JRuby or TruffleRuby will automatically include the `with: :threads` option.
 
-The number of workers passed to `parallelize` determines the number of threads the tests will use. You may
-want to parallelize your local test suite differently from your CI, so an environment variable is provided
-to be able to easily change the number of workers a test run should use:
-
-```bash
-$ PARALLEL_WORKERS=15 bin/rails test
-```
+NOTE: As in the section above, you can also use the environment variable `PARALLEL_WORKERS` in this context, to be able to change the number of workers your test run should use.
 
 ### Testing Parallel Transactions
 
@@ -2374,13 +2369,13 @@ Testing Eager Loading
 
 Normally, applications do not eager load in the `development` or `test` environments to speed things up. But they do in the `production` environment.
 
-If some file in the project cannot be loaded for whatever reason, you better detect it before deploying to production, right?
+If some file in the project cannot be loaded for whatever reason, it is important to detect it before deploying to production.
 
 ### Continuous Integration
 
 If your project has CI in place, eager loading in CI is an easy way to ensure the application eager loads.
 
-CIs typically set some environment variable to indicate the test suite is running there. For example, it could be `CI`:
+CIs typically set an environment variable to indicate the test suite is running there. For example, it could be `CI`:
 
 ```ruby
 # config/environments/test.rb
@@ -2422,7 +2417,7 @@ Additional Testing Resources
 
 ### Errors
 
-In system tests, integration tests and functional controller tests, Rails will attempt to rescue from exceptions raised and respond with HTML error pages by default. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
+In system tests, integration tests and functional controller tests, Rails will attempt to rescue from errors raised and respond with HTML error pages by default. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
 
 ### Testing Time-Dependent Code
 
