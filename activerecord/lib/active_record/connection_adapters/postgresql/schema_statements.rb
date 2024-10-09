@@ -299,6 +299,8 @@ module ActiveRecord
 
         # Returns the sequence name for a table's primary key or some other specified key.
         def default_sequence_name(table_name, pk = "id") # :nodoc:
+          return nil if pk.is_a?(Array)
+
           result = serial_sequence(table_name, pk)
           return nil unless result
           Utils.extract_schema_qualified_name(result).to_s

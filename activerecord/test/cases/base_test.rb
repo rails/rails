@@ -1343,6 +1343,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal k.reset_sequence_name, orig_name
   end
 
+  def test_sequence_name_for_cpk_model
+    assert_nil Cpk::Book.sequence_name
+  end
+
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
     res2 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
