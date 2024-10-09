@@ -780,6 +780,10 @@ create    test/controllers/articles_controller_test.rb
 ...
 ```
 
+NOTE: if you are generating test scaffold code, you will see an `@article` value is set and used throughout the test file. 
+This instance of `article` uses the attributes nested within a `:one` key in the `test/fixtures/articles.yml` file. Make sure you have set the key and related values before you try to
+run the tests.
+
 Let's take a look at one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
 
 ```ruby
@@ -829,7 +833,7 @@ post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
 
 NOTE: If you try running the `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
 
-Let us modify the `test_should_create_article` test in `articles_controller_test.rb` so that all our tests pass:
+Let us modify the `test_should_create_article` test in `articles_controller_test.rb` so that this test passes:
 
 ```ruby
 test "should create article" do
@@ -841,7 +845,7 @@ test "should create article" do
 end
 ```
 
-Now you can try running all the tests and they should pass.
+You can now run this test and it will pass.
 
 NOTE: If you followed the steps in the [Basic Authentication](getting_started.html#basic-authentication) section, you'll need to add authorization to every request header to get all the tests passing:
 
@@ -895,7 +899,7 @@ session["shmession"]          # or session[:shmession]
 cookies["are_good_for_u"]     # or cookies[:are_good_for_u]
 ```
 
-### Instance Variables Available
+### Instance Variables
 
 You also have access to three instance variables in your functional tests after a request is made:
 
@@ -918,7 +922,7 @@ end
 
 ### Setting Headers and CGI Variables
 
-HTTP headers are pieces of information sent along with HTTP requests to provide important metadata along with that request.
+HTTP headers are pieces of information sent along with HTTP requests to provide important metadata.
 CGI variables are environment variables used to exchange information between the web server and the application. 
 
 HTTP headers and CGI variables can be tested by being passed as headers:
@@ -1006,11 +1010,14 @@ Finished in 0.081972s, 12.1993 runs/s, 48.7972 assertions/s.
 1 runs, 4 assertions, 0 failures, 0 errors, 0 skips
 ```
 
+NOTE: If you generated your controller using the scaffold generator, the flash message will already be
+implemented in your `create` action.
+
 ### Putting It Together
 
-At this point our Articles controller tests the `:index` as well as `:new` and `:create` actions. What about dealing with existing data?
+At this point we have looked at tests for the `:index` as well as the`:create` action. What about dealing with existing data?
 
-Let's write a test for the `:show` action:
+Let's make sure we have a test for the `:show` action:
 
 ```ruby
 test "should show article" do
@@ -1020,7 +1027,7 @@ test "should show article" do
 end
 ```
 
-Remember from our discussion earlier on fixtures, the `articles()` method will give us access to our Articles fixtures.
+If you remember from our discussion earlier on fixtures, the `articles()` method will give us access to our Articles fixtures.
 
 How about deleting an existing Article?
 
@@ -1035,7 +1042,7 @@ test "should destroy article" do
 end
 ```
 
-We can also add a test for updating an existing Article.
+We can also consider a test for updating an existing Article.
 
 ```ruby
 test "should update article" do
@@ -1050,9 +1057,9 @@ test "should update article" do
 end
 ```
 
-Notice we're starting to see some duplication in these three tests, they both access the same Article fixture data. We can D.R.Y. this up by using the `setup` and `teardown` methods provided by `ActiveSupport::Callbacks`.
+Notice we're starting to see some duplication in these three tests, they both access the same Article fixture data. It is possible to D.R.Y. this up ('Don't Repeat Yourself') by using the `setup` and `teardown` methods provided by `ActiveSupport::Callbacks`.
 
-Our test should now look something like the below. Disregard the other tests for now, we're leaving them out for brevity.
+Our tests now might look something like the below.
 
 ```ruby
 require "test_helper"
@@ -1094,7 +1101,7 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
+NOTE: Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
 
 Integration Testing
 -------------------
