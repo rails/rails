@@ -1,3 +1,7 @@
+*   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
+
+    *David Stosik*
+
 *   Allow to save records with polymorphic join tables that have inverse of specified.
 
     *Markus Doits*
