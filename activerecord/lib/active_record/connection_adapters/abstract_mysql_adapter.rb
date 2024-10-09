@@ -98,7 +98,7 @@ module ActiveRecord
       end
 
       def supports_index_sort_order?
-        !mariadb? && database_version >= "8.0.1"
+        mariadb? ? database_version >= "10.8.1" : database_version >= "8.0.1"
       end
 
       def supports_expression_index?
