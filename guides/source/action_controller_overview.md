@@ -921,15 +921,22 @@ Every controller has two methods, [`request`][] and [`response`][],
 which can be used to access the request object and the response objects
 associated with the current request cycle. The `request` method returns an
 instance of [`ActionDispatch::Request`][]. The [`response`][] method returns an
-object representing what is going to be sent back to the client (e.g. from `render` or `redirect` in the controller action).
+an instance of [`ActionDispatch::Response`][], an object representing what is going to be sent back to the client browser (e.g. from `render` or `redirect` in the controller action).
 
 [`ActionDispatch::Request`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html
 [`request`]: https://api.rubyonrails.org/classes/ActionController/Base.html#method-i-request
 [`response`]: https://api.rubyonrails.org/classes/ActionController/Base.html#method-i-response
+[`ActionDispatch::Response`]: https://api.rubyonrails.org/classes/ActionDispatch/Response.html
 
 ### The `request` Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Request.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Request). Among the properties that you can access on this object are:
+The request object contains useful information about the request coming
+in from the client. This section describes the purpose of some of the properties of the `request` object. 
+
+To get a full list of the available methods, refer to the [Rails API
+documentation](https://api.rubyonrails.org/classes/ActionDispatch/Request.html)
+and [Rack](https://www.rubydoc.info/github/rack/rack/Rack/Request)
+documentation.
 
 | Property of `request`                     | Purpose                                                                          |
 | ----------------------------------------- | -------------------------------------------------------------------------------- |
@@ -947,10 +954,16 @@ The request object contains a lot of useful information about the request coming
 
 #### `query_parameters`, `request_parameters`, and `path_parameters`
 
-Rails collects all of the parameters for a given request in the `params` hash, including the ones set in the URL as query string parameters, and those sent as the body of a `POST` request. The request object has three methods that give you access to the various parameters. 
+Rails collects all of the parameters for a given request in the `params` hash,
+including the ones set in the URL as query string parameters, and those sent as
+the body of a `POST` request. The request object has three methods that give you
+access to the various parameters.
 
-* [`query_parameters`][] - contains parameters that were sent as part of the query string.
-* [`request_parameters`][] - contains parameters sent as part of the post body. * [`path_parameters`][] - contains parameters parsed by the router as being part of the path leading to this particular controller and action.
+* [`query_parameters`][] - contains parameters that were sent as part of the
+  query string.
+* [`request_parameters`][] - contains parameters sent as part of the post body.
+  * [`path_parameters`][] - contains parameters parsed by the router as being
+  part of the path leading to this particular controller and action.
 
 [`path_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Http/Parameters.html#method-i-path_parameters
 [`query_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-query_parameters
@@ -958,7 +971,24 @@ Rails collects all of the parameters for a given request in the `params` hash, i
 
 ### The `response` Object
 
-The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after action callback - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
+The response object is built up during the execution of the action from
+rendering data to be sent back to the client browser. It's not usually used
+directly but sometimes, in an `after_action` callback for example, it can be
+useful to access the response directly. One use case is for setting custom
+response headers:
+
+```ruby
+response.headers["Content-Type"] = "application/pdf"
+```
+
+The `headers` attribute is a hash which maps header names to header values.
+Rails sets some headers automatically but if you need to update a header or add
+a custom headers, you can use `response.headers` as in the example above.
+
+NOTE: In the above case it would make more sense to use the `content_type`
+setter directly with `response.content_type`.
+
+Here are some of the properies of the `response` object:
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
@@ -969,15 +999,7 @@ The response object is not usually used directly, but is built up during the exe
 | `charset`              | The character set being used for the response. Default is "utf-8".                                  |
 | `headers`              | Headers used for the response.                                                                      |
 
-#### Setting Custom Headers
-
-If you want to set custom headers for a response then `response.headers` is the place to do it. The headers attribute is a hash which maps header names to their values, and Rails will set some of them automatically. If you want to add or change a header, just assign it to `response.headers` this way:
-
-```ruby
-response.headers["Content-Type"] = "application/pdf"
-```
-
-NOTE: In the above case it would make more sense to use the `content_type` setter directly.
+To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
 
 Rescue
 ------
