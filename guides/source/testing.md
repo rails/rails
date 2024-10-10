@@ -1397,11 +1397,22 @@ end
 
 ### The Three Hashes of the Apocalypse
 
-After a request has been made and processed, you will have 3 Hash objects ready for use:
+**After** a request has been made and processed, you will have 3 Hash objects ready for use:
 
 * `cookies` - Any cookies that are set
 * `flash` - Any objects living in the flash
 * `session` - Any object living in session variables
+
+```ruby
+test "POST /sessions signs in a User" do
+  alice = users(:alice)
+
+  post sign_in_path, params: { email: alice.email, password: alice.password }
+
+  assert_equal alice.id, session[:user_id]
+  assert_equal "Successfully signed in.", flash[:notice]
+end
+```
 
 As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
 
@@ -1410,6 +1421,29 @@ flash["gordon"]               # or flash[:gordon]
 session["shmession"]          # or session[:shmession]
 cookies["are_good_for_u"]     # or cookies[:are_good_for_u]
 ```
+
+NOTE: These values are read-only, and can only be read after the initial request is made.
+
+If your test requires writing to either of these values, make a request that will set the desired value in one of `cookies`, `flash`, or `session`. Requests made during a test case (outside of an [`open_session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html#method-i-open_session) block) will share a single Rack session.
+
+For example, if a test assumes a successful sign in writes to `session[:user_id]`, make a request to sign in prior to the action under test:
+
+```ruby
+test "GET /settings requires authentication" do
+  alice = users(:alice)
+
+  sign_in_as alice
+  get settings_path
+
+  assert_response :success
+end
+
+def sign_in_as(user)
+  post sign_in_path, params: { email: user.email, password: user.password }
+end
+```
+
+Signing in would be appropriate to handle with a [shared test helper](/testing.html#test-helpers).
 
 ### Instance Variables Available
 
@@ -1620,7 +1654,7 @@ Sign in helper can be a good example:
 
 module SignInHelper
   def sign_in_as(user)
-    post sign_in_url(email: user.email, password: user.password)
+    post sign_in_path, params: { email: user.email, password: user.password }
   end
 end
 
