@@ -1636,6 +1636,26 @@ module ActiveRecord
         self
       end
 
+    protected
+      def arel_columns(columns)
+        columns.flat_map do |field|
+          case field
+          when Symbol
+            arel_column(field.to_s) do |attr_name|
+              adapter_class.quote_table_name(attr_name)
+            end
+          when String
+            arel_column(field, &:itself)
+          when Proc
+            field.call
+          when Hash
+            arel_columns_from_hash(field)
+          else
+            field
+          end
+        end
+      end
+
     private
       def async
         spawn.async!
@@ -1921,25 +1941,6 @@ module ActiveRecord
         table.join(with_table, kind).on(
           with_table[klass.model_name.to_s.foreign_key].eq(table[klass.primary_key])
         ).join_sources.first
-      end
-
-      def arel_columns(columns)
-        columns.flat_map do |field|
-          case field
-          when Symbol
-            arel_column(field.to_s) do |attr_name|
-              adapter_class.quote_table_name(attr_name)
-            end
-          when String
-            arel_column(field, &:itself)
-          when Proc
-            field.call
-          when Hash
-            arel_columns_from_hash(field)
-          else
-            field
-          end
-        end
       end
 
       def arel_column(field)
