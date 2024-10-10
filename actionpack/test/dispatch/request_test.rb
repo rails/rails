@@ -588,6 +588,71 @@ class LocalhostTest < BaseRequestTest
     request = stub_request("REMOTE_IP" => "127.1.1.1", "REMOTE_ADDR" => "127.1.1.1")
     assert_predicate request, :local?
   end
+
+  test "IPs that don't match localhost" do
+    request = stub_request("REMOTE_IP" => "192.0.2.42", "REMOTE_ADDR" => "192.0.2.42")
+    assert_not_predicate request, :local?
+  end
+
+  test "IPs that match localhost IPv6" do
+    request = stub_request("REMOTE_IP" => "::1", "REMOTE_ADDR" => "::1")
+    assert_predicate request, :local?
+  end
+
+  test "IPs that don't match localhost IPv6" do
+    request = stub_request("REMOTE_IP" => "2001:db8::42", "REMOTE_ADDR" => "2001:db8::42")
+    assert_not_predicate request, :local?
+  end
+
+  test "IPs that match localhost IPv6 long form" do
+    request = stub_request("REMOTE_IP" => "0:0:0:0:0:0:0:1", "REMOTE_ADDR" => "0:0:0:0:0:0:0:1")
+    assert_predicate request, :local?
+  end
+
+  test "IPs that don't match localhost IPv6 long form" do
+    request = stub_request("REMOTE_IP" => "2001:db8:0:0:0:0:0:42", "REMOTE_ADDR" => "2001:db8:0:0:0:0:0:42")
+    assert_not_predicate request, :local?
+  end
+
+  test "IPs that match localhost v4 mapped IPv6" do
+    request = stub_request("REMOTE_IP" => "::ffff:7f01:0101", "REMOTE_ADDR" => "::ffff:7f01:0101")
+    assert_predicate request, :local?
+  end
+
+  test "IPs that don't match localhost v4 mapped IPv6" do
+    request = stub_request("REMOTE_IP" => "::ffff:c000:022a", "REMOTE_ADDR" => "::ffff:c000:022a")
+    assert_not_predicate request, :local?
+  end
+
+  test "IPs that match localhost v4 mapped IPv6 long form" do
+    request = stub_request("REMOTE_IP" => "0:0:0:0:0:ffff:7f01:0101", "REMOTE_ADDR" => "0:0:0:0:0:ffff:7f01:0101")
+    assert_predicate request, :local?
+  end
+
+  test "IPs that don't match localhost v4 mapped IPv6 long form" do
+    request = stub_request("REMOTE_IP" => "0:0:0:0:0:ffff:c000:022a", "REMOTE_ADDR" => "0:0:0:0:0:ffff:c000:022a")
+    assert_not_predicate request, :local?
+  end
+
+  test "IPs that match localhost v4 mapped IPv6 friendly format" do
+    request = stub_request("REMOTE_IP" => "::ffff:127.1.1.1", "REMOTE_ADDR" => "::ffff:127.1.1.1")
+    assert_predicate request, :local?
+  end
+
+  test "IPs that don't match localhost v4 mapped IPv6 friendly format" do
+    request = stub_request("REMOTE_IP" => "::ffff:192.0.2.42", "REMOTE_ADDR" => "::ffff:192.0.2.42")
+    assert_not_predicate request, :local?
+  end
+
+  test "IPs that match localhost v4 mapped IPv6 long form friendly format" do
+    request = stub_request("REMOTE_IP" => "0:0:0:0:0:ffff:127.1.1.1", "REMOTE_ADDR" => "0:0:0:0:0:ffff:127.1.1.1")
+    assert_predicate request, :local?
+  end
+
+  test "IPs that don't match localhost v4 mapped IPv6 long form friendly format" do
+    request = stub_request("REMOTE_IP" => "0:0:0:0:0:ffff:192.0.2.42", "REMOTE_ADDR" => "0:0:0:0:0:ffff:192.0.2.42")
+    assert_not_predicate request, :local?
+  end
 end
 
 class RequestCookie < BaseRequestTest
