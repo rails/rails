@@ -350,6 +350,12 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
   end
 
+  test "fetch value for given path" do
+    write_credentials "foo:\n  bar:\n    baz: 42"
+
+    assert_match(/42/, run_fetch_command("foo/bar/baz"))
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
@@ -370,6 +376,10 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     def run_diff_command(path = nil, enroll: nil, disenroll: nil, **options)
       args = [path, ("--enroll" if enroll), ("--disenroll" if disenroll)].compact
       rails "credentials:diff", args, **options
+    end
+
+    def run_fetch_command(path, **options)
+      rails "credentials:fetch", path, **options
     end
 
     def write_credentials(content, **options)

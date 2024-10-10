@@ -57,6 +57,19 @@ module Rails
         say credentials.content_path.read
       end
 
+      desc "fetch PATH", "Fetch a value in the decrypted credentials"
+      def fetch(path)
+        load_environment_config!
+
+        if (yaml = credentials.read)
+          YAML.load(yaml).dig(*path.split("/")).tap do |value|
+            say value.to_s
+          end
+        else
+          say missing_credentials_message
+        end
+      end
+
       private
         def config
           Rails.application.config.credentials

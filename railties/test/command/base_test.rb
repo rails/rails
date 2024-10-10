@@ -14,7 +14,7 @@ class Rails::Command::BaseTest < ActiveSupport::TestCase
   end
 
   test "printing commands returns namespaced commands" do
-    assert_equal %w(credentials:edit credentials:show credentials:diff), Rails::Command::CredentialsCommand.printing_commands.map(&:first)
+    assert_equal %w(credentials:edit credentials:show credentials:diff credentials:fetch), Rails::Command::CredentialsCommand.printing_commands.map(&:first)
     assert_equal %w(db:system:change), Rails::Command::Db::System::ChangeCommand.printing_commands.map(&:first)
   end
 
