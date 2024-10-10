@@ -600,11 +600,6 @@ You can extend the list of supported argument types. You just need to define you
 ```ruby
 # app/serializers/money_serializer.rb
 class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
-  # Checks if an argument should be serialized by this serializer.
-  def serialize?(argument)
-    argument.is_a? Money
-  end
-
   # Converts an object to a simpler representative using supported object types.
   # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
   # You should call `super` to add the custom serializer type to the hash.
@@ -619,6 +614,12 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
   def deserialize(hash)
     Money.new(hash["amount"], hash["currency"])
   end
+
+  private
+    # Checks if an argument should be serialized by this serializer.
+    def klass
+      Money
+    end
 end
 ```
 
