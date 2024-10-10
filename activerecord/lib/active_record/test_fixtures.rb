@@ -45,8 +45,14 @@ module ActiveRecord
       # Enable or disable transactions per database. This overrides the default
       # setting as defined by `use_transactional_tests`, which applies to all
       # database connection pools not explicitly configured here.
+      # Passing `nil` will revert config to the default setting, as specfied by
+      # `use_transactional_tests`.
       def set_database_transactions(name, enabled)
-        self.database_transactions_config = database_transactions_config.merge(name => enabled)
+        if enabled.nil?
+          self.database_transactions_config.delete(name)
+        else
+          self.database_transactions_config = database_transactions_config.merge(name => enabled)
+        end
       end
 
       # Sets the model class for a fixture when the class name cannot be inferred from the fixture name.
