@@ -391,3 +391,73 @@ The health check will now be accessible via the `/healthz` path.
 NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis cluster. Replace "rails/health#show" with your own controller action if you have application specific needs.
 
 Think carefully about what you want to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
+
+Rescue
+------
+
+Most likely your application is going to contain bugs or otherwise throw an exception that needs to be handled. For example, if the user follows a link to a resource that no longer exists in the database, Active Record will throw the `ActiveRecord::RecordNotFound` exception.
+
+Rails default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed, so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error, or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
+
+### The Default 500 and 404 Templates
+
+By default, in the production environment the application will render either a 404, or a 500 error message. In the development environment all unhandled exceptions are simply raised. These messages are contained in static HTML files in the public folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
+
+### `rescue_from`
+
+If you want to do something a bit more elaborate when catching errors, you can use [`rescue_from`][], which handles exceptions of a certain type (or multiple types) in an entire controller and its subclasses.
+
+When an exception occurs which is caught by a `rescue_from` directive, the exception object is passed to the handler. The handler can be a method or a `Proc` object passed to the `:with` option. You can also use a block directly instead of an explicit `Proc` object.
+
+Here's how you can use `rescue_from` to intercept all `ActiveRecord::RecordNotFound` errors and do something with them.
+
+```ruby
+class ApplicationController < ActionController::Base
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
+
+  private
+    def record_not_found
+      render plain: "404 Not Found", status: 404
+    end
+end
+```
+
+Of course, this example is anything but elaborate and doesn't improve on the default exception handling at all, but once you can catch all those exceptions you're free to do whatever you want with them. For example, you could create custom exception classes that will be thrown when a user doesn't have access to a certain section of your application:
+
+```ruby
+class ApplicationController < ActionController::Base
+  rescue_from User::NotAuthorized, with: :user_not_authorized
+
+  private
+    def user_not_authorized
+      flash[:error] = "You don't have access to this section."
+      redirect_back(fallback_location: root_path)
+    end
+end
+
+class ClientsController < ApplicationController
+  # Check that the user has the right authorization to access clients.
+  before_action :check_authorization
+
+  # Note how the actions don't have to worry about all the auth stuff.
+  def edit
+    @client = Client.find(params[:id])
+  end
+
+  private
+    # If the user is not authorized, just throw the exception.
+    def check_authorization
+      raise User::NotAuthorized unless current_user.admin?
+    end
+end
+```
+
+WARNING: Using `rescue_from` with `Exception` or `StandardError` would cause serious side-effects as it prevents Rails from handling exceptions properly. As such, it is not recommended to do so unless there is a strong reason.
+
+NOTE: When running in the production environment, all
+`ActiveRecord::RecordNotFound` errors render the 404 error page. Unless you need
+a custom behavior you don't need to handle this.
+
+NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized, and the action gets executed.
+
+[`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
