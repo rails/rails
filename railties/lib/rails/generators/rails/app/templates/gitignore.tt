@@ -35,3 +35,6 @@
 
 /public/assets
 <% end -%>
+
+# Keep .ruby-version for apps that are using ruby version managers.
+!.ruby-version
