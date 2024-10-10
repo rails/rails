@@ -568,6 +568,17 @@ class TestController < ActionController::Base
     partial_collection_shorthand_with_different_types_of_records
   end
 
+  def partial_collection_shorthand_with_different_types_of_records_with_layout
+    render partial: [
+      Supplier.new("mark"),
+      Customer.new("craig"),
+      Supplier.new("john"),
+      Customer.new("zach"),
+      Supplier.new("brandon"),
+      Customer.new("dan")
+    ], locals: { greeting: "Bonjour" }, layout: "layouts/record_layout"
+  end
+
   def missing_partial
     render partial: "thisFileIsntHere"
   end
@@ -682,6 +693,7 @@ class RenderTest < ActionController::TestCase
     get :partial, to: "test#partial"
     get :partial_collection, to: "test#partial_collection"
     get :partial_collection_shorthand_with_different_types_of_records, to: "test#partial_collection_shorthand_with_different_types_of_records"
+    get :partial_collection_shorthand_with_different_types_of_records_with_layout, to: "test#partial_collection_shorthand_with_different_types_of_records_with_layout"
     get :partial_collection_shorthand_with_locals, to: "test#partial_collection_shorthand_with_locals"
     get :partial_collection_with_as, to: "test#partial_collection_with_as"
     get :partial_collection_with_as_and_counter, to: "test#partial_collection_with_as_and_counter"
@@ -1451,6 +1463,11 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection_shorthand_with_different_types_of_records
     get :partial_collection_shorthand_with_different_types_of_records
     assert_equal "Bonjour bad customer: mark0Bonjour good customer: craig1Bonjour bad customer: john2Bonjour good customer: zach3Bonjour good customer: brandon4Bonjour bad customer: dan5", @response.body
+  end
+
+  def test_partial_collection_shorthand_with_different_types_of_records_with_layout
+    get :partial_collection_shorthand_with_different_types_of_records_with_layout
+    assert_equal "RECORD -> Bonjour: markRECORD -> Bonjour: craigRECORD -> Bonjour: johnRECORD -> Bonjour: zachRECORD -> Bonjour: brandonRECORD -> Bonjour: dan", @response.body
   end
 
   def test_empty_partial_collection
