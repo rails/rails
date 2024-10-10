@@ -48,7 +48,7 @@ module ActionController # :nodoc:
       # The default `Content-Type` and `Content-Disposition` headers are set to
       # download arbitrary binary files in as many browsers as possible. IE versions
       # 4, 5, 5.5, and 6 are all known to have a variety of quirks (especially when
-      # downloading over SSL).
+      # downloading over TLS/SSL).
       #
       # Simple download:
       #

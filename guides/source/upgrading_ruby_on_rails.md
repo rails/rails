@@ -923,7 +923,7 @@ gem "webpacker"
 $ bin/rails webpacker:install
 ```
 
-### Force SSL
+### Force TLS/SSL
 
 The `force_ssl` method on controllers has been deprecated and will be removed in
 Rails 6.1. You are encouraged to enable [`config.force_ssl`][] to enforce HTTPS
@@ -1744,7 +1744,7 @@ dumped. Set to `:all` to generate all dumps, or to `:schema_search_path` to gene
 config.active_record.dump_schemas = :all
 ```
 
-#### Configure SSL Options to Enable HSTS with Subdomains
+#### Configure TLS/SSL Options to Enable HSTS with Subdomains
 
 Set the following in your config to enable HSTS when using subdomains:
 
@@ -1936,7 +1936,7 @@ The [`TagAssertions` module](https://api.rubyonrails.org/v4.1/classes/ActionDisp
 
 ### Masked Authenticity Tokens
 
-In order to mitigate SSL attacks, `form_authenticity_token` is now masked so that it varies with each request.  Thus, tokens are validated by unmasking and then decrypting.  As a result, any strategies for verifying requests from non-rails forms that relied on a static session CSRF token have to take this into account.
+In order to mitigate TLS/SSL attacks, `form_authenticity_token` is now masked so that it varies with each request. Thus, tokens are validated by unmasking and then decrypting. As a result, any strategies for verifying requests from non-rails forms that relied on a static session CSRF token have to take this into account.
 
 ### Action Mailer
 
@@ -2884,7 +2884,7 @@ config.assets.digest = true
 # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
 # config.assets.precompile += %w( admin.js admin.css )
 
-# Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+# Force all access to the app over TLS/SSL, use Strict-Transport-Security, and use secure cookies.
 # config.force_ssl = true
 ```
 

@@ -481,7 +481,7 @@ module ActionController # :nodoc:
       end
 
       # Creates a masked version of the authenticity token that varies on each
-      # request. The masking is used to mitigate SSL attacks like BREACH.
+      # request. The masking is used to mitigate TLS/SSL attacks like BREACH.
       def masked_authenticity_token(form_options: {})
         action, method = form_options.values_at(:action, :method)
 

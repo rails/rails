@@ -25,7 +25,7 @@ module ActionDispatch
   # IF YOU DON'T USE A PROXY, THIS MAKES YOU VULNERABLE TO IP SPOOFING. This
   # middleware assumes that there is at least one proxy sitting around and setting
   # headers with the client's remote IP address. If you don't use a proxy, because
-  # you are hosted on e.g. Heroku without SSL, any client can claim to have any IP
+  # you are hosted on e.g. Heroku without TLS/SSL, any client can claim to have any IP
   # address by setting the `X-Forwarded-For` header. If you care about that, then
   # you need to explicitly drop or ignore those headers sometime before this
   # middleware runs. Alternatively, remove this middleware to avoid inadvertently

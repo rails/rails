@@ -213,7 +213,7 @@ Sets the host for the assets. Useful when CDNs are used for hosting assets, or w
 
 #### `config.assume_ssl`
 
-Makes application believe that all requests are arriving over SSL. This is useful when proxying through a load balancer that terminates SSL, the forwarded request will appear as though it's HTTP instead of HTTPS to the application. This makes redirects and cookie security target HTTP instead of HTTPS. This middleware makes the server assume that the proxy already terminated SSL, and that the request really is HTTPS.
+Makes application believe that all requests are arriving over TLS/SSL. This is useful when proxying through a load balancer that terminates TLS/SSL, the forwarded request will appear as though it's HTTP instead of HTTPS to the application. This makes redirects and cookie security target HTTP instead of HTTPS. This middleware makes the server assume that the proxy already terminated TLS/SSL, and that the request really is HTTPS.
 
 #### `config.autoflush_log`
 
@@ -2153,7 +2153,7 @@ If set to `false`, when both headers are present, both headers are checked and b
 
 #### `config.action_dispatch.always_write_cookie`
 
-Cookies will be written at the end of a request if they marked as insecure, if the request is made over SSL, or if the request is made to an onion service.
+Cookies will be written at the end of a request if they marked as insecure, if the request is made over TLS/SSL, or if the request is made to an onion service.
 
 If set to `true`, cookies will be written even if this criteria is not met.
 

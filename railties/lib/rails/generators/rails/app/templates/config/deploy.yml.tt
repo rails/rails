@@ -13,8 +13,8 @@ servers:
   #     - 192.168.0.1
   #   cmd: bin/jobs
 
-# Enable SSL auto certification via Let's Encrypt (and allow for multiple apps on one server).
-# Set ssl: false if using something like Cloudflare to terminate SSL (but keep host!).
+# Enable TLS/SSL auto certification via Let's Encrypt (and allow for multiple apps on one server).
+# Set ssl: false if using something like Cloudflare to terminate TLS/SSL (but keep host!).
 proxy:
   ssl: true
   host: app.example.com

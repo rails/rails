@@ -3,13 +3,13 @@
 # :markup: markdown
 
 module ActionDispatch
-  # # Action Dispatch SSL
+  # # Action Dispatch TLS/SSL
   #
   # This middleware is added to the stack when `config.force_ssl = true`, and is
   # passed the options set in `config.ssl_options`. It does three jobs to enforce
   # secure HTTP requests:
   #
-  # 1.  **TLS redirect**: Permanently redirects `http://` requests to `https://`
+  # 1.  **TLS/SSL redirect**: Permanently redirects `http://` requests to `https://`
   #     with the same URL host, path, etc. Enabled by default. Set
   #     `config.ssl_options` to modify the destination URL:
   #
@@ -23,10 +23,10 @@ module ActionDispatch
   #
   #     Cookies will not be flagged as secure for excluded requests.
   #
-  #     When proxying through a load balancer that terminates SSL, the forwarded
+  #     When proxying through a load balancer that terminates TLS/SSL, the forwarded
   #     request will appear as though it's HTTP instead of HTTPS to the application.
   #     This makes redirects and cookie security target HTTP instead of HTTPS.
-  #     To make the server assume that the proxy already terminated SSL, and
+  #     To make the server assume that the proxy already terminated TLS/SSL, and
   #     that the request really is HTTPS, set `config.assume_ssl` to `true`:
   #
   #         config.assume_ssl = true
