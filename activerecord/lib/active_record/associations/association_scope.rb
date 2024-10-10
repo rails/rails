@@ -135,13 +135,15 @@ module ActiveRecord
 
               if scope_chain_item == chain_head.scope
                 scope.merge! item.except(:where, :includes, :unscope, :order)
-              elsif !item.references_values.empty?
+              else
                 scope.merge! item.only(:joins, :left_outer_joins)
 
-                associations = item.eager_load_values | item.includes_values
+                if !item.references_values.empty?
+                  associations = item.eager_load_values | item.includes_values
 
-                unless associations.empty?
-                  scope.joins! item.construct_join_dependency(associations, Arel::Nodes::OuterJoin)
+                  unless associations.empty?
+                    scope.joins! item.construct_join_dependency(associations, Arel::Nodes::OuterJoin)
+                  end
                 end
               end
 
