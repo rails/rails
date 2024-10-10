@@ -324,4 +324,9 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal "finding-for-password_reset-by-999", Pilot.find_by_password_reset_token("999")
     assert_equal "finding-for-password_reset-by-999!", Pilot.find_by_password_reset_token!("999")
   end
+
+  test "password reset token custom expires_in" do
+    custom_reset_token_expiry = Pilot::CustomResetTokenExpiry.new
+    assert_equal "password_reset-token-1800", custom_reset_token_expiry.password_reset_token
+  end
 end

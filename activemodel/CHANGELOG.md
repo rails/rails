@@ -15,6 +15,16 @@
 
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
+*   Ability to change the default `expires_in` for `has_secure_password` token generator.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_secure_password reset_token: { expires_in: 30.minutes }
+    end
+    ```
+
+    *Abeid Ahmed*
+
 *   Make `ActiveModel::Serialization#read_attribute_for_serialization` public
 
     *Sean Doyle*
