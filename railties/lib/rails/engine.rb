@@ -245,7 +245,7 @@ module Rails
   #   polymorphic_url(MyEngine::Article.new)
   #   # => "articles_path" # not "my_engine_articles_path"
   #
-  #   form_for(MyEngine::Article.new) do
+  #   form_with(model: MyEngine::Article.new) do
   #     text_field :title # => <input type="text" name="article[title]" id="article_title" />
   #   end
   #
@@ -294,7 +294,7 @@ module Rails
   # All you need to do is pass the helper as the first element in array with
   # attributes for URL:
   #
-  #   form_for([my_engine, @user])
+  #   form_with(model: [my_engine, @user])
   #
   # This code will use <tt>my_engine.user_path(@user)</tt> to generate the proper route.
   #

@@ -2229,8 +2229,8 @@ module ActionDispatch
         end
 
         # Define custom polymorphic mappings of models to URLs. This alters the behavior
-        # of `polymorphic_url` and consequently the behavior of `link_to` and `form_for`
-        # when passed a model instance, e.g:
+        # of `polymorphic_url` and consequently the behavior of `link_to`, `form_with`
+        # and `form_for` when passed a model instance, e.g:
         #
         #     resource :basket
         #
@@ -2239,7 +2239,7 @@ module ActionDispatch
         #     end
         #
         # This will now generate "/basket" when a `Basket` instance is passed to
-        # `link_to` or `form_for` instead of the standard "/baskets/:id".
+        # `link_to`, `form_with` or `form_for` instead of the standard "/baskets/:id".
         #
         # NOTE: This custom behavior only applies to simple polymorphic URLs where a
         # single model instance is passed and not more complicated forms, e.g:
