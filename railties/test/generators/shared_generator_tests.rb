@@ -277,10 +277,7 @@ module SharedGeneratorTests
 
     assert_gitattributes_does_not_have_schema_file
 
-    assert_file "Gemfile" do |contents|
-      assert_no_match(/solid_cache/, contents)
-      assert_no_match(/sqlite/, contents)
-    end
+    assert_no_gems "solid_cache", "sqlite"
   end
 
   def test_generator_if_skip_active_storage_is_given
@@ -344,44 +341,45 @@ module SharedGeneratorTests
 
     assert_no_file "#{application_path}/config/initializers/assets.rb"
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/propshaft/, content)
-    end
+    assert_no_gem "propshaft"
   end
 
   def test_dev_option
     run_generator_using_prerelease [destination_root, "--dev"]
     rails_path = File.expand_path("../../..", Rails.root)
-    assert_file "Gemfile", %r{^gem ["']rails["'], path: ["']#{Regexp.escape rails_path}["']$}
+    assert_gem "rails", path: rails_path
   end
 
   def test_edge_option
     Rails.stub(:gem_version, Gem::Version.new("2.1.0")) do
       run_generator_using_prerelease [destination_root, "--edge"]
     end
-    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']2-1-stable["']$}
+    assert_gem "rails", github: "rails/rails", branch: "2-1-stable"
   end
 
   def test_edge_option_during_alpha
     Rails.stub(:gem_version, Gem::Version.new("2.1.0.alpha")) do
       run_generator_using_prerelease [destination_root, "--edge"]
     end
-    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+    assert_gem "rails", github: "rails/rails", branch: "main"
   end
 
   def test_main_option
     run_generator_using_prerelease [destination_root, "--main"]
-    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+    assert_gem "rails", github: "rails/rails", branch: "main"
   end
 
   def test_master_option
     run_generator_using_prerelease [destination_root, "--master"]
-    assert_file "Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+    assert_gem "rails", github: "rails/rails", branch: "main"
   end
 
   def test_target_rails_prerelease_with_relative_app_path
     run_generator_using_prerelease ["myproject", "--main"]
-    assert_file "myproject/Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
+
+    with destination_root: File.join(destination_root, "myproject") do
+      assert_gem "rails", github: "rails/rails", branch: "main"
+    end
   end
 
   def test_generated_files_have_no_rubocop_warnings
@@ -474,21 +472,5 @@ module SharedGeneratorTests
 
     def assert_not_option(option)
       assert_not generator.options[option], "Expected generator option #{option.inspect} to be falsy."
-    end
-
-    def assert_gem(name, constraint = nil)
-      constraint_pattern =
-        if constraint.is_a?(String)
-          /, #{Regexp.escape constraint}/
-        elsif constraint
-          /, #{constraint}/
-        end
-      assert_file "Gemfile", %r/^\s*gem ["']#{name}["']#{constraint_pattern}/
-    end
-
-    def assert_no_gem(name)
-      assert_file "Gemfile" do |content|
-        assert_no_match %r/gem ["']#{name}["']/, content
-      end
     end
 end
