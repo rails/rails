@@ -101,11 +101,18 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
+      # You can pass a symbol or a Proc to +:before_attached+ and +:after_attached+ options which can be
+      # used to specify callbacks that will be called before and after the blob is attached.
+      # The callbacks will receive the blob as an argument.
+      #
+      # Note: If ActiveStorage.track_variants is false, then the before and after attached callbacks for variants
+      # will pass the transformed TempFile as an argument instead of the blob.
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, before_attached: nil, after_attached: nil)
         ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -147,7 +154,7 @@ module ActiveStorage
           :has_one_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, after_attached: after_attached, before_attached: before_attached },
           self
         )
         yield reflection if block_given?
@@ -203,11 +210,18 @@ module ActiveStorage
       #     has_many_attached :photos, strict_loading: true
       #   end
       #
+      # You can pass a symbol or a Proc to +:before_attached+ and +:after_attached+ options which can be
+      # used to specify callbacks that will be called before and after the blob is attached.
+      # The callbacks will receive the blob as an argument.
+      #
+      # Note: If ActiveStorage.track_variants is false, then the before and after attached callbacks for variants
+      # will pass the transformed TempFile as an argument instead of the blob.
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, before_attached: nil, after_attached: nil)
         ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -251,7 +265,7 @@ module ActiveStorage
           :has_many_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, before_attached: before_attached, after_attached: after_attached },
           self
         )
         yield reflection if block_given?

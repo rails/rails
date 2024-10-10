@@ -111,7 +111,9 @@ class ActiveStorage::Variant
     def process
       blob.open do |input|
         variation.transform(input) do |output|
-          service.upload(key, output, content_type: content_type)
+          blob.run_around_attachment_callbacks(io: output, variant_name: variation.name) do
+            service.upload(key, output, content_type: content_type)
+          end
         end
       end
     end

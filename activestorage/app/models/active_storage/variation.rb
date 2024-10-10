@@ -14,20 +14,20 @@ require "marcel"
 #
 # The options map directly to {ImageProcessing}[https://github.com/janko/image_processing] commands.
 class ActiveStorage::Variation
-  attr_reader :transformations
+  attr_reader :transformations, :name
 
   class << self
     # Returns a Variation instance based on the given variator. If the variator is a Variation, it is
     # returned unmodified. If it is a String, it is passed to ActiveStorage::Variation.decode. Otherwise,
     # it is assumed to be a transformations Hash and is passed directly to the constructor.
-    def wrap(variator)
+    def wrap(variator, name = nil)
       case variator
       when self
         variator
       when String
         decode variator
       else
-        new variator
+        new variator, name
       end
     end
 
@@ -43,12 +43,13 @@ class ActiveStorage::Variation
     end
   end
 
-  def initialize(transformations)
+  def initialize(transformations, name = nil)
     @transformations = transformations.deep_symbolize_keys
+    @name = name
   end
 
   def default_to(defaults)
-    self.class.new transformations.reverse_merge(defaults)
+    self.class.new transformations.reverse_merge(defaults), @name
   end
 
   # Accepts a File object, performs the +transformations+ against it, and
