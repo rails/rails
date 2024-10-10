@@ -58,7 +58,13 @@ To install Action Text and start working with rich text content, run:
 
 ```bash
 $ bin/rails action_text:install
+$ bin/rails db:migrate
 ```
+
+These steps ensure that the JavaScript and CSS are available, then copies over
+the necessary migrations. Also, you need to set up Active Storage for embedded
+images and other attachments. Please refer to the [Active Storage
+Overview](active_storage_overview.html) guide.
 
 It will do the following:
 
