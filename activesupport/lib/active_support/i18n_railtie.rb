@@ -68,7 +68,7 @@ module I18n
         directories = watched_dirs_with_extensions(reloadable_paths)
         root_load_paths = I18n.load_path.select { |path| path.to_s.start_with?(Rails.root.to_s) }
         reloader = app.config.file_watcher.new(root_load_paths, directories) do
-          I18n.load_path.delete_if { |p| p.to_s.start_with?(Rails.root.to_s) && !File.exist?(p) }
+          I18n.load_path.delete_if { |path| path.to_s.start_with?(Rails.root.to_s) && !File.exist?(path) }
           I18n.load_path |= reloadable_paths.flat_map(&:existent)
         end
 
@@ -76,7 +76,6 @@ module I18n
         app.reloader.to_run do
           reloader.execute_if_updated { require_unload_lock! }
         end
-        reloader.execute
       end
 
       @i18n_inited = true
