@@ -13,7 +13,7 @@ class QueuingTest < ActiveSupport::TestCase
     assert_job_executed
   end
 
-  unless adapter_is?(:inline, :async)
+  unless adapter_is?(:inline, :async, :sucker_punch)
     test "should not run jobs queued on a non-listening queue" do
       old_queue = TestJob.queue_name
 

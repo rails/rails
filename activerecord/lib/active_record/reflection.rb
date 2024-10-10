@@ -198,7 +198,7 @@ module ActiveRecord
       end
 
       def join_scope(table, foreign_table, foreign_klass)
-        predicate_builder = predicate_builder(table)
+        predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
@@ -224,7 +224,7 @@ module ActiveRecord
         klass_scope
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
         if scope
           [scope_for(build_scope(table, predicate_builder, klass), record)]
         else
@@ -232,7 +232,7 @@ module ActiveRecord
         end
       end
 
-      def klass_join_scope(table, predicate_builder) # :nodoc:
+      def klass_join_scope(table, predicate_builder = nil) # :nodoc:
         relation = build_scope(table, predicate_builder)
         klass.scope_for_association(relation)
       end
@@ -333,12 +333,8 @@ module ActiveRecord
         collect_join_chain
       end
 
-      def build_scope(table, predicate_builder = predicate_builder(table), klass = self.klass)
-        Relation.create(
-          klass,
-          table: table,
-          predicate_builder: predicate_builder
-        )
+      def build_scope(table, predicate_builder = nil, klass = self.klass)
+        Relation.create(klass, table:, predicate_builder:)
       end
 
       def strict_loading?
@@ -357,10 +353,6 @@ module ActiveRecord
         end
 
       private
-        def predicate_builder(table)
-          PredicateBuilder.new(TableMetadata.new(klass, table))
-        end
-
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
@@ -1070,7 +1062,7 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
         source_reflection.join_scopes(table, predicate_builder, klass, record) + super
       end
 
@@ -1243,8 +1235,11 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder, klass, record) + super
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
+        scopes = super
+        unless @previous_reflection.through_reflection?
+          scopes += @previous_reflection.join_scopes(table, predicate_builder, klass, record)
+        end
         scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 

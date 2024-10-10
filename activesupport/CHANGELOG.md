@@ -1,3 +1,29 @@
+*   Don't execute i18n watcher on boot. It shouldn't catch any file changes initially,
+    and unnecessarily slows down boot of applications with lots of translations.
+
+    *Gannon McGibbon*, *David Stosik*
+
+*   Fix `ActiveSupport::HashWithIndifferentAccess#stringify_keys` to stringify all keys not just symbols.
+
+    Previously:
+
+    ```ruby
+    { 1 => 2 }.with_indifferent_access.stringify_keys[1] # => 2
+    ```
+
+    After this change:
+
+    ```ruby
+    { 1 => 2 }.with_indifferent_access.stringify_keys["1"] # => 2
+    ```
+
+    This change can be seen as a bug fix, but since it behaved like this for a very long time, we're deciding
+    to not backport the fix and to make the change in a major release.
+
+    *Jean Boussier*
+
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
 *   Include options when instrumenting `ActiveSupport::Cache::Store#delete` and `ActiveSupport::Cache::Store#delete_multi`.
 
     *Adam Renberg Tamm*

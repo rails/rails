@@ -64,7 +64,7 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
-TIP: You can create new Rails apps come with a preconfigured Dev Container development environment. This
+TIP: You can create new Rails apps with a preconfigured Dev Container development environment. This
 is the fastest way to get started with Rails.
 For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
 
@@ -97,10 +97,10 @@ current version of Ruby installed:
 
 ```bash
 $ ruby --version
-ruby 3.1.0
+ruby 3.2.0
 ```
 
-Rails requires Ruby version 3.1.0 or later. It is preferred to use the latest Ruby version.
+Rails requires Ruby version 3.2.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -471,17 +471,17 @@ Let's launch the console with this command:
 $ bin/rails console
 ```
 
-You should see an `irb` prompt like:
+You should see a rails console prompt like:
 
 ```irb
 Loading development environment (Rails 8.0.0)
-irb(main):001:0>
+blog(dev)>
 ```
 
 At this prompt, we can initialize a new `Article` object:
 
 ```irb
-irb> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
+blog(dev)> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
 ```
 
 It's important to note that we have only *initialized* this object. This object
@@ -490,7 +490,7 @@ moment. To save the object to the database, we must call [`save`](
 https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save):
 
 ```irb
-irb> article.save
+blog(dev)> article.save
 (0.1ms)  begin transaction
 Article Create (0.4ms)  INSERT INTO "articles" ("title", "body", "created_at", "updated_at") VALUES (?, ?, ?, ?)  [["title", "Hello Rails"], ["body", "I am on Rails!"], ["created_at", "2020-01-18 23:47:30.734416"], ["updated_at", "2020-01-18 23:47:30.734416"]]
 (0.9ms)  commit transaction
@@ -502,7 +502,7 @@ indicates that the article has been inserted into our table. And if we take a
 look at the `article` object again, we see something interesting has happened:
 
 ```irb
-irb> article
+blog(dev)> article
 => #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
 ```
 
@@ -514,7 +514,7 @@ https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-fin
 on the model and pass the `id` as an argument:
 
 ```irb
-irb> Article.find(1)
+blog(dev)> Article.find(1)
 => #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
 ```
 
@@ -523,7 +523,7 @@ https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html
 on the model:
 
 ```irb
-irb> Article.all
+blog(dev)> Article.all
 => #<ActiveRecord::Relation [#<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">]>
 ```
 

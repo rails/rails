@@ -1319,11 +1319,11 @@ class BasicsTest < ActiveRecord::TestCase
 
     klass.table_name = "foo"
     assert_equal "foo", klass.table_name
-    assert_equal klass.lease_connection.quote_table_name("foo"), klass.quoted_table_name
+    assert_equal klass.adapter_class.quote_table_name("foo"), klass.quoted_table_name
 
     klass.table_name = "bar"
     assert_equal "bar", klass.table_name
-    assert_equal klass.lease_connection.quote_table_name("bar"), klass.quoted_table_name
+    assert_equal klass.adapter_class.quote_table_name("bar"), klass.quoted_table_name
   end
 
   def test_set_table_name_with_inheritance
@@ -1341,6 +1341,10 @@ class BasicsTest < ActiveRecord::TestCase
     orig_name = k.sequence_name
     skip "sequences not supported by db" unless orig_name
     assert_equal k.reset_sequence_name, orig_name
+  end
+
+  def test_sequence_name_for_cpk_model
+    assert_nil Cpk::Book.sequence_name
   end
 
   def test_count_with_join

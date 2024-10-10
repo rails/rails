@@ -171,7 +171,7 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_difference_message_with_lambda
-    skip if !defined?(RubyVM::AbstractSyntaxTree)
+    skip if !defined?(RubyVM::InstructionSequence)
 
     error = assert_raises Minitest::Assertion do
       assert_difference(-> { @object.num }, 1, "Object Changed") do
@@ -247,7 +247,7 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_changes_message_with_lambda
-    skip if !defined?(RubyVM::AbstractSyntaxTree)
+    skip if !defined?(RubyVM::InstructionSequence)
 
     error = assert_raises Minitest::Assertion do
       assert_changes -> { @object.num }, to: 0 do
@@ -375,7 +375,7 @@ class AssertionsTest < ActiveSupport::TestCase
   end
 
   def test_assert_no_changes_message_with_lambda
-    skip if !defined?(RubyVM::AbstractSyntaxTree)
+    skip if !defined?(RubyVM::InstructionSequence)
 
     error = assert_raises Minitest::Assertion do
       assert_no_changes -> { @object.num } do

@@ -299,6 +299,8 @@ module ActiveRecord
 
         # Returns the sequence name for a table's primary key or some other specified key.
         def default_sequence_name(table_name, pk = "id") # :nodoc:
+          return nil if pk.is_a?(Array)
+
           result = serial_sequence(table_name, pk)
           return nil unless result
           Utils.extract_schema_qualified_name(result).to_s
@@ -764,10 +766,7 @@ module ActiveRecord
         def remove_exclusion_constraint(table_name, expression = nil, **options)
           excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
 
-          at = create_alter_table(table_name)
-          at.drop_exclusion_constraint(excl_name_to_delete)
-
-          execute schema_creation.accept(at)
+          remove_constraint(table_name, excl_name_to_delete)
         end
 
         # Adds a new unique constraint to the table.
@@ -819,10 +818,7 @@ module ActiveRecord
         def remove_unique_constraint(table_name, column_name = nil, **options)
           unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
 
-          at = create_alter_table(table_name)
-          at.drop_unique_constraint(unique_name_to_delete)
-
-          execute schema_creation.accept(at)
+          remove_constraint(table_name, unique_name_to_delete)
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.

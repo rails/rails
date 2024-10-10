@@ -329,7 +329,7 @@ NOTE: This token is required by Rails to prevent Cross-Site Request Forgery (CSR
 of adding the request headers that are required by Rails. Just
 import the `FetchRequest` class from the package and instantiate it
 passing the request method, url, options, then call `await request.perform()`
-and do what do you need with the response.
+and do what you need with the response.
 
 For example:
 

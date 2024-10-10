@@ -576,9 +576,9 @@ module ActiveRecord
 
       # Rename an existing enum type to something else.
       def rename_enum(name, **options)
-        to = options.fetch(:to) { raise ArgumentError, ":to is required" }
+        new_name = options.fetch(:to) { raise ArgumentError, ":to is required" }
 
-        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{to}").tap { reload_type_map }
+        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}").tap { reload_type_map }
       end
 
       # Add enum value to an existing enum type.
@@ -586,14 +586,14 @@ module ActiveRecord
         before, after = options.values_at(:before, :after)
         sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE"
         sql << " IF NOT EXISTS" if options[:if_not_exists]
-        sql << " '#{value}'"
+        sql << " #{quote(value)}"
 
         if before && after
           raise ArgumentError, "Cannot have both :before and :after at the same time"
         elsif before
-          sql << " BEFORE '#{before}'"
+          sql << " BEFORE #{quote(before)}"
         elsif after
-          sql << " AFTER '#{after}'"
+          sql << " AFTER #{quote(after)}"
         end
 
         execute(sql).tap { reload_type_map }
@@ -608,7 +608,7 @@ module ActiveRecord
         from = options.fetch(:from) { raise ArgumentError, ":from is required" }
         to = options.fetch(:to) { raise ArgumentError, ":to is required" }
 
-        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE '#{from}' TO '#{to}'").tap {
+        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE #{quote(from)} TO #{quote(to)}").tap {
           reload_type_map
         }
       end
@@ -671,8 +671,8 @@ module ActiveRecord
           m.register_type "int4", Type::Integer.new(limit: 4)
           m.register_type "int8", Type::Integer.new(limit: 8)
           m.register_type "oid", OID::Oid.new
-          m.register_type "float4", Type::Float.new
-          m.alias_type "float8", "float4"
+          m.register_type "float4", Type::Float.new(limit: 24)
+          m.register_type "float8", Type::Float.new
           m.register_type "text", Type::Text.new
           register_class_with_limit m, "varchar", Type::String
           m.alias_type "char", "varchar"

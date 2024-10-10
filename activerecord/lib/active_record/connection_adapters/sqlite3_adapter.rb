@@ -11,8 +11,11 @@ require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", ">= 2.0"
+gem "sqlite3", ">= 2.1"
 require "sqlite3"
+
+# Suppress the warning that SQLite3 issues when open writable connections are carried across fork()
+SQLite3::ForkSafety.suppress_warnings!
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -722,8 +725,6 @@ module ActiveRecord
             end
 
             basic_structure.map do |column|
-              column = column.to_h
-
               column_name = column["name"]
 
               if collation_hash.has_key? column_name

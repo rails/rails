@@ -636,7 +636,7 @@ to set-up serializers to be loaded only once, e.g. by amending `config/applicati
 # config/application.rb
 module YourApp
   class Application < Rails::Application
-    config.autoload_once_paths << Rails.root.join('app', 'serializers')
+    config.autoload_once_paths << "#{root}/app/serializers"
   end
 end
 ```

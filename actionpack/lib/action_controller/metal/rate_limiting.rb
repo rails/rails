@@ -30,7 +30,7 @@ module ActionController # :nodoc:
       # parameter.
       #
       # If you want to use multiple rate limits per controller, you need to give each of
-      # them and explicit name via the `name:` option.
+      # them an explicit name via the `name:` option.
       #
       # Examples:
       #

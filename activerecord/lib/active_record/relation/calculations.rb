@@ -275,9 +275,13 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
-    #   Comment.joins(:person).pluck(:id, person: [:id])
-    #   # SELECT comments.id, people.id FROM comments INNER JOIN people on comments.person_id = people.id
+    #   Comment.joins(:person).pluck(:id, person: :id)
+    #   # SELECT comments.id, person.id FROM comments INNER JOIN people person ON person.id = comments.person_id
     #   # => [[1, 2], [2, 2]]
+    #
+    #   Comment.joins(:person).pluck(:id, person: [:id, :name])
+    #   # SELECT comments.id, person.id, person.name FROM comments INNER JOIN people person ON person.id = comments.person_id
+    #   # => [[1, 2, 'David'], [2, 2, 'David']]
     #
     #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
@@ -447,10 +451,13 @@ module ActiveRecord
       end
 
       def aggregate_column(column_name)
-        return column_name if Arel::Expressions === column_name
-
-        arel_column(column_name.to_s) do |name|
-          column_name == :all ? Arel.sql("*", retryable: true) : Arel.sql(name)
+        case column_name
+        when Arel::Expressions
+          column_name
+        when :all
+          Arel.star
+        else
+          arel_column(column_name)
         end
       end
 
@@ -630,27 +637,12 @@ module ActiveRecord
       end
 
       def select_for_count
-        if select_values.present?
-          return select_values.first if select_values.one?
-
-          adapter_class = model.adapter_class
-          select_values.map do |field|
-            column = if Arel.arel_node?(field)
-              field
-            else
-              arel_column(field.to_s) do |attr_name|
-                Arel.sql(attr_name)
-              end
-            end
-
-            if column.is_a?(Arel::Nodes::SqlLiteral)
-              column
-            else
-              "#{adapter_class.quote_table_name(column.relation.name)}.#{adapter_class.quote_column_name(column.name)}"
-            end
-          end.join(", ")
-        else
+        if select_values.empty?
           :all
+        else
+          with_connection do |conn|
+            arel_columns(select_values).map { |column| conn.visitor.compile(column) }.join(", ")
+          end
         end
       end
 
@@ -673,7 +665,11 @@ module ActiveRecord
         subquery_alias = Arel.sql("subquery_for_count", retryable: true)
         select_value = operation_over_aggregate_column(column_alias, "count", false)
 
-        relation.build_subquery(subquery_alias, select_value)
+        if column_name == :all
+          relation.unscope(:order).build_subquery(subquery_alias, select_value)
+        else
+          relation.build_subquery(subquery_alias, select_value)
+        end
       end
   end
 end

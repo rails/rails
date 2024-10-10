@@ -370,7 +370,7 @@ module ActiveRecord
       end
 
       def predicate_builder # :nodoc:
-        @predicate_builder ||= PredicateBuilder.new(table_metadata)
+        @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
       end
 
       def type_caster # :nodoc:
@@ -413,10 +413,6 @@ module ActiveRecord
           else
             relation
           end
-        end
-
-        def table_metadata
-          TableMetadata.new(self, arel_table)
         end
 
         def cached_find_by(keys, values)

@@ -74,7 +74,14 @@ module ActiveRecord
     alias :loaded? :loaded
     alias :locked? :lock_value
 
-    def initialize(model, table: model.arel_table, predicate_builder: model.predicate_builder, values: {})
+    def initialize(model, table: nil, predicate_builder: nil, values: {})
+      if table
+        predicate_builder ||= PredicateBuilder.new(TableMetadata.new(model, table))
+      else
+        table = model.arel_table
+        predicate_builder ||= model.predicate_builder
+      end
+
       @model  = model
       @table  = table
       @values = values

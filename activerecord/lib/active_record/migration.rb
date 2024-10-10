@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
@@ -678,10 +677,6 @@ module ActiveRecord
           all_configs = ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
           paths = all_configs.flat_map { |config| config.migrations_paths || Migrator.migrations_paths }.uniq
           @file_watcher.new([], paths.index_with(["rb"]), &block)
-        end
-
-        def connection
-          ActiveRecord::Tasks::DatabaseTasks.migration_connection
         end
     end
 

@@ -3,7 +3,6 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
-require "set"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -1575,7 +1574,7 @@ module ApplicationTests
       app "development"
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '#<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
+      assert_equal "#<ActionController::Parameters #{{ "title" => "foo" }} permitted: false>", last_response.body
     end
 
     test "config.action_controller.permit_all_parameters = true" do
@@ -1624,7 +1623,7 @@ module ApplicationTests
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
       post "/posts", post: { "title" => "zomg" }
-      assert_match "We're sorry, but something went wrong", last_response.body
+      assert_match "We’re sorry, but something went wrong", last_response.body
     end
 
     test "config.action_controller.action_on_unpermitted_parameters = :raise is ignored with expect" do

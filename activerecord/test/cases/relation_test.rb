@@ -291,8 +291,7 @@ module ActiveRecord
 
     def test_select_quotes_when_using_from_clause
       skip_if_sqlite3_version_includes_quoting_bug
-      quoted_join = ActiveRecord::Base.lease_connection.quote_table_name("join")
-      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      selected = Post.select(:join).from(Post.select("id as #{quote_table_name("join")}")).map(&:join)
       assert_equal Post.pluck(:id).sort, selected.sort
     end
 
@@ -373,7 +372,7 @@ module ActiveRecord
     end
 
     def test_does_not_duplicate_optimizer_hints_on_merge
-      escaped_table = Post.lease_connection.quote_table_name("posts")
+      escaped_table = quote_table_name("posts")
       expected = "SELECT /*+ OMGHINT */ #{escaped_table}.* FROM #{escaped_table}"
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
