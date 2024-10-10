@@ -180,6 +180,8 @@ module ActiveRecord
 
       OID = PostgreSQL::OID # :nodoc:
 
+      USING_GEOMETRIC_SAME_AS_OPERATOR = %i(point polygon box circle).freeze
+
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
@@ -640,6 +642,15 @@ module ActiveRecord
         index.using == :btree || super
       end
 
+      def timestamps_condition(insert, unquoted_column_name, column_type)
+        column_name = quote_column_name(unquoted_column_name)
+        if USING_GEOMETRIC_SAME_AS_OPERATOR.include?(column_type.type)
+          "#{insert.model.quoted_table_name}.#{column_name} ~= excluded.#{column_name}"
+        else
+          "#{insert.model.quoted_table_name}.#{column_name} IS NOT DISTINCT FROM excluded.#{column_name}"
+        end
+      end
+
       def build_insert_sql(insert) # :nodoc:
         sql = +"INSERT #{insert.into} #{insert.values_list}"
 
@@ -650,7 +661,7 @@ module ActiveRecord
           if insert.raw_update_sql?
             sql << insert.raw_update_sql
           else
-            sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column} IS NOT DISTINCT FROM excluded.#{column}" }
+            sql << insert.touch_model_timestamps_with_type_unless { |col_name, col_type| timestamps_condition(insert, col_name, col_type) }
             sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
           end
         end
