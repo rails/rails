@@ -34,6 +34,7 @@ module ActionMailbox
         ActionMailbox.queues = app.config.action_mailbox.queues || {}
         ActionMailbox.ingress = app.config.action_mailbox.ingress
         ActionMailbox.storage_service = app.config.action_mailbox.storage_service
+        ActionMailbox.connects_to = app.config.action_mailbox.connects_to
       end
     end
   end

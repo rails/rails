@@ -3,6 +3,8 @@
 module ActionMailbox
   class Record < ActiveRecord::Base # :nodoc:
     self.abstract_class = true
+
+    connects_to(**ActionMailbox.connects_to) if ActionMailbox.connects_to
   end
 end
 
