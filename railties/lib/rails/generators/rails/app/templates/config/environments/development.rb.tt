@@ -19,8 +19,8 @@ Rails.application.configure do
   # Used by Action Controller, Action Mailer, Active Storage for generating urls outside of active requests.
   # config.application_url = "http://localhost:3000"
 
-  # Enable/disable caching. By default caching is disabled.
-  # Run rails dev:cache to toggle caching.
+  # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
+  # Run rails dev:cache to toggle Action Controller caching.
   if Rails.root.join("tmp/caching-dev.txt").exist?
     <%- unless options.api? -%>
     config.action_controller.perform_caching = true
