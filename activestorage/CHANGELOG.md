@@ -1,3 +1,8 @@
+*   `ActiveStorage::Blob#open` can now be used without passing a block, like `Tempfile.open`. When using this form the
+    returned temporary file must be unlinked manually.
+
+    *Bart de Water*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Deprecate `ActiveStorage::Service::AzureStorageService`.
