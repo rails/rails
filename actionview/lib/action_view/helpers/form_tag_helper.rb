@@ -1040,6 +1040,24 @@ module ActionView
           end
         end
 
+        def token_tag(token = nil, form_options: {})
+          if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
+            token =
+              if token == true || token.nil?
+                form_authenticity_token(form_options: form_options.merge(authenticity_token: token))
+              else
+                token
+              end
+            hidden_field_tag request_forgery_protection_token, token, id: nil
+          else
+            ""
+          end
+        end
+
+        def method_tag(method)
+          hidden_field_tag "_method", method, id: nil
+        end
+
         def form_tag_html(html_options)
           extra_tags = extra_tags_for_form(html_options)
           html = tag(:form, html_options, true) + extra_tags
