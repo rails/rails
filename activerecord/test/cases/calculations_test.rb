@@ -1241,6 +1241,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [false, true, true, true, true], takes_relation.pluck(:approved)
   end
 
+  def test_pluck_with_qualified_name_on_loaded
+    topics = Topic.joins(:replies).order(:id)
+
+    assert_not_predicate topics, :loaded?
+    assert_equal [[1, 2], [3, 4]], topics.pluck("topics.id", "replies.id")
+
+    topics.load
+
+    assert_predicate topics, :loaded?
+    assert_equal [[1, 2], [3, 4]], topics.pluck("topics.id", "replies.id")
+  end
+
   def test_pluck_columns_with_same_name
     expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
     actual = Topic.joins(:replies).order(:id)
