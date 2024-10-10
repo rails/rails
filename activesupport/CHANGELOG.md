@@ -1,3 +1,8 @@
+*   Don't execute i18n watcher on boot. It shouldn't catch any file changes initially,
+    and unnecessarily slows down boot of applications with lots of translations.
+
+    *Gannon McGibbon*, *David Stosik*
+
 *   Fix `ActiveSupport::HashWithIndifferentAccess#stringify_keys` to stringify all keys not just symbols.
 
     Previously:
