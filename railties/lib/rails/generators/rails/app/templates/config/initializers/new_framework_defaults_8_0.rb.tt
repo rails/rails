@@ -23,3 +23,8 @@
 # If set to `false` both conditions need to be satisfied.
 #++
 # Rails.application.config.action_dispatch.strict_freshness = true
+
+###
+# Controls whether or not `<form>` elements rendered by `form_tag` without a block will render `</form>`
+#++
+# Rails.application.config.action_view.closes_form_tag_without_block = true
