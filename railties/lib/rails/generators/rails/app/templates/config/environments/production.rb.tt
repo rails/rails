@@ -17,6 +17,10 @@ Rails.application.configure do
   config.action_controller.perform_caching = true
   <%- end -%>
 
+  # Set canonical url for your application that'll be accessible via Rails.application.url.
+  # Used by Action Controller, Action Mailer, Active Storage for generating urls outside of active requests.
+  # config.application_url = ENV["APP_URL"] || "https://app.example.com"
+
   # Cache assets for far-future expiry since they are all digest stamped.
   config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
 
