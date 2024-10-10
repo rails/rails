@@ -38,24 +38,27 @@ module ActionController
     #     render :show
     #     # => renders app/views/posts/show.html.erb
     #
-    # If the first argument responds to `render_in`, the template will be rendered
-    # by calling `render_in` with the current view context.
+    # If the first argument responds to +render_in+, the template will be
+    # rendered by calling +render_in+ with the current view context, render
+    # options, and block.
     #
     #     class Greeting
-    #       def render_in(view_context)
-    #         view_context.render html: "<h1>Hello, World</h1>"
+    #       def render_in(view_context, **options, &block)
+    #         if block
+    #           view_context.render html: block.call
+    #         else
+    #           view_context.render inline: <<~ERB.strip, **options
+    #             <h1><%= Hello, <%= local_assigns.fetch(:name, "World") %></h1>
+    #           ERB
+    #         end
     #       end
     #
-    #       def format
-    #         :html
-    #       end
-    #     end
-    #
-    #     render(Greeting.new)
-    #     # => "<h1>Hello, World</h1>"
-    #
-    #     render(renderable: Greeting.new)
-    #     # => "<h1>Hello, World</h1>"
+    #     render(Greeting.new)                                        # => "<h1>Hello, World</h1>"
+    #     render(renderable: Greeting.new)                            # => "<h1>Hello, World</h1>"
+    #     render(Greeting.new, name: "Local")                         # => "<h1>Hello, Local</h1>"
+    #     render(renderable: Greeting.new, locals: { name: "Local" }) # => "<h1>Hello, Local</h1>"
+    #     render(Greeting.new) { "<h1>Hello, Block</h1>" }            # => "<h1>Hello, Block</h1>"
+    #     render(renderable: Greeting.new) { "<h1>Hello, Block<h1>" } # => "<h1>Hello, Block</h1>"
     #
     # #### Rendering Mode
     #
@@ -112,13 +115,15 @@ module ActionController
     #
     # `:renderable`
     # :   Renders the provided object by calling `render_in` with the current view
-    #     context. The response format is determined by calling `format` on the
-    #     renderable if it responds to `format`, falling back to `text/html` by
-    #     default.
+    #     context, render options, and block. The response format is determined by
+    #     calling `format` on the renderable if it responds to `format`, falling
+    #     back to `text/html` by default.
     #
     #         render renderable: Greeting.new
     #         # => renders "<h1>Hello, World</h1>"
     #
+    #         render renderable: Greeting.new, locals: { name: "Local" }
+    #         # => renders "<h1>Hello, Local</h1>"
     #
     # By default, when a rendering mode is specified, no layout template is
     # rendered.

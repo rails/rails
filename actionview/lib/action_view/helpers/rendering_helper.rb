@@ -23,6 +23,10 @@ module ActionView
       #
       # Use the complete view path to render a partial from another directory.
       #
+      # If an object responding to +render_in+ is passed, +render_in+ is called on the object,
+      # passing in the current view context, render options, and block. The
+      # object can optionally control its rendered format by defining the +format+ method.
+      #
       #     <% # app/views/posts/show.html.erb %>
       #     <%= render "comments/form" %>
       #     # => renders app/views/comments/_form.html.erb
@@ -139,15 +143,15 @@ module ActionView
         case options
         when Hash
           in_rendering_context(options) do |renderer|
-            if block_given?
+            if block_given? && !options.key?(:renderable)
               view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
             else
-              view_renderer.render(self, options)
+              view_renderer.render(self, options, &block)
             end
           end
         else
           if options.respond_to?(:render_in)
-            options.render_in(self, &block)
+            view_renderer.render(self, renderable: options, locals: locals, &block)
           else
             view_renderer.render_partial(self, partial: options, locals: locals, &block)
           end

@@ -385,6 +385,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *  Deprecate passing content to void elements when using `tag.br` type tag builders.
 
+*  Deprecate `render` calls with `:renderable` objects that respond to `#render_in` without keyword arguments.
+
 ### Notable changes
 
 Action Mailer
