@@ -61,6 +61,28 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     end
   end
 
+  test "saving empty content empties the embeds" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    message = Message.create!(subject: "Greetings", content: ActionText::Content.new("Hello world").append_attachables(blob))
+    assert message.content.embeds.sole
+
+    message.content = ""
+    message.save
+
+    assert_empty message.content.embeds
+  end
+
+  test "saving nil content empties the embeds" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    message = Message.create!(subject: "Greetings", content: ActionText::Content.new("Hello world").append_attachables(blob))
+    assert message.content.embeds.sole
+
+    message.content = nil
+    message.save
+
+    assert_empty message.content.embeds
+  end
+
   test "saving content" do
     message = Message.create!(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.content.to_plain_text

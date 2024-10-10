@@ -52,7 +52,7 @@ module ActionText
     has_many_attached :embeds
 
     before_save do
-      self.embeds = body.attachables.grep(ActiveStorage::Blob).uniq if body.present?
+      self.embeds = body.blank? ? [] : body.attachables.grep(ActiveStorage::Blob).uniq
     end
 
     # Returns a plain-text version of the markup contained by the `body` attribute,
