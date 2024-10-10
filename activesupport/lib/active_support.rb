@@ -39,6 +39,7 @@ module ActiveSupport
   autoload :Concern
   autoload :CodeGenerator
   autoload :ActionableError
+  autoload :Callable
   autoload :ConfigurationFile
   autoload :CurrentAttributes
   autoload :Dependencies
