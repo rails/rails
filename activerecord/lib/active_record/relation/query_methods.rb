@@ -2002,7 +2002,9 @@ module ActiveRecord
       def table_name_matches?(from)
         table_name = Regexp.escape(table.name)
         quoted_table_name = Regexp.escape(model.adapter_class.quote_table_name(table.name))
-        /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i.match?(from.to_s)
+        reg = /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i
+        return reg.match?(from.name) if from.is_a?(Arel::Nodes::TableAlias)
+        reg.match?(from.to_s)
       end
 
       def reverse_sql_order(order_query)
