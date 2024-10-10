@@ -23,7 +23,26 @@ module Quiz
   end
 end
 
+module ActiveStorage
+  Attachment = Struct.new(:filename) do
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+  end
+end
+
+module Namespaced
+  Article = Struct.new(:file) do
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+  end
+end
+
 module Fun
+  Article = Struct.new(:file) do
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+  end
+
   class GamesController < ActionController::Base
     def hello_world; end
 
@@ -1070,6 +1089,51 @@ class RenderTest < ActionController::TestCase
   def test_render_to_string_inline
     get :render_to_string_with_inline_and_render
     assert_equal "Hello world!", @response.body
+  end
+
+  def test_unnested_rendering_with_fallback
+    @controller = Fun::GamesController.new
+    def @controller.hello_world
+      render partial: ::Customer.new("Rendered"), locals: { greeting: "Hello" }
+    end
+
+    get :hello_world
+    assert_equal "Hello: Rendered", @response.body
+  end
+
+  def test_rendering_with_multiple_namespaces
+    @controller = Fun::GamesController.new
+    def @controller.hello_world
+      file = ::ActiveStorage::Attachment.new("file.txt")
+      fun_article = ::Fun::Article.new(file)
+      render partial: fun_article
+    end
+
+    get :hello_world
+    assert_equal "Rendered attachment: file.txt", @response.body
+  end
+
+  def test_rendering_with_different_namespaces
+    @controller = Fun::GamesController.new
+    def @controller.hello_world
+      file = ::ActiveStorage::Attachment.new("file.txt")
+      namespaced_article = ::Namespaced::Article.new(file)
+      render partial: namespaced_article
+    end
+
+    get :hello_world
+    assert_equal "Rendered attachment: file.txt", @response.body
+  end
+
+  def test_unnested_rendering_without_fallback
+    @controller = Fun::GamesController.new
+    def @controller.hello_world
+      render partial: Post.new
+    end
+
+    assert_raises ActionView::MissingTemplate, match: "Missing partial fun/posts/_post" do
+      get :hello_world
+    end
   end
 
   # :ported:
