@@ -1,3 +1,15 @@
+*   Allow setting content type with a symbol of the Mime type.
+
+    ```ruby
+    # Before
+    response.content_type = "text/html"
+
+    # After
+    response.content_type = :html
+    ```
+
+    *Petrik de Heus*
+
 *   Update `ActionController::AllowBrowser` to support passing method names to `:block`
 
     ```ruby

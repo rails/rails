@@ -251,14 +251,27 @@ module ActionDispatch # :nodoc:
     # Sets the HTTP response's content MIME type. For example, in the controller you
     # could write this:
     #
-    #     response.content_type = "text/plain"
+    #     response.content_type = "text/html"
+    #
+    # This method also accepts a symbol with the extension of the MIME type:
+    #
+    #     response.content_type = :html
     #
     # If a character set has been defined for this response (see #charset=) then the
     # character set information will also be included in the content type
     # information.
     def content_type=(content_type)
-      return unless content_type
-      new_header_info = parse_content_type(content_type.to_s)
+      case content_type
+      when NilClass
+        return
+      when Symbol
+        mime_type = Mime[content_type]
+        raise ArgumentError, "Unknown MIME type #{content_type}" unless mime_type
+        new_header_info = ContentTypeHeader.new(mime_type.to_s)
+      else
+        new_header_info = parse_content_type(content_type.to_s)
+      end
+
       prev_header_info = parsed_content_type_header
       charset = new_header_info.charset || prev_header_info.charset
       charset ||= self.class.default_charset unless prev_header_info.mime_type
