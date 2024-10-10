@@ -539,6 +539,11 @@ module Rails
         "latest"
       end
 
+      def yarn_through_corepack?
+        true if dockerfile_yarn_version == "latest"
+        dockerfile_yarn_version.to_s.split(".").first.to_i >= 2
+      end
+
       def dockerfile_bun_version
         using_bun? and `bun --version`[/\d+\.\d+\.\d+/]
       rescue
