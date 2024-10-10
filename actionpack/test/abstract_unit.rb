@@ -26,6 +26,8 @@ require "active_support/dependencies"
 require "active_model"
 require "zeitwerk"
 
+require_relative "support/rack_parsing_override"
+
 ActiveSupport::Cache.format_version = 7.1
 
 module Rails
