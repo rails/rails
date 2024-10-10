@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/user"
 
 module ActiveModel
   class AttributesTest < ActiveModel::TestCase
@@ -14,6 +15,7 @@ module ActiveModel
       attribute :string_with_default, :string, default: "default string"
       attribute :date_field, :date, default: -> { Date.new(2016, 1, 1) }
       attribute :boolean_field, :boolean
+      attribute :user_model, :model, class_name: "User"
     end
 
     class ChildModelForAttributesTest < ModelForAttributesTest
@@ -56,7 +58,8 @@ module ActiveModel
         integer_field: "2.3",
         string_field: "Rails FTW",
         decimal_field: "12.3",
-        boolean_field: "0"
+        boolean_field: "0",
+        user_model: User.new(name: "Nikita")
       )
 
       assert_equal 2, data.integer_field
@@ -65,22 +68,27 @@ module ActiveModel
       assert_equal "default string", data.string_with_default
       assert_equal Date.new(2016, 1, 1), data.date_field
       assert_equal false, data.boolean_field
+      assert_equal "Nikita", data.user_model.name
 
       data.integer_field = 10
       data.string_with_default = nil
       data.boolean_field = "1"
+      data.user_model = { name: "Bob" }
 
       assert_equal 10, data.integer_field
       assert_nil data.string_with_default
       assert_equal true, data.boolean_field
+      assert_equal "Bob", data.user_model.name
     end
 
     test "reading attributes" do
+      user = User.new(name: "Nikita")
       data = ModelForAttributesTest.new(
         integer_field: 1.1,
         string_field: 1.1,
         decimal_field: 1.1,
-        boolean_field: 1.1
+        boolean_field: 1.1,
+        user_model: user
       )
 
       expected_attributes = {
@@ -89,10 +97,11 @@ module ActiveModel
         decimal_field: BigDecimal("1.1"),
         string_with_default: "default string",
         date_field: Date.new(2016, 1, 1),
-        boolean_field: true
+        boolean_field: true,
       }.stringify_keys
 
-      assert_equal expected_attributes, data.attributes
+      assert_equal expected_attributes, data.attributes.except("user_model")
+      assert_equal user.attributes, data.attributes["user_model"].attributes
     end
 
     test "reading attribute names" do
@@ -102,7 +111,8 @@ module ActiveModel
         "decimal_field",
         "string_with_default",
         "date_field",
-        "boolean_field"
+        "boolean_field",
+        "user_model"
       ]
 
       assert_equal names, ModelForAttributesTest.attribute_names
