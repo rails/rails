@@ -311,8 +311,8 @@ module ActiveRecord
         relation.pluck(*column_names)
       else
         model.disallow_raw_sql!(flattened_args(column_names))
-        columns = arel_columns(column_names)
         relation = spawn
+        columns = relation.arel_columns(column_names)
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
