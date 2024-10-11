@@ -18,6 +18,8 @@ connections:
     <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
     <% end %>
+      variables:
+        time_zone: '+00:00'
     arunit2:
       username: rails
       encoding: utf8mb4
@@ -52,6 +54,8 @@ connections:
     <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
     <% end %>
+      variables:
+        time_zone: '+00:00'
     arunit2:
       username: rails
       encoding: utf8mb4
