@@ -520,7 +520,7 @@ expression or a proc or lambda that returns one.
 
 The default error message is _"is invalid"_.
 
-WARNING. use `\A` and `\z` to match the start and end of the string, `^` and `$`
+WARNING. Use `\A` and `\z` to match the start and end of the string, `^` and `$`
 match the start/end of a line. Due to frequent misuse of `^` and `$`, you need
 to pass the `multiline: true` option in case you use any of these two anchors in
 the provided regular expression. In most cases, you should be using `\A` and
