@@ -1268,7 +1268,7 @@ module ActionDispatch
 
           private
             def invalid_only_except_options(options, valid_actions)
-              options.values_at(:only, :except).flatten.compact.uniq - valid_actions
+              options.values_at(:only, :except).flatten.compact.uniq.map(&:to_sym) - valid_actions
             end
         end
 

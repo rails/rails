@@ -816,6 +816,17 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_resource_has_only_show_action_with_string_value
+    with_routing do |set|
+      set.draw do
+        resources :products, only: "show"
+      end
+
+      assert_resource_allowed_routes("products", {}, { id: "1" }, :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_resource_allowed_routes("products", { format: "xml" }, { id: "1" }, :show, [:index, :new, :create, :edit, :update, :destroy])
+    end
+  end
+
   def test_singleton_resource_has_only_show_action
     with_routing do |set|
       set.draw do
@@ -824,6 +835,17 @@ class ResourcesTest < ActionController::TestCase
 
       assert_singleton_resource_allowed_routes("accounts", {},                    :show, [:index, :new, :create, :edit, :update, :destroy])
       assert_singleton_resource_allowed_routes("accounts", { format: "xml" },  :show, [:index, :new, :create, :edit, :update, :destroy])
+    end
+  end
+
+  def test_singleton_resource_has_only_show_action_with_string_value
+    with_routing do |set|
+      set.draw do
+        resource :account, only: "show"
+      end
+
+      assert_singleton_resource_allowed_routes("accounts", {}, :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes("accounts", { format: "xml" }, :show, [:index, :new, :create, :edit, :update, :destroy])
     end
   end
 
@@ -1113,7 +1135,7 @@ class ResourcesTest < ActionController::TestCase
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
         set.draw do
-          resources :products, only: [:foo, :bar]
+          resources :products, only: [:foo, "bar"]
         end
       end
     end
@@ -1124,7 +1146,7 @@ class ResourcesTest < ActionController::TestCase
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
         set.draw do
-          resource :products, only: [:foo, :bar]
+          resource :products, only: [:foo, "bar"]
         end
       end
     end
