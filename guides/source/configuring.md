@@ -2553,7 +2553,7 @@ The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| (original)            | `ActionMailer::MailDeliveryJob` |
+| (original)            | `"ActionMailer::DeliveryJob"`     |
 | 6.0                   | `"ActionMailer::MailDeliveryJob"` |
 
 ### Configuring Active Support
