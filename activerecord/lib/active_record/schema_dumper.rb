@@ -192,7 +192,7 @@ module ActiveRecord
           tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
-          columns.each do |column|
+          columns.sort_by(&:name).each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
 
