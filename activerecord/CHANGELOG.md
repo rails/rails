@@ -1,3 +1,7 @@
+*   Add `affected_rows` to `sql.active_record` Notification.
+
+    *Hartley McGuire*
+
 *   Fix `sum` when performing a grouped calculation.
 
     `User.group(:friendly).sum` no longer worked. This is fixed.
