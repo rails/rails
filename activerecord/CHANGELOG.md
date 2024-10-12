@@ -2,7 +2,8 @@
 
     *David Stosik*
 
-*   Allow to save records with polymorphic join tables that have inverse of specified.
+*   Allow to save records with polymorphic join tables that have `inverse_of`
+    specified.
 
     *Markus Doits*
 
