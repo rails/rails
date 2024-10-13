@@ -52,6 +52,10 @@ module ActionDispatch
       ActionDispatch::Http::URL.secure_protocol = app.config.force_ssl
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
 
+      if request_id_sanitizer = app.config.action_dispatch.request_id_sanitizer
+        ActionDispatch::RequestId.sanitizer = request_id_sanitizer
+      end
+
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
         ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
