@@ -21,8 +21,11 @@ module Rails
 
         template "app/mailers/passwords_mailer.rb"
 
+        template "app/views/passwords/new.html.erb"
+        template "app/views/passwords/edit.html.erb"
         template "app/views/passwords_mailer/reset.html.erb"
         template "app/views/passwords_mailer/reset.text.erb"
+        template "app/views/sessions/new.html.erb"
 
         template "test/mailers/previews/passwords_mailer_preview.rb"
       end
