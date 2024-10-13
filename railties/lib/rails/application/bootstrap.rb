@@ -118,8 +118,8 @@ module Rails
         if app.config.application_url
           url = ActionDispatch::Http::URI.new(app.config.application_url)
           Rails.application.url = url
+          ActionDispatch::Http::URI.application_base_url = url
           default_url_options = { host: url.host, protocol: url.scheme, port: url.port }
-          app.default_url_options = default_url_options if app.default_url_options.blank?
           app.config.action_mailer.default_url_options = default_url_options if app.config.action_mailer.default_url_options.blank?
         end
       end

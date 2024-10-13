@@ -14,6 +14,7 @@ module ActionDispatch
 
       mattr_accessor :secure_protocol, default: false
       mattr_accessor :tld_length, default: 1
+      mattr_accessor :application_base_url
 
       delegate :scheme, :host, :port, :path, :query, :fragment, :to_s, to: :@uri
 
@@ -65,11 +66,13 @@ module ActionDispatch
           protocol = options[:protocol]
           port     = options[:port]
 
-          unless host
+          if host
+            build_host_url(host, port, protocol, options, path_for(options))
+          elsif application_base_url
+            application_base_url.join(path_for(options)).to_s
+          else
             raise ArgumentError, "Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true"
           end
-
-          build_host_url(host, port, protocol, options, path_for(options))
         end
 
         def path_for(options)
@@ -209,6 +212,10 @@ module ActionDispatch
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)
         self.class.extract_subdomain(host, tld_length)
+      end
+
+      def join(path)
+        ::URI.join(@uri, path)
       end
     end
   end
