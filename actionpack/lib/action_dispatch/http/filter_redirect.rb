@@ -35,14 +35,14 @@ module ActionDispatch
       end
 
       def parameter_filtered_location
-        uri = URI.parse(location)
+        uri = ::URI.parse(location)
         unless uri.query.nil? || uri.query.empty?
           uri.query.gsub!(FilterParameters::PAIR_RE) do
             request.parameter_filter.filter($1 => $2).first.join("=")
           end
         end
         uri.to_s
-      rescue URI::Error
+      rescue ::URI::Error
         FILTERED
       end
     end

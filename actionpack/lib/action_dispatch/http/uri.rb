@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/module/attribute_accessors"
 require "uri/generic"
 
 module ActionDispatch
   module Http
     class URI
-      IP6_REGEX       = /(https?)?[:\/]*([\[]?(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}[\]]?)[:]?([0-9]*)(.*)/
       IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
@@ -14,7 +15,7 @@ module ActionDispatch
       mattr_accessor :secure_protocol, default: false
       mattr_accessor :tld_length, default: 1
 
-      delegate :scheme, :host, :port, :path, :query, :fragment, :to_s, to: :uri
+      delegate :scheme, :host, :port, :path, :query, :fragment, :to_s, to: :@uri
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -181,44 +182,11 @@ module ActionDispatch
       end
 
       def initialize(uri_string)
-        if ipv6 = uri_string.match(IP6_REGEX)
-          @uri = ::URI::Generic.build2(scheme: ipv6[1], host: ipv6[2], port: ipv6[3], path: ipv6[4])
-        else
-          # get_header("HTTP_HOST") || "#{server_name}:#{get_header('SERVER_PORT')}"
-          @uri = ::URI.parse(uri_string)
-        end
+        @uri = ::URI.parse(uri_string)
       end
 
       def protocol
         "#{scheme}://"
-      end
-
-      # Returns a \host:\port string for this request, such as "example.com" or
-      # "example.com:8080". Port is only included if it is not a default port
-      # (80 or 443).
-      def host_with_port
-        "#{host}#{port_string}"
-      end
-
-      # Returns a string \port suffix, including colon, like ":8080" if the \port
-      # number of this request is not the default HTTP \port 80 or HTTPS \port 443.
-      def port_string
-        standard_port? ? "" : ":#{port}"
-      end
-
-      # Returns the standard \port number for this request's protocol.
-      def standard_port
-        scheme == "https" ? 443 : 80
-      end
-
-      # Returns whether this request is using the standard port.
-      def standard_port?
-        port == standard_port
-      end
-
-      # Returns a hash with the host and the protocol, for use with URL calls.
-      def host_and_protocol
-        { host: host, protocol: protocol }
       end
 
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
@@ -242,9 +210,6 @@ module ActionDispatch
       def subdomain(tld_length = @@tld_length)
         self.class.extract_subdomain(host, tld_length)
       end
-
-      private
-        attr_accessor :uri
     end
   end
 end

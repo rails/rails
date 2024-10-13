@@ -5,19 +5,19 @@ require "abstract_unit"
 class URITest < ActiveSupport::TestCase
   test "create new url" do
     uri = ActionDispatch::Http::URI.new("http://myapp.test/page?id#me")
-    assert_equal uri.to_s, "http://myapp.test/page?id#me"
-    assert_equal uri.scheme, "http"
-    assert_equal uri.protocol, "http://"
-    assert_equal uri.host, "myapp.test"
-    assert_equal uri.path, "/page"
-    assert_equal uri.fragment, "me"
+    assert_equal "http://myapp.test/page?id#me", uri.to_s
+    assert_equal "http", uri.scheme
+    assert_equal "http://", uri.protocol
+    assert_equal "myapp.test", uri.host
+    assert_equal "/page", uri.path
+    assert_equal "me", uri.fragment
   end
 
   test "create with ipv6" do
-    uri = ActionDispatch::Http::URI.new("http://2001:0db8:85a3:0000:0000:8a2e:0370:7334")
-    assert_equal uri.to_s, "http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]"
-    uri = ActionDispatch::Http::URI.new("http://2001:0db8:85a3:0000:0000:8a2e:0370:8a2e:3000/home")
-    assert_equal uri.to_s, "http://[2001:0db8:85a3:0000:0000:8a2e:0370:8a2e]:3000/home"
+    uri = ActionDispatch::Http::URI.new("http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]")
+    assert_equal "http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]", uri.to_s
+    uri = ActionDispatch::Http::URI.new("http://[2001:0db8:85a3:0000:0000:8a2e:0370:8a2e]:3000/home")
+    assert_equal "http://[2001:0db8:85a3:0000:0000:8a2e:0370:8a2e]:3000/home", uri.to_s
   end
 
   test "extract domain and subdomains" do

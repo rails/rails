@@ -2,9 +2,6 @@
 
 # :markup: markdown
 
-require "active_support/core_ext/module/attribute_accessors"
-require "action_dispatch/http/uri"
-
 module ActionDispatch
   module Http
     module URL

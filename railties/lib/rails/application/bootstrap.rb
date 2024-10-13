@@ -114,7 +114,6 @@ module Rails
         ActiveSupport.run_load_hooks(:before_initialize, app)
       end
 
-    # Sets the Rails.application.url config
       initializer :initialize_url, group: :all, after: :one do |app|
         if app.config.application_url
           url = ActionDispatch::Http::URI.new(app.config.application_url)
