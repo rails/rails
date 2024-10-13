@@ -23,7 +23,7 @@
     for(var i = 0; i < array.length; i++) callback(array[i]);
   }
 
-  document.addEventListener("turbo:load", function() {
+  document.addEventListener("turbo:load", function(turbo_load_event) {
     var guidesMenu = document.getElementById("guidesMenu");
     var guides     = document.getElementById("guides");
 
@@ -158,11 +158,15 @@
 
     var PAGE_LOAD_BUFFER = 1000;
 
+    var isDirectlyVisited = function() {
+      return Object.keys(turbo_load_event.detail.timing).length === 0;
+    }
+
     var navHighlight = function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
           updateHighlight(matchingNavLink(entry.target));
-        } else if (entry.time >= PAGE_LOAD_BUFFER && belowBottomHalf(entry)) {
+        } else if (isDirectlyVisited() && entry.time >= PAGE_LOAD_BUFFER && belowBottomHalf(entry)) {
           updateHighlight(matchingNavLink(prevElem(entry.target)));
         }
       });
