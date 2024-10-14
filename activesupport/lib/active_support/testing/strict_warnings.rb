@@ -16,7 +16,10 @@ module ActiveSupport
       /Failed to validate the schema cache because/,
 
       # TODO: We need to decide what to do with this.
-      /Status code :unprocessable_entity is deprecated/
+      /Status code :unprocessable_entity is deprecated/,
+
+      # Allow this warning only in the `TransactionCallbacksTest`.
+      %r{.*/rails/activerecord/test/cases/transaction_callbacks_test\.rb:\d+: warning: redefining 'object_id' may cause serious problems}
     )
 
     SUPPRESSED_WARNINGS = Regexp.union(
