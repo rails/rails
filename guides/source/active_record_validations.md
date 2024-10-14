@@ -498,7 +498,7 @@ These options are all supported:
 | `:other_than`               | Specifies the value must be other than the supplied value.               | "must be other than %{count}"               |
 
 NOTE: The validator requires a compare option be supplied. Each option accepts a
-value, proc, or symbol. Any class that includes Comparable can be compared.
+value, proc, or symbol. Any class that includes [Comparable](https://ruby-doc.org/3.3.5/Comparable.html) can be compared.
 
 ### `format`
 
