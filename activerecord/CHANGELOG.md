@@ -371,4 +371,13 @@
 
     *Eileen M. Uchitelle*
 
+*   Support PostgreSQL DISTINCT ON queries
+
+    ```ruby
+    User.distinct_on(:name)
+    #=> SQL SELECT DISTINCT ON (name) * FROM users
+    ```
+
+    *Ali Ismayilov*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activerecord/CHANGELOG.md) for previous changes.
