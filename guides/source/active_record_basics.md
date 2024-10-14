@@ -501,7 +501,7 @@ SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIM
 ```
 
 ```ruby
-# Find all books with a given an author, sort by created_at in reverse chronological order.
+# Find all books by a given author, sort by created_at in reverse chronological order.
 Book.where(author: "Douglas Adams").order(created_at: :desc)
 ```
 
