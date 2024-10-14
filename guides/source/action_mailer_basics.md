@@ -87,7 +87,7 @@ end
 
 ### Edit the Mailer
 
-The file `app/mailers/user_mailer.rb` is initially empty. So next, we add
+The `UserMailer` in `app/mailers/user_mailer.rb` initially doesn't have any methods. So next, we add
 methods (aka actions) to the mailer that will send specific emails.
 
 Mailers have methods called "actions" and they use views to structure their
@@ -120,8 +120,7 @@ Here is a quick explanation of the Mailer related methods used above:
   the values of headers like `:to` and `:subject` per email.
 
 There is also the [`headers`][] method (not used above), which is used to
-specify email headers with a hash or by calling `headers[:field_name] =
-'value'`.
+specify email headers with a hash or by calling `headers[:field_name] = 'value'`.
 
 It is possible to specify an action directly while using the generator like
 this:
@@ -200,7 +199,7 @@ view to be sent over the HTTP protocol. Mailer actions render a view and send it
 through email protocols instead.
 
 Let's see an example of using the `UserMailer` to send a welcome email when a
-user is successfully created:
+user is successfully created.
 
 First, let's create a `User` scaffold:
 
@@ -355,8 +354,9 @@ Attachments and Multipart Emails
 Action Mailer simplifies adding attachments with the [attachments
 method](https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments).
 
-Pass the file name and content to Action Mailer and the [Mail
-gem](https://github.com/mikel/mail) will automatically guess the `mime_type`,
+Add an attachment by passing the file name and content to the [attachments
+method](https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments).
+Action Mailer will automatically guess the `mime_type`,
 set the `encoding`, and create the attachment.
 
 ```ruby
@@ -380,10 +380,10 @@ attachments['filename.jpg'] = {
 }
 ```
 
-NOTE: Mail gem will automatically Base64 encode an attachment. If you want
+NOTE: Action Mailer will automatically Base64 encode an attachment. If you want
 something different, you can encode your content and pass in the encoded content
 as well as the encoding in a `Hash` to the `attachments` method. If you specify
-an encoding, Mail gem not try to Base64 encode the attachment.
+an encoding, Action Mailer will not try to Base64 encode the attachment.
 
 ### Making Inline Attachments
 
@@ -502,7 +502,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-This will render the template 'another_template.html.erb' for the HTML part and
+This will render the template `another_template.html.erb` for the HTML part and
 "hello" for the text part. The
 [render](https://api.rubyonrails.org/classes/ActionController/Rendering.html#method-i-render)
 method is the same one used inside of Action Controller, so you can use all the
@@ -935,8 +935,8 @@ Mailer callbacks abort further processing if `body` is set to a non-nil value.
 [`before_deliver`]:
     https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-before_deliver
 
-Action Mailer Helpers
----------------------
+Action Mailer View Helpers
+--------------------------
 
 Action Mailer views have access to most of the same helpers as regular views.
 
@@ -1004,8 +1004,7 @@ config.action_mailer.smtp_settings = {
 
 NOTE: Google [blocks
 sign-ins](https://support.google.com/accounts/answer/6010255) from apps it deems
-less secure. You can change your Gmail settings
-[here](https://www.google.com/settings/security/lesssecureapps) to allow the
+less secure. You can [change your Gmail settings](https://www.google.com/settings/security/lesssecureapps) to allow the
 attempts. If your Gmail account has 2-factor authentication enabled, then you
 will need to set an [app password](https://myaccount.google.com/apppasswords)
 and use that instead of your regular password.
