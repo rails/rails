@@ -345,7 +345,7 @@ with Validation Errors](#working-with-validation-errors) section.
 Validation Helpers
 ------------------
 
-Active Record offers many predefined validation helpers that you can use
+Active Record offers many predefined validations that you can use
 directly inside your class definitions. These helpers provide common validation
 rules. Each time a validation fails, an error message is added to the object's
 `errors` collection, and this error is associated with the specific
