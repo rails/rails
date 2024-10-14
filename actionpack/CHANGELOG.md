@@ -1,3 +1,15 @@
+*   Improve `ActionController::TestCase` to expose a binary encoded `request.body`.
+
+    The rack spec clearly states:
+
+    > The input stream is an IO-like object which contains the raw HTTP POST data.
+    > When applicable, its external encoding must be “ASCII-8BIT” and it must be opened in binary mode.
+
+    Until now its encoding was generally UTF-8, which doesn't accurately reflect production
+    behavior.
+
+    *Jean Boussier*
+
 *   Update `ActionController::AllowBrowser` to support passing method names to `:block`
 
     ```ruby
