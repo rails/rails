@@ -39,9 +39,9 @@ module ActiveRecord
 
           begin
             require legacy_adapter_path
-            # If we reach here it means we found the found a file that may be the legacy adapter and should raise.
+            # If we reach here it means we found the file that may be the legacy adapter and should raise.
             if ActiveRecord::ConnectionHandling.method_defined?(legacy_adapter_connection_method_name)
-              # If we find the connection method then we care certain it is a legacy adapter.
+              # If we find the connection method then we are certain it is a legacy adapter.
               deprecation_message = <<~MSG.squish
                 Database configuration specifies '#{adapter_name}' adapter but that adapter has not been registered.
                 Rails 7.2 has changed the way Active Record database adapters are loaded. The adapter needs to be
@@ -59,7 +59,7 @@ module ActiveRecord
               MSG
             else
               # If we do not find the connection method we are much less certain it is a legacy adapter. Even though the
-              # file exists in the location defined by convenntion, it does not necessarily mean that file is supposed
+              # file exists in the location defined by convention, it does not necessarily mean that file is supposed
               # to define the adapter the legacy way. So raise an error that explains both possibilities.
               deprecation_message = <<~MSG.squish
                 Database configuration specifies nonexistent '#{adapter_name}' adapter.
