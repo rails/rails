@@ -788,8 +788,11 @@ If you validate the absence of an object associated via a
 will check that the object is neither `present?` nor `marked_for_destruction?`.
 
 Since `false.present?` is false, if you want to validate the absence of a
-boolean field you should use `validates :field_name, exclusion: { in: [true,
-false] }`.
+boolean field you should use:
+
+```ruby
+validates :field_name, exclusion: { in: [true, false] }
+```
 
 The default error message is _"must be blank"_.
 
