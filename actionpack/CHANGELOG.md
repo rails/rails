@@ -1,3 +1,10 @@
+*   Adding `ActionDispatch::Http::URI` class.
+
+    It gives us a decorated stdlib `URI` object that is used for `Rails.application.url`.
+    In a first step to simplify the `ActionDispatch::Http::URL` module, all class methods from it are moved `ActionDispatch::Http::URI`.
+
+    *Tim Aßmann*
+
 *   Update `ActionController::AllowBrowser` to support passing method names to `:block`
 
     ```ruby

@@ -1,5 +1,31 @@
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
+*   Add `Rails.application.url` and `config.application_url`
+
+    Before it you had to set static application-url in different places.
+
+    ```ruby
+    Rails.application.configure do
+      # Add top-level Rails.configuration.x.url for canonical reference
+      config.x.url = URI("https://myapplication.com")
+
+      # These options will be used as a starting point when generating URLs
+      config.action_controller.default_url_options = { host: 'myapplication.com', protocol: 'https' }
+      config.action_mailer.default_url_options     = { host: 'myapplication.com', protocol: 'https' }
+    end
+    ```
+
+    With this change, you only have to set it once.
+
+    ```ruby
+    Rails.application.configure do
+      # Add top-level Rails.application.url for canonical reference
+      config.application_url = "https://myapplication.com"
+    end
+    ```
+
+    *Tim Aßmann*
+
 *   Exit `rails g` with code 1 if generator could not be found.
 
     Previously `rails g` returned 0, which would make it harder to catch typos in scripts calling `rails g`.

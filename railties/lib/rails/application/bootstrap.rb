@@ -4,6 +4,7 @@ require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
+require "action_dispatch/http/url"
 
 module Rails
   class Application
@@ -111,6 +112,17 @@ module Rails
 
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
+      end
+
+    # Sets the Rails.application.url config
+      initializer :initialize_url, group: :all, after: :one do |app|
+        if app.config.application_url
+          url = ActionDispatch::Http::URI.new(app.config.application_url)
+          Rails.application.url = url
+          default_url_options = { host: url.host, protocol: url.scheme, port: url.port }
+          app.default_url_options = default_url_options if app.default_url_options.blank?
+          app.config.action_mailer.default_url_options = default_url_options if app.config.action_mailer.default_url_options.blank?
+        end
       end
     end
   end
