@@ -3,7 +3,7 @@
 Active Record Validations
 =========================
 
-This guide teaches you how to validate Ruby objects before saving them to the
+This guide teaches you how to validate Active Record objects before saving them to the
 database using Active Record's validations feature.
 
 After reading this guide, you will know:
