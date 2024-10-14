@@ -348,7 +348,7 @@ Validation Helpers
 Active Record offers many predefined validation helpers that you can use
 directly inside your class definitions. These helpers provide common validation
 rules. Each time a validation fails, an error message is added to the object's
-`errors` collection, and this and this error is associated with the specific
+`errors` collection, and this error is associated with the specific
 attribute being validated.
 
 When a validation fails, the error message is stored in the `errors` collection
