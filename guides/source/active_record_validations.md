@@ -264,7 +264,7 @@ end
 
 ```irb
 irb> person = Person.new
-=> #<Person id: nil, name: nil>
+=> #<Person id: nil, name: nil, created_at: nil, updated_at: nil>
 irb> person.errors.size
 => 0
 
