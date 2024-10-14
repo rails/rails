@@ -1,16 +1,12 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
-Action Controller Advance Topics
+Action Controller Advanced Topics
 ================================
 
 In this guide, you will learn about the following topics related to controllers: TODO update bullet points.
 
 After reading this guide, you will know how to:
 
-* Follow the flow of a request through a controller.
-* Restrict parameters passed to your controller.
-* Store data in the session or cookies.
-* Work with action callbacks to execute code during request processing.
 * Use Action Controller's built-in HTTP authentication.
 * Stream data directly to the user's browser.
 * Filter sensitive parameters, so they do not appear in the application's log.

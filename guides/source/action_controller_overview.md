@@ -8,14 +8,11 @@ In this guide, you will learn how controllers work and how they fit into the req
 After reading this guide, you will know how to:
 
 * Follow the flow of a request through a controller.
-* Restrict parameters passed to your controller.
-* Store data in the session or cookies.
+* Access parameters passed to your controller.
+* Use Strong Parameters and permit values.
+* Store data in the cookie and the session and use the flash.
 * Work with action callbacks to execute code during request processing.
-* Use Action Controller's built-in HTTP authentication.
-* Stream data directly to the user's browser.
-* Filter sensitive parameters, so they do not appear in the application's log.
-* Deal with exceptions that may be raised during request processing.
-* Use the built-in health check end-point for load balancers and uptime monitors.
+* Use the Request and Response Objects.
 
 --------------------------------------------------------------------------------
 
@@ -264,8 +261,6 @@ When a user opens the URL `/books/4_2`, the controller will extract the
 composite key value `["4", "2"]` and pass it to `Book.find`. The `extract_value`
 method may be used to extract arrays out of any delimited parameters.
 
-TODO: this section may not go here. Also test this out in code.
-
 ### The `default_url_options` Method
 
 You can set global default parameters for [`url_for`]( https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for) by defining a method called `default_url_options` in your controller. This method must return a hash with the desired defaults, whose keys must be symbols:
@@ -391,14 +386,11 @@ The `friends` array should have a `name` attribute (any permitted scalar values
 allowed), a `family` attribute which is restricted to having a `name`, and a
 `hobbies` attribute as an array of permitted scalar values.
 
-TODO: do something about the 1, 2, 3, 4.
-
 ### Examples
 
 Here are some examples of how to use `permit` for different use cases.
 
-1.
-You may want to also use the permitted attributes in your `new`
+Example 1: You may want to also use the permitted attributes in your `new`
 action. This raises the problem that you can't use [`require`][] on the
 root key because, normally, it does not exist when calling `new`:
 
@@ -408,8 +400,7 @@ root key because, normally, it does not exist when calling `new`:
 params.fetch(:blog, {}).permit(:title, :author)
 ```
 
-2.
-The model class method `accepts_nested_attributes_for` allows you to
+Example 2: The model class method `accepts_nested_attributes_for` allows you to
 update and destroy associated records. This is based on the `id` and `_destroy`
 parameters:
 
@@ -418,8 +409,7 @@ parameters:
 params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
 ```
 
-3.
-Hashes with integer keys are treated differently, and you can declare
+Example 3: Hashes with integer keys are treated differently, and you can declare
 the attributes as if they were direct children. You get these kinds of
 parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
@@ -433,8 +423,7 @@ with a `has_many` association:
 params.require(:book).permit(:title, chapters_attributes: [:title])
 ```
 
-4.
-Imagine a scenario where you have parameters representing a product
+Example 4: Imagine a scenario where you have parameters representing a product
 name, and a hash of arbitrary data associated with that product, and
 you want to permit the product name attribute and also the whole
 data hash:
