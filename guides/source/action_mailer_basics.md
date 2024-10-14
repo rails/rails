@@ -309,8 +309,8 @@ or `deliver_later` to send itself now or later. The
 Here is an example of the `MessageDelivery` object from the Rails console
 example above:
 
-```
-UserMailer.with(user: user).weekly_summary
+```irb
+irb> UserMailer.with(user: user).weekly_summary
 #<ActionMailer::MailDeliveryJob:0x00007f84cb0367c0
  @_halted_callback_hook_called=nil,
  @_scheduled_at_time=nil,
@@ -346,18 +346,18 @@ UserMailer.with(user: user).weekly_summary
 [`with`]:
     https://api.rubyonrails.org/classes/ActionMailer/Parameterized/ClassMethods.html#method-i-with
 
-Attachments and Multipart Emails
+Multipart Emails and Attachments
 --------------------------------
+
+The `multipart` MIME type represents a document that's comprised of multiple component parts, each of which may have its own individual MIME type (such as the `text/html` and `text/plain`). The `multipart` type encapsulates sending multiple files together in one transaction such as attaching multiple files to an email for example.
 
 ### Adding Attachments
 
-Action Mailer simplifies adding attachments with the [attachments
+You can add an attachment with Action Mailer by passing the file name and
+content to the [attachments
 method](https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments).
-
-Add an attachment by passing the file name and content to the [attachments
-method](https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-attachments).
-Action Mailer will automatically guess the `mime_type`,
-set the `encoding`, and create the attachment.
+Action Mailer will automatically guess the `mime_type`, set the `encoding`, and
+create the attachment.
 
 ```ruby
 attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
@@ -437,12 +437,7 @@ and you can manually create any other type of MIME email.
 NOTE: The order of the parts getting inserted is determined by the
 `:parts_order` inside of the `ActionMailer::Base.default` method.
 
-Multipart is also used when you send attachments with email. The `multipart`
-MIME type represents a document that's comprised of multiple component parts,
-each of which may have its own individual MIME type, such as the `text/html` and
-`text/text` parts above. The use of `multipart` type is to encapsulate multiple
-files being sent together in one transaction, such as when attaching multiple
-files to an email.
+Multipart is also used when you send attachments with email.
 
 Mailer Views and Layouts
 ------------------------
