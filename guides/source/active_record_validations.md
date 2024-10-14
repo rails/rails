@@ -750,7 +750,7 @@ The default error message is _"can't be blank"_.
 
 This helper validates that the specified attributes are absent. It uses the
 [`Object#present?`][] method to check if the value is neither nil nor a blank
-string - that is, a string that is either empty or consists of whitespace.
+string - that is, a string that is either empty or consists of whitespace only.
 
 ```ruby
 class Person < ApplicationRecord
