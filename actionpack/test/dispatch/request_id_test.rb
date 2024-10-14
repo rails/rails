@@ -33,13 +33,13 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   test "custom sanitizer" do
-    sanitizer = ActionDispatch::RequestId.sanitizer
+    original_request_id_sanitizer = ActionDispatch::RequestId.sanitizer
     ActionDispatch::RequestId.sanitizer = ->(request_id) { request_id.gsub(/[^\w\-@=]/, "") }
 
     request_id = "sjgxAo-1K9Z_3leC_noAbpH5tb2f86FFyrGaAzp---jD7Wm2dXaJPg=="
     assert_equal request_id, stub_request({ "HTTP_X_REQUEST_ID" => request_id }).request_id
   ensure
-    ActionDispatch::RequestId.sanitizer = sanitizer
+    ActionDispatch::RequestId.sanitizer = original_request_id_sanitizer
   end
 
   private
