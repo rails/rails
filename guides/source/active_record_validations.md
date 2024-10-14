@@ -346,7 +346,7 @@ Validation Helpers
 ------------------
 
 Active Record offers many predefined validations that you can use
-directly inside your class definitions. These helpers provide common validation
+directly inside your class definitions. These predefined validations provide common validation
 rules. Each time a validation fails, an error message is added to the object's
 `errors` collection, and this error is associated with the specific
 attribute being validated.
