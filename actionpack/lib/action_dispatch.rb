@@ -54,8 +54,8 @@ module ActionDispatch
     autoload_under "http" do
       autoload :ContentSecurityPolicy
       autoload :PermissionsPolicy
-      autoload :Request
       autoload :Response
+      autoload :Request
     end
   end
 
@@ -94,6 +94,7 @@ module ActionDispatch
     autoload :MimeNegotiation
     autoload :Parameters
     autoload :UploadedFile, "action_dispatch/http/upload"
+    autoload :URI
     autoload :URL
   end
 

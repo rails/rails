@@ -33,6 +33,7 @@ module ActionMailer
       # make sure readers methods get compiled
       options.asset_host          ||= app.config.asset_host
       options.relative_url_root   ||= app.config.relative_url_root
+      options.default_url_options ||= app.default_url_options
 
       ActiveSupport.on_load(:action_mailer) do
         include AbstractController::UrlFor

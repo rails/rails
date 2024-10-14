@@ -23,7 +23,7 @@ module Rails
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version, :yjit
+                    :dom_testing_default_html_version, :yjit, :application_url
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
