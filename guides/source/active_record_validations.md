@@ -316,10 +316,10 @@ irb> new_person.errors[:name]
 irb> new_person.errors[:name].any?
 => false
 
-irb> saved_person = Person.create
-irb> saved_person.errors[:name]
+irb> create_person = Person.create
+irb> create_person.errors[:name]
 => ["can't be blank"] # validation error because `name` is required
-irb> saved_person.errors[:name].any?
+irb> create_person.errors[:name].any?
 => true
 ```
 
