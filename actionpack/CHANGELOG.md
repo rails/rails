@@ -1,3 +1,5 @@
+## Rails 7.0.8.5 (October 15, 2024) ##
+
 *   Avoid regex backtracking in HTTP Token authentication
 
     [CVE-2024-47887]
