@@ -7,8 +7,6 @@ Gem::Specification.new do |s|
   s.summary     = "Library to release Rails"
   s.description = "A set of tasks to release Rails"
 
-  s.required_ruby_version = ">= 3.1.0"
-
   s.license = "MIT"
 
   s.author   = "Rafael Mendonça França"
