@@ -104,6 +104,14 @@ PATH
       method_source
       rake (>= 12.2)
       thor (~> 1.0)
+      zeitwerk (~> 2.5)
+
+PATH
+  remote: tools/releaser
+  specs:
+    releaser (1.0.0)
+      minitest
+      rake (~> 13.0)
 
 GEM
   remote: https://rubygems.org/
@@ -538,7 +546,7 @@ GEM
     zeitwerk (2.6.15)
 
 PLATFORMS
-  ruby
+  aarch64-linux
   x86_64-darwin-19
 
 DEPENDENCIES
@@ -591,6 +599,7 @@ DEPENDENCIES
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
   redis-namespace!
+  releaser!
   resque
   resque-scheduler
   rexml

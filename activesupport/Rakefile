@@ -4,8 +4,6 @@ require "rake/testtask"
 
 task default: :test
 
-task :package
-
 Rake::TestTask.new do |t|
   t.pattern = "test/**/*_test.rb"
   t.warning = true
