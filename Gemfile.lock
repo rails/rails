@@ -10,35 +10,35 @@ GIT
 PATH
   remote: .
   specs:
-    actioncable (7.1.4)
-      actionpack (= 7.1.4)
-      activesupport (= 7.1.4)
+    actioncable (7.1.4.1)
+      actionpack (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
       zeitwerk (~> 2.6)
-    actionmailbox (7.1.4)
-      actionpack (= 7.1.4)
-      activejob (= 7.1.4)
-      activerecord (= 7.1.4)
-      activestorage (= 7.1.4)
-      activesupport (= 7.1.4)
+    actionmailbox (7.1.4.1)
+      actionpack (= 7.1.4.1)
+      activejob (= 7.1.4.1)
+      activerecord (= 7.1.4.1)
+      activestorage (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       mail (>= 2.7.1)
       net-imap
       net-pop
       net-smtp
-    actionmailer (7.1.4)
-      actionpack (= 7.1.4)
-      actionview (= 7.1.4)
-      activejob (= 7.1.4)
-      activesupport (= 7.1.4)
+    actionmailer (7.1.4.1)
+      actionpack (= 7.1.4.1)
+      actionview (= 7.1.4.1)
+      activejob (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       mail (~> 2.5, >= 2.5.4)
       net-imap
       net-pop
       net-smtp
       rails-dom-testing (~> 2.2)
-    actionpack (7.1.4)
-      actionview (= 7.1.4)
-      activesupport (= 7.1.4)
+    actionpack (7.1.4.1)
+      actionview (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       nokogiri (>= 1.8.5)
       racc
       rack (>= 2.2.4)
@@ -46,35 +46,35 @@ PATH
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    actiontext (7.1.4)
-      actionpack (= 7.1.4)
-      activerecord (= 7.1.4)
-      activestorage (= 7.1.4)
-      activesupport (= 7.1.4)
+    actiontext (7.1.4.1)
+      actionpack (= 7.1.4.1)
+      activerecord (= 7.1.4.1)
+      activestorage (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       globalid (>= 0.6.0)
       nokogiri (>= 1.8.5)
-    actionview (7.1.4)
-      activesupport (= 7.1.4)
+    actionview (7.1.4.1)
+      activesupport (= 7.1.4.1)
       builder (~> 3.1)
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    activejob (7.1.4)
-      activesupport (= 7.1.4)
+    activejob (7.1.4.1)
+      activesupport (= 7.1.4.1)
       globalid (>= 0.3.6)
-    activemodel (7.1.4)
-      activesupport (= 7.1.4)
-    activerecord (7.1.4)
-      activemodel (= 7.1.4)
-      activesupport (= 7.1.4)
+    activemodel (7.1.4.1)
+      activesupport (= 7.1.4.1)
+    activerecord (7.1.4.1)
+      activemodel (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       timeout (>= 0.4.0)
-    activestorage (7.1.4)
-      actionpack (= 7.1.4)
-      activejob (= 7.1.4)
-      activerecord (= 7.1.4)
-      activesupport (= 7.1.4)
+    activestorage (7.1.4.1)
+      actionpack (= 7.1.4.1)
+      activejob (= 7.1.4.1)
+      activerecord (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       marcel (~> 1.0)
-    activesupport (7.1.4)
+    activesupport (7.1.4.1)
       base64
       benchmark (>= 0.3)
       bigdecimal
@@ -87,28 +87,35 @@ PATH
       mutex_m
       securerandom (>= 0.3)
       tzinfo (~> 2.0)
-    rails (7.1.4)
-      actioncable (= 7.1.4)
-      actionmailbox (= 7.1.4)
-      actionmailer (= 7.1.4)
-      actionpack (= 7.1.4)
-      actiontext (= 7.1.4)
-      actionview (= 7.1.4)
-      activejob (= 7.1.4)
-      activemodel (= 7.1.4)
-      activerecord (= 7.1.4)
-      activestorage (= 7.1.4)
-      activesupport (= 7.1.4)
+    rails (7.1.4.1)
+      actioncable (= 7.1.4.1)
+      actionmailbox (= 7.1.4.1)
+      actionmailer (= 7.1.4.1)
+      actionpack (= 7.1.4.1)
+      actiontext (= 7.1.4.1)
+      actionview (= 7.1.4.1)
+      activejob (= 7.1.4.1)
+      activemodel (= 7.1.4.1)
+      activerecord (= 7.1.4.1)
+      activestorage (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       bundler (>= 1.15.0)
-      railties (= 7.1.4)
-    railties (7.1.4)
-      actionpack (= 7.1.4)
-      activesupport (= 7.1.4)
+      railties (= 7.1.4.1)
+    railties (7.1.4.1)
+      actionpack (= 7.1.4.1)
+      activesupport (= 7.1.4.1)
       irb
       rackup (>= 1.0.0)
       rake (>= 12.2)
       thor (~> 1.0, >= 1.2.2)
       zeitwerk (~> 2.6)
+
+PATH
+  remote: tools/releaser
+  specs:
+    releaser (1.0.0)
+      minitest
+      rake (~> 13.0)
 
 GEM
   remote: https://rubygems.org/
@@ -269,7 +276,7 @@ GEM
       signet (>= 0.16, < 2.a)
     hashdiff (1.0.1)
     httpclient (2.8.3)
-    i18n (1.14.5)
+    i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     image_processing (1.12.2)
       mini_magick (>= 4.9.5, < 5)
@@ -343,7 +350,7 @@ GEM
     mysql2 (0.5.6)
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
-    net-imap (0.4.14)
+    net-imap (0.4.17)
       date
       net-protocol
     net-pop (0.1.2)
@@ -554,7 +561,7 @@ GEM
     websocket-extensions (0.1.5)
     xpath (3.2.0)
       nokogiri (~> 1.8)
-    zeitwerk (2.6.17)
+    zeitwerk (2.7.0)
 
 PLATFORMS
   ruby
@@ -610,6 +617,7 @@ DEPENDENCIES
   redcarpet (~> 3.2.3)
   redis (>= 4.0.1)
   redis-namespace
+  releaser!
   resque
   resque-scheduler
   rexml

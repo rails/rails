@@ -44,6 +44,7 @@ COPY activerecord/activerecord.gemspec /tmp/rails/activerecord/
 COPY activestorage/activestorage.gemspec /tmp/rails/activestorage/
 COPY activesupport/activesupport.gemspec /tmp/rails/activesupport/
 COPY railties/railties.gemspec /tmp/rails/railties/
+COPY tools/releaser/releaser.gemspec /tmp/rails/tools/releaser/
 RUN cd /tmp/rails \
     && bundle install \
     && yarn install \

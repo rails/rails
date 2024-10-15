@@ -1,3 +1,9 @@
+## Rails 7.1.4.1 (October 15, 2024) ##
+
+*   Avoid backtracing in plain_text_for_blockquote_node
+
+    [CVE-2024-47888]
+
 ## Rails 7.1.4 (August 22, 2024) ##
 
 *   Strip `content` attribute if the key is present but the value is empty
