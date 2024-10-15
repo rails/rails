@@ -483,7 +483,8 @@ module ActionController
       # pairs by the standardized <tt>:</tt>, <tt>;</tt>, or <tt>\t</tt>
       # delimiters defined in +AUTHN_PAIR_DELIMITERS+.
       def raw_params(auth)
-        _raw_params = auth.sub(TOKEN_REGEX, "").split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
+        _raw_params = auth.sub(TOKEN_REGEX, "").split(AUTHN_PAIR_DELIMITERS).map(&:strip)
+        _raw_params.reject!(&:empty?)
 
         if !_raw_params.first&.start_with?(TOKEN_KEY)
           _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"

@@ -1,3 +1,10 @@
+## Rails 6.1.7.9 (October 15, 2024) ##
+
+*   Avoid regex backtracking in `block_format` helper
+
+    [CVE-2024-47889]
+
+
 ## Rails 6.1.7.8 (June 04, 2024) ##
 
 *   No changes.
