@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    permissions:
+      contents: write
+      id-token: write
+
+    environment: release
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ruby
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        registry-url: 'https://registry.npmjs.org'
+    - name: Configure trusted publishing credentials
+      uses: rubygems/configure-rubygems-credentials@v1.0.0
+    - name: Bundle install
+      run: bundle install
+      working-directory: tools/releaser
+    - name: Run release rake task
+      run: bundle exec rake push
+      shell: bash
+      working-directory: tools/releaser
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - name: Wait for release to propagate
+      run: gem exec rubygems-await pkg/*.gem
+      shell: bash

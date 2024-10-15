@@ -18,6 +18,8 @@ else
   gem "rake", ">= 11.1"
 end
 
+gem "releaser", path: "tools/releaser"
+
 gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 4.0.0.alpha7", "< 4.2"
 

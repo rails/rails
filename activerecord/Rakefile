@@ -21,8 +21,6 @@ end
 desc "Run mysql2, sqlite, and postgresql tests by default"
 task default: :test
 
-task :package
-
 desc "Run mysql2, sqlite, and postgresql tests"
 task :test do
   tasks = defined?(JRUBY_VERSION) ?
