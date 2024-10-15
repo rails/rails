@@ -209,7 +209,7 @@ module RenderTestCases
     end
   end
 
-  if RUBY_VERSION >= "3.2"
+  if RUBY_VERSION >= "3.2" && RUBY_VERSION < "3.4" # https://github.com/rails/rails/issues/52902
     def test_render_runtime_error
       ex = assert_raises(ActionView::Template::Error) {
         @view.render(template: "test/runtime_error")
@@ -349,18 +349,20 @@ module RenderTestCases
   end
 
   def test_render_template_with_syntax_error
-    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
+    e = assert_raises(ActionView::Template::Error) { silence_warnings { @view.render(template: "test/syntax_error") } }
     assert_match %r!syntax!, e.message
     assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
   end
 
-  def test_render_partial_with_errors
-    e = assert_raises(ActionView::Template::Error) { @view.render(partial: "test/raise") }
-    assert_match %r!method.*doesnt_exist!, e.message
-    assert_equal "", e.sub_template_message
-    assert_equal "1", e.line_number
-    assert_equal "1: <%= doesnt_exist %>", e.annotated_source_code[0].strip
-    assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
+  if RUBY_VERSION < "3.4" # https://github.com/rails/rails/issues/52902
+    def test_render_partial_with_errors
+      e = assert_raises(ActionView::Template::Error) { @view.render(partial: "test/raise") }
+      assert_match %r!method.*doesnt_exist!, e.message
+      assert_equal "", e.sub_template_message
+      assert_equal "1", e.line_number
+      assert_equal "1: <%= doesnt_exist %>", e.annotated_source_code[0].strip
+      assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
+    end
   end
 
   def test_render_error_indentation
