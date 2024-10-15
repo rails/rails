@@ -136,6 +136,44 @@ module ActiveRecord
         @scope
       end
 
+      # Returns a new relation with semi join and where clause to identify
+      # records with atleast one associated record
+      #
+      # For example, posts that has atleast one associated comment
+      #
+      #    Post.where.exists_with(:comments)
+      #    # SELECT "posts".* FROM "posts"
+      #    # WHERE ( EXISTS (
+      #    #   SELECT 1 FROM "comments" WHERE "comments"."post_id" = "posts"."id"
+      #    # ))
+      #
+      # Additionally, multiple relations can be combined. This will return posts
+      # that has atleast one associated author and comment:
+      #
+      #    Post.where.associated(:author, :comments)
+      #    # SELECT "posts".* FROM "posts"
+      #    # WHERE ( EXISTS (
+      #    #   SELECT 1 FROM "authors" WHERE "authors"."id" = "posts"."author_id"
+      #    # )) AND
+      #    # ( EXISTS (
+      #    #   SELECT 1 FROM "comments" WHERE "comments"."post_id" = "posts"."id"
+      #    # ))
+      def exists_with(*associations)
+        associations.each do |association|
+          scope_association_reflection(association)
+
+          join_node = @scope.joins(association).arel.source.right.first
+          from_table_expr = join_node.left
+          association_condition_expr = join_node.right.expr
+
+          subquery = Arel::SelectManager.new(from_table_expr).where(association_condition_expr).project(Arel.sql("1"))
+
+          @scope.where!(Arel::Nodes::Exists.new(subquery.ast))
+        end
+
+        @scope
+      end
+
       private
         def scope_association_reflection(association)
           model = @scope.model
