@@ -15,6 +15,13 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :backburner
     class BackburnerAdapter < AbstractAdapter
+      def check_adapter
+        ActiveJob.deprecator.warn <<~MSG.squish
+          The built-in `backburner` adapter is deprecated and will be removed in Rails 8.2.
+          Please upgrade `backburner` gem to version 1.7 or later to use the `backburner` gem's adapter.
+        MSG
+      end
+
       def enqueue(job) # :nodoc:
         response = Backburner::Worker.enqueue(JobWrapper, [job.serialize], queue: job.queue_name, pri: job.priority)
         job.provider_job_id = response[:id] if response.is_a?(Hash)

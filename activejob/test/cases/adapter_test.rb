@@ -49,4 +49,31 @@ class AdapterTest < ActiveSupport::TestCase
       end
     end
   end
+
+  if adapter_is?(:backburner)
+    test "backburner adapter should be deprecated" do
+      before_adapter = ActiveJob::Base.queue_adapter
+
+      msg = <<~MSG.squish
+        The built-in `backburner` adapter is deprecated and will be removed in Rails 8.2.
+        Please upgrade `backburner` gem to version 1.7 or later to use the `backburner` gem's adapter.
+      MSG
+      assert_deprecated(msg, ActiveJob.deprecator) do
+        ActiveJob::Base.queue_adapter = :backburner
+      end
+
+    ensure
+      ActiveJob::Base.queue_adapter = before_adapter
+    end
+
+    test "backburner check_adapter should warn" do
+      msg = <<~MSG.squish
+        The built-in `backburner` adapter is deprecated and will be removed in Rails 8.2.
+        Please upgrade `backburner` gem to version 1.7 or later to use the `backburner` gem's adapter.
+      MSG
+      assert_deprecated(msg, ActiveJob.deprecator) do
+        ActiveJob::Base.queue_adapter.check_adapter
+      end
+    end
+  end
 end
