@@ -68,7 +68,7 @@ module ActiveRecord
               raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
             end
 
-            internal_execute("BEGIN #{mode} TRANSACTION", allow_retry: true, materialize_transactions: false)
+            internal_execute("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             if isolation
               @previous_read_uncommitted = query_value("PRAGMA read_uncommitted")
               internal_execute("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
