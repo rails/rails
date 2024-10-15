@@ -1,3 +1,5 @@
+## Rails 7.1.4.1 (October 15, 2024) ##
+
 *   Avoid backtracing in plain_text_for_blockquote_node
 
     [CVE-2024-47888]
