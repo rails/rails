@@ -1,3 +1,7 @@
+*   Avoid regex backtracking in `block_format` helper
+
+    [CVE-2024-47889]
+
 ## Rails 7.2.1 (August 22, 2024) ##
 
 *   No changes.
