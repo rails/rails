@@ -349,7 +349,7 @@ module RenderTestCases
   end
 
   def test_render_template_with_syntax_error
-    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
+    e = assert_raises(ActionView::Template::Error) { silence_warnings { @view.render(template: "test/syntax_error") } }
     assert_match %r!syntax!, e.message
     assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
   end

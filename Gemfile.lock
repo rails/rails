@@ -391,7 +391,7 @@ GEM
     path_expander (1.1.1)
     pg (1.5.6)
     prettier_print (1.2.1)
-    prism (0.29.0)
+    prism (1.2.0)
     propshaft (0.9.0)
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
