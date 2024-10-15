@@ -11,6 +11,17 @@
     *Hartley McGuire*
 
 
+## Rails 7.0.8.5 (October 15, 2024) ##
+
+*   Avoid regex backtracking in HTTP Token authentication
+
+    [CVE-2024-47887]
+
+*   Avoid regex backtracking in query parameter filtering
+
+    [CVE-2024-41128]
+
+
 ## Rails 7.0.8.4 (June 04, 2024) ##
 
 *   Include the HTTP Permissions-Policy on non-HTML Content-Types
