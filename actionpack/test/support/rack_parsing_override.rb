@@ -35,18 +35,18 @@ module RackParsingOverride
     def self.permitted_caller?
       caller_locations.any? do |loc|
         # Our parser calls Rack's to prepopulate caches
-        loc.path.end_with?("lib/action_dispatch/http/request.rb") && loc.label == "request_parameters_list" ||
+        loc.path.end_with?("lib/action_dispatch/http/request.rb") && loc.base_label == "request_parameters_list" ||
           # and as a fallback for older Rack versions
-          loc.path.end_with?("lib/action_dispatch/http/request.rb") && loc.label == "fallback_request_parameters" ||
+          loc.path.end_with?("lib/action_dispatch/http/request.rb") && loc.base_label == "fallback_request_parameters" ||
           # This specifically tests that a "pure" Rack middleware
           # doesn't interfere with our parsing
-          (loc.path.end_with?("test/dispatch/request/query_string_parsing_test.rb") && loc.label == "populate_rack_cache") ||
+          (loc.path.end_with?("test/dispatch/request/query_string_parsing_test.rb") && loc.base_label == "populate_rack_cache") ||
           # Rack::MethodOverride obviously uses Rack's parsing, and
           # that's fine: it's looking for a simple top-level key.
           # Checking for a specific internal method is fragile, but we
           # don't want to ignore any app that happens to have
           # MethodOverride on its call stack!
-          (loc.path.end_with?("lib/rack/method_override.rb") && loc.label == "method_override_param")
+          (loc.path.end_with?("lib/rack/method_override.rb") && loc.base_label == "method_override_param")
       end
     end
 
