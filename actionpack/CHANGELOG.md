@@ -3,6 +3,16 @@
     *Jon Moss*, *Hartley McGuire*
 
 
+## Rails 7.2.1.1 (October 15, 2024) ##
+
+*   Avoid regex backtracking in HTTP Token authentication
+
+    [CVE-2024-47887]
+
+*   Avoid regex backtracking in query parameter filtering
+
+    [CVE-2024-41128]
+
 ## Rails 7.2.1 (August 22, 2024) ##
 
 *   Fix `Request#raw_post` raising `NoMethodError` when `rack.input` is `nil`.
