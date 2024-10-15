@@ -228,6 +228,8 @@ module ActionView
       end
     end
 
+    SOURCE_MAPPING_SUPPORTED = RUBY_VERSION < "3.4" # https://github.com/rails/rails/issues/52902
+
     def spot(location) # :nodoc:
       ast = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
       node_id = RubyVM::AbstractSyntaxTree.node_id_for_backtrace_location(location)

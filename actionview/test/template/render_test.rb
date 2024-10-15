@@ -209,43 +209,51 @@ module RenderTestCases
     end
   end
 
-  def test_render_runtime_error
-    ex = assert_raises(ActionView::Template::Error) {
-      @view.render(template: "test/runtime_error")
-    }
-    erb_btl = ex.backtrace_locations.first
+  if ActionView::Template::SOURCE_MAPPING_SUPPORTED
+    def test_render_template_with_syntax_error
+      e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
+      assert_match %r!syntax!, e.message
+      assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
+    end
 
-    # Get the spot information from ErrorHighlight
-    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-    translated_spot = translating_frame.spot(ex.cause)
+    def test_render_runtime_error
+      ex = assert_raises(ActionView::Template::Error) {
+        @view.render(template: "test/runtime_error")
+      }
+      erb_btl = ex.backtrace_locations.first
 
-    assert_equal 6, translated_spot[:first_column]
-  end
+      # Get the spot information from ErrorHighlight
+      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+      translated_spot = translating_frame.spot(ex.cause)
 
-  def test_render_location_conditional_append
-    ex = assert_raises(ActionView::Template::Error) {
-      @view.render(template: "test/unparseable_runtime_error")
-    }
-    erb_btl = ex.backtrace_locations.first
+      assert_equal 6, translated_spot[:first_column]
+    end
 
-    # Get the spot information from ErrorHighlight
-    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-    translated_spot = translating_frame.spot(ex.cause)
+    def test_render_location_conditional_append
+      ex = assert_raises(ActionView::Template::Error) {
+        @view.render(template: "test/unparseable_runtime_error")
+      }
+      erb_btl = ex.backtrace_locations.first
 
-    assert_equal 8, translated_spot[:first_column]
-  end
+      # Get the spot information from ErrorHighlight
+      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+      translated_spot = translating_frame.spot(ex.cause)
 
-  def test_render_location_conditional_append_2
-    ex = assert_raises(ActionView::Template::Error) {
-      @view.render(template: "test/unparseable_runtime_error_2")
-    }
-    erb_btl = ex.backtrace_locations.first
+      assert_equal 8, translated_spot[:first_column]
+    end
 
-    # Get the spot information from ErrorHighlight
-    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-    translated_spot = translating_frame.spot(ex.cause)
+    def test_render_location_conditional_append_2
+      ex = assert_raises(ActionView::Template::Error) {
+        @view.render(template: "test/unparseable_runtime_error_2")
+      }
+      erb_btl = ex.backtrace_locations.first
 
-    assert_instance_of Integer, translated_spot[:first_column]
+      # Get the spot information from ErrorHighlight
+      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+      translated_spot = translating_frame.spot(ex.cause)
+
+      assert_instance_of Integer, translated_spot[:first_column]
+    end
   end
 
   def test_render_partial
@@ -344,12 +352,6 @@ module RenderTestCases
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
-  end
-
-  def test_render_template_with_syntax_error
-    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
-    assert_match %r!syntax!, e.message
-    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
   end
 
   def test_render_partial_with_errors
