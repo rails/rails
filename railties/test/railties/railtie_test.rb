@@ -243,7 +243,7 @@ module RailtiesTest
         Foo.instance.abc
       end
 
-      assert_match(/undefined method `abc' for.*RailtiesTest::RailtieTest::Foo/, error.original_message)
+      assert_match(/undefined method [`']abc' for.*RailtiesTest::RailtieTest::Foo/, error.original_message)
     end
   end
 end

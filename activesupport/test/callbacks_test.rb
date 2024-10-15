@@ -474,17 +474,17 @@ module CallbacksTest
       # whatever the callbacks do themselves, of course).
 
       assert_equal [
-        "block in save",
-        "block in run_callbacks",
+        "save",
+        "run_callbacks",
         "tweedle_deedle",
-        "block in run_callbacks",
+        "run_callbacks",
         "w0tyes",
-        "block in run_callbacks",
+        "run_callbacks",
         "tweedle_dum",
-        "block in run_callbacks",
+        "run_callbacks",
         "run_callbacks",
         "save"
-      ], call_stack.map(&:label)
+      ], call_stack.map(&:base_label)
     end
 
     def test_short_call_stack
@@ -504,10 +504,10 @@ module CallbacksTest
       # back to its caller.
 
       assert_equal [
-        "block in save",
+        "save",
         "run_callbacks",
         "save"
-      ], call_stack.map(&:label)
+      ], call_stack.map(&:base_label)
     end
   end
 
