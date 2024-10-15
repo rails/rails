@@ -95,6 +95,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to finding database adapters that aren't registered to Active Record.
 
+*   Remove deprecated support for defining `enum` with keyword arguments.
+
 ### Deprecations
 
 ### Notable changes

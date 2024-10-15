@@ -1,3 +1,7 @@
+*   Remove deprecated support for defining `enum` with keyword arguments.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to finding database adapters that aren't registered to Active Record.
 
     *Rafael Mendonça França*
