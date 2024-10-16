@@ -1226,7 +1226,7 @@ irb> person.errors.messages
 => {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
 ```
 
-You can read more about use-cases for `on:` in the [Custom Contexts
+You can read more about use-cases for `:on` in the [Custom Contexts
 section](#custom-contexts).
 
 Conditional Validations
