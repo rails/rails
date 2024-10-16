@@ -26,6 +26,9 @@ module ActionDispatch # :nodoc:
   #       policy.report_uri "/csp-violation-report-endpoint"
   #     end
   class ContentSecurityPolicy
+    class InvalidDirectiveError < StandardError
+    end
+
     class Middleware
       def initialize(app)
         @app = app
@@ -320,9 +323,9 @@ module ActionDispatch # :nodoc:
         @directives.map do |directive, sources|
           if sources.is_a?(Array)
             if nonce && nonce_directive?(directive, nonce_directives)
-              "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"
+              "#{directive} #{build_directive(directive, sources, context).join(' ')} 'nonce-#{nonce}'"
             else
-              "#{directive} #{build_directive(sources, context).join(' ')}"
+              "#{directive} #{build_directive(directive, sources, context).join(' ')}"
             end
           elsif sources
             directive
@@ -332,8 +335,22 @@ module ActionDispatch # :nodoc:
         end
       end
 
-      def build_directive(sources, context)
-        sources.map { |source| resolve_source(source, context) }
+      def validate(directive, sources)
+        sources.flatten.each do |source|
+          if source.include?(";") || source != source.gsub(/[[:space:]]/, "")
+            raise InvalidDirectiveError, <<~MSG.squish
+              Invalid Content Security Policy #{directive}: "#{source}".
+              Directive values must not contain whitespace or semicolons.
+              Please use multiple arguments or other directive methods instead.
+            MSG
+          end
+        end
+      end
+
+      def build_directive(directive, sources, context)
+        resolved_sources = sources.map { |source| resolve_source(source, context) }
+
+        validate(directive, resolved_sources)
       end
 
       def resolve_source(source, context)
