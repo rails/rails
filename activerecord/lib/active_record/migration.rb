@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
@@ -355,7 +354,7 @@ module ActiveRecord
   #
   # === Deletion
   #
-  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>drop_table(*names)</tt>: Drops the given tables.
   # * <tt>drop_join_table(table_1, table_2, options)</tt>: Drops the join table
   #   specified by the given arguments.
   # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
@@ -602,7 +601,7 @@ module ActiveRecord
         end
       end
 
-      def drop_table(table_name, **options)
+      def drop_table(*table_names, **options)
         if block_given?
           super { |t| yield compatible_table_definition(t) }
         else
@@ -678,10 +677,6 @@ module ActiveRecord
           all_configs = ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
           paths = all_configs.flat_map { |config| config.migrations_paths || Migrator.migrations_paths }.uniq
           @file_watcher.new([], paths.index_with(["rb"]), &block)
-        end
-
-        def connection
-          ActiveRecord::Tasks::DatabaseTasks.migration_connection
         end
     end
 

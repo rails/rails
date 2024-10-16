@@ -1,3 +1,48 @@
+*   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
+
+    *David Stosik*
+
+*   Allow to save records with polymorphic join tables that have `inverse_of`
+    specified.
+
+    *Markus Doits*
+
+*   Fix association scopes applying on the incorrect join when using a polymorphic `has_many through:`.
+
+    *Joshua Young*
+
+*   Allow `ActiveRecord::Base#pluck` to accept hash arguments with symbol and string values.
+
+    ```ruby
+    Post.joins(:comments).pluck(:id, comments: :id)
+    Post.joins(:comments).pluck("id", "comments" => "id")
+    ```
+
+    *Joshua Young*
+
+*   Make Float distinguish between `float4` and `float8` in PostgreSQL.
+
+    Fixes #52742
+
+    *Ryota Kitazawa*, *Takayuki Nagatomi*
+
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
+*   Allow `drop_table` to accept an array of table names.
+
+    This will let you to drop multiple tables in a single call.
+
+    ```ruby
+    ActiveRecord::Base.lease_connection.drop_table(:users, :posts)
+    ```
+
+    *Gabriel Sobrinho*
+
+*   Add support for PostgreSQL `IF NOT EXISTS` via the `:if_not_exists` option
+    on the `add_enum_value` method.
+
+    *Ariel Rzezak*
+
 *   When running `db:migrate` on a fresh database, load the database schema before running migrations.
 
     *Andrew Novoselac*
@@ -89,17 +134,6 @@
 *   Add support for dumping table inheritance and native partitioning table definitions for PostgeSQL adapter
 
     *Justin Talbott*
-
-*   Infer default `:inverse_of` option for `delegated_type` definitions.
-
-    ```ruby
-    class Entry < ApplicationRecord
-      delegated_type :entryable, types: %w[ Message ]
-      # => defaults to inverse_of: :entry
-    end
-    ```
-
-    *Sean Doyle*
 
 *   Add support for `ActiveRecord::Point` type casts using `Hash` values
 

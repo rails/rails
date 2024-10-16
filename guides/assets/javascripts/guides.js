@@ -72,8 +72,7 @@
     );
 
     var toggleGuidesMenu = function () {
-      var nextExpanded =
-        guidesMenuButton.getAttribute("aria-expanded") === "false";
+      var nextExpanded = guidesMenuButton.getAttribute("aria-expanded") === "false";
 
       guides.classList.toggle("visible");
       guidesMenuButton.setAttribute(

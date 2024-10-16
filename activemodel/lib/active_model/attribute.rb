@@ -96,6 +96,14 @@ module ActiveModel
       end
     end
 
+    def deep_dup # :nodoc:
+      if @type.mutable?
+        dup
+      else
+        self # If the underlying type is immutable we can get away with not duping
+      end
+    end
+
     def type_cast(*)
       raise NotImplementedError
     end

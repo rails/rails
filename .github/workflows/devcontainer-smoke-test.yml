@@ -40,7 +40,7 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: sqlite3
-          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
 
@@ -57,7 +57,7 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: postgresql
-          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test && bin/rails test:system
 
@@ -74,7 +74,7 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: mysql
-          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
 
@@ -91,7 +91,7 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: trilogy
-          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
 

@@ -1,3 +1,5 @@
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
 *   The guide _Classic to Zeitwerk HOWTO_ that documented how to migrate from
     the `classic` autoloader to Zeitwerk has been deleted.
 

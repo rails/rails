@@ -78,7 +78,12 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
+      # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
+      #   Runs in all validation contexts by default +nil+. You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   <tt>except_on: :custom_validation_context</tt> or
+      #   <tt>except_on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
@@ -155,7 +160,7 @@ module ActiveModel
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys
-        [:if, :unless, :on, :allow_blank, :allow_nil, :strict]
+        [:if, :unless, :on, :allow_blank, :allow_nil, :strict, :except_on]
       end
 
       def _parse_validates_options(options)

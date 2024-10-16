@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "rack/test"
 
 module Rails
   class Engine
@@ -106,6 +107,18 @@ module Rails
         assert_equal(
           { controller: "rails/engine/lazy_route_set_test/users", action: "index" },
           Rails.application.routes.recognize_path("/users")
+        )
+      end
+
+      test "reloads routes when recognize_path_with_request is called" do
+        require "#{app_path}/config/environment"
+
+        path = "/users"
+        req = ActionDispatch::Request.new(::Rack::MockRequest.env_for(path))
+
+        assert_equal(
+          { controller: "rails/engine/lazy_route_set_test/users", action: "index" },
+          Rails.application.routes.recognize_path_with_request(req, path, {})
         )
       end
 

@@ -8,8 +8,6 @@ ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
 task default: :test
 task test: "test:default"
 
-task :package
-
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 namespace :test do

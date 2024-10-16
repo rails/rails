@@ -220,9 +220,9 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "blue", user.color[:jenny]
   end
 
-  test "update store and accessor" do
+  test "store takes precedence when updating store and accessor" do
     user = Admin::User.find_by_name("Jamis")
-    user.update(settings: { homepage: "not rails" }, homepage: "rails")
+    user.update(settings: { homepage: "rails" }, homepage: "not rails")
 
     assert_equal "rails", user.settings[:homepage]
     assert_equal "rails", user.homepage

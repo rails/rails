@@ -599,22 +599,48 @@ enables compact partial-local default variable assignments:
 <% end %>
 ```
 
-INFO: By default, partials will accept any `locals` as keyword arguments. To
-define what `locals` a partial accepts, use a `locals:` magic comment. To learn
-more, read about [Strict Locals](#strict-locals).
-
 [local_assigns]:
     https://api.rubyonrails.org/classes/ActionView/Template.html#method-i-local_assigns
 
 ### Strict Locals
 
-Action View partials will accept any number of `locals` as keyword arguments.
+Action View partials are compiled into regular Ruby methods under the hood.
+Because it is impossible in Ruby to dynamically create local variables, every single combination of `locals` passed to
+a partial requires compiling another version:
+
+```html+erb
+<%# app/views/articles/show.html.erb %>
+<%= render partial: "article", layout: "box", locals: { article: @article } %>
+<%= render partial: "article", layout: "box", locals: { article: @article, theme: "dark" } %>
+```
+
+The above snippet will cause the partial to be compiled twice, taking more time and using more memory.
+
+```ruby
+def _render_template_2323231_article_show(buffer, local_assigns, article:)
+  # ...
+end
+
+def _render_template_3243454_article_show(buffer, local_assigns, article:, theme:)
+  # ...
+end
+```
+
+When the number of combinations is small, it's not really a problem, but if it's large it can waste
+a sizeable amount of memory and take a long time to compile. To counter act this you can use
+strict locals to define the compiled partial signature, and ensure only a single version of the partial is compiled:
+
+```html+erb
+<%# locals: (article:, theme: "light") -%>
+...
+```
+
 You can enforce how many and which `locals` a template accepts, set default
-values, and more with a `locals:` magic comment.
+values, and more with a `locals:` signature, using the same syntax as Ruby method signatures.
 
-Here are some examples of the `locals:` magic comment:
+Here are some examples of the `locals:` signature:
 
-```erb
+```html+erb
 <%# app/views/messages/_message.html.erb %>
 
 <%# locals: (message:) -%>
@@ -640,15 +666,14 @@ If a default value is set then it can be used if `message` is not passed in
 ```
 
 Rendering the partial without a `:message` local variable uses the default value
-set in the `locals:` magic comment:
+set in the `locals:` signature:
 
 ```ruby
 render "messages/message"
 # => "Hello, world!"
 ```
 
-Rendering the partial with local variables not specified in the `local:` magic
-comment will also raise an exception:
+Rendering the partial with local variables not specified in the `local:` signature will also raise an exception:
 
 ```ruby
 render "messages/message", unknown_local: "will raise"
@@ -682,15 +707,15 @@ render "messages/message", unknown_local: "will raise"
 # => ActionView::Template::Error: no locals accepted for app/views/messages/_message.html.erb
 ```
 
-Action View will process the `locals:` magic comment in any templating engine
-that supports `#`-prefixed comments, and will read the magic comment from any
+Action View will process the `locals:` signature in any templating engine
+that supports `#`-prefixed comments, and will read the signature from any
 line in the partial.
 
 CAUTION: Only keyword arguments are supported. Defining positional or block
 arguments will raise an Action View Error at render-time.
 
 The `local_assigns` method does not contain default values specified in the
-`local:` magic comment. To access a local variable with a default value that
+`local:` signature. To access a local variable with a default value that
 is named the same as a reserved Ruby keyword, like `class` or `if`, the values
 can be accessed through `binding.local_variable_get`:
 

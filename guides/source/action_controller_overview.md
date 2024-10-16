@@ -526,7 +526,7 @@ To store something in the session, just assign it to the key like a hash:
 class LoginsController < ApplicationController
   # "Create" a login, aka "log the user in"
   def create
-    if user = User.authenticate(params[:username], params[:password])
+    if user = User.authenticate_by(email: params[:email], password: params[:password])
       # Save the user ID in the session so it can be used in
       # subsequent requests
       session[:current_user_id] = user.id

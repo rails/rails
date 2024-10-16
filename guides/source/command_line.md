@@ -478,6 +478,22 @@ You can even execute ruby code written in a file with runner.
 $ bin/rails runner lib/code_to_be_run.rb
 ```
 
+By default, `rails runner` scripts are automatically wrapped with the Rails Executor, which helps report uncaught exceptions for tasks like cron jobs.
+
+Therefore, executing `rails runner lib/long_running_scripts.rb` is functionally equivalent to the following:
+
+```ruby
+Rails.application.executor.wrap do
+  # executes code inside lib/long_running_scripts.rb
+end
+```
+
+You can opt out of this behaviour by using the `--skip-executor` option.
+
+```bash
+$ bin/rails runner --skip-executor lib/long_running_script.rb
+```
+
 ### `bin/rails destroy`
 
 Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
@@ -512,7 +528,7 @@ $ bin/rails destroy model Oops
 $ bin/rails about
 About your application's environment
 Rails version             8.0.0
-Ruby version              3.1.0 (x86_64-linux)
+Ruby version              3.2.0 (x86_64-linux)
 RubyGems version          3.3.7
 Rack version              3.0.8
 JavaScript Runtime        Node.js (V8)

@@ -30,20 +30,21 @@ module ActionView
     # when the form is initially displayed, input fields corresponding to attributes
     # of the resource should show the current values of those attributes.
     #
-    # In \Rails, this is usually achieved by creating the form using +form_for+ and
-    # a number of related helper methods. +form_for+ generates an appropriate <tt>form</tt>
-    # tag and yields a form builder object that knows the model the form is about.
-    # Input fields are created by calling methods defined on the form builder, which
-    # means they are able to generate the appropriate names and default values
+    # In \Rails, this is usually achieved by creating the form using either
+    # +form_with+ or +form_for+ and a number of related helper methods. These
+    # methods generate an appropriate <tt>form</tt> tag and yield a form
+    # builder object that knows the model the form is about. Input fields are
+    # created by calling methods defined on the form builder, which means they
+    # are able to generate the appropriate names and default values
     # corresponding to the model attributes, as well as convenient IDs, etc.
-    # Conventions in the generated field names allow controllers to receive form data
-    # nicely structured in +params+ with no effort on your side.
+    # Conventions in the generated field names allow controllers to receive form
+    # data nicely structured in +params+ with no effort on your side.
     #
     # For example, to create a new person you typically set up a new instance of
     # +Person+ in the <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
-    # in the view template pass that object to +form_for+:
+    # in the view template pass that object to +form_with+ or +form_for+:
     #
-    #   <%= form_for @person do |f| %>
+    #   <%= form_with model: @person do |f| %>
     #     <%= f.label :first_name %>:
     #     <%= f.text_field :first_name %><br />
     #
@@ -783,9 +784,9 @@ module ActionView
         end
       end
 
-      # Creates a scope around a specific model object like form_with, but
-      # doesn't create the form tags themselves. This makes fields_for suitable
-      # for specifying additional model objects in the same form.
+      # Creates a scope around a specific model object like +form_with+, but
+      # doesn't create the form tags themselves. This makes +fields_for+
+      # suitable for specifying additional model objects in the same form.
       #
       # Although the usage and purpose of +fields_for+ is similar to +form_with+'s,
       # its method signature is slightly different. Like +form_with+, it yields
@@ -2032,9 +2033,9 @@ module ActionView
       end
       alias_method :text_area, :textarea
 
-      # Creates a scope around a specific model object like form_with, but
-      # doesn't create the form tags themselves. This makes fields_for suitable
-      # for specifying additional model objects in the same form.
+      # Creates a scope around a specific model object like +form_with+, but
+      # doesn't create the form tags themselves. This makes +fields_for+
+      # suitable for specifying additional model objects in the same form.
       #
       # Although the usage and purpose of +fields_for+ is similar to +form_with+'s,
       # its method signature is slightly different. Like +form_with+, it yields

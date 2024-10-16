@@ -1,3 +1,28 @@
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
+*   Exit `rails g` with code 1 if generator could not be found.
+
+    Previously `rails g` returned 0, which would make it harder to catch typos in scripts calling `rails g`.
+
+    *Christopher Özbek*
+
+*   Remove `require_*` statements from application.css to align with the transition from Sprockets to Propshaft.
+
+    With Propshaft as the default asset pipeline in Rails 8, the require_tree and require_self clauses in application.css are no longer necessary, as they were specific to Sprockets. Additionally, the comment has been updated to clarify that CSS precedence now follows standard cascading order without automatic prioritization by the asset pipeline.
+
+    *Eduardo Alencar*
+
+*   Do not include redis by default in generated Dev Containers.
+
+    Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis
+    in the Dev Container. We will only include redis if `--skip-solid` is used when generating an app that uses
+    Active Job or Action Cable.
+
+    When generating a Dev Container for an existing app, we will not include redis if either of the solid gems
+    are in use.
+
+    *Andrew Novoselac*
+
 *   Use [Solid Cable](https://github.com/rails/solid_cable) as the default Action Cable adapter in production, configured as a separate queue database in config/database.yml. It keeps messages in a table and continuously polls for updates. This makes it possible to drop the common dependency on Redis, if it isn't needed for any other purpose. Despite polling, the performance of Solid Cable is comparable to Redis in most situations. And in all circumstances, it makes it easier to deploy Rails when Redis is no longer a required dependency for Action Cable functionality.
 
     *DHH*

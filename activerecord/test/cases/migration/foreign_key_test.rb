@@ -380,6 +380,16 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           end
         end
 
+        if supports_sql_standard_drop_constraint?
+          def test_remove_constraint
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
+
+            assert_equal 1, @connection.foreign_keys("astronauts").size
+            @connection.remove_constraint :astronauts, "fancy_named_fk"
+            assert_equal [], @connection.foreign_keys("astronauts")
+          end
+        end
+
         def test_remove_foreign_key_inferes_column
           @connection.add_foreign_key :astronauts, :rockets
 

@@ -5,8 +5,6 @@ require "rake/testtask"
 desc "Default Task"
 task default: [ :test ]
 
-task :package
-
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 # Run the unit tests

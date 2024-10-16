@@ -1,3 +1,5 @@
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
 *   Dispatch direct-upload events on attachment uploads
 
     When using Action Text's rich textarea,  it's possible to attach files to the

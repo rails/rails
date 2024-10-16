@@ -1,3 +1,44 @@
+*   Improve `ActionController::TestCase` to expose a binary encoded `request.body`.
+
+    The rack spec clearly states:
+
+    > The input stream is an IO-like object which contains the raw HTTP POST data.
+    > When applicable, its external encoding must be “ASCII-8BIT” and it must be opened in binary mode.
+
+    Until now its encoding was generally UTF-8, which doesn't accurately reflect production
+    behavior.
+
+    *Jean Boussier*
+
+*   Update `ActionController::AllowBrowser` to support passing method names to `:block`
+
+    ```ruby
+    class ApplicationController < ActionController::Base
+      allow_browser versions: :modern, block: :handle_outdated_browser
+
+      private
+        def handle_outdated_browser
+          render file: Rails.root.join("public/custom-error.html"), status: :not_acceptable
+        end
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Raise an `ArgumentError` when invalid `:only` or `:except` options are passed into `#resource` and `#resources`.
+
+    *Joshua Young*
+
+## Rails 8.0.0.beta1 (September 26, 2024) ##
+
+*   Fix non-GET requests not updating cookies in `ActionController::TestCase`.
+
+    *Jon Moss*, *Hartley McGuire*
+
+*   Update `ActionController::Live` to use a thread-pool to reuse threads across requests.
+
+    *Adam Renberg Tamm*
+
 *   Introduce safer, more explicit params handling method with `params#expect` such that
     `params.expect(table: [ :attr ])` replaces `params.require(:table).permit(:attr)`
 

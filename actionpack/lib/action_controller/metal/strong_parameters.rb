@@ -10,7 +10,6 @@ require "active_support/deep_mergeable"
 require "action_dispatch/http/upload"
 require "rack/test"
 require "stringio"
-require "set"
 require "yaml"
 
 module ActionController

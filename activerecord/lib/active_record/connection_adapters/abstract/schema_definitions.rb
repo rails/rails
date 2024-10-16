@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # Abstract representation of an index definition on a table. Instances of
@@ -622,6 +621,7 @@ module ActiveRecord
       attr_reader :adds
       attr_reader :foreign_key_adds, :foreign_key_drops
       attr_reader :check_constraint_adds, :check_constraint_drops
+      attr_reader :constraint_drops
 
       def initialize(td)
         @td   = td
@@ -630,6 +630,7 @@ module ActiveRecord
         @foreign_key_drops = []
         @check_constraint_adds = []
         @check_constraint_drops = []
+        @constraint_drops = []
       end
 
       def name; @td.name; end
@@ -648,6 +649,10 @@ module ActiveRecord
 
       def drop_check_constraint(constraint_name)
         @check_constraint_drops << constraint_name
+      end
+
+      def drop_constraint(constraint_name)
+        @constraint_drops << constraint_name
       end
 
       def add_column(name, type, **options)

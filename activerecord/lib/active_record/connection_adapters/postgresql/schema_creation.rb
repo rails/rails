@@ -11,9 +11,7 @@ module ActiveRecord
             sql = super
             sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
             sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
-            sql << o.exclusion_constraint_drops.map { |con| visit_DropExclusionConstraint con }.join(" ")
             sql << o.unique_constraint_adds.map { |con| visit_AddUniqueConstraint con }.join(" ")
-            sql << o.unique_constraint_drops.map { |con| visit_DropUniqueConstraint con }.join(" ")
           end
 
           def visit_AddForeignKey(o)
@@ -72,16 +70,8 @@ module ActiveRecord
             "ADD #{accept(o)}"
           end
 
-          def visit_DropExclusionConstraint(name)
-            "DROP CONSTRAINT #{quote_column_name(name)}"
-          end
-
           def visit_AddUniqueConstraint(o)
             "ADD #{accept(o)}"
-          end
-
-          def visit_DropUniqueConstraint(name)
-            "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 
           def visit_ChangeColumnDefinition(o)
