@@ -105,10 +105,22 @@ module ActionDispatch # :nodoc:
         @str_body = nil
       end
 
+      BODY_METHODS = { to_ary: true }
+
+      def respond_to?(method, include_private = false)
+        if BODY_METHODS.key?(method)
+          @buf.respond_to?(method)
+        else
+          super
+        end
+      end
+
       def to_ary
-        @buf.respond_to?(:to_ary) ?
-          @buf.to_ary :
-          @buf.each
+        if @str_body
+          [body]
+        else
+          @buf = @buf.to_ary
+        end
       end
 
       def body
@@ -328,7 +340,13 @@ module ActionDispatch # :nodoc:
     # Returns the content of the response as a string. This contains the contents of
     # any calls to `render`.
     def body
-      @stream.body
+      if @stream.respond_to?(:to_ary)
+        @stream.to_ary.join
+      elsif @stream.respond_to?(:body)
+        @stream.body
+      else
+        @stream
+      end
     end
 
     def write(string)
@@ -337,12 +355,16 @@ module ActionDispatch # :nodoc:
 
     # Allows you to manually set or override the response body.
     def body=(body)
-      if body.respond_to?(:to_path)
+      if body.is_a?(String)
+        @stream = build_buffer(self, [body])
+      elsif body.respond_to?(:to_path)
         @stream = body
-      else
+      elsif body.respond_to?(:to_ary)
         synchronize do
-          @stream = build_buffer self, munge_body_object(body)
+          @stream = build_buffer(self, body)
         end
+      else
+        @stream = body
       end
     end
 
@@ -482,10 +504,6 @@ module ActionDispatch # :nodoc:
       Buffer.new response, body
     end
 
-    def munge_body_object(body)
-      body.respond_to?(:each) ? body : [body]
-    end
-
     def assign_default_content_type_and_charset!
       return if media_type
 
@@ -498,6 +516,8 @@ module ActionDispatch # :nodoc:
       def initialize(response)
         @response = response
       end
+
+      attr :response
 
       def close
         # Rack "close" maps to Response#abort, and **not** Response#close (which is used

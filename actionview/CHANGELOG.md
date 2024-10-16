@@ -24,4 +24,8 @@
 
     *Jean Boussier*
 
+*   Allow `render_template` to use streaming for non-layout templates.
+
+    *Samuel Williams*
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actionview/CHANGELOG.md) for previous changes.
