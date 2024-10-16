@@ -14,11 +14,11 @@ module ApplicationTests
 
       app_file "app/jobs/foo_job.rb", <<-RUBY
         class FooJob < ActiveJob::Base
-          self.enqueue_after_transaction_commit = :never
+          self.enqueue_after_transaction_commit = false
         end
       RUBY
 
-      assert_equal ":never", rails("runner", "p FooJob.enqueue_after_transaction_commit").strip
+      assert_equal "false", rails("runner", "p FooJob.enqueue_after_transaction_commit").strip
     end
   end
 end

@@ -10,4 +10,17 @@
 
     *heka1024*
 
+*   Now `config.active_job.enqueue_after_transaction_commit` default value is `true` and will accept only boolean values.
+
+    Adapters do not longer need to implement the `enqueue_after_transaction_commit?` method and can not use it to
+    change the global behavior.
+
+    Specific jobs can still change the value between `true` and `false`.
+
+    In general is not recommended to set the value to `false` because enqueuing jobs from inside a transaction
+    can cause them to potentially be picked and ran by another process before the transaction is committed.
+
+    *Juanjo Bazán*
+
+
 Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activejob/CHANGELOG.md) for previous changes.

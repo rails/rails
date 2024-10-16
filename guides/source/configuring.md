@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
 - [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:zone`
+- [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 
 #### Default Values for Target Version 7.2
 
@@ -2862,11 +2863,8 @@ the job queuing to after the current Active Record transaction is committed.
 
 It can be set to:
 
-* `:never` - Never defer the enqueue.
-* `:always` - Always defer the enqueue.
-* `:default` - Let the queue adapter define the behaviour.
-
-Each Active Job backend defines its own default behaviour for this, with some adapters preventing the deferring and others allowing it, so make sure to check that as well if you're opting for `:default`.
+* `true` - Always defer the enqueue.
+* `false` - Never defer the enqueue.
 
 Example:
 
@@ -2877,13 +2875,15 @@ Topic.transaction do
 end
 ```
 
-In this example, if the configuration is set to `:never`, the job will
+In this example, if the configuration is set to `false`, the job will
 be enqueued immediately, even though the `Topic` hasn't been committed yet.
 Because of this, if the job is picked up almost immediately, or if the
 transaction doesn't succeed for some reason, the job will fail to find this
-topic in the database.
+topic in the database. Enqueuing jobs from inside a transaction can cause
+them to potentially be picked and ran by another process before the
+transaction is committed.
 
-If it's set to `:always`, the job will be actually enqueued after the
+If it's set to `true`, the job will be actually enqueued after the
 transaction has been committed. If the transaction is rolled back, the job
 won't be enqueued at all.
 
@@ -2891,7 +2891,7 @@ This configuration can additionally be set on a per job class basis:
 
 ```ruby
 class SomeJob < ApplicationJob
-  self.enqueue_after_transaction_commit = :never
+  self.enqueue_after_transaction_commit = false
 end
 ```
 
@@ -2899,6 +2899,7 @@ end
 | --------------------- | -------------------- |
 | (original)            | `:never`             |
 | 7.2                   | `:default`           |
+| 8.0                   | `true`               |
 
 #### `config.active_job.logger`
 
