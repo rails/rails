@@ -1117,14 +1117,16 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     def test_default_in_local_time
-      with_timezone_config default: :local do
-        default = Default.new
+      with_env_tz do
+        with_timezone_config default: :local do
+          default = Default.new
 
-        assert_equal Date.new(2004, 1, 1), default.fixed_date
-        assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+          assert_equal Date.new(2004, 1, 1), default.fixed_date
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
 
-        if current_adapter?(:PostgreSQLAdapter)
-          assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
         end
       end
     end
@@ -1152,6 +1154,19 @@ class BasicsTest < ActiveRecord::TestCase
 
           if current_adapter?(:PostgreSQLAdapter)
             assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
+        end
+      end
+    end
+
+    def test_switching_default_time_zone
+      with_env_tz do
+        2.times do
+          with_timezone_config default: :local do
+            assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          end
+          with_timezone_config default: :utc do
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
           end
         end
       end
