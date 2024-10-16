@@ -1290,8 +1290,8 @@ class User < ApplicationRecord
 end
 ```
 
-All validations inside of the `with_options` block will have automatically
-passed the condition `if: :is_admin?`
+All validations inside of the `with_options` block will automatically have
+`if: :is_admin?` merged into its options.
 
 [`with_options`]:
     https://api.rubyonrails.org/classes/Object.html#method-i-with_options
