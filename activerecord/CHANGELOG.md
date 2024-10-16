@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_record.warn_on_records_fetched_greater_than`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support for defining `enum` with keyword arguments.
 
     *Rafael Mendonça França*

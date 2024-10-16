@@ -97,6 +97,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support for defining `enum` with keyword arguments.
 
+*   Remove deprecated `config.active_record.warn_on_records_fetched_greater_than`.
+
 ### Deprecations
 
 ### Notable changes

@@ -359,15 +359,6 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
-  ##
-  # :singleton-method: warn_on_records_fetched_greater_than
-  # Specify a threshold for the size of query result sets. If the number of
-  # records in the set exceeds the threshold, a warning is logged. This can
-  # be used to identify queries which load thousands of records and
-  # potentially cause memory bloat.
-  singleton_class.attr_accessor :warn_on_records_fetched_greater_than
-  self.warn_on_records_fetched_greater_than = false
-
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
 

@@ -1304,12 +1304,6 @@ Sets the mode in which strict loading is reported. Defaults to `:all`. It can be
 changed to `:n_plus_one_only` to only report when loading associations that will
 lead to an N + 1 query.
 
-#### `config.active_record.warn_on_records_fetched_greater_than`
-
-Allows setting a warning threshold for query result size. If the number of
-records returned by a query exceeds the threshold, a warning is logged. This
-can be used to identify queries which might be causing a memory bloat.
-
 #### `config.active_record.index_nested_attribute_errors`
 
 Allows errors for nested `has_many` relationships to be displayed with an index
@@ -3880,8 +3874,6 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `active_record.migration_error`: Configures middleware to check for pending migrations.
 
 * `active_record.check_schema_cache_dump`: Loads the schema cache dump if configured and available.
-
-* `active_record.warn_on_records_fetched_greater_than`: Enables warnings when queries return large numbers of records.
 
 * `active_record.set_configs`: Sets up Active Record by using the settings in `config.active_record` by `send`'ing the method names as setters to `ActiveRecord::Base` and passing the values through.
 
