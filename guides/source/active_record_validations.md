@@ -1531,7 +1531,7 @@ end
 In these cases, you may be tempted to
 [skip callbacks](active_record_callbacks.html#skipping-callbacks) altogether, but
 defining a custom context can be a more structured approach. You will need to
-combine a context with the on option to define a custom context for a callback.
+combine a context with the `:on` option to define a custom context for a callback.
 
 Once you've defined the custom context, you can use it to trigger the
 validations:
