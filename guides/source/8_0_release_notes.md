@@ -99,6 +99,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `config.active_record.warn_on_records_fetched_greater_than`.
 
+*   Remove deprecated `config.active_record.sqlite3_deprecated_warning`.
+
 ### Deprecations
 
 ### Notable changes

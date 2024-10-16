@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_record.sqlite3_deprecated_warning`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_record.warn_on_records_fetched_greater_than`.
 
     *Rafael Mendonça França*
