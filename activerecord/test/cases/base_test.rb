@@ -1117,6 +1117,9 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     def test_default_in_local_time
+      # FIXME: this call ensures the type map cache is poisoned
+      test_default_in_utc
+
       with_timezone_config default: :local do
         default = Default.new
 
