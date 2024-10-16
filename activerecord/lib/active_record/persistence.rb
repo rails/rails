@@ -817,10 +817,20 @@ module ActiveRecord
         @previously_new_record = false
       end
 
-      def strict_loaded_associations
-        @association_cache.find_all do |_, assoc|
-          assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
-        end.map(&:first)
+      def strict_loaded_associations(checked = nil)
+        checked ||= Set.new
+        checked.add(self)
+        @association_cache.filter_map do |name, assoc|
+          if assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
+            target = Array.wrap(assoc.target).first
+
+            if target && !checked.include?(target)
+              { name => target.send(:strict_loaded_associations, checked) }
+            else
+              name
+            end
+          end
+        end
       end
 
       def _find_record(options)
