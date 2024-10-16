@@ -247,7 +247,7 @@ module ActiveModel
 
     def initialize_dup(other) # :nodoc:
       super
-      if self.class.respond_to?(:_default_attributes)
+      if other.persisted? && self.class.respond_to?(:_default_attributes)
         @attributes = self.class._default_attributes.map do |attr|
           attr.with_value_from_user(@attributes.fetch_value(attr.name))
         end
