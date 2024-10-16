@@ -4,6 +4,12 @@ Action Text brings rich text content and editing to \Rails. It includes the [Tri
 
 You can read more about Action Text in the [Action Text Overview](https://guides.rubyonrails.org/action_text_overview.html) guide.
 
+## Installation
+
+Run `bin/rails action_text:install` to copy over action_text migrations.
+
+NOTE: If the task cannot be found, verify that `require "action_text/engine"` is present in `config/application.rb`.
+
 ## Development
 
 The JavaScript for Action Text is distributed both as a npm module under @rails/actiontext and via the asset pipeline as actiontext.js (and we mirror Trix as trix.js). To ensure that the latter remains in sync, you must run `yarn build` and checkin the artifacts whenever the JavaScript source or the Trix dependency is bumped. CSS changes must be brought over manually to app/assets/stylesheets/trix.css
