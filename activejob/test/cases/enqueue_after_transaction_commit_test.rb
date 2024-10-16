@@ -38,7 +38,6 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
   class ErrorEnqueueAfterCommitJob < EnqueueErrorJob
     class EnqueueErrorAdapter
-
       def enqueue(...)
         raise ActiveJob::EnqueueError, "There was an error enqueuing the job"
       end

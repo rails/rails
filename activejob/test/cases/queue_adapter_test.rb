@@ -10,7 +10,7 @@ module ActiveJob
     end
 
     class StubTwoAdapter
-       def enqueue(*); end
+      def enqueue(*); end
       def enqueue_at(*); end
     end
   end
