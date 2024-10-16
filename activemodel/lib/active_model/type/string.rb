@@ -29,6 +29,10 @@ module ActiveModel
         )
       end
 
+      def mutable? # :nodoc:
+        true
+      end
+
       private
         def cast_value(value)
           case value
