@@ -61,8 +61,8 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 8.0
 
 - [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
-- [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:zone`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
+- [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:zone`
 
 #### Default Values for Target Version 7.2
 
