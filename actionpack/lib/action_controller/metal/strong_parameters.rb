@@ -1205,7 +1205,9 @@ module ActionController
         case object
         when Hash
           object.each_with_object(self.class.new) do |(key, value), result|
-            result[yield(key)] = _deep_transform_keys_in_object(value, &block)
+            new_key = yield(key)
+            new_value = _deep_transform_keys_in_object(value, &block)
+            result[new_key] = new_value unless result.has_key?(new_key) && new_value.empty?
           end
         when Parameters
           if object.permitted?
@@ -1215,27 +1217,6 @@ module ActionController
           end
         when Array
           object.map { |e| _deep_transform_keys_in_object(e, &block) }
-        else
-          object
-        end
-      end
-
-      def _deep_transform_keys_in_object!(object, &block)
-        case object
-        when Hash
-          object.keys.each do |key|
-            value = object.delete(key)
-            object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
-          end
-          object
-        when Parameters
-          if object.permitted?
-            object.to_h.deep_transform_keys!(&block)
-          else
-            object.to_unsafe_h.deep_transform_keys!(&block)
-          end
-        when Array
-          object.map! { |e| _deep_transform_keys_in_object!(e, &block) }
         else
           object
         end

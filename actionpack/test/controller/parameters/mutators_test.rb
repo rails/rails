@@ -143,6 +143,22 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_equal new_params.to_hash, expected_hash
   end
 
+  test "deep_transform_keys retains non-empty hash" do
+    original_hash = { "waitlistUser" => { "email" => "TEST@example.com" }, "waitlist_user" => {} }
+    params = ActionController::Parameters.new(original_hash)
+    email = params.deep_transform_keys(&:underscore).require(:waitlist_user).permit(:email)[:email]
+    assert_equal "TEST@example.com", email
+    assert_equal params.to_unsafe_h, original_hash
+  end
+
+  test "deep_transform_keys! retains non-empty hash" do
+    original_hash = { "waitlistUser" => { "email" => "TEST@example.com" }, "waitlist_user" => {} }
+    params = ActionController::Parameters.new(original_hash)
+    email = params.deep_transform_keys!(&:underscore).require(:waitlist_user).permit(:email)[:email]
+    assert_equal "TEST@example.com", email
+    assert_equal({ "waitlist_user" => { "email" => "TEST@example.com" } }, params.to_unsafe_h)
+  end
+
   test "deep_transform_keys! retains unpermitted status" do
     assert_not_predicate @params.deep_transform_keys! { |k| k }, :permitted?
   end
