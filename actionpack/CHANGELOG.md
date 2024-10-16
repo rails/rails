@@ -1,3 +1,11 @@
+*   Add validation to content security policies to disallow spaces and semicolons.
+    Developers should use multiple arguments, and different directive methods instead.
+
+    [CVE-2024-54133]
+
+    *Gannon McGibbon*
+
+
 ## Rails 7.2.2 (October 30, 2024) ##
 
 *   Fix non-GET requests not updating cookies in `ActionController::TestCase`.
