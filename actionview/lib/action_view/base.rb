@@ -310,7 +310,7 @@ module ActionView # :nodoc:
       @view_renderer = old_view_renderer
       @lookup_context = old_lookup_context
     end
-
-    ActiveSupport.run_load_hooks(:action_view, self)
   end
 end
+
+ActiveSupport.run_load_hooks(:action_view, ActionView::Base)

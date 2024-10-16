@@ -325,8 +325,8 @@ module ActionController
       PROTECTED_IVARS
     end
     private :_protected_ivars
-
-    ActiveSupport.run_load_hooks(:action_controller_base, self)
-    ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end
+
+ActiveSupport.run_load_hooks(:action_controller_base, ActionController::Base)
+ActiveSupport.run_load_hooks(:action_controller, ActionController::Base)
