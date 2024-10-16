@@ -10,6 +10,30 @@
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
 
 ###
+# Controls whether Active Job's `#perform_later` and similar methods automatically defer
+# the job queuing to after the current Active Record transaction is committed.
+#
+# Example:
+#   Topic.transaction do
+#     topic = Topic.create(...)
+#     NewTopicNotificationJob.perform_later(topic)
+#   end
+#
+# In this example, if the configuration is set to `false`, the job will
+# be enqueued immediately, even though the `Topic` hasn't been committed yet.
+# Because of this, if the job is picked up almost immediately, or if the
+# transaction doesn't succeed for some reason, the job will fail to find this
+# topic in the database. Enqueuing jobs from inside a transaction can cause
+# them to potentially be picked and ran by another process before the
+# transaction is committed.
+#
+# If `enqueue_after_transaction_commit` it's set to `true`, the job will be
+# actually enqueued after the transaction has been committed. If the transaction
+# is rolled back, the job won't be enqueued at all.
+#++
+# Rails.application.config.active_job.enqueue_after_transaction_commit = true
+
+###
 # Specifies whether `to_time` methods preserve the UTC offset of their receivers or preserves the timezone.
 # If set to `:zone`, `to_time` methods will use the timezone of their receivers.
 # If set to `:offset`, `to_time` methods will use the UTC offset.
