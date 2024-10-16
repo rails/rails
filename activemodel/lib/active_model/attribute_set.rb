@@ -155,6 +155,26 @@ module ActiveModel
       end
     end
 
+    def deep_dup
+      LazyAttributeSet.new(
+        values.dup,
+        types.dup,
+        additional_types.dup,
+        default_attributes.dup,
+        attributes.transform_values(&:deep_dup)
+      )
+    end
+
+    def map(&block)
+      LazyAttributeSet.new(
+        values,
+        types,
+        additional_types,
+        default_attributes,
+        attributes.transform_values(&block)
+      )
+    end
+
     protected
       def attributes
         unless @materialized
