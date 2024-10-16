@@ -1,5 +1,5 @@
 /*
-Trix 2.1.6
+Trix 2.1.7
 Copyright © 2024 37signals, LLC
  */
 (function (global, factory) {
@@ -9,7 +9,7 @@ Copyright © 2024 37signals, LLC
 })(this, (function () { 'use strict';
 
   var name = "trix";
-  var version = "2.1.6";
+  var version = "2.1.7";
   var description = "A rich text editor for everyday writing";
   var main = "dist/trix.umd.min.js";
   var module = "dist/trix.esm.min.js";
@@ -1037,7 +1037,11 @@ $\
   const getCSPNonce = function () {
     const element = getMetaElement("trix-csp-nonce") || getMetaElement("csp-nonce");
     if (element) {
-      return element.getAttribute("content");
+      const {
+        nonce,
+        content
+      } = element;
+      return nonce == "" ? content : nonce;
     }
   };
   const getMetaElement = name => document.head.querySelector("meta[name=".concat(name, "]"));
@@ -11719,7 +11723,7 @@ $\
     updateInputElement() {
       const element = this.compositionController.getSerializableElement();
       const value = serializeToContentType(element, "text/html");
-      return this.editorElement.setInputElementValue(value);
+      return this.editorElement.setFormValue(value);
     }
     notifyEditorElement(message, data) {
       switch (message) {
@@ -11977,7 +11981,186 @@ $\
     }
   }();
   installDefaultCSSForTagName("trix-editor", "%t {\n    display: block;\n}\n\n%t:empty::before {\n    content: attr(placeholder);\n    color: graytext;\n    cursor: text;\n    pointer-events: none;\n    white-space: pre-line;\n}\n\n%t a[contenteditable=false] {\n    cursor: text;\n}\n\n%t img {\n    max-width: 100%;\n    height: auto;\n}\n\n%t ".concat(attachmentSelector, " figcaption textarea {\n    resize: none;\n}\n\n%t ").concat(attachmentSelector, " figcaption textarea.trix-autoresize-clone {\n    position: absolute;\n    left: -9999px;\n    max-height: 0px;\n}\n\n%t ").concat(attachmentSelector, " figcaption[data-trix-placeholder]:empty::before {\n    content: attr(data-trix-placeholder);\n    color: graytext;\n}\n\n%t [data-trix-cursor-target] {\n    display: ").concat(cursorTargetStyles.display, " !important;\n    width: ").concat(cursorTargetStyles.width, " !important;\n    padding: 0 !important;\n    margin: 0 !important;\n    border: none !important;\n}\n\n%t [data-trix-cursor-target=left] {\n    vertical-align: top !important;\n    margin-left: -1px !important;\n}\n\n%t [data-trix-cursor-target=right] {\n    vertical-align: bottom !important;\n    margin-right: -1px !important;\n}"));
+  var _internals = /*#__PURE__*/new WeakMap();
+  var _validate = /*#__PURE__*/new WeakSet();
+  class ElementInternalsDelegate {
+    constructor(element) {
+      _classPrivateMethodInitSpec(this, _validate);
+      _classPrivateFieldInitSpec(this, _internals, {
+        writable: true,
+        value: void 0
+      });
+      this.element = element;
+      _classPrivateFieldSet(this, _internals, element.attachInternals());
+    }
+    connectedCallback() {
+      _classPrivateMethodGet(this, _validate, _validate2).call(this);
+    }
+    disconnectedCallback() {}
+    get labels() {
+      return _classPrivateFieldGet(this, _internals).labels;
+    }
+    get disabled() {
+      var _this$element$inputEl;
+      return (_this$element$inputEl = this.element.inputElement) === null || _this$element$inputEl === void 0 ? void 0 : _this$element$inputEl.disabled;
+    }
+    set disabled(value) {
+      this.element.toggleAttribute("disabled", value);
+    }
+    get required() {
+      return this.element.hasAttribute("required");
+    }
+    set required(value) {
+      this.element.toggleAttribute("required", value);
+      _classPrivateMethodGet(this, _validate, _validate2).call(this);
+    }
+    get validity() {
+      return _classPrivateFieldGet(this, _internals).validity;
+    }
+    get validationMessage() {
+      return _classPrivateFieldGet(this, _internals).validationMessage;
+    }
+    get willValidate() {
+      return _classPrivateFieldGet(this, _internals).willValidate;
+    }
+    setFormValue(value) {
+      _classPrivateMethodGet(this, _validate, _validate2).call(this);
+    }
+    checkValidity() {
+      return _classPrivateFieldGet(this, _internals).checkValidity();
+    }
+    reportValidity() {
+      return _classPrivateFieldGet(this, _internals).reportValidity();
+    }
+    setCustomValidity(validationMessage) {
+      _classPrivateMethodGet(this, _validate, _validate2).call(this, validationMessage);
+    }
+  }
+  function _validate2() {
+    let customValidationMessage = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+    const {
+      required,
+      value
+    } = this.element;
+    const valueMissing = required && !value;
+    const customError = !!customValidationMessage;
+    const input = makeElement("input", {
+      required
+    });
+    const validationMessage = customValidationMessage || input.validationMessage;
+    _classPrivateFieldGet(this, _internals).setValidity({
+      valueMissing,
+      customError
+    }, validationMessage);
+  }
+  var _focusHandler = /*#__PURE__*/new WeakMap();
+  var _resetBubbled = /*#__PURE__*/new WeakMap();
+  var _clickBubbled = /*#__PURE__*/new WeakMap();
+  class LegacyDelegate {
+    constructor(element) {
+      _classPrivateFieldInitSpec(this, _focusHandler, {
+        writable: true,
+        value: void 0
+      });
+      _classPrivateFieldInitSpec(this, _resetBubbled, {
+        writable: true,
+        value: event => {
+          if (event.defaultPrevented) return;
+          if (event.target !== this.element.form) return;
+          this.element.reset();
+        }
+      });
+      _classPrivateFieldInitSpec(this, _clickBubbled, {
+        writable: true,
+        value: event => {
+          if (event.defaultPrevented) return;
+          if (this.element.contains(event.target)) return;
+          const label = findClosestElementFromNode(event.target, {
+            matchingSelector: "label"
+          });
+          if (!label) return;
+          if (!Array.from(this.labels).includes(label)) return;
+          this.element.focus();
+        }
+      });
+      this.element = element;
+    }
+    connectedCallback() {
+      _classPrivateFieldSet(this, _focusHandler, ensureAriaLabel(this.element));
+      window.addEventListener("reset", _classPrivateFieldGet(this, _resetBubbled), false);
+      window.addEventListener("click", _classPrivateFieldGet(this, _clickBubbled), false);
+    }
+    disconnectedCallback() {
+      var _classPrivateFieldGet2;
+      (_classPrivateFieldGet2 = _classPrivateFieldGet(this, _focusHandler)) === null || _classPrivateFieldGet2 === void 0 || _classPrivateFieldGet2.destroy();
+      window.removeEventListener("reset", _classPrivateFieldGet(this, _resetBubbled), false);
+      window.removeEventListener("click", _classPrivateFieldGet(this, _clickBubbled), false);
+    }
+    get labels() {
+      const labels = [];
+      if (this.element.id && this.element.ownerDocument) {
+        labels.push(...Array.from(this.element.ownerDocument.querySelectorAll("label[for='".concat(this.element.id, "']")) || []));
+      }
+      const label = findClosestElementFromNode(this.element, {
+        matchingSelector: "label"
+      });
+      if (label) {
+        if ([this.element, null].includes(label.control)) {
+          labels.push(label);
+        }
+      }
+      return labels;
+    }
+    get disabled() {
+      console.warn("This browser does not support the [disabled] attribute for trix-editor elements.");
+      return false;
+    }
+    set disabled(value) {
+      console.warn("This browser does not support the [disabled] attribute for trix-editor elements.");
+    }
+    get required() {
+      console.warn("This browser does not support the [required] attribute for trix-editor elements.");
+      return false;
+    }
+    set required(value) {
+      console.warn("This browser does not support the [required] attribute for trix-editor elements.");
+    }
+    get validity() {
+      console.warn("This browser does not support the validity property for trix-editor elements.");
+      return null;
+    }
+    get validationMessage() {
+      console.warn("This browser does not support the validationMessage property for trix-editor elements.");
+      return "";
+    }
+    get willValidate() {
+      console.warn("This browser does not support the willValidate property for trix-editor elements.");
+      return false;
+    }
+    setFormValue(value) {}
+    checkValidity() {
+      console.warn("This browser does not support checkValidity() for trix-editor elements.");
+      return true;
+    }
+    reportValidity() {
+      console.warn("This browser does not support reportValidity() for trix-editor elements.");
+      return true;
+    }
+    setCustomValidity(validationMessage) {
+      console.warn("This browser does not support setCustomValidity(validationMessage) for trix-editor elements.");
+    }
+  }
+  var _delegate = /*#__PURE__*/new WeakMap();
   class TrixEditorElement extends HTMLElement {
+    constructor() {
+      super();
+      _classPrivateFieldInitSpec(this, _delegate, {
+        writable: true,
+        value: void 0
+      });
+      _classPrivateFieldSet(this, _delegate, this.constructor.formAssociated ? new ElementInternalsDelegate(this) : new LegacyDelegate(this));
+    }
+
     // Properties
 
     get trixId() {
@@ -11989,19 +12172,31 @@ $\
       }
     }
     get labels() {
-      const labels = [];
-      if (this.id && this.ownerDocument) {
-        labels.push(...Array.from(this.ownerDocument.querySelectorAll("label[for='".concat(this.id, "']")) || []));
-      }
-      const label = findClosestElementFromNode(this, {
-        matchingSelector: "label"
-      });
-      if (label) {
-        if ([this, null].includes(label.control)) {
-          labels.push(label);
-        }
-      }
-      return labels;
+      return _classPrivateFieldGet(this, _delegate).labels;
+    }
+    get disabled() {
+      return _classPrivateFieldGet(this, _delegate).disabled;
+    }
+    set disabled(value) {
+      _classPrivateFieldGet(this, _delegate).disabled = value;
+    }
+    get required() {
+      return _classPrivateFieldGet(this, _delegate).required;
+    }
+    set required(value) {
+      _classPrivateFieldGet(this, _delegate).required = value;
+    }
+    get validity() {
+      return _classPrivateFieldGet(this, _delegate).validity;
+    }
+    get validationMessage() {
+      return _classPrivateFieldGet(this, _delegate).validationMessage;
+    }
+    get willValidate() {
+      return _classPrivateFieldGet(this, _delegate).willValidate;
+    }
+    get type() {
+      return this.localName;
     }
     get toolbarElement() {
       if (this.hasAttribute("toolbar")) {
@@ -12068,9 +12263,10 @@ $\
         });
       }
     }
-    setInputElementValue(value) {
+    setFormValue(value) {
       if (this.inputElement) {
         this.inputElement.value = value;
+        _classPrivateFieldGet(this, _delegate).setFormValue(value);
       }
     }
 
@@ -12080,7 +12276,6 @@ $\
       if (!this.hasAttribute("data-trix-internal")) {
         makeEditable(this);
         addAccessibilityRole(this);
-        ensureAriaLabel(this);
         if (!this.editorController) {
           triggerEvent("trix-before-initialize", {
             onElement: this
@@ -12094,53 +12289,41 @@ $\
           }));
         }
         this.editorController.registerSelectionManager();
-        this.registerResetListener();
-        this.registerClickListener();
+        _classPrivateFieldGet(this, _delegate).connectedCallback();
         autofocus(this);
       }
     }
     disconnectedCallback() {
       var _this$editorControlle2;
       (_this$editorControlle2 = this.editorController) === null || _this$editorControlle2 === void 0 || _this$editorControlle2.unregisterSelectionManager();
-      this.unregisterResetListener();
-      return this.unregisterClickListener();
+      _classPrivateFieldGet(this, _delegate).disconnectedCallback();
     }
 
     // Form support
 
-    registerResetListener() {
-      this.resetListener = this.resetBubbled.bind(this);
-      return window.addEventListener("reset", this.resetListener, false);
+    checkValidity() {
+      return _classPrivateFieldGet(this, _delegate).checkValidity();
     }
-    unregisterResetListener() {
-      return window.removeEventListener("reset", this.resetListener, false);
+    reportValidity() {
+      return _classPrivateFieldGet(this, _delegate).reportValidity();
     }
-    registerClickListener() {
-      this.clickListener = this.clickBubbled.bind(this);
-      return window.addEventListener("click", this.clickListener, false);
+    setCustomValidity(validationMessage) {
+      _classPrivateFieldGet(this, _delegate).setCustomValidity(validationMessage);
     }
-    unregisterClickListener() {
-      return window.removeEventListener("click", this.clickListener, false);
+    formDisabledCallback(disabled) {
+      if (this.inputElement) {
+        this.inputElement.disabled = disabled;
+      }
+      this.toggleAttribute("contenteditable", !disabled);
     }
-    resetBubbled(event) {
-      if (event.defaultPrevented) return;
-      if (event.target !== this.form) return;
-      return this.reset();
-    }
-    clickBubbled(event) {
-      if (event.defaultPrevented) return;
-      if (this.contains(event.target)) return;
-      const label = findClosestElementFromNode(event.target, {
-        matchingSelector: "label"
-      });
-      if (!label) return;
-      if (!Array.from(this.labels).includes(label)) return;
-      return this.focus();
+    formResetCallback() {
+      this.reset();
     }
     reset() {
       this.value = this.defaultValue;
     }
   }
+  _defineProperty(TrixEditorElement, "formAssociated", "ElementInternals" in window);
 
   var elements = /*#__PURE__*/Object.freeze({
     __proto__: null,
