@@ -23,7 +23,7 @@ module ActiveStorage
     end
 
     private
-      def extract_dimensions_metadata(image)
+      def extract_dimensions_metadata(image) # :doc:
         if rotated_image?(image)
           { width: image.height, height: image.width }
         else
