@@ -9,7 +9,7 @@ module JSONSharedTestCases
   class JsonDataType < ActiveRecord::Base
     self.table_name = "json_data_type"
 
-    store_accessor :settings, :resolution
+    store_accessor :settings, :resolution, { country: :country_of_residence }
   end
 
   def setup
@@ -121,35 +121,49 @@ module JSONSharedTestCases
   end
 
   def test_with_store_accessors
-    x = klass.new(resolution: "320×480")
+    x = klass.new(resolution: "320×480", country: "US")
     assert_equal "320×480", x.resolution
+    assert_equal "US", x.country
 
     x.save!
     x = klass.first
     assert_equal "320×480", x.resolution
+    assert_equal "US", x.country
 
     x.resolution = "640×1136"
+    x.country = "UK"
     x.save!
 
     x = klass.first
     assert_equal "640×1136", x.resolution
+    assert_equal "UK", x.country
+
+    x.settings["country_of_residence"] = "US"
+    assert_equal "US", x.country
+
+    x.settings = { "country_of_residence" => "UK" }
+    assert_equal "UK", x.country
   end
 
   def test_duplication_with_store_accessors
-    x = klass.new(resolution: "320×480")
+    x = klass.new(resolution: "320×480", country: "US")
     assert_equal "320×480", x.resolution
+    assert_equal "US", x.country
 
     y = x.dup
     assert_equal "320×480", y.resolution
+    assert_equal "US", y.country
   end
 
   def test_yaml_round_trip_with_store_accessors
-    x = klass.new(resolution: "320×480")
+    x = klass.new(resolution: "320×480", country: "US")
     assert_equal "320×480", x.resolution
+    assert_equal "US", x.country
 
     payload = YAML.dump(x)
     y = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     assert_equal "320×480", y.resolution
+    assert_equal "US", y.country
   end
 
   def test_changes_in_place

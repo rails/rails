@@ -359,6 +359,25 @@
 
     *Joshua Young*
 
+*   Add mapping to `store_accessor` when required semantics other than stored attributes names.
+
+    ```ruby
+    class User < ApplicationRecord
+      store_accessor :settings, :language, { country: :country_of_residence }
+    end
+
+    user = User.new(country: "US")
+    user.country # => "US"
+    user.settings["country_of_residence"] # => "US"
+    user.settings["country_of_residence"] = "CA"
+    user.country # => "CA"
+    user.country = "NL"
+    user.country # => "NL"
+    user.settings["country_of_residence"] # => "NL"
+    ```
+
+    *Edem Topuzov*
+
 *   Add public method for checking if a table is ignored by the schema cache.
 
     Previously, an application would need to reimplement `ignored_table?` from the schema cache class to check if a table was set to be ignored. This adds a public method to support this and updates the schema cache to use that directly.
