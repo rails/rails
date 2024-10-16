@@ -1162,7 +1162,7 @@ class Person < ApplicationRecord
 end
 ```
 
-You can also use `on:` to define custom contexts. Custom contexts need to be
+You can also use `:on` to define custom contexts. Custom contexts need to be
 triggered explicitly by passing the name of the context to `valid?`, `invalid?`,
 or `save`.
 
