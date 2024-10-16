@@ -525,12 +525,7 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      @attributes = @attributes.deep_dup
-      if self.class.composite_primary_key?
-        @primary_key.each { |key| @attributes.reset(key) }
-      else
-        @attributes.reset(@primary_key)
-      end
+      @attributes = init_attributes(other)
 
       _run_initialize_callbacks
 
@@ -540,6 +535,18 @@ module ActiveRecord
       @_start_transaction_state = nil
 
       super
+    end
+
+    def init_attributes(_) # :nodoc:
+      attrs = @attributes.deep_dup
+
+      if self.class.composite_primary_key?
+        @primary_key.each { |key| attrs.reset(key) }
+      else
+        attrs.reset(@primary_key)
+      end
+
+      attrs
     end
 
     # Populate +coder+ with attributes about this record that should be
