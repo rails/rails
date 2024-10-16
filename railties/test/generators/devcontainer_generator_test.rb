@@ -283,6 +283,24 @@ module Rails
         end
       end
 
+      def test_kamal_option_default
+        run_generator
+
+        assert_devcontainer_json_file do |devcontainer_json|
+          assert_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+          assert_equal "$KAMAL_REGISTRY_PASSWORD", devcontainer_json["containerEnv"]["KAMAL_REGISTRY_PASSWORD"]
+        end
+      end
+
+      def test_kamal_option_skip
+        run_generator ["--skip-kamal"]
+
+        assert_devcontainer_json_file do |devcontainer_json|
+          assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+          assert_not_includes devcontainer_json["containerEnv"].keys, "KAMAL_REGISTRY_PASSWORD"
+        end
+      end
+
       def test_system_test_option_default
         copy_application_system_test_case
 

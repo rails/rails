@@ -266,6 +266,7 @@ module Rails
       devcontainer_options = {
         database: options[:database],
         redis: options[:skip_solid] && !(options[:skip_action_cable] && options[:skip_active_job]),
+        kamal: !options[:skip_kamal],
         system_test: depends_on_system_test?,
         active_storage: !options[:skip_active_storage],
         dev: options[:dev],
