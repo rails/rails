@@ -35,7 +35,7 @@ plugin :tmp_restart
 
 <% unless skip_solid? -%>
 # Run the Solid Queue supervisor inside of Puma for single-server deployments
-plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
+plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"] == "true"
 
 <% end -%>
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
