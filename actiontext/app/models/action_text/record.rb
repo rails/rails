@@ -5,6 +5,8 @@
 module ActionText
   class Record < ActiveRecord::Base # :nodoc:
     self.abstract_class = true
+
+    connects_to(**ActionText.connects_to) if ActionText.connects_to
   end
 end
 
