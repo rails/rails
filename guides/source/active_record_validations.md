@@ -970,9 +970,8 @@ as a whole.
 To implement the validate method, you must accept a `record` parameter in the
 method definition, which is the record to be validated.
 
-If you want to add an error on a specific attribute, pass it as the first
-argument, such as `record.errors.add(:first_name, "please choose another
-name")`.
+If you want to add an error on a specific attribute, you can pass it as the first
+argument to the `add` method.
 
 ```ruby
 def validate(record)
