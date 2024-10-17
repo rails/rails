@@ -1,3 +1,7 @@
+*   Add `ActiveSupport::Testing::InstrumentationAssertions` module to help with testing events.
+
+    *Nicholas La Roux*, *Yishu See*, *Sean Doyle*
+
 *   Don't execute i18n watcher on boot. It shouldn't catch any file changes initially,
     and unnecessarily slows down boot of applications with lots of translations.
 
