@@ -130,6 +130,10 @@ module ActiveRecord
         Base.configurations.primary?(name)
       end
 
+      def framework? # :nodoc:
+        configuration_hash.fetch(:framework, false)
+      end
+
       # Determines whether to dump the schema/structure files and the filename that
       # should be used.
       #
