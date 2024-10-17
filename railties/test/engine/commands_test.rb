@@ -64,17 +64,20 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
       pid = spawn_command("server", replica, env: { "RAILS_ENV" => "development" })
       assert_output("Listening on", primary)
 
-      Net::HTTP.new("127.0.0.1", 3000).tap do |net|
-        net.get("/")
+      thread = Thread.new do
+        Net::HTTP.new("127.0.0.1", 3000).tap do |net|
+          net.get("/")
+        end
       end
+
+      assert_output("Processing by Rails::WelcomeController", primary)
 
       in_plugin_context(plugin_path) do
         logs = File.read("test/dummy/log/development.log")
         assert_match("Processing by Rails::WelcomeController", logs)
       end
-
-      assert_output("Processing by Rails::WelcomeController", primary)
     ensure
+      thread.kill if thread
       kill(pid)
     end
   end
