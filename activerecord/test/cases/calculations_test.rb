@@ -1650,6 +1650,12 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_count_all_with_table_alias
+    count_alias = Post.from(Post.arel_table.alias(Post.arel_table.name)).includes(:comments).merge(Comment.where(id: 2)).references(:comments).count(:all)
+    count = Post.includes(:comments).merge(Comment.where(id: 2)).references(:comments).count(:all)
+    assert_equal count, count_alias
+  end
+
   test "#skip_query_cache! for #pluck" do
     Account.cache do
       assert_queries_count(1) do
