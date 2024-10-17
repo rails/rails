@@ -368,9 +368,8 @@ However, older versions of Rails used "helper" methods, such as:
 ```
 validates_presence_of :name
 ```
+
 Both notations perform the same function, but the newer form is recommended for its readability and alignment with Rails' conventions.
-
-
 
 Each validation accepts an arbitrary number of attribute names, allowing
 you to apply the same type of validation to multiple attributes in a single line
@@ -384,7 +383,7 @@ the validation fails. If you do not specify a message, Rails will use a default
 error message for that validation.
 
 INFO: To see a list of the available default helpers, take a look at
-[`ActiveModel::Validations::HelperMethods`][].
+[`ActiveModel::Validations::HelperMethods`][]. This API section uses the older notation as described above.
 
 [`ActiveModel::Validations::HelperMethods`]:
     https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html
