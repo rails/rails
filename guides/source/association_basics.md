@@ -2602,12 +2602,12 @@ Controls what happens to the associated object when its owner is destroyed:
   Do not use this option if the association is backed by foreign key constraints
   in your database. The foreign key constraint actions will occur inside the
   same transaction that deletes its owner.
-  * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type
+* `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type
     column is also nullified on polymorphic associations. Callbacks are not
     executed.
-  * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError`
+* `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError`
     exception to be raised if there is an associated record
-  * `:restrict_with_error` causes an error to be added to the owner if there is
+* `:restrict_with_error` causes an error to be added to the owner if there is
     an associated object
 
 WARNING: You should not specify this option on a `belongs_to` association that
