@@ -156,7 +156,7 @@ class Releaser < Rake::TaskLib
       Dir.chdir(root) do
         File.write("pkg/#{version}.md", release_notes)
 
-        sh "gh release create #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
+        sh "gh release create --verify-tag #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
       end
     end
 
