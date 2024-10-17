@@ -827,11 +827,21 @@ module ActiveRecord
         all_queries = options ? options[:all_queries] : nil
         base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
 
-        if options && options[:lock]
-          base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
+        record = if options && options[:lock]
+          base.lock(options[:lock]).find_by(_in_memory_query_constraints_hash)
         else
-          base.find_by!(_in_memory_query_constraints_hash)
+          base.find_by(_in_memory_query_constraints_hash)
         end
+
+        if record.nil?
+          if self.class.query_constraints_list.nil?
+            base.raise_record_not_found_exception!(_in_memory_query_constraints_hash[@primary_key], 0, 1, @primary_key)
+          else
+            base.raise_record_not_found_exception!(_in_memory_query_constraints_hash.values, 0, 1, _in_memory_query_constraints_hash.keys)
+          end
+        end
+
+        record
       end
 
       def _in_memory_query_constraints_hash

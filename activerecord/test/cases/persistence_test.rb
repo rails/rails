@@ -1555,6 +1555,27 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_match(/WHERE .*color/, sql)
   end
 
+  def test_reload_after_destroy_keeps_id
+    topic = Topic.create!(title: "New Topic")
+
+    topic.destroy!
+
+    error = assert_raises(ActiveRecord::RecordNotFound) { topic.reload }
+
+    assert_equal Topic.name, error.model
+    assert_equal topic.id, error.id
+  end
+
+  def test_reload_after_destroy_keeps_id_with_query_constraints
+    clothing_item = clothing_items(:green_t_shirt)
+    clothing_item.destroy!
+
+    error = assert_raises(ActiveRecord::RecordNotFound) { clothing_item.reload }
+
+    assert_equal ClothingItem.name, error.model
+    assert_equal [clothing_item.clothing_type, clothing_item.color], error.id
+  end
+
   def test_destroy_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
     sql = capture_sql { clothing_item.destroy }.second
