@@ -99,6 +99,10 @@ module ActiveRecord
       def use_metadata_table?
         raise NotImplementedError
       end
+
+      def framework?
+        raise NotImplementedError
+      end
     end
   end
 end

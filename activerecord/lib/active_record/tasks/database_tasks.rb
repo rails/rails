@@ -180,7 +180,7 @@ module ActiveRecord
         each_current_configuration(env) do |db_config|
           database_initialized = initialize_database(db_config)
 
-          seed = true if database_initialized
+          seed = true if database_initialized && !db_config.framework?
         end
 
         each_current_environment(env) do |environment|

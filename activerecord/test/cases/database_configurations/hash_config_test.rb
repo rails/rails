@@ -179,6 +179,17 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", { adapter: "abstract", password: "hunter2" })
         assert_equal "#<ActiveRecord::DatabaseConfigurations::HashConfig env_name=default_env name=primary adapter_class=ActiveRecord::ConnectionAdapters::AbstractAdapter>", config.inspect
       end
+
+      def test_framework
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract" })
+        assert_equal false, config.framework?
+
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract", framework: false })
+        assert_equal false, config.framework?
+
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract", framework: true })
+        assert_equal true, config.framework?
+      end
     end
   end
 end
