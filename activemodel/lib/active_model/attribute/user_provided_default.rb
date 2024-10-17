@@ -26,10 +26,6 @@ module ActiveModel
         self.class.new(name, user_provided_value, type, original_attribute)
       end
 
-      # Can't elide dup when a default is provided.
-      # See Attribute#deep_dup
-      alias_method :deep_dup, :dup
-
       def marshal_dump
         result = [
           name,
