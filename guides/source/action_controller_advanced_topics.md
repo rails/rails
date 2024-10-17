@@ -22,16 +22,25 @@ Please see the [Action Controller Overview](action_controller_overview.html) gui
 TODO introduce these miscellaneous topics.
 
 
-Request Forgery Protection
---------------------------
+Authenticity Token and Request Forgery Protection
+-------------------------------------------------
 
-Cross-site request forgery is a type of attack in which a site tricks a user into making requests on another site, possibly adding, modifying, or deleting data on that site without the user's knowledge or permission.
+Cross-site request forgery
+([CSRF](https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html#method-i-form_authenticity_token))
+is a type of malicious attack where unauthorized requests are submitted by
+impersonating a user that the web application trusts.
 
-The first step to avoid this is to make sure all "destructive" actions (create, update, and destroy) can only be accessed with non-GET requests. If you're following RESTful conventions you're already doing this. However, a malicious site can still send a non-GET request to your site quite easily, and that's where the request forgery protection comes in. As the name says, it protects from forged requests.
+The first step to avoid this type of attack is to ensure that all "destructive"
+actions (create, update, and destroy) in your application use non-GET requests.
 
-The way this is done is to add a non-guessable token which is only known to your server to each request. This way, if a request comes in without the proper token, it will be denied access.
+However, a malicious site can still send a non-GET request to your site, so Rails builds in request forgery protection into controllers.
 
-If you generate a form like this:
+This is done by adding a token, which is only known to your server, to each
+request. When a request reaches your application, Rails verifies the received
+token with the token in the session. If an incoming request does not have the
+proper matching token, the server will deny access.
+
+For example, when you generate a form like this:
 
 ```erb
 <%= form_with model: @user do |form| %>
@@ -40,7 +49,7 @@ If you generate a form like this:
 <% end %>
 ```
 
-You will see how the token gets added as a hidden field:
+A CSRF token named `authenticity_token` is added as a hidden field:
 
 ```html
 <form accept-charset="UTF-8" action="/users/1" method="post">
@@ -51,11 +60,13 @@ You will see how the token gets added as a hidden field:
 </form>
 ```
 
-Rails adds this token to every form that's generated using the [form helpers](form_helpers.html), so most of the time you don't have to worry about it. If you're writing a form manually or need to add the token for another reason, it's available through the method `form_authenticity_token`:
+Rails adds this token to every `form` that's generated using the [form helpers](form_helpers.html), so most of the time you don't need to do anything. If you're writing a form manually or need to add the token for another reason, it's available through the [`form_authenticity_token`](https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html#method-i-form_authenticity_token) method.
 
 The `form_authenticity_token` generates a valid authentication token. That's useful in places where Rails does not add it automatically, like in custom Ajax calls.
 
-The [Security Guide](security.html) has more about this, and a lot of other security-related issues that you should be aware of when developing a web application.
+NOTE: All subclasses of `ActionController::Base` are protected by default and will raise an `ActionController::InvalidAuthenticityToken` error on unverified requests.
+
+You can learn more details about the CSRF attack as well as CSRF countermeasures in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 
 HTTP Authentications
 --------------------
