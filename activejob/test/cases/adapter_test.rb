@@ -33,4 +33,21 @@ class AdapterTest < ActiveSupport::TestCase
       end
     end
   end
+
+  if adapter_is?(:sneakers)
+    test "sneakers adapter should be deprecated" do
+      before_adapter = ActiveJob::Base.queue_adapter
+
+      msg = <<~MSG.squish
+        The built-in `sneakers` adapter is deprecated and will be removed in Rails 8.1.
+        Please upgrade `snekaers` gem to version XX or later to use the `sneakers` gem's adapter.
+      MSG
+      assert_deprecated(msg, ActiveJob.deprecator) do
+        ActiveJob::Base.queue_adapter = :sneakers
+      end
+
+    ensure
+      ActiveJob::Base.queue_adapter = before_adapter
+    end
+  end
 end
