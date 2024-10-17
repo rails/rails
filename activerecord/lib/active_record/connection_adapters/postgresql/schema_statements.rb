@@ -1133,7 +1133,7 @@ module ActiveRecord
                 "'f'"
               end
             scope = {}
-            scope[:schema] = schema ? quote(schema) : "ANY (current_schemas(false))"
+            scope[:schema] = schema ? quote(schema) : "ANY (array_prepend((SELECT pg_my_temp_schema()::regnamespace::name),current_schemas(false)))"
             scope[:name] = quote(name) if name
             scope[:type] = type if type
             scope
