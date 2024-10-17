@@ -674,10 +674,9 @@ Column modifiers can be applied when creating or changing a column:
 
 * `comment`      Adds a comment for the column.
 * `collation`    Specifies the collation for a `string` or `text` column.
-* `default`      Allows to set a default value on the column. Note that if you
-  are using a dynamic value (such as a date), the default will only be
-  calculated the first time (i.e. on the date the migration is applied). Use
-  `nil` for `NULL`.
+* `default`      Declares a default value for the column when a value is not
+  provided. Assigning any value (including `nil`) will override a column's
+  default value. Use `nil` for `NULL`.
 * `limit`        Sets the maximum number of characters for a `string` column and
   the maximum number of bytes for `text/binary/integer` columns.
 * `null`         Allows or disallows `NULL` values in the column.
@@ -694,6 +693,12 @@ for further information.
 
 NOTE: `null` and `default` cannot be specified via command line when generating
 migrations.
+
+NOTE: Declaring a `default` with a dynamic value (such as a date) will only be
+calculated the first time (on the date the migration is applied, for example).
+
+NOTE: Saving `nil` to a column with both `null: false` and a `default` value
+will raise an `ActiveRecord::NotNullViolation`.
 
 ### References
 
@@ -1779,4 +1784,3 @@ Instead, consider using the
 gem provides a framework for creating and managing data migrations and other
 maintenance tasks in a way that is safe and easy to manage without interfering
 with schema migrations.
-
