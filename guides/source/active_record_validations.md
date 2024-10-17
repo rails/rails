@@ -1350,7 +1350,8 @@ irb> Person.new.valid?
 => TokenGenerationException: Token can't be blank
 ```
 
-### Listing Validators
+Listing Validators
+------------------
 
 If you want to find out all of the validators for a given object, you can use
 `validators`.
