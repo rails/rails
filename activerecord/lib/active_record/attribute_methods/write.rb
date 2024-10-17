@@ -39,6 +39,12 @@ module ActiveRecord
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the write_attribute API
       def _write_attribute(attr_name, value) # :nodoc:
+        column = self.class.column_for_attribute(attr_name)
+
+        if value.nil? && !column.null && column.has_default?
+          value = column.default
+        end
+
         @attributes.write_from_user(attr_name, value)
       end
 

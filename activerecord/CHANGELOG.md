@@ -1,3 +1,19 @@
+*   Write `nil` values as the column default when `null: false`
+
+    ```ruby
+    ActiveRecord::Schema.define do
+      create_table :posts, force: true do |t|
+        t.boolean :published, null: false, default: true
+      end
+    end
+
+    post = Post.create! published: nil
+
+    post.published # => true
+    ```
+
+    *Sean Doyle*
+
 *   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
 
     *David Stosik*

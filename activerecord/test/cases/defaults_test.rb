@@ -4,6 +4,7 @@ require "cases/helper"
 require "support/schema_dumping_helper"
 require "models/default"
 require "models/entrant"
+require "models/person"
 
 class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
@@ -12,6 +13,12 @@ class DefaultTest < ActiveRecord::TestCase
       assert_not column.null, "#{name} column should be NOT NULL"
       assert_not column.default, "#{name} column should be DEFAULT 'nil'"
     end
+  end
+
+  def test_coerces_nil_into_default_value_for_column
+    person = Person.create! first_name: "ignored", insures: nil
+
+    assert_equal 0, person.read_attribute(:insures)
   end
 
   if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
