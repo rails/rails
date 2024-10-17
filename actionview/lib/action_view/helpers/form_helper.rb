@@ -30,8 +30,8 @@ module ActionView
     # when the form is initially displayed, input fields corresponding to attributes
     # of the resource should show the current values of those attributes.
     #
-    # In \Rails, this is usually achieved by creating the form using either
-    # +form_with+ or +form_for+ and a number of related helper methods. These
+    # In \Rails, this is usually achieved by creating the form using
+    # +form_with+ and a number of related helper methods. These
     # methods generate an appropriate <tt>form</tt> tag and yield a form
     # builder object that knows the model the form is about. Input fields are
     # created by calling methods defined on the form builder, which means they
@@ -42,7 +42,7 @@ module ActionView
     #
     # For example, to create a new person you typically set up a new instance of
     # +Person+ in the <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
-    # in the view template pass that object to +form_with+ or +form_for+:
+    # in the view template pass that object to +form_with+:
     #
     #   <%= form_with model: @person do |f| %>
     #     <%= f.label :first_name %>:
@@ -414,8 +414,8 @@ module ActionView
       #     form_for(record_or_name_or_array, *(args << options.merge(builder: LabellingFormBuilder)), &block)
       #   end
       #
-      # If you don't need to attach a form to a model instance, then check out
-      # FormTagHelper#form_tag.
+      # If you don't need to attach a form to a model instance, you can instead
+      # use +form_with+ with the <tt>model</tt> option omitted or set to <tt>false</tt>.
       #
       # === Form to external resources
       #
