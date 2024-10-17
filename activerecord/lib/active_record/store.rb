@@ -93,6 +93,29 @@ module ActiveRecord
   #       super.to_i
   #     end
   #   end
+  #
+  # The keys used to access the store can be transformed by the
+  # <tt>read_store_attribute</tt> and <tt>write_store_attribute</tt>
+  # instance methods. For example, to transform snake_case attribute name to
+  # camelCase JSON property names, <tt>camelize</tt> the key, then call <tt>super</tt>:
+  #
+  #   class Song < ActiveRecord::Base
+  #     store :settings, accessors: [:volume_adjustment]
+  #
+  #     def read_store_attribute(store_attribute, key)
+  #       super(store_attribute, key.to_s.camelize(:lower))
+  #     end
+  #
+  #     def write_store_attribute(store_attribute, key, value)
+  #       super(store_attribute, key.to_s.camelize(:lower), value)
+  #     end
+  #   end
+  #
+  #   song = Song.new(settings: { volumeAdjustment: 10 })
+  #   song.volume_adjustment      # => 10
+  #   song.volume_adjustment = 5
+  #   song.volume_adjustment      # => 5
+  #   song.settings               # => { "volumeAdjustment" => 5 }
   module Store
     extend ActiveSupport::Concern
 
@@ -206,11 +229,57 @@ module ActiveRecord
     end
 
     private
+      # Read an attribute from the store.
+      #
+      # ==== Parameters
+      #
+      # * +store_attribute+ - The column name
+      # * +key+ - The string or symbol key to read
+      #
+      # ==== Examples
+      #
+      # Overwrite and call <tt>super</tt> to change how the attribute is read from the store:
+      #
+      #   class Song < ActiveRecord::Base
+      #     store :settings, accessors: [:volume_adjustment]
+      #
+      #     def read_store_attribute(store_attribute, key)
+      #       super(store_attribute, key.to_s.camelize(:lower))
+      #     end
+      #   end
+      #
+      #   song = Song.new(settings: { volumeAdjustment: 10 })
+      #   song.settings               # => { "volumeAdjustment" => 10 }
+      #   song.volume_adjustment      # => 10
       def read_store_attribute(store_attribute, key) # :doc:
         accessor = store_accessor_for(store_attribute)
         accessor.read(self, store_attribute, key)
       end
 
+      # Write to an attribute in the store.
+      #
+      # ==== Parameters
+      #
+      # * +store_attribute+ - The column name
+      # * +key+ - The string or symbol key to write
+      # * +value+ - The value to write
+      #
+      # ==== Examples
+      #
+      # Overwrite and call <tt>super</tt> to change how the attribute is written to the store:
+      #
+      #   class Song < ActiveRecord::Base
+      #     store :settings, accessors: [:volume_adjustment]
+      #
+      #     def write_store_attribute(store_attribute, key, value)
+      #       super(store_attribute, key.to_s.camelize(:lower), value)
+      #     end
+      #   end
+      #
+      #   song = Song.new(settings: {})
+      #   song.settings               # => {}
+      #   song.volume_adjustment = 10
+      #   song.settings               # => { "valueAdjustment" => 10 }
       def write_store_attribute(store_attribute, key, value) # :doc:
         accessor = store_accessor_for(store_attribute)
         accessor.write(self, store_attribute, key, value)
