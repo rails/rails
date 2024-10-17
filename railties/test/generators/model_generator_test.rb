@@ -112,6 +112,21 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_revoke_non_existent_model
+    error = capture(:stderr) { run_generator ["NonExistentModel"], behavior: :revoke }
+    puts "error: #{error}"
+    assert_match(/Model 'NonExistentModel' does not exist/, error)
+  end
+
+  def test_revoke_existing_namespaced_model_no_error
+    run_generator ["admin/account"]
+    assert_file "app/models/admin/account.rb"
+
+    output = capture(:stdout) { run_generator ["admin/account"], behavior: :revoke }
+    assert_no_file "app/models/users/existing_model.rb"
+    assert_no_match(/Model 'Admin::Account' does not exist/, output)
+  end
+
   def test_plural_names_are_singularized
     content = run_generator ["accounts"]
     assert_file "app/models/account.rb", /class Account < ApplicationRecord/
