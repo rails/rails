@@ -808,3 +808,21 @@ For example, to exclude comments from your structure dump, add this to an initia
 ```ruby
 ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
 ```
+
+Explain
+-------
+
+Along with the standard [`explain`][explain-options] options, the PostgreSQL adapter supports [`buffers`][explain-analayze-buffers].
+
+```ruby
+Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
+#=> EXPLAIN (ANALYZE, BUFFERS) SELECT "companies".* FROM "companies"
+# ...
+# Seq Scan on companies  (cost=0.00..2.21 rows=3 width=64)
+# ...
+```
+
+See their documentation for more details.
+
+[explain-options]: active_record_querying.html#explain-options
+[explain-analayze-buffers]: https://www.postgresql.org/docs/current/sql-explain.html
