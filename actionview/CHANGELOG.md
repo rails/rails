@@ -1,3 +1,20 @@
+*   Introduce `field_label` form helper
+
+    Generate the text-only label contents for a field:
+
+    ```ruby
+    # Helper method
+    field_label :article, :title    # => "Title"
+
+    # FormBuilder method
+    fields model: @article do |form|
+      form.label :title             # => "<label for=\"article_title\">Title</label>"
+      form.field_label :title       # => "Title"
+    end
+    ```
+
+    *Sean Doyle*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Enable DependencyTracker to evaluate renders with trailing interpolation.

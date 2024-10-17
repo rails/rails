@@ -43,11 +43,16 @@ class FormHelperTest < ActionView::TestCase
         label: {
           post: {
             body: "Write entire text here",
+            body_html: %{Write entire text <a href="/">here</a>},
             color: {
               red: "Rojo"
             },
             comments: {
               body: "Write body here"
+            },
+            published: {
+              true: "Published",
+              false: "Draft"
             }
           },
           tag: {
@@ -1729,6 +1734,84 @@ class FormHelperTest < ActionView::TestCase
     value = field_id(Post.new, :secret?)
 
     assert_equal "post_secret", value
+  end
+
+  def test_field_label
+    assert_equal("Title", field_label("post", "title"))
+    assert_equal("Secret?", field_label("post", "secret?"))
+    assert_equal("Title", field_label(:post, :title))
+    assert_equal("Secret?", field_label(:post, :secret?))
+  end
+
+  def test_field_label_with_value
+    I18n.with_locale :label do
+      assert_equal("Published", field_label(:post, :published, value: true))
+      assert_equal("Draft", field_label(:post, :published, value: false))
+    end
+  end
+
+  def test_field_label_with_nil_object_name
+    assert_equal "Title", field_label(nil, :title)
+    assert_equal "Delegate Title", field_label(nil, :title, object: PostDelegator.new)
+  end
+
+  def test_field_label_with_locales_strings
+    I18n.with_locale :label do
+      assert_equal("Write entire text here", field_label("post", "body"))
+    end
+  end
+
+  def test_field_label_with_human_attribute_name
+    I18n.with_locale :label do
+      assert_equal("Total cost", field_label(:post, :cost))
+    end
+  end
+
+  def test_field_label_with_locales_symbols
+    I18n.with_locale :label do
+      assert_equal("Write entire text here", field_label(:post, :body))
+    end
+  end
+
+  def test_field_label_with_locales_and_nested_attributes
+    I18n.with_locale :label do
+      fields_for(@post) do |f|
+        f.fields_for(:comments) do |cf|
+          assert_equal "Write body here", cf.field_label(:body)
+        end
+      end
+    end
+  end
+
+  def test_field_label_with_non_active_record_object
+    fields_for(Customer.new) do |f|
+      assert_equal "Name", f.field_label(:name)
+    end
+  end
+
+  def test_field_label_with_html
+    I18n.with_locale :label do
+      assert_equal(
+        "Write entire text here",
+        field_label(:post, :body_html)
+      )
+    end
+  end
+
+  def test_field_label_with_to_model
+    assert_equal(
+      "Delegate Title",
+      field_label(:post_delegator, :title)
+    )
+  end
+
+  def test_field_label_with_to_model_and_overridden_model_name
+    I18n.with_locale :label do
+      assert_equal(
+        "Delegate model_name title",
+        field_label(:post_delegator, :title)
+      )
+    end
   end
 
   def test_form_for_field_id

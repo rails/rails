@@ -117,6 +117,32 @@ module ActionView
         ].tap(&:compact!).join("_")
       end
 
+      # Generate the text-only content that would be used for a the given name and
+      # field combination.
+      #
+      #   field_label :post, :title
+      #   # => "Title"
+      #
+      #   field_label :post, :published, value: true
+      #   # => "Published"
+      #
+      #   field_label :post, :published, value: false
+      #   # => "Draft"
+      #
+      def field_label(object_name, method_name, object: nil, value: nil)
+        object_name, method_name = object_name.to_s, method_name.to_s
+        object ||= instance_values[object_name]
+
+        method_and_value = value.to_s.present? ? "#{method_name}.#{value}" : method_name
+
+        content ||= Tags::Translator
+          .new(object, object_name, method_and_value, scope: "helpers.label")
+          .translate
+        content ||= method_name.humanize
+
+        strip_tags(content)
+      end
+
       # Generate an HTML <tt>name</tt> attribute value for the given name and
       # field combination
       #
