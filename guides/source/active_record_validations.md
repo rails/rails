@@ -1901,5 +1901,5 @@ config.action_view.field_error_proc = Proc.new { |html_tag, instance| content_ta
 
 You can customize this behavior by modifying the field_error_proc setting in
 your application configuration, allowing you to change how errors are presented
-in your forms. For more details, refer to the [API documentation on
-field_error_proc](https://api.rubyonrails.org/configuring.html#config-action-view-field-error-proc).
+in your forms. For more details,refer to the [Configuration Guide on
+field_error_proc](configuring.html#config-action-view-field-error-proc).
