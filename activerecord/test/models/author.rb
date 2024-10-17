@@ -184,6 +184,7 @@ class Author < ActiveRecord::Base
 
   has_one :essay_2, primary_key: :name, class_name: "Essay", foreign_key: :author_id
   has_one :essay_category_2, through: :essay_2, source: :category
+  has_one :general_essay, -> { general }, class_name: "Essay", primary_key: :name
 
   has_many :essays, primary_key: :name, as: :writer
   has_many :essay_categories, through: :essays, source: :category
