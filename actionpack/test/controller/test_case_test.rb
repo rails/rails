@@ -627,6 +627,13 @@ class TestCaseTest < ActionController::TestCase
     end
   end
 
+  test "nil Content-Type header with post request" do
+    @request.headers["Content-Type"] = nil
+    assert_raises(match: /Unknown Content-Type/) do
+      post :render_body
+    end
+  end
+
   def test_using_as_json_sets_request_content_type_to_json
     post :render_body, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
 
