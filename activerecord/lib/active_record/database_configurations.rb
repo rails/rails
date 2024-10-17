@@ -294,6 +294,11 @@ module ActiveRecord
 
       def environment_url_config(env, name, config)
         url = environment_value_for(name)
+
+        if !url && config[:database] && ENV["DATABASE_URL"]
+          url = URI.parse(ENV["DATABASE_URL"]).tap { |uri| uri.path = "/" + config[:database] }.to_s
+        end
+
         return unless url
 
         UrlConfig.new(env, name, url, config)
