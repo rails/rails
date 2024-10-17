@@ -25,3 +25,4 @@ end
 require_relative "../../tools/test_common"
 
 ActiveJob::Base.include(ActiveJob::EnqueueAfterTransactionCommit)
+ActiveJob::Base.enqueue_after_transaction_commit = false

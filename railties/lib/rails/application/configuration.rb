@@ -341,6 +341,10 @@ module Rails
         when "8.0"
           load_defaults "7.2"
 
+          if respond_to?(:active_job)
+            active_job.enqueue_after_transaction_commit = true
+          end
+
           if respond_to?(:active_support)
             active_support.to_time_preserves_timezone = :zone
           end
