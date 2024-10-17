@@ -4,5 +4,8 @@
     "actioncable",
     "actiontext",
     "activestorage"
-  ]
+  ],
+  "resolutions": {
+    "webdriverio": "^7.19.5"
+  }
 }
