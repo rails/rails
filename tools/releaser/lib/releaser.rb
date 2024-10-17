@@ -124,6 +124,10 @@ class Releaser < Rake::TaskLib
           raise "GitHub CLI is not logged in. Please run `gh auth login` to log in."
         end
       end
+      default_repo = `git config --local --get-regexp '\.gh-resolved$'`.strip
+      if !$?.success? || default_repo.empty?
+        raise "GitHub CLI does not have a default repo configured. Please run `gh repo set-default rails/rails`"
+      end
     end
 
     task :commit do
