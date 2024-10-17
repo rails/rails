@@ -1,3 +1,7 @@
+*   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
+
+    *Matthew Nguyen*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Exit `rails g` with code 1 if generator could not be found.
