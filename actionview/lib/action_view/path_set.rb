@@ -56,7 +56,13 @@ module ActionView # :nodoc:
 
     private
       def search_combinations(prefixes)
-        prefixes = Array(prefixes)
+        prefixes = Array(prefixes).flat_map do |prefix|
+          nested_prefixes = prefix.chars.filter_map.with_index do |char, index|
+            prefix[index..].delete_prefix("/") if char == "/"
+          end
+
+          [prefix] + nested_prefixes
+        end
         prefixes.each do |prefix|
           paths.each do |resolver|
             yield resolver, prefix
