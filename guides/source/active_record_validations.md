@@ -1583,7 +1583,8 @@ The following is a list of the most commonly used methods. Please refer to the
 
 ### `errors`
 
-The gateway through which you can drill down into various details of each error.
+The [`errors`][] method is the starting point through which you can drill down
+into various details of each error.
 
 This returns an instance of the class `ActiveModel::Errors` containing all
 errors, each error is represented by an [`ActiveModel::Error`][] object.
@@ -1664,6 +1665,8 @@ Each error is encapsulated as an `ActiveModel::Error` object, and the
 
 `where` returns an array of error objects filtered by various degrees of
 conditions.
+
+Given the following validation:
 
 ```ruby
 class Person < ApplicationRecord
