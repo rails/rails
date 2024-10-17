@@ -78,7 +78,7 @@ class ActionsTest < Rails::Generators::TestCase
   def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, "will-paginate"
-    assert_file "Gemfile", /gem "will-paginate"\n\z/
+    assert_gem "will-paginate"
   end
 
   def test_gem_with_version_should_include_version_in_gemfile
@@ -88,12 +88,12 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem, "nokogiri", version: ">= 1.4.2"
     action :gem, "faker", version: [">= 0.1.0", "< 0.3.0"]
 
-    assert_file "Gemfile" do |content|
-      assert_match(/gem "rspec", ">= 2\.0\.0\.a5"/, content)
-      assert_match(/gem "RedCloth", ">= 4\.1\.0", "< 4\.2\.0"/, content)
-      assert_match(/gem "nokogiri", ">= 1\.4\.2"/, content)
-      assert_match(/gem "faker", ">= 0\.1\.0", "< 0\.3\.0"/, content)
-    end
+    assert_gems(
+      rspec: ">= 2.0.0.a5",
+      RedCloth: [">= 4.1.0", "< 4.2.0"],
+      nokogiri: ">= 1.4.2",
+      faker: [">= 0.1.0", "< 0.3.0"]
+    )
   end
 
   def test_gem_should_insert_on_separate_lines
@@ -104,8 +104,7 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem, "rspec"
     action :gem, "rspec-rails"
 
-    assert_file "Gemfile", /^gem "rspec"$/
-    assert_file "Gemfile", /^gem "rspec-rails"$/
+    assert_gems "rspec", "rspec-rails"
   end
 
   def test_gem_should_include_options
@@ -113,7 +112,7 @@ class ActionsTest < Rails::Generators::TestCase
 
     action :gem, "rspec", github: "dchelimsky/rspec", tag: "1.2.9.rc1"
 
-    assert_file "Gemfile", /gem "rspec", github: "dchelimsky\/rspec", tag: "1\.2\.9\.rc1"/
+    assert_gem "rspec", github: "dchelimsky/rspec", tag: "1.2.9.rc1"
   end
 
   def test_gem_should_put_the_comment_before_gem_declaration
@@ -138,8 +137,10 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem, "rspec", require: false
     action :gem, "rspec-rails", group: [:development, :test]
 
-    assert_file "Gemfile", /^gem "rspec", require: false$/
-    assert_file "Gemfile", /^gem "rspec-rails", group: \[:development, :test\]$/
+    assert_gems(
+      "rspec" => { require: false },
+      "rspec-rails" => { group: [:development, :test] }
+    )
   end
 
   def test_gem_falls_back_to_inspect_if_string_contains_single_quote
@@ -147,7 +148,7 @@ class ActionsTest < Rails::Generators::TestCase
 
     action :gem, "rspec", ">=2.0.0"
 
-    assert_file "Gemfile", /^gem "rspec", ">=2\.0\.0"$/
+    assert_gem "rspec", ">=2.0.0"
   end
 
   def test_gem_works_even_if_frozen_string_is_passed_as_argument
@@ -155,7 +156,7 @@ class ActionsTest < Rails::Generators::TestCase
 
     action :gem, -"frozen_gem", -"1.0.0"
 
-    assert_file "Gemfile", /^gem "frozen_gem", "1\.0\.0"$/
+    assert_gem "frozen_gem", "1.0.0"
   end
 
   def test_gem_group_should_wrap_gems_in_a_group
