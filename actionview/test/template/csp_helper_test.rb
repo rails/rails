@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 
 class CspHelperWithCspEnabledTest < ActionView::TestCase
   tests ActionView::Helpers::CspHelper
@@ -13,7 +14,19 @@ class CspHelperWithCspEnabledTest < ActionView::TestCase
     true
   end
 
-  def test_csp_meta_tag
+  def test_csp_meta_tag_uses_nonce_attribute_with_helper_nonce_attribute_name_nonce
+    ActionView::Helpers::CspHelper.with(csp_meta_tag_nonce_attribute: :nonce) do
+      assert_equal "<meta name=\"csp-nonce\" nonce=\"iyhD0Yc0W+c=\" />", csp_meta_tag
+    end
+  end
+
+  def test_csp_meta_tag_uses_nonce_attribute_with_helper_nonce_attribute_name_content
+    ActionView::Helpers::CspHelper.with(csp_meta_tag_nonce_attribute: :content) do
+      assert_equal "<meta name=\"csp-nonce\" content=\"iyhD0Yc0W+c=\" />", csp_meta_tag
+    end
+  end
+
+  def test_csp_meta_tag_with_helper_nonce_attribute_default_setting
     assert_equal "<meta name=\"csp-nonce\" content=\"iyhD0Yc0W+c=\" />", csp_meta_tag
   end
 
