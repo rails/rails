@@ -8,7 +8,7 @@ database using Active Record's validations feature.
 
 After reading this guide, you will know:
 
-* How to use the built-in Active Record validation helpers and options.
+* How to use the built-in Active Record validations and options.
 * How to check the validity of objects.
 * How to create conditional and strict validations.
 * How to create your own custom validation methods.
@@ -342,8 +342,8 @@ with Validation Errors](#working-with-validation-errors) section.
 [Errors#squarebrackets]:
     https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-5B-5D
 
-Validation Helpers
-------------------
+Validations
+-----------
 
 Active Record offers many predefined validations that you can use
 directly inside your class definitions. These predefined validations provide common validation
@@ -357,16 +357,31 @@ easily access the errors related to any specific attribute. For instance, if you
 validate the `:name` attribute and the validation fails, you will find the error
 message under `errors[:name]`.
 
-Each validation helper accepts an arbitrary number of attribute names, allowing
+In modern Rails applications, the more concise validate syntax is commonly used, for example:
+
+```
+validate :name, presence: true
+```
+
+However, older versions of Rails used "helper" methods, such as:
+
+```
+validates_presence_of :name
+```
+Both notations perform the same function, but the newer form is recommended for its readability and alignment with Rails' conventions.
+
+
+
+Each validation accepts an arbitrary number of attribute names, allowing
 you to apply the same type of validation to multiple attributes in a single line
 of code.
 
-Additionally, all validation helpers accept the `:on` and `:message` options.
+Additionally, all validations accept the `:on` and `:message` options.
 The `:on` option specifies when the validation should be triggered, with
 possible values being `:create` or `:update`. The `:message` option allows you
 to define a custom error message that will be added to the errors collection if
 the validation fails. If you do not specify a message, Rails will use a default
-error message for that validation helper.
+error message for that validation.
 
 INFO: To see a list of the available default helpers, take a look at
 [`ActiveModel::Validations::HelperMethods`][].
@@ -374,7 +389,7 @@ INFO: To see a list of the available default helpers, take a look at
 [`ActiveModel::Validations::HelperMethods`]:
     https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html
 
-Below we outline the most commonly used validation helpers.
+Below we outline the most commonly used validation.
 
 ### `acceptance`
 
@@ -1100,7 +1115,7 @@ irb> Topic.create(title: "short").valid?
 As you've already seen, the `:message` option lets you specify the message that
 will be added to the `errors` collection when validation fails. When this option
 is not used, Active Record will use the respective default error message for
-each validation helper.
+each validation.
 
 The `:message` option accepts either a `String` or `Proc` as its value.
 
@@ -1144,7 +1159,7 @@ guide](i18n.html#error-message-scopes).
 ### `:on`
 
 The `:on` option lets you specify when the validation should happen. The default
-behavior for all the built-in validation helpers is to be run on save (both when
+behavior for all the built-in validations is to be run on save (both when
 you're creating a new record and when you're updating it). If you want to change
 it, you can use `on: :create` to run the validation only when a new record is
 created or `on: :update` to run the validation only when a record is updated.
@@ -1392,7 +1407,7 @@ irb> Person.validators_on(:name)
 Performing Custom Validations
 -----------------------------
 
-When the built-in validation helpers are not enough for your needs, you can
+When the built-in validations are not enough for your needs, you can
 write your own validators or validation methods as you prefer.
 
 ### Custom Validators
