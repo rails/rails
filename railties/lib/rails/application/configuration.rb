@@ -348,6 +348,10 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.strict_freshness = true
           end
+
+          if respond_to?(:action_view)
+            action_view.closes_form_tag_without_block = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
