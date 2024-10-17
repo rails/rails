@@ -1,3 +1,9 @@
+*   Deprecate built-in `sidekiq` adapter.
+
+    If you're using this adapter, upgrade to `sidekiq` 8.0 or later to use the `sidekiq` gem's adapter.
+
+    *fatkodima*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Deprecate `sucker_punch` as an adapter option.
