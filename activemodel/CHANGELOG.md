@@ -14,6 +14,18 @@
     *Drew Bragg*
 
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
+*   Add error type support arguments to `ActiveModel::Errors#messages_for` and `ActiveModel::Errors#full_messages_for`
+
+    ```ruby
+    person = Person.create()
+    person.errors.full_messages_for(:name, :invalid)
+    # => ["Name is invalid"]
+
+    person.errors.messages_for(:name, :invalid)
+    # => ["is invalid"]
+    ```
+
+    *Eugene Bezludny*
 
 *   Make `ActiveModel::Serialization#read_attribute_for_serialization` public
 
