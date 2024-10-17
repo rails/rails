@@ -121,6 +121,8 @@ module ActionView
 
       attr_internal :default_form_builder
 
+      # Soft deprecated. Use +form_with+ instead.
+      #
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.
       #
