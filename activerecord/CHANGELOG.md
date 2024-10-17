@@ -1,3 +1,7 @@
+*   Add `affected_rows` to `sql.active_record` Notification.
+
+    *Hartley McGuire*
+
 *   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
 
     *David Stosik*

@@ -65,9 +65,11 @@ module ActiveRecord
               raw_connection.query(sql)
             end
 
+            @affected_rows_before_warnings = raw_connection.affected_rows
+
+            notification_payload[:affected_rows] = @affected_rows_before_warnings
             notification_payload[:row_count] = result&.size || 0
 
-            @affected_rows_before_warnings = raw_connection.affected_rows
             raw_connection.abandon_results!
 
             verified!
