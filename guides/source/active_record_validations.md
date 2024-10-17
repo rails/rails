@@ -388,7 +388,60 @@ INFO: To see a list of the available default helpers, take a look at
 [`ActiveModel::Validations::HelperMethods`]:
     https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html
 
-Below we outline the most commonly used validation.
+Below we outline the most commonly used validations.
+
+### `absence`
+
+This helper validates that the specified attributes are absent. It uses the
+[`Object#present?`][] method to check if the value is neither nil nor a blank
+string - that is, a string that is either empty or consists of whitespace only.
+
+```ruby
+class Person < ApplicationRecord
+  validates :name, :login, :email, absence: true
+end
+```
+
+If you want to be sure that an association is absent, you'll need to test
+whether the associated object itself is absent, and not the foreign key used to
+map the association.
+
+```ruby
+class LineItem < ApplicationRecord
+  belongs_to :order
+  validates :order, absence: true
+end
+```
+
+In order to validate associated records whose absence is required, you must
+specify the `:inverse_of` option for the association:
+
+```ruby
+class Order < ApplicationRecord
+  has_many :line_items, inverse_of: :order
+end
+```
+
+NOTE: If you want to ensure that the association is both present and valid, you
+also need to use `validates_associated`. More on that in the
+[validates_associated section](#validates-associated).
+
+If you validate the absence of an object associated via a
+[`has_one`](association_basics.html#the-has-one-association) or
+[`has_many`](association_basics.html#the-has-many-association) relationship, it
+will check that the object is neither `present?` nor `marked_for_destruction?`.
+
+Since `false.present?` is false, if you want to validate the absence of a
+boolean field you should use:
+
+```ruby
+validates :field_name, exclusion: { in: [true, false] }
+```
+
+The default error message is _"must be blank"_.
+
+[`Object#present?`]:
+    https://api.rubyonrails.org/classes/Object.html#method-i-present-3F
 
 ### `acceptance`
 
@@ -759,59 +812,6 @@ The default error message is _"can't be blank"_.
 
 [`Object#blank?`]:
     https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
-
-### `absence`
-
-This helper validates that the specified attributes are absent. It uses the
-[`Object#present?`][] method to check if the value is neither nil nor a blank
-string - that is, a string that is either empty or consists of whitespace only.
-
-```ruby
-class Person < ApplicationRecord
-  validates :name, :login, :email, absence: true
-end
-```
-
-If you want to be sure that an association is absent, you'll need to test
-whether the associated object itself is absent, and not the foreign key used to
-map the association.
-
-```ruby
-class LineItem < ApplicationRecord
-  belongs_to :order
-  validates :order, absence: true
-end
-```
-
-In order to validate associated records whose absence is required, you must
-specify the `:inverse_of` option for the association:
-
-```ruby
-class Order < ApplicationRecord
-  has_many :line_items, inverse_of: :order
-end
-```
-
-NOTE: If you want to ensure that the association is both present and valid, you
-also need to use `validates_associated`. More on that in the
-[validates_associated section](#validates-associated).
-
-If you validate the absence of an object associated via a
-[`has_one`](association_basics.html#the-has-one-association) or
-[`has_many`](association_basics.html#the-has-many-association) relationship, it
-will check that the object is neither `present?` nor `marked_for_destruction?`.
-
-Since `false.present?` is false, if you want to validate the absence of a
-boolean field you should use:
-
-```ruby
-validates :field_name, exclusion: { in: [true, false] }
-```
-
-The default error message is _"must be blank"_.
-
-[`Object#present?`]:
-    https://api.rubyonrails.org/classes/Object.html#method-i-present-3F
 
 ### `uniqueness`
 
