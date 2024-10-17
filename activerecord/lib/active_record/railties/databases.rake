@@ -87,22 +87,7 @@ db_namespace = namespace :db do
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
-    db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
-
-    if db_configs.size == 1 && db_configs.first.primary?
-      ActiveRecord::Tasks::DatabaseTasks.migrate
-    else
-      mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions
-
-      mapped_versions.sort.each do |version, db_configs|
-        db_configs.each do |db_config|
-          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
-            ActiveRecord::Tasks::DatabaseTasks.migrate(version)
-          end
-        end
-      end
-    end
-
+    ActiveRecord::Tasks::DatabaseTasks.migrate_all
     db_namespace["_dump"].invoke
   end
 
