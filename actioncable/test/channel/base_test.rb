@@ -24,6 +24,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   class ChatChannel < BasicChannel
     attr_reader :room, :last_action
     after_subscribe :toggle_subscribed
+    after_subscribe :set_after_subscribed_ran
     after_unsubscribe :toggle_subscribed
 
     class SomeCustomError < StandardError; end
@@ -47,6 +48,10 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
       @subscribed = !@subscribed
     end
 
+    def set_after_subscribed_ran
+      @after_subscribed_ran = true
+    end
+
     def leave
       @last_action = [ :leave ]
     end
@@ -61,6 +66,10 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
 
     def subscribed?
       @subscribed
+    end
+
+    def after_subscribed_ran?
+      @after_subscribed_ran
     end
 
     def get_latest
@@ -188,7 +197,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   end
 
   test "actions available on Channel" do
-    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic error_action).to_set
+    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed set_after_subscribed_ran leave speak subscribed? after_subscribed_ran? get_latest receive chatters topic error_action).to_set
     assert_equal available_actions, ChatChannel.action_methods
   end
 
@@ -265,6 +274,49 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   test "behaves like rescuable" do
     @channel.perform_action "action" => :error_action
     assert_equal [ :error_action ], @channel.last_action
+  end
+
+  class RejectBeforeSubscribeChannel < ChatChannel
+    before_subscribe { reject }
+  end
+
+  class RejectInSubscribedChannel < ChatChannel
+    def subscribed
+      super
+      reject
+      toggle_subscribed
+    end
+  end
+
+  class RejectAfterSubscribeChannel < ChatChannel
+    after_subscribe do
+      reject
+      toggle_subscribed
+    end
+  end
+
+  test "#reject in before_subscribe" do
+    channel = RejectBeforeSubscribeChannel.new @connection, "{id: 1}", id: 1
+    channel.subscribe_to_channel
+    assert_nil channel.room
+    assert_not channel.subscribed?
+    assert_not_predicate channel, :after_subscribed_ran?
+  end
+
+  test "#reject in #subscribed" do
+    channel = RejectInSubscribedChannel.new @connection, "{id: 1}", id: 1
+    channel.subscribe_to_channel
+    assert_equal 1, channel.room.id
+    assert_not channel.subscribed?
+    assert_predicate channel, :after_subscribed_ran?
+  end
+
+  test "#reject in after_subscribe" do
+    channel = RejectAfterSubscribeChannel.new @connection, "{id: 1}", id: 1
+    channel.subscribe_to_channel
+    assert_equal 1, channel.room.id
+    assert_not channel.subscribed?
+    assert_predicate channel, :after_subscribed_ran?
   end
 
   private
