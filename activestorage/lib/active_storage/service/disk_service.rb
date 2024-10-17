@@ -13,6 +13,10 @@ module ActiveStorage
   class Service::DiskService < Service
     attr_accessor :root
 
+    def self.options_from_url(url_config) # :nodoc:
+      { root: url_config.host + url_config.path, **url_config.params }
+    end
+
     def initialize(root:, public: false, **options)
       @root = root
       @public = public

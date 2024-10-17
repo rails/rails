@@ -14,6 +14,16 @@ module ActiveStorage
     attr_reader :client, :bucket
     attr_reader :multipart_upload_threshold, :upload_options
 
+    def self.options_from_url(url_config) # :nodoc:
+      {
+        bucket: url_config.path.gsub(%r{^/}, ""),
+        region: url_config.host,
+        access_key_id: url_config.user,
+        secret_access_key: url_config.password,
+        **url_config.params
+      }
+    end
+
     def initialize(bucket:, upload: {}, public: false, **options)
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)

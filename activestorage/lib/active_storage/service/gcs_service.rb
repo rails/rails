@@ -13,6 +13,13 @@ module ActiveStorage
     class MetadataServerError < ActiveStorage::Error; end
     class MetadataServerNotFoundError < ActiveStorage::Error; end
 
+    def self.options_from_url(url_config) # :nodoc:
+      pattern = %r{^gcs://(?<credentials>[^@]+)@(?<project>[^/]+)/(?<bucket>[^?]+)}
+      match = url_config.fetch(:uri).to_s.match(pattern)
+
+      { bucket: match[:bucket], project: match[:project], credentials: match[:credentials], **url_config.params }
+    end
+
     def initialize(public: false, **config)
       @config = config
       @public = public
