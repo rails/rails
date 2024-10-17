@@ -56,6 +56,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+    assert_file "test/controllers/passwords_controller_test.rb"
   end
 
   def test_authentication_generator_without_bcrypt_in_gemfile

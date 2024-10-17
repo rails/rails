@@ -9,6 +9,10 @@ module TestUnit # :nodoc:
         template "test/fixtures/users.yml"
         template "test/models/user_test.rb"
       end
+
+      def create_controller_test_files
+        template "test/controllers/passwords_controller_test.rb"
+      end
     end
   end
 end
