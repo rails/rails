@@ -96,6 +96,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "create_and_upload does not raise for non-rewinded io" do
+    assert_nothing_raised do
+      io = StringIO.new("Hello world!").tap(&:read)
+      ActiveStorage::Blob.create_and_upload!(io: io, filename: "hello.txt")
+    end
+  end
+
   test "record touched after analyze" do
     user = User.create!(
       name: "Nate",
