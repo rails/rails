@@ -407,6 +407,46 @@ module ActiveRecord
         assert ShardConnectionTestModel.find_by_shard_key("foo")
       end
 
+      def test_removing_connection_for_multiple_shards
+        tf_default = Tempfile.open "shard_key_default"
+        tf_shard_one = Tempfile.open "shard_key_one"
+
+        SecondaryBase.connects_to shards: {
+          default: { writing: { database: tf_default.path, adapter: "sqlite3" } },
+          one: { writing: { database: tf_shard_one.path, adapter: "sqlite3" } }
+        }
+
+        [:default, :one].each do |shard_name|
+          ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
+            ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
+          end
+        end
+
+        ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
+          SecondaryBase.remove_connection
+        end
+
+        ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
+          assert_equal "shard_key_default", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          SecondaryBase.remove_connection
+        end
+
+        connection_classes = ActiveRecord::Base.connection_handler.connection_pool_list(:writing).map(&:connection_class)
+        assert_not_includes(connection_classes, SecondaryBase)
+      ensure
+        [:default, :one].each do |shard_name|
+          ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
+            SecondaryBase.remove_connection
+          end
+        end
+
+        tf_shard_one.close
+        tf_shard_one.unlink
+        tf_default.close
+        tf_default.unlink
+      end
+
       def test_swapping_shards_globally_in_a_multi_threaded_environment
         tf_default = Tempfile.open "shard_key_default"
         tf_shard_one = Tempfile.open "shard_key_one"
