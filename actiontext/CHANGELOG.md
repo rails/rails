@@ -1,3 +1,7 @@
+*   Clear embeds when emptying an `ActionText::RichText`.
+
+    *Joé Dupuis*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Dispatch direct-upload events on attachment uploads
