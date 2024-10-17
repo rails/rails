@@ -359,13 +359,13 @@ message under `errors[:name]`.
 
 In modern Rails applications, the more concise validate syntax is commonly used, for example:
 
-```
+```ruby
 validate :name, presence: true
 ```
 
 However, older versions of Rails used "helper" methods, such as:
 
-```
+```ruby
 validates_presence_of :name
 ```
 
