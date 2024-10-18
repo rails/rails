@@ -1255,10 +1255,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_devcontainer_json_file do |content|
       assert_equal "my_app", content["name"]
       assert_equal "45678", content["containerEnv"]["CAPYBARA_SERVER_PORT"]
+      assert_equal "$KAMAL_REGISTRY_PASSWORD", content["containerEnv"]["KAMAL_REGISTRY_PASSWORD"]
       assert_equal "selenium", content["containerEnv"]["SELENIUM_HOST"]
       assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/activestorage"
       assert_includes content["features"].keys, "ghcr.io/devcontainers/features/github-cli:1"
       assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite3"
+      assert_includes content["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
       assert_includes(content["forwardPorts"], 3000)
     end
     assert_file(".devcontainer/Dockerfile") do |content|
@@ -1291,6 +1293,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
       }
 
       assert_equal expected_selenium_conifg, compose_config["services"]["selenium"]
+    end
+  end
+
+  def test_devcontainer_skip_kamal
+    run_generator [destination_root, "--devcontainer", "--name=my-app", "--skip-kamal"]
+
+    assert_devcontainer_json_file do |devcontainer_json|
+      assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+      assert_not_includes devcontainer_json["containerEnv"].keys, "KAMAL_REGISTRY_PASSWORD"
     end
   end
 
@@ -1481,7 +1492,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_not_includes compose_config["services"].keys, "selenium"
     end
     assert_devcontainer_json_file do |content|
-      assert_nil content["containerEnv"]
+      assert_not_includes content["containerEnv"].keys, "SELENIUM_HOST"
+      assert_not_includes content["containerEnv"].keys, "CAPYBARA_SERVER_PORT"
     end
   end
 

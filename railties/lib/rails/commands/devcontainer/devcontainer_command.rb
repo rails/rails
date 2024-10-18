@@ -27,6 +27,7 @@ module Rails
             redis: !!((defined?(ActionCable) && !defined?(SolidCable)) || (defined?(ActiveJob) && !defined?(SolidQueue))),
             system_test: File.exist?("test/application_system_test_case.rb"),
             node: File.exist?(".node-version"),
+            kamal: File.exist?("config/deploy.yml"),
           }
         end
 

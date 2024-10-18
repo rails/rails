@@ -1,3 +1,9 @@
+*   Add Kamal support for devcontainers
+
+    Previously generated devcontainer could not use docker and therefore Kamal.
+
+    *Joé Dupuis*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Exit `rails g` with code 1 if generator could not be found.
