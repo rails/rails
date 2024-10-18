@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "controller/fake_models"
 require "support/etag_helper"
+require "test_renderable"
 
 class TestControllerWithExtraEtags < ActionController::Base
   self.view_paths = [ActionView::FixtureResolver.new(
@@ -368,6 +369,10 @@ class MetalTestController < ActionController::Metal
 
   def accessing_logger_in_template
     render inline: "<%= logger.class %>"
+  end
+
+  def render_renderable
+    render renderable: TestRenderable.new, locals: params.fetch(:locals, {})
   end
 end
 
@@ -792,6 +797,16 @@ class MetalRenderTest < ActionController::TestCase
   def test_access_to_logger_in_view
     get :accessing_logger_in_template
     assert_equal "NilClass", @response.body
+  end
+
+  def test_render_renderable
+    get :render_renderable
+
+    assert_equal "Hello, World!", @response.parsed_body.text
+
+    get :render_renderable, params: { locals: { name: "Local" } }
+
+    assert_equal "Hello, Local!", @response.parsed_body.text
   end
 end
 
