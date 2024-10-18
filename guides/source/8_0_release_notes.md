@@ -105,6 +105,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to passing a database name to `cache_dump_filename`.
 
+*   Remove deprecated support to setting `ENV["SCHEMA_CACHE"]`.
+
 ### Deprecations
 
 ### Notable changes
