@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing a database name to `cache_dump_filename`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`.
 
     *Rafael Mendonça França*

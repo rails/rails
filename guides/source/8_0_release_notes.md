@@ -103,6 +103,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`.
 
+*   Remove deprecated support to passing a database name to `cache_dump_filename`.
+
 ### Deprecations
 
 ### Notable changes
