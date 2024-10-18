@@ -34,6 +34,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated file `rails/console/helpers`.
 
+*   Remove deprecated support to extend Rails console through `Rails::ConsoleMethods`.
+
 ### Deprecations
 
 ### Notable changes

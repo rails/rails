@@ -6,7 +6,6 @@ require "irb/command"
 module Rails
   class Console
     class RailsHelperBase < IRB::HelperMethod::Base
-      include ConsoleMethods
     end
 
     class ControllerHelper < RailsHelperBase
@@ -61,8 +60,6 @@ module Rails
     end
 
     class ReloadCommand < IRB::Command::Base
-      include ConsoleMethods
-
       category "Rails console"
       description "Reloads the Rails application."
 
@@ -119,10 +116,6 @@ module Rails
             Rails.backtrace_cleaner.filter(backtrace)
           end
         end
-
-        # Because some users/libs use Rails::ConsoleMethods to extend Rails console,
-        # we still include it for backward compatibility.
-        IRB::ExtendCommandBundle.include ConsoleMethods
 
         # Respect user's choice of prompt mode.
         IRB.conf[:PROMPT_MODE] = :RAILS_PROMPT if IRB.conf[:PROMPT_MODE] == :DEFAULT

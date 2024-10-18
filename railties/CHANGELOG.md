@@ -1,3 +1,7 @@
+*   Remove deprecated support to extend Rails console through `Rails::ConsoleMethods`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated file `rails/console/helpers`.
 
     *Rafael Mendonça França*
