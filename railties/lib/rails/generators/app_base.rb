@@ -659,10 +659,6 @@ module Rails
         !(options[:skip_bundle] || options[:pretend])
       end
 
-      def bundler_windows_platforms
-        Gem.rubygems_version >= Gem::Version.new("3.3.22") ? "windows" : "mswin mswin64 mingw x64_mingw"
-      end
-
       def depends_on_system_test?
         !(options[:skip_system_test] || options[:skip_test] || options[:api])
       end
