@@ -10,9 +10,11 @@ module ActiveRecord
         private_constant :READ_QUERY
 
         # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_current-timestamp
+        # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_utc-timestamp
         # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-type-syntax.html
         HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP(6)", retryable: true).freeze # :nodoc:
-        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
+        HIGH_PRECISION_UTC_TIMESTAMP = Arel.sql("UTC_TIMESTAMP(6)", retryable: true).freeze # :nodoc:
+        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP, :HIGH_PRECISION_UTC_TIMESTAMP
 
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
@@ -21,7 +23,10 @@ module ActiveRecord
         end
 
         def high_precision_current_timestamp
-          HIGH_PRECISION_CURRENT_TIMESTAMP
+          case ActiveRecord.default_timezone
+          when :utc   then HIGH_PRECISION_UTC_TIMESTAMP
+          when :local then HIGH_PRECISION_CURRENT_TIMESTAMP
+          end
         end
 
         def explain(arel, binds = [], options = [])

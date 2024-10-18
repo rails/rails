@@ -1,3 +1,7 @@
+*   Fix timezone for records created using `.insert` and `.insert_all` in MySQL databases.
+
+    *David Stosik*
+
 *   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
 
     *David Stosik*
