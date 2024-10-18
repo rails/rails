@@ -40,6 +40,8 @@ require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/cpk"
+require "models/human"
+require "models/face"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -1692,6 +1694,41 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     ship.parts.build.mark_for_destruction
 
     assert_not_predicate ship, :valid?
+  end
+
+  def test_should_not_saved_for_unchanged_sti_type_on_polymorphic_association
+    face = Class.new(Face) do
+      def self.name; "Face"; end
+
+      after_save :count_saves
+
+      def count_saves
+        @count ||= 0
+        @count += 1
+      end
+    end
+
+    super_human = Class.new(SuperHuman) do
+      self.table_name = "humans"
+      def self.name; "SuperHuman"; end
+
+      attribute :name, :string
+
+      # Polymorphic has_one needs to be defined on the child class
+      has_one :polymorphic_face, class_name: "Face", as: :polymorphic_human, inverse_of: :polymorphic_human
+    end
+
+    face_record = face.create!
+
+    super_human_record = super_human.create!(name: "S. Human", polymorphic_face: face_record)
+
+    super_human_record.update!(name: "Super Human")
+
+    assert_equal "Human", face_record.polymorphic_human_type
+    assert_equal super_human_record.id, face_record.polymorphic_human_id
+
+    # Saves on create of face and create of super human, but not update
+    assert_equal 2, face_record.instance_variable_get(:@count)
   end
 
   def test_recognises_inverse_polymorphic_association_changes_with_same_foreign_key
