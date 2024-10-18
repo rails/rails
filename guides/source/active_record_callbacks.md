@@ -837,58 +837,59 @@ lead to invalid data.
 [`upsert_all`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert_all
 
-Suppressing Callbacks
----------------------
+Suppressing Saving
+------------------
 
-In certain scenarios, you may need to temporarily prevent certain callbacks from
-being executed within your Rails application. This can be useful when you want
-to skip specific actions during certain operations without permanently disabling
-the callbacks.
+In certain scenarios, you may need to temporarily prevent records from being saved within your Rails application.
+This can be useful to skip the callbacks that would run if the record is saved successfully.
 
-Rails provides a mechanism for suppressing callbacks using the
-[`ActiveRecord::Suppressor`
-module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html). By
-using this module, you can wrap a block of code where you want to suppress
-callbacks, ensuring that they are not executed during that specific operation.
+Rails provides a mechanism to prevent saving records using the [`ActiveRecord::Suppressor` module]
+(https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html).
+By using this module, you can wrap a block of code where you want to avoid saving records and running their save callbacks.
 
-Let's consider a scenario where we have a `User` model with a callback that
-sends a welcome email to new users after they sign up. However, there might be
-cases where we want to create a user without sending the welcome email, such as
-during seeding the database with test data.
+Let's consider a scenario where we have a `User` `has_one` `Notification`.
+Creating a `User` will automatically create a `Notification` record as well.
+Saving a `Notification`, in turn, will trigger a callback that sends an email.
 
 ```ruby
 class User < ApplicationRecord
-  after_create :send_welcome_email
+  has_one :notification
+  after_create :create_notification
+end
 
-  def send_welcome_email
-    puts "Welcome email sent to #{self.email}"
+class Notification < ApplicationRecord
+  belongs_to :user
+
+  after_save :send_email
+
+  def send_email
+    puts "Sending welcome email"
   end
 end
 ```
 
-In this example, the `after_create` callback triggers the `send_welcome_email`
-method every time a new user is created.
+In this example, the `after_save` callback of `Notification` triggers the `send_email` method every time it is saved successfully.
 
-To create a user without sending the welcome email, we can use the
-`ActiveRecord::Suppressor` module as follows:
+To prevent the `after_save :send_email` callback, we can suppress
+saving the `Notification` record with `ActiveRecord::Suppressor`
 
 ```ruby
-User.suppress do
+Notification.suppress do
   User.create(name: "Jane", email: "jane@example.com")
 end
 ```
 
-In the above code, the `User.suppress` block ensures that the
-`send_welcome_email` callback is not executed during the creation of the "Jane"
-user, allowing us to create the user without sending the welcome email.
+In the above code, the `Notification.suppress` block ensures that the
+`Notification` is not saved during the creation of the "Jane"
+user, preventing the welcome e-mail from being sent.
 
 WARNING: Using the Active Record Suppressor, while potentially beneficial for
 selectively controlling callback execution, can introduce complexity and
-unexpected behavior. Suppressing callbacks can obscure the intended flow of your
+unexpected behavior. Suppressing saving can obscure the intended flow of your
 application, leading to difficulties in understanding and maintaining the
-codebase over time. Carefully consider the implications of suppressing
-callbacks, ensuring thorough documentation and thoughtful testing to mitigate
-risks of unintended side effects, performance issues, and test failures.
+codebase over time. Carefully consider the implications of using the suppressor,
+ensuring thorough documentation and thoughtful testing to mitigate
+risks of unintended side effects and test failures.
 
 Halting Execution
 -----------------
