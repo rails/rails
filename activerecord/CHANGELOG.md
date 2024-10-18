@@ -1,3 +1,10 @@
+*   Fix marshalling of unsaved associated records in 7.1 format.
+
+    The 7.1 format would only marshal associated records if the association was loaded.
+    But associations that would only contain unsaved records would be skipped.
+
+    *Jean Boussier*
+    
 *   Fix an issue where `.left_outer_joins` used with multiple associations that have
     the same child association but different parents does not join all parents.
 
