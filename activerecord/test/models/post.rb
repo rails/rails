@@ -58,6 +58,11 @@ class Post < ActiveRecord::Base
   end
   has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
   has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
+  has_many :popular_comments, -> { select(:post_id).group(:post_id).having("count(*) >= 3") }, class_name: "Comment"
+  has_many :comments_with_select, -> { select("comments.*", "'hello' AS hello") }, class_name: "Comment"
+  has_many :comments_with_from, -> { select("all_comments.*").from("comments all_comments") }, class_name: "Comment"
+  has_many :comments_with_limit, -> { order(:id).limit(1).offset(2) }, class_name: "Comment"
+  has_many :comments_with_cte, -> { with(all_comments: Comment.all).from("all_comments comments") }, class_name: "Comment"
 
   scope :no_comments, -> { left_joins(:comments).where(comments: { id: nil }) }
   scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
