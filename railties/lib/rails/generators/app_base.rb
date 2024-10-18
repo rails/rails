@@ -110,7 +110,7 @@ module Rails
                                            desc: "Skip Kamal setup"
 
         class_option :skip_solid,          type: :boolean, default: nil,
-                                           desc: "Skip Solid Cache & Queue setup"
+                                           desc: "Skip Solid Cable, Cache, and Queue setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
