@@ -198,7 +198,7 @@ module ActiveRecord
       end
 
       def join_scope(table, foreign_table, foreign_klass)
-        predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
+        predicate_builder = klass.predicate_builder.with(TableMetadata.new(klass, table))
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 

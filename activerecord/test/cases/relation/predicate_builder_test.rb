@@ -23,6 +23,12 @@ module ActiveRecord
       assert_match %r{#{Regexp.escape(quote_table_name("topics.title"))} ~ 'rails'}i, Reply.joins(:topic).where(topics: { title: /rails/ }).to_sql
     end
 
+    def test_registering_new_handlers_for_joins
+      Reply.belongs_to :regexp_topic, -> { where(title: /rails/) }, class_name: "Topic", foreign_key: "parent_id"
+
+      assert_match %r{#{Regexp.escape(quote_table_name("regexp_topic.title"))} ~ 'rails'}i, Reply.joins(:regexp_topic).references(Arel.sql("regexp_topic")).to_sql
+    end
+
     def test_references_with_schema
       assert_equal %w{schema.table}, ActiveRecord::PredicateBuilder.references(%w{schema.table.column})
     end
