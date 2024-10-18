@@ -44,6 +44,18 @@ class RedirectController < ActionController::Base
     redirect_to({ action: "hello_world" }, { status: 301 })
   end
 
+  def redirect_with_non_redirect_status
+    redirect_to("http://www.example.com", status: 422)
+  end
+
+  def redirect_with_non_redirect_status_by_name
+    redirect_to("http://www.example.com", status: :unprocessable_entity)
+  end
+
+  def redirect_with_3xx_yet_still_non_redirect_status
+    redirect_to("http://www.example.com", status: 304)
+  end
+
   def redirect_with_protocol
     redirect_to action: "hello_world", protocol: "https"
   end
@@ -248,6 +260,30 @@ class RedirectTest < ActionController::TestCase
     get :redirect_with_status_hash
     assert_response 301
     assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+  end
+
+  def test_redirect_with_non_redirect_status
+    assert_deprecated(ActionController.deprecator) do
+      get :redirect_with_non_redirect_status
+    end
+    assert_response 422
+    assert_equal "http://www.example.com", redirect_to_url
+  end
+
+  def test_redirect_with_non_redirect_status_by_name
+    assert_deprecated(ActionController.deprecator) do
+      get :redirect_with_non_redirect_status_by_name
+    end
+    assert_response 422
+    assert_equal "http://www.example.com", redirect_to_url
+  end
+
+  def test_redirect_with_3xx_yet_still_non_redirect_status
+    assert_deprecated(ActionController.deprecator) do
+      get :redirect_with_3xx_yet_still_non_redirect_status
+    end
+    assert_response 304
+    assert_equal "http://www.example.com", redirect_to_url
   end
 
   def test_redirect_with_protocol
