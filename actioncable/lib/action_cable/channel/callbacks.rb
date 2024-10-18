@@ -45,6 +45,11 @@ module ActionCable
       end
 
       module ClassMethods
+        # This callback will be triggered before the Base#subscribed method is called.
+        #
+        # However, if the subscription is rejected with the Base#reject method in any
+        # such callback, the Base#subscribed method will not be called.
+        #
         def before_subscribe(*methods, &block)
           set_callback(:subscribe, :before, *methods, &block)
         end
