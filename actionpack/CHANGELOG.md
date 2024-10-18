@@ -1,3 +1,18 @@
+*   Update `ActionController::Metal::RateLimiting` to support passing method names to `:by` and `:with`
+
+    ```ruby
+    class SignupsController < ApplicationController
+      rate_limit to: 10.times, within: 1.minute, with: :redirect_with_flash
+
+      private
+        def redirect_with_flash
+          redirect_to root_url, alert: "Too many requests!"
+        end
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Improve `ActionController::TestCase` to expose a binary encoded `request.body`.
 
     The rack spec clearly states:
