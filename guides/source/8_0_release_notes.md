@@ -30,6 +30,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `config.read_encrypted_secrets`.
 
+*   Remove deprecated file `rails/console/app`.
+
 ### Deprecations
 
 ### Notable changes

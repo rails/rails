@@ -1,3 +1,7 @@
+*   Remove deprecated file `rails/console/app`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.read_encrypted_secrets`.
 
     *Rafael Mendonça França*
