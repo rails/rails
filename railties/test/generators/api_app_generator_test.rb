@@ -96,9 +96,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   def test_generator_skip_css
     run_generator [destination_root, "--api", "--css=tailwind"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(%r/gem "tailwindcss-rails"/, content)
-    end
+    assert_no_gem "tailwindcss-rails"
 
     assert_no_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/tailwind/, content)

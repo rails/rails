@@ -1,3 +1,7 @@
+*   Add `assert_gem`, `assert_gems`, `assert_no_gem`, and `assert_no_gems` to `Rails::Generators::TestCase`
+
+    *Sean Doyle*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Exit `rails g` with code 1 if generator could not be found.
