@@ -104,7 +104,8 @@ module Rails
           return @features if @features
 
           @features = {
-            "ghcr.io/devcontainers/features/github-cli:1" => {}
+            "ghcr.io/devcontainers/features/github-cli:1" => {},
+            "ghcr.io/rails/devcontainer/features/bundler-cache" => {}
           }
 
           @features["ghcr.io/rails/devcontainer/features/activestorage"] = {} if options[:active_storage]
