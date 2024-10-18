@@ -125,8 +125,11 @@ module RailsGuides
             end
 
             doc.css("h2, h3, h4, h5").each do |node|
-              node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
+              node.inner_html = "<a class='anchorlink' href='##{node[:id]}' data-turbo='false'>#{node.inner_html}</a>"
             end
+
+            tables = doc.css('table')
+            tables.wrap("<div class='table-wrapper'>")
           end
           @body = @epub ? document.to_xhtml : document.to_html
         end
@@ -148,9 +151,13 @@ module RailsGuides
           end.to_html
 
           @index = <<-INDEX.html_safe
-          <nav id="subCol">
-            <h3 class="chapter">
-              <picture>
+          <nav id="column-side" aria-label="Chapter" class="guide-index" data-turbo="false">
+            <a id="chapter-nav-skip-link" href="#article-body" class="skip-link">
+              Skip to article body
+            </a>
+
+            <h2 class="chapter">
+              <picture aria-hidden="true">
                 <!-- Using the `source`  HTML tag to set the dark theme image -->
                 <source
                   srcset="images/icon_book-close-bookmark-1-wht.svg"
@@ -159,7 +166,7 @@ module RailsGuides
                 <img src="images/icon_book-close-bookmark-1.svg" alt="Chapter Icon" />
               </picture>
               Chapters
-            </h3>
+            </h2>
             #{@index}
           </nav>
           INDEX
