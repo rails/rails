@@ -142,6 +142,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `ActiveSupport::ProxyObject`.
 
+*   Remove deprecated support to setting `attr_internal_naming_format` with a `@` prefix.
+
 ### Deprecations
 
 ### Notable changes

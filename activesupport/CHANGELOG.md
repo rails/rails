@@ -1,3 +1,7 @@
+*   Remove deprecated support to setting `attr_internal_naming_format` with a `@` prefix.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::ProxyObject`.
 
     *Rafael Mendonça França*
