@@ -964,16 +964,24 @@ invalid.
 This helper passes the record to a separate class for validation.
 
 ```ruby
-class GoodnessValidator < ActiveModel::Validator
+class AddressValidator < ActiveModel::Validator
   def validate(record)
-    if record.first_name == "Evil"
-      record.errors.add :base, "This person is evil"
+    if record.house_number.blank?
+      record.errors.add :house_number, "is required"
+    end
+
+    if record.street.blank?
+      record.errors.add :street, "is required"
+    end
+
+    if record.postcode.blank?
+      record.errors.add :postcode, "is required"
     end
   end
 end
 
-class Person < ApplicationRecord
-  validates_with GoodnessValidator
+class Invoice < ApplicationRecord
+  validates_with AddressValidator
 end
 ```
 
@@ -1014,16 +1022,18 @@ Like all other validations, `validates_with` takes the `:if`, `:unless` and
 validator class as `options`:
 
 ```ruby
-class GoodnessValidator < ActiveModel::Validator
+class AddressValidator < ActiveModel::Validator
   def validate(record)
-    if options[:fields].any? { |field| record.send(field) == "Evil" }
-      record.errors.add :base, "This person is evil"
+    options[:fields].each do |field|
+      if record.send(field).blank?
+         record.errors.add field, "is required"
+      end
     end
   end
 end
 
-class Person < ApplicationRecord
-  validates_with GoodnessValidator, fields: [:first_name, :last_name]
+class Invoice < ApplicationRecord
+  validates_with AddressValidator, fields: [:house_number, :street, :postcode, :country]
 end
 ```
 
@@ -1035,25 +1045,30 @@ If your validator is complex enough that you want instance variables, you can
 easily use a plain old Ruby object instead:
 
 ```ruby
-class Person < ApplicationRecord
-  validate do |person|
-    GoodnessValidator.new(person).validate
+class Invoice < ApplicationRecord
+  validate do |invoice|
+    AddressValidator.new(invoice).validate
   end
 end
 
-class GoodnessValidator
-  def initialize(person)
-    @person = person
+class AddressValidator
+  def initialize(invoice)
+    @invoice = invoice
   end
 
   def validate
-    if some_complex_condition_involving_ivars_and_private_methods?
-      @person.errors.add :base, "This person is evil"
-    end
+    validate_field(:house_number)
+    validate_field(:street)
+    validate_field(:postcode)
   end
 
-  # ...
-end
+  private
+
+  def validate_field(field)
+    if @invoice.send(field).blank?
+      @invoice.errors.add field, "#{field.to_s.humanize} is required"
+    end
+  end
 ```
 
 We will cover [custom validations](#performing-custom-validations) more later.
