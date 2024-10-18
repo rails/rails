@@ -363,6 +363,37 @@ module ApplicationTests
         assert_equal "[\"ar_internal_metadata\", \"comments\", \"schema_migrations\"]", list_tables[]
       end
 
+      test "db:migrate on multiple new dbs loads schema" do
+        File.write("#{app_path}/config/database.yml", <<~YAML)
+          development:
+            primary:
+              adapter: sqlite3
+              database: storage/test.sqlite3
+            queue:
+              adapter: sqlite3
+              database: storage/test_queue.sqlite3
+        YAML
+
+        app_file "db/schema.rb", <<-RUBY
+          ActiveRecord::Schema.define(version: 20140423102712) do
+            create_table(:comments) {}
+          end
+        RUBY
+
+        app_file "db/queue_schema.rb", <<-RUBY
+          ActiveRecord::Schema.define(version: 20141016001513) do
+            create_table(:executions) {}
+          end
+        RUBY
+
+        rails "db:migrate"
+        primary_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+        queue_tables = lambda { rails("runner", "p ActiveRecord::Base.connects_to(database: { writing: :queue }).first.lease_connection.tables.sort").strip }
+
+        assert_equal "[\"ar_internal_metadata\", \"comments\", \"schema_migrations\"]", primary_tables[]
+        assert_equal "[\"ar_internal_metadata\", \"executions\", \"schema_migrations\"]", queue_tables[]
+      end
+
       test "db:migrate:reset regenerates the schema from migrations" do
         app_file "db/migrate/01_a_migration.rb", <<-MIGRATION
           class AMigration < ActiveRecord::Migration::Current
