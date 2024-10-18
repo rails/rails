@@ -79,9 +79,10 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   #
   # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
   # unknown pre-defined variant of the attachment.
-  def variant(transformations)
-    transformations = transformations_by_name(transformations)
-    blob.variant(transformations)
+  def variant(transformations_or_name)
+    transformations = transformations_by_name(transformations_or_name)
+    name = transformations_or_name if transformations_or_name.is_a? Symbol
+    blob.variant(transformations, name)
   end
 
   # Returns an ActiveStorage::Preview instance for the attachment with the set
@@ -122,6 +123,55 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     blob.representation(transformations)
   end
 
+  def run_before_attached_callback(blob, io: nil, variant_name: nil)
+    run_on_attached_callback(:before, blob, io: io, variant_name: variant_name)
+  end
+
+  def run_after_attached_callback(blob, io: nil, variant_name: nil)
+    run_on_attached_callback(:after, blob, io: io, variant_name: variant_name)
+  end
+
+  protected
+    def run_on_attached_callback(type, blob, record: nil, method_name_or_proc: nil, io: nil, variant_name: nil)
+      attachment = nil
+      named_variant = nil
+
+      # if this attachment is a parent which does not track it's variants (io is not nil)
+      # then invoke the callback with the resulting transformation
+      attachment, named_variant = blob.attachment_by_variant_name(variant_name) if (blob_or_io = io)
+
+
+      # Find the matching attachment x NamedVariant that this VariantRecord belongs to
+      if self.record_type == ActiveStorage::VariantRecord.name
+        attachment, named_variant = self.record.blob.attachment_by_variant_name(self.record.name)
+        blob_or_io = blob
+      end
+
+      # if we are running on a variant, then let's extract the callback from the NamedVariant
+      if blob_or_io && attachment && named_variant
+        method_name = named_variant.send("#{type}_attached")
+        return attachment.run_on_attached_callback(type, blob_or_io, record: attachment.record, method_name_or_proc: method_name)
+      end
+
+      record ||= self.record
+      method_name_or_proc ||= case type
+        when :before
+          self.before_attached
+        when :after
+          self.after_attached
+      end
+
+      return nil if method_name_or_proc.nil?
+
+
+      if method_name_or_proc.is_a?(Symbol)
+        record.send(method_name_or_proc, blob)
+      else
+        # make sure the proc is called in the context of the record
+        record.instance_exec(blob, &method_name_or_proc)
+      end
+    end
+
   private
     def analyze_blob_later
       blob.analyze_later unless blob.analyzed?
@@ -157,6 +207,14 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
     def named_variants
       record.attachment_reflections[name]&.named_variants || {}
+    end
+
+    def before_attached
+      record.attachment_reflections[name]&.options&.fetch(:before_attached, nil)
+    end
+
+    def after_attached
+      record.attachment_reflections[name]&.options&.fetch(:after_attached, nil)
     end
 
     def transformations_by_name(transformations)

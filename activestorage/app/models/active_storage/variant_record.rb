@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class ActiveStorage::VariantRecord < ActiveStorage::Record
+  attr_accessor :name
   belongs_to :blob
   has_one_attached :image
 end

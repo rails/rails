@@ -268,8 +268,24 @@ class ActiveStorage::Blob < ActiveStorage::Record
     self.identified   = true
   end
 
+  def run_around_attachment_callbacks(io: nil, variant_name: nil, &block)
+    self.attachments.each do |attachment|
+      attachment.run_before_attached_callback self, io: io, variant_name: variant_name
+    end
+
+    result = yield block
+
+    self.attachments.each do |attachment|
+      attachment.run_after_attached_callback self, io: io, variant_name: variant_name
+    end
+
+    result
+  end
+
   def upload_without_unfurling(io) # :nodoc:
-    service.upload key, io, checksum: checksum, **service_metadata
+    run_around_attachment_callbacks do
+      service.upload key, io, checksum: checksum, **service_metadata
+    end
   end
 
   def compose(keys) # :nodoc:
@@ -342,6 +358,18 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # Returns an instance of service, which can be configured globally or per attachment
   def service
     services.fetch(service_name)
+  end
+
+  # Returns the attachment that matches the variant name and the named variant itself.
+  def attachment_by_variant_name(name)
+    return [nil, nil] unless name
+
+    named_variant = nil
+    attachment = self.attachments.detect do |attachment|
+      named_variant = attachment.send(:named_variants).fetch(name)
+    end
+
+    [attachment, named_variant]
   end
 
   private

@@ -1,5 +1,8 @@
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
+*   Add support for **Before** and **After** callbacks to `ActiveRecord::Base` attachments and attachments variants.
 
+    *Aaron Patterson, Gary Tou, Matt Boldt, and Robert Peralta*
+    
 *   Deprecate `ActiveStorage::Service::AzureStorageService`.
 
     *zzak*

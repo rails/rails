@@ -129,10 +129,15 @@ ActiveRecord::Base.include GlobalID::Identification
 class User < ActiveRecord::Base
   validates :name, presence: true
 
-  has_one_attached :avatar
+  has_one_attached :avatar, after_attached: :after_blob_attached, before_attached: :before_blob_attached
+
   has_one_attached :cover_photo, dependent: false, service: :local
-  has_one_attached :avatar_with_variants do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100]
+  has_one_attached :avatar_with_variants,
+                   after_attached: :after_blob_attached,
+                   before_attached: :before_blob_attached do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100],
+                       after_attached: ->(blob) { self.after_blob_attached(blob, :thumb) },
+                       before_attached: ->(blob) { self.before_blob_attached(blob, :thumb) }
   end
   has_one_attached :avatar_with_preprocessed do |attachable|
     attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
@@ -146,10 +151,17 @@ class User < ActiveRecord::Base
   has_one_attached :intro_video
   has_one_attached :name_pronunciation_audio
 
-  has_many_attached :highlights
+  has_many_attached :highlights,
+                    after_attached: ->(blob) { self.after_blob_attached(blob, :main) },
+                    before_attached: ->(blob) { self.before_blob_attached(blob, :main) }
   has_many_attached :vlogs, dependent: false, service: :local
-  has_many_attached :highlights_with_variants do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100]
+
+  has_many_attached :highlights_with_variants,
+                    after_attached: ->(blob) { self.after_blob_attached(blob, :main) },
+                    before_attached: ->(blob) { self.before_blob_attached(blob, :main) } do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100],
+                       after_attached: ->(blob) { self.after_blob_attached(blob, :thumb) },
+                       before_attached: ->(blob) { self.before_blob_attached(blob, :thumb) }
   end
   has_many_attached :highlights_with_preprocessed do |attachable|
     attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
@@ -168,6 +180,15 @@ class User < ActiveRecord::Base
   end
 
   accepts_nested_attributes_for :highlights_attachments, allow_destroy: true
+
+
+  def after_blob_attached(blob, from = :main)
+    puts "after_blob_attached: blob: #{blob.id} from: #{from}"
+  end
+
+  def before_blob_attached(blob, from = :main)
+    puts "before_blob_attached: blob: #{blob.id} from: #{from}"
+  end
 
   def should_preprocessed?
     name == "transform via method"
