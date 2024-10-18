@@ -349,6 +349,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
 
       OpenSSL::Digest::MD5.new.tap do |checksum|
+        io.rewind
         read_buffer = "".b
         while io.read(5.megabytes, read_buffer)
           checksum << read_buffer
