@@ -413,12 +413,18 @@ class LineItem < ApplicationRecord
 end
 ```
 
-In order to validate associated records whose absence is required, you must
-specify the `:inverse_of` option for the association:
+To validate associated records whose presence is required, Rails will usually
+infer the inverse association automatically. However, when using `:through` or
+`:foreign_key` make sure to set the `:inverse_of` option on the source
+association to avoid an extra query during validation:
 
 ```ruby
 class Order < ApplicationRecord
-  has_many :line_items, inverse_of: :order
+  has_many :line_items, foreign_key: "purchase_order_id"
+end
+
+class LineItem < ApplicationRecord
+  belongs_to :order, class_name: "Order", foreign_key: "purchase_order_id", inverse_of: :line_items
 end
 ```
 
@@ -777,12 +783,18 @@ class Supplier < ApplicationRecord
 end
 ```
 
-In order to validate associated records whose presence is required, you must
-specify the `:inverse_of` option for the association:
+To validate associated records whose presence is required, Rails will usually
+infer the inverse association automatically. However, when using `:through` or
+`:foreign_key` make sure to set the `:inverse_of` option on the source
+association to avoid an extra query during validation:
 
 ```ruby
 class Order < ApplicationRecord
-  has_many :line_items, inverse_of: :order
+  has_many :line_items, foreign_key: "purchase_order_id"
+end
+
+class LineItem < ApplicationRecord
+  belongs_to :order, class_name: "Order", foreign_key: "purchase_order_id", inverse_of: :line_items
 end
 ```
 
