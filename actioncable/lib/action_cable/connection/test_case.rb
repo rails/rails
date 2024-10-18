@@ -50,19 +50,86 @@ module ActionCable
       end
     end
 
-    class TestRequest < ActionDispatch::TestRequest
-      attr_accessor :session, :cookie_jar
-    end
+    class TestSocket
+      # Make session and cookies available to the connection
+      class Request < ActionDispatch::TestRequest
+        attr_accessor :session, :cookie_jar
+      end
 
-    module TestConnection
-      attr_reader :logger, :request
+      attr_reader :logger, :request, :transmissions, :closed, :env
+
+      class << self
+        def build_request(path, params: nil, headers: {}, session: {}, env: {}, cookies: nil)
+          wrapped_headers = ActionDispatch::Http::Headers.from_hash(headers)
+
+          uri = URI.parse(path)
+
+          query_string = params.nil? ? uri.query : params.to_query
+
+          request_env = {
+            "QUERY_STRING" => query_string,
+            "PATH_INFO" => uri.path
+          }.merge(env)
+
+          if wrapped_headers.present?
+            ActionDispatch::Http::Headers.from_hash(request_env).merge!(wrapped_headers)
+          end
+
+          Request.create(request_env).tap do |request|
+            request.session = session.with_indifferent_access
+            request.cookie_jar = cookies
+          end
+        end
+      end
 
       def initialize(request)
         inner_logger = ActiveSupport::Logger.new(StringIO.new)
         tagged_logging = ActiveSupport::TaggedLogging.new(inner_logger)
-        @logger = ActionCable::Connection::TaggedLoggerProxy.new(tagged_logging, tags: [])
+        @logger = ActionCable::Server::TaggedLoggerProxy.new(tagged_logging, tags: [])
         @request = request
         @env = request.env
+        @connection = nil
+        @closed = false
+        @transmissions = []
+      end
+
+      def transmit(data)
+        @transmissions << data.with_indifferent_access
+      end
+
+      def close
+        @closed = true
+      end
+    end
+
+    # TestServer provides test pub/sub and executor implementations
+    class TestServer
+      attr_reader :streams, :config
+
+      def initialize(server)
+        @streams = Hash.new { |h, k| h[k] = [] }
+        @config = server.config
+      end
+
+      alias_method :pubsub, :itself
+      alias_method :executor, :itself
+
+      #== Executor interface ==
+
+      # Inline async calls
+      def post(&work) = work.call
+      # We don't support timers in unit tests yet
+      def timer(_every) = nil
+
+      #== Pub/sub interface ==
+      def subscribe(stream, callback, success_callback = nil)
+        @streams[stream] << callback
+        success_callback&.call
+      end
+
+      def unsubscribe(stream, callback)
+        @streams[stream].delete(callback)
+        @streams.delete(stream) if @streams[stream].empty?
       end
     end
 
@@ -150,8 +217,6 @@ module ActionCable
         included do
           class_attribute :_connection_class
 
-          attr_reader :connection
-
           ActiveSupport.run_load_hooks(:action_cable_connection_test_case, self)
         end
 
@@ -184,6 +249,8 @@ module ActionCable
           end
         end
 
+        attr_reader :connection, :socket, :testserver
+
         # Performs connection attempt to exert #connect on the connection under test.
         #
         # Accepts request path as the first argument and the following request options:
@@ -192,12 +259,12 @@ module ActionCable
         # *   headers – request headers (Hash)
         # *   session – session data (Hash)
         # *   env – additional Rack env configuration (Hash)
-        def connect(path = ActionCable.server.config.mount_path, **request_params)
+        def connect(path = ActionCable.server.config.mount_path, server: ActionCable.server, **request_params)
           path ||= DEFAULT_PATH
 
-          connection = self.class.connection_class.allocate
-          connection.singleton_class.include(TestConnection)
-          connection.send(:initialize, build_test_request(path, **request_params))
+          @socket = TestSocket.new(TestSocket.build_request(path, **request_params, cookies: cookies))
+          @testserver = Connection::TestServer.new(server)
+          connection = self.class.connection_class.new(@testserver, socket)
           connection.connect if connection.respond_to?(:connect)
 
           # Only set instance variable if connected successfully
@@ -216,28 +283,9 @@ module ActionCable
           @cookie_jar ||= TestCookieJar.new
         end
 
-        private
-          def build_test_request(path, params: nil, headers: {}, session: {}, env: {})
-            wrapped_headers = ActionDispatch::Http::Headers.from_hash(headers)
-
-            uri = URI.parse(path)
-
-            query_string = params.nil? ? uri.query : params.to_query
-
-            request_env = {
-              "QUERY_STRING" => query_string,
-              "PATH_INFO" => uri.path
-            }.merge(env)
-
-            if wrapped_headers.present?
-              ActionDispatch::Http::Headers.from_hash(request_env).merge!(wrapped_headers)
-            end
-
-            TestRequest.create(request_env).tap do |request|
-              request.session = session.with_indifferent_access
-              request.cookie_jar = cookies
-            end
-          end
+        def transmissions
+          socket&.transmissions || []
+        end
       end
 
       include Behavior
