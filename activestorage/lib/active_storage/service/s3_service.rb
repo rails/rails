@@ -12,9 +12,9 @@ module ActiveStorage
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
     attr_reader :client, :bucket
-    attr_reader :multipart_upload_threshold, :upload_options
+    attr_reader :multipart_upload_threshold, :upload_options, :download_options
 
-    def initialize(bucket:, upload: {}, public: false, **options)
+    def initialize(bucket:, upload: {}, public: false, download: {}, **options)
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
@@ -23,6 +23,8 @@ module ActiveStorage
 
       @upload_options = upload
       @upload_options[:acl] = "public-read" if public?
+
+      @download_options = download
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, custom_metadata: {}, **)
@@ -44,7 +46,7 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          object_for(key).get.body.string.force_encoding(Encoding::BINARY)
+          object_for(key).get(download_options).body.string.force_encoding(Encoding::BINARY)
         rescue Aws::S3::Errors::NoSuchKey
           raise ActiveStorage::FileNotFoundError
         end
@@ -53,7 +55,8 @@ module ActiveStorage
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        object_for(key).get(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body.string.force_encoding(Encoding::BINARY)
+        options = download_options.merge(range: "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}")
+        object_for(key).get(options).body.string.force_encoding(Encoding::BINARY)
       rescue Aws::S3::Errors::NoSuchKey
         raise ActiveStorage::FileNotFoundError
       end
@@ -73,7 +76,7 @@ module ActiveStorage
 
     def exist?(key)
       instrument :exist, key: key do |payload|
-        answer = object_for(key).exists?
+        answer = object_for(key).exists?(download_options)
         payload[:exist] = answer
         answer
       end
@@ -156,10 +159,12 @@ module ActiveStorage
         chunk_size = 5.megabytes
         offset = 0
 
-        raise ActiveStorage::FileNotFoundError unless object.exists?
+        raise ActiveStorage::FileNotFoundError unless object.exists?(download_options)
 
-        while offset < object.content_length
-          yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
+        content_length = object.head(download_options).content_length
+        while offset < content_length
+          options = download_options.merge(range: "bytes=#{offset}-#{offset + chunk_size - 1}")
+          yield object.get(options).body.string.force_encoding(Encoding::BINARY)
           offset += chunk_size
         end
       end
