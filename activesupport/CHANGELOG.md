@@ -1,3 +1,15 @@
+*   Remove deprecated support to passing an array of strings to `ActiveSupport::Deprecation#warn`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to setting `attr_internal_naming_format` with a `@` prefix.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::ProxyObject`.
+
+    *Rafael Mendonça França*
+
 *   Don't execute i18n watcher on boot. It shouldn't catch any file changes initially,
     and unnecessarily slows down boot of applications with lots of translations.
 

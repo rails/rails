@@ -1,8 +1,25 @@
+*   Remove deprecated support to extend Rails console through `Rails::ConsoleMethods`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `rails/console/helpers`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `rails/console/app`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.read_encrypted_secrets`.
+
+    *Rafael Mendonça França*
+
 *   Add Kamal support for devcontainers
 
     Previously generated devcontainer could not use docker and therefore Kamal.
 
     *Joé Dupuis*
+
 
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 

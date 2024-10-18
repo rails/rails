@@ -452,7 +452,6 @@ module Rails
     # Load console and invoke the registered hooks.
     # Check Rails::Railtie.console for more info.
     def load_console(app = self)
-      require "rails/console/methods"
       run_console_blocks(app)
       self
     end

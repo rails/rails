@@ -28,6 +28,14 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config.read_encrypted_secrets`.
+
+*   Remove deprecated file `rails/console/app`.
+
+*   Remove deprecated file `rails/console/helpers`.
+
+*   Remove deprecated support to extend Rails console through `Rails::ConsoleMethods`.
+
 ### Deprecations
 
 ### Notable changes
@@ -50,6 +58,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
+
 ### Deprecations
 
 ### Notable changes
@@ -60,6 +70,10 @@ Action View
 Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
+
+*   Remove deprecated support to passing `nil` to the `model:` argument of `form_with`.
+
+*   Remove deprecated support to passing a content to void tag elements on the `tag` builder.
 
 ### Deprecations
 
@@ -82,6 +96,24 @@ Active Record
 Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
+
+*   Remove deprecated `config.active_record.commit_transaction_on_non_local_return`.
+
+*   Remove deprecated `config.active_record.allow_deprecated_singular_associations_name`.
+
+*   Remove deprecated support to finding database adapters that aren't registered to Active Record.
+
+*   Remove deprecated support for defining `enum` with keyword arguments.
+
+*   Remove deprecated `config.active_record.warn_on_records_fetched_greater_than`.
+
+*   Remove deprecated `config.active_record.sqlite3_deprecated_warning`.
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`.
+
+*   Remove deprecated support to passing a database name to `cache_dump_filename`.
+
+*   Remove deprecated support to setting `ENV["SCHEMA_CACHE"]`.
 
 ### Deprecations
 
@@ -116,6 +148,12 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActiveSupport::ProxyObject`.
+
+*   Remove deprecated support to setting `attr_internal_naming_format` with a `@` prefix.
+
+*   Remove deprecated support to passing an array of strings to `ActiveSupport::Deprecation#warn`.
+
 ### Deprecations
 
 ### Notable changes
@@ -126,6 +164,8 @@ Active Job
 Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
+
+*   Remove deprecated `config.active_job.use_big_decimal_serializer`.
 
 ### Deprecations
 

@@ -1,3 +1,39 @@
+*   Remove deprecated support to setting `ENV["SCHEMA_CACHE"]`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing a database name to `cache_dump_filename`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_record.sqlite3_deprecated_warning`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_record.warn_on_records_fetched_greater_than`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for defining `enum` with keyword arguments.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to finding database adapters that aren't registered to Active Record.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_record.allow_deprecated_singular_associations_name`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_record.commit_transaction_on_non_local_return`.
+
+    *Rafael Mendonça França*
+
 *   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
 
     *David Stosik*
@@ -25,6 +61,7 @@
     Fixes #52742
 
     *Ryota Kitazawa*, *Takayuki Nagatomi*
+
 
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 

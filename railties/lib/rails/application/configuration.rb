@@ -367,14 +367,6 @@ module Rails
         self.cache_classes = !value
       end
 
-      def read_encrypted_secrets
-        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 8.0.")
-      end
-
-      def read_encrypted_secrets=(value)
-        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 8.0.")
-      end
-
       def encoding=(value)
         @encoding = value
         silence_warnings do
