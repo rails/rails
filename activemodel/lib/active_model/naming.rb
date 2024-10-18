@@ -179,9 +179,9 @@ module ActiveModel
       @param_key    = (namespace ? _singularize(@unnamespaced) : @singular)
       @i18n_key     = @name.underscore.to_sym
 
-      @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key, locale) : @plural.dup)
-      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key, locale)
-      @route_key << "_index" if @uncountable
+      @route_key = (namespace ? ActiveSupport::Inflector.pluralize(@param_key, locale) : @plural.dup).to_sym
+      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key, locale).to_sym
+      @route_key = "#{@route_key}_index".to_sym if @uncountable
     end
 
     # Transform the model name into a more human format, using I18n. By default,

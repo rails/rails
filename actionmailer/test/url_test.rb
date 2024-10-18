@@ -41,7 +41,7 @@ end
 class ActionMailerUrlTest < ActionMailer::TestCase
   class DummyModel
     def self.model_name
-      Struct.new(:route_key, :name).new("dummy_model", nil)
+      Struct.new(:route_key, :name).new(:dummy_model, nil)
     end
 
     def persisted?

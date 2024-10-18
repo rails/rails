@@ -1,3 +1,7 @@
+*   Change `model_name.route_key` to return a symbol instead of a string.
+
+    *Andrew Kaspick*
+
 *   Add `:except_on` option for validations. Grants the ability to _skip_ validations in specified contexts.
 
     ```ruby
