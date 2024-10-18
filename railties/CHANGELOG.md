@@ -1,3 +1,7 @@
+*   Remove deprecated file `rails/console/helpers`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated file `rails/console/app`.
 
     *Rafael Mendonça França*

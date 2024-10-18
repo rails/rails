@@ -32,6 +32,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated file `rails/console/app`.
 
+*   Remove deprecated file `rails/console/helpers`.
+
 ### Deprecations
 
 ### Notable changes
