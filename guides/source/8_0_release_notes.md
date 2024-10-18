@@ -144,6 +144,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated support to setting `attr_internal_naming_format` with a `@` prefix.
 
+*   Remove deprecated support to passing an array of strings to `ActiveSupport::Deprecation#warn`.
+
 ### Deprecations
 
 ### Notable changes
