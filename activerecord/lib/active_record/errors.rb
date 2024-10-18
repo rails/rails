@@ -183,6 +183,15 @@ module ActiveRecord
     attr_reader :record
 
     def initialize(message = nil, record = nil)
+      if message.nil? && record
+        record_class = record.class
+        message = I18n.translate(
+          :"#{record_class.i18n_scope}.errors.messages.record_not_destroyed",
+          model: record_class.model_name.human,
+          key: "#{record_class.primary_key}=#{record.id}",
+        )
+      end
+
       @record = record
       super(message)
     end
