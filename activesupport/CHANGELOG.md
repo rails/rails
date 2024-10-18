@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::ProxyObject`.
+
+    *Rafael Mendonça França*
+
 *   Don't execute i18n watcher on boot. It shouldn't catch any file changes initially,
     and unnecessarily slows down boot of applications with lots of translations.
 

@@ -140,6 +140,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActiveSupport::ProxyObject`.
+
 ### Deprecations
 
 ### Notable changes
