@@ -3,8 +3,8 @@
 Active Record Validations
 =========================
 
-This guide teaches you how to validate Active Record objects before saving them to the
-database using Active Record's validations feature.
+This guide teaches you how to validate Active Record objects before saving them
+to the database using Active Record's validations feature.
 
 After reading this guide, you will know:
 
@@ -345,10 +345,10 @@ with Validation Errors](#working-with-validation-errors) section.
 Validations
 -----------
 
-Active Record offers many predefined validations that you can use
-directly inside your class definitions. These predefined validations provide common validation
-rules. Each time a validation fails, an error message is added to the object's
-`errors` collection, and this error is associated with the specific
+Active Record offers many predefined validations that you can use directly
+inside your class definitions. These predefined validations provide common
+validation rules. Each time a validation fails, an error message is added to the
+object's `errors` collection, and this error is associated with the specific
 attribute being validated.
 
 When a validation fails, the error message is stored in the `errors` collection
@@ -357,7 +357,8 @@ easily access the errors related to any specific attribute. For instance, if you
 validate the `:name` attribute and the validation fails, you will find the error
 message under `errors[:name]`.
 
-In modern Rails applications, the more concise validate syntax is commonly used, for example:
+In modern Rails applications, the more concise validate syntax is commonly used,
+for example:
 
 ```ruby
 validate :name, presence: true
@@ -369,21 +370,23 @@ However, older versions of Rails used "helper" methods, such as:
 validates_presence_of :name
 ```
 
-Both notations perform the same function, but the newer form is recommended for its readability and alignment with Rails' conventions.
+Both notations perform the same function, but the newer form is recommended for
+its readability and alignment with Rails' conventions.
 
-Each validation accepts an arbitrary number of attribute names, allowing
-you to apply the same type of validation to multiple attributes in a single line
-of code.
+Each validation accepts an arbitrary number of attribute names, allowing you to
+apply the same type of validation to multiple attributes in a single line of
+code.
 
-Additionally, all validations accept the `:on` and `:message` options.
-The `:on` option specifies when the validation should be triggered, with
-possible values being `:create` or `:update`. The `:message` option allows you
-to define a custom error message that will be added to the errors collection if
-the validation fails. If you do not specify a message, Rails will use a default
+Additionally, all validations accept the `:on` and `:message` options. The `:on`
+option specifies when the validation should be triggered, with possible values
+being `:create` or `:update`. The `:message` option allows you to define a
+custom error message that will be added to the errors collection if the
+validation fails. If you do not specify a message, Rails will use a default
 error message for that validation.
 
 INFO: To see a list of the available default helpers, take a look at
-[`ActiveModel::Validations::HelperMethods`][]. This API section uses the older notation as described above.
+[`ActiveModel::Validations::HelperMethods`][]. This API section uses the older
+notation as described above.
 
 [`ActiveModel::Validations::HelperMethods`]:
     https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html
@@ -571,7 +574,8 @@ These options are all supported:
 | `:other_than`               | Specifies the value must be other than the supplied value.               | "must be other than %{count}"               |
 
 NOTE: The validator requires a compare option be supplied. Each option accepts a
-value, proc, or symbol. Any class that includes [Comparable](https://ruby-doc.org/3.3.5/Comparable.html) can be compared.
+value, proc, or symbol. Any class that includes
+[Comparable](https://ruby-doc.org/3.3.5/Comparable.html) can be compared.
 
 ### `format`
 
@@ -982,8 +986,8 @@ as a whole.
 To implement the validate method, you must accept a `record` parameter in the
 method definition, which is the record to be validated.
 
-If you want to add an error on a specific attribute, you can pass it as the first
-argument to the `add` method.
+If you want to add an error on a specific attribute, you can pass it as the
+first argument to the `add` method.
 
 ```ruby
 def validate(record)
@@ -1096,8 +1100,8 @@ irb> Coffee.create(size: "mega").valid?
 => false
 ```
 
-For full options to the message argument please see the
-[message documentation](#message).
+For full options to the message argument please see the [message
+documentation](#message).
 
 ### `:allow_blank`
 
@@ -1131,8 +1135,8 @@ The `:message` option accepts either a `String` or `Proc` as its value.
 
 A `String` `:message` value can optionally contain any/all of `%{value}`,
 `%{attribute}`, and `%{model}` which will be dynamically replaced when
-validation fails. This replacement is done using the
-[i18n gem](https://github.com/ruby-i18n/i18n), and the placeholders must match
+validation fails. This replacement is done using the [i18n
+gem](https://github.com/ruby-i18n/i18n), and the placeholders must match
 exactly, no spaces are allowed.
 
 ```ruby
@@ -1169,9 +1173,9 @@ guide](i18n.html#error-message-scopes).
 ### `:on`
 
 The `:on` option lets you specify when the validation should happen. The default
-behavior for all the built-in validations is to be run on save (both when
-you're creating a new record and when you're updating it). If you want to change
-it, you can use `on: :create` to run the validation only when a new record is
+behavior for all the built-in validations is to be run on save (both when you're
+creating a new record and when you're updating it). If you want to change it,
+you can use `on: :create` to run the validation only when a new record is
 created or `on: :update` to run the validation only when a record is updated.
 
 ```ruby
@@ -1315,8 +1319,8 @@ class User < ApplicationRecord
 end
 ```
 
-All validations inside of the `with_options` block will automatically have
-`if: :is_admin?` merged into its options.
+All validations inside of the `with_options` block will automatically have `if:
+:is_admin?` merged into its options.
 
 [`with_options`]:
     https://api.rubyonrails.org/classes/Object.html#method-i-with_options
@@ -1417,8 +1421,8 @@ irb> Person.validators_on(:name)
 Performing Custom Validations
 -----------------------------
 
-When the built-in validations are not enough for your needs, you can
-write your own validators or validation methods as you prefer.
+When the built-in validations are not enough for your needs, you can write your
+own validators or validation methods as you prefer.
 
 ### Custom Validators
 
@@ -1554,10 +1558,11 @@ class User < ApplicationRecord
 end
 ```
 
-In these cases, you may be tempted to
-[skip callbacks](active_record_callbacks.html#skipping-callbacks) altogether, but
+In these cases, you may be tempted to [skip
+callbacks](active_record_callbacks.html#skipping-callbacks) altogether, but
 defining a custom context can be a more structured approach. You will need to
-combine a context with the `:on` option to define a custom context for a callback.
+combine a context with the `:on` option to define a custom context for a
+callback.
 
 Once you've defined the custom context, you can use it to trigger the
 validations:
