@@ -90,6 +90,7 @@ module ActiveRecord
     end
 
     attr_reader :columns, :rows, :column_types
+    attr_reader :affected_rows # :nodoc:
 
     def self.empty(async: false) # :nodoc:
       if async
@@ -99,7 +100,7 @@ module ActiveRecord
       end
     end
 
-    def initialize(columns, rows, column_types = nil)
+    def initialize(columns, rows, column_types = {}, affected_rows = nil)
       # We freeze the strings to prevent them getting duped when
       # used as keys in ActiveRecord::Base's @attributes hash
       @columns      = columns.each(&:-@).freeze
@@ -107,6 +108,7 @@ module ActiveRecord
       @hash_rows    = nil
       @column_types = column_types || EMPTY_HASH
       @column_indexes = nil
+      @affected_rows = affected_rows
     end
 
     # Returns true if this result set includes the column named +name+

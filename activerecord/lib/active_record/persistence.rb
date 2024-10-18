@@ -260,7 +260,7 @@ module ActiveRecord
         )
       end
 
-      def _update_record(values, constraints) # :nodoc:
+      def _update_record(values, constraints, returning = nil) # :nodoc:
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
         default_constraint = build_default_constraint
@@ -275,7 +275,11 @@ module ActiveRecord
         um.wheres = constraints
 
         with_connection do |c|
-          c.update(um, "#{self} Update")
+          if c.supports_update_returning? && returning.present?
+            c.update_with_result(um, "#{self} Update", returning: returning)
+          else
+            c.update(um, "#{self} Update")
+          end
         end
       end
 
@@ -882,10 +886,27 @@ module ActiveRecord
       end
 
       def _update_row(attribute_names, attempted_action = "update")
-        self.class._update_record(
+        returning_columns = self.class.with_connection do |c|
+          self.class._returning_columns_for_update(c)
+        end
+
+        result = self.class._update_record(
           attributes_with_values(attribute_names),
-          _query_constraints_hash
+          _query_constraints_hash,
+          returning_columns
         )
+
+        if result.is_a?(ActiveRecord::Result)
+          returning_values = result.rows.first
+
+          returning_columns.zip(returning_values).each do |column, value|
+            _write_attribute(column, value)
+          end if returning_values.present?
+
+          return result.affected_rows
+        end
+
+        result
       end
 
       def create_or_update(**, &block)

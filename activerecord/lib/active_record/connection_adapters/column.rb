@@ -68,8 +68,12 @@ module ActiveRecord
         false
       end
 
-      def auto_populated?
+      def auto_populated_on_insert?
         auto_incremented_by_db? || default_function
+      end
+
+      def auto_populated_on_update?
+        virtual?
       end
 
       def ==(other)

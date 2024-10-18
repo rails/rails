@@ -181,9 +181,8 @@ module ActiveRecord
               fmod  = result.fmod i
               types[fname] = types[i] = get_oid_type(ftype, fmod, fname)
             end
-            ar_result = ActiveRecord::Result.new(fields, result.values, types.freeze)
-            result.clear
-            ar_result
+
+            ActiveRecord::Result.new(fields, result.values, types.freeze, affected_rows(result))
           end
 
           def affected_rows(result)
