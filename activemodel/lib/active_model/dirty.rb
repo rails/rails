@@ -253,12 +253,16 @@ module ActiveModel
     def init_attributes(other) # :nodoc:
       attrs = super
       if other.persisted? && self.class.respond_to?(:_default_attributes)
-        self.class._default_attributes.map do |attr|
-          attr.with_value_from_user(attrs.fetch_value(attr.name))
+        da = self.class._default_attributes
+        # mutate the copied @attributes object rather than calling `map` on
+        # the default attributes. This way we can keep the "LazyAttributeSet"
+        # type
+        da.values.each do |attr|
+          attrs[attr.name] = attr.with_value_from_user(attrs.fetch_value(attr.name))
         end
-      else
-        attrs
       end
+
+      attrs
     end
 
     def as_json(options = {}) # :nodoc:
