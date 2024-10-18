@@ -12,7 +12,7 @@ module ActiveSupport
   # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
   #   zones.
   # * Retrieve and display zones with a friendlier name
-  #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
+  #   (e.g., "Eastern \Time (US & Canada)" instead of "America/New_York").
   # * Lazily load +TZInfo::Timezone+ instances only when they're needed.
   # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
   #   +parse+, +at+, and +now+ methods.
@@ -357,7 +357,7 @@ module ActiveSupport
       "(GMT#{formatted_offset}) #{name}"
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from given values.
     #
     #   Time.zone = 'Hawaii'                    # => "Hawaii"
@@ -367,7 +367,7 @@ module ActiveSupport
       ActiveSupport::TimeWithZone.new(nil, self, time)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from number of seconds since the Unix epoch.
     #
     #   Time.zone = 'Hawaii'        # => "Hawaii"
@@ -382,7 +382,7 @@ module ActiveSupport
       Time.at(*args).utc.in_time_zone(self)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from an ISO 8601 string.
     #
     #   Time.zone = 'Hawaii'                     # => "Hawaii"
@@ -434,7 +434,7 @@ module ActiveSupport
       raise ArgumentError, "invalid date"
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from parsed string.
     #
     #   Time.zone = 'Hawaii'                   # => "Hawaii"
@@ -456,7 +456,7 @@ module ActiveSupport
       parts_to_time(Date._parse(str, false), now)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from an RFC 3339 string.
     #
     #   Time.zone = 'Hawaii'                     # => "Hawaii"
