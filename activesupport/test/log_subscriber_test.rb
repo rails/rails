@@ -144,10 +144,12 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_logging_does_not_die_on_failures
-    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    instrument "puke.my_log_subscriber"
-    instrument "some_event.my_log_subscriber"
-    wait
+    assert_error_reported do
+      ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+      instrument "puke.my_log_subscriber"
+      instrument "some_event.my_log_subscriber"
+      wait
+    end
 
     assert_equal 1, @logger.logged(:info).size
     assert_equal "some_event.my_log_subscriber", @logger.logged(:info).last
