@@ -101,6 +101,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `config.active_record.sqlite3_deprecated_warning`.
 
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`.
+
 ### Deprecations
 
 ### Notable changes

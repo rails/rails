@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_record.sqlite3_deprecated_warning`.
 
     *Rafael Mendonça França*
