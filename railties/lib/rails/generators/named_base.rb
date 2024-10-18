@@ -201,6 +201,10 @@ module Rails
           defined?(ENGINE_ROOT) && namespaced?
         end
 
+        def model_exists?
+          File.exist?(File.join(destination_root, "app/models", class_path, "#{file_name}.rb"))
+        end
+
         # Add a class collisions name to be checked on class initialization. You
         # can supply a hash with a +:prefix+ or +:suffix+ to be tested.
         #
@@ -220,6 +224,12 @@ module Rails
             end
 
             class_collisions "#{options[:prefix]}#{name}#{options[:suffix]}"
+          end
+        end
+
+        def self.check_model_exists # :doc:
+          define_method :check_model_exists do
+            model_existence
           end
         end
     end
