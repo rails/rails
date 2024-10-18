@@ -103,7 +103,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](#config-active-record-encryption-support-sha1-for-non-deterministic-encryption): `false`
 - [`config.active_record.generate_secure_token_on`](#config-active-record-generate-secure-token-on): `:initialize`
-- [`config.active_record.marshalling_format_version`](#config-active-record-marshalling-format-version): `7.1`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
 - [`config.active_record.run_after_transaction_callbacks_in_order_defined`](#config-active-record-run-after-transaction-callbacks-in-order-defined): `true`
@@ -1337,16 +1336,12 @@ to get the parent every time the child record was updated, even when parent has 
 
 #### `config.active_record.marshalling_format_version`
 
-When set to `7.1`, enables a more efficient serialization of Active Record instance with `Marshal.dump`.
+Define which format to use when an Active Record object is serialized with Marshal.
 
-This changes the serialization format, so models serialized this
-way cannot be read by older (< 7.1) versions of Rails. However, messages that
-use the old format can still be read, regardless of whether this optimization is
-enabled.
+As of Rails 8.0, only the `7.1` is supported.
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| (original)            | `6.1`                |
 | 7.1                   | `7.1`                |
 
 #### `config.active_record.action_on_strict_loading_violation`
