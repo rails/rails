@@ -73,7 +73,7 @@ module ActiveRecord
       if new_record?
         "#{model_name.cache_key}/new"
       else
-        if cache_version
+        if cache_versioning
           "#{model_name.cache_key}/#{id}"
         else
           timestamp = max_updated_column_timestamp
