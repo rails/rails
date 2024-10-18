@@ -28,6 +28,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config.read_encrypted_secrets`.
+
 ### Deprecations
 
 ### Notable changes

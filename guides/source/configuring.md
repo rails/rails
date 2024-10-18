@@ -524,14 +524,6 @@ config.railties_order = [Blog::Engine, :main_app, :all]
 
 When `true`, eager load the application when running Rake tasks. Defaults to `false`.
 
-#### `config.read_encrypted_secrets`
-
-*DEPRECATED*: You should be using
-[credentials](https://guides.rubyonrails.org/security.html#custom-credentials)
-instead of encrypted secrets.
-
-When `true`, will try to read encrypted secrets from `config/secrets.yml.enc`
-
 #### `config.relative_url_root`
 
 Can be used to tell Rails that you are [deploying to a subdirectory](
