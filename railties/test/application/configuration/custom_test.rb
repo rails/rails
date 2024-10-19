@@ -5,6 +5,8 @@ require "isolation/abstract_unit"
 module ApplicationTests
   module ConfigurationTests
     class CustomTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::Isolation
+
       def setup
         build_app
         FileUtils.rm_rf("#{app_path}/config/environments")
