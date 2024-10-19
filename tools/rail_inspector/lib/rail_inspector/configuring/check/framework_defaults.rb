@@ -69,6 +69,7 @@ module RailInspector
 
           def check_defaults(defaults)
             header, configs = defaults[0], defaults[2, defaults.length - 3]
+            configs ||= []
 
             version = header.match(/\d\.\d/)[0]
 
