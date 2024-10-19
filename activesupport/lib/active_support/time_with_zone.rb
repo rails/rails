@@ -85,7 +85,7 @@ module ActiveSupport
     end
     alias_method :getlocal, :localtime
 
-    # Returns true if the current time is within Daylight Savings Time for the
+    # Returns true if the current time is within Daylight Savings \Time for the
     # specified time zone.
     #
     #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
