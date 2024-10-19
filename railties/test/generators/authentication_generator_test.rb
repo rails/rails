@@ -8,21 +8,21 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
   def setup
-    Rails.application = TestApp::Application
-    Rails.application.config.root = Pathname(destination_root)
+    FileUtils.mkdir_p("#{destination_root}/app/controllers")
+    File.write("#{destination_root}/app/controllers/application_controller.rb", <<~RUBY)
+      class ApplicationController < ActionController::Base
+      end
+    RUBY
 
-    self.class.tests Rails::Generators::AppGenerator
-    run_generator([destination_root, "--no-skip-bundle"])
+    copy_gemfile
 
-    self.class.tests Rails::Generators::AuthenticationGenerator
-  end
-
-  def teardown
-    Rails.application = Rails.application.instance
+    copy_routes
   end
 
   def test_authentication_generator
-    run_generator
+    generator([destination_root])
+
+    run_generator_instance
 
     assert_file "app/models/user.rb"
     assert_file "app/models/current.rb"
@@ -46,30 +46,27 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_match(/resource :session/, content)
     end
 
-    assert_migration "db/migrate/create_sessions.rb" do |content|
-      assert_match(/t.references :user, null: false, foreign_key: true/, content)
-    end
-
-    assert_migration "db/migrate/create_users.rb" do |content|
-      assert_match(/t.string :password_digest, null: false/, content)
-    end
+    assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
+    assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
   end
 
   def test_authentication_generator_without_bcrypt_in_gemfile
-    File.write("Gemfile", File.read("Gemfile").sub(/# gem "bcrypt".*\n/, ""))
+    File.write("#{destination_root}/Gemfile", File.read("#{destination_root}/Gemfile").sub(/# gem "bcrypt".*\n/, ""))
 
-    run_generator
+    generator([destination_root])
 
-    assert_file "Gemfile" do |content|
-      assert_match(/\ngem "bcrypt"/, content)
-    end
+    run_generator_instance
+
+    assert_includes @bundle_commands, [:bundle, "add bcrypt", { capture: true }]
   end
 
   def test_authentication_generator_with_api_flag
-    run_generator(["--api"])
+    generator([destination_root], api: true)
+
+    run_generator_instance
 
     assert_file "app/models/user.rb"
     assert_file "app/models/current.rb"
@@ -93,21 +90,40 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_match(/resource :session/, content)
     end
 
-    assert_migration "db/migrate/create_sessions.rb" do |content|
-      assert_match(/t.references :user, null: false, foreign_key: true/, content)
-    end
-
-    assert_migration "db/migrate/create_users.rb" do |content|
-      assert_match(/t.string :password_digest, null: false/, content)
-    end
+    assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
+    assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
   end
 
   def test_model_test_is_skipped_if_test_framework_is_given
-    content = run_generator ["authentication", "-t", "rspec"]
+    generator([destination_root], ["-t", "rspec"])
+
+    content = run_generator_instance
+
     assert_match(/rspec \[not found\]/, content)
     assert_no_file "test/models/user_test.rb"
+  end
+
+  private
+
+  def run_generator_instance
+    commands = []
+    command_stub ||= -> (command, *args) { commands << [command, *args] }
+
+    @rails_commands = []
+    @rails_command_stub ||= -> (command, *_) { @rails_commands << command }
+
+    content = nil
+    generator.stub(:execute_command, command_stub) do
+      generator.stub(:rails_command, @rails_command_stub) do
+        content = super
+      end
+    end
+
+    @bundle_commands = commands.filter { |command, _| command == :bundle }
+
+    content
   end
 end
