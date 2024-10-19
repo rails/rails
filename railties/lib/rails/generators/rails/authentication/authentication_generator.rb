@@ -37,7 +37,7 @@ module Rails
       end
 
       def enable_bcrypt
-        if File.read("Gemfile").include?('gem "bcrypt"')
+        if File.read(File.expand_path("Gemfile", destination_root)).include?('gem "bcrypt"')
           uncomment_lines "Gemfile", /gem "bcrypt"/
           Bundler.with_original_env { execute_command :bundle, "install --quiet" }
         else
