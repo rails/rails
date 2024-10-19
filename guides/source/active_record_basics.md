@@ -213,7 +213,7 @@ and results in this:
 # Columns `created_at` and `updated_at` are added by `t.timestamps`.
 
 # db/migrate/20240220143807_create_books.rb
-class CreateBooks < ActiveRecord::Migration[8.0]
+class CreateBooks < ActiveRecord::Migration[8.1]
   def change
     create_table :books do |t|
       t.string :title
@@ -659,7 +659,7 @@ files which are executed against any database that Active Record supports.
 Here's a migration that creates a new table called `publications`:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[8.0]
+class CreatePublications < ActiveRecord::Migration[8.1]
   def change
     create_table :publications do |t|
       t.string :title

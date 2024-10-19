@@ -108,6 +108,9 @@ class Releaser < Rake::TaskLib
       end
     end
 
+    desc "Update version of the frameworks"
+    task update_versions: FRAMEWORKS.map { |f| "#{f}:update_versions" } + ["rails:update_versions"]
+
     desc "Build gem files for all projects"
     task build: FRAMEWORKS.map { |f| "#{f}:build" } + ["rails:build"]
 

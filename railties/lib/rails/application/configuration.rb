@@ -344,6 +344,8 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.strict_freshness = true
           end
+        when "8.1"
+          load_defaults "8.0"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

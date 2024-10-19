@@ -136,10 +136,10 @@ run the following in a new terminal:
 
 ```bash
 $ rails --version
-Rails 8.0.0
+Rails 8.1.0
 ```
 
-If it says something like "Rails 8.0.0", you are ready to continue.
+If it says something like "Rails 8.1.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -413,7 +413,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[8.0]
+class CreateArticles < ActiveRecord::Migration[8.1]
   def change
     create_table :articles do |t|
       t.string :title
@@ -474,7 +474,7 @@ $ bin/rails console
 You should see a rails console prompt like:
 
 ```irb
-Loading development environment (Rails 8.0.0)
+Loading development environment (Rails 8.1.0)
 blog(dev)>
 ```
 
@@ -1352,7 +1352,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[8.0]
+class CreateComments < ActiveRecord::Migration[8.1]
   def change
     create_table :comments do |t|
       t.string :commenter

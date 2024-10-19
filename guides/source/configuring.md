@@ -58,6 +58,8 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
 
+#### Default Values for Target Version 8.1
+
 #### Default Values for Target Version 8.0
 
 - [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
