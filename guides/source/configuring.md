@@ -65,7 +65,6 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
-- [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
 - [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
@@ -2840,51 +2839,6 @@ class EncoderJob < ActiveJob::Base
   #....
 end
 ```
-
-#### `config.active_job.enqueue_after_transaction_commit`
-
-Controls whether Active Job's `#perform_later` and similar methods automatically defer
-the job queuing to after the current Active Record transaction is committed.
-
-It can be set to:
-
-* `:never` - Never defer the enqueue.
-* `:always` - Always defer the enqueue.
-* `:default` - Let the queue adapter define the behaviour.
-
-Each Active Job backend defines its own default behaviour for this, with some adapters preventing the deferring and others allowing it, so make sure to check that as well if you're opting for `:default`.
-
-Example:
-
-```ruby
-Topic.transaction do
-  topic = Topic.create(title: "New Topic")
-  NewTopicNotificationJob.perform_later(topic)
-end
-```
-
-In this example, if the configuration is set to `:never`, the job will
-be enqueued immediately, even though the `Topic` hasn't been committed yet.
-Because of this, if the job is picked up almost immediately, or if the
-transaction doesn't succeed for some reason, the job will fail to find this
-topic in the database.
-
-If it's set to `:always`, the job will be actually enqueued after the
-transaction has been committed. If the transaction is rolled back, the job
-won't be enqueued at all.
-
-This configuration can additionally be set on a per job class basis:
-
-```ruby
-class SomeJob < ApplicationJob
-  self.enqueue_after_transaction_commit = :never
-end
-```
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `:never`             |
-| 7.2                   | `:default`           |
 
 #### `config.active_job.logger`
 

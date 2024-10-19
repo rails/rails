@@ -326,10 +326,6 @@ module Rails
 
           self.yjit = true
 
-          if respond_to?(:active_job)
-            active_job.enqueue_after_transaction_commit = :default
-          end
-
           if respond_to?(:active_storage)
             active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
           end
