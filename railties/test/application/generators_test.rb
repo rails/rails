@@ -203,6 +203,15 @@ module ApplicationTests
       end
     end
 
+    test "help hides test_unit when using another test_framework" do
+      add_to_config <<-RUBY
+        config.generators.test_framework :rspec
+      RUBY
+
+      output = rails("generate", "--help")
+      assert_no_match "test_unit", output
+    end
+
     test "skip collision check" do
       rails("generate", "model", "post", "title:string")
 

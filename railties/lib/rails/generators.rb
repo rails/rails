@@ -157,7 +157,9 @@ module Rails
             "action_text:install",
             "action_mailbox:install",
             "devcontainer"
-          ]
+          ].tap do |h|
+            h << "test_unit" if test.to_s != "test_unit"
+          end
         end
       end
 
