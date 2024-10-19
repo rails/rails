@@ -377,13 +377,9 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     def touch_attachments
-      attachments.then do |relation|
-        if ActiveStorage.touch_attachment_records
-          relation.includes(:record)
-        else
-          relation
-        end
-      end.each do |attachment|
+      return unless ActiveStorage.touch_attachment_records
+
+      attachments.includes(:record).each do |attachment|
         attachment.touch
       end
     end
