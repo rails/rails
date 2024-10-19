@@ -1,3 +1,5 @@
+## Rails 8.0.0.rc1 (October 19, 2024) ##
+
 *   Add `:except_on` option for validations. Grants the ability to _skip_ validations in specified contexts.
 
     ```ruby

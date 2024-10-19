@@ -1,3 +1,5 @@
+## Rails 8.0.0.rc1 (October 19, 2024) ##
+
 *   Remove `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
 
     *Rafael Mendonça França*

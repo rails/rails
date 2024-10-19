@@ -1,3 +1,8 @@
+## Rails 8.0.0.rc1 (October 19, 2024) ##
+
+*   No changes.
+
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 

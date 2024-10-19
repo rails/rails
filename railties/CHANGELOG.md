@@ -1,3 +1,5 @@
+## Rails 8.0.0.rc1 (October 19, 2024) ##
+
 *   Remove deprecated support to extend Rails console through `Rails::ConsoleMethods`.
 
     *Rafael Mendonça França*

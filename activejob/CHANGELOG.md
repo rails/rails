@@ -1,3 +1,5 @@
+## Rails 8.0.0.rc1 (October 19, 2024) ##
+
 *   Remove deprecated `config.active_job.use_big_decimal_serializer`.
 
     *Rafael Mendonça França*

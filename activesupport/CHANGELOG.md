@@ -1,3 +1,5 @@
+## Rails 8.0.0.rc1 (October 19, 2024) ##
+
 *   Remove deprecated support to passing an array of strings to `ActiveSupport::Deprecation#warn`.
 
     *Rafael Mendonça França*
