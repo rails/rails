@@ -3045,6 +3045,20 @@ module ApplicationTests
       assert_not ActiveJob.verbose_enqueue_logs
     end
 
+    test "config.active_job.enqueue_after_transaction_commit is deprecated" do
+      app_file "config/initializers/custom_serializers.rb", <<-RUBY
+      Rails.application.config.active_job.enqueue_after_transaction_commit = :always
+      RUBY
+
+      app "production"
+
+      assert_nothing_raised do
+        ActiveRecord::Base
+      end
+
+      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
     test "active record job queue is set" do
       app "development"
 
