@@ -1267,15 +1267,15 @@ only perform the necessary tasks once.
   load the schema, run any pending migrations, dump the updated schema, and
   finally load the seed data. See the [Seeding Data
   documentation](#migrations-and-seed-data) for more details.
-* If both the database and tables exist but the seed data has not been loaded,
-  the command will only load the seed data.
-* If the database, tables, and seed data are all in place, the command will do
-  nothing.
+* If the database and tables exist, the command will do nothing.
 
-NOTE: Once the database, tables, and seed data are all established, the command
-will not try to reload the seed data, even if the previously loaded seed data or
-the existing seed file have been altered or deleted. To reload the seed data,
-you can manually run `bin/rails db:seed`.
+Once the database and tables exist, the `db:prepare` task will not try to reload
+the seed data, even if the previously loaded seed data or the existing seed file
+have been altered or deleted. To reload the seed data, you can manually run
+`bin/rails db:seed`.
+
+NOTE: This task will only load seeds if one of the databases or tables created
+is a primary database for the environment or is configured with `seeds: true`.
 
 ### Resetting the Database
 
