@@ -1911,8 +1911,6 @@ module ApplicationTests
     end
 
     test "config.active_record.dump_schema_after_migration is false on production" do
-      build_app
-
       app "production"
 
       assert_not ActiveRecord.dump_schema_after_migration
@@ -3032,14 +3030,12 @@ module ApplicationTests
     end
 
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
-      build_app
       app "development"
 
       assert ActiveJob.verbose_enqueue_logs
     end
 
     test "config.active_job.verbose_enqueue_logs defaults to false in production" do
-      build_app
       app "production"
 
       assert_not ActiveJob.verbose_enqueue_logs
