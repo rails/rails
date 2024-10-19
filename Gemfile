@@ -104,11 +104,9 @@ group :job do
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
-  gem "delayed_job", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
-  gem "delayed_job_active_record", require: false
 end
 
 # Action Cable
