@@ -15,7 +15,7 @@ module ActiveJob
           true
         when :never
           ActiveJob.deprecator.warn(<<~MSG.squish)
-            Setting #{self.class.name}.enqueue_after_transaction_commit = :never` is deprecated and will be removed in Rails 8.1.
+            Setting `#{self.class.name}.enqueue_after_transaction_commit = :never` is deprecated and will be removed in Rails 8.1.
             Set to `false` to never enqueue the job after the transaction is committed.
           MSG
           false
