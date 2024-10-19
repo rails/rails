@@ -72,7 +72,7 @@ module ActiveRecord
           end
 
           def middle_records
-            through_records_by_owner.values.flatten
+            through_preloaders.flat_map(&:preloaded_records)
           end
 
           def through_preloaders
