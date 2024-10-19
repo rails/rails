@@ -2,3 +2,6 @@
 
 source "https://rubygems.org"
 gemspec
+
+gem "blade"
+gem "sprockets-export"
