@@ -1106,6 +1106,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, date_field("post", "written_on", value: value))
   end
 
+  def test_date_field_with_nil_value_attr
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date"/>}
+    assert_dom_equal(expected, date_field("post", "written_on", value: nil))
+  end
+
   def test_date_field_with_datetime_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2013-06-29" />}
     value = DateTime.new(2013, 6, 29)
