@@ -26,6 +26,14 @@ class TestChangelog < Minitest::Test
     CHANGELOG
   end
 
+  def test_valid_cve_entry_as_valid_author
+    assert_valid_entry <<~CHANGELOG
+      *   Some security fix.
+
+          [CVE-2099-99999]
+    CHANGELOG
+  end
+
   def test_parses_with_extra_newlines
     @changelog = changelog_fixture("action_mailbox_83d85b2.md")
 

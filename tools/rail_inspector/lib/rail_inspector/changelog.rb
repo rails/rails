@@ -39,7 +39,7 @@ module RailInspector
           return if no_changes?
 
           authors =
-            lines.reverse.find { |line| line.match?(/^ *\*[^*\s].*[^*\s]\*$/) }
+            lines.reverse.find { |line| line.match?(/^ *\*[^*\s].*[^*\s]\*$/) || line.match?(/\[CVE-\d{4}-\d{4,}\]/) }
 
           return if authors
 
