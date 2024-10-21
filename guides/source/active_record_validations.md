@@ -407,7 +407,7 @@ end
 
 If you want to be sure that an association is absent, you'll need to test
 whether the associated object itself is absent, and not the foreign key used to
-map the association.
+map the association. Rails will usually infer the inverse association automatically.
 
 ```ruby
 class LineItem < ApplicationRecord
@@ -416,10 +416,11 @@ class LineItem < ApplicationRecord
 end
 ```
 
-To validate associated records whose presence is required, Rails will usually
-infer the inverse association automatically. However, when using `:through` or
-`:foreign_key` make sure to set the `:inverse_of` option on the source
-association to avoid an extra query during validation:
+In cases where you use a custom `:foreign_key` or a `:through` association, it's
+important to explicitly set the `:inverse_of` option to optimize the association
+lookup. This helps avoid unnecessary database queries during validation. The
+example below demonstrates this in the context of validating the associated
+order's absence:
 
 ```ruby
 class Order < ApplicationRecord
@@ -427,7 +428,8 @@ class Order < ApplicationRecord
 end
 
 class LineItem < ApplicationRecord
-  belongs_to :order, class_name: "Order", foreign_key: "purchase_order_id", inverse_of: :line_items
+  belongs_to :order, foreign_key: "purchase_order_id", inverse_of: :line_items
+  validates :order, absence: true  # Validates the absence of the associated order
 end
 ```
 
@@ -787,10 +789,11 @@ class Supplier < ApplicationRecord
 end
 ```
 
-To validate associated records whose presence is required, Rails will usually
-infer the inverse association automatically. However, when using `:through` or
-`:foreign_key` make sure to set the `:inverse_of` option on the source
-association to avoid an extra query during validation:
+In cases where you use a custom `:foreign_key` or a `:through` association, it's
+important to explicitly set the `:inverse_of` option to optimize the association
+lookup. This helps avoid unnecessary database queries during validation. The
+example below demonstrates this in the context of validating the associated
+order's presence:
 
 ```ruby
 class Order < ApplicationRecord
@@ -798,7 +801,8 @@ class Order < ApplicationRecord
 end
 
 class LineItem < ApplicationRecord
-  belongs_to :order, class_name: "Order", foreign_key: "purchase_order_id", inverse_of: :line_items
+  belongs_to :order, foreign_key: "purchase_order_id", inverse_of: :line_items
+  validates :order, presence: true  # Validates the presence of the associated order
 end
 ```
 
