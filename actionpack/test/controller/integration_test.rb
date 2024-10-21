@@ -587,6 +587,18 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_includes @response.headers, "c"
   end
 
+  def test_default_headers_for_live_request
+    with_test_route_set do |controller|
+      with_live_controller(controller) do
+        with_default_headers "a" => "1", "b" => "2" do
+          get "/get"
+        end
+      end
+    end
+
+    assert_includes @response.headers, "a"
+  end
+
   def test_accept_not_overridden_when_xhr_true
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
@@ -659,8 +671,16 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
         singleton_class.include(set.url_helpers)
 
-        yield
+        yield controller
       end
+    end
+
+    def with_live_controller controller
+      controller.class_eval do
+        include ActionController::Live
+      end
+
+      yield
     end
 end
 

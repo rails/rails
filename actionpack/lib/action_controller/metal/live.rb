@@ -61,7 +61,7 @@ module ActionController
         if request.get_header("HTTP_VERSION") == "HTTP/1.0"
           super
         else
-          Live::Response.new.tap do |res|
+          Live::Response.create.tap do |res|
             res.request = request
           end
         end
