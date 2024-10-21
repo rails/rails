@@ -326,10 +326,6 @@ module Rails
 
           self.yjit = true
 
-          if respond_to?(:active_job)
-            active_job.enqueue_after_transaction_commit = :default
-          end
-
           if respond_to?(:active_storage)
             active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
           end
@@ -348,6 +344,8 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.strict_freshness = true
           end
+        when "8.1"
+          load_defaults "8.0"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -365,14 +363,6 @@ module Rails
 
       def enable_reloading=(value)
         self.cache_classes = !value
-      end
-
-      def read_encrypted_secrets
-        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 8.0.")
-      end
-
-      def read_encrypted_secrets=(value)
-        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 8.0.")
       end
 
       def encoding=(value)

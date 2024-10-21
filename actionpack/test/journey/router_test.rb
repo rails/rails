@@ -494,7 +494,7 @@ module ActionDispatch
           end
           path = @route_set.path_for(options, route_name)
           uri = URI.parse path
-          params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
+          params = ActionDispatch::ParamBuilder.from_query_string(uri.query).symbolize_keys
           [uri.path, params]
         end
 

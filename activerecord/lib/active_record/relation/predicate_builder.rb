@@ -72,7 +72,15 @@ module ActiveRecord
       table.associated_table(table_name, &block).arel_table[column_name]
     end
 
+    def with(table)
+      other = dup
+      other.table = table
+      other
+    end
+
     protected
+      attr_writer :table
+
       def expand_from_hash(attributes, &block)
         return ["1=0"] if attributes.empty?
 
@@ -147,7 +155,7 @@ module ActiveRecord
           queries.first
         else
           queries.map! { |query| query.reduce(&:and) }
-          queries = queries.reduce { |result, query| Arel::Nodes::Or.new([result, query]) }
+          queries = Arel::Nodes::Or.new(queries)
           Arel::Nodes::Grouping.new(queries)
         end
       end

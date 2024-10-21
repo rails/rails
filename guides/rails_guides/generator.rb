@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "fileutils"
 require "nokogiri"
 require "securerandom"

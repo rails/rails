@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "set"
 
 module AbstractController
   module Testing
@@ -212,7 +211,6 @@ module AbstractController
         end
 
         def render_to_body(options = {})
-          options[:_layout] = options[:layout] || _default_layout({})
           super
         end
     end

@@ -363,6 +363,24 @@ module ApplicationTests
         assert_equal "[\"ar_internal_metadata\", \"comments\", \"schema_migrations\"]", list_tables[]
       end
 
+      test "db:migrate:reset regenerates the schema from migrations" do
+        app_file "db/migrate/01_a_migration.rb", <<-MIGRATION
+          class AMigration < ActiveRecord::Migration::Current
+             create_table(:comments) {}
+          end
+        MIGRATION
+        rails("db:migrate")
+        app_file "db/migrate/01_a_migration.rb", <<-MIGRATION
+          class AMigration < ActiveRecord::Migration::Current
+             create_table(:comments) { |t| t.string :title }
+          end
+        MIGRATION
+
+        rails("db:migrate:reset")
+
+        assert File.read("#{app_path}/db/schema.rb").include?("title")
+      end
+
       def db_schema_dump
         Dir.chdir(app_path) do
           args = ["generate", "model", "book", "title:string"]

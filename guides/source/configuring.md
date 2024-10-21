@@ -58,6 +58,8 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
 
+#### Default Values for Target Version 8.1
+
 #### Default Values for Target Version 8.0
 
 - [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
@@ -65,7 +67,6 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
-- [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
 - [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
@@ -523,14 +524,6 @@ config.railties_order = [Blog::Engine, :main_app, :all]
 #### `config.rake_eager_load`
 
 When `true`, eager load the application when running Rake tasks. Defaults to `false`.
-
-#### `config.read_encrypted_secrets`
-
-*DEPRECATED*: You should be using
-[credentials](https://guides.rubyonrails.org/security.html#custom-credentials)
-instead of encrypted secrets.
-
-When `true`, will try to read encrypted secrets from `config/secrets.yml.enc`
 
 #### `config.relative_url_root`
 
@@ -1303,12 +1296,6 @@ default. Defaults to `false`.
 Sets the mode in which strict loading is reported. Defaults to `:all`. It can be
 changed to `:n_plus_one_only` to only report when loading associations that will
 lead to an N + 1 query.
-
-#### `config.active_record.warn_on_records_fetched_greater_than`
-
-Allows setting a warning threshold for query result size. If the number of
-records returned by a query exceeds the threshold, a warning is logged. This
-can be used to identify queries which might be causing a memory bloat.
 
 #### `config.active_record.index_nested_attribute_errors`
 
@@ -2855,51 +2842,6 @@ class EncoderJob < ActiveJob::Base
 end
 ```
 
-#### `config.active_job.enqueue_after_transaction_commit`
-
-Controls whether Active Job's `#perform_later` and similar methods automatically defer
-the job queuing to after the current Active Record transaction is committed.
-
-It can be set to:
-
-* `:never` - Never defer the enqueue.
-* `:always` - Always defer the enqueue.
-* `:default` - Let the queue adapter define the behaviour.
-
-Each Active Job backend defines its own default behaviour for this, with some adapters preventing the deferring and others allowing it, so make sure to check that as well if you're opting for `:default`.
-
-Example:
-
-```ruby
-Topic.transaction do
-  topic = Topic.create(title: "New Topic")
-  NewTopicNotificationJob.perform_later(topic)
-end
-```
-
-In this example, if the configuration is set to `:never`, the job will
-be enqueued immediately, even though the `Topic` hasn't been committed yet.
-Because of this, if the job is picked up almost immediately, or if the
-transaction doesn't succeed for some reason, the job will fail to find this
-topic in the database.
-
-If it's set to `:always`, the job will be actually enqueued after the
-transaction has been committed. If the transaction is rolled back, the job
-won't be enqueued at all.
-
-This configuration can additionally be set on a per job class basis:
-
-```ruby
-class SomeJob < ApplicationJob
-  self.enqueue_after_transaction_commit = :never
-end
-```
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `:never`             |
-| 7.2                   | `:default`           |
-
 #### `config.active_job.logger`
 
 Accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Active Job. You can retrieve this logger by calling `logger` on either an Active Job class or an Active Job instance. Set to `nil` to disable logging.
@@ -3880,8 +3822,6 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `active_record.migration_error`: Configures middleware to check for pending migrations.
 
 * `active_record.check_schema_cache_dump`: Loads the schema cache dump if configured and available.
-
-* `active_record.warn_on_records_fetched_greater_than`: Enables warnings when queries return large numbers of records.
 
 * `active_record.set_configs`: Sets up Active Record by using the settings in `config.active_record` by `send`'ing the method names as setters to `ActiveRecord::Base` and passing the values through.
 

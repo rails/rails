@@ -56,7 +56,7 @@ Here is how to create a search form with `form_with`:
 ```erb
 <%= form_with url: "/search", method: :get do |form| %>
   <%= form.label :query, "Search for:" %>
-  <%= form.text_field :query %>
+  <%= form.search_field :query %>
   <%= form.submit "Search" %>
 <% end %>
 ```
@@ -66,7 +66,7 @@ This will generate the following HTML:
 ```html
 <form action="/search" accept-charset="UTF-8" method="get">
   <label for="query">Search for:</label>
-  <input type="text" name="query" id="query">
+  <input type="search" name="query" id="query">
   <input type="submit" name="commit" value="Search" data-disable-with="Search">
 </form>
 ```
@@ -1338,4 +1338,4 @@ Generally, these helpers have the same name as their form builder counterparts p
 Using `form_tag` and `form_for`
 -------------------------------
 
-Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now soft-deprecated in favor of `form_with`.
+Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now discouraged in favor of `form_with`, but you can still find being used in some codebases.

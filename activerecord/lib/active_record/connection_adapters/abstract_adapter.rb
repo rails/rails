@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"

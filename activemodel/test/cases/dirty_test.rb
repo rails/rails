@@ -5,6 +5,7 @@ require "active_support/json"
 
 class DirtyTest < ActiveModel::TestCase
   class DirtyModel
+    include ActiveModel::API
     include ActiveModel::Dirty
     define_attribute_methods :name, :color, :size, :status
 

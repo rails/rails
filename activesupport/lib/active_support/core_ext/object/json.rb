@@ -65,11 +65,9 @@ class Object
   end
 end
 
-if RUBY_VERSION >= "3.2"
-  class Data # :nodoc:
-    def as_json(options = nil)
-      to_h.as_json(options)
-    end
+class Data # :nodoc:
+  def as_json(options = nil)
+    to_h.as_json(options)
   end
 end
 

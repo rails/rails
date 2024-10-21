@@ -10,7 +10,6 @@ require "active_support/deep_mergeable"
 require "action_dispatch/http/upload"
 require "rack/test"
 require "stringio"
-require "set"
 require "yaml"
 
 module ActionController
@@ -262,20 +261,6 @@ module ActionController
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
     class << self
-      def allow_deprecated_parameters_hash_equality
-        ActionController.deprecator.warn <<-WARNING.squish
-          `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality` is
-          deprecated and will be removed in Rails 8.0.
-        WARNING
-      end
-
-      def allow_deprecated_parameters_hash_equality=(value)
-        ActionController.deprecator.warn <<-WARNING.squish
-          `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`
-          is deprecated and will be removed in Rails 8.0.
-        WARNING
-      end
-
       def nested_attribute?(key, value) # :nodoc:
         /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
       end

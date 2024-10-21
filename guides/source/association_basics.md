@@ -44,7 +44,7 @@ Without associations, creating and deleting books for that author would require
 a tedious and manual process. Here's what that would look like:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[8.0]
+class CreateAuthors < ActiveRecord::Migration[8.1]
   def change
     create_table :authors do |t|
       t.string :name
@@ -193,7 +193,7 @@ Rails will look for a class named `Authors` instead of `Author`.
 The corresponding migration might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[8.0]
+class CreateBooks < ActiveRecord::Migration[8.1]
   def change
     create_table :authors do |t|
       t.string :name
@@ -435,7 +435,7 @@ is declared.
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[8.0]
+class CreateSuppliers < ActiveRecord::Migration[8.1]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -575,11 +575,8 @@ associated model.
 @account = @supplier.create_account(terms: "Net 30")
 ```
 
-Finally, `create_association!` does the same, but raises
-`ActiveRecord::RecordInvalid` if the record is invalid.
-
-`create_association!` does the same as `create_association` above, but raises
-`ActiveRecord::RecordInvalid` if the record is invalid.
+Finally, `create_association!` does the same as `create_association` above,
+but raises `ActiveRecord::RecordInvalid` if the record is invalid.
 
 ```ruby
 # This will raise ActiveRecord::RecordInvalid because the terms is blank
@@ -656,7 +653,7 @@ model is pluralized when declaring a `has_many` association.
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[8.0]
+class CreateAuthors < ActiveRecord::Migration[8.1]
   def change
     create_table :authors do |t|
       t.string :name
@@ -988,7 +985,7 @@ Diagram](images/association_basics/has_many_through.png)
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[8.0]
+class CreateAppointments < ActiveRecord::Migration[8.1]
   def change
     create_table :physicians do |t|
       t.string :name
@@ -1020,7 +1017,7 @@ key](active_record_composite_primary_keys.html) for the join table in the
 `has_many :through` relationship like below:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[8.0]
+class CreateAppointments < ActiveRecord::Migration[8.1]
   def change
     #  ...
     create_table :appointments, primary_key: [:physician_id, :patient_id] do |t|
@@ -1131,7 +1128,7 @@ Diagram](images/association_basics/has_one_through.png)
 The corresponding migration to set up these associations might look like this:
 
 ```ruby
-class CreateAccountHistories < ActiveRecord::Migration[8.0]
+class CreateAccountHistories < ActiveRecord::Migration[8.1]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -1186,7 +1183,7 @@ manage the relationship between the associated records. The corresponding
 migration might look like this:
 
 ```ruby
-class CreateAssembliesAndParts < ActiveRecord::Migration[8.0]
+class CreateAssembliesAndParts < ActiveRecord::Migration[8.1]
   def change
     create_table :assemblies do |t|
       t.string :name
@@ -1471,7 +1468,7 @@ To implement these associations, you'll need to create the corresponding
 database tables and set up the foreign key. Here's an example migration:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[8.0]
+class CreateSuppliers < ActiveRecord::Migration[8.1]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -1607,7 +1604,7 @@ foreign key column (`imageable_id`) and a type column (`imageable_type`) in the
 model:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[8.0]
+class CreatePictures < ActiveRecord::Migration[8.1]
   def change
     create_table :pictures do |t|
       t.string  :name
@@ -1631,7 +1628,7 @@ recommended to use `t.references` or its alias `t.belong_to` and specify
 it automatically adds both the foreign key and type columns to the table.
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[8.0]
+class CreatePictures < ActiveRecord::Migration[8.1]
   def change
     create_table :pictures do |t|
       t.string :name
@@ -1704,7 +1701,7 @@ To support this relationship, we need to add a `manager_id` column to the
 manager).
 
 ```ruby
-class CreateEmployees < ActiveRecord::Migration[8.0]
+class CreateEmployees < ActiveRecord::Migration[8.1]
   def change
     create_table :employees do |t|
       # Add a belongs_to reference to the manager, which is an employee.
@@ -2176,7 +2173,7 @@ the books table. For a brand new table, the migration might look something like
 this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[8.0]
+class CreateBooks < ActiveRecord::Migration[8.1]
   def change
     create_table :books do |t|
       t.datetime   :published_at
@@ -2190,7 +2187,7 @@ end
 Whereas for an existing table, it might look like this:
 
 ```ruby
-class AddAuthorToBooks < ActiveRecord::Migration[8.0]
+class AddAuthorToBooks < ActiveRecord::Migration[8.1]
   def change
     add_reference :books, :author
   end
@@ -2230,7 +2227,7 @@ You can then fill out the migration and ensure that the table is created without
 a primary key.
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[8.0]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[8.1]
   def change
     create_table :assemblies_parts, id: false do |t|
       t.bigint :assembly_id
@@ -2251,7 +2248,7 @@ are you forgot to set `id: false` when creating your migration.
 For simplicity, you can also use the method `create_join_table`:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[8.0]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[8.1]
   def change
     create_join_table :assemblies, :parts do |t|
       t.index :assembly_id
@@ -2271,7 +2268,7 @@ The main difference in schema implementation between creating a join table for
 `has_many :through` requires an `id`.
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[8.0]
+class CreateAppointments < ActiveRecord::Migration[8.1]
   def change
     create_table :appointments do |t|
       t.belongs_to :physician
@@ -2605,12 +2602,12 @@ Controls what happens to the associated object when its owner is destroyed:
   Do not use this option if the association is backed by foreign key constraints
   in your database. The foreign key constraint actions will occur inside the
   same transaction that deletes its owner.
-  * `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type
+* `:nullify` causes the foreign key to be set to `NULL`. Polymorphic type
     column is also nullified on polymorphic associations. Callbacks are not
     executed.
-  * `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError`
+* `:restrict_with_exception` causes an `ActiveRecord::DeleteRestrictionError`
     exception to be raised if there is an associated record
-  * `:restrict_with_error` causes an error to be added to the owner if there is
+* `:restrict_with_error` causes an error to be added to the owner if there is
     an associated object
 
 WARNING: You should not specify this option on a `belongs_to` association that
@@ -3137,7 +3134,7 @@ Although the `:counter_cache` option is specified on the model with the
 `books_count` column to the `Author` model:
 
 ```ruby
-class AddBooksCountToAuthors < ActiveRecord::Migration[6.0]
+class AddBooksCountToAuthors < ActiveRecord::Migration[8.1]
   def change
     add_column :authors, :books_count, :integer, default: 0, null: false
   end

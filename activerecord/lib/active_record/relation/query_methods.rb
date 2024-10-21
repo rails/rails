@@ -506,7 +506,7 @@ module ActiveRecord
     #
     #   Post.with_recursive(post_and_replies: [Post.where(id: 42), Post.joins('JOIN post_and_replies ON posts.in_reply_to_id = post_and_replies.id')])
     #   # => ActiveRecord::Relation
-    #   # WITH post_and_replies AS (
+    #   # WITH RECURSIVE post_and_replies AS (
     #   #   (SELECT * FROM posts WHERE id = 42)
     #   #   UNION ALL
     #   #   (SELECT * FROM posts JOIN posts_and_replies ON posts.in_reply_to_id = posts_and_replies.id)
@@ -1656,6 +1656,22 @@ module ActiveRecord
         self
       end
 
+    protected
+      def arel_columns(columns)
+        columns.flat_map do |field|
+          case field
+          when Symbol, String
+            arel_column(field)
+          when Proc
+            field.call
+          when Hash
+            arel_columns_from_hash(field)
+          else
+            field
+          end
+        end
+      end
+
     private
       def async
         spawn.async!
@@ -1910,12 +1926,26 @@ module ActiveRecord
         end
       end
 
-      def build_with_expression_from_value(value)
+      def build_with_expression_from_value(value, nested = false)
         case value
         when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
-        when ActiveRecord::Relation then value.arel
+        when ActiveRecord::Relation
+          if nested
+            value.arel.ast
+          else
+            value.arel
+          end
         when Arel::SelectManager then value
-        when Array then value.map { |q| build_with_expression_from_value(q) }.reduce { |result, value| result.union(:all, value) }
+        when Array
+          return build_with_expression_from_value(value.first, false) if value.size == 1
+
+          parts = value.map do |query|
+            build_with_expression_from_value(query, true)
+          end
+
+          parts.reduce do |result, value|
+            Arel::Nodes::UnionAll.new(result, value)
+          end
         else
           raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
         end
@@ -1929,38 +1959,43 @@ module ActiveRecord
         ).join_sources.first
       end
 
-      def arel_columns(columns)
-        columns.flat_map do |field|
-          case field
-          when Symbol
-            arel_column(field.to_s) do |attr_name|
-              model.adapter_class.quote_table_name(attr_name)
+      def arel_columns_from_hash(fields)
+        fields.flat_map do |table_name, columns|
+          table_name = table_name.name if table_name.is_a?(Symbol)
+          case columns
+          when Symbol, String
+            arel_column_with_table(table_name, columns.to_s)
+          when Array
+            columns.map do |column|
+              arel_column_with_table(table_name, column.to_s)
             end
-          when String
-            arel_column(field, &:itself)
-          when Proc
-            field.call
-          when Hash
-            arel_columns_from_hash(field)
           else
-            field
+            raise TypeError, "Expected Symbol, String or Array, got: #{columns.class}"
           end
         end
       end
 
+      def arel_column_with_table(table_name, column_name)
+        self.references_values |= [Arel.sql(table_name, retryable: true)]
+        predicate_builder.resolve_arel_attribute(table_name, column_name) do
+          lookup_table_klass_from_join_dependencies(table_name)
+        end
+      end
+
       def arel_column(field)
+        field = field.name if is_symbol = field.is_a?(Symbol)
+
         field = model.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
         if model.columns_hash.key?(field) && (!from || table_name_matches?(from))
           table[field]
-        elsif field.match?(/\A\w+\.\w+\z/)
-          table, column = field.split(".")
-          predicate_builder.resolve_arel_attribute(table, column) do
-            lookup_table_klass_from_join_dependencies(table)
-          end
-        else
+        elsif /\A(?<table>(?:\w+\.)?\w+)\.(?<column>\w+)\z/ =~ field
+          arel_column_with_table(table, column)
+        elsif block_given?
           yield field
+        else
+          Arel.sql(is_symbol ? model.adapter_class.quote_table_name(field) : field)
         end
       end
 
@@ -2182,34 +2217,29 @@ module ActiveRecord
       def process_select_args(fields)
         fields.flat_map do |field|
           if field.is_a?(Hash)
-            arel_columns_from_hash(field)
+            arel_column_aliases_from_hash(field)
           else
             field
           end
         end
       end
 
-      def arel_columns_from_hash(fields)
+      def arel_column_aliases_from_hash(fields)
         fields.flat_map do |key, columns_aliases|
+          table_name = key.is_a?(Symbol) ? key.name : key
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
-              if values[:joins]&.include?(key)
-                references = PredicateBuilder.references({ key.to_s => fields[key] })
-                self.references_values |= references unless references.empty?
-              end
-              arel_column("#{key}.#{column}") do
-                predicate_builder.resolve_arel_attribute(key.to_s, column)
-              end.as(column_alias.to_s)
+              arel_column_with_table(table_name, column.to_s)
+                .as(model.adapter_class.quote_column_name(column_alias.to_s))
             end
           when Array
             columns_aliases.map do |column|
-              arel_column("#{key}.#{column}", &:itself)
+              arel_column_with_table(table_name, column.to_s)
             end
           when String, Symbol
-            arel_column(key.to_s) do
-              predicate_builder.resolve_arel_attribute(model.table_name, key.to_s)
-            end.as(columns_aliases.to_s)
+            arel_column(key)
+              .as(model.adapter_class.quote_column_name(columns_aliases.to_s))
           end
         end
       end

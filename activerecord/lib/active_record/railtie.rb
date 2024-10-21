@@ -69,6 +69,7 @@ module ActiveRecord
         Rails.logger.broadcast_to(console)
       end
       ActiveRecord.verbose_query_logs = false
+      ActiveRecord::Base.attributes_for_inspect = :all if Rails.env.production?
     end
 
     runner do
@@ -183,30 +184,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.warn_on_records_fetched_greater_than" do
-      if config.active_record.warn_on_records_fetched_greater_than
-        ActiveRecord.deprecator.warn <<~MSG.squish
-          `config.active_record.warn_on_records_fetched_greater_than` is deprecated and will be
-          removed in Rails 8.0.
-          Please subscribe to `sql.active_record` notifications and access the row count field to
-          detect large result set sizes.
-        MSG
-        ActiveSupport.on_load(:active_record) do
-          require "active_record/relation/record_fetch_warning"
-        end
-      end
-    end
-
-    initializer "active_record.sqlite3_deprecated_warning" do
-      if config.active_record.key?(:sqlite3_production_warning)
-        config.active_record.delete(:sqlite3_production_warning)
-        ActiveRecord.deprecator.warn <<~MSG.squish
-          The `config.active_record.sqlite3_production_warning` configuration no longer has any effect
-          and can be safely removed.
-        MSG
-      end
-    end
-
     initializer "active_record.sqlite3_adapter_strict_strings_by_default" do
       config.after_initialize do
         if config.active_record.sqlite3_adapter_strict_strings_by_default
@@ -311,6 +288,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_executor_hooks" do
       ActiveRecord::QueryCache.install_executor_hooks
       ActiveRecord::AsynchronousQueriesTracker.install_executor_hooks
+      ActiveRecord::ConnectionAdapters::ConnectionPool.install_executor_hooks
     end
 
     initializer "active_record.add_watchable_files" do |app|
@@ -432,16 +410,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
         ActiveSupport.on_load(:active_record) do
           require "active_record/message_pack"
           ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
-        end
-      end
-    end
-
-    initializer "active_record.attributes_for_inspect" do |app|
-      ActiveSupport.on_load(:active_record) do
-        if app.config.consider_all_requests_local
-          if app.config.active_record.attributes_for_inspect.nil?
-            ActiveRecord::Base.attributes_for_inspect = :all
-          end
         end
       end
     end

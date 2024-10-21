@@ -607,7 +607,7 @@ To ease the upgrade it's required to add the new default to the
 value:
 
 ```ruby
-# new_framework_defaults_8_0.rb.tt
+# new_framework_defaults_8_1.rb.tt
 
 # Rails.application.config.active_job.existing_behavior = false
 ```

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_support/dependencies/interlock"
 
 module ActiveSupport # :nodoc:

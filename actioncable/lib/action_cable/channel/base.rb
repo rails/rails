@@ -2,7 +2,6 @@
 
 # :markup: markdown
 
-require "set"
 require "active_support/rescuable"
 require "active_support/parameter_filter"
 
