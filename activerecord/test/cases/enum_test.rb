@@ -907,6 +907,7 @@ class EnumTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum :status, default: 0, scopes: 1, prefix: 2, suffix: 3
+      enum :last_read, { default: 0, scopes: 1, prefix: 2, suffix: 3 }, prefix: "p", suffix: true
     end
 
     book = klass.new
@@ -914,6 +915,11 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate book, :scopes?
     assert_not_predicate book, :prefix?
     assert_not_predicate book, :suffix?
+
+    assert_predicate book, :p_default_last_read?
+    assert_not_predicate book, :p_scopes_last_read?
+    assert_not_predicate book, :p_prefix_last_read?
+    assert_not_predicate book, :p_suffix_last_read?
   end
 
   test "scopes are named like methods" do
