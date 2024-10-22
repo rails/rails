@@ -132,5 +132,6 @@ class MailerHelperTest < ActionMailer::TestCase
     assert_equal "  * foo\n", helper.block_format("* foo")
     assert_equal "  * foo\n*bar", helper.block_format("* foo*bar")
     assert_equal "  * foo\n  * bar\n", helper.block_format("* foo * bar")
+    assert_equal "  *", helper.block_format("* ")
   end
 end
