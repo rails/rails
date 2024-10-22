@@ -1030,7 +1030,7 @@ class AddressValidator < ActiveModel::Validator
   def validate(record)
     options[:fields].each do |field|
       if record.send(field).blank?
-         record.errors.add field, "is required"
+        record.errors.add field, "is required"
       end
     end
   end
@@ -1067,12 +1067,11 @@ class AddressValidator
   end
 
   private
-
-  def validate_field(field)
-    if @invoice.send(field).blank?
-      @invoice.errors.add field, "#{field.to_s.humanize} is required"
+    def validate_field(field)
+      if @invoice.send(field).blank?
+        @invoice.errors.add field, "#{field.to_s.humanize} is required"
+      end
     end
-  end
 end
 ```
 
