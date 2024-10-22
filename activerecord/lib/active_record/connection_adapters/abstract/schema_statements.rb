@@ -32,7 +32,7 @@ module ActiveRecord
       # Returns the relation names usable to back Active Record models.
       # For most adapters this means all #tables and #views.
       def data_sources
-        query_values(data_source_sql, "SCHEMA")
+        query_values(data_source_sql, "SCHEMA", allow_retry: true)
       rescue NotImplementedError
         tables | views
       end
@@ -42,14 +42,14 @@ module ActiveRecord
       #   data_source_exists?(:ebooks)
       #
       def data_source_exists?(name)
-        query_values(data_source_sql(name), "SCHEMA").any? if name.present?
+        query_values(data_source_sql(name), "SCHEMA", allow_retry: true).any? if name.present?
       rescue NotImplementedError
         data_sources.include?(name.to_s)
       end
 
       # Returns an array of table names defined in the database.
       def tables
-        query_values(data_source_sql(type: "BASE TABLE"), "SCHEMA")
+        query_values(data_source_sql(type: "BASE TABLE"), "SCHEMA", allow_retry: true)
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -57,14 +57,14 @@ module ActiveRecord
       #   table_exists?(:developers)
       #
       def table_exists?(table_name)
-        query_values(data_source_sql(table_name, type: "BASE TABLE"), "SCHEMA").any? if table_name.present?
+        query_values(data_source_sql(table_name, type: "BASE TABLE"), "SCHEMA", allow_retry: true).any? if table_name.present?
       rescue NotImplementedError
         tables.include?(table_name.to_s)
       end
 
       # Returns an array of view names defined in the database.
       def views
-        query_values(data_source_sql(type: "VIEW"), "SCHEMA")
+        query_values(data_source_sql(type: "VIEW"), "SCHEMA", allow_retry: true)
       end
 
       # Checks to see if the view +view_name+ exists on the database.
@@ -72,7 +72,7 @@ module ActiveRecord
       #   view_exists?(:ebooks)
       #
       def view_exists?(view_name)
-        query_values(data_source_sql(view_name, type: "VIEW"), "SCHEMA").any? if view_name.present?
+        query_values(data_source_sql(view_name, type: "VIEW"), "SCHEMA", allow_retry: true).any? if view_name.present?
       rescue NotImplementedError
         views.include?(view_name.to_s)
       end

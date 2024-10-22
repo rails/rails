@@ -148,7 +148,7 @@ module ActiveRecord
             return if row_format_dynamic_by_default?
 
             unless defined?(@default_row_format)
-              if query_value("SELECT @@innodb_file_per_table = 1 AND @@innodb_file_format = 'Barracuda'") == 1
+              if query_value("SELECT @@innodb_file_per_table = 1 AND @@innodb_file_format = 'Barracuda'", "SCHEMA", allow_retry: true) == 1
                 @default_row_format = "ROW_FORMAT=DYNAMIC"
               else
                 @default_row_format = nil

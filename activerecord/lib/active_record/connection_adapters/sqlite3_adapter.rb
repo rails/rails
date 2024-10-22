@@ -469,7 +469,7 @@ module ActiveRecord
       end
 
       def get_database_version # :nodoc:
-        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)", "SCHEMA"))
+        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)", "SCHEMA", allow_retry: true))
       end
 
       def check_version # :nodoc:
@@ -767,7 +767,7 @@ module ActiveRecord
           #                       "password_digest" varchar COLLATE "NOCASE",
           #                       "o_id" integer,
           #                       CONSTRAINT "fk_rails_78146ddd2e" FOREIGN KEY ("o_id") REFERENCES "os" ("id"));
-          result = query_value(sql, "SCHEMA")
+          result = query_value(sql, "SCHEMA", allow_retry: true)
 
           return [] unless result
 

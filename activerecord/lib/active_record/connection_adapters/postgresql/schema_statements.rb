@@ -61,7 +61,7 @@ module ActiveRecord
 
         # Returns true if schema exists.
         def schema_exists?(name)
-          query_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = #{quote(name)}", "SCHEMA").to_i > 0
+          query_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = #{quote(name)}", "SCHEMA", allow_retry: true).to_i > 0
         end
 
         # Verifies existence of an index with a given name.
@@ -69,7 +69,7 @@ module ActiveRecord
           table = quoted_scope(table_name)
           index = quoted_scope(index_name)
 
-          query_value(<<~SQL, "SCHEMA").to_i > 0
+          query_value(<<~SQL, "SCHEMA", allow_retry: true).to_i > 0
             SELECT COUNT(*)
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -175,7 +175,7 @@ module ActiveRecord
         def table_comment(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
           if scope[:name]
-            query_value(<<~SQL, "SCHEMA")
+            query_value(<<~SQL, "SCHEMA", allow_retry: true)
               SELECT pg_catalog.obj_description(c.oid, 'pg_class')
               FROM pg_catalog.pg_class c
                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -190,7 +190,7 @@ module ActiveRecord
         def table_partition_definition(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
 
-          query_value(<<~SQL, "SCHEMA")
+          query_value(<<~SQL, "SCHEMA", allow_retry: true)
             SELECT pg_catalog.pg_get_partkeydef(c.oid)
             FROM pg_catalog.pg_class c
               LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -204,7 +204,7 @@ module ActiveRecord
         def inherited_table_names(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
 
-          query_values(<<~SQL, "SCHEMA")
+          query_values(<<~SQL, "SCHEMA", allow_retry: true)
             SELECT parent.relname
             FROM pg_catalog.pg_inherits i
               JOIN pg_catalog.pg_class child ON i.inhrelid = child.oid
@@ -218,32 +218,32 @@ module ActiveRecord
 
         # Returns the current database name.
         def current_database
-          query_value("SELECT current_database()", "SCHEMA")
+          query_value("SELECT current_database()", "SCHEMA", allow_retry: true)
         end
 
         # Returns the current schema name.
         def current_schema
-          query_value("SELECT current_schema", "SCHEMA")
+          query_value("SELECT current_schema", "SCHEMA", allow_retry: true)
         end
 
         # Returns the current database encoding format.
         def encoding
-          query_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA", allow_retry: true)
         end
 
         # Returns the current database collation.
         def collation
-          query_value("SELECT datcollate FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT datcollate FROM pg_database WHERE datname = current_database()", "SCHEMA", allow_retry: true)
         end
 
         # Returns the current database ctype.
         def ctype
-          query_value("SELECT datctype FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT datctype FROM pg_database WHERE datname = current_database()", "SCHEMA", allow_retry: true)
         end
 
         # Returns an array of schema names.
         def schema_names
-          query_values(<<~SQL, "SCHEMA")
+          query_values(<<~SQL, "SCHEMA", allow_retry: true)
             SELECT nspname
               FROM pg_namespace
              WHERE nspname !~ '^pg_.*'
@@ -284,12 +284,12 @@ module ActiveRecord
 
         # Returns the active schema search path.
         def schema_search_path
-          @schema_search_path ||= query_value("SHOW search_path", "SCHEMA")
+          @schema_search_path ||= query_value("SHOW search_path", "SCHEMA", allow_retry: true)
         end
 
         # Returns the current client message level.
         def client_min_messages
-          query_value("SHOW client_min_messages", "SCHEMA")
+          query_value("SHOW client_min_messages", "SCHEMA", allow_retry: true)
         end
 
         # Set the client message level.
@@ -309,7 +309,7 @@ module ActiveRecord
         end
 
         def serial_sequence(table, column)
-          query_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})", "SCHEMA")
+          query_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})", "SCHEMA", allow_retry: true)
         end
 
         # Sets the sequence of a table's primary key to the specified value.
@@ -342,12 +342,12 @@ module ActiveRecord
 
           if pk && sequence
             quoted_sequence = quote_table_name(sequence)
-            max_pk = query_value("SELECT MAX(#{quote_column_name pk}) FROM #{quote_table_name(table)}", "SCHEMA")
+            max_pk = query_value("SELECT MAX(#{quote_column_name pk}) FROM #{quote_table_name(table)}", "SCHEMA", allow_retry: true)
             if max_pk.nil?
               if database_version >= 10_00_00
-                minvalue = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass", "SCHEMA")
+                minvalue = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass", "SCHEMA", allow_retry: true)
               else
-                minvalue = query_value("SELECT min_value FROM #{quoted_sequence}", "SCHEMA")
+                minvalue = query_value("SELECT min_value FROM #{quoted_sequence}", "SCHEMA", allow_retry: true)
               end
             end
 
@@ -410,7 +410,7 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          query_values(<<~SQL, "SCHEMA")
+          query_values(<<~SQL, "SCHEMA", allow_retry: true)
             SELECT a.attname
               FROM (
                      SELECT indrelid, indkey, generate_subscripts(indkey, 1) idx
@@ -627,11 +627,11 @@ module ActiveRecord
         end
 
         def foreign_tables
-          query_values(data_source_sql(type: "FOREIGN TABLE"), "SCHEMA")
+          query_values(data_source_sql(type: "FOREIGN TABLE"), "SCHEMA", allow_retry: true)
         end
 
         def foreign_table_exists?(table_name)
-          query_values(data_source_sql(table_name, type: "FOREIGN TABLE"), "SCHEMA").any? if table_name.present?
+          query_values(data_source_sql(table_name, type: "FOREIGN TABLE"), "SCHEMA", allow_retry: true).any? if table_name.present?
         end
 
         def check_constraints(table_name) # :nodoc:

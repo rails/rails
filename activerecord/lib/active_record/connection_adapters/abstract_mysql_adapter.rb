@@ -206,7 +206,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = query_value("SELECT @@FOREIGN_KEY_CHECKS")
+        old = query_value("SELECT @@FOREIGN_KEY_CHECKS", allow_retry: true)
 
         begin
           update("SET FOREIGN_KEY_CHECKS = 0")
@@ -290,7 +290,7 @@ module ActiveRecord
       end
 
       def current_database
-        query_value("SELECT database()", "SCHEMA")
+        query_value("SELECT database()", "SCHEMA", allow_retry: true)
       end
 
       # Returns the database character set.
@@ -306,7 +306,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        query_value(<<~SQL, "SCHEMA").presence
+        query_value(<<~SQL, "SCHEMA", allow_retry: true).presence
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}
@@ -579,7 +579,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        query_values(<<~SQL, "SCHEMA")
+        query_values(<<~SQL, "SCHEMA", allow_retry: true)
           SELECT column_name
           FROM information_schema.statistics
           WHERE index_name = 'PRIMARY'

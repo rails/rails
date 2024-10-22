@@ -490,11 +490,11 @@ module ActiveRecord
       end
 
       def extension_available?(name)
-        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA", allow_retry: true)
       end
 
       def extension_enabled?(name)
-        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA", allow_retry: true)
       end
 
       def extensions
@@ -617,7 +617,7 @@ module ActiveRecord
 
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
-        @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
+        @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA", allow_retry: true).to_i
       end
 
       # Set the authorized user for this session

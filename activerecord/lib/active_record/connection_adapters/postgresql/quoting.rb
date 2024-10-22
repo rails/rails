@@ -193,7 +193,7 @@ module ActiveRecord
 
         private
           def lookup_cast_type(sql_type)
-            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
+            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA", allow_retry: true).to_i)
           end
 
           def encode_array(array_data)
