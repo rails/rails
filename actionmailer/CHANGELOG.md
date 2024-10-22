@@ -1,3 +1,8 @@
+*   Fix NoMethodError in `block_format` helper
+
+    *Michael Leimstaedtner*
+
+
 ## Rails 7.2.1.1 (October 15, 2024) ##
 
 *   Avoid regex backtracking in `block_format` helper
