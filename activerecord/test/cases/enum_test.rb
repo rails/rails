@@ -446,7 +446,7 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/wrong number of arguments/, e.message)
+    assert_match(/must not be empty\.$/, e.message)
 
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
@@ -892,10 +892,21 @@ class EnumTest < ActiveRecord::TestCase
     assert_respond_to book, :easy_to_read?
   end
 
+  test "enum labels as keyword arguments" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, active: 0, archived: 1
+    end
+
+    book = klass.new
+    assert_predicate book, :active?
+    assert_not_predicate book, :archived?
+  end
+
   test "option names can be used as label" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
-      enum :status, { default: 0, scopes: 1, prefix: 2, suffix: 3 }
+      enum :status, default: 0, scopes: 1, prefix: 2, suffix: 3
     end
 
     book = klass.new
