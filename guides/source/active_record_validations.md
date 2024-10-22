@@ -1073,6 +1073,7 @@ class AddressValidator
       @invoice.errors.add field, "#{field.to_s.humanize} is required"
     end
   end
+end
 ```
 
 We will cover [custom validations](#performing-custom-validations) more later.
