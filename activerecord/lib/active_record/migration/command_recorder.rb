@@ -40,7 +40,7 @@ module ActiveRecord
     # * remove_reference
     # * remove_timestamps
     # * rename_column
-    # * rename_enum (must supply a +:to+ option)
+    # * rename_enum
     # * rename_enum_value (must supply a +:from+ and +:to+ option)
     # * rename_index
     # * rename_table
@@ -364,13 +364,13 @@ module ActiveRecord
         end
 
         def invert_rename_enum(args)
-          name, options = args
+          name, new_name, = args
 
-          unless options.is_a?(Hash) && options.has_key?(:to)
-            raise ActiveRecord::IrreversibleMigration, "rename_enum is only reversible if given a :to option."
+          if new_name.is_a?(Hash) && new_name.key?(:to)
+            new_name = new_name[:to]
           end
 
-          [:rename_enum, [options[:to], to: name]]
+          [:rename_enum, [new_name, name]]
         end
 
         def invert_rename_enum_value(args)
