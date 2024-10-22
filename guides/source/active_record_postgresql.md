@@ -320,7 +320,7 @@ usage:
 ```ruby
 # db/migrate/20150718144917_rename_article_status.rb
 def change
-  rename_enum :article_status, to: :article_state
+  rename_enum :article_status, :article_state
 end
 ```
 
