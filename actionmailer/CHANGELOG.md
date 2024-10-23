@@ -4,6 +4,8 @@
 
     [CVE-2024-47889]
 
+    *John Hawthorn*
+
 ## Rails 7.1.4 (August 22, 2024) ##
 
 *   No changes.

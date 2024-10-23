@@ -4,9 +4,13 @@
 
     [CVE-2024-47887]
 
+    *John Hawthorn*
+
 *   Avoid regex backtracking in query parameter filtering
 
     [CVE-2024-41128]
+
+    *John Hawthorn*
 
 ## Rails 7.1.4 (August 22, 2024) ##
 
