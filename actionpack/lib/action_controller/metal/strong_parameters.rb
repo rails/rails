@@ -95,6 +95,8 @@ module ActionController
   # *   `permit` to filter params for mass assignment.
   # *   `require` to require a parameter or raise an error.
   #
+  # Examples:
+  #
   #     params = ActionController::Parameters.new({
   #       person: {
   #         name: "Francesco",
