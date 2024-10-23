@@ -3,24 +3,24 @@
 
 
 "@babel/code-frame@^7.10.4":
-  version "7.24.7"
-  resolved "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.24.7.tgz"
-  integrity sha512-BcYH1CVJBO9tvyIZ2jVeXgSIMvGZ2FDRvDdOIVQyuklNKSsx+eppDEBq/g47Ayw+RqNFE+URvOShmf+f/qwAlA==
+  version "7.25.9"
+  resolved "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.25.9.tgz"
+  integrity sha512-z88xeGxnzehn2sqZ8UdGQEvYErF1odv2CftxInpSYJt6uHuPe9YjahKZITGs3l5LeI9d2ROG+obuDAoSlqbNfQ==
   dependencies:
-    "@babel/highlight" "^7.24.7"
+    "@babel/highlight" "^7.25.9"
     picocolors "^1.0.0"
 
-"@babel/helper-validator-identifier@^7.24.7":
-  version "7.24.7"
-  resolved "https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.24.7.tgz"
-  integrity sha512-rR+PBcQ1SMQDDyF6X0wxtG8QyLCgUB0eRAGguqRLfkCA87l7yAP7ehq8SNj96OOGTO8OBV70KhuFYcIkHXOg0w==
+"@babel/helper-validator-identifier@^7.25.9":
+  version "7.25.9"
+  resolved "https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.25.9.tgz"
+  integrity sha512-Ed61U6XJc3CVRfkERJWDz4dJwKe7iLmmJsbOGu9wSloNSFttHV0I8g6UAgb7qnK5ly5bGLPd4oXZlxCdANBOWQ==
 
-"@babel/highlight@^7.24.7":
-  version "7.24.7"
-  resolved "https://registry.npmjs.org/@babel/highlight/-/highlight-7.24.7.tgz"
-  integrity sha512-EStJpq4OuY8xYfhGVXngigBJRWxftKX9ksiGDnmlY3o7B/V7KIAc9X4oiK87uPJSc/vs5L869bem5fhZa8caZw==
+"@babel/highlight@^7.25.9":
+  version "7.25.9"
+  resolved "https://registry.npmjs.org/@babel/highlight/-/highlight-7.25.9.tgz"
+  integrity sha512-llL88JShoCsth8fF8R4SJnIn+WLvR6ccFxu1H3FlMhDontdcmZWf2HgIZ7AIqV3Xcck1idlohrN4EUBQz6klbw==
   dependencies:
-    "@babel/helper-validator-identifier" "^7.24.7"
+    "@babel/helper-validator-identifier" "^7.25.9"
     chalk "^2.4.2"
     js-tokens "^4.0.0"
     picocolors "^1.0.0"
@@ -71,17 +71,17 @@
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
 "@rails/actioncable@file:/Users/jhawthorn/src/rails-release/actioncable":
-  version "7.2.101"
+  version "7.2.102"
   resolved "file:actioncable"
 
 "@rails/actiontext@file:/Users/jhawthorn/src/rails-release/actiontext":
-  version "7.2.101"
+  version "7.2.102"
   resolved "file:actiontext"
   dependencies:
     "@rails/activestorage" ">= 7.2.0-alpha"
 
 "@rails/activestorage@>= 7.2.0-alpha", "@rails/activestorage@file:/Users/jhawthorn/src/rails-release/activestorage":
-  version "7.2.101"
+  version "7.2.102"
   resolved "file:activestorage"
   dependencies:
     spark-md5 "^3.0.1"
@@ -347,9 +347,9 @@ acorn@^6.4.1:
   integrity sha512-XtGIhXwF8YM8bJhGxG5kXgjkEuNGLTkoYqVE+KMR+aspr4KGYmKYg7yUe3KghyQ9yheNwLnjmzh/7+gfDBmHCQ==
 
 acorn@^8.8.2:
-  version "8.12.0"
-  resolved "https://registry.npmjs.org/acorn/-/acorn-8.12.0.tgz"
-  integrity sha512-RTvkC4w+KNXrM39/lWCUaG0IbRkWdCv7W/IOW9oU6SawyxulvkQy5HQPVTKxEjczcUvapcrw3cFx/60VN/NRNw==
+  version "8.13.0"
+  resolved "https://registry.npmjs.org/acorn/-/acorn-8.13.0.tgz"
+  integrity sha512-8zSiw54Oxrdym50NlZ9sUusyO1Z1ZchgRLWRaK6c86XJFClyCgFKetdowBg5bKxyp/u+CDBJG4Mpp0m3HLZl9w==
 
 adm-zip@~0.4.3:
   version "0.4.16"
@@ -3676,9 +3676,9 @@ performance-now@^2.1.0:
   integrity sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==
 
 picocolors@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/picocolors/-/picocolors-1.0.1.tgz"
-  integrity sha512-anP1Z8qwhkbmu7MFP5iTt+wQKXgwzf7zTyGlcdzabySa9vd0Xt392U0rVmz9poOaBj0uHJKyyo9/upk0HrEQew==
+  version "1.1.1"
+  resolved "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz"
+  integrity sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==
 
 picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2:
   version "2.3.1"
@@ -4078,9 +4078,9 @@ rollup-plugin-terser@^7.0.2:
     terser "^5.0.0"
 
 rollup@^1.20.0||^2.0.0, rollup@^2.0.0, rollup@^2.35.1, rollup@^2.38.3, rollup@^2.53.3:
-  version "2.79.1"
-  resolved "https://registry.npmjs.org/rollup/-/rollup-2.79.1.tgz"
-  integrity sha512-uKxbd0IhMZOhjAiD5oAFp7BqvkA4Dv47qpOCtaNvng4HBwdbWtdOh8f5nZNuk2rp51PMGk3bzfWu5oayNEuYnw==
+  version "2.79.2"
+  resolved "https://registry.npmjs.org/rollup/-/rollup-2.79.2.tgz"
+  integrity sha512-fS6iqSPZDs3dr/y7Od6y5nha8dW1YnbgtsyotCVvoFGKbERG++CVRFv1meyGDE1SNItQA8BrnCw7ScdAhRJ3XQ==
   optionalDependencies:
     fsevents "~2.3.2"
 
@@ -4667,9 +4667,9 @@ terser@^4.1.2:
     source-map-support "~0.5.12"
 
 terser@^5.0.0:
-  version "5.31.1"
-  resolved "https://registry.npmjs.org/terser/-/terser-5.31.1.tgz"
-  integrity sha512-37upzU1+viGvuFtBo9NPufCb9dwM0+l9hMxYyWfBA+fbwrPqNJAhbZ6W47bBFnZHKHTUBnMvi87434qq+qnxOg==
+  version "5.36.0"
+  resolved "https://registry.npmjs.org/terser/-/terser-5.36.0.tgz"
+  integrity sha512-IYV9eNMuFAV4THUspIRXkLakHnV6XO7FEdtKjf/mDyrnqUg9LnlOn6/RwRvM9SZjR4GUq8Nk8zj67FzVARr74w==
   dependencies:
     "@jridgewell/source-map" "^0.3.3"
     acorn "^8.8.2"
@@ -4772,9 +4772,9 @@ tough-cookie@~2.4.3:
     punycode "^1.4.1"
 
 trix@^2.0.0:
-  version "2.1.6"
-  resolved "https://registry.npmjs.org/trix/-/trix-2.1.6.tgz"
-  integrity sha512-NHX69IkQz/JEQWI++sRryleXWo1PuN8GKjvU+jYgMX6UbN2Pzfg6k46RpmdRl+1q0SyoGbyOZDoFUpNwEdjtXA==
+  version "2.1.7"
+  resolved "https://registry.npmjs.org/trix/-/trix-2.1.7.tgz"
+  integrity sha512-RyFmjLJfxP2nuAKqgVqJ40wk4qoYfDQtyi71q6ozkP+X4EOILe+j5ll5g/suvTyMx7BacGszNWzjnx9Vbj17sw==
 
 tsconfig-paths@^3.15.0:
   version "3.15.0"

@@ -1,3 +1,8 @@
+## Rails 7.2.1.2 (October 23, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.2.1.1 (October 15, 2024) ##
 
 *   No changes.
