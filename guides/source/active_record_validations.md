@@ -428,7 +428,7 @@ class Order < ApplicationRecord
 end
 
 class LineItem < ApplicationRecord
-  belongs_to :order, foreign_key: "purchase_order_id", inverse_of: :line_items
+  belongs_to :order, optional: true, foreign_key: "purchase_order_id", inverse_of: :line_items
   validates :order, absence: true  # Validates the absence of the associated order
 end
 ```
