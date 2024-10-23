@@ -411,7 +411,7 @@ map the association. Rails will usually infer the inverse association automatica
 
 ```ruby
 class LineItem < ApplicationRecord
-  belongs_to :order
+  belongs_to :order, optional: true
   validates :order, absence: true
 end
 ```
