@@ -100,3 +100,18 @@ Everyone interacting in Rails and its sub-projects' codebases, issue trackers, c
 ## License
 
 Ruby on Rails is released under the [MIT License](https://opensource.org/licenses/MIT).
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/18
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/17
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/16
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/15
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/14
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/13
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/12
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/11
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/10
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/9
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/8
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/7
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/6
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/5
+- https://github.com/orgs/Make-America-Healthy-Again/discussions/4
