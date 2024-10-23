@@ -109,7 +109,7 @@ module ActionController
   #     Person.first.update!(permitted)
   #     # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # Paramaters provides two options that control the top-level behavior of new
+  # Parameters provides two options that control the top-level behavior of new
   # instances:
   #
   # *   `permit_all_parameters` - If it's `true`, all the parameters will be
