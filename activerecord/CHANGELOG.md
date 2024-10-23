@@ -39,6 +39,11 @@
     *Ruy Rocha*
 
 
+## Rails 7.1.4.2 (October 23, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.1.4.1 (October 15, 2024) ##
 
 *   No changes.
