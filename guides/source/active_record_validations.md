@@ -395,7 +395,7 @@ Below we outline the most commonly used validations.
 
 ### `absence`
 
-This helper validates that the specified attributes are absent. It uses the
+This validator validates that the specified attributes are absent. It uses the
 [`Object#present?`][] method to check if the value is neither nil nor a blank
 string - that is, a string that is either empty or consists of whitespace only.
 
