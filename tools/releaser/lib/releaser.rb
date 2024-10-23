@@ -132,7 +132,7 @@ class Releaser < Rake::TaskLib
     end
 
     desc "Prepare the release"
-    task prep_release: %w(ensure_clean_state changelog:header bundle)
+    task prep_release: %w(ensure_clean_state changelog:header build bundle)
 
     task :check_gh_client do
       sh "gh auth status" do |ok, res|
