@@ -471,7 +471,7 @@ end
 ```
 
 This check is performed only if `terms_of_service` is not `nil`. The default
-error message for this helper is _"must be accepted"_. You can also pass in a
+error message for this validation is _"must be accepted"_. You can also pass in a
 custom message via the `message` option.
 
 ```ruby
