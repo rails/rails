@@ -416,6 +416,7 @@ class LineItem < ApplicationRecord
 end
 ```
 
+Rails will usually infer the inverse association automatically.
 In cases where you use a custom `:foreign_key` or a `:through` association, it's
 important to explicitly set the `:inverse_of` option to optimize the association
 lookup. This helps avoid unnecessary database queries during validation. The
