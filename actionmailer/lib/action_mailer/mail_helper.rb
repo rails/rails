@@ -26,7 +26,7 @@ module ActionMailer
       output = +""
       splits = formatted.split(/(\*+|\#+)/)
       while line = splits.shift
-        if line.start_with?("*", "#") && splits[0].start_with?(" ")
+        if line.start_with?("*", "#") && splits.first&.start_with?(" ")
           output.chomp!(" ") while output.end_with?(" ")
           output << "  #{line} #{splits.shift.strip}\n"
         else

@@ -11,6 +11,11 @@
     *Yasuo Honda*
 
 
+## Rails 6.1.7.10 (October 23, 2024) ##
+
+*   No changes.
+
+
 ## Rails 6.1.7.9 (October 15, 2024) ##
 
 *   No changes.
