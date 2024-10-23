@@ -770,7 +770,7 @@ values:
 
 ### `presence`
 
-This helper validates that the specified attributes are not empty. It uses the
+This validator validates that the specified attributes are not empty. It uses the
 [`Object#blank?`][] method to check if the value is either `nil` or a blank
 string - that is, a string that is either empty or consists of whitespace.
 
