@@ -1,3 +1,5 @@
+## Rails 6.1.7.10 (October 23, 2024) ##
+
 *   Fix NoMethodError in `block_format` helper
 
     *Michael Leimstaedtner*
