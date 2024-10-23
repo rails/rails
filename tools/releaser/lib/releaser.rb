@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "digest"
 require "rake/tasklib"
 
 class Releaser < Rake::TaskLib
@@ -114,6 +115,18 @@ class Releaser < Rake::TaskLib
     desc "Build gem files for all projects"
     task build: FRAMEWORKS.map { |f| "#{f}:build" } + ["rails:build"]
 
+    task checksums: :build do
+      Dir.chdir(root) do
+        puts
+        [*FRAMEWORKS, "rails"].each do |fw|
+          path = gem_path(fw)
+          sha = ::Digest::SHA256.file(path)
+          puts "#{sha}  #{path}"
+        end
+        puts
+      end
+    end
+
     task :bundle do
       sh "bundle check"
     end
@@ -126,6 +139,10 @@ class Releaser < Rake::TaskLib
         unless ok
           raise "GitHub CLI is not logged in. Please run `gh auth login` to log in."
         end
+      end
+      default_repo = `git config --local --get-regexp '\.gh-resolved$'`.strip
+      if !$?.success? || default_repo.empty?
+        raise "GitHub CLI does not have a default repo configured. Please run `gh repo set-default rails/rails`"
       end
     end
 
@@ -155,15 +172,17 @@ class Releaser < Rake::TaskLib
       Dir.chdir(root) do
         File.write("pkg/#{version}.md", release_notes)
 
-        sh "gh release create #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
+        sh "gh release create --verify-tag #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
       end
     end
 
     desc "Release all gems and create a tag"
     task release: %w(check_gh_client prep_release commit tag create_release)
 
+    task pre_push: [:build, :checksums]
+
     desc "Push the gem to rubygems.org and the npm package to npmjs.com"
-    task push: FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
+    task push: [:pre_push] + FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
   end
 
   def pre_release?

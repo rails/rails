@@ -3,6 +3,11 @@
     *Joshua Young*
 
 
+## Rails 7.0.8.6 (October 23, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.0.8.5 (October 15, 2024) ##
 
 *   No changes.
