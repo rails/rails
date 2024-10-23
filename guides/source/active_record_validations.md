@@ -407,7 +407,7 @@ end
 
 If you want to be sure that an association is absent, you'll need to test
 whether the associated object itself is absent, and not the foreign key used to
-map the association. Rails will usually infer the inverse association automatically.
+map the association.
 
 ```ruby
 class LineItem < ApplicationRecord
