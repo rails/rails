@@ -416,6 +416,8 @@ class LineItem < ApplicationRecord
 end
 ```
 
+NOTE: For `belongs_to` the association presence is validated by default. If you don’t want to have association presence validated, use `optional: true`.
+
 Rails will usually infer the inverse association automatically.
 In cases where you use a custom `:foreign_key` or a `:through` association, it's
 important to explicitly set the `:inverse_of` option to optimize the association
