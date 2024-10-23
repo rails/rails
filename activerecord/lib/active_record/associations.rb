@@ -1225,7 +1225,7 @@ module ActiveRecord
         #   {Association Join Models}[rdoc-ref:Associations::ClassMethods@Association+Join+Models]
         #   and {Setting Inverses}[rdoc-ref:Associations::ClassMethods@Setting+Inverses] for
         #   more detail.
-
+        #
         # [+:disable_joins+]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
