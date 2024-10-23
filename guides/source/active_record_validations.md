@@ -399,10 +399,18 @@ This validator validates that the specified attributes are absent. It uses the
 [`Object#present?`][] method to check if the value is neither nil nor a blank
 string - that is, a string that is either empty or consists of whitespace only.
 
+`#absence` is commonly used for conditional validations. For example:
+
 ```ruby
 class Person < ApplicationRecord
-  validates :name, :login, :email, absence: true
+  validates :phone_number, :address, absence: true, if: :invited?
 end
+```
+
+```irb
+person = Person.new(name: "Jane Doe", invitation_sent_at: Time.current)
+person.valid?
+=> true # absence validation passes
 ```
 
 If you want to be sure that an association is absent, you'll need to test
@@ -416,25 +424,26 @@ class LineItem < ApplicationRecord
 end
 ```
 
+```irb
+line_item = LineItem.new
+line_item.valid?
+=> true # absence validation passes
+
+order = Order.create
+line_item_with_order = LineItem.new(order: order)
+line_item_with_order.valid?
+=> false # absence validation fails
+```
+
 NOTE: For `belongs_to` the association presence is validated by default. If you don’t want to have association presence validated, use `optional: true`.
 
-Rails will usually infer the inverse association automatically.
-In cases where you use a custom `:foreign_key` or a `:through` association, it's
-important to explicitly set the `:inverse_of` option to optimize the association
-lookup. This helps avoid unnecessary database queries during validation. The
-example below demonstrates this in the context of validating the associated
-order's absence:
+Rails will usually infer the inverse association automatically. In cases where
+you use a custom `:foreign_key` or a `:through` association, it's important to
+explicitly set the `:inverse_of` option to optimize the association lookup. This
+helps avoid unnecessary database queries during validation.
 
-```ruby
-class Order < ApplicationRecord
-  has_many :line_items, foreign_key: "purchase_order_id"
-end
-
-class LineItem < ApplicationRecord
-  belongs_to :order, optional: true, foreign_key: "purchase_order_id", inverse_of: :line_items
-  validates :order, absence: true  # Validates the absence of the associated order
-end
-```
+For more details, check out the [Bi-directional Associations
+documentation](association_basics.html#bi-directional-associations).
 
 NOTE: If you want to ensure that the association is both present and valid, you
 also need to use `validates_associated`. More on that in the
@@ -780,6 +789,16 @@ class Person < ApplicationRecord
 end
 ```
 
+```irb
+person = Person.new(name: "Alice", login: "alice123", email: "alice@example.com")
+person.valid?
+=> true # presence validation passes
+
+invalid_person = Person.new(name: "", login: nil, email: "bob@example.com")
+invalid_person.valid?
+=> false # presence validation fails
+```
+
 To check that an association is present, you'll need to test that the associated
 object is present, and not the foreign key used to map the association. Testing
 the association will help you to determine that the foreign key is not empty and
@@ -792,22 +811,24 @@ class Supplier < ApplicationRecord
 end
 ```
 
+```irb
+account = Account.create(name: "Account A")
+
+supplier = Supplier.new(account: account)
+supplier.valid?
+=> true # presence validation passes
+
+invalid_supplier = Supplier.new
+invalid_supplier.valid?
+=> false # presence validation fails
+```
+
 In cases where you use a custom `:foreign_key` or a `:through` association, it's
 important to explicitly set the `:inverse_of` option to optimize the association
-lookup. This helps avoid unnecessary database queries during validation. The
-example below demonstrates this in the context of validating the associated
-order's presence:
+lookup. This helps avoid unnecessary database queries during validation.
 
-```ruby
-class Order < ApplicationRecord
-  has_many :line_items, foreign_key: "purchase_order_id"
-end
-
-class LineItem < ApplicationRecord
-  belongs_to :order, foreign_key: "purchase_order_id", inverse_of: :line_items
-  validates :order, presence: true  # Validates the presence of the associated order
-end
-```
+For more details, check out the [Bi-directional Associations
+documentation](association_basics.html#bi-directional-associations).
 
 NOTE: If you want to ensure that the association is both present and valid, you
 also need to use `validates_associated`. More on that
