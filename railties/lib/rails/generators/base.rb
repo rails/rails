@@ -283,15 +283,18 @@ module Rails
           end
         end
 
-        # Check whether the given class names exist in the application.
-        def model_existence
+        # Check whether the given model names exist in the application.
+        def model_exists
           return unless behavior == :revoke
           return if options.force?
 
-          model_path = File.join(destination_root, "app/models", class_path, "#{file_name}.rb")
+          # Split the class from its module nesting
+          nesting = class_name.split("::")
+          last_name = nesting.pop
+          last = extract_last_module(nesting)
 
-          unless File.exist?(model_path)
-            raise Error, "Model '#{class_name}' does not exist. Please choose an existing model or use --force to skip "\
+          unless last && last.const_defined?(last_name.camelize, false)
+            raise Error, "Model '#{class_name}' does not exist. Please choose an existing model or use --force to skip " \
                          "this check and run this generator again."
           end
         end
