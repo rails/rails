@@ -430,8 +430,8 @@ irb> line_item.valid?
 => true # absence validation passes
 
 order = Order.create
-line_item_with_order = LineItem.new(order: order)
-line_item_with_order.valid?
+irb> line_item_with_order = LineItem.new(order: order)
+irb> line_item_with_order.valid?
 => false # absence validation fails
 ```
 
