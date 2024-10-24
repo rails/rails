@@ -930,7 +930,7 @@ module ActiveRecord
           )
 
           returning_columns.zip(returning_values).each do |column, value|
-            _write_attribute(column, value) if !_read_attribute(column)
+            @attributes.write_from_database(column, value) if !_read_attribute(column)
           end if returning_values
         end
 
