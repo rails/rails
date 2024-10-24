@@ -96,7 +96,7 @@ module ActiveRecord
       # associations before querying the database. This can save database
       # queries by reusing in-memory objects. The optimization is only applied
       # to single associations (i.e. :belongs_to, :has_one) with no scopes.
-      def initialize(records:, associations:, scope: nil, available_records: [], associate_by_default: true)
+      def initialize(records:, associations:, scope: nil, available_records: [], associate_by_default: true, load_columns: {})
         @records = records
         @associations = associations
         @scope = scope
@@ -108,7 +108,8 @@ module ActiveRecord
           association: nil,
           children: @associations,
           associate_by_default: @associate_by_default,
-          scope: @scope
+          scope: @scope,
+          load_columns: load_columns
         )
         @tree.preloaded_records = @records
       end

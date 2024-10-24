@@ -80,12 +80,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts = Post.all.merge!(includes: :last_comment).to_a
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
+
+    posts = Post.all.merge!(load_columns: { comments: [:body] }, includes: :comments).to_a
+    post = posts.find { |p| p.id == 1 }
+    assert_equal 2, post.comments.size
+    comments = Comment.where(id: comments(:greetings).id).select(:id, :body, :type, :post_id).first
+    assert_includes post.comments.map(&:attributes), comments.attributes
   end
 
   def test_loading_with_one_association_with_non_preload
-    posts = Post.all.merge!(includes: :last_comment, order: "comments.id DESC").to_a
+    posts = Post.all.merge!(load_columns: { comments: ["body"] }, includes: :last_comment, order: "comments.id DESC").to_a
     post = posts.find { |p| p.id == 1 }
-    assert_equal Post.find(1).last_comment, post.last_comment
+    comment = Comment.where(id: Post.find(1).last_comment.id, post_id: 1).select(:id, :type, :body, :post_id).first
+    assert_equal comment.attributes, post.last_comment.attributes
   end
 
   def test_loading_conditions_with_or
@@ -106,6 +113,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     rating = Rating.eager_load(:taggings_without_tag).first
     assert_equal [taggings(:normal_comment_rating)], rating.taggings_without_tag
+
+    tagging = Tagging.where(id: taggings(:normal_comment_rating).id).select(:id, :tag_id, :type, :taggable_id, :taggable_type).first
+    rating = Rating.preload(:taggings_without_tag).load_columns({ taggings: [:tag_id] }).first
+    assert_equal tagging.attributes, rating.taggings_without_tag.first.attributes
+
+    rating = Rating.eager_load(:taggings_without_tag).load_columns({ taggings: [:tag_id] }).first
+    assert_equal tagging.attributes, rating.taggings_without_tag.first.attributes
   end
 
   def test_loading_association_with_string_joins
@@ -117,6 +131,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     rating = Rating.eager_load(:taggings_with_no_tag).first
     assert_equal [taggings(:normal_comment_rating)], rating.taggings_with_no_tag
+
+    taggings = Tagging.where(id: taggings(:normal_comment_rating).id).select(:id, :type, :tag_id, :taggable_id, :id, :taggable_type).to_a
+    rating = Rating.preload(:taggings_with_no_tag).load_columns({ taggings: [:tag_id] }).first
+    assert_equal taggings.map(&:attributes), rating.taggings_with_no_tag.map(&:attributes)
+
+    rating = Rating.eager_load(:taggings_with_no_tag).load_columns({ taggings: [:tag_id] }).first
+    assert_equal taggings.map(&:attributes), rating.taggings_with_no_tag.map(&:attributes)
   end
 
   def test_loading_with_scope_including_joins
@@ -131,6 +152,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     member = Member.eager_load(:general_club).first
     assert_equal members(:groucho), member
     assert_equal clubs(:boring_club), member.general_club
+
+    club = Club.where(id: clubs(:boring_club).id).select(:id, :name).first
+    member = Member.preload(:general_club).load_columns({ memberships: [:joined_on], clubs: [:name] }).first
+    assert_equal club.attributes, member.general_club.attributes
+
+    member = Member.eager_load(:general_club).load_columns({ memberships: [:joined_on], clubs: [:name] }).first
+    assert_equal club.attributes, member.general_club.attributes
   end
 
   def test_loading_association_with_same_table_joins
@@ -147,6 +175,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
     member = Member.joins(:favorite_memberships).eager_load(:super_memberships).first
     assert_equal members(:groucho), member
     assert_equal super_memberships, member.super_memberships
+
+    membership = Membership.where(id: super_memberships.map(&:id)).select(:id, :joined_on, :type, :member_id).first
+    # Load columns ignored
+    member = Member.joins(:super_memberships).load_columns({ memberships: [:joined_on] }).first
+    assert_equal membership, member.super_memberships.first
+
+    member = Member.joins(:super_memberships).preload(:super_memberships).load_columns({ memberships: [:joined_on] }).first
+    assert_equal membership.attributes, member.super_memberships.first.attributes
+
+    member = Member.joins(:super_memberships).eager_load(:super_memberships).load_columns({ memberships: [:joined_on] }).first
+    assert_equal membership.attributes, member.super_memberships.first.attributes
   end
 
   def test_loading_association_with_intersection_joins
@@ -164,6 +203,20 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal members(:groucho), member
     assert_equal clubs(:boring_club), member.club
     assert_equal memberships(:membership_of_boring_club), member.current_membership
+
+    membership = Membership.where(id: memberships(:membership_of_boring_club).id).select(:id, :joined_on, :type, :member_id, :club_id).first
+    club = Club.where(id: clubs(:boring_club).id).select(:id, :name).first
+    # Load columns ignored
+    member = Member.joins(:current_membership).load_columns({ memberships: [:joined_on] }).first
+    assert_equal membership, member.current_membership
+
+    member = Member.joins(:current_membership).preload(:club, :current_membership).load_columns({ memberships: [:joined_on], clubs: [:name] }).first
+    assert_equal membership.attributes, member.current_membership.attributes
+    assert_equal club.attributes, member.club.attributes
+
+    member = Member.joins(:current_membership).eager_load(:club, :current_membership).load_columns({ memberships: [:joined_on], clubs: [:name] }).first
+    assert_equal membership.attributes, member.current_membership.attributes
+    assert_equal club.attributes, member.club.attributes
   end
 
   def test_loading_associations_dont_leak_instance_state
@@ -182,6 +235,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     assertions.call(Firm.preload(:readonly_account, :accounts).first)
     assertions.call(Firm.eager_load(:readonly_account, :accounts).first)
+    assertions.call(Firm.preload(:readonly_account, :accounts).load_columns({ accounts: [:name] }).first)
+    assertions.call(Firm.eager_load(:readonly_account, :accounts).load_columns({ accounts: [:name] }).first)
   end
 
   def test_with_ordering
@@ -191,17 +246,34 @@ class EagerAssociationTest < ActiveRecord::TestCase
     ].each_with_index do |post, index|
       assert_equal posts(post), list[index]
     end
+
+    list = Post.all.merge!(includes: :comments, order: "posts.id DESC", load_columns: { comments: [:body] }).to_a
+    [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
+     :sti_habtm, :sti_post_and_comments, :sti_comments, :authorless, :thinking, :welcome
+    ].each_with_index do |post, index|
+      assert_equal posts(post).attributes, list[index].attributes
+    end
   end
 
   def test_has_many_through_with_order
     authors = Author.includes(:favorite_authors).to_a
     assert authors.count > 0
     assert_no_queries { authors.map(&:favorite_authors) }
+
+    authors = Author.includes(:favorite_authors).load_columns({ authors: [:name] }).to_a
+    assert authors.count > 0
+    assert_no_queries { authors.map(&:favorite_authors) }
+    favorite_authors = Author.where(id: authors.flat_map(&:favorite_authors).map(&:id)).select(:id, :name).to_a
+    assert_equal favorite_authors.map(&:attributes), authors.flat_map(&:favorite_authors).map(&:attributes)
   end
 
   def test_eager_loaded_has_one_association_with_references_does_not_run_additional_queries
     Post.update_all(author_id: nil)
     authors = Author.includes(:post).references(:post).to_a
+    assert authors.count > 0
+    assert_no_queries { authors.map(&:post) }
+
+    authors = Author.includes(:post).references(:post).load_columns({ posts: [:title] }).to_a
     assert authors.count > 0
     assert_no_queries { authors.map(&:post) }
   end
@@ -211,6 +283,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     attacker_matey = pirate.attacker_matey
     eager_loaded = Pirate.eager_load(:attacker_matey).where(id: pirate).first
 
+    assert_no_queries do
+      assert_equal attacker_matey.attributes, eager_loaded.attacker_matey.attributes
+    end
+
+    attacker_matey = Matey.where(target_id: pirate.id).select(:target_id, :weight).first
+    eager_loaded = Pirate.eager_load(:attacker_matey).load_columns({ mateys: [:weight] }).where(id: pirate).first
     assert_no_queries do
       assert_equal attacker_matey.attributes, eager_loaded.attacker_matey.attributes
     end
@@ -225,6 +303,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal mateys.map(&:attributes), eager_loaded.mateys.map(&:attributes)
     end
+
+    mateys = Matey.where(pirate_id: pirate.id).select(:pirate_id, :weight).to_a
+    eager_loaded = Pirate.eager_load(:mateys).load_columns({ mateys: [:weight] }).where(id: pirate).first
+    assert_no_queries do
+      assert_equal mateys.map(&:attributes), eager_loaded.mateys.map(&:attributes)
+    end
   end
 
   def test_type_cast_in_where_references_association_name
@@ -235,21 +319,47 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     assert_equal parent, comment
     assert_equal [child], comment.children
+
+    comment = Comment.includes(:children).load_columns({ comments: [:type, :label] }).where("children.label": "child").last
+    loaded_child = Comment.where(id: child.id).select(:id, :type, :label, :parent_id).first
+    assert_equal parent, comment
+    assert_equal loaded_child.attributes, comment.children.first.attributes
   end
 
   def test_attribute_alias_in_where_references_association_name
     firm = Firm.includes(:clients).where("clients.new_name": "Summit").last
     assert_equal companies(:first_firm), firm
     assert_equal [companies(:first_client)], firm.clients
+
+    # alias_attributes not acceptable in load_columns list
+    firm = Firm.includes(:clients).load_columns({ companies: [:name] }).where("clients.new_name": "Summit").last
+    loaded_client = Client.where(id: companies(:first_client).id).select(:id, :name, :type, :firm_id).first
+    assert_equal loaded_client.attributes, firm.clients.first.attributes
+    # attribute :metadata, :json
+    assert_nil loaded_client.metadata
   end
 
   def test_calculate_with_string_in_from_and_eager_loading
     assert_equal 10, Post.from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").count
+    posts_authors = Post.from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").load_columns({ comments: [:body] })
+    assert_equal 10, posts_authors.count
+    loaded_comments = Comment.where(id: posts_authors.flat_map(&:comments).map(&:id)).select(:id, :body, :type, :post_id)
+    posts_comments = posts_authors.flat_map(&:comments).map(&:attributes)
+    loaded_comments.map(&:attributes).each do |comment|
+      assert_includes posts_comments, comment
+    end
   end
 
   def test_with_two_tables_in_from_without_getting_double_quoted
     posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").order("posts.id").to_a
     assert_equal 2, posts.first.comments.size
+    posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").load_columns({ comments: [:body] }).order("posts.id").to_a
+    assert_equal 2, posts.first.comments.size
+    loaded_comments = Comment.where(id: posts.flat_map(&:comments).map(&:id)).select(:id, :body, :type, :post_id)
+    posts_comments = posts.flat_map(&:comments).map(&:attributes)
+    loaded_comments.map(&:attributes).each do |comment|
+      assert_includes posts_comments, comment
+    end
   end
 
   def test_loading_with_multiple_associations
@@ -257,6 +367,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, posts.first.comments.size
     assert_equal 2, posts.first.categories.size
     assert_includes posts.first.comments, comments(:greetings)
+
+    posts = Post.all.merge!(includes: [ :comments, :author, :categories ], order: "posts.id").load_columns({ comments: [:body], categories: [:name], authors: [:name] })
+    loaded_comments = Comment.where(id: posts.first.comments.map(&:id)).select(:id, :body, :type, :post_id)
+    loaded_categories = Category.where(id: posts.first.categories.map(&:id)).select(:id, :name, :type)
+    loaded_authors = Author.where(id: posts.first.author_id).select(:id, :name).first
+    assert_equal 2, posts.first.comments.size
+    assert_equal 2, posts.first.categories.size
+    assert_equal loaded_comments.map(&:attributes), posts.first.comments.map(&:attributes)
+    assert_equal loaded_categories.map(&:attributes), posts.first.categories.map(&:attributes)
+    assert_equal loaded_authors.attributes, posts.first.author.attributes
   end
 
   def test_duplicate_middle_objects
@@ -264,6 +384,21 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries do
       comments.each { |comment| comment.post.author.name }
     end
+
+    comments = Comment.all.merge!(where: "post_id = 1", includes: [post: :author]).load_columns({ posts: [:title], authors: [:name] }).to_a
+    assert_no_queries do
+      comments.each { |comment| comment.post.author.name }
+    end
+    loaded_post = Post.where(id: 1).select(:id, :title, :type, :author_id).first
+    loaded_author = Author.where(id: loaded_post.author_id).select(:id, :name).first
+    assert_equal loaded_post.attributes, comments.first.post.attributes
+    assert_equal loaded_author.attributes, comments.first.post.author.attributes
+    eager_comments = Comment.all.merge!(where: "post_id = 1", eager_load: [post: :author]).load_columns({ posts: [:title], authors: [:name] }).to_a
+    assert_no_queries do
+      eager_comments.each { |comment| comment.post.author.name }
+    end
+    assert_equal loaded_post.attributes, eager_comments.first.post.attributes
+    assert_equal loaded_author.attributes, eager_comments.first.post.author.attributes
   end
 
   def test_including_duplicate_objects_from_belongs_to
@@ -276,6 +411,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
                                 includes: { post: :comments }).to_a
     readers.each do |reader|
       assert_equal [comment], reader.post.comments
+    end
+
+    readers = Reader.all.merge!(where: ["post_id = ?", popular_post.id],
+                                includes: { post: :comments }).load_columns({ posts: [:title], comments: [:body] }).to_a
+    readers.each do |reader|
+      loaded_post = Post.where(id: popular_post.id).select(:id, :title, :type).first
+      loaded_comment = Comment.where(id: loaded_post.comments.map(&:id)).select(:id, :body, :type, :post_id).to_a
+      assert_equal loaded_post.attributes, reader.post.attributes
+      assert_equal loaded_comment.map(&:attributes), reader.post.comments.map(&:attributes)
+    end
+
+    eager_readers = Reader.all.merge!(where: ["post_id = ?", popular_post.id],
+                                    includes: { post: :comments }).load_columns({ posts: [:title], comments: [:body] }).to_a
+    eager_readers.each do |reader|
+      loaded_post = Post.where(id: popular_post.id).select(:id, :title, :type).first
+      loaded_comment = Comment.where(id: loaded_post.comments.map(&:id)).select(:id, :body, :type, :post_id).to_a
+      assert_equal loaded_post.attributes, reader.post.attributes
+      assert_equal loaded_comment.map(&:attributes), reader.post.comments.map(&:attributes)
     end
   end
 

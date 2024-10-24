@@ -76,7 +76,7 @@ module ActiveRecord
           end
 
           def through_preloaders
-            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(records: owners, associations: through_reflection.name, scope: through_scope, associate_by_default: false).loaders
+            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(records: owners, associations: through_reflection.name, scope: through_scope, associate_by_default: false, load_columns: @load_columns).loaders
           end
 
           def through_reflection

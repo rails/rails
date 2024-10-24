@@ -116,6 +116,14 @@
 
     *John Duff*
 
+*   Add `load_columns` to specify which columns to load for eager loaded associations.
+
+    ```ruby
+    Post.includes(:comments).load_columns(comments: [:body])
+    ```
+
+    *Andrii Baran*
+
 *   Introduce versions formatter for the schema dumper.
 
     It is now possible to override how schema dumper formats versions information inside the
