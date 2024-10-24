@@ -57,7 +57,7 @@ control over what happens after every keystroke and avoids the need to use
 To install Action Text and start working with rich text content, run:
 
 ```bash
-$ bin/rails action_text:install
+$ bin/rails generate action_text:install
 ```
 
 It will do the following:
