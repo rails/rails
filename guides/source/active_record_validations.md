@@ -818,8 +818,8 @@ irb> supplier = Supplier.new(account: account)
 irb> supplier.valid?
 => true # presence validation passes
 
-invalid_supplier = Supplier.new
-invalid_supplier.valid?
+irb> invalid_supplier = Supplier.new
+irb> invalid_supplier.valid?
 => false # presence validation fails
 ```
 
