@@ -131,6 +131,10 @@ class User < ActiveRecord::Base
 
   has_one_attached :avatar
   has_one_attached :cover_photo, dependent: false, service: :local
+  has_one_attached :avatar_with_dynamic do |attachable|
+    attachable.variant :thumb, resize_to_limit: :thumb_size
+    attachable.variant :thumb_proc, resize_to_limit: ->(model) { model.thumb_size }
+  end
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
@@ -150,6 +154,10 @@ class User < ActiveRecord::Base
   has_many_attached :vlogs, dependent: false, service: :local
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+  has_many_attached :highlights_with_dynamic do |attachable|
+    attachable.variant :thumb, resize_to_limit: :thumb_size
+    attachable.variant :thumb_proc, resize_to_limit: ->(model) { model.thumb_size }
   end
   has_many_attached :highlights_with_preprocessed do |attachable|
     attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
@@ -171,6 +179,12 @@ class User < ActiveRecord::Base
 
   def should_preprocessed?
     name == "transform via method"
+  end
+
+  def thumb_size
+    return [200, 200] if name == "John"
+
+    [100, 100]
   end
 end
 
