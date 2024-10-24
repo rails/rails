@@ -425,8 +425,8 @@ end
 ```
 
 ```irb
-line_item = LineItem.new
-line_item.valid?
+irb> line_item = LineItem.new
+irb> line_item.valid?
 => true # absence validation passes
 
 order = Order.create
