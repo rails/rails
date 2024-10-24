@@ -502,13 +502,13 @@ end
 
 This validation is very specific to web applications and this 'acceptance' does
 not need to be recorded anywhere in your database. If you don't have a field for
-it, the helper will create a virtual attribute. If the field does exist in your
+it, the validator will create a virtual attribute. If the field does exist in your
 database, the `accept` option must be set to or include `true` or else the
 validation will not run.
 
 ### `confirmation`
 
-You should use this helper when you have two text fields that should receive
+You should use this validator when you have two text fields that should receive
 exactly the same content. For example, you may want to confirm an email address
 or a password. This validation creates a virtual attribute whose name is the
 name of the field that has to be confirmed with "_confirmation" appended.
@@ -548,8 +548,8 @@ class Person < ApplicationRecord
 end
 ```
 
-The default error message for this helper is _"doesn't match confirmation"_. You
-can also pass in a custom message via the `message` option.
+The default error message for this validator is _"doesn't match confirmation"_.
+You can also pass in a custom message via the `message` option.
 
 Generally when using this validator, you will want to combine it with the `:if`
 option to only validate the "_confirmation" field when the initial field has
@@ -565,7 +565,7 @@ end
 
 ### `comparison`
 
-This check will validate a comparison between any two comparable values.
+This validator will validate a comparison between any two comparable values.
 
 ```ruby
 class Promotion < ApplicationRecord
@@ -573,7 +573,7 @@ class Promotion < ApplicationRecord
 end
 ```
 
-The default error message for this helper is _"failed comparison"_. You can also
+The default error message for this validator is _"failed comparison"_. You can also
 pass in a custom message via the `message` option.
 
 These options are all supported:
@@ -593,7 +593,7 @@ value, proc, or symbol. Any class that includes
 
 ### `format`
 
-This helper validates the attributes' values by testing whether they match a
+This validator validates the attributes' values by testing whether they match a
 given regular expression, which is specified using the `:with` option.
 
 ```ruby
@@ -619,7 +619,7 @@ the provided regular expression. In most cases, you should be using `\A` and
 
 ### `inclusion` and `exclusion`
 
-Both of these helpers validate whether an attribute’s value is included or
+Both of these validators validate whether an attribute’s value is included or
 excluded from a given set. The set can be any enumerable object such as an
 array, range, or a dynamically generated collection using a proc, lambda, or
 symbol.
@@ -656,7 +656,7 @@ class Account < ApplicationRecord
 end
 ```
 
-Both helpers allow the use of dynamic validation through methods that return an
+Both validators allow the use of dynamic validation through methods that return an
 enumerable. Here’s an example using a proc for `inclusion`:
 
 ```ruby
@@ -683,7 +683,7 @@ end
 
 ### `length`
 
-This helper validates the length of the attributes' values. It provides a
+This validator validates the length of the attributes' values. It provides a
 variety of options, so you can specify length constraints in different ways:
 
 ```ruby
@@ -727,7 +727,7 @@ together.
 
 ### `numericality`
 
-This helper validates that your attributes have only numeric values. By default,
+This validator validates that your attributes have only numeric values. By default,
 it will match an optional sign followed by an integer or floating point number.
 
 To specify that only integer numbers are allowed, set `:only_integer` to true.
@@ -751,7 +751,7 @@ end
 
 The default error message for `:only_integer` is _"must be an integer"_.
 
-Besides `:only_integer`, this helper also accepts the `:only_numeric` option
+Besides `:only_integer`, this validator also accepts the `:only_numeric` option
 which specifies the value must be an instance of `Numeric` and attempts to parse
 the value if it is a `String`.
 
@@ -859,7 +859,7 @@ The default error message is _"can't be blank"_.
 
 ### `uniqueness`
 
-This helper validates that the attribute's value is unique right before the
+This validator validates that the attribute's value is unique right before the
 object gets saved.
 
 ```ruby
@@ -934,7 +934,7 @@ See [`validates_uniqueness_of`][] for more information.
 
 ### `validates_associated`
 
-You should use this helper when your model has associations that always need to
+You should use this validator when your model has associations that always need to
 be validated. Every time you try to save your object, `valid?` will be called on
 each one of the associated objects.
 
@@ -963,7 +963,7 @@ everything up until now can also be used on any object which includes
 
 ### `validates_each`
 
-This helper validates attributes against a block. It doesn't have a predefined
+This validator validates attributes against a block. It doesn't have a predefined
 validation function. You should create one using a block, and every attribute
 passed to [`validates_each`][] will be tested against it.
 
@@ -989,7 +989,7 @@ invalid.
 
 ### `validates_with`
 
-This helper passes the record to a separate class for validation.
+This validator passes the record to a separate class for validation.
 
 ```ruby
 class AddressValidator < ActiveModel::Validator
@@ -1036,7 +1036,7 @@ end
 We will cover [validation errors](#working-with-validation-errors) in greater
 detail later.
 
-The [`validates_with`][] helper takes a class, or a list of classes to use for
+The [`validates_with`][] validator takes a class, or a list of classes to use for
 validation.
 
 ```ruby
