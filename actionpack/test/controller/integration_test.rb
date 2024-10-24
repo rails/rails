@@ -675,7 +675,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       end
     end
 
-    def with_live_controller controller
+    def with_live_controller(controller)
       controller.class_eval do
         include ActionController::Live
       end
