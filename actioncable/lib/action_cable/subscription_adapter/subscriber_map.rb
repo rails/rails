@@ -56,6 +56,25 @@ module ActionCable
       def invoke_callback(callback, message)
         callback.call message
       end
+
+      class Async < self
+        def initialize(executor)
+          @executor = executor
+          super()
+        end
+
+        def add_subscriber(*)
+          @executor.post { super }
+        end
+
+        def remove_subscriber(*)
+          @executor.post { super }
+        end
+
+        def invoke_callback(*)
+          @executor.post { super }
+        end
+      end
     end
   end
 end

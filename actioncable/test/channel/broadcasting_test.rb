@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 
 class ActionCable::Channel::BroadcastingTest < ActionCable::TestCase
@@ -9,7 +9,7 @@ class ActionCable::Channel::BroadcastingTest < ActionCable::TestCase
   end
 
   setup do
-    @connection = TestConnection.new
+    @connection = TestSocket.new
   end
 
   test "broadcasts_to" do
