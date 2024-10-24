@@ -222,6 +222,12 @@ module Rails
             class_collisions "#{options[:prefix]}#{name}#{options[:suffix]}"
           end
         end
+
+        def self.check_model_exists # :doc:
+          define_method :check_model_exists do
+            model_exists
+          end
+        end
     end
   end
 end

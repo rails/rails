@@ -283,6 +283,22 @@ module Rails
           end
         end
 
+        # Check whether the given model names exist in the application.
+        def model_exists
+          return unless behavior == :revoke
+          return if options.force?
+
+          # Split the class from its module nesting
+          nesting = class_name.split("::")
+          last_name = nesting.pop
+          last = extract_last_module(nesting)
+
+          unless last && last.const_defined?(last_name.camelize, false)
+            raise Error, "Model '#{class_name}' does not exist. Please choose an existing model or use --force to skip " \
+                         "this check and run this generator again."
+          end
+        end
+
         # Takes in an array of nested modules and extracts the last module
         def extract_last_module(nesting) # :doc:
           nesting.inject(Object) do |last_module, nest|
