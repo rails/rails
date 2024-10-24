@@ -4,11 +4,14 @@ require "cases/helper"
 
 class PostgreSQLPartitionsTest < ActiveRecord::PostgreSQLTestCase
   def setup
+    @previous_unlogged_tables = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
     @connection = ActiveRecord::Base.lease_connection
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = false
   end
 
   def teardown
     @connection.drop_table "partitioned_events", if_exists: true
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = @previous_unlogged_tables
   end
 
   def test_partitions_table_exists
