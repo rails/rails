@@ -408,8 +408,8 @@ end
 ```
 
 ```irb
-person = Person.new(name: "Jane Doe", invitation_sent_at: Time.current)
-person.valid?
+irb> person = Person.new(name: "Jane Doe", invitation_sent_at: Time.current)
+irb> person.valid?
 => true # absence validation passes
 ```
 
