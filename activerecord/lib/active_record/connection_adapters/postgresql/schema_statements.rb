@@ -320,7 +320,7 @@ module ActiveRecord
             if sequence
               quoted_sequence = quote_table_name(sequence)
 
-              query_value("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
+              internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
             else
               @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
@@ -351,7 +351,7 @@ module ActiveRecord
               end
             end
 
-            query_value("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
+            internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
           end
         end
 
