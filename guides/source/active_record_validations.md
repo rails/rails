@@ -814,8 +814,8 @@ end
 ```irb
 account = Account.create(name: "Account A")
 
-supplier = Supplier.new(account: account)
-supplier.valid?
+irb> supplier = Supplier.new(account: account)
+irb> supplier.valid?
 => true # presence validation passes
 
 invalid_supplier = Supplier.new
