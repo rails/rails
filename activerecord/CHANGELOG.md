@@ -1,3 +1,7 @@
+*   `PG::UnableToSend: no connection to the server` is now retryable as a connection-related exception
+
+    *Kazuma Watanabe*
+
 ## Rails 8.0.0.rc1 (October 19, 2024) ##
 
 *   Remove deprecated support to setting `ENV["SCHEMA_CACHE"]`.
