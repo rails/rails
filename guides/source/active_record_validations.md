@@ -812,7 +812,7 @@ end
 ```
 
 ```irb
-account = Account.create(name: "Account A")
+irb> account = Account.create(name: "Account A")
 
 irb> supplier = Supplier.new(account: account)
 irb> supplier.valid?
