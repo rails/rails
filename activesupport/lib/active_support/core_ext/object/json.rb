@@ -225,9 +225,11 @@ class Pathname # :nodoc:
   end
 end
 
-class IPAddr # :nodoc:
-  def as_json(options = nil)
-    to_s
+unless IPAddr.method_defined?(:as_json, false)
+  class IPAddr # :nodoc:
+    def as_json(options = nil)
+      to_s
+    end
   end
 end
 
