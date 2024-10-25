@@ -16,16 +16,6 @@ GIT
       mutex_m
       webrick
 
-GIT
-  remote: https://github.com/rails/sdoc.git
-  revision: e9bb867eba81f48c402a129e688e810ec1fa387c
-  branch: main
-  specs:
-    sdoc (3.0.0.alpha)
-      nokogiri
-      rdoc (>= 5.0)
-      rouge
-
 PATH
   remote: .
   specs:
@@ -479,7 +469,7 @@ GEM
       rufus-scheduler (~> 3.2, != 3.3)
     retriable (3.1.2)
     rexml (3.2.6)
-    rouge (4.2.0)
+    rouge (4.4.0)
     rubocop (1.67.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -527,6 +517,8 @@ GEM
       google-protobuf (~> 3.25)
     sass-embedded (1.69.6-x86_64-linux-gnu)
       google-protobuf (~> 3.25)
+    sdoc (2.6.1)
+      rdoc (>= 5.0)
     securerandom (0.3.1)
     selenium-webdriver (4.22.0)
       base64 (~> 0.2)
@@ -711,7 +703,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rails-omakase
   rubyzip (~> 2.0)
-  sdoc!
+  sdoc
   selenium-webdriver (>= 4.20.0)
   sidekiq
   sneakers
