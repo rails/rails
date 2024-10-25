@@ -182,17 +182,24 @@ _SQL
   end
 
   if supports_partitioned_indexes?
-    create_table(:measurements, id: false, force: true, options: "PARTITION BY LIST (city_id)") do |t|
-      t.string :city_id, null: false
-      t.date :logdate, null: false
-      t.integer :peaktemp
-      t.integer :unitsales
-      t.index [:logdate, :city_id], unique: true
+    begin
+      @previous_unlogged_tables = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = false
+
+      create_table(:measurements, id: false, force: true, options: "PARTITION BY LIST (city_id)") do |t|
+        t.string :city_id, null: false
+        t.date :logdate, null: false
+        t.integer :peaktemp
+        t.integer :unitsales
+        t.index [:logdate, :city_id], unique: true
+      end
+      create_table(:measurements_toronto, id: false, force: true,
+                                          options: "PARTITION OF measurements FOR VALUES IN (1)")
+      create_table(:measurements_concepcion, id: false, force: true,
+                                            options: "PARTITION OF measurements FOR VALUES IN (2)")
+    ensure
+      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = @previous_unlogged_tables
     end
-    create_table(:measurements_toronto, id: false, force: true,
-                                        options: "PARTITION OF measurements FOR VALUES IN (1)")
-    create_table(:measurements_concepcion, id: false, force: true,
-                                           options: "PARTITION OF measurements FOR VALUES IN (2)")
   end
 
   add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])
