@@ -1,3 +1,7 @@
+*   Update `ActionController::Metal::RateLimiting` to support passing `:scope`.
+
+    *Kamil Hanus*
+
 *   Produce a log when `rescue_from` is invoked.
 
     *Steven Webb*, *Jean Boussier*
