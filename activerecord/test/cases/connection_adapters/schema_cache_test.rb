@@ -8,6 +8,9 @@ module ActiveRecord
       self.use_transactional_tests = false
 
       def setup
+        @deduplicable_registries_were = deduplicable_classes.index_with do |klass|
+          klass.registry.dup
+        end
         @pool = ARUnit2Model.connection_pool
         @connection = ARUnit2Model.lease_connection
         @cache = new_bound_reflection
@@ -16,6 +19,10 @@ module ActiveRecord
 
       def teardown
         SchemaReflection.check_schema_cache_dump_version = @check_schema_cache_dump_version_was
+        @deduplicable_registries_were.each do |klass, registry|
+          klass.registry.clear
+          klass.registry.merge!(registry)
+        end
       end
 
       def new_bound_reflection(pool = @pool)
@@ -23,8 +30,33 @@ module ActiveRecord
       end
 
       def load_bound_reflection(filename, pool = @pool)
+        reset_deduplicable!
         BoundSchemaReflection.new(SchemaReflection.new(filename), pool).tap do |cache|
           cache.load!
+        end
+      end
+
+      def deduplicable_classes
+        klasses = [
+          ActiveRecord::ConnectionAdapters::SqlTypeMetadata,
+          ActiveRecord::ConnectionAdapters::Column,
+        ]
+
+        if defined?(ActiveRecord::ConnectionAdapters::PostgreSQL)
+          klasses << ActiveRecord::ConnectionAdapters::PostgreSQL::TypeMetadata
+        end
+        if defined?(ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata)
+          klasses << ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata
+        end
+
+        klasses.flat_map do |klass|
+          [klass] + klass.descendants
+        end.uniq
+      end
+
+      def reset_deduplicable!
+        deduplicable_classes.each do |klass|
+          klass.registry.clear
         end
       end
 
@@ -37,6 +69,8 @@ module ActiveRecord
 
         tempfile = Tempfile.new(["schema_cache-", ".yml"])
         cache.dump_to(tempfile.path)
+
+        reset_deduplicable!
 
         reflection = SchemaReflection.new(tempfile.path)
 
@@ -59,6 +93,8 @@ module ActiveRecord
         tempfile = Tempfile.new(["schema_cache-", ".yml"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
+
+        reset_deduplicable!
 
         # Load the cache.
         cache = load_bound_reflection(tempfile.path)
@@ -93,6 +129,8 @@ module ActiveRecord
         tempfile = Tempfile.new(["schema_cache-", ".yml.gz"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
+
+        reset_deduplicable!
 
         # Unzip and load manually.
         cache = Zlib::GzipReader.open(tempfile.path) do |gz|
