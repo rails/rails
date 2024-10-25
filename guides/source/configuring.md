@@ -3073,6 +3073,15 @@ Can be used to set the route prefix for the routes served by Active Storage. Acc
 config.active_storage.routes_prefix = '/files'
 ```
 
+TIP: You can also pass a Hash object in if you would like to send additional values as parameters to the generated routes.
+
+```ruby
+config.active_storage.routes_prefix = {
+  path: '/files',
+  option: 'value'
+}
+```
+
 The default is `/rails/active_storage`.
 
 #### `config.active_storage.track_variants`
