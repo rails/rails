@@ -101,7 +101,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
   def test_model_test_is_skipped_if_test_framework_is_given
     generator([destination_root], ["-t", "rspec"])
 
-    content = run_generator_instance
+    run_generator_instance
 
     assert_match(/rspec \[not found\]/, content)
     assert_no_file "test/models/user_test.rb"
