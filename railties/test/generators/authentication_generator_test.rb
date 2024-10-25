@@ -30,6 +30,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/sessions_controller.rb"
     assert_file "app/controllers/concerns/authentication.rb"
     assert_file "app/views/sessions/new.html.erb"
+    assert_file "app/channels/application_cable/connection.rb"
 
     assert_file "app/controllers/application_controller.rb" do |content|
       class_line, includes_line = content.lines.first(2)
@@ -110,4 +111,33 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_match(/rspec \[not found\]/, content)
     assert_no_file "test/models/user_test.rb"
   end
+
+  def test_connection_class_skipped_without_action_cable
+    generator([destination_root], skip_action_cable: true)
+
+    run_generator_instance
+
+    assert_no_file "app/channels/application_cable/connection.rb"
+  end
+
+  private
+    def run_generator_instance
+      commands = []
+      command_stub ||= -> (command, *args) { commands << [command, *args] }
+
+      @rails_commands = []
+      @rails_command_stub ||= -> (command, *_) { @rails_commands << command }
+
+      content = nil
+      generator.stub(:execute_command, command_stub) do
+        generator.stub(:rails_command, @rails_command_stub) do
+          content = super
+        end
+      end
+
+      @bundle_commands = commands.filter { |command, _| command == :bundle }
+
+      content
+    end
+>>>>>>> ecdcb03796 (Authenticate the action cable connection too (#53444))
 end
