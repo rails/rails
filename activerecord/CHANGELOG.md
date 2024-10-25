@@ -1,3 +1,7 @@
+*   `PG::UnableToSend: no connection to the server` is now retryable as a connection-related exception
+
+    *Kazuma Watanabe*
+
 *   Fix marshalling of unsaved associated records in 7.1 format.
 
     The 7.1 format would only marshal associated records if the association was loaded.
