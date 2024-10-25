@@ -2,9 +2,7 @@
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class HasMany < CollectionAssociation # :nodoc:
-    def self.macro
-      :has_many
-    end
+    register_builder_for :has_many
 
     def self.valid_options(options)
       valid = super + [:counter_cache, :join_table, :index_errors, :as, :through]
@@ -18,6 +16,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       [:destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception, :destroy_async]
     end
 
-    private_class_method :macro, :valid_options, :valid_dependent_options
+    private_class_method :valid_options, :valid_dependent_options
   end
 end

@@ -2,9 +2,7 @@
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class HasOne < SingularAssociation # :nodoc:
-    def self.macro
-      :has_one
-    end
+    register_builder_for :has_one
 
     def self.valid_options(options)
       valid = super + [:as, :through]

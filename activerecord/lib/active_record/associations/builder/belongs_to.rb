@@ -2,9 +2,7 @@
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class BelongsTo < SingularAssociation # :nodoc:
-    def self.macro
-      :belongs_to
-    end
+    register_builder_for :belongs_to
 
     def self.valid_options(options)
       valid = super + [:polymorphic, :counter_cache, :optional, :default]
@@ -141,13 +139,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
-    def self.define_change_tracking_methods(model, reflection)
+    def self.define_change_tracking_methods(model, reflection, as:)
       model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{reflection.name}_changed?
+        def #{as}_changed?
           association(:#{reflection.name}).target_changed?
         end
 
-        def #{reflection.name}_previously_changed?
+        def #{as}_previously_changed?
           association(:#{reflection.name}).target_previously_changed?
         end
       CODE

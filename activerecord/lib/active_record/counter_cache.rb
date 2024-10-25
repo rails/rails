@@ -186,10 +186,11 @@ module ActiveRecord
       def load_schema! # :nodoc:
         super
 
-        association_names = _reflections.filter_map do |name, reflection|
+        association_names = _reflections.filter_map do |_, reflection|
           next unless reflection.belongs_to? && reflection.counter_cache_column
 
-          name.to_sym
+          # not using the key from `_reflections` as it may be aliased
+          reflection.name
         end
 
         self.counter_cached_association_names |= association_names

@@ -13,6 +13,7 @@ class Comment < ActiveRecord::Base
   scope :ordered_by_post_id, -> { order("comments.post_id DESC") }
 
   belongs_to :post, counter_cache: true
+  alias_association :subject, :post
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
   belongs_to :origin, polymorphic: true

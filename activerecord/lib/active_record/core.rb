@@ -23,6 +23,8 @@ module ActiveRecord
 
       class_attribute :_destroy_association_async_job, instance_accessor: false, default: "ActiveRecord::DestroyAssociationAsyncJob"
 
+      class_attribute :querying_aliases, instance_accessor: false, default: {}
+
       # The job class used to destroy associations in the background.
       def self.destroy_association_async_job
         if _destroy_association_async_job.is_a?(String)
@@ -265,7 +267,7 @@ module ActiveRecord
 
         hash = hash.each_with_object({}) do |(key, value), h|
           key = key.to_s
-          key = attribute_aliases[key] || key
+          key = querying_aliases[key] || key
 
           return super if reflect_on_aggregation(key)
 

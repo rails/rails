@@ -55,21 +55,21 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     # Defines the setter and getter methods for the collection_singular_ids.
-    def self.define_readers(mixin, name)
+    def self.define_readers(mixin, name, as:)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name.to_s.singularize}_ids
+        def #{as.to_s.singularize}_ids
           association(:#{name}).ids_reader
         end
       CODE
     end
 
-    def self.define_writers(mixin, name)
+    def self.define_writers(mixin, name, as:)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name.to_s.singularize}_ids=(ids)
+        def #{as.to_s.singularize}_ids=(ids)
           association(:#{name}).ids_writer(ids)
         end
       CODE
