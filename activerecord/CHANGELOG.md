@@ -1,6 +1,21 @@
+*   The `db:prepare` task no longer loads seeds when a non-primary database is created.
+
+    Previously, the `db:prepare` task would load seeds whenever a new database
+    is created, leading to potential loss of data if a database is added to an
+    existing environment.
+
+    Introduces a new database config property `seeds` to control whether seeds
+    are loaded during `db:prepare` which defaults to `true` for primary database
+    configs and `false` otherwise.
+
+    Fixes #53348.
+
+    *Mike Dalessio*
+
 *   `PG::UnableToSend: no connection to the server` is now retryable as a connection-related exception
 
     *Kazuma Watanabe*
+
 
 ## Rails 8.0.0.rc1 (October 19, 2024) ##
 
