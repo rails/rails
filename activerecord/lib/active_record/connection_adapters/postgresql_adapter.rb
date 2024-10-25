@@ -798,7 +798,7 @@ module ActiveRecord
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when nil
-            if exception.message.match?(/connection is closed/i)
+            if exception.message.match?(/connection is closed/i) || exception.message.match?(/no connection to the server/i)
               ConnectionNotEstablished.new(exception, connection_pool: @pool)
             elsif exception.is_a?(PG::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal
