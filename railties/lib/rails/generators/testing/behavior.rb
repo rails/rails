@@ -68,6 +68,8 @@ module Rails
           args += ["--skip-bundle"] unless args.include?("--no-skip-bundle") || args.include?("--dev")
           args += ["--skip-bootsnap"] unless args.include?("--no-skip-bootsnap") || args.include?("--skip-bootsnap")
 
+          simulate_constant_load(args.first) if config[:load_constant]
+
           if ENV["RAILS_LOG_TO_STDOUT"] == "true"
             generator_class.start(args, config.reverse_merge(destination_root: destination_root))
           else
@@ -109,6 +111,25 @@ module Rails
             absolute = File.expand_path(relative, destination_root)
             dirname, file_name = File.dirname(absolute), File.basename(absolute).delete_suffix(".rb")
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
+          end
+
+          def simulate_constant_load(model_name)
+            return unless model_name
+
+            nesting = model_name.split("/").map(&:camelize)
+            last_name = nesting.pop
+            last = extract_last_module(nesting)
+
+            unless last.const_defined?(last_name)
+              last.const_set(last_name, Class.new)
+            end
+          end
+
+          def extract_last_module(nesting)
+            nesting.inject(Object) do |last_module, nest|
+              last_module.const_set(nest, Module.new) unless last_module.const_defined?(nest, false)
+              last_module.const_get(nest)
+            end
           end
       end
     end

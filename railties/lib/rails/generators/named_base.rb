@@ -225,7 +225,7 @@ module Rails
 
         def self.check_model_exists # :doc:
           define_method :check_model_exists do
-            model_exists
+            model_exists "#{options[:prefix]}#{name}#{options[:suffix]}"
           end
         end
     end
