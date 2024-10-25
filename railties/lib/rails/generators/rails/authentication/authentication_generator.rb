@@ -19,7 +19,7 @@ module Rails
         template "app/controllers/concerns/authentication.rb"
         template "app/controllers/passwords_controller.rb"
 
-        template "app/channels/application_cable/connection.rb"
+        template "app/channels/application_cable/connection.rb" unless options.skip_action_cable?
 
         template "app/mailers/passwords_mailer.rb"
 
