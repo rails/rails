@@ -17,6 +17,26 @@ class RateLimitedController < ActionController::Base
   end
 end
 
+class RateLimitedSharedController < ActionController::Base
+  self.cache_store = ActiveSupport::Cache::MemoryStore.new
+end
+
+class RateLimitedSharedOneController < RateLimitedSharedController
+  rate_limit to: 2, within: 2.seconds, scope: "shared"
+
+  def limited_shared_one
+    head :ok
+  end
+end
+
+class RateLimitedSharedTwoController < RateLimitedSharedController
+  rate_limit to: 2, within: 2.seconds, scope: "shared"
+
+  def limited_shared_two
+    head :ok
+  end
+end
+
 class RateLimitingTest < ActionController::TestCase
   tests RateLimitedController
 
@@ -91,5 +111,26 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_with
     get :limited_with
     assert_response :forbidden
+  end
+
+  test "cross-controller rate limit" do
+    @controller = RateLimitedSharedOneController.new
+    get :limited_shared_one
+    assert_response :ok
+
+    get :limited_shared_one
+    assert_response :ok
+
+    @controller = RateLimitedSharedTwoController.new
+
+    get :limited_shared_two
+    assert_response :too_many_requests
+
+    @controller = RateLimitedSharedOneController.new
+
+    get :limited_shared_one
+    assert_response :too_many_requests
+  ensure
+    RateLimitedSharedController.cache_store.clear
   end
 end
