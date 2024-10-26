@@ -7,7 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
 
     def self.valid_options(options)
-      super + [:before_add, :after_add, :before_remove, :after_remove, :extend]
+      super + CALLBACKS + [:extend]
     end
 
     def self.define_callbacks(model, reflection)
