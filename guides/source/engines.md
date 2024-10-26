@@ -1176,7 +1176,7 @@ module Blorgh::Concerns::Models::Article
 
   module ClassMethods
     def some_class_method
-      'some class method string'
+      "some class method string"
     end
   end
 end

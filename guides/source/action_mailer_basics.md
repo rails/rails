@@ -71,7 +71,7 @@ used to define attributes common to all Mailers:
 # app/mailers/application_mailer.rb
 class ApplicationMailer < ActionMailer::Base
   default from: "from@example.com"
-  layout 'mailer'
+  layout "mailer"
 end
 ```
 
@@ -360,7 +360,7 @@ Action Mailer will automatically guess the `mime_type`, set the `encoding`, and
 create the attachment.
 
 ```ruby
-attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
+attachments["filename.jpg"] = File.read("/path/to/filename.jpg")
 ```
 
 When the `mail` method is triggered, it will send a multipart email with an
@@ -372,10 +372,10 @@ The other way to send attachments is to specify the file name, MIME-type and
 encoding headers, and content. Action Mailer will use the settings you pass in.
 
 ```ruby
-encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
-attachments['filename.jpg'] = {
-  mime_type: 'application/gzip',
-  encoding: 'SpecialEncoding',
+encoded_content = SpecialEncode(File.read("/path/to/filename.jpg"))
+attachments["filename.jpg"] = {
+  mime_type: "application/gzip",
+  encoding: "SpecialEncoding",
   content: encoded_content
 }
 ```
@@ -395,7 +395,7 @@ calling `#inline`:
 
 ```ruby
 def welcome
-  attachments.inline['image.jpg'] = File.read('/path/to/image.jpg')
+  attachments.inline["image.jpg"] = File.read("/path/to/image.jpg")
 end
 ```
 
@@ -461,15 +461,15 @@ There is a `template_path` and `template_name` option to the `mail` method:
 
 ```ruby
 class UserMailer < ApplicationMailer
-  default from: 'notifications@example.com'
+  default from: "notifications@example.com"
 
   def welcome_email
     @user = params[:user]
-    @url  = 'http://example.com/login'
+    @url  = "http://example.com/login"
     mail(to: @user.email,
-         subject: 'Welcome to My Awesome Site',
-         template_path: 'notifications',
-         template_name: 'hello')
+         subject: "Welcome to My Awesome Site",
+         template_path: "notifications",
+         template_name: "hello")
   end
 end
 ```
@@ -483,15 +483,15 @@ template. You can also render plain text inline without using a template file:
 
 ```ruby
 class UserMailer < ApplicationMailer
-  default from: 'notifications@example.com'
+  default from: "notifications@example.com"
 
   def welcome_email
     @user = params[:user]
-    @url  = 'http://example.com/login'
+    @url  = "http://example.com/login"
     mail(to: @user.email,
-         subject: 'Welcome to My Awesome Site') do |format|
-      format.html { render 'another_template' }
-      format.text { render plain: 'hello' }
+         subject: "Welcome to My Awesome Site") do |format|
+      format.html { render "another_template" }
+      format.text { render plain: "hello" }
     end
   end
 end
@@ -535,7 +535,7 @@ You can configure the default `host` across the application in
 `config/application.rb`:
 
 ```ruby
-config.action_mailer.default_url_options = { host: 'example.com' }
+config.action_mailer.default_url_options = { host: "example.com" }
 ```
 
 Once the `host` is configured, it is recommended that email views use the
@@ -595,7 +595,7 @@ Usually the `:asset_host` is consistent across the application, so you can
 configure it globally in `config/application.rb`:
 
 ```ruby
-config.action_mailer.asset_host = 'http://example.com'
+config.action_mailer.asset_host = "http://example.com"
 ```
 
 NOTE: Because we can't infer the protocol from the request, you'll need to
@@ -662,7 +662,7 @@ To use a different layout for a given mailer, call [`layout`][]:
 
 ```ruby
 class UserMailer < ApplicationMailer
-  layout 'awesome' # Use awesome.(html|text).erb as the layout
+  layout "awesome" # Use awesome.(html|text).erb as the layout
 end
 ```
 
@@ -673,7 +673,7 @@ To use a specific layout for a given email, you can pass in a `layout:
 class UserMailer < ApplicationMailer
   def welcome_email
     mail(to: params[:user].email) do |format|
-      format.html { render layout: 'my_layout' }
+      format.html { render layout: "my_layout" }
       format.text
     end
   end
@@ -700,7 +700,7 @@ For example, to inform all admins of a new registration:
 ```ruby
 class AdminMailer < ApplicationMailer
   default to: -> { Admin.pluck(:email) },
-          from: 'notification@example.com'
+          from: "notification@example.com"
 
   def new_registration(user)
     @user = user
@@ -726,7 +726,7 @@ def welcome_email
   @user = params[:user]
   mail(
     to: email_address_with_name(@user.email, @user.name),
-    subject: 'Welcome to My Awesome Site'
+    subject: "Welcome to My Awesome Site"
   )
 end
 ```
@@ -735,7 +735,7 @@ The same method in `from:` works to display the name of the sender:
 
 ```ruby
 class UserMailer < ApplicationMailer
-  default from: email_address_with_name('notification@example.com', 'Example Company Notifications')
+  default from: email_address_with_name("notification@example.com", "Example Company Notifications")
 end
 ```
 
@@ -904,7 +904,7 @@ class UserMailer < ApplicationMailer
 
     # An Interceptor alternative.
     def sandbox_staging
-      message.to = ['sandbox@example.com'] if Rails.env.staging?
+      message.to = ["sandbox@example.com"] if Rails.env.staging?
     end
 
     # A callback has more context than the comparable Observer example.
@@ -976,7 +976,7 @@ config.action_mailer.delivery_method = :sendmail
 # }
 config.action_mailer.perform_deliveries = true
 config.action_mailer.raise_delivery_errors = true
-config.action_mailer.default_options = { from: 'no-reply@example.com' }
+config.action_mailer.default_options = { from: "no-reply@example.com" }
 ```
 
 ### Action Mailer Configuration for Gmail
@@ -986,12 +986,12 @@ Add this to your `config/environments/$RAILS_ENV.rb` file to send via Gmail:
 ```ruby
 config.action_mailer.delivery_method = :smtp
 config.action_mailer.smtp_settings = {
-  address:         'smtp.gmail.com',
+  address:         "smtp.gmail.com",
   port:            587,
-  domain:          'example.com',
+  domain:          "example.com",
   user_name:       Rails.application.credentials.dig(:smtp, :user_name),
   password:        Rails.application.credentials.dig(:smtp, :password),
-  authentication:  'plain',
+  authentication:  "plain",
   enable_starttls: true,
   open_timeout:    5,
   read_timeout:    5 }
@@ -1084,7 +1084,7 @@ sent.
 ```ruby
 class SandboxEmailInterceptor
   def self.delivering_email(message)
-    message.to = ['sandbox@example.com']
+    message.to = ["sandbox@example.com"]
   end
 end
 ```
