@@ -435,7 +435,8 @@ irb> line_item_with_order.valid?
 => false # absence validation fails
 ```
 
-NOTE: For `belongs_to` the association presence is validated by default. If you don’t want to have association presence validated, use `optional: true`.
+NOTE: For `belongs_to` the association presence is validated by default. If you
+don’t want to have association presence validated, use `optional: true`.
 
 Rails will usually infer the inverse association automatically. In cases where
 you use a custom `:foreign_key` or a `:through` association, it's important to
@@ -480,8 +481,8 @@ end
 ```
 
 This check is performed only if `terms_of_service` is not `nil`. The default
-error message for this validation is _"must be accepted"_. You can also pass in a
-custom message via the `message` option.
+error message for this validation is _"must be accepted"_. You can also pass in
+a custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
@@ -502,8 +503,8 @@ end
 
 This validation is very specific to web applications and this 'acceptance' does
 not need to be recorded anywhere in your database. If you don't have a field for
-it, the validator will create a virtual attribute. If the field does exist in your
-database, the `accept` option must be set to or include `true` or else the
+it, the validator will create a virtual attribute. If the field does exist in
+your database, the `accept` option must be set to or include `true` or else the
 validation will not run.
 
 ### `confirmation`
@@ -573,8 +574,8 @@ class Promotion < ApplicationRecord
 end
 ```
 
-The default error message for this validator is _"failed comparison"_. You can also
-pass in a custom message via the `message` option.
+The default error message for this validator is _"failed comparison"_. You can
+also pass in a custom message via the `message` option.
 
 These options are all supported:
 
@@ -656,8 +657,8 @@ class Account < ApplicationRecord
 end
 ```
 
-Both validators allow the use of dynamic validation through methods that return an
-enumerable. Here’s an example using a proc for `inclusion`:
+Both validators allow the use of dynamic validation through methods that return
+an enumerable. Here’s an example using a proc for `inclusion`:
 
 ```ruby
 class Coffee < ApplicationRecord
@@ -727,8 +728,9 @@ together.
 
 ### `numericality`
 
-This validator validates that your attributes have only numeric values. By default,
-it will match an optional sign followed by an integer or floating point number.
+This validator validates that your attributes have only numeric values. By
+default, it will match an optional sign followed by an integer or floating point
+number.
 
 To specify that only integer numbers are allowed, set `:only_integer` to true.
 Then it will use the following regular expression to validate the attribute's
@@ -779,8 +781,8 @@ values:
 
 ### `presence`
 
-This validator validates that the specified attributes are not empty. It uses the
-[`Object#blank?`][] method to check if the value is either `nil` or a blank
+This validator validates that the specified attributes are not empty. It uses
+the [`Object#blank?`][] method to check if the value is either `nil` or a blank
 string - that is, a string that is either empty or consists of whitespace.
 
 ```ruby
@@ -934,9 +936,9 @@ See [`validates_uniqueness_of`][] for more information.
 
 ### `validates_associated`
 
-You should use this validator when your model has associations that always need to
-be validated. Every time you try to save your object, `valid?` will be called on
-each one of the associated objects.
+You should use this validator when your model has associations that always need
+to be validated. Every time you try to save your object, `valid?` will be called
+on each one of the associated objects.
 
 ```ruby
 class Library < ApplicationRecord
@@ -963,9 +965,9 @@ everything up until now can also be used on any object which includes
 
 ### `validates_each`
 
-This validator validates attributes against a block. It doesn't have a predefined
-validation function. You should create one using a block, and every attribute
-passed to [`validates_each`][] will be tested against it.
+This validator validates attributes against a block. It doesn't have a
+predefined validation function. You should create one using a block, and every
+attribute passed to [`validates_each`][] will be tested against it.
 
 In the following example, we will reject names and surnames that begin with
 lowercase.
@@ -1036,8 +1038,8 @@ end
 We will cover [validation errors](#working-with-validation-errors) in greater
 detail later.
 
-The [`validates_with`][] validator takes a class, or a list of classes to use for
-validation.
+The [`validates_with`][] validator takes a class, or a list of classes to use
+for validation.
 
 ```ruby
 class Person < ApplicationRecord
