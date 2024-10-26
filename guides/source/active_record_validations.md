@@ -932,27 +932,6 @@ See [`validates_uniqueness_of`][] for more information.
 [the PostgreSQL manual]:
     https://www.postgresql.org/docs/current/static/ddl-constraints.html
 
-### `validate`
-
-The `validate` validator is used with `belongs_to` and `has_one` associations to
-automatically validate the associated object whenever the parent object is
-saved. This option ensures that any new or updated associated objects are
-validated before the parent object can be successfully saved. By default, this
-option is set to `false`, meaning associated objects will not be automatically
-validated.
-
-```ruby
-class Post < ApplicationRecord
-  belongs_to :author, validate: true
-end
-```
-
-In this example, every time a `Post` is saved, the associated `Author` will also
-be validated. If the `Author` is invalid, the `Post` will not be saved.
-
-If you need to ensure that associated objects are validated every time the
-parent object is updated, consider using `validates_associated`.
-
 ### `validates_associated`
 
 You should use this validator when your model has associations that always need to
