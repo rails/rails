@@ -1,3 +1,7 @@
+*   NULLS NOT DISTINCT works with UNIQUE CONSTRAINT as well as UNIQUE INDEX.
+
+    *Ryuta Kamizono*
+
 *   The `db:prepare` task no longer loads seeds when a non-primary database is created.
 
     Previously, the `db:prepare` task would load seeds whenever a new database

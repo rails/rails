@@ -698,7 +698,7 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT c.conname, c.conrelid, c.conkey, c.condeferrable, c.condeferred
+            SELECT c.conname, c.conrelid, c.conkey, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             JOIN pg_namespace n ON n.oid = c.connamespace
@@ -711,10 +711,12 @@ module ActiveRecord
             conkey = row["conkey"].delete("{}").split(",").map(&:to_i)
             columns = column_names_from_column_numbers(row["conrelid"], conkey)
 
+            nulls_not_distinct = row["constraintdef"].start_with?("UNIQUE NULLS NOT DISTINCT")
             deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
 
             options = {
               name: row["conname"],
+              nulls_not_distinct: nulls_not_distinct,
               deferrable: deferrable
             }
 
@@ -771,7 +773,7 @@ module ActiveRecord
 
         # Adds a new unique constraint to the table.
         #
-        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position"
+        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
         #
         # generates:
         #
@@ -788,6 +790,9 @@ module ActiveRecord
         #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
         # [<tt>:using_index</tt>]
         #   To specify an existing unique index name. Defaults to +nil+.
+        # [<tt>:nulls_not_distinct</tt>]
+        #   Create a unique constraint where NULLs are treated equally.
+        #   Note: only supported by PostgreSQL version 15.0.0 and greater.
         def add_unique_constraint(table_name, column_name = nil, **options)
           options = unique_constraint_options(table_name, column_name, options)
           at = create_alter_table(table_name)
