@@ -139,5 +139,4 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
       content
     end
->>>>>>> ecdcb03796 (Authenticate the action cable connection too (#53444))
 end
