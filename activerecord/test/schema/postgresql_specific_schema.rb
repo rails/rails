@@ -175,10 +175,12 @@ _SQL
     t.integer :position_1
     t.integer :position_2
     t.integer :position_3
+    t.integer :position_4
 
     t.unique_constraint :position_1, name: "test_unique_constraints_position_deferrable_false"
     t.unique_constraint :position_2, name: "test_unique_constraints_position_deferrable_immediate", deferrable: :immediate
     t.unique_constraint :position_3, name: "test_unique_constraints_position_deferrable_deferred", deferrable: :deferred
+    t.unique_constraint :position_4, name: "test_unique_constraints_position_nulls_not_distinct", nulls_not_distinct: true
   end
 
   if supports_partitioned_indexes?

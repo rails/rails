@@ -167,7 +167,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
         end
 
         def load_console
-          require "rails/console/methods"
         end
       end
       mocked_app.new(console)

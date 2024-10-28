@@ -198,7 +198,7 @@ module ActiveRecord
       end
 
       def join_scope(table, foreign_table, foreign_klass)
-        predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
+        predicate_builder = klass.predicate_builder.with(TableMetadata.new(klass, table))
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
@@ -523,9 +523,9 @@ module ActiveRecord
         @association_foreign_key = nil
         @association_primary_key = nil
         if options[:query_constraints]
-          ActiveRecord.deprecator.warn <<~MSG.squish
-            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is deprecated.
-            To maintain current behavior, use the `foreign_key` option instead.
+          raise ConfigurationError, <<~MSG.squish
+            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is not allowed.
+            To get the same behavior, use the `foreign_key` option instead.
           MSG
         end
 

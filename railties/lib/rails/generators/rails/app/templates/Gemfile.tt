@@ -10,7 +10,7 @@ source "https://rubygems.org"
 <% end -%>
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
+gem "tzinfo-data", platforms: %i[ windows jruby ]
 <% unless options.skip_solid? -%>
 
 <% if options.skip_action_cable? -%>
@@ -53,7 +53,7 @@ gem "thruster", require: false
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri <%= bundler_windows_platforms %> ], require: "debug/prelude"
+  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 <%- unless options.skip_brakeman? -%>
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]

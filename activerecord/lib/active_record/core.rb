@@ -618,7 +618,7 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if primary_key_values_present?
+      if self.class.composite_primary_key? ? primary_key_values_present? : id
         self.class.hash ^ id.hash
       else
         super

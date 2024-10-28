@@ -31,7 +31,22 @@ module ActiveJob
           ActiveJob::Base.include EnqueueAfterTransactionCommit
 
           if app.config.active_job.key?(:enqueue_after_transaction_commit)
-            ActiveJob::Base.enqueue_after_transaction_commit = app.config.active_job.delete(:enqueue_after_transaction_commit)
+            ActiveJob.deprecator.warn(<<~MSG.squish)
+              `config.active_job.enqueue_after_transaction_commit` is deprecated and will be removed in Rails 8.1.
+              This configuration can still be set on individual jobs using `self.enqueue_after_transaction_commit=`,
+              but due the nature of this behavior, it is not recommended to be set globally.
+            MSG
+
+            value = case app.config.active_job.enqueue_after_transaction_commit
+            when :always
+              true
+            when :never
+              false
+            else
+              false
+            end
+
+            ActiveJob::Base.enqueue_after_transaction_commit = value
           end
         end
       end
@@ -54,7 +69,8 @@ module ActiveJob
         # Configs used in other initializers
         options = options.except(
           :log_query_tags_around_perform,
-          :custom_serializers
+          :custom_serializers,
+          :enqueue_after_transaction_commit
         )
 
         options.each do |k, v|

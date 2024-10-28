@@ -19,6 +19,8 @@ module Rails
         template "app/controllers/concerns/authentication.rb"
         template "app/controllers/passwords_controller.rb"
 
+        template "app/channels/application_cable/connection.rb" unless options.skip_action_cable?
+
         template "app/mailers/passwords_mailer.rb"
 
         template "app/views/passwords_mailer/reset.html.erb"
@@ -37,7 +39,7 @@ module Rails
       end
 
       def enable_bcrypt
-        if File.read("Gemfile").include?('gem "bcrypt"')
+        if File.read(File.expand_path("Gemfile", destination_root)).include?('gem "bcrypt"')
           uncomment_lines "Gemfile", /gem "bcrypt"/
           Bundler.with_original_env { execute_command :bundle, "install --quiet" }
         else
@@ -46,8 +48,8 @@ module Rails
       end
 
       def add_migrations
-        generate "migration CreateUsers email_address:string!:uniq password_digest:string! --force"
-        generate "migration CreateSessions user:references ip_address:string user_agent:string --force"
+        generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
+        generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
       end
 
       hook_for :test_framework
