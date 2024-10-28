@@ -1,7 +1,3 @@
-*   When running `db:migrate` on a fresh database, load all databases schemas before running migrations.
-
-    *Marek Kasztelnik*
-
 *   NULLS NOT DISTINCT works with UNIQUE CONSTRAINT as well as UNIQUE INDEX.
 
     *Ryuta Kamizono*
