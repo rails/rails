@@ -174,6 +174,18 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     assert_equal "Hulk Hogan", context.second_wrestler
   end
 
+  def test_pausing_hooks
+    i = 0
+    ActiveSupport.load_hooks.pause
+    ActiveSupport.on_load(:paused_hook) { i += 1 }
+    ActiveSupport.run_load_hooks(:paused_hook)
+    assert_equal 0, i
+    ActiveSupport.load_hooks.start
+    assert_equal 1, i
+  ensure
+    ActiveSupport.load_hooks.start
+  end
+
 private
   def incr_amt
     5

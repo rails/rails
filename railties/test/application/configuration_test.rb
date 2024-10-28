@@ -147,6 +147,19 @@ module ApplicationTests
       assert_equal "MyLogger", Rails.application.config.logger.class.name
     end
 
+    test "load hooks don't load frameworks prematurely" do
+      add_to_config 'config.load_defaults "7.1"'
+      app_file "config/initializers/schema_cache.rb", <<-RUBY
+        # load ActiveRecord prematurely
+        ActiveRecord::Base.configurations
+        Rails.application.config.active_record.collection_cache_versioning = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::Base.collection_cache_versioning
+    end
+
     test "raises an error if cache does not support recyclable cache keys" do
       build_app(initializers: true)
       add_to_env_config "production", "config.cache_store = Class.new {}.new"
@@ -419,9 +432,11 @@ module ApplicationTests
       app_file "config/initializers/active_record.rb", <<-RUBY
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
         ActiveRecord::Migration.verbose = false
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :posts do |t|
-            t.string :title
+        Rails.application.config.to_prepare do
+          ActiveRecord::Schema.define(version: 1) do
+            create_table :posts do |t|
+              t.string :title
+            end
           end
         end
       RUBY
@@ -433,7 +448,9 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-      ActiveRecord::Base.schema_cache.add("posts")
+        Rails.application.config.to_prepare do
+          ActiveRecord::Base.schema_cache.add("posts")
+        end
       RUBY
 
       app "production"
@@ -464,7 +481,9 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-      ActiveRecord::Base.schema_cache.add("posts")
+        Rails.application.config.to_prepare do
+          ActiveRecord::Base.schema_cache.add("posts")
+        end
       RUBY
 
       app "production"
@@ -3806,13 +3825,15 @@ module ApplicationTests
 
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
         ActiveRecord::Migration.verbose = false
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :posts do |t|
-            t.string :content
+        Rails.application.config.to_prepare do
+          ActiveRecord::Schema.define(version: 1) do
+            create_table :posts do |t|
+              t.string :content
+            end
           end
-        end
 
-        ActiveRecord::Base.schema_cache.add("posts")
+          ActiveRecord::Base.schema_cache.add("posts")
+        end
       RUBY
 
       app_file "app/models/post.rb", <<-RUBY
@@ -3846,13 +3867,15 @@ module ApplicationTests
 
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
         ActiveRecord::Migration.verbose = false
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :posts do |t|
-            t.string :content
+        Rails.application.config.to_prepare do
+          ActiveRecord::Schema.define(version: 1) do
+            create_table :posts do |t|
+              t.string :content
+            end
           end
-        end
 
-        ActiveRecord::Base.schema_cache.add("posts")
+          ActiveRecord::Base.schema_cache.add("posts")
+        end
       RUBY
 
       app "production"
@@ -4426,7 +4449,9 @@ module ApplicationTests
         ActiveRecord::Base.establish_connection(adapter: "postgresql")
       RUBY
       app_file "config/initializers/tz_aware_types.rb", <<~RUBY
-        ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
+        Rails.application.config.to_prepare do
+          ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
+        end
       RUBY
 
       app "production"

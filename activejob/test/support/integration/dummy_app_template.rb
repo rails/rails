@@ -4,11 +4,6 @@ if ENV["AJ_ADAPTER"] == "delayed_job"
   generate "delayed_job:active_record", "--quiet"
 end
 
-initializer "activejob.rb", <<-CODE
-require "#{File.expand_path("jobs_manager.rb",  __dir__)}"
-JobsManager.current_manager.setup
-CODE
-
 initializer "i18n.rb", <<-CODE
 I18n.available_locales = [:en, :de]
 CODE
