@@ -1,3 +1,11 @@
+*   Set `.attributes_for_inspect` to `:all` by default.
+
+    For new applications it is set to `[:id]` in config/environment/production.rb.
+
+    In the console all the attributes are always shown.
+
+    *Andrew Novoselac*
+
 *   `PG::UnableToSend: no connection to the server` is now retryable as a connection-related exception
 
     *Kazuma Watanabe*
