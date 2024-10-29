@@ -146,6 +146,10 @@ class RedirectController < ActionController::Base
     redirect_to "http://example.com/query?status=new"
   end
 
+  def redirect_to_url_with_non_ascii_query_string
+    redirect_to "/query?name=fernández", allow_other_host: false
+  end
+
   def redirect_to_url_with_complex_scheme
     redirect_to "x-test+scheme.complex:redirect"
   end
@@ -189,6 +193,10 @@ class RedirectController < ActionController::Base
 
   def redirect_to_with_block_and_options
     redirect_to proc { { action: "hello_world" } }
+  end
+
+  def redirect_to_with_block_and_path
+    redirect_to proc { "/things/stuff" }, allow_other_host: false
   end
 
   def redirect_to_out_of_scope_block
@@ -321,6 +329,12 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_url_with_unescaped_query_string
     assert_response :redirect
     assert_redirected_to "http://example.com/query?status=new"
+  end
+
+  def test_redirect_to_url_with_non_ascii_query_string
+    get :redirect_to_url_with_non_ascii_query_string
+    assert_response :redirect
+    assert_redirected_to "http://test.host/query?name=fernández"
   end
 
   def test_redirect_to_url_with_complex_scheme
@@ -481,6 +495,12 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_with_block
     assert_response :redirect
     assert_redirected_to "http://www.rubyonrails.org/"
+  end
+
+  def test_redirect_to_with_block_and_path
+    get :redirect_to_with_block_and_path
+    assert_response :redirect
+    assert_redirected_to "/things/stuff"
   end
 
   def test_redirect_to_with_block_and_assigns

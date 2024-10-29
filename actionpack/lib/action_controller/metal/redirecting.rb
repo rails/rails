@@ -108,10 +108,10 @@ module ActionController
 
       self.status = _extract_redirect_to_status(options, response_options)
 
-      redirect_to_location = _compute_redirect_to_location(request, options)
+      redirect_to_location = _compute_redirect_to_location(request, options, allow_other_host: allow_other_host)
       _ensure_url_is_http_header_safe(redirect_to_location)
 
-      self.location      = _enforce_open_redirect_protection(redirect_to_location, allow_other_host: allow_other_host)
+      self.location      = redirect_to_location
       self.response_body = ""
     end
 
@@ -155,7 +155,7 @@ module ActionController
       end
     end
 
-    def _compute_redirect_to_location(request, options) # :nodoc:
+    def _compute_redirect_to_location(request, options, allow_other_host: _allow_other_host) # :nodoc:
       case options
       # The scheme name consist of a letter followed by any combination of letters,
       # digits, and the plus ("+"), period ("."), or hyphen ("-") characters; and is
@@ -163,13 +163,13 @@ module ActionController
       # https://tools.ietf.org/html/rfc3986#section-3.1 The protocol relative scheme
       # starts with a double slash "//".
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
-        options.to_str
+        _enforce_open_redirect_protection(options.to_str, allow_other_host:)
       when String
         request.protocol + request.host_with_port + options
       when Proc
-        _compute_redirect_to_location request, instance_eval(&options)
+        _compute_redirect_to_location request, instance_eval(&options), allow_other_host:
       else
-        url_for(options)
+        _enforce_open_redirect_protection(url_for(options), allow_other_host:)
       end.delete("\0\r\n")
     end
     module_function :_compute_redirect_to_location
