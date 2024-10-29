@@ -86,6 +86,14 @@ module RailInspector
                 end
               @configs[target] = value
             end
+
+            def visit_opassign(node)
+              if node.operator.name == :"||="
+                visit_assign(node)
+              else
+                super
+              end
+            end
           end
 
           private
