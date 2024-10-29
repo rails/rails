@@ -1371,7 +1371,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-
   def test_devcontainer_postgresql_skip_solid
     # Regression test for #53482
     run_generator [ destination_root, "--devcontainer", "-d", "postgresql", "--skip-solid"]
