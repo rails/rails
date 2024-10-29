@@ -113,11 +113,14 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_connection_class_skipped_without_action_cable
-    generator([destination_root], skip_action_cable: true)
-
+    old_value = ActionCable.const_get(:Engine)
+    ActionCable.send(:remove_const, :Engine)
+    generator([destination_root])
     run_generator_instance
 
     assert_no_file "app/channels/application_cable/connection.rb"
+  ensure
+    ActionCable.const_set(:Engine, old_value)
   end
 
   private
