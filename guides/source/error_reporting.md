@@ -126,7 +126,7 @@ the error, and the rest of your code outside the block will continue as normal.
 
 ```ruby
 result = Rails.error.handle do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 result # => nil
 1 + 1 # This will be executed
@@ -151,7 +151,7 @@ the error, meaning that the rest of your code won't execute.
 
 ```ruby
 Rails.error.record do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 1 + 1 # This won't be executed
 ```
@@ -252,7 +252,7 @@ report errors of certain classes. For example:
 
 ```ruby
 Rails.error.handle(IOError) do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 1 + 1 # TypeErrors are not IOErrors, so this will *not* be executed
 ```
@@ -271,7 +271,7 @@ subscriber itself, or its class.
 
 ```ruby
 Rails.error.disable(ErrorSubscriber) do
-  1 + '1' # TypeError will not be reported via the ErrorSubscriber
+  1 + "1" # TypeError will not be reported via the ErrorSubscriber
 end
 ```
 
