@@ -1,3 +1,14 @@
+*   Add `after_or_equal?` and `before_or_equal?` methods to `Date`, `DateTime`, `Time`, and `TimeWithZone`.
+
+    These methods provide a more readable alternative to using `>=` and `<=` when comparing dates and times.
+
+    ```ruby
+    time1.after_or_equal?(time2)  # equivalent to time1 >= time2
+    time1.before_or_equal?(time2) # equivalent to time1 <= time2
+    ```
+
+    *martinfsn*
+
 *   `ActiveSupport::CurrentAttributes#attributes` now will return a new hash object on each call.
 
     Previously, the same hash object was returned each time that method was called.
