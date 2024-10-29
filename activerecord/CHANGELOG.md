@@ -20,6 +20,14 @@
 
     *Kazuma Watanabe*
 
+*   Fix strict loading propagation even if statement cache is not used.
+
+    *Ryuta Kamizono*
+
+*   Allow `rename_enum` accepts two from/to name arguments as `rename_table` does so.
+
+    *Ryuta Kamizono*
+
 
 ## Rails 8.0.0.rc1 (October 19, 2024) ##
 
