@@ -61,7 +61,7 @@ module ActionController # :nodoc:
 
     private
       def allow_browser(versions:, block:)
-        require "useragent"
+        require_relative "./useragent"
 
         if BrowserBlocker.new(request, versions: versions).blocked?
           ActiveSupport::Notifications.instrument("browser_block.action_controller", request: request, versions: versions) do
