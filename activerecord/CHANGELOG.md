@@ -1,3 +1,9 @@
+*   Fix support for `query_cache: false` in `database.yml`.
+
+    `query_cache: false` would no longer entirely disable the Active Record query cache.
+
+    *zzak*
+
 ## Rails 8.0.0.rc2 (October 30, 2024) ##
 
 *   NULLS NOT DISTINCT works with UNIQUE CONSTRAINT as well as UNIQUE INDEX.
