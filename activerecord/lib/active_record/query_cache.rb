@@ -26,7 +26,10 @@ module ActiveRecord
     end
 
     def self.run
-      ActiveRecord::Base.connection_handler.each_connection_pool.reject { |p| p.query_cache_enabled }.each { |p| p.enable_query_cache! }
+      ActiveRecord::Base.connection_handler.each_connection_pool.reject(&:query_cache_enabled).each do |pool|
+        next if pool.db_config&.query_cache == false
+        pool.enable_query_cache!
+      end
     end
 
     def self.complete(pools)
