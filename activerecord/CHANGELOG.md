@@ -1,3 +1,9 @@
+*   Fix support for `query_cache: false` in `database.yml`.
+
+    `query_cache: false` would no longer entirely disable the Active Record query cache.
+
+    *zzak*
+
 *   Set `.attributes_for_inspect` to `:all` by default.
 
     For new applications it is set to `[:id]` in config/environment/production.rb.
