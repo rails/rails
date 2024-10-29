@@ -491,7 +491,8 @@ module ActiveRecord
 
     # Like #with, but modifies relation in place.
     def with!(*args) # :nodoc:
-      self.with_values += args
+      args = process_with_args(args)
+      self.with_values |= args
       self
     end
 
@@ -514,7 +515,8 @@ module ActiveRecord
 
     # Like #with_recursive but modifies the relation in place.
     def with_recursive!(*args) # :nodoc:
-      self.with_values += args
+      args = process_with_args(args)
+      self.with_values |= args
       @with_is_recursive = true
       self
     end
@@ -2205,6 +2207,12 @@ module ActiveRecord
               predicate_builder.resolve_arel_attribute(klass.table_name, key.to_s)
             end.as(columns_aliases.to_s)
           end
+        end
+      end
+
+      def process_with_args(args)
+        args.flat_map do |arg|
+          arg.map { |k, v| { k => v } }
         end
       end
 
