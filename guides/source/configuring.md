@@ -2894,6 +2894,19 @@ You can find more detailed configuration options in the
 Determines whether the Action Cable assets should be added to the asset pipeline precompilation. It
 has no effect if Sprockets is not used. The default value is `true`.
 
+#### `config.action_cable.allow_same_origin_as_host`
+
+Determines whether an origin matching the cable server itself will be permitted.
+The default value is `true`.
+
+Set to false to disable automatic access for same-origin requests, and strictly allow
+only the configured origins.
+
+#### `config.action_cable.allowed_request_origins`
+
+Determines the request origins which will be accepted but the cable server.
+The default value is `/https?:\/\/localhost:\d+/` in the `development` environment.
+
 ### Configuring Active Storage
 
 `config.active_storage` provides the following configuration options:
