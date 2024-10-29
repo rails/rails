@@ -1,3 +1,8 @@
+*   Set `Regexp.timeout` to `1`s by default to improve security over Regexp Denial-of-Service attacks.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 8.0.0.rc1 (October 19, 2024) ##
 
 *   Remove deprecated support to extend Rails console through `Rails::ConsoleMethods`.

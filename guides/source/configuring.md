@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.0
 
+- [`Regexp.timeout`](#regexp-timeout): `1`
 - [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
 - [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:zone`
 
@@ -3148,6 +3149,11 @@ Configures the HTML sanitizer used by Action Text by setting `ActionText::Conten
 | 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+
+#### `Regexp.timeout`
+
+
+See Ruby's documentation for [`Regexp.timeout=`](https://docs.ruby-lang.org/en/3.3/Regexp.html#method-c-timeout-3D).
 
 ### Configuring a Database
 
