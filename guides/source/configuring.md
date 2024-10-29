@@ -35,7 +35,7 @@ In general, the work of configuring Rails means configuring the components of Ra
 For example, you could add this setting to `config/application.rb` file:
 
 ```ruby
-config.time_zone = 'Central Time (US & Canada)'
+config.time_zone = "Central Time (US & Canada)"
 ```
 
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same `config` object in `config/application.rb`:
@@ -187,7 +187,7 @@ Takes a block which will be run _after_ Rails has finished initializing the appl
 
 ```ruby
 config.after_initialize do
-  ActionView::Base.sanitized_allowed_tags.delete 'div'
+  ActionView::Base.sanitized_allowed_tags.delete "div"
 end
 ```
 
@@ -419,7 +419,7 @@ Parameters filter works by partial matching regular expression.
 Used for filtering out redirect urls from application logs.
 
 ```ruby
-Rails.application.config.filter_redirect += ['s3.amazonaws.com', /private-match/]
+Rails.application.config.filter_redirect += ["s3.amazonaws.com", /private-match/]
 ```
 
 The redirect filter works by testing that urls include strings or match regular
@@ -774,7 +774,7 @@ You can exclude certain requests from Host Authorization checks by setting
 ```ruby
 # Exclude requests for the /healthcheck/ path from host checking
 Rails.application.config.host_authorization = {
-  exclude: ->(request) { request.path.include?('healthcheck') }
+  exclude: ->(request) { request.path.include?("healthcheck") }
 }
 ```
 
@@ -2036,32 +2036,32 @@ Configures what exceptions are assigned to an HTTP status. It accepts a hash and
 
 ```ruby
 # It's good to use #[]= or #merge! to respect the default values
-config.action_dispatch.rescue_responses['MyAuthenticationError'] = :unauthorized
+config.action_dispatch.rescue_responses["MyAuthenticationError"] = :unauthorized
 ```
 
 Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configuration. By default, it is defined as:
 
 ```ruby
 {
-  'ActionController::RoutingError' => :not_found,
-  'AbstractController::ActionNotFound' => :not_found,
-  'ActionController::MethodNotAllowed' => :method_not_allowed,
-  'ActionController::UnknownHttpMethod' => :method_not_allowed,
-  'ActionController::NotImplemented' => :not_implemented,
-  'ActionController::UnknownFormat' => :not_acceptable,
-  'ActionDispatch::Http::MimeNegotiation::InvalidType' => :not_acceptable,
-  'ActionController::MissingExactTemplate' => :not_acceptable,
-  'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
-  'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
-  'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
-  'ActionController::BadRequest' => :bad_request,
-  'ActionController::ParameterMissing' => :bad_request,
-  'Rack::QueryParser::ParameterTypeError' => :bad_request,
-  'Rack::QueryParser::InvalidParameterError' => :bad_request,
-  'ActiveRecord::RecordNotFound' => :not_found,
-  'ActiveRecord::StaleObjectError' => :conflict,
-  'ActiveRecord::RecordInvalid' => :unprocessable_entity,
-  'ActiveRecord::RecordNotSaved' => :unprocessable_entity
+  "ActionController::RoutingError" => :not_found,
+  "AbstractController::ActionNotFound" => :not_found,
+  "ActionController::MethodNotAllowed" => :method_not_allowed,
+  "ActionController::UnknownHttpMethod" => :method_not_allowed,
+  "ActionController::NotImplemented" => :not_implemented,
+  "ActionController::UnknownFormat" => :not_acceptable,
+  "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
+  "ActionController::MissingExactTemplate" => :not_acceptable,
+  "ActionController::InvalidAuthenticityToken" => :unprocessable_entity,
+  "ActionController::InvalidCrossOriginRequest" => :unprocessable_entity,
+  "ActionDispatch::Http::Parameters::ParseError" => :bad_request,
+  "ActionController::BadRequest" => :bad_request,
+  "ActionController::ParameterMissing" => :bad_request,
+  "Rack::QueryParser::ParameterTypeError" => :bad_request,
+  "Rack::QueryParser::InvalidParameterError" => :bad_request,
+  "ActiveRecord::RecordNotFound" => :not_found,
+  "ActiveRecord::StaleObjectError" => :conflict,
+  "ActiveRecord::RecordInvalid" => :unprocessable_entity,
+  "ActiveRecord::RecordNotSaved" => :unprocessable_entity
 }
 ```
 
@@ -2829,8 +2829,8 @@ The following configuration would queue the provided job on the `video_server.lo
 
 ```ruby
 # prefix must be set for delimiter to be used
-config.active_job.queue_name_prefix = 'video_server'
-config.active_job.queue_name_delimiter = '.'
+config.active_job.queue_name_prefix = "video_server"
+config.active_job.queue_name_delimiter = "."
 ```
 
 ```ruby
@@ -2953,7 +2953,7 @@ Accepts a hash of options indicating the locations of previewer/analyzer command
 * `:ffmpeg` - The location of the ffmpeg executable.
 
 ```ruby
-config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
+config.active_storage.paths[:ffprobe] = "/usr/local/bin/ffprobe"
 ```
 
 #### `config.active_storage.variable_content_types`
@@ -3081,7 +3081,7 @@ Directs ActiveStorage::Attachments to touch its corresponding record when update
 Can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
 
 ```ruby
-config.active_storage.routes_prefix = '/files'
+config.active_storage.routes_prefix = "/files"
 ```
 
 The default is `/rails/active_storage`.
@@ -3178,7 +3178,7 @@ development:
 This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
-ENV['DATABASE_URL'] # => "postgresql://localhost/blog_development?pool=5"
+ENV["DATABASE_URL"] # => "postgresql://localhost/blog_development?pool=5"
 ```
 
 The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
@@ -3982,7 +3982,7 @@ end
 ```
 
 ```ruby
-Rails.configuration.payment['merchant_id'] # => production_merchant_id or development_merchant_id
+Rails.configuration.payment["merchant_id"] # => production_merchant_id or development_merchant_id
 ```
 
 `Rails::Application.config_for` supports a `shared` configuration to group common

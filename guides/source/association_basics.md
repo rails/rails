@@ -1796,7 +1796,7 @@ Repeat the same process for `Motorcycle` and `Bicycle`.
 Creating a record for `Car`:
 
 ```ruby
-Car.create(color: 'Red', price: 10000)
+Car.create(color: "Red", price: 10000)
 ```
 
 This will generate the following SQL:
@@ -1827,7 +1827,7 @@ adding a method to the `Car` model:
 ```ruby
 class Car < Vehicle
   def honk
-    'Beep Beep'
+    "Beep Beep"
   end
 end
 ```
@@ -2470,7 +2470,7 @@ class Author < ApplicationRecord
 end
 
 class Book < ApplicationRecord
-  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+  belongs_to :writer, class_name: "Author", foreign_key: "author_id"
 end
 ```
 
@@ -2528,11 +2528,11 @@ using the `:inverse_of` option:
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, inverse_of: 'writer'
+  has_many :books, inverse_of: "writer"
 end
 
 class Book < ApplicationRecord
-  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+  belongs_to :writer, class_name: "Author", foreign_key: "author_id"
 end
 ```
 
@@ -2663,11 +2663,11 @@ For example, if the `users` table uses `guid` as the primary key instead of
 
 ```ruby
 class User < ApplicationRecord
-  self.primary_key = 'guid' # Sets the primary key to guid instead of id
+  self.primary_key = "guid" # Sets the primary key to guid instead of id
 end
 
 class Todo < ApplicationRecord
-  belongs_to :user, primary_key: 'guid' # References the guid column in users table
+  belongs_to :user, primary_key: "guid" # References the guid column in users table
 end
 ```
 
@@ -2830,7 +2830,7 @@ You can also set conditions via a hash:
 ```ruby
 class Parts < ApplicationRecord
   has_and_belongs_to_many :assemblies,
-    -> { where factory: 'Seattle' }
+    -> { where factory: "Seattle" }
 end
 ```
 
@@ -2931,7 +2931,7 @@ also set the `:foreign_key` option to guarantee correct results. For example:
 
 ```ruby
 class Book < ApplicationRecord
-  belongs_to :author, -> { select(:id, :name) }, foreign_key: 'author_id' # Only select id and name columns
+  belongs_to :author, -> { select(:id, :name) }, foreign_key: "author_id" # Only select id and name columns
 end
 
 class Author < ApplicationRecord

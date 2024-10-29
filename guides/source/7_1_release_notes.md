@@ -213,7 +213,7 @@ development:
 Alternatively, integration can be achieved using the `DATABASE_URL` environment variable:
 
 ```ruby
-ENV['DATABASE_URL'] # => "trilogy://localhost/blog_development?pool=5"
+ENV["DATABASE_URL"] # => "trilogy://localhost/blog_development?pool=5"
 ```
 
 ### Add `ActiveSupport::MessagePack`
