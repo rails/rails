@@ -147,12 +147,12 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: false))
     end
 
-    mw = middleware { |env|
-      ActiveRecord::Base.connection_handler.connection_pool_list(:reading).each do |pool|
-        assert_not_predicate pool.lease_connection, :query_cache_enabled
-        assert_nil pool.query_cache.instance_variable_get(:@max_size)
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :off
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
       end
-    }
+    end
 
     mw.call({})
   ensure
@@ -165,12 +165,12 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: "unlimited"))
     end
 
-    mw = middleware { |env|
-      ActiveRecord::Base.connection_handler.connection_pool_list(:reading).each do |pool|
-        assert_predicate pool.lease_connection, :query_cache_enabled
-        assert_nil pool.query_cache.instance_variable_get(:@max_size)
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
       end
-    }
+    end
 
     mw.call({})
   ensure
@@ -183,12 +183,12 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: 42))
     end
 
-    mw = middleware { |env|
-      ActiveRecord::Base.connection_handler.connection_pool_list(:reading).each do |pool|
-        assert_predicate pool.lease_connection, :query_cache_enabled
-        assert_equal 42, pool.query_cache.instance_variable_get(:@max_size)
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal 42, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
       end
-    }
+    end
 
     mw.call({})
   ensure
@@ -201,18 +201,17 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: nil))
     end
 
-    mw = middleware { |env|
-      ActiveRecord::Base.connection_handler.connection_pool_list(:reading).each do |pool|
-        assert_predicate pool.lease_connection, :query_cache_enabled
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal ActiveRecord::ConnectionAdapters::QueryCache::DEFAULT_SIZE, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
       end
-    }
+    end
 
     mw.call({})
   ensure
     clean_up_connection_handler
   end
-
-
 
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_query_cache_with_forked_processes
