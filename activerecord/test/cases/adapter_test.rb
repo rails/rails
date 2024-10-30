@@ -243,9 +243,10 @@ module ActiveRecord
     end
 
     def test_exceptions_from_notifications_are_not_translated
-      original_error = StandardError.new("This StandardError shouldn't get translated")
+      original_error_class = Class.new(StandardError)
+      original_error = original_error_class.new("This error shouldn't get translated")
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { raise original_error }
-      actual_error = assert_raises(StandardError) do
+      actual_error = assert_raises(original_error_class) do
         @connection.execute("SELECT * FROM posts")
       end
       assert_equal original_error, actual_error
@@ -337,6 +338,51 @@ module ActiveRecord
       output = @connection.inspect
 
       assert_match(/ActiveRecord::ConnectionAdapters::\w+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
+    end
+
+    def test_correct_transaction_notification_order
+      delegate = Object.new
+
+      delegate.instance_exec do
+        def events
+          @events ||= []
+        end
+
+        def start(_name, _id, payload)
+          events << [:start, normalize_sql(payload[:sql])]
+        end
+
+        def finish(_name, _id, payload)
+          events << [:finish, normalize_sql(payload[:sql])]
+        end
+
+        def publish(*); end
+
+        def publish_event(*); end
+
+        def normalize_sql(sql)
+          sql
+            .sub(/SAVEPOINT.*/, "SAVEPOINT")
+            .sub(/INSERT INTO.*/, "INSERT INTO")
+        end
+      end
+
+      expected_events = [
+        [:start, "SAVEPOINT"],
+        [:finish, "SAVEPOINT"],
+        [:start, "INSERT INTO"],
+        [:finish, "INSERT INTO"],
+        [:start, "RELEASE SAVEPOINT"],
+        [:finish, "RELEASE SAVEPOINT"]
+      ]
+
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record", delegate)
+
+      Post.create!(title: "foo", body: "bar")
+
+      assert_equal(subscriber.delegate.events, expected_events)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
     end
   end
 

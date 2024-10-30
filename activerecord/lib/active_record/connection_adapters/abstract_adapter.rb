@@ -1125,21 +1125,30 @@ module ActiveRecord
           active_record_error
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block) # :doc:
-          @instrumenter.instrument(
-            "sql.active_record",
-            sql:               sql,
-            name:              name,
-            binds:             binds,
-            type_casted_binds: type_casted_binds,
-            async:             async,
-            connection:        self,
-            transaction:       current_transaction.user_transaction.presence,
-            row_count:         0,
-            &block
-          )
-        rescue ActiveRecord::StatementInvalid => ex
-          raise ex.set_query(sql, binds)
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false) # :doc:
+          raise(catch(:inner_exception) do
+            return(catch(:result) do
+              @instrumenter.instrument(
+                "sql.active_record",
+                sql:               sql,
+                name:              name,
+                binds:             binds,
+                type_casted_binds: type_casted_binds,
+                async:             async,
+                connection:        self,
+                transaction:       current_transaction.user_transaction.presence,
+                row_count:         0
+              ) do |payload|
+                yield payload
+              rescue => e
+                # re-raise exceptions arising from the block unchanged
+                throw(:inner_exception, e)
+              end.yield_self { |result| throw(:result, result) }
+            end)
+          rescue => e
+            # wrap exceptions from the instrumentation
+            raise ActiveRecord::InstrumenterError.new(e)
+          end)
         end
 
         def translate_exception(exception, message:, sql:, binds:)
@@ -1147,6 +1156,8 @@ module ActiveRecord
           case exception
           when RuntimeError, ActiveRecord::ActiveRecordError
             exception
+          when ActiveRecord::InstrumenterError
+            exception.cause
           else
             ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds, connection_pool: @pool)
           end

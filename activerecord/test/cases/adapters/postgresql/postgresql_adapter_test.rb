@@ -469,9 +469,11 @@ module ActiveRecord
       end
 
       def test_raise_error_when_cannot_translate_exception
-        assert_raise TypeError do
+        error = assert_raise ActiveRecord::StatementInvalid do
           @connection.send(:log, nil) { @connection.execute(nil) }
         end
+
+        assert(error.cause.is_a?(TypeError))
       end
 
       def test_translate_no_connection_exception_to_not_established
