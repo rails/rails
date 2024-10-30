@@ -30,7 +30,7 @@ module Rails
                     desc: "Include configuration for Kamal"
 
       class_option :skip_solid, type: :boolean, default: nil,
-                    desc: "Skip Solid Cache & Queue setup"
+                    desc: "Skip Solid Cache, Queue, and Cable setup"
 
       source_paths << File.expand_path(File.join(base_name, "app", "templates"), base_root)
 
