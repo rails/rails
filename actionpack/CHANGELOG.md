@@ -1,3 +1,5 @@
+## Rails 8.0.0.rc2 (October 30, 2024) ##
+
 *   Fix routes with `::` in the path.
 
     *Rafael Mendonça França*

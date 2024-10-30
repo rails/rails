@@ -1,3 +1,5 @@
+## Rails 8.0.0.rc2 (October 30, 2024) ##
+
 *   NULLS NOT DISTINCT works with UNIQUE CONSTRAINT as well as UNIQUE INDEX.
 
     *Ryuta Kamizono*
