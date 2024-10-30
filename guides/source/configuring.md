@@ -399,7 +399,21 @@ end
 
 #### `config.file_watcher`
 
-Is the class used to detect file updates in the file system when `config.reload_classes_only_on_change` is `true`. Rails ships with `ActiveSupport::FileUpdateChecker`, the default, and `ActiveSupport::EventedFileUpdateChecker` (this one depends on the [listen](https://github.com/guard/listen) gem). Custom classes must conform to the `ActiveSupport::FileUpdateChecker` API.
+Is the class used to detect file updates in the file system when `config.reload_classes_only_on_change` is `true`. Rails ships with `ActiveSupport::FileUpdateChecker`, the default, and `ActiveSupport::EventedFileUpdateChecker`. Custom classes must conform to the `ActiveSupport::FileUpdateChecker` API.
+
+Using `ActiveSupport::EventedFileUpdateChecker` depends on the [listen](https://github.com/guard/listen) gem:
+
+```ruby
+group :development do
+  gem "listen", "~> 3.5"
+end
+```
+
+On Linux and macOS no additional gems are needed, but some are required
+[for *BSD](https://github.com/guard/listen#on-bsd) and
+[for Windows](https://github.com/guard/listen#on-windows).
+
+Note that [some setups are unsupported](https://github.com/guard/listen#issues--limitations).
 
 #### `config.filter_parameters`
 
@@ -4034,24 +4048,3 @@ Disallow: /
 
 To block just specific pages, it's necessary to use a more complex syntax. Learn
 it on the [official documentation](https://www.robotstxt.org/robotstxt.html).
-
-Evented File System Monitor
----------------------------
-
-If the [listen gem](https://github.com/guard/listen) is loaded Rails uses an
-evented file system monitor to detect changes when reloading is enabled:
-
-```ruby
-group :development do
-  gem "listen", "~> 3.5"
-end
-```
-
-Otherwise, in every request Rails walks the application tree to check if
-anything has changed.
-
-On Linux and macOS no additional gems are needed, but some are required
-[for *BSD](https://github.com/guard/listen#on-bsd) and
-[for Windows](https://github.com/guard/listen#on-windows).
-
-Note that [some setups are unsupported](https://github.com/guard/listen#issues--limitations).
