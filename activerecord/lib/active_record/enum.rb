@@ -213,34 +213,16 @@ module ActiveRecord
         attr_reader :name, :mapping
     end
 
-    def enum(name = nil, values = nil, **options)
-      if name
-        values, options = options, {} unless values
-        return _enum(name, values, **options)
-      end
-
-      definitions = options.slice!(:_prefix, :_suffix, :_scopes, :_default, :_instance_methods)
-      options.transform_keys! { |key| :"#{key[1..-1]}" }
-
-      definitions.each { |name, values| _enum(name, values, **options) }
-
-      ActiveRecord.deprecator.warn(<<~MSG)
-        Defining enums with keyword arguments is deprecated and will be removed
-        in Rails 8.0. Positional arguments should be used instead:
-
-        #{definitions.map { |name, values| "enum :#{name}, #{values}" }.join("\n")}
-      MSG
+    def enum(name, values = nil, **options)
+      values, options = options, {} unless values
+      _enum(name, values, **options)
     end
 
     private
-      def inherited(base)
-        base.defined_enums = defined_enums.deep_dup
-        super
-      end
-
       def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
         assert_valid_enum_definition_values(values)
         assert_valid_enum_options(options)
+
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name = name.to_s
@@ -302,6 +284,11 @@ module ActiveRecord
         end
 
         enum_values.freeze
+      end
+
+      def inherited(base)
+        base.defined_enums = defined_enums.deep_dup
+        super
       end
 
       class EnumMethods < Module # :nodoc:

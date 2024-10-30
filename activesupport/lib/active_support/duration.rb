@@ -491,17 +491,21 @@ module ActiveSupport
         if @parts.empty?
           time.since(sign * value)
         else
-          @parts.inject(time) do |t, (type, number)|
-            if type == :seconds
-              t.since(sign * number)
-            elsif type == :minutes
-              t.since(sign * number * 60)
-            elsif type == :hours
-              t.since(sign * number * 3600)
-            else
-              t.advance(type => sign * number)
-            end
+          @parts.each do |type, number|
+            t = time
+            time =
+              if type == :seconds
+                t.since(sign * number)
+              elsif type == :minutes
+                t.since(sign * number * 60)
+              elsif type == :hours
+                t.since(sign * number * 3600)
+              else
+                t.advance(type => sign * number)
+              end
           end
+
+          time
         end
       end
 

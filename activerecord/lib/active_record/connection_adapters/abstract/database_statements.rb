@@ -110,8 +110,8 @@ module ActiveRecord
         query(...).map(&:first)
       end
 
-      def query(...) # :nodoc:
-        internal_exec_query(...).rows
+      def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+        internal_exec_query(sql, name, allow_retry:, materialize_transactions:).rows
       end
 
       # Determines whether the SQL statement is a write query.

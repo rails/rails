@@ -35,17 +35,16 @@ module ActiveRecord
     end
 
     def self.run
-      ActiveRecord::Base.connection_handler.each_connection_pool.reject(&:query_cache_enabled).each(&:enable_query_cache!)
+      ActiveRecord::Base.connection_handler.each_connection_pool.reject(&:query_cache_enabled).each do |pool|
+        next if pool.db_config&.query_cache == false
+        pool.enable_query_cache!
+      end
     end
 
     def self.complete(pools)
       pools.each do |pool|
         pool.disable_query_cache!
         pool.clear_query_cache
-      end
-
-      ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
-        pool.release_connection if pool.active_connection? && !pool.lease_connection.transaction_open?
       end
     end
 

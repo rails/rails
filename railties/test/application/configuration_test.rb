@@ -3,7 +3,6 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
-require "set"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -1552,7 +1551,7 @@ module ApplicationTests
       app "development"
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '#<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
+      assert_equal "#<ActionController::Parameters #{{ "title" => "foo" }} permitted: false>", last_response.body
     end
 
     test "config.action_controller.permit_all_parameters = true" do
@@ -3046,6 +3045,20 @@ module ApplicationTests
       assert_not ActiveJob.verbose_enqueue_logs
     end
 
+    test "config.active_job.enqueue_after_transaction_commit is deprecated" do
+      app_file "config/initializers/custom_serializers.rb", <<-RUBY
+      Rails.application.config.active_job.enqueue_after_transaction_commit = :always
+      RUBY
+
+      app "production"
+
+      assert_nothing_raised do
+        ActiveRecord::Base
+      end
+
+      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
     test "active record job queue is set" do
       app "development"
 
@@ -4423,17 +4436,6 @@ module ApplicationTests
       ActiveRecord::Base.configurations = original_configurations
     end
 
-    test "raises an error if legacy_connection_handling is set" do
-      build_app(initializers: true)
-      add_to_env_config "production", "config.active_record.legacy_connection_handling = true"
-
-      error = assert_raise(ArgumentError) do
-        app "production"
-      end
-
-      assert_match(/The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1, but is still defined in your configuration. Please remove this call as it no longer has any effect./, error.message)
-    end
-
     test "raise_on_missing_translations = true" do
       add_to_config "config.i18n.raise_on_missing_translations = true"
       app "development"
@@ -4811,6 +4813,17 @@ module ApplicationTests
       assert_equal :test, Rails.application.config.active_job.queue_adapter
       adapter = ActiveJob::Base.queue_adapter
       assert_instance_of ActiveJob::QueueAdapters::TestAdapter, adapter
+    end
+
+    test "Regexp.timeout is set to 1s by default" do
+      app "development"
+      assert_equal 1, Regexp.timeout
+    end
+
+    test "Regexp.timeout can be configured" do
+      add_to_config "Regexp.timeout = 5"
+      app "development"
+      assert_equal 5, Regexp.timeout
     end
 
     private

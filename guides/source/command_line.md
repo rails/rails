@@ -182,7 +182,7 @@ With no further work, `bin/rails server` will run our new shiny Rails app:
 $ cd my_app
 $ bin/rails server
 => Booting Puma
-=> Rails 8.0.0 application starting in development
+=> Rails 8.1.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
@@ -414,7 +414,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 8.0.0)
+Loading development environment in sandbox (Rails 8.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -478,6 +478,22 @@ You can even execute ruby code written in a file with runner.
 $ bin/rails runner lib/code_to_be_run.rb
 ```
 
+By default, `rails runner` scripts are automatically wrapped with the Rails Executor, which helps report uncaught exceptions for tasks like cron jobs.
+
+Therefore, executing `rails runner lib/long_running_scripts.rb` is functionally equivalent to the following:
+
+```ruby
+Rails.application.executor.wrap do
+  # executes code inside lib/long_running_scripts.rb
+end
+```
+
+You can opt out of this behaviour by using the `--skip-executor` option.
+
+```bash
+$ bin/rails runner --skip-executor lib/long_running_script.rb
+```
+
 ### `bin/rails destroy`
 
 Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
@@ -511,7 +527,7 @@ $ bin/rails destroy model Oops
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             8.0.0
+Rails version             8.1.0
 Ruby version              3.2.0 (x86_64-linux)
 RubyGems version          3.3.7
 Rack version              3.0.8

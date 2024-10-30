@@ -1228,7 +1228,7 @@ module ActionView
     class FormBuilder
       # Wraps ActionView::Helpers::DateHelper#date_select for form builders:
       #
-      #   <%= form_for @person do |f| %>
+      #   <%= form_with model: @person do |f| %>
       #     <%= f.date_select :birth_date %>
       #     <%= f.submit %>
       #   <% end %>
@@ -1240,7 +1240,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::DateHelper#time_select for form builders:
       #
-      #   <%= form_for @race do |f| %>
+      #   <%= form_with model: @race do |f| %>
       #     <%= f.time_select :average_lap %>
       #     <%= f.submit %>
       #   <% end %>
@@ -1252,7 +1252,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::DateHelper#datetime_select for form builders:
       #
-      #   <%= form_for @person do |f| %>
+      #   <%= form_with model: @person do |f| %>
       #     <%= f.datetime_select :last_request_at %>
       #     <%= f.submit %>
       #   <% end %>

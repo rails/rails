@@ -1028,10 +1028,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_ruby_version
     run_generator
 
-    ruby_version = "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"
-
     assert_file "Dockerfile" do |content|
-      assert_match(/ARG RUBY_VERSION=#{ruby_version}/, content)
+      assert_match(/ARG RUBY_VERSION=#{Gem.ruby_version}/, content)
     end
     assert_file ".ruby-version" do |content|
       if ENV["RBENV_VERSION"]
@@ -1257,10 +1255,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_devcontainer_json_file do |content|
       assert_equal "my_app", content["name"]
       assert_equal "45678", content["containerEnv"]["CAPYBARA_SERVER_PORT"]
+      assert_equal "$KAMAL_REGISTRY_PASSWORD", content["containerEnv"]["KAMAL_REGISTRY_PASSWORD"]
       assert_equal "selenium", content["containerEnv"]["SELENIUM_HOST"]
       assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/activestorage"
       assert_includes content["features"].keys, "ghcr.io/devcontainers/features/github-cli:1"
       assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite3"
+      assert_includes content["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
       assert_includes(content["forwardPorts"], 3000)
     end
     assert_file(".devcontainer/Dockerfile") do |content|
@@ -1293,6 +1293,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
       }
 
       assert_equal expected_selenium_conifg, compose_config["services"]["selenium"]
+    end
+  end
+
+  def test_devcontainer_skip_kamal
+    run_generator [destination_root, "--devcontainer", "--name=my-app", "--skip-kamal"]
+
+    assert_devcontainer_json_file do |devcontainer_json|
+      assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+      assert_not_includes devcontainer_json["containerEnv"].keys, "KAMAL_REGISTRY_PASSWORD"
     end
   end
 
@@ -1359,6 +1368,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV\["DB_HOST"\] %>/, content)
+    end
+  end
+
+  def test_devcontainer_postgresql_skip_solid
+    # Regression test for #53482
+    run_generator [ destination_root, "--devcontainer", "-d", "postgresql", "--skip-solid"]
+
+    assert_file("config/database.yml") do |content|
+      assert_no_match("db/queue_migrate", content)
+      assert_no_match("db/cache_migrate", content)
+      assert_no_match("db/cable_migrate", content)
     end
   end
 
@@ -1483,7 +1503,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_not_includes compose_config["services"].keys, "selenium"
     end
     assert_devcontainer_json_file do |content|
-      assert_nil content["containerEnv"]
+      assert_not_includes content["containerEnv"].keys, "SELENIUM_HOST"
+      assert_not_includes content["containerEnv"].keys, "CAPYBARA_SERVER_PORT"
     end
   end
 

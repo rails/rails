@@ -2,8 +2,6 @@
 
 # :markup: markdown
 
-require "set"
-
 module ActionController
   # See Renderers.add
   def self.add_renderer(key, &block)

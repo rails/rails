@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
-require "set"
 require "active_support/core_ext/object/try"
 
 module ActiveSupport

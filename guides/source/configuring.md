@@ -35,7 +35,7 @@ In general, the work of configuring Rails means configuring the components of Ra
 For example, you could add this setting to `config/application.rb` file:
 
 ```ruby
-config.time_zone = 'Central Time (US & Canada)'
+config.time_zone = "Central Time (US & Canada)"
 ```
 
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same `config` object in `config/application.rb`:
@@ -58,14 +58,16 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
 
+#### Default Values for Target Version 8.1
+
 #### Default Values for Target Version 8.0
 
+- [`Regexp.timeout`](#regexp-timeout): `1`
 - [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
 - [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:zone`
 
 #### Default Values for Target Version 7.2
 
-- [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `:default`
 - [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
@@ -188,7 +190,7 @@ Takes a block which will be run _after_ Rails has finished initializing the appl
 
 ```ruby
 config.after_initialize do
-  ActionView::Base.sanitized_allowed_tags.delete 'div'
+  ActionView::Base.sanitized_allowed_tags.delete "div"
 end
 ```
 
@@ -420,7 +422,7 @@ Parameters filter works by partial matching regular expression.
 Used for filtering out redirect urls from application logs.
 
 ```ruby
-Rails.application.config.filter_redirect += ['s3.amazonaws.com', /private-match/]
+Rails.application.config.filter_redirect += ["s3.amazonaws.com", /private-match/]
 ```
 
 The redirect filter works by testing that urls include strings or match regular
@@ -523,14 +525,6 @@ config.railties_order = [Blog::Engine, :main_app, :all]
 #### `config.rake_eager_load`
 
 When `true`, eager load the application when running Rake tasks. Defaults to `false`.
-
-#### `config.read_encrypted_secrets`
-
-*DEPRECATED*: You should be using
-[credentials](https://guides.rubyonrails.org/security.html#custom-credentials)
-instead of encrypted secrets.
-
-When `true`, will try to read encrypted secrets from `config/secrets.yml.enc`
 
 #### `config.relative_url_root`
 
@@ -783,7 +777,7 @@ You can exclude certain requests from Host Authorization checks by setting
 ```ruby
 # Exclude requests for the /healthcheck/ path from host checking
 Rails.application.config.host_authorization = {
-  exclude: ->(request) { request.path.include?('healthcheck') }
+  exclude: ->(request) { request.path.include?("healthcheck") }
 }
 ```
 
@@ -1303,12 +1297,6 @@ default. Defaults to `false`.
 Sets the mode in which strict loading is reported. Defaults to `:all`. It can be
 changed to `:n_plus_one_only` to only report when loading associations that will
 lead to an N + 1 query.
-
-#### `config.active_record.warn_on_records_fetched_greater_than`
-
-Allows setting a warning threshold for query result size. If the number of
-records returned by a query exceeds the threshold, a warning is logged. This
-can be used to identify queries which might be causing a memory bloat.
 
 #### `config.active_record.index_nested_attribute_errors`
 
@@ -2051,32 +2039,32 @@ Configures what exceptions are assigned to an HTTP status. It accepts a hash and
 
 ```ruby
 # It's good to use #[]= or #merge! to respect the default values
-config.action_dispatch.rescue_responses['MyAuthenticationError'] = :unauthorized
+config.action_dispatch.rescue_responses["MyAuthenticationError"] = :unauthorized
 ```
 
 Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configuration. By default, it is defined as:
 
 ```ruby
 {
-  'ActionController::RoutingError' => :not_found,
-  'AbstractController::ActionNotFound' => :not_found,
-  'ActionController::MethodNotAllowed' => :method_not_allowed,
-  'ActionController::UnknownHttpMethod' => :method_not_allowed,
-  'ActionController::NotImplemented' => :not_implemented,
-  'ActionController::UnknownFormat' => :not_acceptable,
-  'ActionDispatch::Http::MimeNegotiation::InvalidType' => :not_acceptable,
-  'ActionController::MissingExactTemplate' => :not_acceptable,
-  'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
-  'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
-  'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
-  'ActionController::BadRequest' => :bad_request,
-  'ActionController::ParameterMissing' => :bad_request,
-  'Rack::QueryParser::ParameterTypeError' => :bad_request,
-  'Rack::QueryParser::InvalidParameterError' => :bad_request,
-  'ActiveRecord::RecordNotFound' => :not_found,
-  'ActiveRecord::StaleObjectError' => :conflict,
-  'ActiveRecord::RecordInvalid' => :unprocessable_entity,
-  'ActiveRecord::RecordNotSaved' => :unprocessable_entity
+  "ActionController::RoutingError" => :not_found,
+  "AbstractController::ActionNotFound" => :not_found,
+  "ActionController::MethodNotAllowed" => :method_not_allowed,
+  "ActionController::UnknownHttpMethod" => :method_not_allowed,
+  "ActionController::NotImplemented" => :not_implemented,
+  "ActionController::UnknownFormat" => :not_acceptable,
+  "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
+  "ActionController::MissingExactTemplate" => :not_acceptable,
+  "ActionController::InvalidAuthenticityToken" => :unprocessable_entity,
+  "ActionController::InvalidCrossOriginRequest" => :unprocessable_entity,
+  "ActionDispatch::Http::Parameters::ParseError" => :bad_request,
+  "ActionController::BadRequest" => :bad_request,
+  "ActionController::ParameterMissing" => :bad_request,
+  "Rack::QueryParser::ParameterTypeError" => :bad_request,
+  "Rack::QueryParser::InvalidParameterError" => :bad_request,
+  "ActiveRecord::RecordNotFound" => :not_found,
+  "ActiveRecord::StaleObjectError" => :conflict,
+  "ActiveRecord::RecordInvalid" => :unprocessable_entity,
+  "ActiveRecord::RecordNotSaved" => :unprocessable_entity
 }
 ```
 
@@ -2125,9 +2113,9 @@ The `config.action_dispatch.show_exceptions` configuration controls how Action P
 
 Setting the value to `:all` configures Action Pack to rescue from exceptions and render corresponding error pages. For example, Action Pack would rescue from an `ActiveRecord::RecordNotFound` exception and render the contents of `public/404.html` with a `404 Not found` status code.
 
-Setting the value to `:rescuable` configures Action Pack rescue from exceptions defined in [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses), and raise all others. For example, Action Pack would rescue from `ActiveRecord::RecordNotFound`, but would raise a `NoMethodError`.
+Setting the value to `:rescuable` configures Action Pack to rescue from exceptions defined in [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses), and raise all others. For example, Action Pack would rescue from `ActiveRecord::RecordNotFound`, but would raise a `NoMethodError`.
 
-Setting the value to `:none` configures Action Pack raise all exceptions.
+Setting the value to `:none` configures Action Pack to raise all exceptions.
 
 * `:all` - render error pages for all exceptions
 * `:rescuable` - render error pages for exceptions declared by [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses)
@@ -2844,8 +2832,8 @@ The following configuration would queue the provided job on the `video_server.lo
 
 ```ruby
 # prefix must be set for delimiter to be used
-config.active_job.queue_name_prefix = 'video_server'
-config.active_job.queue_name_delimiter = '.'
+config.active_job.queue_name_prefix = "video_server"
+config.active_job.queue_name_delimiter = "."
 ```
 
 ```ruby
@@ -2854,51 +2842,6 @@ class EncoderJob < ActiveJob::Base
   #....
 end
 ```
-
-#### `config.active_job.enqueue_after_transaction_commit`
-
-Controls whether Active Job's `#perform_later` and similar methods automatically defer
-the job queuing to after the current Active Record transaction is committed.
-
-It can be set to:
-
-* `:never` - Never defer the enqueue.
-* `:always` - Always defer the enqueue.
-* `:default` - Let the queue adapter define the behaviour.
-
-Each Active Job backend defines its own default behaviour for this, with some adapters preventing the deferring and others allowing it, so make sure to check that as well if you're opting for `:default`.
-
-Example:
-
-```ruby
-Topic.transaction do
-  topic = Topic.create(title: "New Topic")
-  NewTopicNotificationJob.perform_later(topic)
-end
-```
-
-In this example, if the configuration is set to `:never`, the job will
-be enqueued immediately, even though the `Topic` hasn't been committed yet.
-Because of this, if the job is picked up almost immediately, or if the
-transaction doesn't succeed for some reason, the job will fail to find this
-topic in the database.
-
-If it's set to `:always`, the job will be actually enqueued after the
-transaction has been committed. If the transaction is rolled back, the job
-won't be enqueued at all.
-
-This configuration can additionally be set on a per job class basis:
-
-```ruby
-class SomeJob < ApplicationJob
-  self.enqueue_after_transaction_commit = :never
-end
-```
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `:never`             |
-| 7.2                   | `:default`           |
 
 #### `config.active_job.logger`
 
@@ -2954,6 +2897,19 @@ You can find more detailed configuration options in the
 Determines whether the Action Cable assets should be added to the asset pipeline precompilation. It
 has no effect if Sprockets is not used. The default value is `true`.
 
+#### `config.action_cable.allow_same_origin_as_host`
+
+Determines whether an origin matching the cable server itself will be permitted.
+The default value is `true`.
+
+Set to false to disable automatic access for same-origin requests, and strictly allow
+only the configured origins.
+
+#### `config.action_cable.allowed_request_origins`
+
+Determines the request origins which will be accepted but the cable server.
+The default value is `/https?:\/\/localhost:\d+/` in the `development` environment.
+
 ### Configuring Active Storage
 
 `config.active_storage` provides the following configuration options:
@@ -3000,7 +2956,7 @@ Accepts a hash of options indicating the locations of previewer/analyzer command
 * `:ffmpeg` - The location of the ffmpeg executable.
 
 ```ruby
-config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
+config.active_storage.paths[:ffprobe] = "/usr/local/bin/ffprobe"
 ```
 
 #### `config.active_storage.variable_content_types`
@@ -3128,7 +3084,7 @@ Directs ActiveStorage::Attachments to touch its corresponding record when update
 Can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
 
 ```ruby
-config.active_storage.routes_prefix = '/files'
+config.active_storage.routes_prefix = "/files"
 ```
 
 The default is `/rails/active_storage`.
@@ -3209,6 +3165,11 @@ Configures the HTML sanitizer used by Action Text by setting `ActionText::Conten
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
 
+#### `Regexp.timeout`
+
+
+See Ruby's documentation for [`Regexp.timeout=`](https://docs.ruby-lang.org/en/3.3/Regexp.html#method-c-timeout-3D).
+
 ### Configuring a Database
 
 Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.
@@ -3225,7 +3186,7 @@ development:
 This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
-ENV['DATABASE_URL'] # => "postgresql://localhost/blog_development?pool=5"
+ENV["DATABASE_URL"] # => "postgresql://localhost/blog_development?pool=5"
 ```
 
 The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
@@ -3881,8 +3842,6 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_record.check_schema_cache_dump`: Loads the schema cache dump if configured and available.
 
-* `active_record.warn_on_records_fetched_greater_than`: Enables warnings when queries return large numbers of records.
-
 * `active_record.set_configs`: Sets up Active Record by using the settings in `config.active_record` by `send`'ing the method names as setters to `ActiveRecord::Base` and passing the values through.
 
 * `active_record.initialize_database`: Loads the database configuration (by default) from `config/database.yml` and establishes a connection for the current environment.
@@ -4031,7 +3990,7 @@ end
 ```
 
 ```ruby
-Rails.configuration.payment['merchant_id'] # => production_merchant_id or development_merchant_id
+Rails.configuration.payment["merchant_id"] # => production_merchant_id or development_merchant_id
 ```
 
 `Rails::Application.config_for` supports a `shared` configuration to group common

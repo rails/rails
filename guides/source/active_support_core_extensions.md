@@ -1540,7 +1540,7 @@ INFO: As a rule of thumb you can think of `camelize` as the inverse of `undersco
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.acronym 'SSL'
+  inflect.acronym "SSL"
 end
 
 "SSLError".underscore.camelize # => "SSLError"

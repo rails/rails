@@ -74,8 +74,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: allows quoted table and column names" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
-    quoted_title = Post.lease_connection.quote_table_name("posts.title")
-    ids = Post.order(quoted_title).pluck(:id)
+    ids = Post.order(quote_table_name("posts.title")).pluck(:id)
 
     assert_equal ids_expected, ids
   end
@@ -256,8 +255,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "pluck: allows quoted table and column names" do
     titles_expected = Post.pluck(Arel.sql("title"))
 
-    quoted_title = Post.lease_connection.quote_table_name("posts.title")
-    titles = Post.pluck(quoted_title)
+    titles = Post.pluck(quote_table_name("posts.title"))
 
     assert_equal titles_expected, titles
   end

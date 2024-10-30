@@ -11,7 +11,7 @@ gem "rake", ">= 13"
 gem "releaser", path: "tools/releaser"
 
 gem "sprockets-rails", ">= 2.0.0", require: false
-gem "propshaft", ">= 0.1.7"
+gem "propshaft", ">= 0.1.7", "!= 1.0.1"
 gem "capybara", ">= 3.39"
 gem "selenium-webdriver", ">= 4.20.0"
 
@@ -26,7 +26,7 @@ gem "dartsass-rails"
 gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
-gem "kamal", ">= 2.0.0.rc2", require: false
+gem "kamal", ">= 2.1.0", require: false
 gem "thruster", require: false
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
@@ -39,9 +39,6 @@ gem "terser", ">= 1.1.4", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0", "!=2.7.0"
-
-# Workaround until Ruby ships with cgi version 0.3.6 or higher.
-gem "cgi", ">= 0.3.6", require: false
 
 # Workaround until all supported Ruby versions ship with uri version 0.13.1 or higher.
 gem "uri", ">= 0.13.1", require: false
@@ -107,11 +104,9 @@ group :job do
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
-  gem "delayed_job", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
-  gem "delayed_job_active_record", require: false
 end
 
 # Action Cable

@@ -10,7 +10,6 @@ require "active_support/deep_mergeable"
 require "action_dispatch/http/upload"
 require "rack/test"
 require "stringio"
-require "set"
 require "yaml"
 
 module ActionController
@@ -96,6 +95,8 @@ module ActionController
   # *   `permit` to filter params for mass assignment.
   # *   `require` to require a parameter or raise an error.
   #
+  # Examples:
+  #
   #     params = ActionController::Parameters.new({
   #       person: {
   #         name: "Francesco",
@@ -110,7 +111,7 @@ module ActionController
   #     Person.first.update!(permitted)
   #     # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # Paramaters provides two options that control the top-level behavior of new
+  # Parameters provides two options that control the top-level behavior of new
   # instances:
   #
   # *   `permit_all_parameters` - If it's `true`, all the parameters will be
@@ -262,20 +263,6 @@ module ActionController
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
     class << self
-      def allow_deprecated_parameters_hash_equality
-        ActionController.deprecator.warn <<-WARNING.squish
-          `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality` is
-          deprecated and will be removed in Rails 8.0.
-        WARNING
-      end
-
-      def allow_deprecated_parameters_hash_equality=(value)
-        ActionController.deprecator.warn <<-WARNING.squish
-          `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`
-          is deprecated and will be removed in Rails 8.0.
-        WARNING
-      end
-
       def nested_attribute?(key, value) # :nodoc:
         /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
       end

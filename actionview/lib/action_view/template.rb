@@ -229,11 +229,21 @@ module ActionView
     end
 
     def spot(location) # :nodoc:
-      ast = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
       node_id = RubyVM::AbstractSyntaxTree.node_id_for_backtrace_location(location)
-      node = find_node_by_id(ast, node_id)
+      found =
+        if RubyVM::InstructionSequence.compile("").to_a[4][:parser] == :prism
+          require "prism"
 
-      ErrorHighlight.spot(node)
+          if Prism::VERSION >= "1.0.0"
+            result = Prism.parse(compiled_source).value
+            result.breadth_first_search { |node| node.node_id == node_id }
+          end
+        else
+          node = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
+          find_node_by_id(node, node_id)
+        end
+
+      ErrorHighlight.spot(found) if found
     end
 
     # Translate an error location returned by ErrorHighlight to the correct

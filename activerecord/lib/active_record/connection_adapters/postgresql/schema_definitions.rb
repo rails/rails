@@ -224,6 +224,10 @@ module ActiveRecord
           options[:using_index]
         end
 
+        def nulls_not_distinct
+          options[:nulls_not_distinct]
+        end
+
         def export_name_on_schema_dump?
           !ActiveRecord::SchemaDumper.unique_ignore_pattern.match?(name) if name
         end
@@ -317,7 +321,7 @@ module ActiveRecord
 
         # Adds a unique constraint.
         #
-        #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred)
+        #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred, nulls_not_distinct: true)
         #
         # See {connection.add_unique_constraint}[rdoc-ref:SchemaStatements#add_unique_constraint]
         def unique_constraint(*args)
@@ -356,15 +360,13 @@ module ActiveRecord
 
       # = Active Record PostgreSQL Adapter Alter \Table
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
-        attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops, :unique_constraint_adds, :unique_constraint_drops
+        attr_reader :constraint_validations, :exclusion_constraint_adds, :unique_constraint_adds
 
         def initialize(td)
           super
           @constraint_validations = []
           @exclusion_constraint_adds = []
-          @exclusion_constraint_drops = []
           @unique_constraint_adds = []
-          @unique_constraint_drops = []
         end
 
         def validate_constraint(name)
@@ -375,16 +377,8 @@ module ActiveRecord
           @exclusion_constraint_adds << @td.new_exclusion_constraint_definition(expression, options)
         end
 
-        def drop_exclusion_constraint(constraint_name)
-          @exclusion_constraint_drops << constraint_name
-        end
-
         def add_unique_constraint(column_name, options)
           @unique_constraint_adds << @td.new_unique_constraint_definition(column_name, options)
-        end
-
-        def drop_unique_constraint(unique_constraint_name)
-          @unique_constraint_drops << unique_constraint_name
         end
       end
     end
