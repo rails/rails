@@ -1,3 +1,7 @@
+*   Cast `query_cache` value when using URL configuration.
+
+    *zzak*
+
 *   NULLS NOT DISTINCT works with UNIQUE CONSTRAINT as well as UNIQUE INDEX.
 
     *Ryuta Kamizono*
