@@ -1107,7 +1107,7 @@ We will cover [custom validations](#performing-custom-validations) more later.
     https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with
 
 Validation Options
--------------------------
+------------------
 
 There are several common options supported by the validators. These options are:
 
