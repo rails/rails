@@ -112,7 +112,7 @@ module ActiveRecord
       #   Post.attributes_for_inspect = [:id, :title]
       #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!">"
       #
-      # When set to `:all` inspect will list all the record's attributes:
+      # When set to +:all+ inspect will list all the record's attributes:
       #
       #   Post.attributes_for_inspect = :all
       #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
