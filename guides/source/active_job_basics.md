@@ -119,7 +119,7 @@ GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```ruby
 # `perform_now` and `perform_later` will call `perform` under the hood so
 # you can pass as many arguments as defined in the latter.
-GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
+GuestsCleanupJob.perform_later(guest1, guest2, filter: "some_filter")
 ```
 
 That's it!
@@ -255,7 +255,7 @@ The default queue name prefix delimiter is '\_'.  This can be changed by setting
 module YourApp
   class Application < Rails::Application
     config.active_job.queue_name_prefix = Rails.env
-    config.active_job.queue_name_delimiter = '.'
+    config.active_job.queue_name_delimiter = "."
   end
 end
 ```

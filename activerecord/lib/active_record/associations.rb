@@ -559,7 +559,7 @@ module ActiveRecord
       #   @group.avatars << Avatar.new   # this would work if User belonged_to Avatar rather than the other way around
       #   @group.avatars.delete(@group.avatars.last)  # so would this
       #
-      # == Setting Inverses
+      # === Setting Inverses
       #
       # If you are using a #belongs_to on the join model, it is a good idea to set the
       # <tt>:inverse_of</tt> option on the #belongs_to, which will mean that the following example
@@ -1221,8 +1221,11 @@ module ActiveRecord
         #   If you are going to modify the association (rather than just read from it), then it is
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
-        #   the appropriate join model records when they are saved. (See the 'Association Join Models'
-        #   and 'Setting Inverses' sections above.)
+        #   the appropriate join model records when they are saved. See
+        #   {Association Join Models}[rdoc-ref:Associations::ClassMethods@Association+Join+Models]
+        #   and {Setting Inverses}[rdoc-ref:Associations::ClassMethods@Setting+Inverses] for
+        #   more detail.
+        #
         # [+:disable_joins+]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
@@ -1251,7 +1254,8 @@ module ActiveRecord
         # [+:inverse_of+]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_many association.
-        #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+        #   See {Bi-directional associations}[rdoc-ref:Associations::ClassMethods@Bi-directional+associations]
+        #   for more detail.
         # [+:extend+]
         #   Specifies a module or array of modules that will be extended into the association object returned.
         #   Useful for defining methods on associations, especially when they should be shared between multiple
@@ -1300,10 +1304,12 @@ module ActiveRecord
           Reflection.add_reflection self, name, reflection
         end
 
-        # Specifies a one-to-one association with another class. This method should only be used
-        # if the other class contains the foreign key. If the current class contains the foreign key,
-        # then you should use #belongs_to instead. See also ActiveRecord::Associations::ClassMethods's overview
-        # on when to use #has_one and when to use #belongs_to.
+        # Specifies a one-to-one association with another class. This method
+        # should only be used if the other class contains the foreign key. If
+        # the current class contains the foreign key, then you should use
+        # #belongs_to instead. See {Is it a belongs_to or has_one
+        # association?}[rdoc-ref:Associations::ClassMethods@Is+it+a+-23belongs_to+or+-23has_one+association-3F]
+        # for more detail on when to use #has_one and when to use #belongs_to.
         #
         # The following methods for retrieval and query of a single associated object will be added:
         #
@@ -1418,8 +1424,10 @@ module ActiveRecord
         #   If you are going to modify the association (rather than just read from it), then it is
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
-        #   the appropriate join model records when they are saved. (See the 'Association Join Models'
-        #   and 'Setting Inverses' sections above.)
+        #   the appropriate join model records when they are saved. See
+        #   {Association Join Models}[rdoc-ref:Associations::ClassMethods@Association+Join+Models]
+        #   and {Setting Inverses}[rdoc-ref:Associations::ClassMethods@Setting+Inverses] for
+        #   more detail.
         # [+:disable_joins+]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
@@ -1457,7 +1465,8 @@ module ActiveRecord
         # [+:inverse_of+]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_one association.
-        #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+        #   See {Bi-directional associations}[rdoc-ref:Associations::ClassMethods@Bi-directional+associations]
+        #   for more detail.
         # [+:required+]
         #   When set to +true+, the association will also have its presence validated.
         #   This will validate the association itself, not the id. You can use
@@ -1491,10 +1500,12 @@ module ActiveRecord
           Reflection.add_reflection self, name, reflection
         end
 
-        # Specifies a one-to-one association with another class. This method should only be used
-        # if this class contains the foreign key. If the other class contains the foreign key,
-        # then you should use #has_one instead. See also ActiveRecord::Associations::ClassMethods's overview
-        # on when to use #has_one and when to use #belongs_to.
+        # Specifies a one-to-one association with another class. This method
+        # should only be used if this class contains the foreign key. If the
+        # other class contains the foreign key, then you should use #has_one
+        # instead. See {Is it a belongs_to or has_one
+        # association?}[rdoc-ref:Associations::ClassMethods@Is+it+a+-23belongs_to+or+-23has_one+association-3F]
+        # for more detail on when to use #has_one and when to use #belongs_to.
         #
         # Methods will be added for retrieval and query for a single associated object, for which
         # this object holds an id:
@@ -1636,7 +1647,8 @@ module ActiveRecord
         # [+:inverse_of+]
         #   Specifies the name of the #has_one or #has_many association on the associated
         #   object that is the inverse of this #belongs_to association.
-        #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+        #   See {Bi-directional associations}[rdoc-ref:Associations::ClassMethods@Bi-directional+associations]
+        #   for more detail.
         # [+:optional+]
         #   When set to +true+, the association will not have its presence validated.
         # [+:required+]

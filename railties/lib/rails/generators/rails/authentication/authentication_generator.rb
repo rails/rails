@@ -19,6 +19,8 @@ module Rails
         template "app/controllers/concerns/authentication.rb"
         template "app/controllers/passwords_controller.rb"
 
+        template "app/channels/application_cable/connection.rb" if defined?(ActionCable::Engine)
+
         template "app/mailers/passwords_mailer.rb"
 
         template "app/views/passwords_mailer/reset.html.erb"

@@ -239,9 +239,18 @@ class Pathname # :nodoc:
   end
 end
 
-class IPAddr # :nodoc:
-  def as_json(options = nil)
-    to_s
+unless IPAddr.method_defined?(:as_json, false)
+  # Use `IPAddr#as_json` from the IPAddr gem if the version is 1.2.7 or higher.
+  class IPAddr # :nodoc:
+    def as_json(options = nil)
+      if ipv4? && prefix == 32
+        to_s
+      elsif ipv6? && prefix == 128
+        to_s
+      else
+        "#{self}/#{prefix}"
+      end
+    end
   end
 end
 

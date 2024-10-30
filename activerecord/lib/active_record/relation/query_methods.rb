@@ -498,7 +498,8 @@ module ActiveRecord
 
     # Like #with, but modifies relation in place.
     def with!(*args) # :nodoc:
-      self.with_values += args
+      args = process_with_args(args)
+      self.with_values |= args
       self
     end
 
@@ -521,7 +522,8 @@ module ActiveRecord
 
     # Like #with_recursive but modifies the relation in place.
     def with_recursive!(*args) # :nodoc:
-      self.with_values += args
+      args = process_with_args(args)
+      self.with_values |= args
       @with_is_recursive = true
       self
     end
@@ -574,7 +576,7 @@ module ActiveRecord
     end
 
     def group!(*args) # :nodoc:
-      self.group_values += args
+      self.group_values |= args
       self
     end
 
@@ -807,7 +809,7 @@ module ActiveRecord
     end
 
     def unscope!(*args) # :nodoc:
-      self.unscope_values += args
+      self.unscope_values |= args
 
       args.each do |scope|
         case scope
@@ -1463,7 +1465,7 @@ module ActiveRecord
       modules << Module.new(&block) if block
       modules.flatten!
 
-      self.extending_values += modules
+      self.extending_values |= modules
       extend(*extending_values) if extending_values.any?
 
       self
@@ -1531,7 +1533,7 @@ module ActiveRecord
 
     # Like #annotate, but modifies relation in place.
     def annotate!(*args) # :nodoc:
-      self.annotate_values += args
+      self.annotate_values |= args
       self
     end
 
@@ -1754,22 +1756,17 @@ module ActiveRecord
         arel.having(having_clause.ast) unless having_clause.empty?
         arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
         arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
-        arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
+        arel.group(*arel_columns(group_values)) unless group_values.empty?
 
         build_order(arel)
         build_with(arel)
         build_select(arel)
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
+        arel.comment(*annotate_values) unless annotate_values.empty?
         arel.distinct(distinct_value)
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value
-
-        unless annotate_values.empty?
-          annotates = annotate_values
-          annotates = annotates.uniq if annotates.size > 1
-          arel.comment(*annotates)
-        end
 
         arel
       end
@@ -2244,6 +2241,12 @@ module ActiveRecord
         end
       end
 
+      def process_with_args(args)
+        args.flat_map do |arg|
+          arg.map { |k, v| { k => v } }
+        end
+      end
+
       STRUCTURAL_VALUE_METHODS = (
         Relation::VALUE_METHODS -
         [:extending, :where, :having, :unscope, :references, :annotate, :optimizer_hints]
@@ -2253,11 +2256,11 @@ module ActiveRecord
         values = other.values
         STRUCTURAL_VALUE_METHODS.reject do |method|
           v1, v2 = @values[method], values[method]
-          if v1.is_a?(Array)
-            next true unless v2.is_a?(Array)
-            v1 = v1.uniq
-            v2 = v2.uniq
-          end
+
+          # `and`/`or` are focused to combine where-like clauses, so it relaxes
+          # the difference when other's multi values are uninitialized.
+          next true if v1.is_a?(Array) && v2.nil?
+
           v1 == v2
         end
       end

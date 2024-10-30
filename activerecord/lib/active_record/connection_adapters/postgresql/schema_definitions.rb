@@ -224,6 +224,10 @@ module ActiveRecord
           options[:using_index]
         end
 
+        def nulls_not_distinct
+          options[:nulls_not_distinct]
+        end
+
         def export_name_on_schema_dump?
           !ActiveRecord::SchemaDumper.unique_ignore_pattern.match?(name) if name
         end
@@ -317,7 +321,7 @@ module ActiveRecord
 
         # Adds a unique constraint.
         #
-        #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred)
+        #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred, nulls_not_distinct: true)
         #
         # See {connection.add_unique_constraint}[rdoc-ref:SchemaStatements#add_unique_constraint]
         def unique_constraint(*args)

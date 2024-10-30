@@ -249,7 +249,8 @@ module RailsGuides
         broken_links = []
 
         html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
-          next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
+          next if fragment_identifier == "column-main" # in layout
+          next if fragment_identifier == "main-skip-link" # in layout
           unless anchors.member?(CGI.unescape(fragment_identifier))
             guess = DidYouMean::SpellChecker.new(dictionary: anchors).correct(fragment_identifier).first
             puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."

@@ -1371,6 +1371,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_devcontainer_postgresql_skip_solid
+    # Regression test for #53482
+    run_generator [ destination_root, "--devcontainer", "-d", "postgresql", "--skip-solid"]
+
+    assert_file("config/database.yml") do |content|
+      assert_no_match("db/queue_migrate", content)
+      assert_no_match("db/cache_migrate", content)
+      assert_no_match("db/cable_migrate", content)
+    end
+  end
+
   def test_devcontainer_mysql
     run_generator [ destination_root, "--devcontainer", "-d", "mysql" ]
 

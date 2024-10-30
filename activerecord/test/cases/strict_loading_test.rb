@@ -59,6 +59,15 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_raises ActiveRecord::StrictLoadingViolationError do
       developer.projects.last.firm
     end
+
+    assert_nothing_raised do
+      developer.projects_extended_by_name.to_a
+    end
+
+    assert developer.projects_extended_by_name.all?(&:strict_loading?)
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      developer.projects_extended_by_name.last.firm
+    end
   end
 
   def test_strict_loading_n_plus_one_only_mode_with_belongs_to
