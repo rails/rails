@@ -1,5 +1,5 @@
 /*
-Trix 2.1.7
+Trix 2.1.8
 Copyright © 2024 37signals, LLC
  */
 (function (global, factory) {
@@ -9,7 +9,7 @@ Copyright © 2024 37signals, LLC
 })(this, (function () { 'use strict';
 
   var name = "trix";
-  var version = "2.1.7";
+  var version = "2.1.8";
   var description = "A rich text editor for everyday writing";
   var main = "dist/trix.umd.min.js";
   var module = "dist/trix.esm.min.js";
@@ -1089,6 +1089,19 @@ $\
       return event => event.ctrlKey;
     }
   }();
+  function shouldRenderInmmediatelyToDealWithIOSDictation(inputEvent) {
+    if (/iPhone|iPad/.test(navigator.userAgent)) {
+      // Handle garbled content and duplicated newlines when using dictation on iOS 18+. Upon dictation completion, iOS sends
+      // the list of insertText / insertParagraph events in a quick sequence. If we don't render
+      // the editor synchronously, the internal range fails to update and results in garbled content or duplicated newlines.
+      //
+      // This workaround is necessary because iOS doesn't send composing events as expected while dictating:
+      // https://bugs.webkit.org/show_bug.cgi?id=261764
+      return !inputEvent.inputType || inputEvent.inputType === "insertParagraph";
+    } else {
+      return false;
+    }
+  }
 
   const defer = fn => setTimeout(fn, 1);
 
@@ -10651,14 +10664,15 @@ $\
     },
     beforeinput(event) {
       const handler = this.constructor.inputTypes[event.inputType];
-
-      // Handles bug with Siri dictation on iOS 18+.
-      if (!event.inputType) {
-        this.render();
-      }
+      const immmediateRender = shouldRenderInmmediatelyToDealWithIOSDictation(event);
       if (handler) {
         this.withEvent(event, handler);
-        this.scheduleRender();
+        if (!immmediateRender) {
+          this.scheduleRender();
+        }
+      }
+      if (immmediateRender) {
+        this.render();
       }
     },
     input(event) {
