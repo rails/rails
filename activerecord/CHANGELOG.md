@@ -1,11 +1,5 @@
 ## Rails 7.1.5 (October 30, 2024) ##
 
-*   Fix support for `query_cache: false` in `database.yml`.
-
-    `query_cache: false` would no longer entirely disable the Active Record query cache.
-
-    *zzak*
-
 *   Fix marshalling of unsaved associated records in 7.1 format.
 
     The 7.1 format would only marshal associated records if the association was loaded.
