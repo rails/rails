@@ -711,9 +711,9 @@ For most session stores, the unique Id in the cookie is used to look up session 
 
 The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the ID is still available to you if you need it). The cookie data is cryptographically signed to prevent tampering. It's also encrypted so anyone with access to it can't read its contents. The `CookieStore` is lightweight and does not require any configuration to use in a new application.
 
-The `CookieStore`` can store 4 kB of data - much less than the other storage options - but this is usually enough. Storing large amounts of data in the session is discouraged. You should especially avoid storing complex objects (such as model instances) in the session.
+The `CookieStore` can store 4 kB of data - much less than the other storage options - but this is usually enough. Storing large amounts of data in the session is discouraged. You should especially avoid storing complex objects (such as model instances) in the session.
 
-You can use the `CacheStore` if your sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging). This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
+You can use the `CacheStore` if your sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging). This will store sessions using the cache implementation you have configured for your application. The advantage is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside is that the session storage will be temporary and they could disappear at any time.
 
 Read more about session storage in the [Security Guide](security.html#sessions).
 
@@ -769,7 +769,7 @@ controller in your application.
 ### `before_action`
 
 Callback methods registered via [`before_action`][] run _before_ a controller
-action. They may halt the request cycle. A common example use case for
+action. They may halt the request cycle. A common use case for
 `before_action` is ensuring that a user is logged in:
 
 ```ruby
@@ -792,7 +792,7 @@ redirects (like in the example above), the original controller action is not
 run. If there are additional callbacks registered to run, they are also
 cancelled and not run.
 
-In this example, the `before_action` is defined in `Applicationcontroller` so
+In this example, the `before_action` is defined in `ApplicationController` so
 all controllers in the application inherit it. That implies that all requests in
 the application will require the user to be logged in. This is fine except for
 the "login" page. The "login" action should succeed even when the user is not
@@ -811,7 +811,7 @@ requiring the user to be logged in.
 
 The `:only` option skips the callback only for the listed actions; there is also
 an `:except` option which works the other way. These options can be used when
-registering action callbacks too, to add callbacks which only runs for selected
+registering action callbacks too, to add callbacks which only run for selected
 actions.
 
 NOTE: If you register the same action callback multiple times with different
@@ -824,7 +824,7 @@ options, the last action callback definition will overwrite the previous ones.
 
 You can also define action callbacks to run _after_ a controller action has been executed with [`after_action`][], or to run both before and after with `around_action`][].
 
-The `after_action` callbacks are similar to `before_action`callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client.
+The `after_action` callbacks are similar to `before_action` callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client.
 
 NOTE: `after_action` callbacks are executed only after a successful controller action, and not if an exception is raised in the request cycle.
 
@@ -850,14 +850,14 @@ end
 
 TIP: Action callbacks receive `controller_name` and `action_name` as parameters you can use, as shown in the example above.
 
-The `around_action` callback also wraps rendering. In the example above, view rendering will be included in the time. The code after the `yield` in an `around_action` is run even when there is an exception in the associated action and there is an `ensure` block in the callback. (This is different from `after_action` callbacks where exception in the action cancels the `after_action` code.)
+The `around_action` callback also wraps rendering. In the example above, view rendering will be included in the `duration`. The code after the `yield` in an `around_action` is run even when there is an exception in the associated action and there is an `ensure` block in the callback. (This is different from `after_action` callbacks where exception in the action cancels the `after_action` code.)
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
 [`around_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
 
 ### Other Ways to Use Callbacks
 
-In addition to `before_action`, `after_action`, or `around_action`, which are more common, there are two other ways to register callbacks.
+In addition to `before_action`, `after_action`, or `around_action`, there are two less common ways to register callbacks.
 
 The first is to use a block directly with the `*_action` methods. The block receives the controller as an argument. For example, the `require_login` action callback from above could be rewritten to use a block:
 
@@ -970,7 +970,7 @@ response.headers["Content-Type"] = "application/pdf"
 
 The `headers` attribute is a hash which maps header names to header values.
 Rails sets some headers automatically but if you need to update a header or add
-a custom headers, you can use `response.headers` as in the example above.
+a custom header, you can use `response.headers` as in the example above.
 
 NOTE: In the above case it would make more sense to use the `content_type`
 setter directly with `response.content_type`.
