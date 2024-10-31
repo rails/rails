@@ -62,6 +62,13 @@ A CSRF token named `authenticity_token` is added as a hidden field:
 
 Rails adds this token to every `form` that's generated using the [form helpers](form_helpers.html), so most of the time you don't need to do anything. If you're writing a form manually or need to add the token for another reason, it's available through the [`form_authenticity_token`](https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html#method-i-form_authenticity_token) method.
 
+```html
+<!-- app/views/layouts/application.html.erb -->
+<head>
+  <meta name="csrf-token" content="<%= form_authenticity_token %>">
+</head>
+```
+
 The `form_authenticity_token` generates a valid authentication token. That's useful in places where Rails does not add it automatically, like in custom Ajax calls.
 
 NOTE: All subclasses of `ActionController::Base` are protected by default and will raise an `ActionController::InvalidAuthenticityToken` error on unverified requests.
