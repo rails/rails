@@ -19,7 +19,7 @@ After reading this guide, you will know how to:
 Introduction
 ------------
 
-Action Controller is the C in Model View Controller
+Action Controller is the C in the Model View Controller
 ([MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller))
 pattern. After the [router](routing.html) has matched a controller to an
 incoming request, the controller is responsible for processing the request and
@@ -47,9 +47,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-Given the above `ClientsController`, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method.
-
-NOTE: The empty method from the example above would work because Rails will render the `new.html.erb` view by default.
+Given the above `ClientsController`, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its new method. If the `new` method is empty, Rails will automatically render the `new.html.erb` view by default.
 
 In the `new` method, the controller would typically create an instance of the `Client` model, and make it available as an instance variable called `@client` in the view:
 
@@ -77,7 +75,7 @@ also makes named route helpers consistent throughout your application.
 
 The controller naming convention is different from models. While plural
 names are preferred for controller names, the singular form is preferred for
-models names (e.g. `Account` vs. `Accounts`).
+model names (e.g. `Account` vs. `Accounts`).
 
 Controller actions should be `public`, as only `public` methods are callable as actions. It is also best practice to lower the visibility of helper methods (with `private` or `protected`) which are _not_ intended to be actions.
 
@@ -92,8 +90,8 @@ Parameters
 
 Data provided by the user is available in your controller in the [`params`][] hash. There are two types of parameter data:
 
-- Query string parameter which are sent as part of the URL (for example, after the `?` in `example.com/accounts?filter=free`).
-- POST data which are submitted as from an HTML form.
+- Query string parameters which are sent as part of the URL (for example, after the `?` in `example.com/accounts?filter=free`).
+- POST parameters which are submitted from an HTML form.
 
 Rails does not make a distinction between query string parameters and POST parameters; both are available in the `params` hash in your controller. For example:
 
@@ -109,7 +107,7 @@ class ClientsController < ApplicationController
     end
   end
 
-  # This action receives parameters from a POST request to "/clients" URL with # form data in the request body.
+  # This action receives parameters from a POST request to "/clients" URL with  form data in the request body.
   def create
     @client = Client.new(params[:client])
     if @client.save
@@ -213,7 +211,7 @@ For example, we can add a route that captures the `:status` parameter for a
 client:
 
 ```ruby
-get '/clients/:status', to: 'clients#index', foo: 'bar'
+get "/clients/:status", to: "clients#index", foo: "bar"
 ```
 
 When a user navigates to `/clients/active` URL, `params[:status]` will be set to
@@ -235,7 +233,7 @@ values.
 ### Composite Key Parameters
 
 [Composite key parameters](active_record_composite_primary_keys.html) contain
-multiple values in one parameter separated by a delimiter. Therefore, you will
+multiple values in one parameter separated by a delimiter (e.g., a comma). Therefore, you will
 need extract each value so that you can pass them to Active Record. You can use
 the `extract_value` do that.
 
