@@ -321,8 +321,8 @@ module ActiveModel
         canonical_method_name = pattern.method_name(attr_name)
         public_method_name = pattern.method_name(as)
 
-        # If defining a regular attribute method, we don't override methods that are explictly
-        # defined in parrent classes.
+        # If defining a regular attribute method, we don't override methods that are explicitly
+        # defined in parent classes.
         if instance_method_already_implemented?(public_method_name)
           # However, for `alias_attribute`, we always define the method.
           # We check for override second because `instance_method_already_implemented?`

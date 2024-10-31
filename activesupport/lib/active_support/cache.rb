@@ -419,7 +419,7 @@ module ActiveSupport
       #     t1.join
       #
       #     p val_1 # => "new value 1"
-      #     p val_2 # => "oritinal value"
+      #     p val_2 # => "original value"
       #     p cache.fetch("foo") # => "new value 1"
       #
       #     # The entry requires 3 seconds to expire (expires_in + race_condition_ttl)
