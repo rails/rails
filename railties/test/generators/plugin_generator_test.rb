@@ -395,7 +395,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/test"
   end
 
-  def test_create_mountable_application_with_mountable_option_and_hypenated_name
+  def test_create_mountable_application_with_mountable_option_and_hyphenated_name
     run_generator [File.join(destination_root, "hyphenated-name"), "--mountable"]
     assert_no_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
     assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
@@ -417,7 +417,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_create_mountable_application_with_mountable_option_and_hypenated_and_underscored_name
+  def test_create_mountable_application_with_mountable_option_and_hyphenated_and_underscored_name
     run_generator [File.join(destination_root, "my_hyphenated-name"), "--mountable"]
     assert_no_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
@@ -439,7 +439,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_create_mountable_application_with_mountable_option_and_multiple_hypenates_in_name
+  def test_create_mountable_application_with_mountable_option_and_multiple_hyphenates_in_name
     run_generator [File.join(destination_root, "deep-hyphenated-name"), "--mountable"]
     assert_no_file "deep-hyphenated-name/app/assets/javascripts/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/app/assets/stylesheets/deep/hyphenated/name"
