@@ -848,7 +848,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_node_files
   end
 
-  def test_esbuild_option_with_javacript_argument
+  def test_esbuild_option_with_javascript_argument
     run_generator [destination_root, "--javascript", "esbuild"]
     assert_gem "jsbundling-rails"
   end
@@ -872,7 +872,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "jsbundling-rails"
   end
 
-  def test_bun_option_with_javacript_argument
+  def test_bun_option_with_javascript_argument
     run_generator [destination_root, "--javascript", "bun"]
     assert_gem "jsbundling-rails"
   end
@@ -1287,12 +1287,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
       assert_equal expected_rails_app_config, compose_config["services"]["rails-app"]
 
-      expected_selenium_conifg = {
+      expected_selenium_config = {
         "image" => "selenium/standalone-chromium",
         "restart" => "unless-stopped",
       }
 
-      assert_equal expected_selenium_conifg, compose_config["services"]["selenium"]
+      assert_equal expected_selenium_config, compose_config["services"]["selenium"]
     end
   end
 
