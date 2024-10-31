@@ -129,11 +129,11 @@ contain nested arrays and hashes. To send an array of values, append an empty
 pair of square brackets "[]" to the key name:
 
 ```
-GET /clients?ids[]=1&ids[]=2&ids[]=3
+GET /users?ids[]=1&ids[]=2&ids[]=3
 ```
 
 NOTE: The actual URL in this example will be encoded as
-"/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as the "[" and "]" characters are
+"/users?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as the "[" and "]" characters are
 not allowed in URLs. Most of the time you don't have to worry about this because
 the browser will encode it for you, and Rails will decode it automatically, but
 if you ever find yourself having to send those requests to the server manually
@@ -150,15 +150,15 @@ Guide](security.html#unsafe-query-generation) for more information.
 To send a hash, you include the key name inside the brackets:
 
 ```html
-<form accept-charset="UTF-8" action="/clients" method="post">
-  <input type="text" name="client[name]" value="Acme" />
-  <input type="text" name="client[phone]" value="12345" />
-  <input type="text" name="client[address][postcode]" value="12345" />
-  <input type="text" name="client[address][city]" value="Carrot City" />
+<form accept-charset="UTF-8" action="/users" method="post">
+  <input type="text" name="user[name]" value="Acme" />
+  <input type="text" name="user[phone]" value="12345" />
+  <input type="text" name="user[address][postcode]" value="12345" />
+  <input type="text" name="user[address][city]" value="Carrot City" />
 </form>
 ```
 
-When this form is submitted, the value of `params[:client]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:client][:address]`.
+When this form is submitted, the value of `params[:user]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:user][:address]`.
 
 The `params` object acts like a Hash, but lets you use symbols and strings interchangeably as keys.
 
@@ -169,10 +169,10 @@ If your application exposes an API, you will likely accept parameters in JSON fo
 So for example, if you are sending this JSON content:
 
 ```json
-{ "company": { "name": "acme", "address": "123 Carrot Street" } }
+{ "user": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-Your controller will receive `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
+Your controller will receive `params[:user]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
 #### Configuring Wrap Parameters
 
