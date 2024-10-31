@@ -78,6 +78,8 @@ end
 
 With this in place, you can create namespaced controllers that inherit from `AdminsController`. The action callback will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
+WARNING: HTTP Basic Authentication will send credentials unencrypted over the network.
+Make sure to use HTTPS when using Basic Authentication.
 [`http_basic_authenticate_with`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
 
 ### HTTP Digest Authentication
@@ -179,7 +181,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-This will read and stream the file 4 kB at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
+This will read and stream the file 4 kB at a time, avoiding loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
 
 If `:type` is not specified, it will be guessed from the file extension specified in `:filename`. If the content-type is not registered for the extension, `application/octet-stream` will be used.
 
@@ -319,13 +321,13 @@ you should also note the following things:
 Log Filtering
 -------------
 
-Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file.
+Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a production application you may not want every bit of information to be stored in the log file.
 
 ### Parameters Filtering
 
 You can filter out sensitive request parameters from your log files by
 appending them to [`config.filter_parameters`][] in the application configuration.
-These parameters will be marked [FILTERED] in the log.
+These parameters will be marked `[FILTERED]` in the log.
 
 ```ruby
 config.filter_parameters << :password
@@ -354,7 +356,7 @@ You can set it to a String, a Regexp, or an array of both.
 config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
 ```
 
-Matching URLs will be replaced with '[FILTERED]'. However, if you only wish to filter the parameters, not the whole URLs,
+Matching URLs will be replaced with `[FILTERED]`. However, if you only wish to filter the parameters, not the whole URLs,
 please take a look at [Parameters Filtering](#parameters-filtering).
 
 Force HTTPS Protocol
@@ -388,14 +390,14 @@ NOTE: This endpoint does not reflect the status of all of your application's dep
 
 Think carefully about what you want to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
 
-Rescue
-------
+Handling Errors
+----------------
 
 Most likely your application is going to contain bugs or otherwise throw an exception that needs to be handled. For example, if the user follows a link to a resource that no longer exists in the database, Active Record will throw the `ActiveRecord::RecordNotFound` exception.
 
 Rails default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed, so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error, or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
 
-### The Default 500 and 404 Templates
+### The Default Error Templates
 
 By default, in the production environment the application will render either a 404, or a 500 error message. In the development environment all unhandled exceptions are simply raised. These messages are contained in static HTML files in the public folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
