@@ -497,7 +497,7 @@ NOTE: Be aware that JSON has limited support serializing Ruby objects such as
 ```ruby
 class CookiesController < ApplicationController
   def set_cookie
-    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2024
     redirect_to action: 'read_cookie'
   end
 
@@ -526,7 +526,7 @@ for session is storing sensitive data like user authentication.
 
 In a Rails application, the session is available in the controller and the view.
 
-### Working With the Session
+### Working with the Session
 
 You can use the `session` instance method to access the session in your controllers. Session values are stored as key/value pairs like a hash:
 
@@ -571,14 +571,14 @@ end
 
 It is possible to reset the entire session with [`reset_session`][]. It is recommended to use `reset_session` after logging in to avoid session fixation attacks. Please refer to the [Security Guide](https://edgeguides.rubyonrails.org/security.html#session-fixation-countermeasures) for details.
 
-NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence, you will never need to disable sessions, just not accessing them will do the job.
+NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence, you will never need to disable sessions - not accessing them will do the job.
 
 [`reset_session`]: https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-reset_session
 
 ### The Flash
 
 The [flash](https://api.rubyonrails.org/classes/ActionDispatch/Flash.html)
-provides a way to pass temporary data between actions. Anything you place in the
+provides a way to pass temporary data between controller actions. Anything you place in the
 flash will be available to the very next action and then cleared. The flash is
 typically used for setting messages (e.g. notices and alerts) in a controller
 action before redirecting to an action that displays the message to the user.
@@ -603,11 +603,11 @@ Displaying a message after a user performs some interactive action in your
 application is a good practice to give the user feedback that their action was
 successful (or that there were errors).
 
-In addition to `:notice`, you can also set `:alert`. These are typically styled
+In addition to `:notice`, you can also use `:alert`. These are typically styled
 (using CSS) with different colors to indicate their meaning (e.g. green for
 notices and orange/red for alerts).
 
-It is also possible to assign a flash message as part of the redirection as a
+You can also assign a flash message directly within the `redirect_to` method by including it as a parameter.
 parameter to `redirect_to`:
 
 ```ruby
@@ -647,21 +647,21 @@ If a previous action _has_ set a flash message, it's a good idea of display that
 </html>
 ```
 
-The `name` above indicates the type of flash message, such as `notice` or `alert`. This information is typically used to style how the message is displayed to the user.
+The `name` above indicates the type of flash message, such as `notice` or `alert`. This information is normally used to style how the message is displayed to the user.
 
-TIP: You can filter by `name` if you want to limit to displaying only `notice` and `alert` in layout. Otherwise all keys set in the `flash` will be displayed.
+TIP: You can filter by `name` if you want to limit to displaying only `notice` and `alert` in layout. Otherwise, all keys set in the `flash` will be displayed.
 
 Including the reading and displaying of flash messages in the layout ensures that your application will display these automatically, without each view having to include logic to read the flash.
 
 #### `flash.keep` and `flash.now`
 
-[`flash.keep`][] is used to carry over the flash value through to an addditioanl
-request. This is useful when there are multiplle redirects.
+[`flash.keep`][] is used to carry over the flash value through to an additional
+request. This is useful when there are multiple redirects.
 
 For example, assume that the `index` action in the controller below corresponds
-to the root_url. And you want all requests here to be redirected to
-UsersController#index. If an action sets the flash and redirects to
-MainController#index, those flash values will be lost when another redirect
+to the `root_url`. And you want all requests here to be redirected to
+`UsersController#index`. If an action sets the flash and redirects to
+`MainController#index`, those flash values will be lost when another redirect
 happens, unless you use `flash.keep` to make the values persist for another request.
 
 ```ruby
@@ -676,7 +676,7 @@ class MainController < ApplicationController
 end
 ```
 
-[`flash.now`][] is used to make the flash values available in the same request.By default, adding values to the flash will make them available to the next request. For example, if the `create` action fails to save a resource, and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use [`flash.now`][] in the same way you use the normal `flash`:
+[`flash.now`][] is used to make the flash values available in the same request. By default, adding values to the flash will make them available to the next request. For example, if the `create` action fails to save a resource, and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use [`flash.now`][] in the same way you use the normal `flash`:
 
 ```ruby
 class ClientsController < ApplicationController
