@@ -266,7 +266,7 @@ module ActionController
       ParamsWrapper
     ]
 
-    # Note: Documenting these severely degrates the performance of rdoc
+    # Note: Documenting these severely degrades the performance of rdoc
     # :stopdoc:
     include AbstractController::Rendering
     include AbstractController::Translation

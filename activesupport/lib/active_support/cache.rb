@@ -286,7 +286,7 @@ module ActiveSupport
       #   <tt>coder: nil</tt> to avoid the overhead of safeguarding against
       #   mutation.
       #
-      #   The +:coder+ option is mutally exclusive with the +:serializer+ and
+      #   The +:coder+ option is mutually exclusive with the +:serializer+ and
       #   +:compressor+ options. Specifying them together will raise an
       #   +ArgumentError+.
       #

@@ -356,7 +356,7 @@ module ActionView
 
     # This method is responsible for marking a template as having strict locals
     # which means the template can only accept the locals defined in a magic
-    # comment. For example, if your template acceps the locals +title+ and
+    # comment. For example, if your template accepts the locals +title+ and
     # +comment_count+, add the following to your template file:
     #
     #   <%# locals: (title: "Default title", comment_count: 0) %>
