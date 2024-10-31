@@ -656,6 +656,7 @@ module ActiveRecord
         if column_name == :all
           column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
+          relation.unscope!(:order)
         else
           column_alias = Arel.sql("count_column")
           relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
@@ -664,11 +665,7 @@ module ActiveRecord
         subquery_alias = Arel.sql("subquery_for_count", retryable: true)
         select_value = operation_over_aggregate_column(column_alias, "count", false)
 
-        if column_name == :all
-          relation.unscope(:order).build_subquery(subquery_alias, select_value)
-        else
-          relation.build_subquery(subquery_alias, select_value)
-        end
+        relation.build_subquery(subquery_alias, select_value)
       end
   end
 end
