@@ -88,7 +88,7 @@ NOTE: If you must use a reserved method as an action name, one workaround is to 
 Parameters
 ----------
 
-Data provided by the user is available in your controller in the [`params`][] hash. There are two types of parameter data:
+Data sent by the incoming request is available in your controller in the [`params`][] hash. There are two types of parameter data:
 
 - Query string parameters which are sent as part of the URL (for example, after the `?` in `example.com/accounts?filter=free`).
 - POST parameters which are submitted from an HTML form.
@@ -234,8 +234,8 @@ values.
 
 [Composite key parameters](active_record_composite_primary_keys.html) contain
 multiple values in one parameter separated by a delimiter (e.g., a comma). Therefore, you will
-need extract each value so that you can pass them to Active Record. You can use
-the `extract_value` do that.
+need to extract each value so that you can pass them to Active Record. You can use
+the `extract_value`  method to do that.
 
 For example, given the following controller:
 
@@ -249,13 +249,13 @@ class BooksController < ApplicationController
 end
 ```
 
-And the this route:
+And this route:
 
 ```ruby
 get '/books/:id', to: 'books#show'
 ```
 
-When a user opens the URL `/books/4_2`, the controller will extract the
+When a user requests the URL `/books/4_2`, the controller will extract the
 composite key value `["4", "2"]` and pass it to `Book.find`. The `extract_value`
 method may be used to extract arrays out of any delimited parameters.
 
@@ -280,8 +280,8 @@ In a given request, the method is not actually called for every single generated
 Strong Parameters
 -----------------
 
-With Action Controller [strong
-parameters](https://api.rubyonrails.org/classes/ActionController/StrongParameters.html),
+With Action Controller [Strong
+Parameters](https://api.rubyonrails.org/classes/ActionController/StrongParameters.html),
 parameters cannot be used in Active Model mass assignments until they have been
 explicitly permitted. This means you will need to decide which attributes to
 permit for mass update and declare them in the controller. This is a security
@@ -351,7 +351,7 @@ and filters out anything else. But be careful because the above opens the door
 to arbitrary input. Sometimes it is not possible or convenient to declare each
 valid key of a hash parameter or its internal structure.
 
-There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking values.
+There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking the values.
 
 ```ruby
 params.require(:log_entry).permit!
@@ -388,7 +388,7 @@ allowed), a `family` attribute which is restricted to having a `name`, and a
 
 Here are some examples of how to use `permit` for different use cases.
 
-Example 1: You may want to also use the permitted attributes in your `new`
+Example 1: You may want to use the permitted attributes in your `new`
 action. This raises the problem that you can't use [`require`][] on the
 root key because, normally, it does not exist when calling `new`:
 
@@ -437,7 +437,7 @@ end
 Cookies
 -------
 
-The concept of a cookie is not specific to Rails. A cookie (also known as an
+The concept of a cookie is not specific to Rails. A [cookie](https://en.wikipedia.org/wiki/HTTP_cookie) (also known as an
 HTTP cookie or a web cookie) is a small piece of data from the server that is
 saved in the user's browser. The browser may store cookies, create new cookies,
 modify existing ones, and send them back to the server with later requests.
@@ -472,13 +472,13 @@ class CommentsController < ApplicationController
 end
 ```
 
-NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the `key` to a `nil` value does not delete te cookie.
+NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the `key` to a `nil` value does not delete the cookie.
 
 ### Encrypted and Signed Cookies
 
 Since cookies are stored on the client browser, they can be susceptible to
-tampering and are not considered secure for storing sensitive data. Rails does
-provide a signed cookie jar and an encrypted cookie jar for storing sensitive
+tampering and are not considered secure for storing sensitive data. Rails
+provides a signed cookie jar and an encrypted cookie jar for storing sensitive
 data. The signed cookie jar appends a cryptographic signature on the cookie
 values to protect their integrity. The encrypted cookie jar encrypts the values
 in addition to signing them, so that they cannot be read by the user. Refer to
@@ -490,14 +490,14 @@ These special cookie jars use a serializer to serialize the cookie values into
 strings and deserialize them into Ruby objects when read back. You can specify
 which serializer to use via [`config.action_dispatch.cookies_serializer`][]. The default serializer for new applications is `:json`.
 
-NOTE: Be aware that JSON has limited support serializing Ruby objects suck as
+NOTE: Be aware that JSON has limited support serializing Ruby objects such as
 `Date`, `Time`, and `Symbol`. These will be serialized and deserialized into
 `String`s:
 
 ```ruby
 class CookiesController < ApplicationController
   def set_cookie
-    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2024
     redirect_to action: 'read_cookie'
   end
 
@@ -526,7 +526,7 @@ for session is storing sensitive data like user authentication.
 
 In a Rails application, the session is available in the controller and the view.
 
-### Working With the Session
+### Working with the Session
 
 You can use the `session` instance method to access the session in your controllers. Session values are stored as key/value pairs like a hash:
 
@@ -571,14 +571,14 @@ end
 
 It is possible to reset the entire session with [`reset_session`][]. It is recommended to use `reset_session` after logging in to avoid session fixation attacks. Please refer to the [Security Guide](https://edgeguides.rubyonrails.org/security.html#session-fixation-countermeasures) for details.
 
-NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence, you will never need to disable sessions, just not accessing them will do the job.
+NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence, you will never need to disable sessions - not accessing them will do the job.
 
 [`reset_session`]: https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-reset_session
 
 ### The Flash
 
 The [flash](https://api.rubyonrails.org/classes/ActionDispatch/Flash.html)
-provides a way to pass temporary data between actions. Anything you place in the
+provides a way to pass temporary data between controller actions. Anything you place in the
 flash will be available to the very next action and then cleared. The flash is
 typically used for setting messages (e.g. notices and alerts) in a controller
 action before redirecting to an action that displays the message to the user.
@@ -603,11 +603,11 @@ Displaying a message after a user performs some interactive action in your
 application is a good practice to give the user feedback that their action was
 successful (or that there were errors).
 
-In addition to `:notice`, you can also set `:alert`. These are typically styled
+In addition to `:notice`, you can also use `:alert`. These are typically styled
 (using CSS) with different colors to indicate their meaning (e.g. green for
 notices and orange/red for alerts).
 
-It is also possible to assign a flash message as part of the redirection as a
+You can also assign a flash message directly within the `redirect_to` method by including it as a parameter.
 parameter to `redirect_to`:
 
 ```ruby
@@ -647,21 +647,21 @@ If a previous action _has_ set a flash message, it's a good idea of display that
 </html>
 ```
 
-The `name` above indicates the type of flash message, such as `notice` or `alert`. This information is typically used to style how the message is displayed to the user.
+The `name` above indicates the type of flash message, such as `notice` or `alert`. This information is normally used to style how the message is displayed to the user.
 
-TIP: You can filter by `name` if you want to limit to displaying only `notice` and `alert` in layout. Otherwise all keys set in the `flash` will be displayed.
+TIP: You can filter by `name` if you want to limit to displaying only `notice` and `alert` in layout. Otherwise, all keys set in the `flash` will be displayed.
 
 Including the reading and displaying of flash messages in the layout ensures that your application will display these automatically, without each view having to include logic to read the flash.
 
 #### `flash.keep` and `flash.now`
 
-[`flash.keep`][] is used to carry over the flash value through to an addditioanl
-request. This is useful when there are multiplle redirects.
+[`flash.keep`][] is used to carry over the flash value through to an additional
+request. This is useful when there are multiple redirects.
 
 For example, assume that the `index` action in the controller below corresponds
-to the root_url. And you want all requests here to be redirected to
-UsersController#index. If an action sets the flash and redirects to
-MainController#index, those flash values will be lost when another redirect
+to the `root_url`. And you want all requests here to be redirected to
+`UsersController#index`. If an action sets the flash and redirects to
+`MainController#index`, those flash values will be lost when another redirect
 happens, unless you use `flash.keep` to make the values persist for another request.
 
 ```ruby
@@ -676,7 +676,7 @@ class MainController < ApplicationController
 end
 ```
 
-[`flash.now`][] is used to make the flash values available in the same request.By default, adding values to the flash will make them available to the next request. For example, if the `create` action fails to save a resource, and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use [`flash.now`][] in the same way you use the normal `flash`:
+[`flash.now`][] is used to make the flash values available in the same request. By default, adding values to the flash will make them available to the next request. For example, if the `create` action fails to save a resource, and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use [`flash.now`][] in the same way you use the normal `flash`:
 
 ```ruby
 class ClientsController < ApplicationController
