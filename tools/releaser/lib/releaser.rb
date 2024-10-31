@@ -298,6 +298,7 @@ class Releaser < Rake::TaskLib
       gem_version.rb
       tasks/release.rb
       releaser.rb
+      yarn.lock
     )
     def tree_dirty?
       !`git status -s | grep -v '#{FILES_TO_IGNORE.join("\\|")}'`.strip.empty?
