@@ -88,7 +88,7 @@ NOTE: If you must use a reserved method as an action name, one workaround is to 
 Parameters
 ----------
 
-Data provided by the user is available in your controller in the [`params`][] hash. There are two types of parameter data:
+Data sent by the incoming request is available in your controller in the [`params`][] hash. There are two types of parameter data:
 
 - Query string parameters which are sent as part of the URL (for example, after the `?` in `example.com/accounts?filter=free`).
 - POST parameters which are submitted from an HTML form.
@@ -234,8 +234,8 @@ values.
 
 [Composite key parameters](active_record_composite_primary_keys.html) contain
 multiple values in one parameter separated by a delimiter (e.g., a comma). Therefore, you will
-need extract each value so that you can pass them to Active Record. You can use
-the `extract_value` do that.
+need to extract each value so that you can pass them to Active Record. You can use
+the `extract_value`  method to do that.
 
 For example, given the following controller:
 
@@ -249,13 +249,13 @@ class BooksController < ApplicationController
 end
 ```
 
-And the this route:
+And this route:
 
 ```ruby
 get '/books/:id', to: 'books#show'
 ```
 
-When a user opens the URL `/books/4_2`, the controller will extract the
+When a user requests the URL `/books/4_2`, the controller will extract the
 composite key value `["4", "2"]` and pass it to `Book.find`. The `extract_value`
 method may be used to extract arrays out of any delimited parameters.
 
@@ -280,8 +280,8 @@ In a given request, the method is not actually called for every single generated
 Strong Parameters
 -----------------
 
-With Action Controller [strong
-parameters](https://api.rubyonrails.org/classes/ActionController/StrongParameters.html),
+With Action Controller [Strong
+Parameters](https://api.rubyonrails.org/classes/ActionController/StrongParameters.html),
 parameters cannot be used in Active Model mass assignments until they have been
 explicitly permitted. This means you will need to decide which attributes to
 permit for mass update and declare them in the controller. This is a security
@@ -351,7 +351,7 @@ and filters out anything else. But be careful because the above opens the door
 to arbitrary input. Sometimes it is not possible or convenient to declare each
 valid key of a hash parameter or its internal structure.
 
-There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking values.
+There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking the values.
 
 ```ruby
 params.require(:log_entry).permit!
@@ -388,7 +388,7 @@ allowed), a `family` attribute which is restricted to having a `name`, and a
 
 Here are some examples of how to use `permit` for different use cases.
 
-Example 1: You may want to also use the permitted attributes in your `new`
+Example 1: You may want to use the permitted attributes in your `new`
 action. This raises the problem that you can't use [`require`][] on the
 root key because, normally, it does not exist when calling `new`:
 
@@ -437,7 +437,7 @@ end
 Cookies
 -------
 
-The concept of a cookie is not specific to Rails. A cookie (also known as an
+The concept of a cookie is not specific to Rails. A [cookie](https://en.wikipedia.org/wiki/HTTP_cookie) (also known as an
 HTTP cookie or a web cookie) is a small piece of data from the server that is
 saved in the user's browser. The browser may store cookies, create new cookies,
 modify existing ones, and send them back to the server with later requests.
@@ -472,13 +472,13 @@ class CommentsController < ApplicationController
 end
 ```
 
-NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the `key` to a `nil` value does not delete te cookie.
+NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the `key` to a `nil` value does not delete the cookie.
 
 ### Encrypted and Signed Cookies
 
 Since cookies are stored on the client browser, they can be susceptible to
-tampering and are not considered secure for storing sensitive data. Rails does
-provide a signed cookie jar and an encrypted cookie jar for storing sensitive
+tampering and are not considered secure for storing sensitive data. Rails
+provides a signed cookie jar and an encrypted cookie jar for storing sensitive
 data. The signed cookie jar appends a cryptographic signature on the cookie
 values to protect their integrity. The encrypted cookie jar encrypts the values
 in addition to signing them, so that they cannot be read by the user. Refer to
@@ -490,7 +490,7 @@ These special cookie jars use a serializer to serialize the cookie values into
 strings and deserialize them into Ruby objects when read back. You can specify
 which serializer to use via [`config.action_dispatch.cookies_serializer`][]. The default serializer for new applications is `:json`.
 
-NOTE: Be aware that JSON has limited support serializing Ruby objects suck as
+NOTE: Be aware that JSON has limited support serializing Ruby objects such as
 `Date`, `Time`, and `Symbol`. These will be serialized and deserialized into
 `String`s:
 
