@@ -10,7 +10,7 @@ After reading this guide, you will know how to:
 * Follow the flow of a request through a controller.
 * Access parameters passed to your controller.
 * Use Strong Parameters and permit values.
-* Store data in the cookie and the session and use the flash.
+* Store data in the cookie, the session, and the flash.
 * Work with action callbacks to execute code during request processing.
 * Use the Request and Response Objects.
 
@@ -63,9 +63,7 @@ NOTE: All controllers inherit from `ApplicationController`, which in turn inheri
 
 Rails favors making the last word in the controller's name plural. For example,
 `ClientsController` is preferred over `ClientController` and
-`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController`.
-
-NOTE: The plural names are not strictly required (e.g. `ApplicationController`).
+`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController` Although, the plural names are not strictly required (e.g. `ApplicationController`).
 
 Following this naming convention will allow you to use the [default route
 generators](routing.html#crud-verbs-and-actions) (e.g. `resources`) without
@@ -75,7 +73,7 @@ also makes named route helpers consistent throughout your application.
 
 The controller naming convention is different from models. While plural
 names are preferred for controller names, the singular form is preferred for
-model names (e.g. `Account` vs. `Accounts`).
+[model names](active_record_basics.html#naming-conventions) (e.g. `Account` vs. `Accounts`).
 
 Controller actions should be `public`, as only `public` methods are callable as actions. It is also best practice to lower the visibility of helper methods (with `private` or `protected`) which are _not_ intended to be actions.
 
