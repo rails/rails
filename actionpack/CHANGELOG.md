@@ -1,3 +1,5 @@
+## Rails 7.2.2 (October 30, 2024) ##
+
 *   Fix non-GET requests not updating cookies in `ActionController::TestCase`.
 
     *Jon Moss*, *Hartley McGuire*

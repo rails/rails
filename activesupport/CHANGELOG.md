@@ -1,3 +1,5 @@
+## Rails 7.2.2 (October 30, 2024) ##
+
 *   Include options when instrumenting `ActiveSupport::Cache::Store#delete` and `ActiveSupport::Cache::Store#delete_multi`.
 
     *Adam Renberg Tamm*

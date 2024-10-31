@@ -1,3 +1,5 @@
+## Rails 7.2.2 (October 30, 2024) ##
+
 *   Fix support for `query_cache: false` in `database.yml`.
 
     `query_cache: false` would no longer entirely disable the Active Record query cache.
