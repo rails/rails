@@ -2136,7 +2136,7 @@ module ActiveRecord
               arg.expr.relation.name
             end
           end
-        end.compact
+        end.filter_map { |ref| Arel.sql(ref, retryable: true) if ref }
       end
 
       def extract_table_name_from(string)
