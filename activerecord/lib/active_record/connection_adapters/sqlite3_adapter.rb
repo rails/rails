@@ -10,6 +10,7 @@ require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
+require "active_record/connection_adapters/sqlite3/maintenance"
 
 gem "sqlite3", ">= 2.1"
 require "sqlite3"
@@ -55,6 +56,7 @@ module ActiveRecord
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
       include SQLite3::DatabaseStatements
+      include SQLite3::Maintenance
 
       ##
       # :singleton-method:
