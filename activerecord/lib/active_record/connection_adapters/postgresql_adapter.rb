@@ -9,6 +9,7 @@ require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"
 require "active_record/connection_adapters/postgresql/database_statements"
 require "active_record/connection_adapters/postgresql/explain_pretty_printer"
+require "active_record/connection_adapters/postgresql/maintenance"
 require "active_record/connection_adapters/postgresql/oid"
 require "active_record/connection_adapters/postgresql/quoting"
 require "active_record/connection_adapters/postgresql/referential_integrity"
@@ -184,6 +185,7 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+      include PostgreSQL::Maintenance
 
       def supports_bulk_alter?
         true
