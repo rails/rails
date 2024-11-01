@@ -1,3 +1,8 @@
+*   Introduce the `db:maintenance:analyze` rake task to update query planner statistics. Currently
+    only supported by the SQLite3 and PostgreSQL adapters.
+
+    *Mike Dalessio*
+
 *   Cast `query_cache` value when using URL configuration.
 
     *zzak*
