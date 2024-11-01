@@ -355,16 +355,17 @@ module ActionDispatch # :nodoc:
 
     # Allows you to manually set or override the response body.
     def body=(body)
-      if body.is_a?(String)
-        @stream = build_buffer(self, [body])
-      elsif body.respond_to?(:to_path)
-        @stream = body
-      elsif body.respond_to?(:to_ary)
-        synchronize do
+      # Prevent ActionController::Metal::Live::Response from committing the response prematurely.
+      synchronize do
+        if body.respond_to?(:to_str)
+          @stream = build_buffer(self, [body])
+        elsif body.respond_to?(:to_path)
+          @stream = body
+        elsif body.respond_to?(:to_ary)
           @stream = build_buffer(self, body)
+        else
+          @stream = body
         end
-      else
-        @stream = body
       end
     end
 
