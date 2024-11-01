@@ -25,6 +25,13 @@ module ActionView
         self
       end
 
+      # Returns the complete body as a string.
+      def body
+        buffer = String.new
+        each { |part| buffer << part }
+        buffer
+      end
+
       private
         # This is the same logging logic as in ShowExceptions middleware.
         def log_error(exception)
@@ -42,7 +49,7 @@ module ActionView
     # object that responds to each. This object is initialized with a block
     # that knows how to render the template.
     def render_template(view, template, layout_name = nil, locals = {}) # :nodoc:
-      return [super.body] unless layout_name && template.supports_streaming?
+      return [super.body] unless template.supports_streaming?
 
       locals ||= {}
       layout   = find_layout(layout_name, locals.keys, [formats.first])
