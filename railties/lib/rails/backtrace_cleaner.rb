@@ -27,14 +27,14 @@ module Rails
     end
 
     def clean(backtrace, kind = :silent)
-      kind = nil if ENV["BACKTRACE"]
+      return backtrace if ENV["BACKTRACE"]
 
       super(backtrace, kind)
     end
     alias_method :filter, :clean
 
     def clean_frame(frame, kind = :silent)
-      kind = nil if ENV["BACKTRACE"]
+      return frame if ENV["BACKTRACE"]
 
       super(frame, kind)
     end
