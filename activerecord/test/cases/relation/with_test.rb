@@ -38,7 +38,7 @@ module ActiveRecord
 
       def test_with_when_invalid_argument_is_passed
         assert_raises ArgumentError, match: /\AUnsupported argument type: #<Post:0x[0-9a-f]+> Post\z/ do
-          Post.with(Post.where("tags_count > 0"))
+          Post.with(Post.where(type: "Post"))
         end
       end
 
