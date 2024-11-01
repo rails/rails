@@ -509,6 +509,17 @@ module ActiveRecord
         FileUtils.rm_f filename, verbose: false
       end
 
+      def perform_maintenance(event) # :nodoc:
+        each_current_configuration(env) do |db_config|
+          with_temporary_pool(db_config) do |pool|
+            pool.perform_maintenance(event)
+            $stdout.puts "Maintenance performed for '#{db_config.env_name}:#{db_config.name}'"
+          rescue NotImplementedError => e
+            $stderr.puts "Maintenance skipped for '#{db_config.env_name}:#{db_config.name}': #{e.message}"
+          end
+        end
+      end
+
       def with_temporary_pool_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, clobber: false, &block) # :nodoc:
         if name
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)

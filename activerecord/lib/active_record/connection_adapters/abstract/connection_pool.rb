@@ -687,6 +687,12 @@ module ActiveRecord
         Thread.pass
       end
 
+      def perform_maintenance(event) # :nodoc:
+        with_connection do |conn|
+          conn.perform_maintenance(event)
+        end
+      end
+
       private
         def connection_lease
           @leases[ActiveSupport::IsolatedExecutionState.context]

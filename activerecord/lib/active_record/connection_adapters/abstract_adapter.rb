@@ -36,6 +36,7 @@ module ActiveRecord
       include DatabaseLimits
       include QueryCache
       include Savepoints
+      include Maintenance
 
       SIMPLE_INT = /\A\d+\z/
       COMMENT_REGEX = %r{(?:--.*\n)|/\*(?:[^*]|\*[^/])*\*/}

@@ -102,6 +102,7 @@ module ActiveRecord
       autoload :ConnectionHandler
       autoload :QueryCache
       autoload :Savepoints
+      autoload :Maintenance
     end
 
     autoload_at "active_record/connection_adapters/abstract/connection_pool" do

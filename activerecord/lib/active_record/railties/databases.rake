@@ -390,6 +390,14 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.load_seed
   end
 
+  namespace :maintenance do
+    desc "Update database query planner statistics"
+    task analyze: :load_config do
+      db_namespace["abort_if_pending_migrations"].invoke
+      ActiveRecord::Tasks::DatabaseTasks.perform_maintenance(:analyze)
+    end
+  end
+
   namespace :seed do
     desc "Truncate tables of each database for current environment and load the seeds"
     task replant: [:load_config, :truncate_all, :seed]
