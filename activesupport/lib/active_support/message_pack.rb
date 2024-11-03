@@ -44,7 +44,7 @@ module ActiveSupport
     #
     #--
     # Implemented by Serializer#signature?.
-
-    ActiveSupport.run_load_hooks(:message_pack, self)
   end
 end
+
+ActiveSupport.run_load_hooks(:message_pack, ActiveSupport::MessagePack)

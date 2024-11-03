@@ -73,7 +73,7 @@ module ActiveJob # :nodoc:
     include Logging
     include Timezones
     include Translation
-
-    ActiveSupport.run_load_hooks(:active_job, self)
   end
 end
+
+ActiveSupport.run_load_hooks(:active_job, ActiveJob::Base)
