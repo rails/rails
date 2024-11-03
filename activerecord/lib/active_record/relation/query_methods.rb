@@ -1959,10 +1959,10 @@ module ActiveRecord
           table_name = table_name.name if table_name.is_a?(Symbol)
           case columns
           when Symbol, String
-            arel_column_with_table(table_name, columns.to_s)
+            arel_column_with_table(table_name, columns)
           when Array
             columns.map do |column|
-              arel_column_with_table(table_name, column.to_s)
+              arel_column_with_table(table_name, column)
             end
           else
             raise TypeError, "Expected Symbol, String or Array, got: #{columns.class}"
@@ -1972,8 +1972,13 @@ module ActiveRecord
 
       def arel_column_with_table(table_name, column_name)
         self.references_values |= [Arel.sql(table_name, retryable: true)]
-        predicate_builder.resolve_arel_attribute(table_name, column_name) do
-          lookup_table_klass_from_join_dependencies(table_name)
+
+        if column_name.is_a?(Symbol) || !column_name.match?(/\W/)
+          predicate_builder.resolve_arel_attribute(table_name, column_name) do
+            lookup_table_klass_from_join_dependencies(table_name)
+          end
+        else
+          Arel.sql("#{model.adapter_class.quote_table_name(table_name)}.#{column_name}")
         end
       end
 
@@ -1989,6 +1994,8 @@ module ActiveRecord
           arel_column_with_table(table, column)
         elsif block_given?
           yield field
+        elsif Arel.arel_node?(field)
+          field
         else
           Arel.sql(is_symbol ? model.adapter_class.quote_table_name(field) : field)
         end
@@ -2225,12 +2232,12 @@ module ActiveRecord
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
-              arel_column_with_table(table_name, column.to_s)
+              arel_column_with_table(table_name, column)
                 .as(model.adapter_class.quote_column_name(column_alias.to_s))
             end
           when Array
             columns_aliases.map do |column|
-              arel_column_with_table(table_name, column.to_s)
+              arel_column_with_table(table_name, column)
             end
           when String, Symbol
             arel_column(key)
