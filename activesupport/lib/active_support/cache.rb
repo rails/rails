@@ -556,7 +556,7 @@ module ActiveSupport
 
         instrument_multi :write_multi, normalized_hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
-            memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+            memo[normalize_key(name, options)] = Entry.new(value, **options, version: normalize_version(name, options))
           end
 
           write_multi_entries entries, **options
@@ -664,7 +664,7 @@ module ActiveSupport
         key = normalize_key(name, options)
 
         instrument(:write, key, options) do
-          entry = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+          entry = Entry.new(value, **options, version: normalize_version(name, options))
           write_entry(key, entry, **options)
         end
       end

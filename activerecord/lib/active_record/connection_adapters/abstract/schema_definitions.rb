@@ -302,7 +302,7 @@ module ActiveRecord
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name, type = :primary_key, **options)
-        column(name, type, **options.merge(primary_key: true))
+        column(name, type, **options, primary_key: true)
       end
 
       ##
