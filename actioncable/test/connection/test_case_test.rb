@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "json"
 
 class SimpleConnection < ActionCable::Connection::Base
   identified_by :user_id
@@ -209,5 +210,42 @@ class EnvConnectionTest < ActionCable::Connection::TestCase
 
   def test_connection_rejected
     assert_reject_connection { connect }
+  end
+end
+
+
+class CallbackedConnection < ActionCable::Connection::Base
+  identified_by :user_id
+
+  around_command :set_current_context
+
+  def connect
+    self.user_id = request.params[:user_id]
+  end
+
+  private
+    def set_current_context
+      Thread.current[:user_id] = user_id
+      yield
+      Thread.current[:user_id] = nil
+    end
+end
+
+class CallbackedConnection::Channel < ActionCable::Channel::Base
+  def subscribed
+    transmit({ user_id: Thread.current[:user_id] })
+  end
+end
+
+class CallbackedConnectionTest < ActionCable::Connection::TestCase
+  tests CallbackedConnection
+
+  def test_connection_callbacks
+    connect "/cable?user_id=2022"
+
+    identifier = { channel: "CallbackedConnection::Channel" }.to_json
+    connection.handle_channel_command({ "command" => "subscribe", "identifier" => identifier })
+
+    assert_equal({ "user_id" => "2022" }, transmissions.first["message"])
   end
 end

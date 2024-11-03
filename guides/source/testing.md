@@ -2275,6 +2275,20 @@ test "connects with cookies" do
 end
 ```
 
+You can test command callbacks by invoking the `#handle_channel_command` method on a connection object:
+
+```ruby
+test "command callbacks" do
+  connect
+
+  identifier = { channel: "ChatChannel" }.to_json
+
+  connection.handle_channel_command({ "command": "subscribe", "identifier": identifier })
+
+  # write your assertions here
+end
+```
+
 See the API documentation for [`ActionCable::Connection::TestCase`](https://api.rubyonrails.org/classes/ActionCable/Connection/TestCase.html) for more information.
 
 ### Channel Test Case
