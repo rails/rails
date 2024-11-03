@@ -43,7 +43,7 @@ rails_command("db:migrate")
 after_bundle do
   git :init
   git add: "."
-  git commit: %Q{ -m 'Initial commit' }
+  git commit: %Q( -m 'Initial commit' )
 end
 ```
 
@@ -291,6 +291,6 @@ relative paths to your template's location.
 
 ```ruby
 def source_paths
-  [__dir__]
+  [ __dir__ ]
 end
 ```

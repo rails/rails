@@ -17,6 +17,15 @@ GIT
       webrick
 
 GIT
+  remote: https://github.com/rails/rubocop-rails-omakase.git
+  revision: 85c8acf7a688705f5c439e4d89ea1447d50eb7fa
+  specs:
+    rubocop-rails-omakase (1.0.0)
+      rubocop
+      rubocop-performance
+      rubocop-rails
+
+GIT
   remote: https://github.com/rails/sdoc.git
   revision: 242686d0a55cd1f7c1c8b9e96ec85518c5e169a1
   branch: main
@@ -521,11 +530,6 @@ GEM
       rack (>= 1.1)
       rubocop (>= 1.52.0, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
-    rubocop-rails-omakase (1.0.0)
-      rubocop
-      rubocop-minitest
-      rubocop-performance
-      rubocop-rails
     ruby-progressbar (1.13.0)
     ruby-vips (2.2.2)
       ffi (~> 1.12)
@@ -729,7 +733,7 @@ DEPENDENCIES
   rubocop-packaging
   rubocop-performance
   rubocop-rails
-  rubocop-rails-omakase
+  rubocop-rails-omakase!
   rubyzip (~> 2.0)
   sdoc!
   selenium-webdriver (>= 4.20.0)

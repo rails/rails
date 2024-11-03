@@ -117,7 +117,7 @@ module Rails
         end
 
         command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
-        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
+        command_name, namespace = "version", "version" if %w[ -v --version ].include?(command_name)
 
         command = find_by_namespace(namespace, command_name)
         if command && command.all_commands[command_name]
@@ -301,7 +301,7 @@ module Rails
       end
 
       def create_tmp_directories
-        %w(cache pids sockets).each do |dir_to_make|
+        %w[cache pids sockets].each do |dir_to_make|
           FileUtils.mkdir_p(File.join(Rails.root, "tmp", dir_to_make))
         end
       end
@@ -501,7 +501,7 @@ This file is responsible for requiring all the individual frameworks of Rails:
 ```ruby
 require "rails"
 
-%w(
+%w[
   active_record/railtie
   active_storage/engine
   action_controller/railtie
@@ -512,7 +512,7 @@ require "rails"
   action_mailbox/engine
   action_text/engine
   rails/test_unit/railtie
-).each do |railtie|
+].each do |railtie|
   begin
     require railtie
   rescue LoadError

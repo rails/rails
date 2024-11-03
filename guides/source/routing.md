@@ -81,11 +81,11 @@ Routes live in `config/routes.rb`. Here is an example of what routes look like i
 
 ```ruby
 Rails.application.routes.draw do
-  resources :brands, only: [:index, :show] do
-    resources :products, only: [:index, :show]
+  resources :brands, only: [ :index, :show ] do
+    resources :products, only: [ :index, :show ]
   end
 
-  resource :basket, only: [:show, :update, :destroy]
+  resource :basket, only: [ :show, :update, :destroy ]
 
   resolve("Basket") { route_for(:basket) }
 end
@@ -192,7 +192,7 @@ The below resourceful route creates six routes in your application, all mapping 
 
 ```ruby
 resource :geocoder
-resolve("Geocoder") { [:geocoder] }
+resolve("Geocoder") { [ :geocoder ] }
 ```
 
 NOTE: The call to `resolve` is necessary for converting instances of the `Geocoder` to singular routes through [record identification](form_helpers.html#relying-on-record-identification).
@@ -364,9 +364,9 @@ For example:
 
 ```ruby
 resources :articles do
-  resources :comments, only: [:index, :new, :create]
+  resources :comments, only: [ :index, :new, :create ]
 end
-resources :comments, only: [:show, :edit, :update, :destroy]
+resources :comments, only: [ :show, :edit, :update, :destroy ]
 ```
 
 Above we use the `:only` option which tells Rails to create only the specified routes. This idea strikes a balance between descriptive routes and deep nesting. There is a shorthand syntax to achieve just that, via the `:shallow` option:
@@ -490,7 +490,7 @@ These concerns can be used in resources to avoid code duplication and share beha
 ```ruby
 resources :messages, concerns: :commentable
 
-resources :articles, concerns: [:commentable, :image_attachable]
+resources :articles, concerns: [ :commentable, :image_attachable ]
 ```
 
 The above is equivalent to:
@@ -753,7 +753,7 @@ This will define a `user_path` helper that will match `/:username` (e.g. `/jane`
 In general, you should use the [`get`][], [`post`][], [`put`][], [`patch`][], and [`delete`][] methods to constrain a route to a particular verb. There is a [`match`][] method that you could use with the `:via` option to match multiple verbs at once:
 
 ```ruby
-match "photos", to: "photos#show", via: [:get, :post]
+match "photos", to: "photos#show", via: [ :get, :post ]
 ```
 
 The above route matches GET and POST requests to the `show` action of the `PhotosController`.
@@ -1088,7 +1088,7 @@ The [`resolve`][] method allows customizing polymorphic mapping of models. For e
 ```ruby
 resource :basket
 
-resolve("Basket") { [:basket] }
+resolve("Basket") { [ :basket ] }
 ```
 
 ```erb
@@ -1261,8 +1261,8 @@ It will also generate path and URL helpers prefixed with `account_`, into which 
 
 ```ruby
 account_article_path(@account, @article) # => /1/article/9
-url_for([@account, @article])            # => /1/article/9
-form_with(model: [@account, @article])   # => <form action="/1/article/9" ...>
+url_for([ @account, @article ])            # => /1/article/9
+form_with(model: [ @account, @article ])   # => <form action="/1/article/9" ...>
 ```
 
 The `:as` option is also not mandatory, but without it, Rails will raise an error when evaluating `url_for([@account, @article])` or other helpers that rely on `url_for`, such as [`form_with`][].
@@ -1276,7 +1276,7 @@ By default, using `resources` creates routes for the seven default actions (`ind
 The `:only` option tells Rails to create only the specified routes:
 
 ```ruby
-resources :photos, only: [:index, :show]
+resources :photos, only: [ :index, :show ]
 ```
 
 Now, a `GET` request to `/photos` or `/photos/:id` would succeed, but a `POST` request to `/photos` will fail to match.

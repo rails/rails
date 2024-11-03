@@ -1108,7 +1108,7 @@ in the `/test` directory with the following configuration.
 require "test_helper"
 
 class MobileSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :chrome, screen_size: [375, 667]
+  driven_by :selenium, using: :chrome, screen_size: [ 375, 667 ]
 end
 ```
 
@@ -1880,7 +1880,7 @@ to parse rendered [RSS content][] into an object with `#rendered.rss`, register
 a call to `RSS::Parser.parse`:
 
 ```ruby
-register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
+register_parser :rss, ->(rendered) { RSS::Parser.parse(rendered) }
 
 test "renders RSS" do
   article = Article.create!(title: "Hello, world")
@@ -1944,7 +1944,7 @@ class UsersHelperTest < ActionView::TestCase
   test "should return the user's full name" do
     user = users(:david)
 
-    assert_dom_equal %{<a href="/user/#{user.id}">David Heinemeier Hansson</a>}, link_to_user(user)
+    assert_dom_equal %(<a href="/user/#{user.id}">David Heinemeier Hansson</a>), link_to_user(user)
   end
 end
 ```
@@ -2000,8 +2000,8 @@ class UserMailerTest < ActionMailer::TestCase
     end
 
     # Test the body of the sent email contains what we expect it to
-    assert_equal ["me@example.com"], email.from
-    assert_equal ["friend@example.com"], email.to
+    assert_equal [ "me@example.com" ], email.from
+    assert_equal [ "friend@example.com" ], email.to
     assert_equal "You have been invited by me@example.com", email.subject
     assert_equal read_fixture("invite").join, email.body.to_s
   end
@@ -2043,7 +2043,7 @@ class UserMailerTest < ActionMailer::TestCase
     email = UserMailer.create_invite("me@example.com", "friend@example.com")
 
     # Test that the email got enqueued with the correct arguments
-    assert_enqueued_email_with UserMailer, :create_invite, args: ["me@example.com", "friend@example.com"] do
+    assert_enqueued_email_with UserMailer, :create_invite, args: [ "me@example.com", "friend@example.com" ] do
       email.deliver_later
     end
   end
@@ -2061,8 +2061,8 @@ class UserMailerTest < ActionMailer::TestCase
     email = UserMailer.create_invite(from: "me@example.com", to: "friend@example.com")
 
     # Test that the email got enqueued with the correct named arguments
-    assert_enqueued_email_with UserMailer, :create_invite, args: [{ from: "me@example.com",
-                                                                    to: "friend@example.com" }] do
+    assert_enqueued_email_with UserMailer, :create_invite, args: [ { from: "me@example.com",
+                                                                    to: "friend@example.com" } ] do
       email.deliver_later
     end
   end
@@ -2081,7 +2081,7 @@ class UserMailerTest < ActionMailer::TestCase
 
     # Test that the email got enqueued with the correct mailer parameters and arguments
     assert_enqueued_email_with UserMailer, :create_invite, params: { all: "good" },
-                                                           args: ["me@example.com", "friend@example.com"] do
+                                                           args: [ "me@example.com", "friend@example.com" ] do
       email.deliver_later
     end
   end
