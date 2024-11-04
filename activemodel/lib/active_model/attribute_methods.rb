@@ -214,7 +214,7 @@ module ActiveModel
         end
       end
 
-      def generate_alias_attribute_methods(code_generator, new_name, old_name)
+      def generate_alias_attribute_methods(code_generator, new_name, old_name) # :nodoc:
         ActiveSupport::CodeGenerator.batch(code_generator, __FILE__, __LINE__) do |owner|
           attribute_method_patterns.each do |pattern|
             alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
