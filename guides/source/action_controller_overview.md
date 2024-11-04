@@ -910,24 +910,26 @@ Specifically for `around_action`, the block also yields in the `action`:
 around_action { |_controller, action| time(&action) }
 ```
 
-The second way is to specify a class (or any object that responds to the expected methods) for the callback action. This can be useful in cases that are more complex. As an example, you could rewrite the login action callback with a class:
+The second way is to specify a class (or any object that responds to the expected methods) for the callback action. This can be useful in cases that are more complex. As an example, you could rewrite the `around_action` callback to measure execution time with a class:
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_action LoginActionCallback
+  around_action ActionDurationCallback
 end
 
-class LoginActionCallback
-  def self.before(controller)
-    unless controller.send(:logged_in?)
-      controller.flash[:error] = "You must be logged in to access this section"
-      controller.redirect_to controller.new_login_url
-    end
+class ActionDurationCallback
+  def self.around(controller, action)
+    start_time = Time.now
+    yield  # This executes the action
+    end_time = Time.now
+
+    duration = end_time - start_time
+    Rails.logger.info "Action #{action} from controller #{controller} took #{duration.round(2)} seconds to execute."
   end
 end
 ```
 
-The above is not an ideal example. The `LoginActionCallback` method is not run in the scope of the controller but gets `controller` as an argument.
+In above example, the `ActionDurationCallback`'s method is not run in the scope of the controller but gets `controller` and `action` as an argument.
 
 In general, the class being used for a `*_action` callback must implement a method with the same name as the action callback. So for the `before_action` action callback, the class must implement a `before` method, and so on. Also, the `around` method must `yield` to execute the action.
 
