@@ -739,7 +739,7 @@ All sessions have a unique ID that represents the session object; these session 
 
 For most session stores, the unique session ID in the cookie is used to look up session data on the server (e.g. a database table). Rails does not allow you to pass the session ID in the URL as this is less secure.
 
-The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the session ID is still available to you if you need it). The cookie data is cryptographically signed to prevent tampering. It's also encrypted so anyone with access to it can't read its contents. The `CookieStore` is lightweight and does not require any configuration to use in a new application.
+The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the session ID is still available to you if you need it). The `CookieStore` is lightweight and does not require any configuration to use in a new application.
 
 The `CookieStore` can store 4 kB of data - much less than the other storage options - but this is usually enough. Storing large amounts of data in the session is discouraged. You should especially avoid storing complex objects (such as model instances) in the session.
 
@@ -852,7 +852,7 @@ options, the last action callback definition will overwrite the previous ones.
 
 ### `after_action` and `around_action`
 
-You can also define action callbacks to run _after_ a controller action has been executed with [`after_action`][], or to run both before and after with `around_action`][].
+You can also define action callbacks to run _after_ a controller action has been executed with [`after_action`][], or to run both before and after with [`around_action`][].
 
 The `after_action` callbacks are similar to `before_action` callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client.
 
@@ -979,7 +979,7 @@ access to the various parameters.
 * [`query_parameters`][] - contains parameters that were sent as part of the
   query string.
 * [`request_parameters`][] - contains parameters sent as part of the post body.
-  * [`path_parameters`][] - contains parameters parsed by the router as being
+* [`path_parameters`][] - contains parameters parsed by the router as being
   part of the path leading to this particular controller and action.
 
 [`path_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Http/Parameters.html#method-i-path_parameters
