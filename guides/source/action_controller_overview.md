@@ -510,10 +510,25 @@ tampering and are not considered secure for storing sensitive data. Rails
 provides a signed cookie jar and an encrypted cookie jar for storing sensitive
 data. The signed cookie jar appends a cryptographic signature on the cookie
 values to protect their integrity. The encrypted cookie jar encrypts the values
-in addition to signing them, so that they cannot be read by the user. Refer to
-the [API
+in addition to signing them, so that they cannot be read by the user. 
+
+Refer to the [API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
 for more details.
+
+```ruby
+class CookiesController < ApplicationController
+  def set_cookie
+    cookies.signed[:user_id] = current_user.id
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2024
+    redirect_to action: 'read_cookie'
+  end
+
+  def read_cookie
+    cookies.encrypted[:expiration_date] # => "2024-03-20"
+  end
+end
+```
 
 These special cookie jars use a serializer to serialize the cookie values into
 strings and deserialize them into Ruby objects when read back. You can specify
@@ -521,20 +536,7 @@ which serializer to use via [`config.action_dispatch.cookies_serializer`][]. The
 
 NOTE: Be aware that JSON has limited support serializing Ruby objects such as
 `Date`, `Time`, and `Symbol`. These will be serialized and deserialized into
-`String`s:
-
-```ruby
-class CookiesController < ApplicationController
-  def set_cookie
-    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2024
-    redirect_to action: 'read_cookie'
-  end
-
-  def read_cookie
-    cookies.encrypted[:expiration_date] # => "2014-03-20"
-  end
-end
-```
+`String`s.
 
 If you need to store these or more complex objects, you may need to manually
 convert their values when reading them in subsequent requests.
