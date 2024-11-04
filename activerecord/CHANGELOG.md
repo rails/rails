@@ -1,3 +1,9 @@
+*   Fix `ActiveRecord::QueryMethods#in_order_of` when passing an out-of-range Integer.
+
+    To match the behavior of the `Enumerable` version, `in_order_of` now ignores an out-of-range Integer.
+
+    *tejanium*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
