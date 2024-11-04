@@ -309,7 +309,7 @@ a 400 Bad Request being returned if not all required parameters are passed in.
 ```ruby
 class PeopleController < ActionController::Base
 
-  # This will raise an ActiveModel::ForbiddenAttributesError exception
+  # This will raise an ActiveModel::ForbiddenAttributesError
   # because it's using mass assignment without an explicit permit
   def create
     Person.create(params[:person])
@@ -338,7 +338,12 @@ Calling [`permit`][] allows the specified key (`:id` below) for inclusion if it
 appears in `params`:
 
 ```ruby
+params = ActionController::Parameters.new(id: 1, admin: "true")
+=> #<ActionController::Parameters {"id"=>1, "admin"=>"true"} permitted: false>
 params.permit(:id)
+=> #<ActionController::Parameters {"id"=>1} permitted: true>
+params.permit(:id, :admin)
+=> #<ActionController::Parameters {"id"=>1, "admin"=>"true"} permitted: true>
 ```
 
 For the permitted key `:id`, its value also needs to be one of these
@@ -353,19 +358,27 @@ To include a value in `params` that's an array of one of the permitted scalar
 values, you can map the key to an empty array like this:
 
 ```ruby
-params.permit(id: [])
+params = ActionController::Parameters.new(tags: ["rails", "parameters"])
+=> #<ActionController::Parameters {"tags"=>["rails", "parameters"]} permitted: false>
+params.permit(tags: [])
+=> #<ActionController::Parameters {"tags"=>["rails", "parameters"]} permitted: true>
 ```
 
 To include hash values, you can map to an empty hash:
 
 ```ruby
+params = ActionController::Parameters.new(options: { darkmode: true })
+=> #<ActionController::Parameters {"options"=>{"darkmode"=>true}} permitted: false>
 params.permit(options: {})
+=> #<ActionController::Parameters {"options"=>#<ActionController::Parameters {"darkmode"=>true} permitted: true>} permitted: true>
 ```
 
 The above `permit` call ensures that values in `options` are permitted scalars
-and filters out anything else. But be careful because the above opens the door
-to arbitrary input. Sometimes it is not possible or convenient to declare each
-valid key of a hash parameter or its internal structure.
+and filters out anything else.
+
+WARNING: The permit with an empty hash is convenient since sometimes it is not
+possible or convenient to declare each valid key of a hash parameter or its
+internal structure. But note that the above `permit` with an empty hash opens the door to arbitrary input.
 
 There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking the values.
 
@@ -377,7 +390,7 @@ The above marks the `:log_entry` parameters hash and any sub-hash of it as
 permitted and does not check for permitted scalars, anything is accepted.
 
 WARNING: Extreme care should be taken when using `permit!`, as it will allow all
-current and future model attributes to be mass-assigned.
+current and *future* model attributes to be mass-assigned.
 
 [`permit`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit
 [`permit!`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit-21
