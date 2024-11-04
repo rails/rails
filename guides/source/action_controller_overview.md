@@ -176,29 +176,33 @@ Your controller will receive `params[:user]` as `{ "name" => "acme", "address" =
 
 #### Configuring Wrap Parameters
 
-You can [configure wrap parameters](configuring.html#config-action-controller-wrap-parameters-by-default) option if you want to omit the root element in the JSON parameters. It is `true` by default.
-
-```ruby
-config.action_controller.wrap_parameters_by_default = true
-```
-
-With this configuration, parameters will be cloned and wrapped with a key chosen based on your controller's name.
+You can use [Wrap Parameters][], which automatically add the controller name to JSON parameters. For example, you can send the below JSON without a root `:user` key prefix:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
 ```
 
-Assuming that you're sending the data to `CompaniesController`, the above JSON would be wrapped within the `:company` key like this:
+Assuming that you're sending the above data to the `UsersController`, the JSON will be wrapped within the `:user` key like this:
 
 ```ruby
-{ name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
+{ name: "acme", address: "123 Carrot Street", user: { name: "acme", address: "123 Carrot Street" } }
 ```
 
-You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
+NOTE: Wrap Parameters clone the parameters and add the controller name as a key. The "naked" parameters still exist in the `params` hash.
 
-NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`.
+This feature clones and wraps parameters with a key chosen based on your
+controller's name. It is configured to `true` by default. If you do not want to
+wrap parameters you can
+[configure](configuring.html#config-action-controller-wrap-parameters-by-default)
+it to `false`.
 
-[`wrap_parameters`]: https://api.rubyonrails.org/classes/ActionController/ParamsWrapper/Options/ClassMethods.html#method-i-wrap_parameters
+```ruby
+config.action_controller.wrap_parameters_by_default = false
+```
+
+You can also customize the name of the key or specific parameters you want to wrap, see [API documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html) for more.
+
+[Wrap Parameters]: https://api.rubyonrails.org/classes/ActionController/ParamsWrapper/Options/ClassMethods.html#method-i-wrap_parameters
 
 ### Routing Parameters
 
