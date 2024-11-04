@@ -263,7 +263,7 @@ method may be used to extract arrays out of any delimited parameters.
 
 ### The `default_url_options` Method
 
-You can set global default parameters for [`url_for`]( https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for) by defining a method called `default_url_options` in your controller. This method must return a hash with the desired defaults, whose keys must be symbols:
+You can set global default parameters for [`url_for`]( https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for) by defining a method called `default_url_options` in your controller. For example:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -273,7 +273,21 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-These options will be used as a starting point when generating URLs. They can be overridden by the options passed to `url_for` calls.
+NOTE: The `default_url_options` method must return a hash with keys that are symbols.
+
+The specified defaults will be used as a starting point when generating URLs. They can be overridden by the options passed to `url_for` or any path helper such as `posts_path`. For example, by setting `locale: I18n.locale`, Rails will automatically add the locale to every URL:
+
+```ruby
+posts_path # => "/en/posts"
+```
+
+You can still override this default if needed:
+
+```ruby
+posts_path(locale: :fr) # => "/fr/posts"
+```
+
+NOTE: Under the hood, `posts_path` is a shorthand for calling `url_for` with the appropriate parameters.
 
 If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only applies to URLs generated for that controller.
 
