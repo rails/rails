@@ -26,7 +26,7 @@ class Time
       @@active_support_local_zone ||=
         begin
           @@active_support_local_tz = ENV["TZ"]
-          Time.new.zone
+          Time.new(year, month, day).zone
         end
     end
 end
