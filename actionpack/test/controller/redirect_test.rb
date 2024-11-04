@@ -204,11 +204,9 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_external_with_rescue
-    begin
-      redirect_to "http://www.rubyonrails.org/", allow_other_host: false
-    rescue ActionController::Redirecting::UnsafeRedirectError
-      render plain: "caught error"
-    end
+    redirect_to "http://www.rubyonrails.org/", allow_other_host: false
+  rescue ActionController::Redirecting::UnsafeRedirectError
+    render plain: "caught error"
   end
 
   def rescue_errors(e) raise e end
