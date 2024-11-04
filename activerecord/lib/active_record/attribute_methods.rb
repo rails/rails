@@ -84,7 +84,7 @@ module ActiveRecord
         attribute_method_patterns_cache.clear
       end
 
-      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:
         old_name = old_name.to_s
 
         if !abstract_class? && !has_attribute?(old_name)
