@@ -609,10 +609,11 @@ NOTE: Sessions are lazily loaded. If you don't access sessions in your action's 
 ### The Flash
 
 The [flash](https://api.rubyonrails.org/classes/ActionDispatch/Flash.html)
-provides a way to pass temporary data between controller actions. Anything you place in the
-flash will be available to the very next action and then cleared. The flash is
-typically used for setting messages (e.g. notices and alerts) in a controller
-action before redirecting to an action that displays the message to the user.
+provides a way to pass temporary data between controller actions. Anything you
+place in the flash will be available to the very next action and then cleared.
+The flash is typically used for setting messages (e.g. notices and alerts) in a
+controller action before redirecting to an action that displays the message to
+the user.
 
 The flash is accessed via the [`flash`][] method. Similar to the session, the
 flash values are stored as key/value pairs.
@@ -638,16 +639,14 @@ In addition to `:notice`, you can also use `:alert`. These are typically styled
 (using CSS) with different colors to indicate their meaning (e.g. green for
 notices and orange/red for alerts).
 
-You can also assign a flash message directly within the `redirect_to` method by including it as a parameter.
-parameter to `redirect_to`:
+You can also assign a flash message directly within the `redirect_to` method by including it as a parameter to `redirect_to`:
 
 ```ruby
 redirect_to root_url, notice: "You have successfully logged out."
 redirect_to root_url, alert: "There was an issue."
-redirect_to root_url, flash: { referral_code: 1234 }
 ```
 
-You can set any key in a flash (similar to sessions); you're not limited to `notice` and `alert`:
+You can set any key in a flash (similar to sessions), you're not limited to `notice` and `alert`. For example, setting `redirect_to root_url, flash: { just_signed_up: true }` will allow you to have the below in the view:
 
 ```erb
 <% if flash[:just_signed_up] %>
@@ -662,7 +661,7 @@ it will do with what the previous action put in the flash.
 
 #### Displaying flash messages
 
-If a previous action _has_ set a flash message, it's a good idea of display that to the user typically. We can accomplish this consistently by adding the HTML for displaying any flash messages in the application's default layout. Here's an example from `app/views/layouts/application.html.erb`:
+If a previous action _has_ set a flash message, it's a good idea of display that to the user. We can accomplish this consistently by adding the HTML for displaying any flash messages in the application's default layout. Here's an example from `app/views/layouts/application.html.erb`:
 
 ```erb
 <html>
@@ -729,7 +728,7 @@ end
 
 ### Session Storage Options
 
-All sessions have a unique Id that represents the session object; these Ids are stored in a cookie. The actual session objects use one of the following storage mechanisms:
+All sessions have a unique ID that represents the session object; these session IDs are stored in a cookie. The actual session objects use one of the following storage mechanisms:
 
 * [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
 * [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
@@ -738,9 +737,9 @@ All sessions have a unique Id that represents the session object; these Ids are 
   [`activerecord-session_store`][activerecord-session_store] gem)
 * A custom store or a store provided by a third party gem
 
-For most session stores, the unique Id in the cookie is used to look up session data on the server (e.g. a database table). Rails does not allow you to pass the session ID in the URL as this is less secure.
+For most session stores, the unique session ID in the cookie is used to look up session data on the server (e.g. a database table). Rails does not allow you to pass the session ID in the URL as this is less secure.
 
-The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the ID is still available to you if you need it). The cookie data is cryptographically signed to prevent tampering. It's also encrypted so anyone with access to it can't read its contents. The `CookieStore` is lightweight and does not require any configuration to use in a new application.
+The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the session ID is still available to you if you need it). The cookie data is cryptographically signed to prevent tampering. It's also encrypted so anyone with access to it can't read its contents. The `CookieStore` is lightweight and does not require any configuration to use in a new application.
 
 The `CookieStore` can store 4 kB of data - much less than the other storage options - but this is usually enough. Storing large amounts of data in the session is discouraged. You should especially avoid storing complex objects (such as model instances) in the session.
 
