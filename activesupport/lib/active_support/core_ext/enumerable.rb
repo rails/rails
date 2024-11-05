@@ -209,10 +209,10 @@ module Enumerable
   #   Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
   #   { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: 2 items found
   def sole
-    case count
+    case (c = count)
     when 1   then return first # rubocop:disable Style/RedundantReturn
     when 0   then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "no item found"
-    when 2.. then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "#{count} items found"
+    when 2.. then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "#{c} items found"
     end
   end
 end
