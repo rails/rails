@@ -107,7 +107,7 @@ https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/Co
 
 ### HTTP Digest Authentication
 
-HTTP digest authentication is more secure than basic authentication as it does not require the client to send an unencrypted password over the network. The credentials are hashed instead and a [Digest](https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Digest.html) is sent. 
+HTTP digest authentication is more secure than basic authentication as it does not require the client to send an unencrypted password over the network. The credentials are hashed instead and a [Digest](https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Digest.html) is sent.
 
 Using digest authentication with Rails can be done by using the[`authenticate_or_request_with_http_digest`][] method:
 

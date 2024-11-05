@@ -510,7 +510,7 @@ tampering and are not considered secure for storing sensitive data. Rails
 provides a signed cookie jar and an encrypted cookie jar for storing sensitive
 data. The signed cookie jar appends a cryptographic signature on the cookie
 values to protect their integrity. The encrypted cookie jar encrypts the values
-in addition to signing them, so that they cannot be read by the user. 
+in addition to signing them, so that they cannot be read by the user.
 
 Refer to the [API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
