@@ -132,9 +132,11 @@ The`authenticate_or_request_with_http_digest` block takes only one argument - th
 
 ### HTTP Token Authentication
 
-HTTP token authentication is a scheme to enable the usage of Bearer tokens in the HTTP `Authorization` header. There are many token formats available and describing them is outside the scope of this document.
+Token authentication (aka "Bearer" authentication) is an authentication method where a client receives a unique token after successfully logging in, which it then includes in the `Authorization` header of future requests. Instead of sending credentials with each request, the client sends this [token]((https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token.html)) (a string that represents the user's session) as a "bearer" of the authentication.
 
-As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails only requires using one method, [`authenticate_or_request_with_http_token`][].
+This approach improves security by separating credentials from the ongoing session. You use an authentication token that has been issued in advance to perform authentication.
+
+Implementing token authentication with Rails can be done using the [`authenticate_or_request_with_http_token`][] method.
 
 ```ruby
 class PostsController < ApplicationController
@@ -151,7 +153,7 @@ class PostsController < ApplicationController
 end
 ```
 
-As seen in the example above, the `authenticate_or_request_with_http_token` block takes two arguments - the token and a `Hash` containing the options that were parsed from the HTTP `Authorization` header. The block should return `true` if the authentication is successful. Returning `false` or `nil` on it will cause an authentication failure.
+The `authenticate_or_request_with_http_token` block takes two arguments - the token and a hash containing the options that were parsed from the HTTP `Authorization` header. The block should return `true` if the authentication is successful. Returning `false` or `nil` will cause an authentication failure.
 
 [`authenticate_or_request_with_http_token`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token/ControllerMethods.html#method-i-authenticate_or_request_with_http_token
 
