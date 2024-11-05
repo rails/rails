@@ -391,8 +391,8 @@ Force HTTPS Protocol
 --------------------
 
 If you'd like to ensure that communication to your controller is only possible
-via HTTPS, you should do so by enabling the [`ActionDispatch::SSL`][] middleware via
-[`config.force_ssl`][] in your environment configuration.
+via HTTPS, you can do so by enabling the [`ActionDispatch::SSL`][] middleware
+via [`config.force_ssl`][] in your environment configuration.
 
 [`config.force_ssl`]: configuring.html#config-force-ssl
 [`ActionDispatch::SSL`]: https://api.rubyonrails.org/classes/ActionDispatch/SSL.html
@@ -400,23 +400,23 @@ via HTTPS, you should do so by enabling the [`ActionDispatch::SSL`][] middleware
 Built-in Health Check Endpoint
 ------------------------------
 
-Rails also comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 500 status code otherwise.
+Rails comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 500 status code otherwise.
 
-In production, many applications are required to report their status upstream, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine a pod's health. This health check is designed to be a one-size fits all that will work in many situations.
+In production, many applications are required to report their status, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine the health of a given instance. This health check is designed to be a one-size fits all that will work in many situations.
 
 While any newly generated Rails applications will have the health check at `/up`, you can configure the path to be anything you'd like in your "config/routes.rb":
 
 ```ruby
 Rails.application.routes.draw do
-  get "healthz" => "rails/health#show", as: :rails_health_check
+  get "health" => "rails/health#show", as: :rails_health_check
 end
 ```
 
-The health check will now be accessible via the `/healthz` path.
+The health check will now be accessible via the `/health` path.
 
-NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis cluster. Replace "rails/health#show" with your own controller action if you have application specific needs.
+NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis. Replace "rails/health#show" with your own controller action if you have application specific needs.
 
-Think carefully about what you want to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
+Reporting the health of an application requires some considerations. You'll have to decide what you want to include in the check. For example, if a third-party service is down and your application reports that it's down due to the dependency, your application may be restarted unnecessarily. Ideally, your application should handle third-party outages gracefully.
 
 Handling Errors
 ----------------
