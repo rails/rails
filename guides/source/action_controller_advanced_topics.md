@@ -3,24 +3,24 @@
 Action Controller Advanced Topics
 ================================
 
-In this guide, you will learn about the following topics related to controllers: TODO update bullet points.
+In this guide, you will learn about some advanced topics related to controllers. After reading this guide, you will know how to:
 
-After reading this guide, you will know how to:
-
+* Protect against cross-site request forgery.
 * Use Action Controller's built-in HTTP authentication.
 * Stream data directly to the user's browser.
-* Filter sensitive parameters, so they do not appear in the application's log.
-* Deal with exceptions that may be raised during request processing.
-* Use the built-in health check end-point for load balancers and uptime monitors.
+* Filter sensitive parameters from the application logs.
+* Handle exceptions that may be raised during request processing.
+* Use the built-in health check endpoint for load balancers and uptime monitors.
 
 --------------------------------------------------------------------------------
 
 Introduction
 ------------
 
-Please see the [Action Controller Overview](action_controller_overview.html) guide.
-TODO introduce these miscellaneous topics.
-
+This guide covers a number of advanced topics related to controllers in a Rails
+application. Please see the [Action Controller
+Overview](action_controller_overview.html) guide for an introduction to Action
+Controllers.
 
 Authenticity Token and Request Forgery Protection
 -------------------------------------------------
@@ -49,7 +49,7 @@ For example, when you generate a form like this:
 <% end %>
 ```
 
-A CSRF token named `authenticity_token` is added as a hidden field:
+A CSRF token named `authenticity_token` is added as a hidden field in the generated HTML:
 
 ```html
 <form accept-charset="UTF-8" action="/users/1" method="post">
@@ -69,7 +69,7 @@ Rails adds this token to every `form` that's generated using the [form helpers](
 </head>
 ```
 
-The `form_authenticity_token` generates a valid authentication token. That's useful in places where Rails does not add it automatically, like in custom Ajax calls.
+The `form_authenticity_token` method generates a valid authentication token. That can be useful in places where Rails does not add it automatically, like in custom Ajax calls.
 
 NOTE: All subclasses of `ActionController::Base` are protected by default and will raise an `ActionController::InvalidAuthenticityToken` error on unverified requests.
 
