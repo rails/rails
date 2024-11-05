@@ -75,8 +75,8 @@ NOTE: All subclasses of `ActionController::Base` are protected by default and wi
 
 You can learn more details about the CSRF attack as well as CSRF countermeasures in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 
-HTTP Authentications
---------------------
+HTTP Authentication
+-------------------
 
 Rails comes with three built-in HTTP authentication mechanisms:
 
@@ -86,27 +86,34 @@ Rails comes with three built-in HTTP authentication mechanisms:
 
 ### HTTP Basic Authentication
 
-HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication only requires you to use one method, [`http_basic_authenticate_with`][].
+HTTP Basic Authentication is a simple authentication method where a user is required to enter a username and password to access a website or a particular section of a website (e.g. admin section). These credentials are entered into a browser's HTTP basic dialog window. The user’s credentials are then encoded and sent in the HTTP header with each request.
+
+HTTP basic authentication is an authentication scheme that is supported by most browsers. Using HTTP Basic authentication in a Rails controller can be done by using the [`http_basic_authenticate_with`][] method:
 
 ```ruby
 class AdminsController < ApplicationController
-  http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
+  http_basic_authenticate_with name: "Arthur", password: "42424242"
 end
 ```
 
-With this in place, you can create namespaced controllers that inherit from `AdminsController`. The action callback will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
+With the above in place, you can create controllers that inherit from
+`AdminsController`. All actions in those controllers will use HTTP basic
+authentication and require user credentials.
 
-WARNING: HTTP Basic Authentication will send credentials unencrypted over the network.
-Make sure to use HTTPS when using Basic Authentication.
-[`http_basic_authenticate_with`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
+WARNING: HTTP Basic Authentication is easy to implement but less secure on its
+own, as it will send unencrypted credentials over the network. Make sure to use
+HTTPS when using Basic Authentication. [`http_basic_authenticate_with`]:
+https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
 
 ### HTTP Digest Authentication
 
-HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails only requires using one method, [`authenticate_or_request_with_http_digest`][].
+HTTP digest authentication is more secure than basic authentication as it does not require the client to send an unencrypted password over the network. The credentials are hashed instead and a [Digest](https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Digest.html) is sent. 
+
+Using digest authentication with Rails can be done by using the[`authenticate_or_request_with_http_digest`][] method:
 
 ```ruby
 class AdminsController < ApplicationController
-  USERS = { "lifo" => "world" }
+  USERS = { "admin" => "helloworld" }
 
   before_action :authenticate
 
@@ -119,7 +126,7 @@ class AdminsController < ApplicationController
 end
 ```
 
-As seen in the example above, the `authenticate_or_request_with_http_digest` block takes only one argument - the username. And the block returns the password. Returning `false` or `nil` from the `authenticate_or_request_with_http_digest` will cause authentication failure.
+The`authenticate_or_request_with_http_digest` block takes only one argument - the username. The block returns the password if found. If the return value is `false` or `nil`, it is considered an authentication failure.
 
 [`authenticate_or_request_with_http_digest`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Digest/ControllerMethods.html#method-i-authenticate_or_request_with_http_digest
 
