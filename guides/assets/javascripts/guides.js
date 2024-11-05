@@ -52,6 +52,25 @@
       });
     }
 
+    // Detecting the mobile state should be done using CSS because that's what
+    // lays out the page, but this can fallback to JavaScript if that is not
+    // available
+    var MOBILE_WIDTH_FROM_STYLE_CSS_BREAKPOINT = 1024
+    var isMobile = window.innerWidth <= MOBILE_WIDTH_FROM_STYLE_CSS_BREAKPOINT;
+
+    if ('matchMedia' in window) {
+      var mediaQueryList = window.matchMedia(`(max-width: ${MOBILE_WIDTH_FROM_STYLE_CSS_BREAKPOINT}px)`);
+      isMobile = mediaQueryList.matches ? 'auto' : 'smooth';
+
+      mediaQueryList.addEventListener('change', function (ev) {
+        isMobile = ev.matches ? 'auto' : 'smooth';
+      });
+    } else {
+      window.addEventListener('resize', function onResize() {
+        isMobile = window.innerWidth <= MOBILE_WIDTH_FROM_STYLE_CSS_BREAKPOINT
+      })
+    }
+
     // The guides menu anchor is overridden to expand an element with the entire
     // index on the same page. It is important that both the visibility is
     // changed and that the aria-expanded attribute is toggled.
@@ -342,6 +361,11 @@
 
       if (disableChapterScroll) {
         return;
+      }
+
+      // Must match breakpoints.desktop in style.scss
+      if (isMobile) {
+        return
       }
 
       // On some OS-browser combinations, this will stop smooth scrolling of the
