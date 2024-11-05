@@ -160,9 +160,9 @@ The `authenticate_or_request_with_http_token` block takes two arguments - the to
 Streaming and File Downloads
 ----------------------------
 
-Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the [`send_data`][] and the [`send_file`][] methods, which will both stream data to the client. `send_file` is a convenience method that lets you provide the name of a file on the disk, and it will stream the contents of that file for you.
+Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the [`send_data`][] and the [`send_file`][] methods, which will both stream data to the client. The `send_file` method is a convenience method that lets you provide the name of a file on the disk, and it will stream the contents of that file for you.
 
-To stream data to the client, use `send_data`:
+Here is an example of how to use `send_data`:
 
 ```ruby
 require "prawn"
@@ -348,21 +348,24 @@ you should also note the following things:
 Log Filtering
 -------------
 
-Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a production application you may not want every bit of information to be stored in the log file.
+Rails keeps a log file for each environment in the `log` folder at the application's root directory. Log files are extremely useful when debugging your application, but in a production environment you may not want every bit of information stored in log files. Rails allows you to specify parameters that should not be stored.
 
 ### Parameters Filtering
 
 You can filter out sensitive request parameters from your log files by
 appending them to [`config.filter_parameters`][] in the application configuration.
-These parameters will be marked `[FILTERED]` in the log.
 
 ```ruby
 config.filter_parameters << :password
 ```
 
-NOTE: Provided parameters will be filtered out by partial matching regular
-expression. Rails adds a list of default filters, including `:passw`,
-`:secret`, and `:token`, in the appropriate initializer
+These parameters will be marked `[FILTERED]` in the log.
+
+The parameters specified in `filter_parameters` will be filtered out with
+partial matching regular expression. So for example, `:passw` will filter out `password`, `password_confirmation`, etc.
+
+Rails adds a list of default filters, including `:passw`, `:secret`, and
+`:token`, in the appropriate initializer
 (`initializers/filter_parameter_logging.rb`) to handle typical application
 parameters like `password`, `password_confirmation` and `my_token`.
 
@@ -370,8 +373,7 @@ parameters like `password`, `password_confirmation` and `my_token`.
 
 ### Redirects Filtering
 
-Sometimes it's desirable to filter out from log files some sensitive locations your application is redirecting to.
-You can do that by using the `config.filter_redirect` configuration option:
+Sometimes it's desirable to filter out sensitive locations that your application is redirecting to. You can do that by using the `config.filter_redirect` configuration option:
 
 ```ruby
 config.filter_redirect << 's3.amazonaws.com'
@@ -383,8 +385,7 @@ You can set it to a String, a Regexp, or an array of both.
 config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
 ```
 
-Matching URLs will be replaced with `[FILTERED]`. However, if you only wish to filter the parameters, not the whole URLs,
-please take a look at [Parameters Filtering](#parameters-filtering).
+Matching URLs will be replaced with `[FILTERED]`. However, if you only wish to filter the parameters, not the whole URLs, you can use parameter filtering.
 
 Force HTTPS Protocol
 --------------------
