@@ -5,34 +5,34 @@ Threading and Code Execution in Rails
 
 After reading this guide, you will know:
 
-* What code Rails will automatically execute concurrently
-* How to integrate manual concurrency with Rails internals
+* Where to find automatically concurrent code execution in Rails
+* How to integrate manual concurrency within Rails
 * How to wrap all application code
 * How to affect application reloading
 
 --------------------------------------------------------------------------------
 
-Automatic Concurrency
----------------------
+Concurrency in Rails
+--------------------
 
-Rails automatically allows various operations to be performed at the same time.
+Rails automatically allows various operations to be performed at the same time (concurrently). In this section, we will explore some of the ways this happens.
 
-When using a threaded web server, such as the default Puma, multiple HTTP
-requests will be served simultaneously, with each request provided its own
+When using a threaded web server, such as Rails' default server, Puma, multiple HTTP
+requests will be served simultaneously. Rails provides each request with its own
 controller instance.
 
-Threaded Active Job adapters, including the built-in Async, will likewise
+Threaded Active Job adapters, including the built-in Async adapter, will likewise
 execute several jobs at the same time. Action Cable channels are managed this
 way too.
 
 These mechanisms all involve multiple threads, each managing work for a unique
 instance of some object (controller, job, channel), while sharing the global
 process space (such as classes and their configurations, and global variables).
-As long as your code doesn't modify any of those shared things, it can mostly
-ignore that other threads exist.
+As long as your code doesn't modify any of those shared things, it is mostly irrelevant to it
+that the other threads exist.
 
-The rest of this guide describes the mechanisms Rails uses to make it "mostly
-ignorable", and how extensions and applications with special needs can use them.
+The rest of this guide describes the mechanisms Rails uses to make threads independent,
+and how extensions and applications with special needs can use them.
 
 Executor
 --------
