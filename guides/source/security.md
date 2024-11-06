@@ -471,7 +471,7 @@ NOTE: All of these mitigation techniques are not a bullet-proof solution against
 
 ### Account Hijacking
 
-Many web applications make it easy to hijack user accounts. Why not be different and make it more difficult?.
+Many web applications make it easy to hijack user accounts. Why not be different and make it more difficult?
 
 #### Passwords
 
