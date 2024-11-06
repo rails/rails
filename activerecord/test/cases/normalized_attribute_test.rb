@@ -110,4 +110,12 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     aircraft.save
     assert_equal "1", aircraft.name
   end
+
+  test "preserves sql wildcards in quoted arel matches" do
+    klass = Class.new(Aircraft) do
+      normalizes :name, with: -> { _1.gsub(/[^a-zA-Z\s]/, '') }
+    end
+
+    assert_equal klass.first, klass.where(klass.arel_table[:name].matches(Arel::Nodes::Quoted.new("_ly%"))).first
+  end
 end
