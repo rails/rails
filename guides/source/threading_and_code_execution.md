@@ -34,15 +34,13 @@ that the other threads exist.
 The rest of this guide describes the mechanisms Rails uses to make threads independent,
 and how extensions and applications with special needs can use them.
 
-Executor
---------
+The Rails Executor
+------------------
 
-The Rails Executor separates application code from framework code: any time the
-framework invokes code you've written in your application, it will be wrapped by
-the Executor.
+The [Rails Executor](https://api.rubyonrails.org/classes/ActiveSupport/ExecutionWrapper.html) separates application code from framework code. Any time the framework invokes code you've written in your application, it will be wrapped by the executor.
 
-The Executor consists of two callbacks: `to_run` and `to_complete`. The Run
-callback is called before the application code, and the Complete callback is
+The executor consists of two callbacks: `to_run` and `to_complete`. The `to_run`
+callback is called before the application code, and the `to_complete` callback is
 called after.
 
 ### Default Callbacks
