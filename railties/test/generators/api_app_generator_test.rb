@@ -57,6 +57,11 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/action_controller\.perform_caching = true/, content)
     end
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/test:system/, content)
+      assert_no_match(/screenshots/, content)
+    end
   end
 
   def test_dockerfile
@@ -193,6 +198,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
          test/helpers
+         public/400.html
          public/404.html
          public/422.html
          public/406-unsupported-browser.html

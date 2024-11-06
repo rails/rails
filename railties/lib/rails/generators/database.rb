@@ -42,7 +42,7 @@ module Rails
         end
 
         def host
-          "localhost"
+          "127.0.0.1"
         end
       end
 
@@ -248,7 +248,7 @@ module Rails
         end
 
         def gem
-          ["sqlite3", [">= 2.0"]]
+          ["sqlite3", [">= 2.1"]]
         end
 
         def base_package

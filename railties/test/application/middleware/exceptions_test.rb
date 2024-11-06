@@ -150,7 +150,7 @@ module ApplicationTests
 
       assert_nothing_raised do
         get("/foo", {}, "HTTPS" => "on")
-        assert_match "The page you were looking for doesn't exist.", last_response.body
+        assert_match "The page you were looking for doesn’t exist.", last_response.body
       end
     end
 
@@ -226,7 +226,7 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
-      limit = Rack::Utils.param_depth_limit + 1
+      limit = ActionDispatch::ParamBuilder.default.param_depth_limit + 1
       malicious_url = "/foo?#{'[test]' * limit}=test"
 
       get(malicious_url, {}, "HTTPS" => "on")

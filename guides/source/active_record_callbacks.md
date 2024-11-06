@@ -283,7 +283,7 @@ end
 ```irb
 irb> user = User.create(name: "Jane Doe", password: "password", email: "jane.doe@example.com")
 
-Password encrypted for user with email: jane.doe@example.com
+Password hashed for user with email: jane.doe@example.com
 Saving user with email: jane.doe@example.com
 User saved with email: jane.doe@example.com
 Update Cache
@@ -815,13 +815,13 @@ lead to invalid data.
 [`increment_counter`]:
     https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
 [`insert`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert
 [`insert!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert-21
 [`insert_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert_all
 [`insert_all!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert_all-21
 [`touch_all`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
 [`update_column`]:
@@ -833,9 +833,9 @@ lead to invalid data.
 [`update_counters`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
 [`upsert`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert
 [`upsert_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert_all
 
 Suppressing Callbacks
 ---------------------
@@ -983,7 +983,7 @@ class Author < ApplicationRecord
   has_many :books, before_add: :check_limit
 
   private
-    def check_limit
+    def check_limit(_book)
       if books.count >= 5
         errors.add(:base, "Cannot add more than 5 books for this author")
         throw(:abort)
@@ -1004,7 +1004,7 @@ callback for you to use.
 class Author < ApplicationRecord
   has_many :books, before_add: [:check_limit, :calculate_shipping_charges]
 
-  def check_limit
+  def check_limit(_book)
     if books.count >= 5
       errors.add(:base, "Cannot add more than 5 books for this author")
       throw(:abort)

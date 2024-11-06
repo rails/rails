@@ -55,7 +55,7 @@ end
 
 require "minitest/autorun"
 
-class BugTest < Minitest::Test
+class BugTest < ActiveSupport::TestCase
   def test_upload_and_download
     user = User.create!(
       profile: {

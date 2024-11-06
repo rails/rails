@@ -7,7 +7,7 @@ module ActiveRecord
         context = record_validation_context_for_association(record)
 
         if Array(value).reject { |association| valid_object?(association, context) }.any?
-          record.errors.add(attribute, :invalid, **options.merge(value: value))
+          record.errors.add(attribute, :invalid, **options, value: value)
         end
       end
 

@@ -54,9 +54,9 @@ module ActiveRecord
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
-        def drop_table(table_name, **options) # :nodoc:
-          schema_cache.clear_data_source_cache!(table_name.to_s)
-          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+        def drop_table(*table_names, **options) # :nodoc:
+          table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
+          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
         end
 
         # Returns true if schema exists.
@@ -299,6 +299,8 @@ module ActiveRecord
 
         # Returns the sequence name for a table's primary key or some other specified key.
         def default_sequence_name(table_name, pk = "id") # :nodoc:
+          return nil if pk.is_a?(Array)
+
           result = serial_sequence(table_name, pk)
           return nil unless result
           Utils.extract_schema_qualified_name(result).to_s
@@ -318,7 +320,7 @@ module ActiveRecord
             if sequence
               quoted_sequence = quote_table_name(sequence)
 
-              query_value("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
+              internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
             else
               @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
@@ -349,7 +351,7 @@ module ActiveRecord
               end
             end
 
-            query_value("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
+            internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
           end
         end
 
@@ -696,7 +698,7 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT c.conname, c.conrelid, c.conkey, c.condeferrable, c.condeferred
+            SELECT c.conname, c.conrelid, c.conkey, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             JOIN pg_namespace n ON n.oid = c.connamespace
@@ -709,10 +711,12 @@ module ActiveRecord
             conkey = row["conkey"].delete("{}").split(",").map(&:to_i)
             columns = column_names_from_column_numbers(row["conrelid"], conkey)
 
+            nulls_not_distinct = row["constraintdef"].start_with?("UNIQUE NULLS NOT DISTINCT")
             deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
 
             options = {
               name: row["conname"],
+              nulls_not_distinct: nulls_not_distinct,
               deferrable: deferrable
             }
 
@@ -764,15 +768,12 @@ module ActiveRecord
         def remove_exclusion_constraint(table_name, expression = nil, **options)
           excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
 
-          at = create_alter_table(table_name)
-          at.drop_exclusion_constraint(excl_name_to_delete)
-
-          execute schema_creation.accept(at)
+          remove_constraint(table_name, excl_name_to_delete)
         end
 
         # Adds a new unique constraint to the table.
         #
-        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position"
+        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
         #
         # generates:
         #
@@ -789,6 +790,9 @@ module ActiveRecord
         #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
         # [<tt>:using_index</tt>]
         #   To specify an existing unique index name. Defaults to +nil+.
+        # [<tt>:nulls_not_distinct</tt>]
+        #   Create a unique constraint where NULLs are treated equally.
+        #   Note: only supported by PostgreSQL version 15.0.0 and greater.
         def add_unique_constraint(table_name, column_name = nil, **options)
           options = unique_constraint_options(table_name, column_name, options)
           at = create_alter_table(table_name)
@@ -819,10 +823,7 @@ module ActiveRecord
         def remove_unique_constraint(table_name, column_name = nil, **options)
           unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
 
-          at = create_alter_table(table_name)
-          at.drop_unique_constraint(unique_name_to_delete)
-
-          execute schema_creation.accept(at)
+          remove_constraint(table_name, unique_name_to_delete)
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.

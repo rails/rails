@@ -11,15 +11,25 @@ module ActionDispatch
   #
   # 1.  **TLS redirect**: Permanently redirects `http://` requests to `https://`
   #     with the same URL host, path, etc. Enabled by default. Set
-  #     `config.ssl_options` to modify the destination URL (e.g. `redirect: {
-  #     host: "secure.widgets.com", port: 8080 }`), or set `redirect: false` to
-  #     disable this feature.
+  #     `config.ssl_options` to modify the destination URL:
+  #
+  #         config.ssl_options = { redirect: { host: "secure.widgets.com", port: 8080 }`
+  #
+  #     Or set `redirect: false` to disable redirection.
   #
   #     Requests can opt-out of redirection with `exclude`:
   #
-  #         config.ssl_options = { redirect: { exclude: -> request { /healthcheck/.match?(request.path) } } }
+  #         config.ssl_options = { redirect: { exclude: -> request { request.path == "/up" } } }
   #
   #     Cookies will not be flagged as secure for excluded requests.
+  #
+  #     When proxying through a load balancer that terminates SSL, the forwarded
+  #     request will appear as though it's HTTP instead of HTTPS to the application.
+  #     This makes redirects and cookie security target HTTP instead of HTTPS.
+  #     To make the server assume that the proxy already terminated SSL, and
+  #     that the request really is HTTPS, set `config.assume_ssl` to `true`:
+  #
+  #         config.assume_ssl = true
   #
   # 2.  **Secure cookies**: Sets the `secure` flag on cookies to tell browsers
   #     they must not be sent along with `http://` requests. Enabled by default.

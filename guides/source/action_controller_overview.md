@@ -254,7 +254,7 @@ end
 And this route:
 
 ```ruby
-get '/books/:id', to: 'books#show'
+get "/books/:id", to: "books#show"
 ```
 
 When a user requests the URL `/books/4_2`, the controller will extract the
@@ -327,7 +327,7 @@ class PeopleController < ActionController::Base
     # Using a private method to encapsulate the permitted parameters is a good
     # pattern. you can use the same list for both create and update.
     def person_params
-      params.require(:person).permit(:name, :age)
+      params.expect(person: [:name, :age])
     end
 end
 ```
@@ -386,7 +386,27 @@ internal structure. But note that the above `permit` with an empty hash opens th
 There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking the values.
 
 ```ruby
-params.require(:log_entry).permit!
+id = params.expect(:id)
+```
+
+`expect` ensures that the type returned is not vulnerable to param tampering.
+The above expect will always return a scalar value and not an array or hash.
+When expecting params from a form, use `expect` to ensure that the root key
+is present and the attributes are permitted.
+
+```ruby
+user_params = params.expect(user: [:username, :password])
+user_params.has_key?(:username) # => true
+```
+
+`expect` will raise an error and return a 400 Bad Request response
+when the user key is not a nested hash with the expected keys.
+
+To require and permit an entire hash of parameters, [`expect`][] can be
+used in this way.
+
+```ruby
+params.expect(log_entry: {})
 ```
 
 The above marks the `:log_entry` parameters hash and any sub-hash of it as
@@ -434,21 +454,38 @@ attributes to be mass-assigned.
 
 ### Nested Parameters
 
-You can use `permit` on more complex nested parameters. Here is an example followed by an explanation:
+You can also use `expect` (or `permit`) on nested parameters, like:
 
 ```ruby
-params.permit(:name,
-              { emails: [] },
-              friends: [ :name, { family: [ :name ], hobbies: [] }])
+# Given the example expected params:
+params = ActionController::Parameters.new(
+  name: "Martin",
+  emails: ["me@example.com"],
+  friends: [
+    { name: "André", family: { name: "RubyGems" }, hobbies: ["keyboards", "card games"] },
+    { name: "Kewe", family: { name: "Baroness" }, hobbies: ["video games"] },
+  ]
+)
+# the following expect will ensure the params are permitted
+name, emails, friends = params.expect(
+  :name,                 # permitted scalar
+  emails: [],            # array of permitted scalars
+  friends: [[            # array of permitted Parameter hashes
+    :name,               # permitted scalar
+    family: [:name],     # family: { name: "permitted scalar" }
+    hobbies: []          # array of permitted scalars
+  ]]
+)
 ```
 
-This declaration permits the `name`, `emails`, and `friends` attributes. It is
-expected that `emails` will be an array of permitted scalar values, and that
-`friends` will be an array of resources with specific attributes.
-
-The `friends` array should have a `name` attribute (any permitted scalar values
-allowed), a `family` attribute which is restricted to having a `name`, and a
-`hobbies` attribute as an array of permitted scalar values.
+This declaration permits the `name`, `emails`, and `friends` attributes and
+returns them each. It is expected that `emails` will be an array of permitted
+scalar values, and that `friends` will be an array of resources (note the new
+double array syntax to explicitly require an array) with specific
+attributes: they should have a `name` attribute (any permitted scalar values
+allowed), a `hobbies` attribute as an array of permitted scalar values, and a
+`family` attribute which is restricted to a hash with only a `name` key and
+any permitted scalar value.
 
 ### Examples
 
@@ -470,7 +507,7 @@ parameters:
 
 ```ruby
 # permit :id and :_destroy
-params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
+params.expect(author: [ :name, books_attributes: [[ :title, :id, :_destroy ]] ])
 ```
 
 Example 3: Hashes with integer keys are treated differently, and you can declare
@@ -484,7 +521,7 @@ with a `has_many` association:
 #             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
 #                                        "2" => {"title" => "Second Chapter"}}}}
 
-params.require(:book).permit(:title, chapters_attributes: [:title])
+params.expect(book: [ :title, chapters_attributes: [[ :title ]] ])
 ```
 
 Example 4: Imagine a scenario where you have parameters representing a product
@@ -494,7 +531,7 @@ data hash:
 
 ```ruby
 def product_params
-  params.require(:product).permit(:name, data: {})
+  params.expect(product: [ :name, data: {} ])
 end
 ```
 
@@ -616,7 +653,9 @@ To store something in the session, you can assign it to a key similar to adding 
 ```ruby
 class SessionsController < ApplicationController
   def create
-    if user = User.authenticate(params[:username], params[:password])
+    if user = User.authenticate_by(email: params[:email], password: params[:password]) do
+      # Save the user ID in the session so it can be used in
+      # subsequent requests
       session[:current_user_id] = user.id
       redirect_to root_url
     end

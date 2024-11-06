@@ -142,7 +142,6 @@ module Rails
       active_storage_config_exist     = File.exist?("config/storage.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
       assets_config_exist             = File.exist?("config/initializers/assets.rb")
-      asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
 
@@ -158,15 +157,11 @@ module Rails
         template "config/storage.yml"
       end
 
-      if skip_sprockets? && skip_propshaft? && !assets_config_exist
+      if skip_asset_pipeline? && !assets_config_exist
         remove_file "config/initializers/assets.rb"
       end
 
-      if skip_sprockets? && !asset_manifest_exist
-        remove_file "app/assets/config/manifest.js"
-      end
-
-      if skip_sprockets? && !asset_app_stylesheet_exist
+      if skip_asset_pipeline? && !asset_app_stylesheet_exist
         remove_file "app/assets/stylesheets/application.css"
       end
 
@@ -270,12 +265,14 @@ module Rails
     def devcontainer
       devcontainer_options = {
         database: options[:database],
-        redis: !(options[:skip_action_cable] && options[:skip_active_job]),
+        redis: options[:skip_solid] && !(options[:skip_action_cable] && options[:skip_active_job]),
+        kamal: !options[:skip_kamal],
         system_test: depends_on_system_test?,
         active_storage: !options[:skip_active_storage],
         dev: options[:dev],
         node: using_node?,
-        app_name: app_name
+        app_name: app_name,
+        skip_solid: options[:skip_solid]
       }
 
       Rails::Generators::DevcontainerGenerator.new([], devcontainer_options).invoke_all
@@ -496,6 +493,7 @@ module Rails
 
       def delete_public_files_if_api_option
         if options[:api]
+          remove_file "public/400.html"
           remove_file "public/404.html"
           remove_file "public/406-unsupported-browser.html"
           remove_file "public/422.html"
@@ -505,14 +503,9 @@ module Rails
         end
       end
 
-      def delete_assets_initializer_skipping_sprockets_and_propshaft
-        if skip_sprockets? && skip_propshaft?
+      def delete_assets_initializer_skipping_asset_pipeline
+        if skip_asset_pipeline?
           remove_file "config/initializers/assets.rb"
-        end
-
-        if skip_sprockets?
-          remove_file "app/assets/config/manifest.js"
-          remove_dir  "app/assets/config"
           remove_file "app/assets/stylesheets/application.css"
           create_file "app/assets/stylesheets/application.css", "/* Application styles */\n" unless options[:api]
         end
@@ -575,6 +568,7 @@ module Rails
       public_task :run_hotwire
       public_task :run_css
       public_task :run_kamal
+      public_task :run_solid
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)

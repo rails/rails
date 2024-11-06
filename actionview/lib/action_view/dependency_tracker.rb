@@ -10,6 +10,7 @@ module ActionView
 
     autoload :ERBTracker
     autoload :RubyTracker
+    autoload :WildcardResolver
 
     @trackers = Concurrent::Map.new
 

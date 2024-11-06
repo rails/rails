@@ -110,8 +110,8 @@ module ActiveRecord
         query(...).map(&:first)
       end
 
-      def query(...) # :nodoc:
-        internal_exec_query(...).rows
+      def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+        internal_exec_query(sql, name, allow_retry:, materialize_transactions:).rows
       end
 
       # Determines whether the SQL statement is a write query.
@@ -674,7 +674,7 @@ module ActiveRecord
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
 
-            # We make sure to run query transformers on the orignal thread
+            # We make sure to run query transformers on the original thread
             sql = preprocess_query(sql)
             future_result = async.new(
               pool,
@@ -683,7 +683,7 @@ module ActiveRecord
               binds,
               prepare: prepare,
             )
-            if supports_concurrent_connections? && current_transaction.closed?
+            if supports_concurrent_connections? && !current_transaction.joinable?
               future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
             else
               future_result.execute!(self)

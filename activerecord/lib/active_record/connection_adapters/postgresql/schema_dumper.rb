@@ -68,6 +68,7 @@ module ActiveRecord
                   "t.unique_constraint #{unique_constraint.column.inspect}"
                 ]
 
+                parts << "nulls_not_distinct: #{unique_constraint.nulls_not_distinct.inspect}" if unique_constraint.nulls_not_distinct
                 parts << "deferrable: #{unique_constraint.deferrable.inspect}" if unique_constraint.deferrable
 
                 if unique_constraint.export_name_on_schema_dump?
@@ -91,7 +92,7 @@ module ActiveRecord
               spec = { type: schema_type(column).inspect }.merge!(spec)
             end
 
-            spec[:enum_type] = "\"#{column.sql_type}\"" if column.enum?
+            spec[:enum_type] = column.sql_type.inspect if column.enum?
 
             spec
           end

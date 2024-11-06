@@ -172,8 +172,28 @@ module ActiveRecord
       end
 
       def test_invert_drop_table_without_a_block_nor_option
-        assert_raises(ActiveRecord::IrreversibleMigration) do
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty).") do
           @recorder.inverse_of :drop_table, [:people_reminders]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables_and_options
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists, id: false]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables_and_block
+        block = Proc.new { }
+
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists], &block
         end
       end
 
@@ -532,14 +552,13 @@ module ActiveRecord
       end
 
       def test_invert_rename_enum
-        enum = @recorder.inverse_of :rename_enum, [:dog_breed, to: :breed]
-        assert_equal [:rename_enum, [:breed, to: :dog_breed]], enum
+        enum = @recorder.inverse_of :rename_enum, [:dog_breed, :breed]
+        assert_equal [:rename_enum, [:breed, :dog_breed]], enum
       end
 
-      def test_invert_rename_enum_without_to
-        assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :rename_enum, [:breed]
-        end
+      def test_invert_rename_enum_with_to_option
+        enum = @recorder.inverse_of :rename_enum, [:dog_breed, to: :breed]
+        assert_equal [:rename_enum, [:breed, :dog_breed]], enum
       end
 
       def test_invert_add_enum_value

@@ -24,7 +24,7 @@ jobs:
         run: bin/brakeman --no-pager
 
 <% end -%>
-<%- if options[:javascript] == "importmap" -%>
+<%- if options[:javascript] == "importmap"  && !options[:api] -%>
   scan_js:
     runs-on: ubuntu-latest
 
@@ -126,7 +126,12 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           <%- end -%>
           # REDIS_URL: redis://localhost:6379/0
+        <%- if options[:api] -%>
+        run: bin/rails db:test:prepare test
+        <%- else -%>
         run: bin/rails db:test:prepare test test:system
+        <%- end -%>
+      <%- unless options[:api] -%>
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
@@ -135,4 +140,5 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
+      <%- end -%>
 <% end -%>

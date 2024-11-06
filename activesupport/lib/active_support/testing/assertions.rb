@@ -299,17 +299,24 @@ module ActiveSupport
         end
 
         def _callable_to_source_string(callable)
-          if defined?(RubyVM::AbstractSyntaxTree) && callable.is_a?(Proc)
-            ast = begin
-              RubyVM::AbstractSyntaxTree.of(callable, keep_script_lines: true)
-            rescue SystemCallError
-              # Failed to get the source somehow
-              return callable
-            end
-            return callable unless ast
+          if defined?(RubyVM::InstructionSequence) && callable.is_a?(Proc)
+            iseq = RubyVM::InstructionSequence.of(callable)
+            source =
+              if iseq.script_lines
+                iseq.script_lines.join("\n")
+              elsif File.readable?(iseq.absolute_path)
+                File.read(iseq.absolute_path)
+              end
 
-            source = ast.source
-            source.strip!
+            return callable unless source
+
+            location = iseq.to_a[4][:code_location]
+            return callable unless location
+
+            lines = source.lines[(location[0] - 1)..(location[2] - 1)]
+            lines[-1] = lines[-1].byteslice(...location[3])
+            lines[0] = lines[0].byteslice(location[1]...)
+            source = lines.join.strip
 
             # We ignore procs defined with do/end as they are likely multi-line anyway.
             if source.start_with?("{")
@@ -317,7 +324,7 @@ module ActiveSupport
               source.delete_prefix!("{")
               source.strip!
               # It won't read nice if the callable contains multiple
-              # lines, and it should be a rare occurence anyway.
+              # lines, and it should be a rare occurrence anyway.
               # Same if it takes arguments.
               if !source.include?("\n") && !source.start_with?("|")
                 return source

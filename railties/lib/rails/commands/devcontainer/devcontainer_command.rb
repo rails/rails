@@ -24,9 +24,10 @@ module Rails
             app_name: Rails.application.railtie_name.chomp("_application"),
             database: !!defined?(ActiveRecord) && database,
             active_storage: !!defined?(ActiveStorage),
-            redis: !!(defined?(ActionCable) || defined?(ActiveJob)),
+            redis: !!((defined?(ActionCable) && !defined?(SolidCable)) || (defined?(ActiveJob) && !defined?(SolidQueue))),
             system_test: File.exist?("test/application_system_test_case.rb"),
             node: File.exist?(".node-version"),
+            kamal: File.exist?("config/deploy.yml"),
           }
         end
 

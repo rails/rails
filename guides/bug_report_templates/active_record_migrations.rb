@@ -43,7 +43,7 @@ class ChangeAmountToAddScale < ActiveRecord::Migration::Current # or use a speci
   end
 end
 
-class BugTest < Minitest::Test
+class BugTest < ActiveSupport::TestCase
   def test_migration_up
     ChangeAmountToAddScale.migrate(:up)
     Payment.reset_column_information

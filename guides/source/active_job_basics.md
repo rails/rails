@@ -119,7 +119,7 @@ GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```ruby
 # `perform_now` and `perform_later` will call `perform` under the hood so
 # you can pass as many arguments as defined in the latter.
-GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
+GuestsCleanupJob.perform_later(guest1, guest2, filter: "some_filter")
 ```
 
 That's it!
@@ -191,7 +191,6 @@ Here is a noncomprehensive list of documentation:
 - [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
 - [Resque](https://github.com/resque/resque/wiki/ActiveJob)
 - [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
-- [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
@@ -256,7 +255,7 @@ The default queue name prefix delimiter is '\_'.  This can be changed by setting
 module YourApp
   class Application < Rails::Application
     config.active_job.queue_name_prefix = Rails.env
-    config.active_job.queue_name_delimiter = '.'
+    config.active_job.queue_name_delimiter = "."
   end
 end
 ```
@@ -601,11 +600,6 @@ You can extend the list of supported argument types. You just need to define you
 ```ruby
 # app/serializers/money_serializer.rb
 class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
-  # Checks if an argument should be serialized by this serializer.
-  def serialize?(argument)
-    argument.is_a? Money
-  end
-
   # Converts an object to a simpler representative using supported object types.
   # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
   # You should call `super` to add the custom serializer type to the hash.
@@ -620,6 +614,12 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
   def deserialize(hash)
     Money.new(hash["amount"], hash["currency"])
   end
+
+  private
+    # Checks if an argument should be serialized by this serializer.
+    def klass
+      Money
+    end
 end
 ```
 
@@ -637,7 +637,7 @@ to set-up serializers to be loaded only once, e.g. by amending `config/applicati
 # config/application.rb
 module YourApp
   class Application < Rails::Application
-    config.autoload_once_paths << Rails.root.join('app', 'serializers')
+    config.autoload_once_paths << "#{root}/app/serializers"
   end
 end
 ```

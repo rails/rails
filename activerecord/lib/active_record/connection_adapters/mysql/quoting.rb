@@ -77,14 +77,6 @@ module ActiveRecord
           0
         end
 
-        def quoted_date(value)
-          if supports_datetime_with_precision?
-            super
-          else
-            super.sub(/\.\d{6}\z/, "")
-          end
-        end
-
         def quoted_binary(value)
           "x'#{value.hex}'"
         end

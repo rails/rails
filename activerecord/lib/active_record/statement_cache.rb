@@ -142,14 +142,17 @@ module ActiveRecord
       @model = model
     end
 
-    def execute(params, connection, allow_retry: false, &block)
+    def execute(params, connection, allow_retry: false, async: false, &block)
       bind_values = @bind_map.bind params
-
       sql = @query_builder.sql_for bind_values, connection
 
-      @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
+      if async
+        @model.async_find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
+      else
+        @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
+      end
     rescue ::RangeError
-      []
+      async ? Promise.wrap([]) : []
     end
 
     def self.unsupported_value?(value)

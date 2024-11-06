@@ -34,8 +34,6 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_a_record_updates_its_timestamp
-    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
-
     previous_salary = @developer.salary
     @developer.salary = previous_salary + 10000
     @developer.touch
@@ -53,8 +51,6 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_a_record_with_default_scope_that_excludes_it_updates_its_timestamp
-    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
-
     developer = @developer.becomes(DeveloperCalledJamis)
     developer.touch
 
@@ -122,11 +118,8 @@ class TimestampTest < ActiveRecord::TestCase
     task = Task.first
     previous_value = task.ending
     task.touch(:ending)
-
-    now = Time.now.change(usec: 0)
-
     assert_not_equal previous_value, task.ending
-    assert_in_delta now, task.ending, 1
+    assert_in_delta Time.now, task.ending, 1
   end
 
   def test_touching_an_attribute_updates_timestamp_with_given_time
@@ -147,12 +140,10 @@ class TimestampTest < ActiveRecord::TestCase
     previous_ending = task.ending
     task.touch(:starting, :ending)
 
-    now = Time.now.change(usec: 0)
-
     assert_not_equal previous_starting, task.starting
     assert_not_equal previous_ending, task.ending
-    assert_in_delta now, task.starting, 1
-    assert_in_delta now, task.ending, 1
+    assert_in_delta Time.now, task.starting, 1
+    assert_in_delta Time.now, task.ending, 1
   end
 
   def test_touching_a_record_without_timestamps_is_unexceptional

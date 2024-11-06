@@ -575,30 +575,34 @@ module ActiveRecord
       end
 
       # Rename an existing enum type to something else.
-      def rename_enum(name, options = {})
-        to = options.fetch(:to) { raise ArgumentError, ":to is required" }
+      def rename_enum(name, new_name = nil, **options)
+        new_name ||= options.fetch(:to) do
+          raise ArgumentError, "rename_enum requires two from/to name positional arguments."
+        end
 
-        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{to}").tap { reload_type_map }
+        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}").tap { reload_type_map }
       end
 
       # Add enum value to an existing enum type.
-      def add_enum_value(type_name, value, options = {})
+      def add_enum_value(type_name, value, **options)
         before, after = options.values_at(:before, :after)
-        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE '#{value}'"
+        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE"
+        sql << " IF NOT EXISTS" if options[:if_not_exists]
+        sql << " #{quote(value)}"
 
         if before && after
           raise ArgumentError, "Cannot have both :before and :after at the same time"
         elsif before
-          sql << " BEFORE '#{before}'"
+          sql << " BEFORE #{quote(before)}"
         elsif after
-          sql << " AFTER '#{after}'"
+          sql << " AFTER #{quote(after)}"
         end
 
         execute(sql).tap { reload_type_map }
       end
 
       # Rename enum value on an existing enum type.
-      def rename_enum_value(type_name, options = {})
+      def rename_enum_value(type_name, **options)
         unless database_version >= 10_00_00 # >= 10.0
           raise ArgumentError, "Renaming enum values is only supported in PostgreSQL 10 or later"
         end
@@ -606,7 +610,7 @@ module ActiveRecord
         from = options.fetch(:from) { raise ArgumentError, ":from is required" }
         to = options.fetch(:to) { raise ArgumentError, ":to is required" }
 
-        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE '#{from}' TO '#{to}'").tap {
+        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE #{quote(from)} TO #{quote(to)}").tap {
           reload_type_map
         }
       end
@@ -669,8 +673,8 @@ module ActiveRecord
           m.register_type "int4", Type::Integer.new(limit: 4)
           m.register_type "int8", Type::Integer.new(limit: 8)
           m.register_type "oid", OID::Oid.new
-          m.register_type "float4", Type::Float.new
-          m.alias_type "float8", "float4"
+          m.register_type "float4", Type::Float.new(limit: 24)
+          m.register_type "float8", Type::Float.new
           m.register_type "text", Type::Text.new
           register_class_with_limit m, "varchar", Type::String
           m.alias_type "char", "varchar"
@@ -794,7 +798,7 @@ module ActiveRecord
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when nil
-            if exception.message.match?(/connection is closed/i)
+            if exception.message.match?(/connection is closed/i) || exception.message.match?(/no connection to the server/i)
               ConnectionNotEstablished.new(exception, connection_pool: @pool)
             elsif exception.is_a?(PG::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal

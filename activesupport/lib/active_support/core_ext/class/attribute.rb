@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/redefine_method"
+require "active_support/class_attribute"
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.

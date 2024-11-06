@@ -151,7 +151,7 @@ end
 Those models should inherit from that common abstract class:
 
 ```ruby
-class Car < AnimalsRecord
+class Dog < AnimalsRecord
   # Talks automatically to the animals database.
 end
 ```

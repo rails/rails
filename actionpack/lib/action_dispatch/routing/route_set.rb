@@ -659,14 +659,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActionDispatch.deprecator.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 7.2.
+            will be removed in Rails 8.1.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActionDispatch.deprecator.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 7.2.
+            will be removed in Rails 8.1.
           MSG
         end
 
@@ -929,7 +929,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY)
-              params[key] = URI::DEFAULT_PARSER.unescape(value)
+              params[key] = URI::RFC2396_PARSER.unescape(value)
             end
           end
           req.path_parameters = params

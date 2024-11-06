@@ -380,6 +380,16 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           end
         end
 
+        if supports_sql_standard_drop_constraint?
+          def test_remove_constraint
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
+
+            assert_equal 1, @connection.foreign_keys("astronauts").size
+            @connection.remove_constraint :astronauts, "fancy_named_fk"
+            assert_equal [], @connection.foreign_keys("astronauts")
+          end
+        end
+
         def test_remove_foreign_key_inferes_column
           @connection.add_foreign_key :astronauts, :rockets
 
@@ -519,7 +529,9 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
         if ActiveRecord::Base.lease_connection.supports_deferrable_constraints?
           def test_deferrable_foreign_key
-            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
+            assert_queries_match(/\("id"\)\s+DEFERRABLE INITIALLY IMMEDIATE\W*\z/i) do
+              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
+            end
 
             foreign_keys = @connection.foreign_keys("astronauts")
             assert_equal 1, foreign_keys.size
@@ -761,8 +773,6 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
             if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
               if ActiveRecord::Base.lease_connection.mariadb?
                 assert_match(/Duplicate key on write or update/, error.message)
-              elsif ActiveRecord::Base.lease_connection.database_version < "5.6"
-                assert_match(/Can't create table/, error.message)
               elsif ActiveRecord::Base.lease_connection.database_version < "8.0"
                 assert_match(/Can't write; duplicate key in table/, error.message)
               else
