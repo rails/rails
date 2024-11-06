@@ -1,3 +1,14 @@
+*   Allow setting `schema_format` in database configuration.
+
+    ```
+    primary:
+      schema_format: ruby
+    ```
+
+    Useful in multi-database setups to have different formats per-database.
+
+    *T S Vallender*
+
 *   Better support UPDATE with JOIN for Postgresql and SQLite3
 
     Previously when generating update queries with one or more JOIN clauses,
