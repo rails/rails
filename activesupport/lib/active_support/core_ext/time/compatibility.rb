@@ -26,15 +26,4 @@ class Time
           (zone != "UTC" || active_support_local_zone == "UTC")
       end
     end
-
-    @@active_support_local_tz = nil
-
-    def active_support_local_zone
-      @@active_support_local_zone = nil if @@active_support_local_tz != ENV["TZ"]
-      @@active_support_local_zone ||=
-        begin
-          @@active_support_local_tz = ENV["TZ"]
-          Time.new.zone
-        end
-    end
 end
