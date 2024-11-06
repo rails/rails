@@ -160,7 +160,11 @@ The `authenticate_or_request_with_http_token` block takes two arguments - the to
 Streaming and File Downloads
 ----------------------------
 
-Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the [`send_data`][] and the [`send_file`][] methods, which will both stream data to the client. The `send_file` method is a convenience method that lets you provide the name of a file on the disk, and it will stream the contents of that file for you.
+Rails controllers provide a way to send a file to the user instead of rendering
+an HTML page. This can be done with the [`send_data`][] and the [`send_file`][]
+methods, which stream data to the client. The `send_file` method is a
+convenience method that lets you provide the name of a file, and it will stream
+the contents of that file.
 
 Here is an example of how to use `send_data`:
 
@@ -187,7 +191,15 @@ class ClientsController < ApplicationController
 end
 ```
 
-The `download_pdf` action in the example above will call a private method which actually generates the PDF document and returns it as a string. This string will then be streamed to the client as a file download, and a filename will be suggested to the user. Sometimes when streaming files to the user, you may not want them to download the file. Take images, for example, which can be embedded into HTML pages. To tell the browser a file is not meant to be downloaded, you can set the `:disposition` option to "inline". The opposite and default value for this option is "attachment".
+The `download_pdf` action in the above example calls a private method which
+generates the PDF document and returns it as a string. This string will then be
+streamed to the client as a file download. 
+
+Sometimes when streaming files to the user, you may not want them to download
+the file. Take images, for example, which can be embedded into HTML pages. To
+tell the browser a file is not meant to be downloaded, you can set the
+`:disposition` option to "inline". The default value for this option is
+"attachment".
 
 [`send_data`]: https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_data
 [`send_file`]: https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file
@@ -208,17 +220,17 @@ class ClientsController < ApplicationController
 end
 ```
 
-This will read and stream the file 4 kB at a time, avoiding loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
+The file will read and streamed at 4 kB at a time by default, to avoid loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
 
 If `:type` is not specified, it will be guessed from the file extension specified in `:filename`. If the content-type is not registered for the extension, `application/octet-stream` will be used.
 
-WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to.
+WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk. This is a security risk as it might allow someone to gain access to sensitive files.
 
 TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
 
 ### RESTful Downloads
 
-While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides a slick way of doing "RESTful" downloads. Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
+While `send_data` works fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides a slick way of doing "RESTful" downloads. Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -234,8 +246,13 @@ class ClientsController < ApplicationController
 end
 ```
 
-You can call any method on `format` that is an extension registered as a MIME type by Rails.
-Rails already registers common MIME types like `"text/html"` and `"application/pdf"`:
+Now the user can request to get a PDF version of a client just by adding ".pdf" to the URL:
+
+```
+GET /clients/1.pdf
+```
+
+You can call any method on `format` that is an extension registered as a MIME type by Rails. Rails already registers common MIME types like `"text/html"` and `"application/pdf"`:
 
 ```ruby
 Mime::Type.lookup_by_extension(:pdf)
@@ -248,28 +265,16 @@ If you need additional MIME types, call [`Mime::Type.register`](https://api.ruby
 Mime::Type.register("application/rtf", :rtf)
 ```
 
-NOTE: Configuration files are not reloaded on each request, so you have to restart the server for their changes to take effect.
-
-Now the user can request to get a PDF version of a client just by adding ".pdf" to the URL:
-
-```
-GET /clients/1.pdf
-```
+NOTE: If you modify an initializer file, you have to restart the server for their changes to take effect.
 
 ### Live Streaming of Arbitrary Data
 
-Rails allows you to stream more than just files. In fact, you can stream anything
-you would like in a response object. The [`ActionController::Live`][] module allows
-you to create a persistent connection with a browser. Using this module, you will
-be able to send arbitrary data to the browser at specific points in time.
-
-[`ActionController::Live`]: https://api.rubyonrails.org/classes/ActionController/Live.html
-
-#### Incorporating Live Streaming
-
-Including `ActionController::Live` inside of your controller class will provide
-all actions inside the controller the ability to stream data. You can mix in
-the module like so:
+Rails allows you to stream more than just files. In fact, you can stream
+anything you would like in a response object. The
+[`ActionController::Live`](https://api.rubyonrails.org/classes/ActionController/Live.html)
+module allows you to create a persistent connection with a browser. By including
+this module in your controller, you can send arbitrary data to the browser at
+specific points in time.
 
 ```ruby
 class MyController < ActionController::Base
@@ -287,25 +292,24 @@ class MyController < ActionController::Base
 end
 ```
 
-The above code will keep a persistent connection with the browser and send 100
-messages of `"hello world\n"`, each one second apart.
+The above example will keep a persistent connection with the browser and send
+100 messages of `"hello world\n"`, each one second apart.
 
-There are a couple of things to notice in the above example. We need to make
-sure to close the response stream. Forgetting to close the stream will leave
-the socket open forever. We also have to set the content type to `text/event-stream`
-before we write to the response stream. This is because headers cannot be written
-after the response has been committed (when `response.committed?` returns a truthy
-value), which occurs when you `write` or `commit` the response stream.
+Note that you have to make sure to close the response stream, otherwise the
+stream will leave the socket open indefinitely. You also have to set the content
+type to `text/event-stream` *before* calling `write` on the response stream.
+Headers cannot be written after the response has been committed (when
+`response.committed?` returns a truthy value) with either `write` or `commit`.
 
-#### Example Usage
+#### Example Use Case
 
-Let's suppose that you were making a Karaoke machine, and a user wants to get the
-lyrics for a particular song. Each `Song` has a particular number of lines and
-each line takes time `num_beats` to finish singing.
+Let's suppose that you were making a Karaoke machine, and a user wants to get
+the lyrics for a particular song. Each `Song` has a particular number of lines
+and each line takes time `num_beats` to finish singing.
 
 If we wanted to return the lyrics in Karaoke fashion (only sending the line when
-the singer has finished the previous line), then we could use `ActionController::Live`
-as follows:
+the singer has finished the previous line), then we could use
+`ActionController::Live` as follows:
 
 ```ruby
 class LyricsController < ActionController::Base
@@ -325,14 +329,11 @@ class LyricsController < ActionController::Base
 end
 ```
 
-The above code sends the next line only after the singer has completed the previous
-line.
-
 #### Streaming Considerations
 
 Streaming arbitrary data is an extremely powerful tool. As shown in the previous
-examples, you can choose when and what to send across a response stream. However,
-you should also note the following things:
+examples, you can choose when and what to send across a response stream.
+However, you should also note the following things:
 
 * Each response stream creates a new thread and copies over the thread local
   variables from the original thread. Having too many thread local variables can
@@ -340,10 +341,9 @@ you should also note the following things:
   hinder performance.
 * Failing to close the response stream will leave the corresponding socket open
   forever. Make sure to call `close` whenever you are using a response stream.
-* WEBrick servers buffer all responses, and so including `ActionController::Live`
-  will not work. You must use a web server which does not automatically buffer
-  responses.
-
+* WEBrick servers buffer all responses, and so streaming with
+  `ActionController::Live` will not work. You must use a web server which does
+  not automatically buffer responses.
 
 Log Filtering
 -------------
