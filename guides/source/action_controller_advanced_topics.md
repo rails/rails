@@ -193,7 +193,7 @@ end
 
 The `download_pdf` action in the above example calls a private method which
 generates the PDF document and returns it as a string. This string will then be
-streamed to the client as a file download. 
+streamed to the client as a file download.
 
 Sometimes when streaming files to the user, you may not want them to download
 the file. Take images, for example, which can be embedded into HTML pages. To
