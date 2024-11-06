@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Action Controller Advanced Topics
-================================
+=================================
 
 In this guide, you will learn about some advanced topics related to controllers. After reading this guide, you will know how to:
 
