@@ -457,7 +457,7 @@ In order to mitigate such attacks, _display a generic error message on forgot-pa
 
 ### Account Hijacking
 
-Many web applications make it easy to hijack user accounts. Why not be different and make it more difficult?.
+Many web applications make it easy to hijack user accounts. Why not be different and make it more difficult?
 
 #### Passwords
 
