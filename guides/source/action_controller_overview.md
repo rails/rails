@@ -334,8 +334,9 @@ end
 
 ### Permitting Values
 
-Calling [`permit`][] allows the specified key (`:id` below) for inclusion if it
-appears in `params`:
+#### `permit`
+
+Calling [`permit`][] allows the specified key in `params` (`:id` or `:admin` below) for inclusion in mass assignment (e.g. via `create` or `update`):
 
 ```ruby
 params = ActionController::Parameters.new(id: 1, admin: "true")
@@ -380,6 +381,8 @@ WARNING: The permit with an empty hash is convenient since sometimes it is not
 possible or convenient to declare each valid key of a hash parameter or its
 internal structure. But note that the above `permit` with an empty hash opens the door to arbitrary input.
 
+#### `permit!`
+
 There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking the values.
 
 ```ruby
@@ -392,8 +395,42 @@ permitted and does not check for permitted scalars, anything is accepted.
 WARNING: Extreme care should be taken when using `permit!`, as it will allow all
 current and *future* model attributes to be mass-assigned.
 
+#### `expect`
+
+The [`expect`][] method provides a concise and safe way to require and permit parameters.
+
+```ruby
+id = params.expect(:id)
+```
+
+The above `expect` will always return a scalar value and not an array or hash.
+Another example is form params, you can use `expect` to ensure that the root key
+is present and the attributes are permitted.
+
+```ruby
+user_params = params.expect(user: [:username, :password])
+user_params.has_key?(:username) # => true
+```
+
+In the above example, if the `:user` key is not a nested hash with the specified keys, `expect` will raise an error and return a 400 Bad Request response.
+
+To require and permit an entire hash of parameters, [`expect`][] can be
+used in this way.
+
+```ruby
+params.expect(log_entry: {})
+```
+
+This marks the `:log_entry` parameters hash and any sub-hash of it as
+permitted and does not check for permitted scalars, anything is accepted.
+
+WARNING: Extreme care should be taken when using calling `expect`
+with an empty hash, as it will allow all current and future model
+attributes to be mass-assigned.
+
 [`permit`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit
 [`permit!`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit-21
+[`expect`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-expect
 
 ### Nested Parameters
 
