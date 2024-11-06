@@ -1,3 +1,7 @@
+*   Allow preloading of STI children model associations. Same behaviour as polymorphic one
+
+    *Gauthier Monserand*
+
 *   Add support for enabling or disabling transactional tests per database.
 
     A test class can now override the default `use_transactional_tests` setting

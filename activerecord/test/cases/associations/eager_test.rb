@@ -33,6 +33,7 @@ require "models/contract"
 require "models/pirate"
 require "models/matey"
 require "models/parrot"
+require "models/treasure"
 require "models/sharded"
 require "models/cpk"
 
@@ -53,7 +54,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :companies, :accounts, :tags, :taggings, :ratings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
-            :pirates, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags,
+            :pirates, :parrots, :treasures, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags,
             :sharded_tags
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
@@ -857,6 +858,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: :monkeys).find(6)
     }
+
     assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
@@ -1524,6 +1526,44 @@ class EagerAssociationTest < ActiveRecord::TestCase
     authors.each do |author|
       assert_predicate author.posts_with_signature, :loaded?
     end
+  end
+
+  test "preloading of sti child associations is supported" do
+    polly = parrots(:polly) # killed by blackbeard
+    frederick = parrots(:frederick)
+
+    blackbeard = pirates(:blackbeard)
+    redbeard = pirates(:redbeard)
+
+    blackbeard.parrots = [polly, frederick]
+    redbeard.parrots = [frederick]
+
+    # STI query preloading DeadParrot's killer association
+    preloaded_polly = assert_queries_count(2) {
+      Parrot.preload(:killer).find(polly.id)
+    }
+
+    assert_no_queries {
+      assert_equal blackbeard, preloaded_polly.killer
+    }
+
+    # Pirate's parrots having and not having the association (Dead and Live Parrots)
+    pirate = assert_queries_count(4) {
+      Pirate.preload(parrots: :killer).find(blackbeard.id)
+    }
+    assert_queries_count(0) {
+      assert_equal blackbeard, pirate.parrots.first.killer
+    }
+
+    # Pirate's parrots without association (Live Parrots)
+    assert_queries_count(3) {
+      Pirate.preload(parrots: :killer).find(redbeard.id)
+    }
+
+    # No pirates
+    assert_queries_count(0) {
+      assert_empty Pirate.preload(parrots: :killer).none
+    }
   end
 
   test "eager loading of instance dependent associations is not supported" do
