@@ -28,11 +28,10 @@ way too.
 These mechanisms all involve multiple threads, each managing work for a unique
 instance of some object (controller, job, channel), while sharing the global
 process space (such as classes and their configurations, and global variables).
-As long as your code doesn't modify any of those shared things, it is mostly irrelevant to it
-that the other threads exist.
+As long as your code doesn't modify any of those shared things, the other threads are mostly irrelevant to it.
 
-The rest of this guide describes the mechanisms Rails uses to make threads independent,
-and how extensions and applications with special needs can use them.
+The rest of this guide goes into more detail about threading in Rails,
+and how extensions and applications with particular requirements can use it.
 
 The Rails Executor
 ------------------
@@ -43,20 +42,14 @@ The executor consists of two callbacks: `to_run` and `to_complete`. The `to_run`
 callback is called before the application code, and the `to_complete` callback is
 called after.
 
-### Default Callbacks
+### Callbacks
 
-In a default Rails application, the Executor callbacks are used to:
+In a default Rails application, the Rails Executor callbacks are used to:
 
 * track which threads are in safe positions for autoloading and reloading
 * enable and disable the Active Record query cache
 * return acquired Active Record connections to the pool
 * constrain internal cache lifetimes
-
-Prior to Rails 5.0, some of these were handled by separate Rack middleware
-classes (such as `ActiveRecord::ConnectionAdapters::ConnectionManagement`), or
-directly wrapping code with methods like
-`ActiveRecord::Base.connection_pool.with_connection`. The Executor replaces
-these with a single more abstract interface.
 
 ### Wrapping Application Code
 
@@ -74,7 +67,7 @@ may want to wrap using the [Reloader](#reloader) instead.
 
 Each thread should be wrapped before it runs application code, so if your
 application manually delegates work to other threads, such as via `Thread.new`
-or Concurrent Ruby features that use thread pools, you should immediately wrap
+or uses features from the [Concurrent Ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem that use thread pools, you should immediately wrap
 the block:
 
 ```ruby
@@ -86,10 +79,9 @@ end
 ```
 
 NOTE: Concurrent Ruby uses a `ThreadPoolExecutor`, which it sometimes configures
-with an `executor` option. Despite the name, it is unrelated.
+with an `executor` option. Despite the name, it is unrelated to the Rails Executor.
 
-The Executor is safely re-entrant; if it is already active on the current
-thread, `wrap` is a no-op.
+The Rails Executor is safely re-entrant; it can be called again if it is already running. In this case, the `wrap` method would have no effect.
 
 If it's impractical to wrap the application code in a block (for
 example, the Rack API makes this problematic), you can also use the `run!` /
