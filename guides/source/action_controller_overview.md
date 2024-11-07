@@ -308,7 +308,6 @@ a 400 Bad Request being returned if not all required parameters are passed in.
 
 ```ruby
 class PeopleController < ActionController::Base
-
   # This will raise an ActiveModel::ForbiddenAttributesError
   # because it's using mass assignment without an explicit permit
   def create
@@ -338,7 +337,7 @@ end
 
 Calling [`permit`][] allows the specified key in `params` (`:id` or `:admin` below) for inclusion in mass assignment (e.g. via `create` or `update`):
 
-```ruby
+```irb
 params = ActionController::Parameters.new(id: 1, admin: "true")
 => #<ActionController::Parameters {"id"=>1, "admin"=>"true"} permitted: false>
 params.permit(:id)
@@ -358,7 +357,7 @@ hashes, or any other objects are not injected by default.
 To include a value in `params` that's an array of one of the permitted scalar
 values, you can map the key to an empty array like this:
 
-```ruby
+```irb
 params = ActionController::Parameters.new(tags: ["rails", "parameters"])
 => #<ActionController::Parameters {"tags"=>["rails", "parameters"]} permitted: false>
 params.permit(tags: [])
@@ -367,7 +366,7 @@ params.permit(tags: [])
 
 To include hash values, you can map to an empty hash:
 
-```ruby
+```irb
 params = ActionController::Parameters.new(options: { darkmode: true })
 => #<ActionController::Parameters {"options"=>{"darkmode"=>true}} permitted: false>
 params.permit(options: {})
@@ -595,7 +594,7 @@ class CookiesController < ApplicationController
   def set_cookie
     cookies.signed[:user_id] = current_user.id
     cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2024
-    redirect_to action: 'read_cookie'
+    redirect_to action: "read_cookie"
   end
 
   def read_cookie
@@ -653,7 +652,7 @@ To store something in the session, you can assign it to a key similar to adding 
 ```ruby
 class SessionsController < ApplicationController
   def create
-    if user = User.authenticate_by(email: params[:email], password: params[:password]) do
+    if user = User.authenticate_by(email: params[:email], password: params[:password])
       # Save the user ID in the session so it can be used in
       # subsequent requests
       session[:current_user_id] = user.id
@@ -772,6 +771,7 @@ happens, unless you use `flash.keep` to make the values persist for another requ
 
 ```ruby
 class MainController < ApplicationController
+  def index
     # Will persist all flash values.
     flash.keep
 
@@ -832,13 +832,13 @@ Rails.application.config.session_store :cache_store
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
 
 ```ruby
-Rails.application.config.session_store :cookie_store, key: '_your_app_session'
+Rails.application.config.session_store :cookie_store, key: "_your_app_session"
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
-Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+Rails.application.config.session_store :cookie_store, key: "_your_app_session", domain: ".example.com"
 ```
 
 NOTE: Be sure to restart your server when you modify an initializer file.

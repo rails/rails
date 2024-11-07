@@ -281,7 +281,7 @@ class MyController < ActionController::Base
   include ActionController::Live
 
   def stream
-    response.headers['Content-Type'] = 'text/event-stream'
+    response.headers["Content-Type"] = "text/event-stream"
     100.times {
       response.stream.write "hello world\n"
       sleep 1
@@ -316,7 +316,7 @@ class LyricsController < ActionController::Base
   include ActionController::Live
 
   def show
-    response.headers['Content-Type'] = 'text/event-stream'
+    response.headers["Content-Type"] = "text/event-stream"
     song = Song.find(params[:id])
 
     song.each do |line|
@@ -376,13 +376,13 @@ parameters like `password`, `password_confirmation` and `my_token`.
 Sometimes it's desirable to filter out sensitive locations that your application is redirecting to. You can do that by using the `config.filter_redirect` configuration option:
 
 ```ruby
-config.filter_redirect << 's3.amazonaws.com'
+config.filter_redirect << "s3.amazonaws.com"
 ```
 
 You can set it to a String, a Regexp, or an array of both.
 
 ```ruby
-config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
+config.filter_redirect.concat ["s3.amazonaws.com", /private_path/]
 ```
 
 Matching URLs will be replaced with `[FILTERED]`. However, if you only wish to filter the parameters, not the whole URLs, you can use parameter filtering.
