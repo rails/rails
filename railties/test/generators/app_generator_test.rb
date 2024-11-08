@@ -548,6 +548,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_match(/stylesheet_link_tag\s+:app %>/, contents)
     end
+
+    assert_file ".github/workflows/ci.yml" do |file|
+      assert_no_match("scan_js", file)
+    end
   end
 
   def test_inclusion_of_jbuilder
