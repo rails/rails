@@ -154,9 +154,9 @@ module ActiveStorage
             ],
           ) { |output| JSON.parse(output.read) }
         end
-        rescue Errno::ENOENT
-          logger.info "Skipping video analysis because ffprobe isn't installed"
-          {}
+      rescue Errno::ENOENT
+        logger.info "Skipping video analysis because ffprobe isn't installed"
+        {}
       end
 
       def ffprobe_path
