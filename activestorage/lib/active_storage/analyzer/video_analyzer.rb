@@ -49,25 +49,25 @@ module ActiveStorage
     end
 
     def duration
-      duration = video_stream['duration'] || container['duration']
+      duration = video_stream["duration"] || container["duration"]
       Float(duration) if duration
     end
 
     def angle
-      if tags['rotate']
-        Integer(tags['rotate'])
-      elsif display_matrix && display_matrix['rotation']
-        Integer(display_matrix['rotation'])
+      if tags["rotate"]
+        Integer(tags["rotate"])
+      elsif display_matrix && display_matrix["rotation"]
+        Integer(display_matrix["rotation"])
       end
     end
 
     def display_matrix
-      side_data.detect { |data| data['side_data_type'] == 'Display Matrix' }
+      side_data.detect { |data| data["side_data_type"] == "Display Matrix" }
     end
 
     def display_aspect_ratio
-      if descriptor = video_stream['display_aspect_ratio']
-        if terms = descriptor.split(':', 2)
+      if descriptor = video_stream["display_aspect_ratio"]
+        if terms = descriptor.split(":", 2)
           numerator = Integer(terms[0])
           denominator = Integer(terms[1])
 
@@ -95,12 +95,12 @@ module ActiveStorage
     end
 
     def encoded_width
-      @encoded_width ||= Float(video_stream['width']) if video_stream['width']
+      @encoded_width ||= Float(video_stream["width"]) if video_stream["width"]
     end
 
     def encoded_height
-      @encoded_height ||= Float(video_stream['height']) if video_stream[
-        'height'
+      @encoded_height ||= Float(video_stream["height"]) if video_stream[
+        "height"
       ]
     end
 
@@ -111,29 +111,29 @@ module ActiveStorage
     end
 
     def tags
-      @tags ||= video_stream['tags'] || {}
+      @tags ||= video_stream["tags"] || {}
     end
 
     def side_data
-      @side_data ||= video_stream['side_data_list'] || {}
+      @side_data ||= video_stream["side_data_list"] || {}
     end
 
     def video_stream
       @video_stream ||=
-        streams.detect { |stream| stream['codec_type'] == 'video' } || {}
+        streams.detect { |stream| stream["codec_type"] == "video" } || {}
     end
 
     def audio_stream
       @audio_stream ||=
-        streams.detect { |stream| stream['codec_type'] == 'audio' } || {}
+        streams.detect { |stream| stream["codec_type"] == "audio" } || {}
     end
 
     def streams
-      probe['streams'] || []
+      probe["streams"] || []
     end
 
     def container
-      probe['format'] || {}
+      probe["format"] || {}
     end
 
     def probe
@@ -145,12 +145,12 @@ module ActiveStorage
         IO.popen(
           [
             ffprobe_path,
-            '-print_format',
-            'json',
-            '-show_streams',
-            '-show_format',
-            '-v',
-            'error',
+            "-print_format",
+            "json",
+            "-show_streams",
+            "-show_format",
+            "-v",
+            "error",
             file.path,
           ],
         ) { |output| JSON.parse(output.read) }
@@ -161,7 +161,7 @@ module ActiveStorage
     end
 
     def ffprobe_path
-      ActiveStorage.paths[:ffprobe] || 'ffprobe'
+      ActiveStorage.paths[:ffprobe] || "ffprobe"
     end
   end
 end
