@@ -39,7 +39,6 @@ module ActiveStorage
     end
 
     private
-
     def width
       rotated? ? computed_height || encoded_height : encoded_width
     end
