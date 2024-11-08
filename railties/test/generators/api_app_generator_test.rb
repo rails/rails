@@ -61,6 +61,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_file ".github/workflows/ci.yml" do |content|
       assert_no_match(/test:system/, content)
       assert_no_match(/screenshots/, content)
+      assert_no_match(/scan_js/, content)
     end
   end
 
