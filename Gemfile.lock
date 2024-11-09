@@ -1,12 +1,4 @@
 GIT
-  remote: https://github.com/jhawthorn/queue_classic.git
-  revision: dbfee9bda71020b8f11ae8d9b85932462b7fbee0
-  branch: fix-connection-pg-14
-  specs:
-    queue_classic (4.0.0.pre.alpha1)
-      pg (>= 0.17, < 2.0)
-
-GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -338,8 +330,6 @@ GEM
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
     logger (1.6.1)
-      crass (~> 1.0.2)
-      nokogiri (>= 1.12.0)
     loofah (2.22.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -405,6 +395,8 @@ GEM
     puma (6.0.2)
       nio4r (~> 2.0)
     que (1.4.0)
+    queue_classic (4.0.0)
+      pg (>= 1.1, < 2.0)
     raabro (1.4.0)
     racc (1.6.2)
     rack (2.2.6)
@@ -637,7 +629,7 @@ DEPENDENCIES
   propshaft (>= 0.1.7)
   puma (>= 5.0.3)
   que (< 2)
-  queue_classic!
+  queue_classic
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rack-test (< 2)
