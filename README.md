@@ -84,7 +84,7 @@ In addition to that, Rails also comes with:
    the following resources handy:
     * [Getting Started with Rails](https://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](https://guides.rubyonrails.org)
-    * [The API Documentation](https://api.rubyonrails.org)
+    * [The Official API Documentation](https://api.rubyonrails.org)
 
 ## Contributing
 
