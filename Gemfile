@@ -20,8 +20,6 @@ end
 
 gem "releaser", path: "tools/releaser"
 
-gem "releaser", path: "tools/releaser"
-
 gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 4.0.0.alpha7", "< 4.2"
 
@@ -78,7 +76,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "QueueClassic/queue_classic", require: false, platforms: :ruby
+  gem "queue_classic", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", "< 2", require: false
   gem "backburner", require: false
