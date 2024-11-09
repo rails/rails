@@ -200,6 +200,27 @@ of the files and folders that Rails creates by default:
 |.rubocop.yml|This file contains the configuration for RuboCop.|
 |.ruby-version|This file contains the default Ruby version.|
 
+### Setting Up Turbo
+
+[Turbo](https://turbo.hotwired.dev/) is included by default in fresh Rails
+applications, but there are a couple of commands you need to run first to
+register it with your application code.
+
+First, run this command to setup importmap, which Turbo relies on:
+
+```bash
+$ bin/rails importmap:install
+```
+
+Then, run this command to setup Turbo itself:
+
+```bash
+$ bin/rails turbo:install
+```
+
+This will allow you to use Turbo features, and we will make use of them in this
+guide.
+
 Hello, Rails!
 -------------
 
@@ -1296,12 +1317,14 @@ we can delete an article from its own page:
 
 In the above code, we use the `data` option to set the `data-turbo-method` and
 `data-turbo-confirm` HTML attributes of the "Destroy" link. Both of these
-attributes hook into [Turbo](https://turbo.hotwired.dev/), which is included by
-default in fresh Rails applications. `data-turbo-method="delete"` will cause the
-link to make a `DELETE` request instead of a `GET` request.
-`data-turbo-confirm="Are you sure?"` will cause a confirmation dialog to appear
-when the link is clicked. If the user cancels the dialog, the request will be
-aborted.
+attributes hook into [Turbo](https://turbo.hotwired.dev/).
+`data-turbo-method="delete"` will cause the link to make a `DELETE` request
+instead of a `GET` request. `data-turbo-confirm="Are you sure?"` will cause a
+confirmation dialog to appear when the link is clicked. If the user cancels the
+dialog, the request will be aborted.
+
+NOTE: If the Destroy link is simply causing the page to reload, Turbo may not be
+setup correctly. See [Setting Up Turbo](#setting-up-turbo) above.
 
 And that's it! We can now list, show, create, update, and delete articles!
 InCRUDable!
