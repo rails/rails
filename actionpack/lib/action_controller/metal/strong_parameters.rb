@@ -726,19 +726,19 @@ module ActionController
     # similar to the `.require.permit` pattern. If multiple root keys are
     # expected, they will all be required.
     #
-    #    params = ActionController::Parameters.new(name: "Martin", pies: [{ type: "dessert", flavor: "pumpkin"}])
-    #    name, pies = params.expect(:name, pies: [[:type, :flavor]])
-    #    name # => "Martin"
-    #    pies # => [#<ActionController::Parameters {"type"=>"dessert", "flavor"=>"pumpkin"} permitted: true>]
+    #     params = ActionController::Parameters.new(name: "Martin", pies: [{ type: "dessert", flavor: "pumpkin"}])
+    #     name, pies = params.expect(:name, pies: [[:type, :flavor]])
+    #     name # => "Martin"
+    #     pies # => [#<ActionController::Parameters {"type"=>"dessert", "flavor"=>"pumpkin"} permitted: true>]
     #
     # When called with a hash with multiple keys, `expect` will permit the
     # parameters and require the keys in the order they are given in the hash,
     # returning an array of the permitted parameters.
     #
-    #    params = ActionController::Parameters.new(subject: { name: "Martin" }, object: { pie: "pumpkin" })
-    #    subject, object = params.expect(subject: [:name], object: [:pie])
-    #    subject # => #<ActionController::Parameters {"name"=>"Martin"} permitted: true>
-    #    object  # => #<ActionController::Parameters {"pie"=>"pumpkin"} permitted: true>
+    #     params = ActionController::Parameters.new(subject: { name: "Martin" }, object: { pie: "pumpkin" })
+    #     subject, object = params.expect(subject: [:name], object: [:pie])
+    #     subject # => #<ActionController::Parameters {"name"=>"Martin"} permitted: true>
+    #     object  # => #<ActionController::Parameters {"pie"=>"pumpkin"} permitted: true>
     #
     # Besides being more strict about array vs hash params, `expect` uses permit
     # internally, so it will behave similarly.
