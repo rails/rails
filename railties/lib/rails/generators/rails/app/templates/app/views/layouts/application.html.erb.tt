@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <%- unless options[:skip_hotwire] || options[:skip_javascript] -%>
+    <meta name="view-transition" content="same-origin">
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+    <%- end -%>
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
 

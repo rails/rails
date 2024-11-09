@@ -921,6 +921,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "stimulus-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/data-turbo-track/, content)
+      assert_match(/view-transition/, content)
+      assert_match(/turbo-refresh-method/, content)
+      assert_match(/turbo-refresh-scroll/, content)
     end
   end
 
@@ -931,6 +934,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "turbo-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbo-track/, content)
+      assert_no_match(/view-transition/, content)
+      assert_no_match(/turbo-refresh-method/, content)
+      assert_no_match(/turbo-refresh-scroll/, content)
     end
     assert_no_file "app/javascript/application.js"
   end
