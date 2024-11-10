@@ -232,7 +232,7 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
-      # Whether the association represent a single record
+      # Whether the association represents a single record
       # or a collection of records.
       def collection?
         false
