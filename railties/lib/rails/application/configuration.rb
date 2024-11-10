@@ -345,7 +345,7 @@ module Rails
             action_dispatch.strict_freshness = true
           end
 
-          Regexp.timeout ||= 1
+          Regexp.timeout ||= 1 if Regexp.respond_to?(:timeout=)
         when "8.1"
           load_defaults "8.0"
         else
