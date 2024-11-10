@@ -56,7 +56,7 @@ module ApplicationTests
           Created database 'app_development'
           Created database 'app_development_cache'
           Created database 'app_development_queue'
-          Created database 'app_development_cable'          
+          Created database 'app_development_cable'
           Created database 'app_test'
 
           == Removing old logs and tempfiles ==
