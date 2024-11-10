@@ -144,6 +144,33 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_no_match(/^  app$/, output)
   end
 
+  def test_rails_generators_help_lists_all_generators
+    output = capture(:stdout) { Rails::Generators.help }
+
+    generator_list = output.split("Please choose a generator below.\n", 2).last
+
+    sections = {
+      "Rails" => %w[application_record model scaffold_controller],
+      "ActiveRecord" => %w[active_record:application_record active_record:multi_db],
+      "Erb" => %w[erb:authentication],
+      "TestUnit" => %w[test_unit:install test_unit:mailbox],
+    }
+
+    ignored_namespaces = %w[Fixjour Foobar QueueClassic Sidekiq Stimulus SuckerPunch Tailwindcss UsageTemplate]
+
+    sections.each do |section, generators|
+      assert_match(/^#{section}/, generator_list, "Expected section #{section} to be in the output")
+      generators.each do |generator|
+        assert_match(/^\s{2}#{generator}$/, generator_list, "Expected generator #{generator} in section #{section}")
+      end
+    end
+
+    output_sections = generator_list.scan(/^(.*):$/).flatten
+    actual_sections = output_sections - ignored_namespaces
+
+    assert_equal sections.keys.sort, actual_sections.sort
+  end
+
   def test_rails_generators_help_does_not_include_app_nor_plugin_new
     output = capture(:stdout) { Rails::Generators.help }
     assert_no_match(/app\W/, output)

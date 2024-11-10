@@ -193,14 +193,12 @@ module ApplicationTests
     end
 
     test "help does not show hidden namespaces and hidden commands" do
-      FileUtils.cd(rails_root) do
-        output = rails("generate", "--help")
-        assert_no_match "active_record:migration", output
-        assert_no_match "credentials", output
+      output = rails("generate", "--help")
+      assert_no_match "active_record:migration", output
+      assert_no_match "credentials", output
 
-        output = rails("destroy", "--help")
-        assert_no_match "active_record:migration", output
-      end
+      output = rails("destroy", "--help")
+      assert_no_match "active_record:migration", output
     end
 
     test "skip collision check" do
