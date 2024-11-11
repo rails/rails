@@ -519,6 +519,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_directory("test")
 
     assert_no_directory("test/system")
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/google-chrome-stable/, content)
+    end
   end
 
   def test_does_not_generate_system_test_files_if_skip_system_test_is_given
