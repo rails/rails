@@ -67,6 +67,10 @@ module ActionDispatch
           @middleware.call(env)
         end
       end
+
+      def inspect # :nodoc:
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} @middleware=#{@middleware.inspect}>"
+      end
     end
 
     include Enumerable
