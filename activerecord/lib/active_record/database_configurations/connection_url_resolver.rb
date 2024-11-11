@@ -37,7 +37,11 @@ module ActiveRecord
       # Converts the given URL to a full connection hash.
       def to_hash
         config = raw_config.compact_blank
-        config.map { |key, value| config[key] = uri_parser.unescape(value) if value.is_a? String }
+        config.map do |key, value|
+          next unless value.is_a? String
+
+          config[key] = value.downcase == "false" ? false : uri_parser.unescape(value)
+        end
         config
       end
 
