@@ -141,6 +141,69 @@ module Rails
         def assert_initializer(name, *contents, &block)
           assert_file("config/initializers/#{name}", *contents, &block)
         end
+
+        # Asserts that the Gemfile includes an entry matching the provided gem.
+        #
+        #   assert_gem "rails"
+        #
+        # An optional second argument can be passed to constrain the assertion:
+        #
+        #   assert_gem "rails", "~> 8.0.0"
+        #   assert_gem "rails", ["> 6.1", "<=8.0.0"]
+        #   assert_gem "rails", github: "rails/rails", branch: "main"
+        #
+        def assert_gem(name, constraint = nil)
+          assert_gems(name => constraint)
+        end
+
+        # Asserts that the Gemfile includes an entry matching each of the provided gems.
+        #
+        #   assert_gems "rails", "propshaft"
+        #
+        # In addition to gem names, it accepts a Hash mapping gem names to
+        # constraints:
+        #
+        #   assert_gems rails: "~> 8.0.0"
+        #   assert_gems rails: ["> 6.1", "<=8.0.0"]
+        #   assert_gems rails: {github: "rails/rails", branch: "main"}
+        #
+        # Both style can be combined in a single call:
+        #
+        #   assert_gems "propshaft", rails: "~> 8.0.0"
+        #
+        def assert_gems(*names)
+          constraints = names.extract_options!
+          constraints.merge!(names.index_with { nil })
+          constraints.transform_values! do |constraint|
+            case constraint
+            when Hash then constraint.map { |key, value| Regexp.escape "#{key}: #{value.inspect}" }
+            when Array then constraint.map { |constraint| Regexp.escape constraint.inspect }
+            when String then Regexp.escape constraint.inspect
+            when Regexp then constraint
+            end
+          end
+
+          assert_file "Gemfile" do |content|
+            constraints.each do |name, constraint|
+              pattern = Regexp.new([%(^\s*gem ["']#{name}["']), constraint].compact.join(", "))
+
+              assert_match(pattern, content)
+            end
+          end
+        end
+
+        # Asserts that the Gemfile does not include any entries for the provided gem names.
+        #
+        #   assert_no_gems "sprockets", "sprockets-rails"
+        #
+        def assert_no_gems(*names)
+          assert_file "Gemfile" do |content|
+            names.each do |name|
+              assert_no_match(/^\s*gem ["']#{name}["']/, content)
+            end
+          end
+        end
+        alias_method :assert_no_gem, :assert_no_gems
       end
     end
   end
