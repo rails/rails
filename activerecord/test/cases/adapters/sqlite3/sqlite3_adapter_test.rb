@@ -698,6 +698,15 @@ module ActiveRecord
         end
       end
 
+      def test_partial_index_with_comment
+        with_example_table do
+          @conn.add_index "ex", :id, name: "fun", where: "number > 0 /*tag:test*/"
+          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          assert_equal ["id"], index.columns
+          assert_equal "number > 0", index.where
+        end
+      end
+
       if ActiveRecord::Base.lease_connection.supports_expression_index?
         def test_expression_index
           with_example_table do
