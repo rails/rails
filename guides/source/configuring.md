@@ -3182,7 +3182,7 @@ NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms
 #### `Regexp.timeout`
 
 
-See Ruby's documentation for [`Regexp.timeout=`](https://docs.ruby-lang.org/en/3.3/Regexp.html#method-c-timeout-3D).
+See Ruby's documentation for [`Regexp.timeout=`](https://docs.ruby-lang.org/en/master/Regexp.html#method-c-timeout-3D).
 
 ### Configuring a Database
 
