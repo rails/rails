@@ -513,7 +513,7 @@ module ActionController
     # It is recommended to use `expect` instead:
     #
     #     def person_params
-    #       # params.expect(person: :name).require(:name)
+    #       params.expect(person: :name).require(:name)
     #     end
     #
     def require(key)
