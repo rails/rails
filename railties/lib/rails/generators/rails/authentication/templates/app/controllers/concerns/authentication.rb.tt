@@ -14,7 +14,7 @@ module Authentication
 
   private
     def authenticated?
-      resume_session
+      resume_session.present?
     end
 
     def require_authentication
