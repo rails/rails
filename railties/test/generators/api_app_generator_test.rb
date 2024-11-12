@@ -62,6 +62,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/test:system/, content)
       assert_no_match(/screenshots/, content)
       assert_no_match(/scan_js/, content)
+      assert_no_match(/google-chrome-stable/, content)
     end
   end
 

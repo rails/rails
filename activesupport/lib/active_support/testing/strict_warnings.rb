@@ -10,8 +10,6 @@ module ActiveSupport
     PROJECT_ROOT = File.expand_path("../../../../", __dir__)
     ALLOWED_WARNINGS = Regexp.union(
       /circular require considered harmful.*delayed_job/, # Bug in delayed job.
-      # TODO: Remove with the next sidekiq version bump
-      /circular require considered harmful.*sidekiq/,
 
       # Expected non-verbose warning emitted by Rails.
       /Ignoring .*\.yml because it has expired/,

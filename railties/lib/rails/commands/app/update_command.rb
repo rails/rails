@@ -71,6 +71,7 @@ module Rails
               skip_action_cable:   !defined?(ActionCable::Engine),
               skip_brakeman:       skip_gem?("brakeman"),
               skip_rubocop:        skip_gem?("rubocop"),
+              skip_thruster:       skip_gem?("thruster"),
               skip_test:           !defined?(Rails::TestUnitRailtie),
               skip_system_test:    Rails.application.config.generators.system_tests.nil?,
               skip_asset_pipeline: asset_pipeline.nil?,

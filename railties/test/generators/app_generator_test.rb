@@ -304,6 +304,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_thruster
+    run_generator [ destination_root, "--skip-thruster" ]
+
+    FileUtils.cd(destination_root) do
+      assert_no_changes -> { File.exist?("bin/thrust") } do
+        run_app_update
+      end
+    end
+  end
+
   def test_app_update_preserves_skip_test
     run_generator [ destination_root, "--skip-test" ]
 
@@ -519,6 +529,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_directory("test")
 
     assert_no_directory("test/system")
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/google-chrome-stable/, content)
+    end
   end
 
   def test_does_not_generate_system_test_files_if_skip_system_test_is_given
