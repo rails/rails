@@ -8,7 +8,7 @@ module Rails
       base.extend ClassMethods
     end
 
-    class Initializer
+    class Initializer # :nodoc:
       attr_reader :name, :block
 
       def initialize(name, context, options, &block)
@@ -42,7 +42,7 @@ module Rails
       end
     end
 
-    class Collection < Array
+    class Collection < Array # :nodoc:
       include TSort
 
       alias :tsort_each_node :each
@@ -81,8 +81,8 @@ module Rails
         initializers
       end
 
-      def initializers_for(binding)
-        Collection.new(initializers_chain.map { |i| i.bind(binding) })
+      def initializers_for(context)
+        Collection.new(initializers_chain.map { |i| i.bind(context) })
       end
 
       def initializer(name, opts = {}, &blk)
