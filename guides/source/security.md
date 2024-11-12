@@ -83,9 +83,7 @@ limitations of it:
 
 * Cookies are temporary by nature. The server can set expiration time for the cookie, but the client may delete the cookie and its contents before that. Persist all data that is of more permanent nature on the server side.
 
-* Session cookies do not invalidate themselves and can be maliciously
-  reused. It may be a good idea to have your application invalidate old
-  session cookies using a stored timestamp.
+* Session cookies do not invalidate themselves and can be maliciously reused. It may be a good idea to have your application invalidate old session cookies using a stored timestamp.
 
 * Rails encrypts cookies by default. The client cannot read or edit the contents of the cookie, without breaking encryption. If you take appropriate care of your secrets, you can consider your cookies to be generally secured.
 
