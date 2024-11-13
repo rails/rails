@@ -66,7 +66,12 @@ If you wish to skip some files from being generated or skip some libraries, you 
 | `--skip-system-test`    | Skip system test files                                   |
 | `--skip-bootsnap`       | Skip bootsnap gem                                        |
 | `--skip-dev-gems`       | Skip adding development gems                             |
+| `--skip-thruster`       | Skip Thruster setup                                      |
 | `--skip-rubocop`        | Skip RuboCop setup                                       |
+| `--skip-brakeman`       | Skip brakeman setup                                      |
+| `--skip-ci`             | Skip GitHub CI files                                     |
+| `--skip-kamal`          | Skip Kamal setup                                         |
+| `--skip-solid`          | Skip Solid Cache, Queue, and Cable setup                 |
 
 These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
 
