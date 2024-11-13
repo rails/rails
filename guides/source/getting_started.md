@@ -840,7 +840,7 @@ Let's create `app/views/articles/new.html.erb` with the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.textarea :body %>
+    <%= form.text_area :body %>
   </div>
 
   <div>
@@ -1493,7 +1493,7 @@ So first, we'll wire up the Article show template
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.textarea :body %>
+    <%= form.text_area :body %>
   </p>
   <p>
     <%= form.submit %>
