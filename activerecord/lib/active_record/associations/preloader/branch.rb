@@ -82,7 +82,7 @@ module ActiveRecord
           polymorphic_parent = !root? && parent.polymorphic?
           source_records.each do |record|
             reflection = record.class._reflect_on_association(association)
-            next if polymorphic_parent && !reflection || !record.association(association).klass
+            next if !reflection && (polymorphic_parent || association_found_in_sti?) || !record.association(association).klass
             (h[reflection] ||= []) << record
           end
           h
@@ -146,6 +146,14 @@ module ActiveRecord
             else
               Association
             end
+          end
+
+          def association_found_in_sti?
+            return @association_found_in_sti if defined?(@association_found_in_sti)
+
+            @association_found_in_sti =
+              source_records.first &&
+              source_records.first.class.base_class.subclasses.any? { |subclass| subclass._reflect_on_association(association) }
           end
       end
     end
