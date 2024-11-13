@@ -57,20 +57,13 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
           if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             begin
               @connection.add_check_constraint(:constraint_test, <<~SQL,
-                json_contains('
-                  {
-                    "a": 1,
-                    "b": 2,
-                    "c": {
-                      "d": 4
-                    }
-                  }
-                ', options)
+                json_schema_valid(_utf8mb4'\n        {\n          "oneOf": [\n            {\n              "type": "null"\n            },\n            {\n              "type": "array",\n              "minItems": 1,\n              "items": {\n                "type": "integer",\n                "minimum": 0\n              }\n            }\n          ]\n        }',`options`)
               SQL
               name: "non_empty_test_array")
 
               constraint = @connection.check_constraints("constraint_test").find { |c| c.name == "non_empty_test_array" }
-              assert_includes constraint.expression, "json_contains"
+              assert_includes constraint.expression, "json_schema_valid"
+              assert_equal(%q[json_schema_valid(_utf8mb4' { "oneOf": [ { "type": "null" }, { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 0 } } ] }',`options`)], constraint.expression)
             ensure
               @connection.remove_check_constraint(:constraint_test, name: "non_empty_test_array", if_exists: true)
             end
