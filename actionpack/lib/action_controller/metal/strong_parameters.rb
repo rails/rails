@@ -605,7 +605,7 @@ module ActionController
     #
     #      params = ActionController::Parameters.new(person: "tampered")
     #      permitted = params.require(:person).permit(:name, :age) # not recommended
-    #      # => NoMethodError: undefined method `permit' for an instance of String
+    #      # => NoMethodError: undefined method `permit` for an instance of String
     #
     # Note that if you use `permit` in a key that points to a hash, it won't allow
     # all the hash. You also need to specify which attributes inside the hash should
