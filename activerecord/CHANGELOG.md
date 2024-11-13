@@ -1,3 +1,9 @@
+*   Fix `sum` when performing a grouped calculation.
+
+    `User.group(:friendly).sum` no longer worked. This is fixed.
+
+    *Edouard Chin*
+
 *   Add support for enabling or disabling transactional tests per database.
 
     A test class can now override the default `use_transactional_tests` setting
