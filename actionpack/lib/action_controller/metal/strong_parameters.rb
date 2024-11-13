@@ -782,7 +782,6 @@ module ActionController
     # not handled. This is intended for debugging invalid params for an
     # internal API where incorrectly formatted params would indicate a bug
     # in a client library that should be fixed.
-    #
     def expect!(*filters)
       expect(*filters)
     rescue ParameterMissing => e
@@ -1126,7 +1125,7 @@ module ActionController
         hash
       end
 
-      # Filters self and optionally checks for unpermitted keys
+      # Filters self and optionally checks for unpermitted keys.
       def permit_filters(filters, on_unpermitted: nil, explicit_arrays: true)
         params = self.class.new
 
