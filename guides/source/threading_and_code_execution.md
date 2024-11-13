@@ -25,6 +25,8 @@ Threaded Active Job adapters, including the built-in Async adapter, will likewis
 execute several jobs at the same time. Action Cable channels are managed this
 way too.
 
+You can read more about these processes, and how to configure them, in the [Framework Behavior](#framework-behavior) section.
+
 These mechanisms all involve multiple threads, each managing work for a unique
 instance of some object (controller, job, channel), while sharing the global
 process space (such as classes and their configurations, and global variables).
@@ -140,11 +142,11 @@ necessary, the Reloader will invoke the wrapped block with no other callbacks.
 The most significant part of the reloading process is the 'class unload', where
 all autoloaded classes are removed, ready to be loaded again. This will occur
 immediately before either the `to_run` or `to_complete` callback, depending on the
-`reload_classes_only_on_change` setting.
+[`reload_classes_only_on_change`](configuring.html#config-reload-classes-only-on-change) setting.
 
 Often, additional reloading actions need to be performed either just before or
-just after the Class Unload, so the Reloader also provides `before_class_unload`
-and `after_class_unload` callbacks.
+just after the Class Unload, so the Reloader also provides [`before_class_unload`](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html#method-c-before_class_unload)
+and [`after_class_unload`](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html#method-c-after_class_unload) callbacks.
 
 ### Concurrency
 
@@ -176,7 +178,7 @@ Action Cable uses the Executor instead: because a Cable connection is linked to
 a specific instance of a class, it's not possible to reload for every arriving
 WebSocket message. Only the message handler is wrapped, though; a long-running
 Cable connection does not prevent a reload that's triggered by a new incoming
-request or job. Instead, Action Cable uses the Reloader's `before_class_unload`
+request or job. Instead, Action Cable also uses the Reloader's `before_class_unload`
 callback to disconnect all its connections. When the client automatically
 reconnects, it will be speaking to the new version of the code.
 
@@ -187,8 +189,8 @@ additional threads.
 
 ### Configuration
 
-The Reloader only checks for file changes when `config.enable_reloading` is
-`true` and so is `config.reload_classes_only_on_change`. These are the defaults in the
+The Reloader only checks for file changes when [`config.enable_reloading`](configuring.html#config-enable-reloading) is
+`true` and so is [`config.reload_classes_only_on_change`](configuring.html#config-reload-classes-only-on-change). These are the defaults in the
 `development` environment.
 
 When `config.enable_reloading` is `false` (in `production`, by default), the
