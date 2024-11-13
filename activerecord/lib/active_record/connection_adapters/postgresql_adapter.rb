@@ -264,6 +264,7 @@ module ActiveRecord
       def supports_insert_returning?
         true
       end
+      alias supports_update_returning? supports_insert_returning?
 
       def supports_insert_on_conflict?
         database_version >= 9_05_00 # >= 9.5

@@ -314,7 +314,7 @@ class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
       assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "ABS\(RANDOM\(\)\)" }/, output
+      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "ABS\(RANDOM\(\) % 100\)" }/, output
     end
   end
 end

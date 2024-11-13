@@ -173,6 +173,18 @@ module ActiveRecord
         affected_rows(internal_execute(sql, name, binds))
       end
 
+      # Executes update +sql+ statement in the context of this connection using
+      # +binds+ as the bind substitutes. +name+ is logged along with
+      # the executed +sql+ statement.
+      # Returns an ActiveRecord::Result instance.
+      # Some adapters support the `returning` keyword argument which appends the RETURNING sql clause:
+      # `nil` is the default value and does not result in any returned values. If an array of column names is passed -
+      # the result will contain values of the specified columns from the updated row.
+      def exec_update_with_result(sql, name = nil, binds = [], returning: nil)
+        sql, binds = sql_for_update_with_returning(sql, binds, returning)
+        cast_result(internal_execute(sql, name, binds))
+      end
+
       def exec_insert_all(sql, name) # :nodoc:
         internal_exec_query(sql, name)
       end
@@ -206,6 +218,15 @@ module ActiveRecord
       def update(arel, name = nil, binds = [])
         sql, binds = to_sql_and_binds(arel, binds)
         exec_update(sql, name, binds)
+      end
+
+      # Executes the update statement and returns an ActiveRecord::Result
+      # Some adapters support the `returning` keyword argument:
+      # `nil` is the default value and does not result in any returned values. If an array of column names is passed -
+      # the result will contain values of the specified columns from the updated row.
+      def update_with_result(arel, name = nil, binds = [], returning: nil)
+        sql, binds = to_sql_and_binds(arel, binds)
+        exec_update_with_result(sql, name, binds, returning: returning)
       end
 
       # Executes the delete statement and returns the number of rows affected.
@@ -711,6 +732,15 @@ module ActiveRecord
 
             returning_columns_statement = returning_columns.map { |c| quote_column_name(c) }.join(", ")
             sql = "#{sql} RETURNING #{returning_columns_statement}" if returning_columns.any?
+          end
+
+          [sql, binds]
+        end
+
+        def sql_for_update_with_returning(sql, binds, returning)
+          if supports_update_returning? && returning.present?
+            returning_columns_statement = returning.map { |c| quote_column_name(c) }.join(", ")
+            sql = "#{sql} RETURNING #{returning_columns_statement}"
           end
 
           [sql, binds]

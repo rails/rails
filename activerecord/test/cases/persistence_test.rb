@@ -74,6 +74,21 @@ class PersistenceTest < ActiveRecord::TestCase
         assert_not_nil record.id
       end
     end
+
+    def test_fills_auto_populated_columns_on_update
+      record_with_defaults = Default.create
+
+      record_with_defaults.update!(random_number: 105)
+      assert_equal 1050,  record_with_defaults.virtual_stored_number
+    end
+
+    def test_returning_columns_on_update_does_not_include_id
+      record_with_defaults = Default.create
+
+      sql = capture_sql { record_with_defaults.update!(random_number: 105) }.first
+
+      assert_equal false, (/RETURNING.*id/).match?(sql)
+    end
   elsif current_adapter?(:SQLite3Adapter)
     def test_fills_auto_populated_columns_on_creation
       record = Default.create
@@ -86,6 +101,17 @@ class PersistenceTest < ActiveRecord::TestCase
       assert_not_nil record.modified_time
       assert_not_nil record.modified_time_without_precision
       assert_not_nil record.modified_time_function
+    end
+
+    def test_does_not_fill_auto_populated_columns_on_update
+      # NOTE: When support for reload via RETURNING on update is added to sqlite this
+      #       test can be replaced with: test_fills_auto_populated_columns_on_update
+      record_with_defaults = Default.create
+      record_with_defaults.update!(random_number: 105)
+
+      assert_not_equal 1050, record_with_defaults.virtual_stored_number
+      record_with_defaults.reload
+      assert_equal 1050, record_with_defaults.virtual_stored_number
     end
   elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_fills_auto_populated_columns_on_creation
@@ -841,6 +867,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal topic, topic.delete, "topic.delete did not return self"
     assert_predicate topic, :frozen?, "topic not frozen after delete"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
+  end
+
+  def test_update_does_run_callbacks
+    record = Default.create
+    record.update!(char1: "B")
+
+    assert_equal true, record.after_update_commit_called
   end
 
   def test_delete_doesnt_run_callbacks

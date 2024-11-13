@@ -443,6 +443,12 @@ module ActiveRecord
         end
       end
 
+      def _returning_columns_for_update(connection)
+        @_returning_columns_for_update ||= columns.filter_map do |c|
+          c.name if connection.return_value_after_update?(c)
+        end
+      end
+
       def yaml_encoder # :nodoc:
         @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
@@ -552,6 +558,7 @@ module ActiveRecord
 
         def reload_schema_from_cache(recursive = true)
           @_returning_columns_for_insert = nil
+          @_returning_columns_for_update = nil
           @arel_table = nil
           @column_names = nil
           @symbol_column_to_string_name_hash = nil
