@@ -144,6 +144,44 @@ module InitializableTests
     end
   end
 
+  module Duplicate
+    class PluginA
+      include Rails::Initializable
+
+      initializer "plugin_a.startup" do
+        $arr << 1
+      end
+
+      initializer "plugin_a.terminate" do
+        $arr << 4
+      end
+    end
+
+    class PluginB
+      include Rails::Initializable
+
+      initializer "plugin_b.startup", after: "plugin_a.startup" do
+        $arr << 2
+      end
+
+      initializer "plugin_b.terminate", before: "plugin_a.terminate" do
+        $arr << 3
+      end
+    end
+
+    class Application
+      include Rails::Initializable
+
+      def self.initializers
+        @initializers ||= (PluginA.initializers + PluginB.initializers + PluginB.initializers)
+      end
+
+      initializer "root" do
+        $arr << 5
+      end
+    end
+  end
+
   class Basic < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
@@ -199,6 +237,12 @@ module InitializableTests
       $arr = []
       Interdependent::Application.new.run_initializers
       assert_equal [1, 2, 3, 4], $arr
+    end
+
+    test "handles duplicate initializers" do
+      $arr = []
+      Duplicate::Application.new.run_initializers
+      assert_equal [1, 2, 2, 3, 3, 4, 5], $arr
     end
   end
 
