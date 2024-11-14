@@ -1,3 +1,10 @@
+*   Fix `sum` when performing a grouped calculation.
+
+    `User.group(:friendly).sum` no longer worked. This is fixed.
+
+    *Edouard Chin*
+
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   Fix support for `query_cache: false` in `database.yml`.
