@@ -46,7 +46,6 @@ A short rundown of some of the major features:
 
   {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html]
 
-
 * Aggregations of value objects.
 
    class Account < ActiveRecord::Base
@@ -57,7 +56,6 @@ A short rundown of some of the major features:
    end
 
   {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Aggregations/ClassMethods.html]
-
 
 * Validation rules that can differ for new or existing objects.
 
@@ -70,7 +68,6 @@ A short rundown of some of the major features:
 
   {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Validations.html]
 
-
 * Callbacks available for the entire life cycle (instantiation, saving, destroying, validating, etc.).
 
    class Person < ActiveRecord::Base
@@ -80,7 +77,6 @@ A short rundown of some of the major features:
 
   {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Callbacks.html]
 
-
 * Inheritance hierarchies.
 
    class Company < ActiveRecord::Base; end
@@ -89,7 +85,6 @@ A short rundown of some of the major features:
    class PriorityClient < Client; end
 
   {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Base.html]
-
 
 * Transactions.
 
@@ -101,7 +96,6 @@ A short rundown of some of the major features:
 
   {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html]
 
-
 * Reflections on columns, associations, and aggregations.
 
     reflection = Firm.reflect_on_association(:clients)
@@ -109,7 +103,6 @@ A short rundown of some of the major features:
     Firm.columns # Returns an array of column descriptors for the firms table
 
   {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Reflection/ClassMethods.html]
-
 
 * Database abstraction through simple adapters.
 
@@ -130,12 +123,10 @@ A short rundown of some of the major features:
   PostgreSQL[https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
   SQLite3[https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 
-
 * Logging support for Log4r[https://github.com/colbygk/log4r] and Logger[https://docs.ruby-lang.org/en/master/Logger.html].
 
     ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
     ActiveRecord::Base.logger = Log4r::Logger.new('Application Log')
-
 
 * Database agnostic schema management with Migrations.
 
@@ -206,7 +197,7 @@ Active Record is released under the MIT license:
 
 == Support
 
-API documentation is at:
+API documentation can be found at:
 
 * https://api.rubyonrails.org
 
