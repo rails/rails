@@ -14,7 +14,9 @@ end
 
 require "active_record/railtie"
 require "active_storage/engine"
-require "tmpdir"
+require "minitest/autorun"
+
+ENV["DATABASE_URL"] = "sqlite3::memory:"
 
 class TestApp < Rails::Application
   config.load_defaults Rails::VERSION::STRING.to_f
@@ -36,9 +38,6 @@ class TestApp < Rails::Application
     }
   }
 end
-
-ENV["DATABASE_URL"] = "sqlite3::memory:"
-
 Rails.application.initialize!
 
 require ActiveStorage::Engine.root.join("db/migrate/20170806125915_create_active_storage_tables.rb").to_s
@@ -52,8 +51,6 @@ end
 class User < ActiveRecord::Base
   has_one_attached :profile
 end
-
-require "minitest/autorun"
 
 class BugTest < ActiveSupport::TestCase
   def test_upload_and_download

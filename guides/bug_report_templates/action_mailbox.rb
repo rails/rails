@@ -15,7 +15,8 @@ end
 require "active_record/railtie"
 require "active_storage/engine"
 require "action_mailbox/engine"
-require "tmpdir"
+
+ENV["DATABASE_URL"] = "sqlite3::memory:"
 
 class TestApp < Rails::Application
   config.load_defaults Rails::VERSION::STRING.to_f
@@ -27,7 +28,6 @@ class TestApp < Rails::Application
   config.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)
-  Rails.logger  = config.logger
 
   config.active_storage.service = :local
   config.active_storage.service_configurations = {
@@ -39,9 +39,6 @@ class TestApp < Rails::Application
 
   config.action_mailbox.ingress = :relay
 end
-
-ENV["DATABASE_URL"] = "sqlite3::memory:"
-
 Rails.application.initialize!
 
 require ActiveStorage::Engine.root.join("db/migrate/20170806125915_create_active_storage_tables.rb").to_s
