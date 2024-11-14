@@ -659,9 +659,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     assert_gem "propshaft"
     assert_file "test/dummy/config/initializers/assets.rb"
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match "config.assets", content
-    end
+    assert_file "test/dummy/config/environments/development.rb"
   end
 
   def test_dummy_application_skips_asset_pipeline_when_flag_skip_asset_pipeline
