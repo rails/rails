@@ -15,7 +15,7 @@ After reading this guide, you will know:
 Concurrency in Rails
 --------------------
 
-Rails automatically allows various operations to be performed at the same time (concurrently) in order for an application to run more efficiently. In this section, we will explore some of the ways this happens.
+Rails automatically allows various operations to be performed at the same time (concurrently) in order for an application to run more efficiently. In this section, we will explore some of the ways this happens behind the scenes.
 
 When using a threaded web server, such as Rails' default server, Puma, multiple HTTP
 requests will be served simultaneously. Rails provides each request with its own
@@ -25,9 +25,7 @@ Threaded Active Job adapters, including the built-in Async adapter, will likewis
 execute several jobs at the same time. Action Cable channels are managed this
 way too.
 
-You can read more about these processes, and how to configure them, in the [Framework Behavior](#framework-behavior) section.
-
-These mechanisms all involve multiple threads, each managing work for a unique
+The above mechanisms all involve multiple threads, each managing work for a unique
 instance of some object (controller, job, channel), while sharing the global
 process space (such as classes and their configurations, and global variables).
 As long as your code doesn't modify any of those shared things, the other threads are mostly irrelevant to it.
@@ -35,10 +33,12 @@ As long as your code doesn't modify any of those shared things, the other thread
 The rest of this guide goes into more detail about threading in Rails,
 and how extensions and applications with particular requirements can use it.
 
+NOTE: You can read more about Rails' in-built concurrency, and how to configure it, in the [Framework Behavior](#framework-behavior) section.
+
 The Rails Executor
 ------------------
 
-The [Rails Executor](https://api.rubyonrails.org/classes/ActiveSupport/ExecutionWrapper.html) separates application code from framework code. Any time the Rails framework invokes code you've written in your application, it will be wrapped by the Executor.
+The Rails Executor inherits from the [`ActiveSupport::ExecutionWrapper`](https://api.rubyonrails.org/classes/ActiveSupport/ExecutionWrapper.html). The Executor separates application code from framework code by wrapping code that you've written.
 
 The Executor consists of two callbacks: `to_run` and `to_complete`. The `to_run`
 callback is called before the application code, and the `to_complete` callback is
@@ -53,7 +53,7 @@ In a default Rails application, the Rails Executor callbacks are used to:
 * return acquired Active Record connections to the pool
 * constrain internal cache lifetimes
 
-### Wrapping Application Code
+### Wrapping Code Execution
 
 If you're writing a library or component that will invoke application code, you
 should wrap it with a call to the Executor:
