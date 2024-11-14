@@ -19,6 +19,7 @@ switch between them without having to rewrite your jobs.
 
 You can read more about Active Job in the [Active Job Basics](https://guides.rubyonrails.org/active_job_basics.html) guide.
 
+
 ## Usage
 
 To learn how to use your preferred queuing backend see its adapter
