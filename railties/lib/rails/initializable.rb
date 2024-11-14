@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "tsort"
+require "active_support/core_ext/module/delegation"
 
 module Rails
   module Initializable
@@ -38,6 +39,8 @@ module Rails
       include Enumerable
       include TSort
 
+      delegate_missing_to :@collection
+
       def initialize(initializers = nil)
         @order = Hash.new { |hash, key| hash[key] = Set.new }
         @resolve = Hash.new { |hash, key| hash[key] = Set.new }
@@ -73,10 +76,20 @@ module Rails
         @order[initializer.before] << initializer.name if initializer.before
         @order[initializer.name] << initializer.after if initializer.after
         @resolve[initializer.name] << initializer
+        self
       end
 
-      def concat(initializers)
+      def push(*initializers)
         initializers.each(&method(:<<))
+        self
+      end
+
+      alias_method(:append, :push)
+
+      def concat(*initializer_collections)
+        initializer_collections.each do |initializers|
+          initializers.each(&method(:<<))
+        end
         self
       end
 
