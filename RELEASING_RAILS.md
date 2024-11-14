@@ -118,9 +118,9 @@ The blog at https://rubyonrails.org/blog is built from
 https://github.com/rails/website.
 
 Create a file named like
-`_posts/$(date +'%F')-Rails-<versions>-have-been-released.markdown`
+`_posts/$(date +'%F')-Rails-<versions>-have-been-released.markdown`.
 
-Add YAML frontmatter
+Add YAML frontmatter:
 ```
 ---
 layout: post
@@ -162,7 +162,7 @@ so we need to give them the security fixes in patch form.
 * Merge the release branch to the stable branch
 * Drink beer (or other cocktail)
 
-## Misc
+## Misc.
 
 ### Fixing the CI
 
