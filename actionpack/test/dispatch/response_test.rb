@@ -19,6 +19,17 @@ class ResponseTest < ActiveSupport::TestCase
     assert t.join(0.5)
   end
 
+  def test_can_wait_until_commit_with_timeout
+    latch = Concurrent::CountDownLatch.new
+    t = Thread.new {
+      @response.await_commit(0.1)
+      latch.count_down
+    }
+    latch.wait(0.2)
+    refute_predicate @response, :committed?
+    assert(t.join(0.5))
+  end
+
   def test_stream_close
     @response.stream.close
     assert_predicate @response.stream, :closed?

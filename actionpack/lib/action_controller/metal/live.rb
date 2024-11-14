@@ -310,8 +310,11 @@ module ActionController
         end
       }
 
-      ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-        @_response.await_commit
+      committed = nil
+      until committed do
+        ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+          committed = @_response.await_commit(0.5)
+        end
       end
 
       raise error if error

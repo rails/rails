@@ -206,9 +206,14 @@ module ActionDispatch # :nodoc:
     def set_header(key, v); @headers[key] = v;   end
     def delete_header(key); @headers.delete key; end
 
-    def await_commit
+    def await_commit(timeout = nil)
       synchronize do
-        @cv.wait_until { @committed }
+        if timeout
+          @cv.wait(timeout) unless @committed
+          @committed
+        else
+          @cv.wait_until { @committed }
+        end
       end
     end
 
