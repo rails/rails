@@ -365,6 +365,12 @@ versions, there are two scenarios to consider:
     config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
     ```
 
+    If all of your data was encrypted non-deterministicly (the default unless `encrypts` is passed `deterministic: true`, you can instead configure SHA-256 for Active Record Encryption as in scenario 2 below and also allow columns previously encrypted with SHA-1 to be decrypted by setting:
+
+    ```ruby
+    config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
+    ```
+
 2. If you have `config.active_support.key_generator_hash_digest_class` configured as SHA-256 (the new default
    in 7.0), then you need to configure SHA-256 for Active Record Encryption:
 
@@ -387,7 +393,7 @@ by the aforementioned bug, this configuration should be enabled:
 config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
 ```
 
-If you are working with encrypted data, please carefully review the above.
+**If you are working with encrypted data, please carefully review the above.**
 
 ### New ways to handle exceptions in Controller Tests, Integration Tests, and System Tests
 
