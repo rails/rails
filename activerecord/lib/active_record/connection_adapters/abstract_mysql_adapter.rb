@@ -746,9 +746,7 @@ module ActiveRecord
 
       private
         def strip_whitespace_characters(expression)
-          expression = expression.gsub(/\\n|\\\\/, "")
-          expression = expression.gsub(/\s{2,}/, " ")
-          expression
+          expression.gsub('\\\n', "").gsub("x0A", "").squish
         end
 
         def extended_type_map_key
