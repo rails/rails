@@ -120,6 +120,7 @@ module RailInspector
 
             def respond_to_framework?(node)
               if node in SyntaxTree::CallNode[
+                   receiver: nil,
                    message: SyntaxTree::Ident[value: "respond_to?"],
                    arguments: SyntaxTree::ArgParen[
                      arguments: SyntaxTree::Args[

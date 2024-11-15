@@ -345,7 +345,7 @@ module Rails
             action_dispatch.strict_freshness = true
           end
 
-          Regexp.timeout ||= 1
+          Regexp.timeout ||= 1 if Regexp.respond_to?(:timeout=)
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
