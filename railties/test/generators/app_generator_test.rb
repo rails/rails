@@ -376,6 +376,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/storage.yml"
   end
 
+  def test_app_update_silence_deprecate_message
+    run_generator
+
+    FileUtils.cd(destination_root) do
+      File.open("config/initializers/deprecation.rb", "a") do |file|
+        file.puts "Rails.deprecator.warn('test deprecation message')"
+      end
+
+      stderr = capture(:stderr) { run_app_update }
+      assert_no_match(/test deprecation message/, stderr)
+    end
+  end
+
   def test_generator_skips_action_mailbox_when_skip_action_mailbox_is_given
     run_generator [destination_root, "--skip-action-mailbox"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailbox\/engine["']/
