@@ -1,3 +1,7 @@
+*  Fix `ActiveSupport::BroadcastLogger` running blocks passed to `with_level` multiple times.
+
+    *meagar*
+
 *   `ActiveSupport::CurrentAttributes#attributes` now will return a new hash object on each call.
 
     Previously, the same hash object was returned each time that method was called.

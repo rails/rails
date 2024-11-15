@@ -307,6 +307,83 @@ module ActiveSupport
       assert_equal true, @logger.error("Hello")
     end
 
+    test "with_level invokes its block one time, even when broadcasting to 2 or more loggers" do
+      log1 = ::Logger.new(nil)
+      log2 = ::Logger.new(nil)
+
+      logger = BroadcastLogger.new(log1, log2)
+
+      invocations = 0
+      logger.with_level(:info) do
+        invocations += 1
+      end
+
+      assert_equal 1, invocations
+    end
+
+    test "with_level invokes its block one time, even when broadcasting to zero loggers" do
+      logger = BroadcastLogger.new()
+
+      invocations = 0
+      logger.with_level(:info) do
+        invocations += 1
+      end
+
+      assert_equal 1, invocations
+    end
+
+    test "with_level returns the value produced by the block" do
+      logger = BroadcastLogger.new(
+        ::Logger.new(StringIO.new),
+        ::Logger.new(StringIO.new)
+      )
+
+      assert_equal :foo, logger.with_level(:debug) { :foo }
+    end
+
+    test "with_level changes the logging level, and restores it afterwards" do
+      buf1 = StringIO.new
+      buf2 = StringIO.new
+
+      log1 = ::Logger.new(buf1)
+      log2 = ::Logger.new(buf2)
+
+      logger = BroadcastLogger.new(log1, log2)
+      logger.formatter = proc do |severity, time, progname, message|
+        "#{severity}:#{message}\n"
+      end
+
+      logger.level = :info
+      logger.debug("AAA") # skipped
+
+      logger.with_level(:debug) do
+        # Inside, debug logging should be captured
+        assert_equal(0, logger.level)
+
+        logger.debug("BBB") # captured
+        logger.info("CCC") # captured
+
+        logger.with_level(:error) do
+          assert_equal(3, logger.level)
+          logger.info("DDD") # skipped
+          logger.warn("EEE") # skipped
+          logger.error("FFF") # captured
+        end
+
+        assert_equal(0, logger.level)
+        logger.error("GGG") # captured
+      end
+
+      # Back outside, debug logging should be skipped, and the level should be restored
+      assert_equal(1, logger.level)
+      logger.debug("HHH")
+
+      want = "DEBUG:BBB\nINFO:CCC\nERROR:FFF\nERROR:GGG\n"
+
+      assert_equal(want, buf1.string)
+      assert_equal(want, buf2.string)
+    end
+
     Logger::Severity.constants.each do |level_name|
       method = level_name.downcase
       level = Logger::Severity.const_get(level_name)
