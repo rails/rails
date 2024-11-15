@@ -1202,6 +1202,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file ".dockerignore" do |content|
       assert_match(/config\/master\.key/, content)
+      assert_match(/config\/deploy\*\.yml/, content)
+      assert_match(/\.kamal/, content)
+    end
+  end
+
+  def test_dockerignore_skip_kamal
+    run_generator [destination_root, "--skip-kamal"]
+
+    assert_file ".dockerignore" do |content|
+      assert_no_match(/config\/deploy\*\.yml/, content)
+      assert_no_match(/\.kamal/, content)
     end
   end
 
