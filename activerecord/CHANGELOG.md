@@ -1,3 +1,7 @@
+*   Fix parsing of MySQL 8.0.16+ CHECK constraints when they contain new lines.
+
+    *Steve Hill*
+
 *   Ensure normalized attribute queries use `IS NULL` consistently for `nil` and normalized `nil` values.
 
     *Joshua Young*
