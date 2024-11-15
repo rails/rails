@@ -1,3 +1,7 @@
+*   Ensure normalized attribute queries use `IS NULL` consistently for `nil` and normalized `nil` values.
+
+    *Joshua Young*
+
 ## Rails 7.2.2 (October 30, 2024) ##
 
 *   Fix support for `query_cache: false` in `database.yml`.
