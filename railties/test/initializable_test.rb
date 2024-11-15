@@ -277,4 +277,63 @@ module InitializableTests
       assert_equal [1, 2, 3, 4], $arr
     end
   end
+
+  class CollectionTest < ActiveSupport::TestCase
+    test "delegates missing to collection array" do
+      initializable = Class.new do
+        include Rails::Initializable
+      end
+
+      Array.public_instance_methods.each do |method_name|
+        assert(
+          initializable.initializers.respond_to?(method_name),
+          "Expected Initializable::Collection to respond to #{method_name}, but does not.",
+        )
+      end
+    end
+
+    test "concat" do
+      one = collection(:a, :b)
+      two = collection(:c, :d)
+      initializers = one.initializers.concat(two.initializers)
+      initializer_names = initializers.tsort_each.map(&:name)
+
+      assert_equal [:a, :b, :c, :d], initializer_names
+    end
+
+    test "push" do
+      one = collection(:a, :b, :c)
+      two = collection(:d)
+      initializers = one.initializers.push(two.initializers.first)
+      initializer_names = initializers.tsort_each.map(&:name)
+
+      assert_equal [:a, :b, :c, :d], initializer_names
+    end
+
+    test "append" do
+      one = collection(:a)
+      two = collection(:b, :c)
+      initializers = one.initializers.append(two.initializers.first)
+      initializer_names = initializers.tsort_each.map(&:name)
+
+      assert_equal [:a, :b], initializer_names
+    end
+
+    test "<<" do
+      one = collection(:a, :b)
+      two = collection(:c)
+      initializers = (one.initializers << two.initializers.first)
+      initializer_names = initializers.tsort_each.map(&:name)
+
+      assert_equal [:a, :b, :c], initializer_names
+    end
+
+    private
+      def collection(*names)
+        Class.new do
+          include Rails::Initializable
+          names.each { |name| initializer(name) { } }
+        end
+      end
+  end
 end
