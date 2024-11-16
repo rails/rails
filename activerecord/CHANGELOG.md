@@ -1,3 +1,14 @@
+*   Allow to reset cache counters for multiple records.
+
+    ```
+    Aircraft.reset_counters([1, 2, 3], :wheels_count)
+    ```
+
+    It produces much fewer queries compared to the custom implementation using looping over ids.
+    Previously: `O(ids.size * counters.size)` queries, now: `O(ids.size + counters.size)` queries.
+
+    *fatkodima*
+
 *   Add `affected_rows` to `sql.active_record` Notification.
 
     *Hartley McGuire*
