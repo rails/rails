@@ -20,12 +20,14 @@ module ActiveRecord
     test "message contains no sql" do
       sql = Book.where(author_id: 96, cover: "hard").to_sql
       error = assert_raises(ActiveRecord::StatementInvalid) do
-        Book.lease_connection.send(:log, sql, Book.name) do
-          Book.lease_connection.send(:with_raw_connection) do
-            raise MockDatabaseError
-          end
+        conn = Book.lease_connection
+        raise_error = -> (*, **) { raise MockDatabaseError }
+
+        conn.stub(:perform_query, raise_error) do
+          conn.send(:raw_execute, sql, Book.name)
         end
       end
+
       assert_not error.message.include?("SELECT")
     end
 
@@ -33,12 +35,18 @@ module ActiveRecord
       sql = Book.where(author_id: 96, cover: "hard").to_sql
       binds = [Minitest::Mock.new, Minitest::Mock.new]
       error = assert_raises(ActiveRecord::StatementInvalid) do
-        Book.lease_connection.send(:log, sql, Book.name, binds) do
-          Book.lease_connection.send(:with_raw_connection) do
-            raise MockDatabaseError
+        conn = Book.lease_connection
+        raise_error = -> (*, **) do
+          raise MockDatabaseError
+        end
+
+        conn.stub(:perform_query, raise_error) do
+          conn.stub(:type_casted_binds, binds) do
+            conn.send(:raw_execute, sql, Book.name, binds)
           end
         end
       end
+
       assert_equal error.sql, sql
       assert_equal error.binds, binds
     end

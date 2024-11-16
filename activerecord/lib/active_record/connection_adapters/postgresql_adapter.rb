@@ -794,7 +794,7 @@ module ActiveRecord
         QUERY_CANCELED        = "57014"
 
         def translate_exception(exception, message:, sql:, binds:)
-          return exception unless exception.respond_to?(:result)
+          return super unless exception.respond_to?(:result)
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when nil
