@@ -5,6 +5,7 @@ module ActiveRecord
     module PostgreSQL
       module ColumnMethods
         extend ActiveSupport::Concern
+        extend ConnectionAdapters::ColumnMethods::ClassMethods
 
         # Defines the primary key field.
         # Use of the native PostgreSQL UUID type is supported, and can be used
@@ -181,12 +182,10 @@ module ActiveRecord
         # :method: enum
         # :call-seq: enum(*names, **options)
 
-        included do
-          define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
-            :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
-            :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
-            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz, :enum
-        end
+        define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
+          :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
+          :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
+          :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz, :enum
       end
 
       ExclusionConstraintDefinition = Struct.new(:table_name, :expression, :options) do
