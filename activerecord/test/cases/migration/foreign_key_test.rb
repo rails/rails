@@ -601,6 +601,14 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
             assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :immediate$}, output
           end
+
+          def test_schema_dumping_with_special_chars_deferrable
+            @connection.add_reference :astronauts, :røcket, foreign_key: { to_table: :rockets, deferrable: :deferred }
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", column: "røcket_id", deferrable: :deferred$}, output
+          end
         end
 
         def test_does_not_create_foreign_keys_when_bypassed_by_config
