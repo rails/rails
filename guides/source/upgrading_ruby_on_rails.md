@@ -2151,9 +2151,10 @@ If your application currently depends on MultiJSON directly, you have a few opti
 
 2. Migrate away from MultiJSON by using `obj.to_json`, and `JSON.parse(str)` instead.
 
-WARNING: Do not simply replace `MultiJson.dump` and `MultiJson.load` with
-`JSON.dump` and `JSON.load`. These JSON gem APIs are meant for serializing and
-deserializing arbitrary Ruby objects and are generally [unsafe](https://ruby-doc.org/stdlib-2.2.2/libdoc/json/rdoc/JSON.html#method-i-load).
+WARNING: Do not simply replace `MultiJson.load` with
+`JSON.load` as that API is meant for deserializing arbitrary Ruby objects and
+is generally [unsafe](https://docs.ruby-lang.org/en/master/JSON.html#method-i-load).
+Prefer to use `JSON.parse`.
 
 #### JSON gem compatibility
 
