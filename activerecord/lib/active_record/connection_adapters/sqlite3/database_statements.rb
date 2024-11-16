@@ -109,6 +109,7 @@ module ActiveRecord
             @last_affected_rows = raw_connection.changes
             verified!
 
+            notification_payload[:affected_rows] = @last_affected_rows
             notification_payload[:row_count] = result&.length || 0
             result
           end
