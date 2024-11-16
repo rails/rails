@@ -1,3 +1,7 @@
+*   Fix parsing of SQLite foreign key names when they contain non-ASCII characters
+
+    *Zacharias Knudsen*
+
 *   Fix parsing of MySQL 8.0.16+ CHECK constraints when they contain new lines.
 
     *Steve Hill*
