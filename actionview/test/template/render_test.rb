@@ -328,7 +328,7 @@ module RenderTestCases
 
   def test_undefined_method_error_references_named_class
     e = assert_raises(ActionView::Template::Error) { @view.render(inline: "<%= undefined %>") }
-    assert_match(/undefined local variable or method `undefined'/, e.message)
+    assert_match(/undefined local variable or method [`']undefined'/, e.message)
   end
 
   def test_render_renderable_object

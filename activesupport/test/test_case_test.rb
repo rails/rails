@@ -391,8 +391,8 @@ class ExceptionsInsideAssertionsTest < ActiveSupport::TestCase
       Other block based assertions (e.g. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
     MSG
     assert @out.string.include?(expected), @out.string
-    assert error.message.include?("ArgumentError: ArgumentError")
-    assert error.message.include?("in `block (2 levels) in run_test_that_should_fail_confusingly'")
+    assert_match "ArgumentError: ArgumentError", error.message
+    assert_match(/in .*run_test_that_should_fail_confusingly'/, error.message)
   end
 
   private
