@@ -1,3 +1,7 @@
+*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
+
+    *Martin Emde*
+
 *   Add `ActiveSupport::Testing::NotificationAssertions` module to help with testing `ActiveSupport::Notifications`.
 
     *Nicholas La Roux*, *Yishu See*, *Sean Doyle*
