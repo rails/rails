@@ -1,3 +1,9 @@
+*   Improve reliability of ERB template error highlighting.
+    Fix infinite loops and crashes in highlighting and
+    improve tolerance for alternate ERB handlers.
+
+    *Martin Emde*
+
 *   Allow `hidden_field` and `hidden_field_tag` to accept a custom autocomplete value.
 
     *brendon*
