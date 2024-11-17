@@ -174,7 +174,7 @@ class ERB
 
         case source.matched
         when start_re
-          tokens << [:TEXT, source.string[pos, len]] if len > 0
+          tokens << [:TEXT, source.string.byteslice(pos, len)] if len > 0
           tokens << [:OPEN, source.matched]
           if source.scan(/(.*?)(?=#{finish_re}|\z)/m)
             tokens << [:CODE, source.matched] unless source.matched.empty?
@@ -183,7 +183,7 @@ class ERB
             raise NotImplementedError
           end
         when finish_re
-          tokens << [:CODE, source.string[pos, len]] if len > 0
+          tokens << [:CODE, source.string.byteslice(pos, len)] if len > 0
           tokens << [:CLOSE, source.matched]
         else
           raise NotImplementedError, source.matched
