@@ -1,3 +1,8 @@
+*   Control downloaded filename encoded into `Content-Disposition` header
+    through `:download` query parameter
+
+    *Sean Doyle*
+
 *   Allow analyzers and variant transformer to be fully configurable
 
     ```ruby
