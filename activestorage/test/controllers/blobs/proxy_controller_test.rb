@@ -58,6 +58,13 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_match(/^attachment; /, response.headers["Content-Disposition"])
   end
 
+  test "caller can change filename" do
+    blob = create_blob(content_type: "image/jpeg", filename: "from_blob.jpg")
+    url = rails_storage_proxy_url(blob, disposition: { disposition: "attachment", filename: "from_parameter.jpg" })
+    get url
+    assert_match(/^attachment; filename="from_parameter.jpg";/, response.headers["Content-Disposition"])
+  end
+
   test "signed ID within expiration duration" do
     get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"), expires_in: 1.minute)
     assert_response :success
