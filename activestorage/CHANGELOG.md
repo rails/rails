@@ -1,3 +1,16 @@
+*   Control downloaded filename encoded into `Content-Disposition` header
+    through `:filename` query parameter nested within `:disposition`
+
+    ```ruby
+    # before - might not download file to `avatar.png` depending on browser
+    link_to "Download", rails_blob_path(user.avatar, disposition: "attachment"), download: "avatar.png")
+
+    # after
+    link_to "Download", rails_blob_path(user.avatar, disposition: { disposition: "attachment", filename: "avatar.png" })
+    ```
+
+    *Sean Doyle*
+
 *   Add structured events for Active Storage:
     - `active_storage.service_upload`
     - `active_storage.service_download`
