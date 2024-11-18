@@ -746,9 +746,7 @@ module ActiveRecord
 
       private
         def strip_whitespace_characters(expression)
-          expression = expression.gsub(/\\n|\\\\/, "")
-          expression = expression.gsub(/\s{2,}/, " ")
-          expression
+          expression.gsub('\\\n', "").gsub("x0A", "").squish
         end
 
         def extended_type_map_key
@@ -953,7 +951,7 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA")
+          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
         end
 
         def create_table_info(table_name) # :nodoc:

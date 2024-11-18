@@ -1,3 +1,24 @@
+*   Allow to reset cache counters for multiple records.
+
+    ```
+    Aircraft.reset_counters([1, 2, 3], :wheels_count)
+    ```
+
+    It produces much fewer queries compared to the custom implementation using looping over ids.
+    Previously: `O(ids.size * counters.size)` queries, now: `O(ids.size + counters.size)` queries.
+
+    *fatkodima*
+
+*   Add `affected_rows` to `sql.active_record` Notification.
+
+    *Hartley McGuire*
+
+*   Fix `sum` when performing a grouped calculation.
+
+    `User.group(:friendly).sum` no longer worked. This is fixed.
+
+    *Edouard Chin*
+
 *   Add support for enabling or disabling transactional tests per database.
 
     A test class can now override the default `use_transactional_tests` setting

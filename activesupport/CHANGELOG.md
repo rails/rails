@@ -1,3 +1,11 @@
+*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
+
+    *Martin Emde*
+
+*   Add `ActiveSupport::Testing::NotificationAssertions` module to help with testing `ActiveSupport::Notifications`.
+
+    *Nicholas La Roux*, *Yishu See*, *Sean Doyle*
+
 *   `ActiveSupport::CurrentAttributes#attributes` now will return a new hash object on each call.
 
     Previously, the same hash object was returned each time that method was called.

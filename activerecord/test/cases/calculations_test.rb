@@ -817,6 +817,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
+  def test_sum_with_grouped_calculation
+    expected = { 0 => 0, 1 => 0, 3 => 0 }
+
+    assert_equal(expected, Post.group(:tags_count).sum)
+  end
+
   def test_from_option_with_specified_index
     edges = Edge.from("edges /*! USE INDEX(unique_edge_index) */")
     assert_equal Edge.count(:all), edges.count(:all)

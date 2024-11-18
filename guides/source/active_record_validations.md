@@ -590,7 +590,7 @@ These options are all supported:
 
 NOTE: The validator requires a compare option be supplied. Each option accepts a
 value, proc, or symbol. Any class that includes
-[Comparable](https://ruby-doc.org/3.3.5/Comparable.html) can be compared.
+[Comparable](https://docs.ruby-lang.org/en/master/Comparable.html) can be compared.
 
 ### `format`
 

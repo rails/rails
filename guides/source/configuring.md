@@ -1471,7 +1471,7 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.active_record.query_log_tags_enabled`
 
 Specifies whether or not to enable adapter-level query comments. Defaults to
-`false`.
+`false`, but is set to `true` in the default generated `config/environments/development.rb` file.
 
 NOTE: When this is set to `true` database prepared statements will be automatically disabled.
 
@@ -2717,8 +2717,7 @@ Configures the behavior of disallowed deprecation warnings. See
 [`Deprecation::Behavior`][deprecation_behavior] for a description of the
 available options.
 
-In the default generated `config/environments` files, this is set to `:raise`
-for both development and test, and it is omitted for production in favor of
+This option is intended for development and test. For production, favor
 [`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
 
 #### `config.active_support.disallowed_deprecation_warnings`
@@ -3182,7 +3181,7 @@ NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms
 #### `Regexp.timeout`
 
 
-See Ruby's documentation for [`Regexp.timeout=`](https://docs.ruby-lang.org/en/3.3/Regexp.html#method-c-timeout-3D).
+See Ruby's documentation for [`Regexp.timeout=`](https://docs.ruby-lang.org/en/master/Regexp.html#method-c-timeout-3D).
 
 ### Configuring a Database
 

@@ -257,7 +257,7 @@ module ApplicationTests
       assert_match "ActiveRecord::StatementInvalid", last_response.body
     end
 
-    test "show_exceptions :rescubale with a rescuable error" do
+    test "show_exceptions :rescuable with a rescuable error" do
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
           def index
@@ -272,7 +272,7 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
-    test "show_exceptions :rescubale with a non-rescuable error" do
+    test "show_exceptions :rescuable with a non-rescuable error" do
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
           def index

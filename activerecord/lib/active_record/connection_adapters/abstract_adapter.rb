@@ -1135,6 +1135,7 @@ module ActiveRecord
             async:             async,
             connection:        self,
             transaction:       current_transaction.user_transaction.presence,
+            affected_rows:     0,
             row_count:         0,
             &block
           )
