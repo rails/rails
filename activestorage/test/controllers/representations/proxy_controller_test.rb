@@ -22,6 +22,18 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
     assert_equal @blob.variant(@transformations).download, response.body
   end
 
+  test "showing variant attachment with filename" do
+    get rails_blob_representation_proxy_url(
+      disposition: { disposition: :attachment, filename: "file.jpg" },
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(@transformations))
+
+    assert_response :ok
+    assert_match(/^attachment; filename="file.jpg";/, response.headers["Content-Disposition"])
+    assert_equal @blob.variant(@transformations).download, response.body
+  end
+
   test "showing variant inline" do
     get rails_blob_representation_proxy_url(
       filename: @blob.filename,

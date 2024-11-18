@@ -1,3 +1,16 @@
+*   Control downloaded filename encoded into `Content-Disposition` header
+    through `:filename` query parameter nested within `:disposition`
+
+    ```ruby
+    # before - might not download file to `avatar.png` depending on browser
+    link_to "Download", rails_blob_path(user.avatar, disposition: "attachment"), download: "avatar.png")
+
+    # after
+    link_to "Download", rails_blob_path(user.avatar, disposition: { disposition: "attachment", filename: "avatar.png" })
+    ```
+
+    *Sean Doyle*
+
 *   Correct unexpected behavior resulting from dependent: :purge when using
     has_one_attached or has_many_attached. Fixes #36423.
 
