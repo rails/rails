@@ -188,7 +188,7 @@ Assuming that you're sending the above data to the `UsersController`, the JSON w
 { name: "acme", address: "123 Carrot Street", user: { name: "acme", address: "123 Carrot Street" } }
 ```
 
-NOTE: Wrap Parameters clone the parameters and add the controller name as a key. The "naked" parameters still exist in the `params` hash.
+NOTE: Wrap Parameters add a clone of the parameters to the hash within a key that is the same as the controller name. As a result, both the original version of the parameters and the "wrapped" version of the parameters will exist in the params hash.
 
 This feature clones and wraps parameters with a key chosen based on your
 controller's name. It is configured to `true` by default. If you do not want to
@@ -376,7 +376,7 @@ params.permit(options: {})
 The above `permit` call ensures that values in `options` are permitted scalars
 and filters out anything else.
 
-WARNING: The permit with an empty hash is convenient since sometimes it is not
+WARNING: The `permit` with an empty hash is convenient since sometimes it is not
 possible or convenient to declare each valid key of a hash parameter or its
 internal structure. But note that the above `permit` with an empty hash opens the door to arbitrary input.
 
@@ -384,32 +384,12 @@ internal structure. But note that the above `permit` with an empty hash opens th
 
 There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking the values.
 
-```ruby
-id = params.expect(:id)
+```irb
+params = ActionController::Parameters.new(id: 1, admin: "true")
+=> #<ActionController::Parameters {"id"=>1, "admin"=>"true"} permitted: false>
+params.permit!
+=> #<ActionController::Parameters {"id"=>1, "admin"=>"true"} permitted: true>
 ```
-
-`expect` ensures that the type returned is not vulnerable to param tampering.
-The above expect will always return a scalar value and not an array or hash.
-When expecting params from a form, use `expect` to ensure that the root key
-is present and the attributes are permitted.
-
-```ruby
-user_params = params.expect(user: [:username, :password])
-user_params.has_key?(:username) # => true
-```
-
-`expect` will raise an error and return a 400 Bad Request response
-when the user key is not a nested hash with the expected keys.
-
-To require and permit an entire hash of parameters, [`expect`][] can be
-used in this way.
-
-```ruby
-params.expect(log_entry: {})
-```
-
-The above marks the `:log_entry` parameters hash and any sub-hash of it as
-permitted and does not check for permitted scalars, anything is accepted.
 
 WARNING: Extreme care should be taken when using `permit!`, as it will allow all
 current and *future* model attributes to be mass-assigned.
