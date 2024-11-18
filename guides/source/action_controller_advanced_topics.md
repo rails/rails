@@ -100,10 +100,11 @@ With the above in place, you can create controllers that inherit from
 `AdminsController`. All actions in those controllers will use HTTP basic
 authentication and require user credentials.
 
-WARNING: HTTP Basic Authentication is easy to implement but less secure on its
+WARNING: HTTP Basic Authentication is easy to implement but not secure on its
 own, as it will send unencrypted credentials over the network. Make sure to use
-HTTPS when using Basic Authentication. [`http_basic_authenticate_with`]:
-https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
+HTTPS when using Basic Authentication.
+
+[`http_basic_authenticate_with`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
 
 ### HTTP Digest Authentication
 
