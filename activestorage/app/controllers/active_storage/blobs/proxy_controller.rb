@@ -19,7 +19,11 @@ class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
         response.headers["Accept-Ranges"] = "bytes"
         response.headers["Content-Length"] = @blob.byte_size.to_s
 
-        send_blob_stream @blob, disposition: params[:disposition]
+        if (disposition = params[:disposition]).is_a?(ActionController::Parameters)
+          disposition, filename = disposition[:disposition], disposition[:filename]
+        end
+
+        send_blob_stream @blob, disposition: disposition, filename: filename
       end
     end
   end
