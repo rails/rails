@@ -188,7 +188,9 @@ module ApplicationTests
       end
 
       quietly do
-        Rails::Command.invoke(:generate, ["check_argv", "expected"]) # should not raise
+        assert_nothing_raised do
+          Rails::Command.invoke(:generate, ["check_argv", "expected"]) # should not raise
+        end
       end
     end
 
