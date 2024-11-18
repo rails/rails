@@ -102,7 +102,7 @@ authentication and require user credentials.
 
 WARNING: HTTP Basic Authentication is easy to implement but not secure on its
 own, as it will send unencrypted credentials over the network. Make sure to use
-HTTPS when using Basic Authentication.
+HTTPS when using Basic Authentication. You can also [force HTTPS](#force-https-protocol).
 
 [`http_basic_authenticate_with`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
 
@@ -304,11 +304,11 @@ Headers cannot be written after the response has been committed (when
 
 #### Example Use Case
 
-Let's suppose that you were making a Karaoke machine, and a user wants to get
+Let's suppose that you were making a karaoke machine, and a user wants to get
 the lyrics for a particular song. Each `Song` has a particular number of lines
 and each line takes time `num_beats` to finish singing.
 
-If we wanted to return the lyrics in Karaoke fashion (only sending the line when
+If we wanted to return the lyrics in karaoke fashion (only sending the line when
 the singer has finished the previous line), then we could use
 `ActionController::Live` as follows:
 
@@ -318,6 +318,8 @@ class LyricsController < ActionController::Base
 
   def show
     response.headers["Content-Type"] = "text/event-stream"
+    response.headers["Cache-Control"] = "no-cache"
+
     song = Song.find(params[:id])
 
     song.each do |line|
@@ -380,7 +382,7 @@ Sometimes it's desirable to filter out sensitive locations that your application
 config.filter_redirect << "s3.amazonaws.com"
 ```
 
-You can set it to a String, a Regexp, or an array of both.
+You can set it to a String, a Regexp, or an Array of both.
 
 ```ruby
 config.filter_redirect.concat ["s3.amazonaws.com", /private_path/]
@@ -413,7 +415,7 @@ Rails.application.routes.draw do
 end
 ```
 
-The health check will now be accessible via the `/health` path.
+The health check will now be accessible via `GET` or `HEAD` requests to the `/health` path.
 
 NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis. Replace "rails/health#show" with your own controller action if you have application specific needs.
 
