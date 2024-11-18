@@ -106,6 +106,32 @@ module ActiveRecord
         ActiveRecord::Base.release_connection
       end
 
+      test "#with_connection is sticky when permanent_connection_checkout is true" do
+        ActiveRecord.permanent_connection_checkout = true
+
+        ActiveRecord::Base.release_connection
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+
+        conn = nil
+        ActiveRecord::Base.with_connection do |connection|
+          conn = connection
+          assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+          2.times do
+            assert_same connection, ActiveRecord::Base.connection
+          end
+
+          ActiveRecord::Base.with_connection do |another_conn|
+            assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+            assert_same another_conn, conn
+          end
+        end
+
+        assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+        assert_same conn, ActiveRecord::Base.connection
+
+        ActiveRecord::Base.release_connection
+      end
+
       test "#connection emits a deprecation warning if ActiveRecord.permanent_connection_checkout == :deprecated" do
         ActiveRecord.permanent_connection_checkout = :deprecated
 
@@ -166,6 +192,37 @@ module ActiveRecord
         end
 
         assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+      end
+
+      test "#connection doesn't make the lease permanent if inside #with_connection(prevent_permanent_checkout: true) and permanent_connection_checkout true" do
+        ActiveRecord.permanent_connection_checkout = true
+
+        ActiveRecord::Base.release_connection
+
+        ActiveRecord::Base.with_connection(prevent_permanent_checkout: true) do |connection|
+          assert_same connection, ActiveRecord::Base.connection
+        end
+
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+      end
+
+      test "common APIs permanently hold a connection when permanent checkout is true" do
+        ActiveRecord.permanent_connection_checkout = true
+
+        ActiveRecord::Base.release_connection
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+
+        Post.create!(title: "foo", body: "bar")
+        assert_predicate Post.connection_pool, :active_connection?
+        assert_predicate Post.connection_pool, :permanent_lease?
+
+        Post.first
+        assert_predicate Post.connection_pool, :active_connection?
+        assert_predicate Post.connection_pool, :permanent_lease?
+
+        Post.count
+        assert_predicate Post.connection_pool, :active_connection?
+        assert_predicate Post.connection_pool, :permanent_lease?
       end
 
       test "common APIs don't permanently hold a connection when permanent checkout is deprecated or disallowed" do

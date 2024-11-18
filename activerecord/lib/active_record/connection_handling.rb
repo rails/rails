@@ -273,7 +273,7 @@ module ActiveRecord
     # Soft deprecated. Use +#with_connection+ or +#lease_connection+ instead.
     def connection
       pool = connection_pool
-      if pool.permanent_lease?
+      if pool.sticky_unset?
         case ActiveRecord.permanent_connection_checkout
         when :deprecated
           ActiveRecord.deprecator.warn <<~MESSAGE

@@ -313,6 +313,10 @@ module ActiveRecord
       end
 
       def permanent_lease? # :nodoc:
+        connection_lease.sticky
+      end
+
+      def sticky_unset? # :nodoc:
         connection_lease.sticky.nil?
       end
 
@@ -399,7 +403,12 @@ module ActiveRecord
       def with_connection(prevent_permanent_checkout: false)
         lease = connection_lease
         sticky_was = lease.sticky
-        lease.sticky = false if prevent_permanent_checkout
+
+        if ActiveRecord.permanent_connection_checkout == true
+          lease.sticky = true
+        elsif prevent_permanent_checkout
+          lease.sticky = false
+        end
 
         if lease.connection
           begin
