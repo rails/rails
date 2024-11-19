@@ -843,6 +843,13 @@ do that with `local_variables`.
 * `config.web_console.whiny_requests`: Log a message when a console rendering
   is prevented (defaults: `true`).
 
+### Development With Docker
+
+When running the application with Docker in development, `web-console` will not
+work by default. To configure `web-console` to work within a Docker network,
+set `config.web_console.allowed_ips` in development.rb to include the network
+where the application is running.
+
 Since `web-console` evaluates plain Ruby code remotely on the server, don't try
 to use it in production.
 
