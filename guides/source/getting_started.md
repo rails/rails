@@ -1935,7 +1935,7 @@ To finish up, we will add a select box to the forms, and let the user select the
 ```html+erb
 <div>
   <%= form.label :status %><br>
-  <%= form.select :status, Visible::VALID_STATUSES, selected: article.status || 'public' %>
+  <%= form.select :status, Visible::VALID_STATUSES, selected: article.status || "public" %>
 </div>
 ```
 
@@ -1944,7 +1944,7 @@ and in `app/views/comments/_form.html.erb`:
 ```html+erb
 <p>
   <%= form.label :status %><br>
-  <%= form.select :status, Visible::VALID_STATUSES, selected: 'public' %>
+  <%= form.select :status, Visible::VALID_STATUSES, selected: "public" %>
 </p>
 ```
 
