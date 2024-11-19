@@ -33,7 +33,8 @@ impersonating a user that the web application trusts.
 The first step to avoid this type of attack is to ensure that all "destructive"
 actions (create, update, and destroy) in your application use non-GET requests.
 
-However, a malicious site can still send a non-GET request to your site, so Rails builds in request forgery protection into controllers.
+However, a malicious site can still send a non-GET request to your site, so
+Rails builds in request forgery protection into controllers.
 
 This is done by adding a token, which is only known to your server, to each
 request. When a request reaches your application, Rails verifies the received
@@ -49,7 +50,8 @@ For example, when you generate a form like this:
 <% end %>
 ```
 
-A CSRF token named `authenticity_token` is added as a hidden field in the generated HTML:
+A CSRF token named `authenticity_token` is added as a hidden field in the
+generated HTML:
 
 ```html
 <form accept-charset="UTF-8" action="/users/1" method="post">
@@ -60,7 +62,12 @@ A CSRF token named `authenticity_token` is added as a hidden field in the genera
 </form>
 ```
 
-Rails adds this token to every `form` that's generated using the [form helpers](form_helpers.html), so most of the time you don't need to do anything. If you're writing a form manually or need to add the token for another reason, it's available through the [`form_authenticity_token`](https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html#method-i-form_authenticity_token) method.
+Rails adds this token to every `form` that's generated using the [form
+helpers](form_helpers.html), so most of the time you don't need to do anything.
+If you're writing a form manually or need to add the token for another reason,
+it's available through the
+[`form_authenticity_token`](https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html#method-i-form_authenticity_token)
+method.
 
 ```html
 <!-- app/views/layouts/application.html.erb -->
@@ -69,11 +76,16 @@ Rails adds this token to every `form` that's generated using the [form helpers](
 </head>
 ```
 
-The `form_authenticity_token` method generates a valid authentication token. That can be useful in places where Rails does not add it automatically, like in custom Ajax calls.
+The `form_authenticity_token` method generates a valid authentication token.
+That can be useful in places where Rails does not add it automatically, like in
+custom Ajax calls.
 
-NOTE: All subclasses of `ActionController::Base` are protected by default and will raise an `ActionController::InvalidAuthenticityToken` error on unverified requests.
+NOTE: All subclasses of `ActionController::Base` are protected by default and
+will raise an `ActionController::InvalidAuthenticityToken` error on unverified
+requests.
 
-You can learn more details about the CSRF attack as well as CSRF countermeasures in the [Security Guide](security.html#cross-site-request-forgery-csrf).
+You can learn more details about the CSRF attack as well as CSRF countermeasures
+in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 
 HTTP Authentication
 -------------------
@@ -86,9 +98,15 @@ Rails comes with three built-in HTTP authentication mechanisms:
 
 ### HTTP Basic Authentication
 
-HTTP Basic Authentication is a simple authentication method where a user is required to enter a username and password to access a website or a particular section of a website (e.g. admin section). These credentials are entered into a browser's HTTP basic dialog window. The user’s credentials are then encoded and sent in the HTTP header with each request.
+HTTP Basic Authentication is a simple authentication method where a user is
+required to enter a username and password to access a website or a particular
+section of a website (e.g. admin section). These credentials are entered into a
+browser's HTTP basic dialog window. The user’s credentials are then encoded and
+sent in the HTTP header with each request.
 
-HTTP basic authentication is an authentication scheme that is supported by most browsers. Using HTTP Basic authentication in a Rails controller can be done by using the [`http_basic_authenticate_with`][] method:
+HTTP basic authentication is an authentication scheme that is supported by most
+browsers. Using HTTP Basic authentication in a Rails controller can be done by
+using the [`http_basic_authenticate_with`][] method:
 
 ```ruby
 class AdminsController < ApplicationController
@@ -102,15 +120,22 @@ authentication and require user credentials.
 
 WARNING: HTTP Basic Authentication is easy to implement but not secure on its
 own, as it will send unencrypted credentials over the network. Make sure to use
-HTTPS when using Basic Authentication. You can also [force HTTPS](#force-https-protocol).
+HTTPS when using Basic Authentication. You can also [force
+HTTPS](#force-https-protocol).
 
-[`http_basic_authenticate_with`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
+[`http_basic_authenticate_with`]:
+    https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Basic/ControllerMethods/ClassMethods.html#method-i-http_basic_authenticate_with
 
 ### HTTP Digest Authentication
 
-HTTP digest authentication is more secure than basic authentication as it does not require the client to send an unencrypted password over the network. The credentials are hashed instead and a [Digest](https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Digest.html) is sent.
+HTTP digest authentication is more secure than basic authentication as it does
+not require the client to send an unencrypted password over the network. The
+credentials are hashed instead and a
+[Digest](https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Digest.html)
+is sent.
 
-Using digest authentication with Rails can be done by using the[`authenticate_or_request_with_http_digest`][] method:
+Using digest authentication with Rails can be done by using
+the[`authenticate_or_request_with_http_digest`][] method:
 
 ```ruby
 class AdminsController < ApplicationController
@@ -127,17 +152,29 @@ class AdminsController < ApplicationController
 end
 ```
 
-The`authenticate_or_request_with_http_digest` block takes only one argument - the username. The block returns the password if found. If the return value is `false` or `nil`, it is considered an authentication failure.
+The`authenticate_or_request_with_http_digest` block takes only one argument -
+the username. The block returns the password if found. If the return value is
+`false` or `nil`, it is considered an authentication failure.
 
-[`authenticate_or_request_with_http_digest`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Digest/ControllerMethods.html#method-i-authenticate_or_request_with_http_digest
+[`authenticate_or_request_with_http_digest`]:
+    https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Digest/ControllerMethods.html#method-i-authenticate_or_request_with_http_digest
 
 ### HTTP Token Authentication
 
-Token authentication (aka "Bearer" authentication) is an authentication method where a client receives a unique token after successfully logging in, which it then includes in the `Authorization` header of future requests. Instead of sending credentials with each request, the client sends this [token]((https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token.html)) (a string that represents the user's session) as a "bearer" of the authentication.
+Token authentication (aka "Bearer" authentication) is an authentication method
+where a client receives a unique token after successfully logging in, which it
+then includes in the `Authorization` header of future requests. Instead of
+sending credentials with each request, the client sends this
+[token]((https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token.html))
+(a string that represents the user's session) as a "bearer" of the
+authentication.
 
-This approach improves security by separating credentials from the ongoing session. You use an authentication token that has been issued in advance to perform authentication.
+This approach improves security by separating credentials from the ongoing
+session. You use an authentication token that has been issued in advance to
+perform authentication.
 
-Implementing token authentication with Rails can be done using the [`authenticate_or_request_with_http_token`][] method.
+Implementing token authentication with Rails can be done using the
+[`authenticate_or_request_with_http_token`][] method.
 
 ```ruby
 class PostsController < ApplicationController
@@ -154,9 +191,13 @@ class PostsController < ApplicationController
 end
 ```
 
-The `authenticate_or_request_with_http_token` block takes two arguments - the token and a hash containing the options that were parsed from the HTTP `Authorization` header. The block should return `true` if the authentication is successful. Returning `false` or `nil` will cause an authentication failure.
+The `authenticate_or_request_with_http_token` block takes two arguments - the
+token and a hash containing the options that were parsed from the HTTP
+`Authorization` header. The block should return `true` if the authentication is
+successful. Returning `false` or `nil` will cause an authentication failure.
 
-[`authenticate_or_request_with_http_token`]: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token/ControllerMethods.html#method-i-authenticate_or_request_with_http_token
+[`authenticate_or_request_with_http_token`]:
+    https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token/ControllerMethods.html#method-i-authenticate_or_request_with_http_token
 
 Streaming and File Downloads
 ----------------------------
@@ -202,12 +243,15 @@ tell the browser a file is not meant to be downloaded, you can set the
 `:disposition` option to "inline". The default value for this option is
 "attachment".
 
-[`send_data`]: https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_data
-[`send_file`]: https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file
+[`send_data`]:
+    https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_data
+[`send_file`]:
+    https://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file
 
 ### Sending Files
 
-If you want to send a file that already exists on disk, use the `send_file` method.
+If you want to send a file that already exists on disk, use the `send_file`
+method.
 
 ```ruby
 class ClientsController < ApplicationController
@@ -221,17 +265,32 @@ class ClientsController < ApplicationController
 end
 ```
 
-The file will read and streamed at 4 kB at a time by default, to avoid loading the entire file into memory at once. You can turn off streaming with the `:stream` option or adjust the block size with the `:buffer_size` option.
+The file will read and streamed at 4 kB at a time by default, to avoid loading
+the entire file into memory at once. You can turn off streaming with the
+`:stream` option or adjust the block size with the `:buffer_size` option.
 
-If `:type` is not specified, it will be guessed from the file extension specified in `:filename`. If the content-type is not registered for the extension, `application/octet-stream` will be used.
+If `:type` is not specified, it will be guessed from the file extension
+specified in `:filename`. If the content-type is not registered for the
+extension, `application/octet-stream` will be used.
 
-WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk. This is a security risk as it might allow someone to gain access to sensitive files.
+WARNING: Be careful when using data coming from the client (params, cookies,
+etc.) to locate the file on disk. This is a security risk as it might allow
+someone to gain access to sensitive files.
 
-TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
+TIP: It is not recommended that you stream static files through Rails if you can
+instead keep them in a public folder on your web server. It is much more
+efficient to let the user download the file directly using Apache or another web
+server, keeping the request from unnecessarily going through the whole Rails
+stack.
 
 ### RESTful Downloads
 
-While `send_data` works fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides a slick way of doing "RESTful" downloads. Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
+While `send_data` works fine, if you are creating a RESTful application having
+separate actions for file downloads is usually not necessary. In REST
+terminology, the PDF file from the example above can be considered just another
+representation of the client resource. Rails provides a slick way of doing
+"RESTful" downloads. Here's how you can rewrite the example so that the PDF
+download is a part of the `show` action, without any streaming:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -247,26 +306,33 @@ class ClientsController < ApplicationController
 end
 ```
 
-Now the user can request to get a PDF version of a client just by adding ".pdf" to the URL:
+Now the user can request to get a PDF version of a client just by adding ".pdf"
+to the URL:
 
 ```
 GET /clients/1.pdf
 ```
 
-You can call any method on `format` that is an extension registered as a MIME type by Rails. Rails already registers common MIME types like `"text/html"` and `"application/pdf"`:
+You can call any method on `format` that is an extension registered as a MIME
+type by Rails. Rails already registers common MIME types like `"text/html"` and
+`"application/pdf"`:
 
 ```ruby
 Mime::Type.lookup_by_extension(:pdf)
 # => "application/pdf"
 ```
 
-If you need additional MIME types, call [`Mime::Type.register`](https://api.rubyonrails.org/classes/Mime/Type.html#method-c-register) in the file `config/initializers/mime_types.rb`. For example, this is how you would register the Rich Text Format (RTF):
+If you need additional MIME types, call
+[`Mime::Type.register`](https://api.rubyonrails.org/classes/Mime/Type.html#method-c-register)
+in the file `config/initializers/mime_types.rb`. For example, this is how you
+would register the Rich Text Format (RTF):
 
 ```ruby
 Mime::Type.register("application/rtf", :rtf)
 ```
 
-NOTE: If you modify an initializer file, you have to restart the server for their changes to take effect.
+NOTE: If you modify an initializer file, you have to restart the server for
+their changes to take effect.
 
 ### Live Streaming of Arbitrary Data
 
@@ -351,12 +417,16 @@ However, you should also note the following things:
 Log Filtering
 -------------
 
-Rails keeps a log file for each environment in the `log` folder at the application's root directory. Log files are extremely useful when debugging your application, but in a production environment you may not want every bit of information stored in log files. Rails allows you to specify parameters that should not be stored.
+Rails keeps a log file for each environment in the `log` folder at the
+application's root directory. Log files are extremely useful when debugging your
+application, but in a production environment you may not want every bit of
+information stored in log files. Rails allows you to specify parameters that
+should not be stored.
 
 ### Parameters Filtering
 
-You can filter out sensitive request parameters from your log files by
-appending them to [`config.filter_parameters`][] in the application configuration.
+You can filter out sensitive request parameters from your log files by appending
+them to [`config.filter_parameters`][] in the application configuration.
 
 ```ruby
 config.filter_parameters << :password
@@ -365,7 +435,8 @@ config.filter_parameters << :password
 These parameters will be marked `[FILTERED]` in the log.
 
 The parameters specified in `filter_parameters` will be filtered out with
-partial matching regular expression. So for example, `:passw` will filter out `password`, `password_confirmation`, etc.
+partial matching regular expression. So for example, `:passw` will filter out
+`password`, `password_confirmation`, etc.
 
 Rails adds a list of default filters, including `:passw`, `:secret`, and
 `:token`, in the appropriate initializer
@@ -376,7 +447,9 @@ parameters like `password`, `password_confirmation` and `my_token`.
 
 ### Redirects Filtering
 
-Sometimes it's desirable to filter out sensitive locations that your application is redirecting to. You can do that by using the `config.filter_redirect` configuration option:
+Sometimes it's desirable to filter out sensitive locations that your application
+is redirecting to. You can do that by using the `config.filter_redirect`
+configuration option:
 
 ```ruby
 config.filter_redirect << "s3.amazonaws.com"
@@ -388,7 +461,8 @@ You can set it to a String, a Regexp, or an Array of both.
 config.filter_redirect.concat ["s3.amazonaws.com", /private_path/]
 ```
 
-Matching URLs will be replaced with `[FILTERED]`. However, if you only wish to filter the parameters, not the whole URLs, you can use parameter filtering.
+Matching URLs will be replaced with `[FILTERED]`. However, if you only wish to
+filter the parameters, not the whole URLs, you can use parameter filtering.
 
 Force HTTPS Protocol
 --------------------
@@ -398,16 +472,25 @@ via HTTPS, you can do so by enabling the [`ActionDispatch::SSL`][] middleware
 via [`config.force_ssl`][] in your environment configuration.
 
 [`config.force_ssl`]: configuring.html#config-force-ssl
-[`ActionDispatch::SSL`]: https://api.rubyonrails.org/classes/ActionDispatch/SSL.html
+[`ActionDispatch::SSL`]:
+    https://api.rubyonrails.org/classes/ActionDispatch/SSL.html
 
 Built-in Health Check Endpoint
 ------------------------------
 
-Rails comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 500 status code otherwise.
+Rails comes with a built-in health check endpoint that is reachable at the `/up`
+path. This endpoint will return a 200 status code if the app has booted with no
+exceptions, and a 500 status code otherwise.
 
-In production, many applications are required to report their status, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine the health of a given instance. This health check is designed to be a one-size fits all that will work in many situations.
+In production, many applications are required to report their status, whether
+it's to an uptime monitor that will page an engineer when things go wrong, or a
+load balancer or Kubernetes controller used to determine the health of a given
+instance. This health check is designed to be a one-size fits all that will work
+in many situations.
 
-While any newly generated Rails applications will have the health check at `/up`, you can configure the path to be anything you'd like in your "config/routes.rb":
+While any newly generated Rails applications will have the health check at
+`/up`, you can configure the path to be anything you'd like in your
+"config/routes.rb":
 
 ```ruby
 Rails.application.routes.draw do
@@ -415,11 +498,18 @@ Rails.application.routes.draw do
 end
 ```
 
-The health check will now be accessible via `GET` or `HEAD` requests to the `/health` path.
+The health check will now be accessible via `GET` or `HEAD` requests to the
+`/health` path.
 
-NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis. Replace "rails/health#show" with your own controller action if you have application specific needs.
+NOTE: This endpoint does not reflect the status of all of your application's
+dependencies, such as the database or redis. Replace "rails/health#show" with
+your own controller action if you have application specific needs.
 
-Reporting the health of an application requires some considerations. You'll have to decide what you want to include in the check. For example, if a third-party service is down and your application reports that it's down due to the dependency, your application may be restarted unnecessarily. Ideally, your application should handle third-party outages gracefully.
+Reporting the health of an application requires some considerations. You'll have
+to decide what you want to include in the check. For example, if a third-party
+service is down and your application reports that it's down due to the
+dependency, your application may be restarted unnecessarily. Ideally, your
+application should handle third-party outages gracefully.
 
 Handling Errors
 ----------------
@@ -438,21 +528,32 @@ could not be found.
 
 You can customize how these errors are caught and how they're displayed to the
 user. There are several levels of exception handling available in a Rails
-application. You can use `config.action_dispatch.show_exceptions` configuration to control how Rails handles exceptions raised while responding to requests. You can learn more about the levels of exceptions in the [configuration](configuring.html#config-action-dispatch-show-exceptions) guide.
+application. You can use `config.action_dispatch.show_exceptions` configuration
+to control how Rails handles exceptions raised while responding to requests. You
+can learn more about the levels of exceptions in the
+[configuration](configuring.html#config-action-dispatch-show-exceptions) guide.
 
 ### The Default Error Templates
 
-By default, in the production environment the application will render an error page. These pages are contained in static HTML files in the public folder, in `404.html`, `500.html`, etc. You can customize these files to add some extra information and styles.
+By default, in the production environment the application will render an error
+page. These pages are contained in static HTML files in the public folder, in
+`404.html`, `500.html`, etc. You can customize these files to add some extra
+information and styles.
 
-NOTE: The error templates are static HTML files so you can't use ERB, SCSS, or layouts for them.
+NOTE: The error templates are static HTML files so you can't use ERB, SCSS, or
+layouts for them.
 
 ### `rescue_from`
 
-You can catch specific errors and do something different with them by using the [`rescue_from`][] method. It can handle exceptions of a certain type (or multiple types) in an entire controller and its subclasses.
+You can catch specific errors and do something different with them by using the
+[`rescue_from`][] method. It can handle exceptions of a certain type (or
+multiple types) in an entire controller and its subclasses.
 
-When an exception occurs which is caught by a `rescue_from` directive, the exception object is passed to the handler.
+When an exception occurs which is caught by a `rescue_from` directive, the
+exception object is passed to the handler.
 
-Below is an example of how you can use `rescue_from` to intercept all `ActiveRecord::RecordNotFound` errors and do something with them:
+Below is an example of how you can use `rescue_from` to intercept all
+`ActiveRecord::RecordNotFound` errors and do something with them:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -465,9 +566,14 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-The handler can be a method or a `Proc` object passed to the `:with` option. You can also use a block directly instead of an explicit `Proc` object.
+The handler can be a method or a `Proc` object passed to the `:with` option. You
+can also use a block directly instead of an explicit `Proc` object.
 
-The above example doesn't improve on the default exception handling at all, but it serves to show how once you catch specific exceptions, you're free to do whatever you want with them. For example, you could create custom exception classes that will be thrown when a user doesn't have access to a certain section of your application:
+The above example doesn't improve on the default exception handling at all, but
+it serves to show how once you catch specific exceptions, you're free to do
+whatever you want with them. For example, you could create custom exception
+classes that will be thrown when a user doesn't have access to a certain section
+of your application:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -496,8 +602,12 @@ class ClientsController < ApplicationController
 end
 ```
 
-WARNING: Using `rescue_from` with `Exception` or `StandardError` would cause serious side-effects as it prevents Rails from handling exceptions properly. As such, it is not recommended to do so unless there is a strong reason.
+WARNING: Using `rescue_from` with `Exception` or `StandardError` would cause
+serious side-effects as it prevents Rails from handling exceptions properly. As
+such, it is not recommended to do so unless there is a strong reason.
 
-NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized, and the action gets executed.
+NOTE: Certain exceptions are only rescuable from the `ApplicationController`
+class, as they are raised before the controller gets initialized, and the action
+gets executed.
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from

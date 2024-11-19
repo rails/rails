@@ -38,7 +38,10 @@ updates model data accordingly.
 Creating a Controller
 ---------------------
 
-A controller is a Ruby class which inherits from `ApplicationController` and has methods just like any other class. Once an incoming request is matched to a controller by the router, Rails creates an instance of that controller class and calls the method with the same name as the action.
+A controller is a Ruby class which inherits from `ApplicationController` and has
+methods just like any other class. Once an incoming request is matched to a
+controller by the router, Rails creates an instance of that controller class and
+calls the method with the same name as the action.
 
 ```ruby
 class ClientsController < ApplicationController
@@ -47,9 +50,14 @@ class ClientsController < ApplicationController
 end
 ```
 
-Given the above `ClientsController`, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its new method. If the `new` method is empty, Rails will automatically render the `new.html.erb` view by default.
+Given the above `ClientsController`, if a user goes to `/clients/new` in your
+application to add a new client, Rails will create an instance of
+`ClientsController` and call its new method. If the `new` method is empty, Rails
+will automatically render the `new.html.erb` view by default.
 
-In the `new` method, the controller would typically create an instance of the `Client` model, and make it available as an instance variable called `@client` in the view:
+In the `new` method, the controller would typically create an instance of the
+`Client` model, and make it available as an instance variable called `@client`
+in the view:
 
 ```ruby
 def new
@@ -57,13 +65,17 @@ def new
 end
 ```
 
-NOTE: All controllers inherit from `ApplicationController`, which in turn inherits from [`ActionController::Base`](https://api.rubyonrails.org/classes/ActionController/Base.html).
+NOTE: All controllers inherit from `ApplicationController`, which in turn
+inherits from
+[`ActionController::Base`](https://api.rubyonrails.org/classes/ActionController/Base.html).
 
 ### Controller Naming Convention
 
 Rails favors making the last word in the controller's name plural. For example,
 `ClientsController` is preferred over `ClientController` and
-`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController` However, the plural names are not strictly required (e.g. `ApplicationController`).
+`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController`
+However, the plural names are not strictly required (e.g.
+`ApplicationController`).
 
 Following this naming convention will allow you to use the [default route
 generators](routing.html#crud-verbs-and-actions) (e.g. `resources`) without
@@ -71,27 +83,39 @@ needing to qualify each with options such as
 [`:controller`](routing.html#specifying-a-controller-to-use). The convention
 also makes named route helpers consistent throughout your application.
 
-The controller naming convention is different from models. While plural
-names are preferred for controller names, the singular form is preferred for
-[model names](active_record_basics.html#naming-conventions) (e.g. `Account` vs. `Accounts`).
+The controller naming convention is different from models. While plural names
+are preferred for controller names, the singular form is preferred for [model
+names](active_record_basics.html#naming-conventions) (e.g. `Account` vs.
+`Accounts`).
 
-Controller actions should be `public`, as only `public` methods are callable as actions. It is also best practice to lower the visibility of helper methods (with `private` or `protected`) which are _not_ intended to be actions.
+Controller actions should be `public`, as only `public` methods are callable as
+actions. It is also best practice to lower the visibility of helper methods
+(with `private` or `protected`) which are _not_ intended to be actions.
 
-WARNING: Some method names are reserved by Action Controller. Accidentally redefining them could result in `SystemStackError`. If you limit your controllers to only RESTful [Resource Routing][] actions you should not need to worry about this.
+WARNING: Some method names are reserved by Action Controller. Accidentally
+redefining them could result in `SystemStackError`. If you limit your
+controllers to only RESTful [Resource Routing][] actions you should not need to
+worry about this.
 
-NOTE: If you must use a reserved method as an action name, one workaround is to use a custom route to map the reserved method name to your non-reserved action method.
+NOTE: If you must use a reserved method as an action name, one workaround is to
+use a custom route to map the reserved method name to your non-reserved action
+method.
 
 [Resource Routing]: routing.html#resource-routing-the-rails-default
 
 Parameters
 ----------
 
-Data sent by the incoming request is available in your controller in the [`params`][] hash. There are two types of parameter data:
+Data sent by the incoming request is available in your controller in the
+[`params`][] hash. There are two types of parameter data:
 
-- Query string parameters which are sent as part of the URL (for example, after the `?` in `example.com/accounts?filter=free`).
+- Query string parameters which are sent as part of the URL (for example, after
+  the `?` in `example.com/accounts?filter=free`).
 - POST parameters which are submitted from an HTML form.
 
-Rails does not make a distinction between query string parameters and POST parameters; both are available in the `params` hash in your controller. For example:
+Rails does not make a distinction between query string parameters and POST
+parameters; both are available in the `params` hash in your controller. For
+example:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -117,10 +141,14 @@ class ClientsController < ApplicationController
 end
 ```
 
-NOTE: The `params` hash is not a plain old Ruby Hash; instead, it is an [`ActionController::Parameters`][] object. While it behaves like Hash, it does not inherit from Hash.
+NOTE: The `params` hash is not a plain old Ruby Hash; instead, it is an
+[`ActionController::Parameters`][] object. While it behaves like Hash, it does
+not inherit from Hash.
 
-[`params`]: https://api.rubyonrails.org/classes/ActionController/StrongParameters.html#method-i-params
-[`ActionController::Parameters`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html
+[`params`]:
+    https://api.rubyonrails.org/classes/ActionController/StrongParameters.html#method-i-params
+[`ActionController::Parameters`]:
+    https://api.rubyonrails.org/classes/ActionController/Parameters.html
 
 ### Hash and Array Parameters
 
@@ -158,13 +186,19 @@ To send a hash, you include the key name inside the brackets:
 </form>
 ```
 
-When this form is submitted, the value of `params[:user]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:user][:address]`.
+When this form is submitted, the value of `params[:user]` will be `{ "name" =>
+"Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" =>
+"Carrot City" } }`. Note the nested hash in `params[:user][:address]`.
 
-The `params` object acts like a Hash, but lets you use symbols and strings interchangeably as keys.
+The `params` object acts like a Hash, but lets you use symbols and strings
+interchangeably as keys.
 
 ### JSON Parameters
 
-If your application exposes an API, you will likely accept parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
+If your application exposes an API, you will likely accept parameters in JSON
+format. If the "Content-Type" header of your request is set to
+"application/json", Rails will automatically load your parameters into the
+`params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -172,23 +206,30 @@ So for example, if you are sending this JSON content:
 { "user": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-Your controller will receive `params[:user]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
+Your controller will receive `params[:user]` as `{ "name" => "acme", "address"
+=> "123 Carrot Street" }`.
 
 #### Configuring Wrap Parameters
 
-You can use [Wrap Parameters][], which automatically add the controller name to JSON parameters. For example, you can send the below JSON without a root `:user` key prefix:
+You can use [Wrap Parameters][], which automatically add the controller name to
+JSON parameters. For example, you can send the below JSON without a root `:user`
+key prefix:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
 ```
 
-Assuming that you're sending the above data to the `UsersController`, the JSON will be wrapped within the `:user` key like this:
+Assuming that you're sending the above data to the `UsersController`, the JSON
+will be wrapped within the `:user` key like this:
 
 ```ruby
 { name: "acme", address: "123 Carrot Street", user: { name: "acme", address: "123 Carrot Street" } }
 ```
 
-NOTE: Wrap Parameters add a clone of the parameters to the hash within a key that is the same as the controller name. As a result, both the original version of the parameters and the "wrapped" version of the parameters will exist in the params hash.
+NOTE: Wrap Parameters add a clone of the parameters to the hash within a key
+that is the same as the controller name. As a result, both the original version
+of the parameters and the "wrapped" version of the parameters will exist in the
+params hash.
 
 This feature clones and wraps parameters with a key chosen based on your
 controller's name. It is configured to `true` by default. If you do not want to
@@ -200,9 +241,13 @@ it to `false`.
 config.action_controller.wrap_parameters_by_default = false
 ```
 
-You can also customize the name of the key or specific parameters you want to wrap, see the [API documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html) for more.
+You can also customize the name of the key or specific parameters you want to
+wrap, see the [API
+documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
+for more.
 
-[Wrap Parameters]: https://api.rubyonrails.org/classes/ActionController/ParamsWrapper/Options/ClassMethods.html#method-i-wrap_parameters
+[Wrap Parameters]:
+    https://api.rubyonrails.org/classes/ActionController/ParamsWrapper/Options/ClassMethods.html#method-i-wrap_parameters
 
 ### Routing Parameters
 
@@ -227,15 +272,17 @@ contain the `:controller` and `:action` keys, but it's recommended to use the
 methods [`controller_name`][] and [`action_name`][] instead to access these
 values.
 
-[`controller_name`]: https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-controller_name
-[`action_name`]: https://api.rubyonrails.org/classes/AbstractController/Base.html#method-i-action_name
+[`controller_name`]:
+    https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-controller_name
+[`action_name`]:
+    https://api.rubyonrails.org/classes/AbstractController/Base.html#method-i-action_name
 
 ### Composite Key Parameters
 
 [Composite key parameters](active_record_composite_primary_keys.html) contain
-multiple values in one parameter separated by a delimiter (e.g., a comma). Therefore, you will
-need to extract each value so that you can pass them to Active Record. You can use
-the `extract_value`  method to do that.
+multiple values in one parameter separated by a delimiter (e.g., a comma).
+Therefore, you will need to extract each value so that you can pass them to
+Active Record. You can use the `extract_value`  method to do that.
 
 For example, given the following controller:
 
@@ -261,7 +308,10 @@ method may be used to extract arrays out of any delimited parameters.
 
 ### The `default_url_options` Method
 
-You can set global default parameters for [`url_for`]( https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for) by defining a method called `default_url_options` in your controller. For example:
+You can set global default parameters for [`url_for`](
+https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for)
+by defining a method called `default_url_options` in your controller. For
+example:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -271,9 +321,13 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-NOTE: The `default_url_options` method must return a hash with keys that are symbols.
+NOTE: The `default_url_options` method must return a hash with keys that are
+symbols.
 
-The specified defaults will be used as a starting point when generating URLs. They can be overridden by the options passed to `url_for` or any path helper such as `posts_path`. For example, by setting `locale: I18n.locale`, Rails will automatically add the locale to every URL:
+The specified defaults will be used as a starting point when generating URLs.
+They can be overridden by the options passed to `url_for` or any path helper
+such as `posts_path`. For example, by setting `locale: I18n.locale`, Rails will
+automatically add the locale to every URL:
 
 ```ruby
 posts_path # => "/en/posts"
@@ -285,11 +339,16 @@ You can still override this default if needed:
 posts_path(locale: :fr) # => "/fr/posts"
 ```
 
-NOTE: Under the hood, `posts_path` is a shorthand for calling `url_for` with the appropriate parameters.
+NOTE: Under the hood, `posts_path` is a shorthand for calling `url_for` with the
+appropriate parameters.
 
-If you define `default_url_options` in `ApplicationController`, as in the example above, these defaults will be used for all URL generation. The method can also be defined in a specific controller, in which case it only applies to URLs generated for that controller.
+If you define `default_url_options` in `ApplicationController`, as in the
+example above, these defaults will be used for all URL generation. The method
+can also be defined in a specific controller, in which case it only applies to
+URLs generated for that controller.
 
-In a given request, the method is not actually called for every single generated URL. For performance reasons the returned hash is cached.
+In a given request, the method is not actually called for every single generated
+URL. For performance reasons the returned hash is cached.
 
 Strong Parameters
 -----------------
@@ -333,7 +392,8 @@ end
 
 #### `permit`
 
-Calling [`permit`][] allows the specified key in `params` (`:id` or `:admin` below) for inclusion in mass assignment (e.g. via `create` or `update`):
+Calling [`permit`][] allows the specified key in `params` (`:id` or `:admin`
+below) for inclusion in mass assignment (e.g. via `create` or `update`):
 
 ```irb
 params = ActionController::Parameters.new(id: 1, admin: "true")
@@ -344,8 +404,8 @@ params.permit(:id, :admin)
 => #<ActionController::Parameters {"id"=>1, "admin"=>"true"} permitted: true>
 ```
 
-For the permitted key `:id`, its value also needs to be one of these
-permitted scalar values: `String`, `Symbol`, `NilClass`, `Numeric`, `TrueClass`,
+For the permitted key `:id`, its value also needs to be one of these permitted
+scalar values: `String`, `Symbol`, `NilClass`, `Numeric`, `TrueClass`,
 `FalseClass`, `Date`, `Time`, `DateTime`, `StringIO`, `IO`,
 `ActionDispatch::Http::UploadedFile`, and `Rack::Test::UploadedFile`.
 
@@ -376,11 +436,13 @@ and filters out anything else.
 
 WARNING: The `permit` with an empty hash is convenient since sometimes it is not
 possible or convenient to declare each valid key of a hash parameter or its
-internal structure. But note that the above `permit` with an empty hash opens the door to arbitrary input.
+internal structure. But note that the above `permit` with an empty hash opens
+the door to arbitrary input.
 
 #### `permit!`
 
-There is also [`permit!`][] (with an `!`) which permits an entire hash of parameters without checking the values.
+There is also [`permit!`][] (with an `!`) which permits an entire hash of
+parameters without checking the values.
 
 ```irb
 params = ActionController::Parameters.new(id: 1, admin: "true")
@@ -394,7 +456,8 @@ current and *future* model attributes to be mass-assigned.
 
 #### `expect`
 
-The [`expect`][] method provides a concise and safe way to require and permit parameters.
+The [`expect`][] method provides a concise and safe way to require and permit
+parameters.
 
 ```ruby
 id = params.expect(:id)
@@ -409,25 +472,29 @@ user_params = params.expect(user: [:username, :password])
 user_params.has_key?(:username) # => true
 ```
 
-In the above example, if the `:user` key is not a nested hash with the specified keys, `expect` will raise an error and return a 400 Bad Request response.
+In the above example, if the `:user` key is not a nested hash with the specified
+keys, `expect` will raise an error and return a 400 Bad Request response.
 
-To require and permit an entire hash of parameters, [`expect`][] can be
-used in this way.
+To require and permit an entire hash of parameters, [`expect`][] can be used in
+this way.
 
 ```ruby
 params.expect(log_entry: {})
 ```
 
-This marks the `:log_entry` parameters hash and any sub-hash of it as
-permitted and does not check for permitted scalars, anything is accepted.
+This marks the `:log_entry` parameters hash and any sub-hash of it as permitted
+and does not check for permitted scalars, anything is accepted.
 
-WARNING: Extreme care should be taken when using calling `expect`
-with an empty hash, as it will allow all current and future model
-attributes to be mass-assigned.
+WARNING: Extreme care should be taken when using calling `expect` with an empty
+hash, as it will allow all current and future model attributes to be
+mass-assigned.
 
-[`permit`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit
-[`permit!`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit-21
-[`expect`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-expect
+[`permit`]:
+    https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit
+[`permit!`]:
+    https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-permit-21
+[`expect`]:
+    https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-expect
 
 ### Nested Parameters
 
@@ -458,19 +525,19 @@ name, emails, friends = params.expect(
 This declaration permits the `name`, `emails`, and `friends` attributes and
 returns them each. It is expected that `emails` will be an array of permitted
 scalar values, and that `friends` will be an array of resources (note the new
-double array syntax to explicitly require an array) with specific
-attributes: they should have a `name` attribute (any permitted scalar values
-allowed), a `hobbies` attribute as an array of permitted scalar values, and a
-`family` attribute which is restricted to a hash with only a `name` key and
-any permitted scalar value.
+double array syntax to explicitly require an array) with specific attributes:
+they should have a `name` attribute (any permitted scalar values allowed), a
+`hobbies` attribute as an array of permitted scalar values, and a `family`
+attribute which is restricted to a hash with only a `name` key and any permitted
+scalar value.
 
 ### Examples
 
 Here are some examples of how to use `permit` for different use cases.
 
-Example 1: You may want to use the permitted attributes in your `new`
-action. This raises the problem that you can't use [`require`][] on the
-root key because, normally, it does not exist when calling `new`:
+Example 1: You may want to use the permitted attributes in your `new` action.
+This raises the problem that you can't use [`require`][] on the root key
+because, normally, it does not exist when calling `new`:
 
 ```ruby
 # using `fetch` you can supply a default and use
@@ -489,8 +556,8 @@ params.expect(author: [ :name, books_attributes: [[ :title, :id, :_destroy ]] ])
 
 Example 3: Hashes with integer keys are treated differently, and you can declare
 the attributes as if they were direct children. You get these kinds of
-parameters when you use `accepts_nested_attributes_for` in combination
-with a `has_many` association:
+parameters when you use `accepts_nested_attributes_for` in combination with a
+`has_many` association:
 
 ```ruby
 # To permit the following data:
@@ -502,9 +569,8 @@ params.expect(book: [ :title, chapters_attributes: [[ :title ]] ])
 ```
 
 Example 4: Imagine a scenario where you have parameters representing a product
-name, and a hash of arbitrary data associated with that product, and
-you want to permit the product name attribute and also the whole
-data hash:
+name, and a hash of arbitrary data associated with that product, and you want to
+permit the product name attribute and also the whole data hash:
 
 ```ruby
 def product_params
@@ -512,17 +578,19 @@ def product_params
 end
 ```
 
-[`require`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-require
+[`require`]:
+    https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-require
 
 Cookies
 -------
 
-The concept of a cookie is not specific to Rails. A [cookie](https://en.wikipedia.org/wiki/HTTP_cookie) (also known as an
-HTTP cookie or a web cookie) is a small piece of data from the server that is
-saved in the user's browser. The browser may store cookies, create new cookies,
-modify existing ones, and send them back to the server with later requests.
-Cookies persist data across web requests and therefore enable web applications
-to remember user preferences.
+The concept of a cookie is not specific to Rails. A
+[cookie](https://en.wikipedia.org/wiki/HTTP_cookie) (also known as an HTTP
+cookie or a web cookie) is a small piece of data from the server that is saved
+in the user's browser. The browser may store cookies, create new cookies, modify
+existing ones, and send them back to the server with later requests. Cookies
+persist data across web requests and therefore enable web applications to
+remember user preferences.
 
 Rails provides an easy way to access cookies via the [`cookies`][] method, which
 works like a hash:
@@ -552,7 +620,8 @@ class CommentsController < ApplicationController
 end
 ```
 
-NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the `key` to a `nil` value does not delete the cookie.
+NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the
+`key` to a `nil` value does not delete the cookie.
 
 ### Encrypted and Signed Cookies
 
@@ -583,7 +652,8 @@ end
 
 These special cookie jars use a serializer to serialize the cookie values into
 strings and deserialize them into Ruby objects when read back. You can specify
-which serializer to use via [`config.action_dispatch.cookies_serializer`][]. The default serializer for new applications is `:json`.
+which serializer to use via [`config.action_dispatch.cookies_serializer`][]. The
+default serializer for new applications is `:json`.
 
 NOTE: Be aware that JSON has limited support serializing Ruby objects such as
 `Date`, `Time`, and `Symbol`. These will be serialized and deserialized into
@@ -595,8 +665,10 @@ convert their values when reading them in subsequent requests.
 If you use the cookie session store, the above applies to the `session` and
 `flash` hash as well.
 
-[`config.action_dispatch.cookies_serializer`]: configuring.html#config-action-dispatch-cookies-serializer
-[`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
+[`config.action_dispatch.cookies_serializer`]:
+    configuring.html#config-action-dispatch-cookies-serializer
+[`cookies`]:
+    https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
 
 Session
 -------
@@ -610,7 +682,8 @@ In a Rails application, the session is available in the controller and the view.
 
 ### Working with the Session
 
-You can use the `session` instance method to access the session in your controllers. Session values are stored as key/value pairs like a hash:
+You can use the `session` instance method to access the session in your
+controllers. Session values are stored as key/value pairs like a hash:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -625,7 +698,9 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-To store something in the session, you can assign it to a key similar to adding a value to a hash. After a user is authenticated, its `id` is saved in the session to be used for subsequent requests:
+To store something in the session, you can assign it to a key similar to adding
+a value to a hash. After a user is authenticated, its `id` is saved in the
+session to be used for subsequent requests:
 
 ```ruby
 class SessionsController < ApplicationController
@@ -640,7 +715,8 @@ class SessionsController < ApplicationController
 end
 ```
 
-To remove something from the session, delete the key/value pair. Deleting the `current_user_id` key from the session is a typical way to log the user out:
+To remove something from the session, delete the key/value pair. Deleting the
+`current_user_id` key from the session is a typical way to log the user out:
 
 ```ruby
 class SessionsController < ApplicationController
@@ -653,11 +729,18 @@ class SessionsController < ApplicationController
 end
 ```
 
-It is possible to reset the entire session with [`reset_session`][]. It is recommended to use `reset_session` after logging in to avoid session fixation attacks. Please refer to the [Security Guide](https://edgeguides.rubyonrails.org/security.html#session-fixation-countermeasures) for details.
+It is possible to reset the entire session with [`reset_session`][]. It is
+recommended to use `reset_session` after logging in to avoid session fixation
+attacks. Please refer to the [Security
+Guide](https://edgeguides.rubyonrails.org/security.html#session-fixation-countermeasures)
+for details.
 
-NOTE: Sessions are lazily loaded. If you don't access sessions in your action's code, they will not be loaded. Hence, you will never need to disable sessions - not accessing them will do the job.
+NOTE: Sessions are lazily loaded. If you don't access sessions in your action's
+code, they will not be loaded. Hence, you will never need to disable sessions -
+not accessing them will do the job.
 
-[`reset_session`]: https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-reset_session
+[`reset_session`]:
+    https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-reset_session
 
 ### The Flash
 
@@ -692,14 +775,17 @@ In addition to `:notice`, you can also use `:alert`. These are typically styled
 (using CSS) with different colors to indicate their meaning (e.g. green for
 notices and orange/red for alerts).
 
-You can also assign a flash message directly within the `redirect_to` method by including it as a parameter to `redirect_to`:
+You can also assign a flash message directly within the `redirect_to` method by
+including it as a parameter to `redirect_to`:
 
 ```ruby
 redirect_to root_url, notice: "You have successfully logged out."
 redirect_to root_url, alert: "There was an issue."
 ```
 
-You can set any key in a flash (similar to sessions), you're not limited to `notice` and `alert`. For example, setting `redirect_to root_url, flash: { just_signed_up: true }` will allow you to have the below in the view:
+You can set any key in a flash (similar to sessions), you're not limited to
+`notice` and `alert`. For example, setting `redirect_to root_url, flash: {
+just_signed_up: true }` will allow you to have the below in the view:
 
 ```erb
 <% if flash[:just_signed_up] %>
@@ -714,7 +800,10 @@ it will do with what the previous action put in the flash.
 
 #### Displaying flash messages
 
-If a previous action _has_ set a flash message, it's a good idea of display that to the user. We can accomplish this consistently by adding the HTML for displaying any flash messages in the application's default layout. Here's an example from `app/views/layouts/application.html.erb`:
+If a previous action _has_ set a flash message, it's a good idea of display that
+to the user. We can accomplish this consistently by adding the HTML for
+displaying any flash messages in the application's default layout. Here's an
+example from `app/views/layouts/application.html.erb`:
 
 ```erb
 <html>
@@ -730,11 +819,16 @@ If a previous action _has_ set a flash message, it's a good idea of display that
 </html>
 ```
 
-The `name` above indicates the type of flash message, such as `notice` or `alert`. This information is normally used to style how the message is displayed to the user.
+The `name` above indicates the type of flash message, such as `notice` or
+`alert`. This information is normally used to style how the message is displayed
+to the user.
 
-TIP: You can filter by `name` if you want to limit to displaying only `notice` and `alert` in layout. Otherwise, all keys set in the `flash` will be displayed.
+TIP: You can filter by `name` if you want to limit to displaying only `notice`
+and `alert` in layout. Otherwise, all keys set in the `flash` will be displayed.
 
-Including the reading and displaying of flash messages in the layout ensures that your application will display these automatically, without each view having to include logic to read the flash.
+Including the reading and displaying of flash messages in the layout ensures
+that your application will display these automatically, without each view having
+to include logic to read the flash.
 
 #### `flash.keep` and `flash.now`
 
@@ -745,7 +839,8 @@ For example, assume that the `index` action in the controller below corresponds
 to the `root_url`. And you want all requests here to be redirected to
 `UsersController#index`. If an action sets the flash and redirects to
 `MainController#index`, those flash values will be lost when another redirect
-happens, unless you use `flash.keep` to make the values persist for another request.
+happens, unless you use `flash.keep` to make the values persist for another
+request.
 
 ```ruby
 class MainController < ApplicationController
@@ -760,7 +855,12 @@ class MainController < ApplicationController
 end
 ```
 
-[`flash.now`][] is used to make the flash values available in the same request. By default, adding values to the flash will make them available to the next request. For example, if the `create` action fails to save a resource, and you render the `new` template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use [`flash.now`][] in the same way you use the normal `flash`:
+[`flash.now`][] is used to make the flash values available in the same request.
+By default, adding values to the flash will make them available to the next
+request. For example, if the `create` action fails to save a resource, and you
+render the `new` template directly, that's not going to result in a new request,
+but you may still want to display a message using the flash. To do this, you can
+use [`flash.now`][] in the same way you use the normal `flash`:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -776,38 +876,60 @@ class ClientsController < ApplicationController
 end
 ```
 
-[`flash`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/RequestMethods.html#method-i-flash
-[`flash.keep`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-keep
-[`flash.now`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-now
+[`flash`]:
+    https://api.rubyonrails.org/classes/ActionDispatch/Flash/RequestMethods.html#method-i-flash
+[`flash.keep`]:
+    https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-keep
+[`flash.now`]:
+    https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-now
 
 ### Session Storage Options
 
-All sessions have a unique ID that represents the session object; these session IDs are stored in a cookie. The actual session objects use one of the following storage mechanisms:
+All sessions have a unique ID that represents the session object; these session
+IDs are stored in a cookie. The actual session objects use one of the following
+storage mechanisms:
 
 * [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
-* [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
+* [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails
+  cache.
 * [`ActionDispatch::Session::ActiveRecordStore`][activerecord-session_store] -
   Stores the data in a database using Active Record (requires the
   [`activerecord-session_store`][activerecord-session_store] gem)
 * A custom store or a store provided by a third party gem
 
-For most session stores, the unique session ID in the cookie is used to look up session data on the server (e.g. a database table). Rails does not allow you to pass the session ID in the URL as this is less secure.
+For most session stores, the unique session ID in the cookie is used to look up
+session data on the server (e.g. a database table). Rails does not allow you to
+pass the session ID in the URL as this is less secure.
 
-The `CookieStore` is the default and recommended session store. It stores all session data in the cookie itself (the session ID is still available to you if you need it). The `CookieStore` is lightweight and does not require any configuration to use in a new application.
+The `CookieStore` is the default and recommended session store. It stores all
+session data in the cookie itself (the session ID is still available to you if
+you need it). The `CookieStore` is lightweight and does not require any
+configuration to use in a new application.
 
-The `CookieStore` can store 4 kB of data - much less than the other storage options - but this is usually enough. Storing large amounts of data in the session is discouraged. You should especially avoid storing complex objects (such as model instances) in the session.
+The `CookieStore` can store 4 kB of data - much less than the other storage
+options - but this is usually enough. Storing large amounts of data in the
+session is discouraged. You should especially avoid storing complex objects
+(such as model instances) in the session.
 
-You can use the `CacheStore` if your sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging). This will store sessions using the cache implementation you have configured for your application. The advantage is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside is that the session storage will be temporary and they could disappear at any time.
+You can use the `CacheStore` if your sessions don't store critical data or don't
+need to be around for long periods (for instance if you just use the flash for
+messaging). This will store sessions using the cache implementation you have
+configured for your application. The advantage is that you can use your existing
+cache infrastructure for storing sessions without requiring any additional setup
+or administration. The downside is that the session storage will be temporary
+and they could disappear at any time.
 
 Read more about session storage in the [Security Guide](security.html#sessions).
 
-There are a few configuration options related to session storage. You can configure the type of storage in an initializer:
+There are a few configuration options related to session storage. You can
+configure the type of storage in an initializer:
 
 ```ruby
 Rails.application.config.session_store :cache_store
 ```
 
-Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
+Rails sets up a session key (the name of the cookie) when signing the session
+data. These can also be changed in an initializer:
 
 ```ruby
 Rails.application.config.session_store :cookie_store, key: "_your_app_session"
@@ -824,7 +946,9 @@ NOTE: Be sure to restart your server when you modify an initializer file.
 TIP: See [`config.session_store`](configuring.html#config-session-store) in the
 configuration guide for more information.
 
-Rails sets up a secret key for `CookieStore` used for signing the session data in `config/credentials.yml.enc`. The credentials can be updated with `bin/rails credentials:edit`.
+Rails sets up a secret key for `CookieStore` used for signing the session data
+in `config/credentials.yml.enc`. The credentials can be updated with `bin/rails
+credentials:edit`.
 
 ```yaml
 # aws:
@@ -835,11 +959,15 @@ Rails sets up a secret key for `CookieStore` used for signing the session data i
 secret_key_base: 492f...
 ```
 
-WARNING: Changing the secret_key_base when using the `CookieStore` will invalidate all existing sessions.
+WARNING: Changing the secret_key_base when using the `CookieStore` will
+invalidate all existing sessions.
 
-[`ActionDispatch::Session::CookieStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
-[`ActionDispatch::Session::CacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
-[activerecord-session_store]: https://github.com/rails/activerecord-session_store
+[`ActionDispatch::Session::CookieStore`]:
+    https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
+[`ActionDispatch::Session::CacheStore`]:
+    https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
+[activerecord-session_store]:
+    https://github.com/rails/activerecord-session_store
 
 Controller Callbacks
 --------------------
@@ -853,8 +981,8 @@ controller in your application.
 ### `before_action`
 
 Callback methods registered via [`before_action`][] run _before_ a controller
-action. They may halt the request cycle. A common use case for
-`before_action` is ensuring that a user is logged in:
+action. They may halt the request cycle. A common use case for `before_action`
+is ensuring that a user is logged in:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -906,15 +1034,25 @@ options, the last action callback definition will overwrite the previous ones.
 
 ### `after_action` and `around_action`
 
-You can also define action callbacks to run _after_ a controller action has been executed with [`after_action`][], or to run both before and after with [`around_action`][].
+You can also define action callbacks to run _after_ a controller action has been
+executed with [`after_action`][], or to run both before and after with
+[`around_action`][].
 
-The `after_action` callbacks are similar to `before_action` callbacks, but because the controller action has already been run they have access to the response data that's about to be sent to the client.
+The `after_action` callbacks are similar to `before_action` callbacks, but
+because the controller action has already been run they have access to the
+response data that's about to be sent to the client.
 
-NOTE: `after_action` callbacks are executed only after a successful controller action, and not if an exception is raised in the request cycle.
+NOTE: `after_action` callbacks are executed only after a successful controller
+action, and not if an exception is raised in the request cycle.
 
-The `around_action` callbacks are useful when you want to execute code before and after a controller action, allowing you to encapsulate functionality that affects the action's execution. They are responsible for running their associated actions by yielding.
+The `around_action` callbacks are useful when you want to execute code before
+and after a controller action, allowing you to encapsulate functionality that
+affects the action's execution. They are responsible for running their
+associated actions by yielding.
 
-For example, imagine you want to monitor the performance of specific actions. You could use an `around_action` to measure how long each action takes to complete and log this information:
+For example, imagine you want to monitor the performance of specific actions.
+You could use an `around_action` to measure how long each action takes to
+complete and log this information:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -932,18 +1070,27 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-TIP: Action callbacks receive `controller_name` and `action_name` as parameters you can use, as shown in the example above.
+TIP: Action callbacks receive `controller_name` and `action_name` as parameters
+you can use, as shown in the example above.
 
-The `around_action` callback also wraps rendering. In the example above, view rendering will be included in the `duration`. The code after the `yield` in an `around_action` is run even when there is an exception in the associated action and there is an `ensure` block in the callback. (This is different from `after_action` callbacks where exception in the action cancels the `after_action` code.)
+The `around_action` callback also wraps rendering. In the example above, view
+rendering will be included in the `duration`. The code after the `yield` in an
+`around_action` is run even when there is an exception in the associated action
+and there is an `ensure` block in the callback. (This is different from
+`after_action` callbacks where exception in the action cancels the
+`after_action` code.)
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
 [`around_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
 
 ### Other Ways to Use Callbacks
 
-In addition to `before_action`, `after_action`, or `around_action`, there are two less common ways to register callbacks.
+In addition to `before_action`, `after_action`, or `around_action`, there are
+two less common ways to register callbacks.
 
-The first is to use a block directly with the `*_action` methods. The block receives the controller as an argument. For example, the `require_login` action callback from above could be rewritten to use a block:
+The first is to use a block directly with the `*_action` methods. The block
+receives the controller as an argument. For example, the `require_login` action
+callback from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -956,7 +1103,10 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Note that the action callback, in this case, uses `send` because the `logged_in?` method is private, and the action callback does not run in the scope of the controller. This is not the recommended way to implement this particular action callback, but in simpler cases, it might be useful.
+Note that the action callback, in this case, uses `send` because the
+`logged_in?` method is private, and the action callback does not run in the
+scope of the controller. This is not the recommended way to implement this
+particular action callback, but in simpler cases, it might be useful.
 
 Specifically for `around_action`, the block also yields in the `action`:
 
@@ -964,7 +1114,10 @@ Specifically for `around_action`, the block also yields in the `action`:
 around_action { |_controller, action| time(&action) }
 ```
 
-The second way is to specify a class (or any object that responds to the expected methods) for the callback action. This can be useful in cases that are more complex. As an example, you could rewrite the `around_action` callback to measure execution time with a class:
+The second way is to specify a class (or any object that responds to the
+expected methods) for the callback action. This can be useful in cases that are
+more complex. As an example, you could rewrite the `around_action` callback to
+measure execution time with a class:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -983,18 +1136,24 @@ class ActionDurationCallback
 end
 ```
 
-In above example, the `ActionDurationCallback`'s method is not run in the scope of the controller but gets `controller` and `action` as an argument.
+In above example, the `ActionDurationCallback`'s method is not run in the scope
+of the controller but gets `controller` and `action` as an argument.
 
-In general, the class being used for a `*_action` callback must implement a method with the same name as the action callback. So for the `before_action` action callback, the class must implement a `before` method, and so on. Also, the `around` method must `yield` to execute the action.
+In general, the class being used for a `*_action` callback must implement a
+method with the same name as the action callback. So for the `before_action`
+action callback, the class must implement a `before` method, and so on. Also,
+the `around` method must `yield` to execute the action.
 
 The Request and Response Objects
 --------------------------------
 
-Every controller has two methods, [`request`][] and [`response`][],
-which can be used to access the request object and the response objects
-associated with the current request cycle. The `request` method returns an
-instance of [`ActionDispatch::Request`][]. The [`response`][] method returns an
-an instance of [`ActionDispatch::Response`][], an object representing what is going to be sent back to the client browser (e.g. from `render` or `redirect` in the controller action).
+Every controller has two methods, [`request`][] and [`response`][], which can be
+used to access the request object and the response objects associated with the
+current request cycle. The `request` method returns an instance of
+[`ActionDispatch::Request`][]. The [`response`][] method returns an an instance
+of [`ActionDispatch::Response`][], an object representing what is going to be
+sent back to the client browser (e.g. from `render` or `redirect` in the
+controller action).
 
 [`ActionDispatch::Request`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html
 [`request`]: https://api.rubyonrails.org/classes/ActionController/Base.html#method-i-request
@@ -1003,8 +1162,9 @@ an instance of [`ActionDispatch::Response`][], an object representing what is go
 
 ### The `request` Object
 
-The request object contains useful information about the request coming
-in from the client. This section describes the purpose of some of the properties of the `request` object.
+The request object contains useful information about the request coming in from
+the client. This section describes the purpose of some of the properties of the
+`request` object.
 
 To get a full list of the available methods, refer to the [Rails API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Request.html)
@@ -1035,8 +1195,8 @@ access to the various parameters.
 * [`query_parameters`][] - contains parameters that were sent as part of the
   query string.
 * [`request_parameters`][] - contains parameters sent as part of the post body.
-* [`path_parameters`][] - contains parameters parsed by the router as being
-  part of the path leading to this particular controller and action.
+* [`path_parameters`][] - contains parameters parsed by the router as being part
+  of the path leading to this particular controller and action.
 
 [`path_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Http/Parameters.html#method-i-path_parameters
 [`query_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-query_parameters
@@ -1072,4 +1232,7 @@ Here are some of the properies of the `response` object:
 | `charset`              | The character set being used for the response. Default is "utf-8".                                  |
 | `headers`              | Headers used for the response.                                                                      |
 
-To get a full list of the available methods, refer to the [Rails API documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
+To get a full list of the available methods, refer to the [Rails API
+documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html)
+and [Rack
+Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
