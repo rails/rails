@@ -168,6 +168,7 @@ module ActiveRecord
         @default_timezone = self.class.validate_default_timezone(@config[:default_timezone])
 
         @raw_connection_dirty = false
+        @last_activity = nil
         @verified = false
       end
 
@@ -341,6 +342,13 @@ module ActiveRecord
       def seconds_idle # :nodoc:
         return 0 if in_use?
         Process.clock_gettime(Process::CLOCK_MONOTONIC) - @idle_since
+      end
+
+      # Seconds since this connection last communicated with the server
+      def seconds_since_last_activity # :nodoc:
+        if @raw_connection && @last_activity
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - @last_activity
+        end
       end
 
       def unprepared_statement
@@ -670,6 +678,7 @@ module ActiveRecord
 
           enable_lazy_transactions!
           @raw_connection_dirty = false
+          @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @verified = true
 
           reset_transaction(restore: restore_transactions) do
@@ -689,6 +698,7 @@ module ActiveRecord
             end
           end
 
+          @last_activity = nil
           @verified = false
 
           raise translated_exception
@@ -763,6 +773,7 @@ module ActiveRecord
               @raw_connection = @unconfigured_connection
               @unconfigured_connection = nil
               configure_connection
+              @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
               @verified = true
               return
             end
@@ -1033,6 +1044,7 @@ module ActiveRecord
                 # Barring a known-retryable error inside the query (regardless of
                 # whether we were in a _position_ to retry it), we should infer that
                 # there's likely a real problem with the connection.
+                @last_activity = nil
                 @verified = false
               end
 
@@ -1047,6 +1059,7 @@ module ActiveRecord
         # `with_raw_connection` block only when the block is guaranteed to
         # exercise the raw connection.
         def verified!
+          @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @verified = true
         end
 
