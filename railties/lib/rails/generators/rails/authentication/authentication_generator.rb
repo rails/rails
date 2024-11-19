@@ -33,11 +33,14 @@ module Rails
 
       def template_considering_options
         if options.token?
-          template "app/controllers/concerns/token/authentication.rb"
-          template "app/controllers/concerns/token/sessions_controller.rb"
+          if options.api?
+            template "app/controllers/concerns/token/api/authentication.rb"
+            template "app/controllers/concerns/token/api/sessions_controller.rb"
+          else
+            template "app/controllers/concerns/token/default/authentication.rb"
+            template "app/controllers/concerns/token/default/sessions_controller.rb"
+          end
           template "app/channels/application_cable/token/connection.rb" if defined?(ActionCable::Engine)
-
-
         else
           template "app/controllers/concerns/default/authentication.rb"
           template "app/controllers/concerns/default/sessions_controller.rb"
