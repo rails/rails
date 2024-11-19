@@ -63,7 +63,7 @@ NOTE: All controllers inherit from `ApplicationController`, which in turn inheri
 
 Rails favors making the last word in the controller's name plural. For example,
 `ClientsController` is preferred over `ClientController` and
-`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController` Although, the plural names are not strictly required (e.g. `ApplicationController`).
+`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController` However, the plural names are not strictly required (e.g. `ApplicationController`).
 
 Following this naming convention will allow you to use the [default route
 generators](routing.html#crud-verbs-and-actions) (e.g. `resources`) without
@@ -200,17 +200,15 @@ it to `false`.
 config.action_controller.wrap_parameters_by_default = false
 ```
 
-You can also customize the name of the key or specific parameters you want to wrap, see [API documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html) for more.
+You can also customize the name of the key or specific parameters you want to wrap, see the [API documentation](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html) for more.
 
 [Wrap Parameters]: https://api.rubyonrails.org/classes/ActionController/ParamsWrapper/Options/ClassMethods.html#method-i-wrap_parameters
 
 ### Routing Parameters
 
 Parameters specified as part of a route declaration in the `routes.rb` file are
-also made available in the `params` hash.
-
-For example, we can add a route that captures the `:status` parameter for a
-client:
+also made available in the `params` hash. For example, we can add a route that
+captures the `:status` parameter for a client:
 
 ```ruby
 get "/clients/:status", to: "clients#index", foo: "bar"
@@ -326,7 +324,7 @@ class PeopleController < ActionController::Base
     # Using a private method to encapsulate the permitted parameters is a good
     # pattern. you can use the same list for both create and update.
     def person_params
-      params.expect(person: [:name, :age])
+      params.require(:person).permit(:name, :age)
     end
 end
 ```
