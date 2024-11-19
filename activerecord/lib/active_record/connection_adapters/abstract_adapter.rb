@@ -218,6 +218,10 @@ module ActiveRecord
         (@config[:connection_retries] || 1).to_i
       end
 
+      def verify_timeout
+        (@config[:verify_timeout] || 2).to_i
+      end
+
       def retry_deadline
         if @config[:retry_deadline]
           @config[:retry_deadline].to_f
@@ -1003,6 +1007,9 @@ module ActiveRecord
             if @verified
               # Cool, we're confident the connection's ready to use. (Note this might have
               # become true during the above #materialize_transactions.)
+            elsif (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
+              # We haven't actually verified the connection since we acquired it, but it
+              # has been used very recently. We're going to assume it's still okay.
             elsif reconnectable
               if allow_retry
                 # Not sure about the connection yet, but if anything goes wrong we can
