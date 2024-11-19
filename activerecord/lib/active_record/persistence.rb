@@ -489,11 +489,15 @@ module ActiveRecord
 
       became.send(:initialize) do |becoming|
         @attributes.reverse_merge!(becoming.instance_variable_get(:@attributes))
-        becoming.instance_variable_set(:@attributes, @attributes)
+        becoming_attributes = becoming.instance_variable_set(:@attributes, @attributes)
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)
         becoming.instance_variable_set(:@destroyed, destroyed?)
         becoming.errors.copy!(errors)
+        klass._default_attributes.to_h.each do |name, value|
+          next if value.nil? || becoming_attributes[name]._value || @attributes[name].changed?
+          becoming_attributes.write_from_database(name, value)
+        end
       end
 
       became
