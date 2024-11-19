@@ -5,6 +5,8 @@ module Rails
     class AuthenticationGenerator < Base # :nodoc:
       class_option :api, type: :boolean,
         desc: "Generate API-only controllers and models, with no view templates"
+      class_option :token, type: :boolean,
+        desc: "Generate authentication tokens instead of setting cookies"
 
       hook_for :template_engine, as: :authentication do |template_engine|
         invoke template_engine unless options.api?
@@ -16,10 +18,8 @@ module Rails
         template "app/models/current.rb"
 
         template "app/controllers/sessions_controller.rb"
-        template "app/controllers/concerns/authentication.rb"
-        template "app/controllers/passwords_controller.rb"
 
-        template "app/channels/application_cable/connection.rb" if defined?(ActionCable::Engine)
+        template "app/controllers/passwords_controller.rb"
 
         template "app/mailers/passwords_mailer.rb"
 
@@ -27,6 +27,23 @@ module Rails
         template "app/views/passwords_mailer/reset.text.erb"
 
         template "test/mailers/previews/passwords_mailer_preview.rb"
+
+        template_considering_options
+      end
+
+      def template_considering_options
+        if options.token?
+          template "app/controllers/concerns/token/authentication.rb"
+          template "app/controllers/concerns/token/sessions_controller.rb"
+          template "app/channels/application_cable/token/connection.rb" if defined?(ActionCable::Engine)
+
+
+        else
+          template "app/controllers/concerns/default/authentication.rb"
+          template "app/controllers/concerns/default/sessions_controller.rb"
+          template "app/channels/application_cable/default/connection.rb" if defined?(ActionCable::Engine)
+
+        end
       end
 
       def configure_application_controller

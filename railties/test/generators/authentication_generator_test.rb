@@ -27,10 +27,58 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/user.rb"
     assert_file "app/models/current.rb"
     assert_file "app/models/session.rb"
-    assert_file "app/controllers/sessions_controller.rb"
-    assert_file "app/controllers/concerns/authentication.rb"
+    assert_file "app/controllers/sessions_controller.rb" do |content|
+      assert_no_match(/token = start_new_session_for user/, content)
+    end
+    assert_file "app/controllers/concerns/authentication.rb" do |content|
+      assert_match(/def find_session_by_cookie/, content)
+    end
     assert_file "app/views/sessions/new.html.erb"
-    assert_file "app/channels/application_cable/connection.rb"
+    assert_file "app/channels/application_cable/connection.rb" do |content|
+      assert_match(/Session.find_by(id: cookies.signed[:session_id])/, content)
+    end
+
+    assert_file "app/controllers/application_controller.rb" do |content|
+      class_line, includes_line = content.lines.first(2)
+
+      assert_equal "class ApplicationController < ActionController::Base\n", class_line, "does not affect class definition"
+      assert_equal "  include Authentication\n", includes_line, "includes module on first line of class definition"
+    end
+
+    assert_file "Gemfile" do |content|
+      assert_match(/\ngem "bcrypt"/, content)
+    end
+
+    assert_file "config/routes.rb" do |content|
+      assert_match(/resource :session/, content)
+    end
+
+    assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
+    assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
+
+    assert_file "test/models/user_test.rb"
+    assert_file "test/fixtures/users.yml"
+  end
+
+  def test_authentication_generator_with_token_flag
+    generator([destination_root], token: true)
+
+    run_generator_instance
+
+    assert_file "app/models/user.rb"
+    assert_file "app/models/current.rb"
+    assert_file "app/models/session.rb"
+    assert_file "app/controllers/sessions_controller.rb" do |content|
+      assert_match(/token = start_new_session_for user/, content)
+    end
+    assert_file "app/controllers/concerns/authentication.rb" do |content|
+      assert_match(/def find_session_by_jwt/, content)
+    end
+
+    assert_file "app/views/sessions/new.html.erb"
+    assert_file "app/channels/application_cable/connection.rb" do |content|
+      assert_match(/request.query_parameters["token"]/, content)
+    end
 
     assert_file "app/controllers/application_controller.rb" do |content|
       class_line, includes_line = content.lines.first(2)
