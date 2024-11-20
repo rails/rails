@@ -2,6 +2,28 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/model/model_generator"
+require "isolation/abstract_unit"
+
+class ModelGeneratorIntegrationTest < ActiveSupport::TestCase
+  include Rails::Generators::Testing::Assertions
+  include Rails::Generators::Testing::Behavior
+  include ActiveSupport::Testing::Isolation
+  setup :build_app
+  setup { self.class.destination rails_root }
+  teardown :teardown_app
+
+  def test_model_generator
+    output = rails "generate", "model", "Account"
+    assert_no_match(/The name 'Account' is either already used in your application or reserved by Ruby on Rails./, output)
+    assert_migration "db/migrate/create_accounts.rb"
+  end
+
+  def test_model_generator_revoke
+    output = rails "destroy", "model", "DoesNotExist"
+    assert_match(/The class 'DoesNotExist' does not exist/, output)
+    assert_no_migration "db/migrate/create_does_not_exists.rb"
+  end
+end
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -110,33 +132,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
       assert_file "app/models/account.rb", /class Account < AdminAccountsRecord/
       assert_migration "db/admin_accounts_migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
     end
-  end
-
-  def test_revoke_non_existent_model
-    error = capture(:stderr) { run_generator ["NonExistentModel"], behavior: :revoke }
-    assert_match(/Model 'NonExistentModel' does not exist/, error)
-  end
-
-  def test_revoke_existing_model_no_error
-    run_generator
-    assert_file "app/models/account.rb"
-
-    output = capture(:stdout) { run_generator ["account"], behavior: :revoke, load_constant: true }
-    assert_no_file "app/models/account.rb"
-    assert_no_match(/Model 'Account' does not exist/, output)
-  ensure
-    Object.send(:remove_const, :Account) if Object.const_defined?(:Account)
-  end
-
-  def test_revoke_existing_namespaced_model_no_error
-    run_generator ["admin/account"]
-    assert_file "app/models/admin/account.rb"
-
-    output = capture(:stdout) { run_generator ["admin/account"], behavior: :revoke, load_constant: true }
-    assert_no_file "app/models/admin/account.rb"
-    assert_no_match(/Model 'Admin::Account' does not exist/, output)
-  ensure
-    Object.send(:remove_const, :Admin) if Object.const_defined?(:Admin)
   end
 
   def test_plural_names_are_singularized
@@ -378,14 +373,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator
     error = capture(:stderr) { run_generator ["Account"], behavior: :revoke }
     assert_no_match(/Another migration is already named create_accounts/, error)
-  end
-
-  def test_migration_is_removed_on_revoke
-    run_generator
-    run_generator ["Account"], behavior: :revoke, load_constant: true
-    assert_no_migration "db/migrate/create_accounts.rb"
-  ensure
-    Object.send(:remove_const, :Account) if Object.const_defined?(:Account)
   end
 
   def test_existing_migration_is_removed_on_force

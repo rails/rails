@@ -223,9 +223,15 @@ module Rails
           end
         end
 
-        def self.check_model_exists # :doc:
-          define_method :check_model_exists do
-            model_exists "#{options[:prefix]}#{name}#{options[:suffix]}"
+        def self.check_class_exists(options = {}) # :doc:
+          define_method :check_class_exists do
+            name = if respond_to?(:controller_class_name, true) # for ResourceHelpers
+              controller_class_name
+            else
+              class_name
+            end
+
+            class_exists "#{options[:prefix]}#{name}#{options[:suffix]}"
           end
         end
     end

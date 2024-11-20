@@ -283,9 +283,11 @@ module Rails
           end
         end
 
-        # Check whether the given model names exist in the application.
-        def model_exists(*class_names)
+        # Check whether the given class names exist already in the application
+        # or Ruby on Rails.
+        def class_exists(*class_names)
           return unless behavior == :revoke
+          return if options.skip_collision_check?
           return if options.force?
 
           class_names.flatten.each do |class_name|
@@ -297,9 +299,9 @@ module Rails
             last_name = nesting.pop
             last = extract_last_module(nesting)
 
-            unless last && last.const_defined?(last_name.camelize, false)
-              raise Error, "Model '#{class_name}' does not exist. Please choose an existing model or use --force to skip " \
-                          "this check and run this generator again."
+            unless last&.const_defined?(last_name.camelize, false)
+              raise Error, "The class '#{class_name}' does not exist. Please define it first or use --skip-collision-check "  \
+                           "or --force to skip this check and run this generator again."
             end
           end
         end

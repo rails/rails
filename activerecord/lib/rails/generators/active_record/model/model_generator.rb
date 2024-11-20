@@ -8,7 +8,7 @@ module ActiveRecord
       argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
       check_class_collision
-      check_model_exists
+      check_class_exists
 
       class_option :migration, type: :boolean
       class_option :timestamps, type: :boolean
