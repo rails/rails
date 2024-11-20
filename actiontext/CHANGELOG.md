@@ -1,3 +1,11 @@
+*   Forward `fill_in_rich_text_area` options to Capybara
+
+    ```ruby
+    fill_in_rich_textarea "Rich text editor", id: "trix_editor_1", with: "Hello world!"
+    ```
+
+    *Sean Doyle*
+
 *   Attachment upload progress accounts for server processing time.
 
     *Jeremy Daer*
