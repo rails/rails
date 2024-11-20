@@ -1,6 +1,6 @@
-* Don't enqueue jobs to process a preview image if no variant requires it.
+*   Don't enqueue jobs to process a preview image if no variant requires it.
 
-  Rosa Gutierrez
+    Rosa Gutierrez
 
 ## Rails 7.1.5 (October 30, 2024) ##
 
