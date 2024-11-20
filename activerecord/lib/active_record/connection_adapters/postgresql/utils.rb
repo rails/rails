@@ -12,7 +12,7 @@ module ActiveRecord
         attr_reader :schema, :identifier
 
         def initialize(schema, identifier)
-          @schema, @identifier = unquote(schema), unquote(identifier)
+          @schema, @identifier = Utils.unquote_identifier(schema), Utils.unquote_identifier(identifier)
         end
 
         def to_s
@@ -40,15 +40,6 @@ module ActiveRecord
           def parts
             @parts ||= [@schema, @identifier].compact
           end
-
-        private
-          def unquote(part)
-            if part && part.start_with?('"')
-              part[1..-2]
-            else
-              part
-            end
-          end
       end
 
       module Utils # :nodoc:
@@ -73,6 +64,14 @@ module ActiveRecord
             schema = nil
           end
           PostgreSQL::Name.new(schema, table)
+        end
+
+        def unquote_identifier(identifier)
+          if identifier && identifier.start_with?('"')
+            identifier[1..-2]
+          else
+            identifier
+          end
         end
       end
     end

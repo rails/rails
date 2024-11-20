@@ -32,9 +32,13 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
+  include CacheStoreCompressionBehavior
+  include CacheStoreSerializerBehavior
+  include CacheStoreFormatVersionBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+  include CacheLoggingBehavior
 
   def test_clear
     gitkeep = File.join(cache_dir, ".gitkeep")
@@ -85,6 +89,18 @@ class FileStoreTest < ActiveSupport::TestCase
     path = @cache.send(:normalize_key, key, {})
     assert path.split("/").all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE }
     assert_equal "B", File.basename(path)
+  end
+
+  def test_delete_matched_when_key_exceeds_max_filename_size
+    submaximal_key = "_" * (ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE - 1)
+
+    @cache.write(submaximal_key + "AB", "value")
+    @cache.delete_matched(/AB/)
+    assert_not @cache.exist?(submaximal_key + "AB")
+
+    @cache.write(submaximal_key + "/A", "value")
+    @cache.delete_matched(/A/)
+    assert_not @cache.exist?(submaximal_key + "/A")
   end
 
   # If nothing has been stored in the cache, there is a chance the cache directory does not yet exist
@@ -142,37 +158,9 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
-end
 
-class OptimizedFileStoreTest < FileStoreTest
-  def setup
-    @previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 7.0
-    super
-  end
-
-  def test_forward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @old_store.write("foo", "bar")
-    assert_equal "bar", @cache.read("foo")
-  end
-
-  def test_backward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @cache.write("foo", "bar")
-    assert_equal "bar", @old_store.read("foo")
-  end
-
-  def teardown
-    super
-    ActiveSupport::Cache.format_version = @previous_format
-  end
+  private
+    def key_pattern(key, namespace: nil)
+      /.+\/#{Regexp.escape namespace.to_s}#{/%3A/i if namespace}#{Regexp.escape key}/
+    end
 end

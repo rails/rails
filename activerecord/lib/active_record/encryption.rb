@@ -8,6 +8,7 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     eager_autoload do
+      autoload :AutoFilteredParameters
       autoload :Cipher
       autoload :Config
       autoload :Configurable
@@ -52,4 +53,6 @@ module ActiveRecord
       Cipher.eager_load!
     end
   end
+
+  ActiveSupport.run_load_hooks :active_record_encryption, Encryption
 end

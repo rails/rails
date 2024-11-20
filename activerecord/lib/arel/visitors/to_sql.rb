@@ -20,6 +20,7 @@ module Arel # :nodoc: all
 
       private
         def visit_Arel_Nodes_DeleteStatement(o, collector)
+          collector.retryable = false
           o = prepare_delete_statement(o)
 
           if o.with
@@ -42,6 +43,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
+          collector.retryable = false
           o = prepare_update_statement(o)
 
           if o.with
@@ -59,6 +61,8 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
+          collector.retryable = false
+
           if o.with
             collector = visit o.with, collector
             collector << " "
@@ -348,7 +352,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_HomogeneousIn(o, collector)
           collector.preparable = false
 
-          collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name)
+          visit o.left, collector
 
           if o.type == :in
             collector << " IN ("
@@ -365,7 +369,6 @@ module Arel # :nodoc: all
           end
 
           collector << ")"
-          collector
         end
 
         def visit_Arel_SelectManager(o, collector)
@@ -397,6 +400,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_NamedFunction(o, collector)
+          collector.retryable = false
           collector << o.name
           collector << "("
           collector << "DISTINCT " if o.distinct
@@ -584,18 +588,25 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Table(o, collector)
-          if o.table_alias
-            collector << quote_table_name(o.name) << " " << quote_table_name(o.table_alias)
+          if Arel::Nodes::Node === o.name
+            visit o.name, collector
           else
             collector << quote_table_name(o.name)
           end
+
+          if o.table_alias
+            collector << " " << quote_table_name(o.table_alias)
+          end
+
+          collector
         end
 
         def visit_Arel_Nodes_In(o, collector)
-          collector.preparable = false
           attr, values = o.left, o.right
 
           if Array === values
+            collector.preparable = false
+
             unless values.empty?
               values.delete_if { |value| unboundable?(value) }
             end
@@ -608,10 +619,11 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_NotIn(o, collector)
-          collector.preparable = false
           attr, values = o.left, o.right
 
           if Array === values
+            collector.preparable = false
+
             unless values.empty?
               values.delete_if { |value| unboundable?(value) }
             end
@@ -628,18 +640,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Or(o, collector)
-          stack = [o.right, o.left]
-
-          while o = stack.pop
-            if o.is_a?(Arel::Nodes::Or)
-              stack.push o.right, o.left
-            else
-              visit o, collector
-              collector << " OR " unless stack.empty?
-            end
-          end
-
-          collector
+          inject_join o.children, collector, " OR "
         end
 
         def visit_Arel_Nodes_Assignment(o, collector)
@@ -744,6 +745,20 @@ module Arel # :nodoc: all
           collector << quote_column_name(o.name)
         end
 
+        def visit_Arel_Nodes_Cte(o, collector)
+          collector << quote_table_name(o.name)
+          collector << " AS "
+
+          case o.materialized
+          when true
+            collector << "MATERIALIZED "
+          when false
+            collector << "NOT MATERIALIZED "
+          end
+
+          visit o.relation, collector
+        end
+
         def visit_Arel_Attributes_Attribute(o, collector)
           join_name = o.relation.table_alias || o.relation.name
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
@@ -764,10 +779,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
           collector.preparable = false
+          collector.retryable = o.retryable
           collector << o.to_s
         end
 
         def visit_Arel_Nodes_BoundSqlLiteral(o, collector)
+          collector.retryable = false
           bind_index = 0
 
           new_bind = lambda do |value|
@@ -777,8 +794,18 @@ module Arel # :nodoc: all
               if value.empty?
                 collector << @connection.quote(nil)
               else
-                values = value.map { |v| @connection.cast_bound_value(v) }
-                collector.add_binds(values, &bind_block)
+                if value.none? { |v| Arel.arel_node?(v) }
+                  collector.add_binds(value.map { |v| @connection.cast_bound_value(v) }, &bind_block)
+                else
+                  value.each_with_index do |v, i|
+                    collector << ", " unless i == 0
+                    if Arel.arel_node?(v)
+                      visit v, collector
+                    else
+                      collector.add_bind(@connection.cast_bound_value(v), &bind_block)
+                    end
+                  end
+                end
               end
             else
               collector.add_bind(@connection.cast_bound_value(value), &bind_block)
@@ -797,7 +824,7 @@ module Arel # :nodoc: all
               end
             end
           else
-            o.sql_with_placeholders.scan(/:(?<!::)(\w+)|([^:]+|.)/) do
+            o.sql_with_placeholders.scan(/:(?<!::)([a-zA-Z]\w*)|([^:]+|.)/) do
               if $2
                 collector << $2
               else
@@ -916,7 +943,8 @@ module Arel # :nodoc: all
             stmt.limit = nil
             stmt.offset = nil
             stmt.orders = []
-            stmt.wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
+            columns = Arel::Nodes::Grouping.new(o.key)
+            stmt.wheres = [Nodes::In.new(columns, [build_subselect(o.key, o)])]
             stmt.relation = o.relation.left if has_join_sources?(o)
             stmt.groups = o.groups unless o.groups.empty?
             stmt.havings = o.havings unless o.havings.empty?
@@ -953,16 +981,32 @@ module Arel # :nodoc: all
           collector = if o.left.class == o.class
             infix_value_with_paren(o.left, collector, value, true)
           else
-            visit o.left, collector
+            grouping_parentheses o.left, collector, false
           end
           collector << value
           collector = if o.right.class == o.class
             infix_value_with_paren(o.right, collector, value, true)
           else
-            visit o.right, collector
+            grouping_parentheses o.right, collector, false
           end
           collector << " )" unless suppress_parens
           collector
+        end
+
+        # Used by some visitors to enclose select queries in parentheses
+        def grouping_parentheses(o, collector, always_wrap_selects = true)
+          if o.is_a?(Nodes::SelectStatement) && (always_wrap_selects || require_parentheses?(o))
+            collector << "("
+            visit o, collector
+            collector << ")"
+            collector
+          else
+            visit o, collector
+          end
+        end
+
+        def require_parentheses?(o)
+          !o.orders.empty? || o.limit || o.offset
         end
 
         def aggregate(name, o, collector)
@@ -995,19 +1039,7 @@ module Arel # :nodoc: all
         def collect_ctes(children, collector)
           children.each_with_index do |child, i|
             collector << ", " unless i == 0
-
-            case child
-            when Arel::Nodes::As
-              name = child.left.name
-              relation = child.right
-            when Arel::Nodes::TableAlias
-              name = child.name
-              relation = child.relation
-            end
-
-            collector << quote_table_name(name)
-            collector << " AS "
-            visit relation, collector
+            visit child.to_cte, collector
           end
 
           collector

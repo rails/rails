@@ -160,7 +160,7 @@ module ActiveModel
     test "can't modify attributes if frozen" do
       data = ModelForAttributesTest.new
       data.freeze
-      assert data.frozen?
+      assert_predicate data, :frozen?
       assert_raise(FrozenError) { data.integer_field = 1 }
     end
 
@@ -174,6 +174,14 @@ module ActiveModel
       assert_raise(ArgumentError) do
         ModelForAttributesTest.attribute :foo, :unknown
       end
+    end
+
+    test ".type_for_attribute supports attribute aliases" do
+      with_alias = Class.new(ModelForAttributesTest) do
+        alias_attribute :integer_field, :x
+      end
+
+      assert_equal with_alias.type_for_attribute(:integer_field), with_alias.type_for_attribute(:x)
     end
   end
 end

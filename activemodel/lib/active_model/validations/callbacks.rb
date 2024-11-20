@@ -2,12 +2,12 @@
 
 module ActiveModel
   module Validations
-    # == Active \Model \Validation \Callbacks
+    # = Active \Model \Validation \Callbacks
     #
     # Provides an interface for any class to have ClassMethods#before_validation and
     # ClassMethods#after_validation callbacks.
     #
-    # First, include <tt>ActiveModel::Validations::Callbacks</tt> from the class you are
+    # First, include +ActiveModel::Validations::Callbacks+ from the class you are
     # creating:
     #
     #   class MyModel
@@ -101,7 +101,7 @@ module ActiveModel
               options[:on] = Array(options[:on])
               options[:if] = [
                 ->(o) {
-                  !(options[:on] & Array(o.validation_context)).empty?
+                  options[:on].intersect?(Array(o.validation_context))
                 },
                 *options[:if]
               ]

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/journey"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/redefine_method"
@@ -10,12 +12,28 @@ require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
-    # :stopdoc:
+    # The RouteSet contains a collection of Route instances, representing the routes
+    # typically defined in `config/routes.rb`.
     class RouteSet
-      # Since the router holds references to many parts of the system
-      # like engines, controllers and the application itself, inspecting
-      # the route set can actually be really slow, therefore we default
-      # alias inspect to to_s.
+      # Returns a Route matching the given requirements, or `nil` if none are found.
+      #
+      # This is intended for use by tools such as Language Servers.
+      #
+      # Given the routes are defined as:
+      #
+      #   resources :posts
+      #
+      # Then the following will return the Route for the `show` action:
+      #
+      #   Rails.application.routes.from_requirements(controller: "posts", action: "show")
+      def from_requirements(requirements)
+        routes.find { |route| route.requirements == requirements }
+      end
+      # :stopdoc:
+
+      # Since the router holds references to many parts of the system like engines,
+      # controllers and the application itself, inspecting the route set can actually
+      # be really slow, therefore we default alias inspect to to_s.
       alias inspect to_s
 
       class Dispatcher < Routing::Endpoint
@@ -34,20 +52,20 @@ module ActionDispatch
           if @raise_on_name_error
             raise
           else
-            [404, { "X-Cascade" => "pass" }, []]
+            [404, { Constants::X_CASCADE => "pass" }, []]
           end
         end
 
-      private
-        def controller(req)
-          req.controller_class
-        rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace
-        end
+        private
+          def controller(req)
+            req.controller_class
+          rescue NameError => e
+            raise ActionController::RoutingError, e.message, e.backtrace
+          end
 
-        def dispatch(controller, action, req, res)
-          controller.dispatch(action, req, res)
-        end
+          def dispatch(controller, action, req, res)
+            controller.dispatch(action, req, res)
+          end
       end
 
       class StaticDispatcher < Dispatcher
@@ -144,8 +162,8 @@ module ActionDispatch
           routes.length
         end
 
-        # Given a +name+, defines name_path and name_url helpers.
-        # Used by 'direct', 'resolve', and 'polymorphic' route helpers.
+        # Given a `name`, defines name_path and name_url helpers. Used by 'direct',
+        # 'resolve', and 'polymorphic' route helpers.
         def add_url_helper(name, defaults, &block)
           helper = CustomUrlHelper.new(name, defaults, &block)
           path_name = :"#{name}_path"
@@ -282,7 +300,7 @@ module ActionDispatch
 
               if args.size < path_params_size
                 path_params -= controller_options.keys
-                path_params -= result.keys
+                path_params -= (result[:path_params] || {}).merge(result).keys
               else
                 path_params = path_params.dup
               end
@@ -301,18 +319,18 @@ module ActionDispatch
         end
 
         private
-          # Create a URL helper allowing ordered parameters to be associated
-          # with corresponding dynamic segments, so you can do:
+          # Create a URL helper allowing ordered parameters to be associated with
+          # corresponding dynamic segments, so you can do:
           #
-          #   foo_url(bar, baz, bang)
+          #     foo_url(bar, baz, bang)
           #
           # Instead of:
           #
-          #   foo_url(bar: bar, baz: baz, bang: bang)
+          #     foo_url(bar: bar, baz: baz, bang: bang)
           #
           # Also allow options hash, so you can do:
           #
-          #   foo_url(bar, baz, bang, sort_by: 'baz')
+          #     foo_url(bar, baz, bang, sort_by: 'baz')
           #
           def define_url_helper(mod, name, helper, url_strategy)
             mod.define_method(name) do |*args|
@@ -333,7 +351,7 @@ module ActionDispatch
       PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
       UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
 
-      attr_accessor :formatter, :set, :named_routes, :default_scope, :router
+      attr_accessor :formatter, :set, :named_routes, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :draw_paths
       attr_reader :env_key, :polymorphic_mappings
@@ -345,7 +363,7 @@ module ActionDispatch
       end
 
       def self.new_with_config(config)
-        route_set_config = DEFAULT_CONFIG
+        route_set_config = DEFAULT_CONFIG.dup
 
         # engines apparently don't have this set
         if config.respond_to? :relative_url_root
@@ -356,14 +374,18 @@ module ActionDispatch
           route_set_config.api_only = config.api_only
         end
 
+        if config.respond_to? :default_scope
+          route_set_config.default_scope = config.default_scope
+        end
+
         new route_set_config
       end
 
-      Config = Struct.new :relative_url_root, :api_only
+      Config = Struct.new :relative_url_root, :api_only, :default_scope
 
-      DEFAULT_CONFIG = Config.new(nil, false)
+      DEFAULT_CONFIG = Config.new(nil, false, nil)
 
-      def initialize(config = DEFAULT_CONFIG)
+      def initialize(config = DEFAULT_CONFIG.dup)
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names
         self.default_url_options = {}
@@ -386,6 +408,7 @@ module ActionDispatch
       def eager_load!
         router.eager_load!
         routes.each(&:eager_load!)
+        formatter.eager_load!
         nil
       end
 
@@ -395,6 +418,14 @@ module ActionDispatch
 
       def api_only?
         @config.api_only
+      end
+
+      def default_scope
+        @config.default_scope
+      end
+
+      def default_scope=(new_default_scope)
+        @config.default_scope = new_default_scope
       end
 
       def request_class
@@ -470,10 +501,9 @@ module ActionDispatch
         include UrlFor
       end
 
-      # Contains all the mounted helpers across different
-      # engines and the `main_app` helper for the application.
-      # You can include this in your classes if you want to
-      # access routes for other engines.
+      # Contains all the mounted helpers across different engines and the `main_app`
+      # helper for the application. You can include this in your classes if you want
+      # to access routes for other engines.
       def mounted_helpers
         MountedHelpers
       end
@@ -563,13 +593,11 @@ module ActionDispatch
 
           url_helpers = routes.named_routes.url_helpers_module
 
-          # Make named_routes available in the module singleton
-          # as well, so one can do:
+          # Make named_routes available in the module singleton as well, so one can do:
           # Rails.application.routes.url_helpers.posts_path
           extend url_helpers
 
-          # Any class that includes this module will get all
-          # named routes...
+          # Any class that includes this module will get all named routes...
           include url_helpers
 
           if supports_path
@@ -584,9 +612,8 @@ module ActionDispatch
             redefine_singleton_method(:_routes) { routes }
           end
 
-          # And an instance method _routes. Note that
-          # UrlFor (included in this module) add extra
-          # conveniences for working with @_routes.
+          # And an instance method _routes. Note that UrlFor (included in this module) add
+          # extra conveniences for working with @_routes.
           define_method(:_routes) { @_routes || routes }
 
           define_method(:_generate_paths_by_default) do
@@ -595,15 +622,15 @@ module ActionDispatch
 
           private :_generate_paths_by_default
 
-          # If the module is included more than once (for example, in a subclass
-          # of an ancestor that includes the module), ensure that the `_routes`
-          # singleton and instance methods return the desired route set by
-          # including a new copy of the module (recursively if necessary). Note
-          # that this method is called for each inclusion, whereas the above
-          # `included` block is run only for the initial inclusion of each copy.
+          # If the module is included more than once (for example, in a subclass of an
+          # ancestor that includes the module), ensure that the `_routes` singleton and
+          # instance methods return the desired route set by including a new copy of the
+          # module (recursively if necessary). Note that this method is called for each
+          # inclusion, whereas the above `included` block is run only for the initial
+          # inclusion of each copy.
           def self.included(base)
             super
-            if !base._routes.equal?(@_proxy._routes)
+            if base.respond_to?(:_routes) && !base._routes.equal?(@_proxy._routes)
               @dup_for_reinclude ||= self.dup
               base.include @dup_for_reinclude
             end
@@ -632,14 +659,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActionDispatch.deprecator.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 7.1.
+            will be removed in Rails 8.1.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActionDispatch.deprecator.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 7.1.
+            will be removed in Rails 8.1.
           MSG
         end
 
@@ -716,14 +743,14 @@ module ActionDispatch
         end
 
         def normalize_options!
-          # If an explicit :controller was given, always make :action explicit
-          # too, so that action expiry works as expected for things like
+          # If an explicit :controller was given, always make :action explicit too, so
+          # that action expiry works as expected for things like
           #
-          #   generate({controller: 'content'}, {controller: 'content', action: 'show'})
+          #     generate({controller: 'content'}, {controller: 'content', action: 'show'})
           #
-          # (the above is from the unit tests). In the above case, because the
-          # controller was explicitly given, but no action, the action is implied to
-          # be "index", not the recalled action of "show".
+          # (the above is from the unit tests). In the above case, because the controller
+          # was explicitly given, but no action, the action is implied to be "index", not
+          # the recalled action of "show".
 
           if options[:controller]
             options[:action]     ||= "index"
@@ -735,10 +762,9 @@ module ActionDispatch
           end
         end
 
-        # This pulls :controller, :action, and :id out of the recall.
-        # The recall key is only used if there is no key in the options
-        # or if the key in the options is identical. If any of
-        # :controller, :action or :id is not found, don't pull any
+        # This pulls :controller, :action, and :id out of the recall. The recall key is
+        # only used if there is no key in the options or if the key in the options is
+        # identical. If any of :controller, :action or :id is not found, don't pull any
         # more keys from the recall.
         def normalize_controller_action_id!
           use_recall_for(:controller) || return
@@ -746,8 +772,8 @@ module ActionDispatch
           use_recall_for(:id)
         end
 
-        # if the current controller is "foo/bar/baz" and controller: "baz/bat"
-        # is specified, the controller becomes "foo/baz/bat"
+        # if the current controller is "foo/bar/baz" and controller: "baz/bat" is
+        # specified, the controller becomes "foo/baz/bat"
         def use_relative_controller!
           if !named_route && different_controller? && !controller.start_with?("/")
             old_parts = current_controller.split("/")
@@ -789,8 +815,8 @@ module ActionDispatch
           end
       end
 
-      # Generate the path indicated by the arguments, and return an array of
-      # the keys that were not used to generate it.
+      # Generate the path indicated by the arguments, and return an array of the keys
+      # that were not used to generate it.
       def extra_keys(options, recall = {})
         generate_extras(options, recall).last
       end
@@ -827,7 +853,7 @@ module ActionDispatch
         url_for(options, route_name, PATH, nil, reserved)
       end
 
-      # The +options+ argument must be a hash whose keys are *symbols*.
+      # The `options` argument must be a hash whose keys are **symbols**.
       def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil, reserved = RESERVED_OPTIONS)
         options = default_url_options.merge options
 
@@ -860,7 +886,7 @@ module ActionDispatch
         params = route_with_params.params
 
         if options.key? :params
-          if options[:params]&.respond_to?(:to_hash)
+          if options[:params].respond_to?(:to_hash)
             params.merge! options[:params]
           else
             params[:params] = options[:params]
@@ -903,7 +929,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY)
-              params[key] = URI::DEFAULT_PARSER.unescape(value)
+              params[key] = URI::RFC2396_PARSER.unescape(value)
             end
           end
           req.path_parameters = params

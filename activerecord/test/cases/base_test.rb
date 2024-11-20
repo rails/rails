@@ -28,6 +28,7 @@ require "models/car"
 require "models/bulb"
 require "models/pet"
 require "models/owner"
+require "models/cpk"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/kernel/reporting"
@@ -101,7 +102,9 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts,
+    :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories,
+    :posts, :cpk_books
 
   def test_generated_association_methods_module_name
     mod = Post.send(:generated_association_methods)
@@ -125,7 +128,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     Topic.reset_column_information
 
-    Topic.connection.stub(:lookup_cast_type_from_column, ->(_) { raise "Some Error" }) do
+    Topic.connection_pool.stub(:schema_cache, -> { raise "Some Error" }) do
       assert_raises RuntimeError do
         Topic.columns_hash
       end
@@ -135,11 +138,12 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_column_names_are_escaped
-    conn      = ActiveRecord::Base.connection
+    conn      = ActiveRecord::Base.lease_connection
     classname = conn.class.name[/[^:]*$/]
     badchar   = {
       "SQLite3Adapter"    => '"',
       "Mysql2Adapter"     => "`",
+      "TrilogyAdapter"    => "`",
       "PostgreSQLAdapter" => '"',
       "OracleAdapter"     => '"',
     }.fetch(classname) {
@@ -147,13 +151,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
 
     quoted = conn.quote_column_name "foo#{badchar}bar"
-    if current_adapter?(:OracleAdapter)
-      # Oracle does not allow double quotes in table and column names at all
-      # therefore quoting removes them
-      assert_equal("#{badchar}foobar#{badchar}", quoted)
-    else
-      assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
-    end
+    assert_equal("#{badchar}foo#{badchar * 2}bar#{badchar}", quoted)
   end
 
   def test_columns_should_obey_set_primary_key
@@ -260,13 +258,10 @@ class BasicsTest < ActiveRecord::TestCase
       "The written_on attribute should be of the Time class"
     )
 
-    # For adapters which support microsecond resolution.
-    if supports_datetime_with_precision?
-      assert_equal 11, Topic.find(1).written_on.sec
-      assert_equal 223300, Topic.find(1).written_on.usec
-      assert_equal 9900, Topic.find(2).written_on.usec
-      assert_equal 129346, Topic.find(3).written_on.usec
-    end
+    assert_equal 11, Topic.find(1).written_on.sec
+    assert_equal 223300, Topic.find(1).written_on.usec
+    assert_equal 9900, Topic.find(2).written_on.usec
+    assert_equal 129346, Topic.find(3).written_on.usec
   end
 
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
@@ -520,6 +515,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "posts", PostRecord.table_name
   end
 
+  def test_table_name_for_base_class
+    assert_nil ActiveRecord::Base.table_name
+  end
+
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
@@ -537,39 +536,27 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(topic.id)
     assert_predicate topic, :approved?
     assert_nil topic.last_read
+  end
 
-    # Oracle has some funky default handling, so it requires a bit of
-    # extra testing. See ticket #2788.
-    if current_adapter?(:OracleAdapter)
-      test = TestOracleDefault.new
-      assert_equal "X", test.test_char
-      assert_equal "hello", test.test_string
-      assert_equal 3, test.test_int
+  def test_utc_as_time_zone
+    with_timezone_config default: :utc do
+      attributes = { "bonus_time" => "5:42:00AM" }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
     end
   end
 
-  # Oracle does not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter)
-    def test_utc_as_time_zone
-      with_timezone_config default: :utc do
-        attributes = { "bonus_time" => "5:42:00AM" }
-        topic = Topic.find(1)
-        topic.attributes = attributes
-        assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
-      end
-    end
-
-    def test_utc_as_time_zone_and_new
-      with_timezone_config default: :utc do
-        attributes = { "bonus_time(1i)" => "2000",
-          "bonus_time(2i)" => "1",
-          "bonus_time(3i)" => "1",
-          "bonus_time(4i)" => "10",
-          "bonus_time(5i)" => "35",
-          "bonus_time(6i)" => "50" }
-        topic = Topic.new(attributes)
-        assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
-      end
+  def test_utc_as_time_zone_and_new
+    with_timezone_config default: :utc do
+      attributes = { "bonus_time(1i)" => "2000",
+        "bonus_time(2i)" => "1",
+        "bonus_time(3i)" => "1",
+        "bonus_time(4i)" => "10",
+        "bonus_time(5i)" => "35",
+        "bonus_time(6i)" => "50" }
+      topic = Topic.new(attributes)
+      assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
     end
   end
 
@@ -683,7 +670,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_create_without_prepared_statement
-    topic = Topic.connection.unprepared_statement do
+    topic = Topic.lease_connection.unprepared_statement do
       Topic.create(title: "foo")
     end
 
@@ -692,7 +679,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_destroy_without_prepared_statement
     topic = Topic.create(title: "foo")
-    Topic.connection.unprepared_statement do
+    Topic.lease_connection.unprepared_statement do
       Topic.find(topic.id).destroy
     end
 
@@ -881,7 +868,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "たこ焼き仮面", weird.なまえ
   end
 
-  unless current_adapter?(:PostgreSQLAdapter)
+  unless current_adapter?(:PostgreSQLAdapter) || current_adapter?(:TrilogyAdapter)
     def test_respect_internal_encoding
       old_default_internal = Encoding.default_internal
       silence_warnings { Encoding.default_internal = "EUC-JP" }
@@ -914,9 +901,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle does not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter)
-
     with_timezone_config default: :local do
       attributes = {
         "bonus_time" => "5:42:00AM"
@@ -931,9 +915,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time_with_invalid_time
-    # Oracle does not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter)
-
     attributes = {
       "bonus_time" => "not a time"
     }
@@ -962,6 +943,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal false, Topic.new.previously_new_record?
     assert_equal true, Topic.create.previously_new_record?
     assert_equal false, Topic.find(1).previously_new_record?
+  end
+
+  def test_previously_new_record_on_destroyed_record
+    topic = Topic.create
+    assert_predicate topic, :previously_new_record?
+
+    topic.destroy
+    assert_not_predicate topic, :previously_new_record?
   end
 
   def test_previously_persisted_returns_boolean
@@ -1000,6 +989,14 @@ class BasicsTest < ActiveRecord::TestCase
 
     duped_topic.reload
     assert_equal("c", duped_topic.title)
+  end
+
+  def test_dup_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    new_book = book.dup
+
+    assert_equal "The first book", new_book.title
+    assert_equal([nil, nil], new_book.id)
   end
 
   DeveloperSalary = Struct.new(:amount)
@@ -1065,7 +1062,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
     developer = Developer.new name: "Bjorn"
-    assert developer.name_changed?            # obviously
+    assert_predicate developer, :name_changed?            # obviously
     assert_not developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
 
     cloned_developer = developer.clone
@@ -1079,7 +1076,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
-    assert cloned_developer.name_changed?     # both attributes differ from defaults
+    assert_predicate cloned_developer, :name_changed?     # both attributes differ from defaults
     assert_predicate cloned_developer, :salary_changed?
   end
 
@@ -1089,7 +1086,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
-    assert cloned_developer.name_changed?     # ... but on cloned object should be
+    assert_predicate cloned_developer, :name_changed?     # ... but on cloned object should be
     assert_not cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
   end
 
@@ -1106,7 +1103,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal company, Company.find(company.id)
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :SQLite3Adapter)
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
     def test_default_char_types
       default = Default.new
 
@@ -1114,20 +1111,22 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal "a varchar field", default.char2
 
       # Mysql text type can't have default value
-      unless current_adapter?(:Mysql2Adapter)
+      unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         assert_equal "a text field", default.char3
       end
     end
 
     def test_default_in_local_time
-      with_timezone_config default: :local do
-        default = Default.new
+      with_env_tz do
+        with_timezone_config default: :local do
+          default = Default.new
 
-        assert_equal Date.new(2004, 1, 1), default.fixed_date
-        assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+          assert_equal Date.new(2004, 1, 1), default.fixed_date
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
 
-        if current_adapter?(:PostgreSQLAdapter)
-          assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
         end
       end
     end
@@ -1156,6 +1155,29 @@ class BasicsTest < ActiveRecord::TestCase
           if current_adapter?(:PostgreSQLAdapter)
             assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
           end
+        end
+      end
+    end
+
+    def test_switching_default_time_zone
+      with_env_tz do
+        2.times do
+          with_timezone_config default: :local do
+            assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          end
+          with_timezone_config default: :utc do
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          end
+        end
+      end
+    end
+
+    def test_mutating_time_objects
+      with_env_tz do
+        with_timezone_config default: :local do
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          assert_equal Time.utc(2004, 1, 1, 5, 0, 0, 0), Default.new.fixed_time.utc
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
         end
       end
     end
@@ -1322,11 +1344,11 @@ class BasicsTest < ActiveRecord::TestCase
 
     klass.table_name = "foo"
     assert_equal "foo", klass.table_name
-    assert_equal klass.connection.quote_table_name("foo"), klass.quoted_table_name
+    assert_equal klass.adapter_class.quote_table_name("foo"), klass.quoted_table_name
 
     klass.table_name = "bar"
     assert_equal "bar", klass.table_name
-    assert_equal klass.connection.quote_table_name("bar"), klass.quoted_table_name
+    assert_equal klass.adapter_class.quote_table_name("bar"), klass.quoted_table_name
   end
 
   def test_set_table_name_with_inheritance
@@ -1344,6 +1366,10 @@ class BasicsTest < ActiveRecord::TestCase
     orig_name = k.sequence_name
     skip "sequences not supported by db" unless orig_name
     assert_equal k.reset_sequence_name, orig_name
+  end
+
+  def test_sequence_name_for_cpk_model
+    assert_nil Cpk::Book.sequence_name
   end
 
   def test_count_with_join
@@ -1426,10 +1452,10 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_assert_queries
-    query = lambda { ActiveRecord::Base.connection.execute "select count(*) from developers" }
-    assert_queries(2) { 2.times { query.call } }
-    assert_queries 1, &query
+  def test_assert_queries_count
+    query = lambda { ActiveRecord::Base.lease_connection.execute "select count(*) from developers" }
+    assert_queries_count(2) { 2.times { query.call } }
+    assert_queries_count 1, &query
     assert_no_queries { assert true }
   end
 
@@ -1461,14 +1487,14 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.connection.schema_cache.columns("posts")
-    assert_not_equal 0, Post.connection.schema_cache.size
+    c1 = Post.schema_cache.columns("posts")
+    assert_not_equal 0, Post.schema_cache.size
 
     ActiveRecord::Base.clear_cache!
-    assert_equal 0, Post.connection.schema_cache.size
+    assert_equal 0, Post.schema_cache.size
 
-    c2 = Post.connection.schema_cache.columns("posts")
-    assert_not_equal 0, Post.connection.schema_cache.size
+    c2 = Post.schema_cache.columns("posts")
+    assert_not_equal 0, Post.schema_cache.size
 
     assert_equal c1, c2
   end
@@ -1495,10 +1521,10 @@ class BasicsTest < ActiveRecord::TestCase
     marshalled = Marshal.dump(Post.new)
     post       = Marshal.load(marshalled)
 
-    assert post.new_record?, "should be a new record"
+    assert_predicate post, :new_record?, "should be a new record"
   end
 
-  def test_marshalling_with_associations
+  def test_marshalling_with_associations_6_1
     post = Post.new
     post.comments.build
 
@@ -1506,6 +1532,21 @@ class BasicsTest < ActiveRecord::TestCase
     post       = Marshal.load(marshalled)
 
     assert_equal 1, post.comments.length
+  end
+
+  def test_marshalling_with_associations_7_1
+    previous_format_version = ActiveRecord::Marshalling.format_version
+    ActiveRecord::Marshalling.format_version = 7.1
+
+    post = Post.new
+    post.comments.build
+
+    marshalled = Marshal.dump(post)
+    post       = Marshal.load(marshalled)
+
+    assert_equal 1, post.comments.length
+  ensure
+    ActiveRecord::Marshalling.format_version = previous_format_version
   end
 
   if Process.respond_to?(:fork) && !in_memory_db?
@@ -1531,6 +1572,7 @@ class BasicsTest < ActiveRecord::TestCase
         post.comments.build
         wr.write Marshal.dump(post)
         wr.close
+        exit!(0)
       end
 
       wr.close
@@ -1547,7 +1589,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     post = Marshal.load(Marshal.dump(post))
 
-    assert post.new_record?, "should be a new record"
+    assert_predicate post, :new_record?, "should be a new record"
   end
 
   def test_attribute_names
@@ -1637,7 +1679,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   if current_adapter?(:PostgreSQLAdapter)
     def test_column_types_on_queries_on_postgresql
-      result = ActiveRecord::Base.connection.exec_query("SELECT 1 AS test")
+      result = ActiveRecord::Base.lease_connection.exec_query("SELECT 1 AS test")
       assert_equal ActiveModel::Type::Integer, result.column_types["test"].class
     end
   end
@@ -1736,7 +1778,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "ignored columns are not present in columns_hash" do
-    cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
+    cache_columns = Developer.schema_cache.columns_hash(Developer.table_name)
     assert_includes cache_columns.keys, "first_name"
     assert_not_includes Developer.columns_hash.keys, "first_name"
     assert_not_includes SubDeveloper.columns_hash.keys, "first_name"
@@ -1840,13 +1882,13 @@ class BasicsTest < ActiveRecord::TestCase
   test "#present? and #blank? on ActiveRecord::Base classes" do
     assert_not_empty Topic.all
     assert_no_queries do
-      assert Topic.present?
+      assert_predicate Topic, :present?
       assert_not Topic.blank?
     end
 
     Topic.delete_all
     assert_no_queries do
-      assert Topic.present?
+      assert_predicate Topic, :present?
       assert_not Topic.blank?
     end
   end

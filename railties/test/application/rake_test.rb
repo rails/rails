@@ -182,8 +182,7 @@ module ApplicationTests
     end
 
     def test_code_statistics
-      assert_match "Code LOC: 62     Test LOC: 5     Code to Test Ratio: 1:0.1",
-        rails("stats")
+      assert_match(/Code LOC: \d+\s+Test LOC: \d+\s+ Code to Test Ratio: 1:\w+/, rails("stats"))
     end
 
     def test_loading_specific_fixtures
@@ -206,7 +205,9 @@ module ApplicationTests
       app_file "test/fixtures/products.csv", ""
 
       require "#{rails_root}/config/environment"
-      rails "db:fixtures:load"
+      assert_nothing_raised do
+        rails "db:fixtures:load"
+      end
     end
 
     def test_scaffold_tests_pass_by_default

@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/routes/routes_command"
 require "io/console/size"
 
 class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase

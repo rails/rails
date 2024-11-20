@@ -33,7 +33,7 @@ module ActiveRecord
             when ::Numeric
               # Sometimes operations on Times returns just float number of seconds so we need to handle that.
               # Example: Time.current - (Time.current + 1.hour) # => -3600.000001776 (Float)
-              value.seconds.iso8601(precision: self.precision)
+              ActiveSupport::Duration.build(value).iso8601(precision: self.precision)
             else
               super
             end

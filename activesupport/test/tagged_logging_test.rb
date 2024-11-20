@@ -142,6 +142,14 @@ class TaggedLoggingTest < ActiveSupport::TestCase
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
   end
+
+  test "implicit logger instance" do
+    @output = StringIO.new
+    @logger = ActiveSupport::TaggedLogging.logger(@output)
+
+    @logger.tagged("BCX") { @logger.info "Funky time" }
+    assert_equal "[BCX] Funky time\n", @output.string
+  end
 end
 
 class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
@@ -222,10 +230,10 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
 
   test "keeps broadcasting functionality" do
     broadcast_output = StringIO.new
-    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
-    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
+    broadcast_logger = ActiveSupport::BroadcastLogger.new(Logger.new(broadcast_output), @logger)
+    logger_with_tags = ActiveSupport::TaggedLogging.new(broadcast_logger)
 
-    tagged_logger = @logger.tagged("OMG")
+    tagged_logger = logger_with_tags.tagged("OMG")
     tagged_logger.info "Broadcasting..."
 
     assert_equal "[OMG] Broadcasting...\n", @output.string

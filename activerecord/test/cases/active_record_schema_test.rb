@@ -8,8 +8,9 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   setup do
     @original_verbose = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
-    @connection = ActiveRecord::Base.connection
-    @schema_migration = @connection.schema_migration
+    @connection = ActiveRecord::Base.lease_connection
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
     @schema_migration.delete_all_versions
   end
 
@@ -72,7 +73,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
         t.column :flavor, :string
       end
     end
-    assert_equal 7, @connection.migration_context.current_version
+    assert_equal 7, @pool.migration_context.current_version
   ensure
     ActiveRecord::Base.table_name_prefix = old_table_name_prefix
     @connection.drop_table :nep_fruits
@@ -137,18 +138,18 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     end
   end
 
-  def test_timestamps_without_null_set_null_to_false_on_create_table
+  def test_timestamps_with_implicit_default_on_create_table
     ActiveRecord::Schema.define do
       create_table :has_timestamps do |t|
         t.timestamps
       end
     end
 
-    assert @connection.column_exists?(:has_timestamps, :created_at, null: false)
-    assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
+    assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
+    assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
   end
 
-  def test_timestamps_without_null_set_null_to_false_on_change_table
+  def test_timestamps_with_implicit_default_on_change_table
     ActiveRecord::Schema.define do
       create_table :has_timestamps
 
@@ -157,12 +158,12 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       end
     end
 
-    assert @connection.column_exists?(:has_timestamps, :created_at, null: false)
-    assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
+    assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
+    assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
   end
 
-  if ActiveRecord::Base.connection.supports_bulk_alter?
-    def test_timestamps_without_null_set_null_to_false_on_change_table_with_bulk
+  if ActiveRecord::Base.lease_connection.supports_bulk_alter?
+    def test_timestamps_with_implicit_default_on_change_table_with_bulk
       ActiveRecord::Schema.define do
         create_table :has_timestamps
 
@@ -171,69 +172,18 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
         end
       end
 
-      assert @connection.column_exists?(:has_timestamps, :created_at, null: false)
-      assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
+      assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
+      assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
     end
   end
 
-  def test_timestamps_without_null_set_null_to_false_on_add_timestamps
+  def test_timestamps_with_implicit_default_on_add_timestamps
     ActiveRecord::Schema.define do
       create_table :has_timestamps
       add_timestamps :has_timestamps, default: Time.now
     end
 
-    assert @connection.column_exists?(:has_timestamps, :created_at, null: false)
-    assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
-  end
-
-  if supports_datetime_with_precision?
-    def test_timestamps_sets_precision_on_create_table
-      ActiveRecord::Schema.define do
-        create_table :has_timestamps do |t|
-          t.timestamps
-        end
-      end
-
-      assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
-      assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
-    end
-
-    def test_timestamps_sets_precision_on_change_table
-      ActiveRecord::Schema.define do
-        create_table :has_timestamps
-
-        change_table :has_timestamps do |t|
-          t.timestamps default: Time.now
-        end
-      end
-
-      assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
-      assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
-    end
-
-    if ActiveRecord::Base.connection.supports_bulk_alter?
-      def test_timestamps_sets_precision_on_change_table_with_bulk
-        ActiveRecord::Schema.define do
-          create_table :has_timestamps
-
-          change_table :has_timestamps, bulk: true do |t|
-            t.timestamps default: Time.now
-          end
-        end
-
-        assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
-        assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
-      end
-    end
-
-    def test_timestamps_sets_precision_on_add_timestamps
-      ActiveRecord::Schema.define do
-        create_table :has_timestamps
-        add_timestamps :has_timestamps, default: Time.now
-      end
-
-      assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
-      assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
-    end
+    assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
+    assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
   end
 end

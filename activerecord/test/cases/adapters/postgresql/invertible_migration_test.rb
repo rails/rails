@@ -49,10 +49,8 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  self.use_transactional_tests = false
-
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   teardown do

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
+  # = Active Record \Suppressor
+  #
   # ActiveRecord::Suppressor prevents the receiver from being saved during
   # a given block.
   #

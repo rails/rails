@@ -3,7 +3,7 @@
 require "active_support/core_ext/module/anonymous"
 
 module ActiveModel
-  # == Active \Model \Validator
+  # = Active \Model \Validator
   #
   # A simple base class that can be used along with
   # ActiveModel::Validations::ClassMethods.validates_with
@@ -124,6 +124,8 @@ module ActiveModel
     end
   end
 
+  # = Active \Model \EachValidator
+  #
   # +EachValidator+ is a validator which iterates through the attributes given
   # in the options hash invoking the <tt>validate_each</tt> method passing in the
   # record, attribute, and value.

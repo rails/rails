@@ -6,7 +6,7 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid
 
       def initialize(
         table, name,
@@ -18,6 +18,8 @@ module ActiveRecord
         where: nil,
         type: nil,
         using: nil,
+        include: nil,
+        nulls_not_distinct: nil,
         comment: nil,
         valid: true
       )
@@ -31,6 +33,8 @@ module ActiveRecord
         @where = where
         @type = type
         @using = using
+        @include = include
+        @nulls_not_distinct = nulls_not_distinct
         @comment = comment
         @valid = valid
       end
@@ -47,12 +51,14 @@ module ActiveRecord
         }
       end
 
-      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, **options)
         columns = options[:column] if columns.blank?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
-          (valid.nil? || self.valid == valid)
+          (valid.nil? || self.valid == valid) &&
+          (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
+          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
       end
 
       private
@@ -155,7 +161,7 @@ module ActiveRecord
       def defined_for?(to_table: nil, validate: nil, **options)
         (to_table.nil? || to_table.to_s == self.to_table) &&
           (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
-          options.all? { |k, v| self.options[k].to_s == v.to_s }
+          options.all? { |k, v| Array(self.options[k]).map(&:to_s) == Array(v).map(&:to_s) }
       end
 
       private
@@ -293,10 +299,25 @@ module ActiveRecord
     module ColumnMethods
       extend ActiveSupport::Concern
 
+      class_methods do
+        private
+          def define_column_methods(*column_types) # :nodoc:
+            column_types.each do |column_type|
+              module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{column_type}(*names, **options)
+                raise ArgumentError, "Missing column name(s) for #{column_type}" if names.empty?
+                names.each { |name| column(name, :#{column_type}, **options) }
+              end
+              RUBY
+            end
+          end
+      end
+      extend ClassMethods
+
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name, type = :primary_key, **options)
-        column(name, type, **options.merge(primary_key: true))
+        column(name, type, **options, primary_key: true)
       end
 
       ##
@@ -310,36 +331,22 @@ module ActiveRecord
       #
       # See TableDefinition#column
 
-      included do
-        define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
-          :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
+      define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
+        :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
 
-        alias :blob :binary
-        alias :numeric :decimal
-      end
-
-      class_methods do
-        def define_column_methods(*column_types) # :nodoc:
-          column_types.each do |column_type|
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{column_type}(*names, **options)
-                raise ArgumentError, "Missing column name(s) for #{column_type}" if names.empty?
-                names.each { |name| column(name, :#{column_type}, **options) }
-              end
-            RUBY
-          end
-        end
-        private :define_column_methods
-      end
+      alias :blob :binary
+      alias :numeric :decimal
     end
 
+    # = Active Record Connection Adapters \Table \Definition
+    #
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[7.1]
+    #   class SomeMigration < ActiveRecord::Migration[8.1]
     #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
@@ -481,14 +488,7 @@ module ActiveRecord
         name = name.to_s
         type = type.to_sym if type
 
-        if @columns_hash[name]
-          if @columns_hash[name].primary_key?
-            raise ArgumentError, "you can't redefine the primary key column '#{name}' on '#{@name}'. To define a custom primary key, pass { id: false } to create_table."
-          else
-            raise ArgumentError, "you can't define an already defined column '#{name}' on '#{@name}'."
-          end
-        end
-
+        raise_on_duplicate_column(name)
         @columns_hash[name] = new_column_definition(name, type, **options)
 
         if index
@@ -582,7 +582,7 @@ module ActiveRecord
 
       private
         def valid_column_definition_options
-          ColumnDefinition::OPTION_NAMES
+          @conn.valid_column_definition_options
         end
 
         def create_column_definition(name, type, options)
@@ -604,12 +604,23 @@ module ActiveRecord
         def integer_like_primary_key_type(type, options)
           type
         end
+
+        def raise_on_duplicate_column(name)
+          if @columns_hash[name]
+            if @columns_hash[name].primary_key?
+              raise ArgumentError, "you can't redefine the primary key column '#{name}' on '#{@name}'. To define a custom primary key, pass { id: false } to create_table."
+            else
+              raise ArgumentError, "you can't define an already defined column '#{name}' on '#{@name}'."
+            end
+          end
+        end
     end
 
     class AlterTable # :nodoc:
       attr_reader :adds
       attr_reader :foreign_key_adds, :foreign_key_drops
       attr_reader :check_constraint_adds, :check_constraint_drops
+      attr_reader :constraint_drops
 
       def initialize(td)
         @td   = td
@@ -618,6 +629,7 @@ module ActiveRecord
         @foreign_key_drops = []
         @check_constraint_adds = []
         @check_constraint_drops = []
+        @constraint_drops = []
       end
 
       def name; @td.name; end
@@ -638,6 +650,10 @@ module ActiveRecord
         @check_constraint_drops << constraint_name
       end
 
+      def drop_constraint(constraint_name)
+        @constraint_drops << constraint_name
+      end
+
       def add_column(name, type, **options)
         name = name.to_s
         type = type.to_sym
@@ -645,6 +661,8 @@ module ActiveRecord
       end
     end
 
+    # = Active Record Connection Adapters \Table
+    #
     # Represents an SQL table in an abstract way for updating a table.
     # Also see TableDefinition and {connection.create_table}[rdoc-ref:SchemaStatements#create_table]
     #

@@ -2,16 +2,16 @@
 
 require "generators/plugin_test_helper"
 require "env_helpers"
+require "plugin_helpers"
 
 class TestRunnerInEngineTest < ActiveSupport::TestCase
   include PluginTestHelper
   include EnvHelpers
+  include PluginHelpers
 
   def setup
     @destination_root = Dir.mktmpdir("bukkits")
-    Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --full --skip-bundle` }
-    fill_in_gemspec_fields
-    resolve_rails_gem_to_repository
+    generate_plugin("#{@destination_root}/bukkits", "--full")
     plugin_file "test/dummy/db/schema.rb", ""
   end
 
@@ -27,7 +27,7 @@ class TestRunnerInEngineTest < ActiveSupport::TestCase
     create_test_file "post", pass: false
 
     output = run_test_command("test/post_test.rb")
-    expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/post_test\.rb:6\]:\nwups!\n\nbin/rails test test/post_test\.rb:4}
+    expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[.*?test/post_test\.rb:6\]:\nwups!\n\nbin/rails test test/post_test\.rb:4}
     assert_match expect, output
   end
 

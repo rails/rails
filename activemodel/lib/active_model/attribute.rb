@@ -153,7 +153,7 @@ module ActiveModel
       alias :assigned? :original_attribute
 
       def initialize_dup(other)
-        if defined?(@value) && @value.duplicable?
+        if @value&.duplicable?
           @value = @value.dup
         end
       end
@@ -173,6 +173,19 @@ module ActiveModel
       class FromDatabase < Attribute # :nodoc:
         def type_cast(value)
           type.deserialize(value)
+        end
+
+        def forgetting_assignment
+          # If this attribute was not persisted (with a `value_for_database`
+          # that might differ from `value_before_type_cast`) and `value` has not
+          # changed in place, we can use the existing `value_before_type_cast`
+          # to avoid deserialize / cast / serialize calls from computing the new
+          # attribute's `value_before_type_cast`.
+          if !defined?(@value_for_database) && !changed_in_place?
+            with_value_from_database(value_before_type_cast)
+          else
+            super
+          end
         end
 
         private

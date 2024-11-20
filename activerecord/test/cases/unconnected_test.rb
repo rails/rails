@@ -9,7 +9,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def setup
-    @underlying = ActiveRecord::Base.connection
+    @underlying = ActiveRecord::Base.lease_connection
     @connection_name = ActiveRecord::Base.remove_connection
 
     # Clear out connection info from other pids (like a fork parent) too
@@ -23,21 +23,21 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
   end
 
   def test_connection_no_longer_established
-    assert_raise(ActiveRecord::ConnectionNotEstablished) do
+    assert_raise(ActiveRecord::ConnectionNotDefined) do
       TestRecord.find(1)
     end
 
-    assert_raise(ActiveRecord::ConnectionNotEstablished) do
+    assert_raise(ActiveRecord::ConnectionNotDefined) do
       TestRecord.new.save
     end
   end
 
   def test_error_message_when_connection_not_established
-    error = assert_raise(ActiveRecord::ConnectionNotEstablished) do
+    error = assert_raise(ActiveRecord::ConnectionNotDefined) do
       TestRecord.find(1)
     end
 
-    assert_equal "No connection pool for 'ActiveRecord::Base' found.", error.message
+    assert_equal "No database connection defined.", error.message
   end
 
   def test_underlying_adapter_no_longer_active

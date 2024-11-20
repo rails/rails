@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "rails/engine"
+require "capybara/minitest"
 
 module ActionView
   module ATestHelper
@@ -352,6 +353,117 @@ module ActionView
     end
   end
 
+  class PlaceholderAssertionsTest < ActionView::TestCase
+    helper_method def render_from_helper
+      content_tag "a", "foo", href: "/bar"
+    end
+
+    test "supports placeholders in assert_select calls" do
+      render(partial: "test/from_helper")
+
+      assert_select "a[href=?]", "/bar", text: "foo"
+    end
+  end
+
+  class CapybaraHTMLEncoderTest < ActionView::TestCase
+    include ::Capybara::Minitest::Assertions
+
+    def page
+      Capybara.string(rendered)
+    end
+
+    test "document_root_element can be configured to utilize Capybara" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer_with_h1", developer: developer
+
+      assert_kind_of Capybara::Node::Simple, page
+      assert_css "h1", text: developer.name
+    end
+  end
+
+  class RenderedViewContentTest < ActionView::TestCase
+    test "#rendered inherits from String" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer", developer: developer
+
+      assert_kind_of String, rendered
+      assert_kind_of String, rendered.to_s
+      assert_equal developer.name, rendered
+      assert_match(/#{developer.name}/, rendered)
+      assert_includes rendered, developer.name
+    end
+
+    test "#rendered resets after each render" do
+      render "developers/developer", developer: DeveloperStruct.new("first")
+
+      assert_includes rendered, "first"
+      assert_not_includes rendered, "second"
+      assert_not_includes rendered, "third"
+
+      render "developers/developer", developer: DeveloperStruct.new("second")
+
+      assert_includes rendered, "first"
+      assert_includes rendered, "second"
+      assert_not_includes rendered, "third"
+
+      render "developers/developer", developer: DeveloperStruct.new("third")
+
+      assert_includes rendered, "first"
+      assert_includes rendered, "second"
+      assert_includes rendered, "third"
+    end
+  end
+
+  class HTMLParserTest < ActionView::TestCase
+    test "rendered.html is a Nokogiri::XML::DocumentFragment" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer", developer: developer
+
+      assert_kind_of Nokogiri::XML::DocumentFragment, rendered.html
+      assert_equal rendered.to_s, rendered.html.to_s
+      assert_equal developer.name, document_root_element.text
+    end
+
+    test "do not memoize the rendered.html in view tests" do
+      concat form_tag("/foo")
+
+      assert_equal "/foo", document_root_element.at("form")["action"]
+
+      concat content_tag(:b, "Strong", class: "foo")
+
+      assert_equal "/foo", document_root_element.at("form")["action"]
+      assert_equal "foo", document_root_element.at("b")["class"]
+    end
+  end
+
+  class JSONParserTest < ActionView::TestCase
+    test "rendered.json is an ActiveSupport::HashWithIndifferentAccess" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render formats: :json, partial: "developers/developer", locals: { developer: developer }
+
+      assert_kind_of ActiveSupport::HashWithIndifferentAccess, rendered.json
+      assert_equal rendered.to_s, rendered.json.to_json
+      assert_equal developer.name, rendered.json[:name]
+    end
+  end
+
+  class MissingHTMLParserTest < ActionView::TestCase
+    register_parser :html, nil
+
+    test "rendered.html falls back to returning the value when the parser is missing" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer", developer: developer
+
+      assert_kind_of String, rendered.html
+      assert_equal developer.name, rendered.html
+    end
+  end
+
   module AHelperWithInitialize
     def initialize(*)
       super
@@ -362,6 +474,35 @@ module ActionView
   class AHelperWithInitializeTest < ActionView::TestCase
     test "the helper's initialize was actually called" do
       assert @called_initialize
+    end
+  end
+
+  class PatternMatchingTestCases < ActionView::TestCase
+    test "document_root_element integrates with pattern matching" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer_with_h1", developer: developer
+
+      assert_pattern { document_root_element.at("h1") => { content: "Eloy", attributes: [{ name: "id", value: "name" }] } }
+      refute_pattern { document_root_element.at("h1") => { content: "Not Eloy" } }
+    end
+
+    test "rendered.html integrates with pattern matching" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer", developer: developer
+
+      assert_pattern { rendered.html => { content: "Eloy" } }
+      refute_pattern { rendered.html => { content: "Not Eloy" } }
+    end
+
+    test "rendered.json integrates with pattern matching" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render formats: :json, partial: "developers/developer", locals: { developer: developer }
+
+      assert_pattern { rendered.json => { name: "Eloy" } }
+      refute_pattern { rendered.json => { name: "Not Eloy" } }
     end
   end
 end

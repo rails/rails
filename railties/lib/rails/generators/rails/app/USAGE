@@ -9,10 +9,17 @@ Description:
     Note that the arguments specified in the .railsrc file don't affect the
     default values shown above in this help message.
 
+    You can specify which version to use when creating a new rails application 
+    using `rails _<version>_ new`.
+
 Examples:
     `rails new ~/Code/Ruby/weblog`
 
     This generates a new Rails app in ~/Code/Ruby/weblog.
+
+    `rails _<version>_ new weblog`
+
+    This generates a new Rails app with the provided version in ./weblog.
 
     `rails new weblog --api`
 

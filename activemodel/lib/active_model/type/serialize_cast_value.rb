@@ -3,6 +3,15 @@
 module ActiveModel
   module Type
     module SerializeCastValue # :nodoc:
+      extend ActiveSupport::Concern
+
+      module ClassMethods
+        def serialize_cast_value_compatible?
+          return @serialize_cast_value_compatible if defined?(@serialize_cast_value_compatible)
+          @serialize_cast_value_compatible = ancestors.index(instance_method(:serialize_cast_value).owner) <= ancestors.index(instance_method(:serialize).owner)
+        end
+      end
+
       module DefaultImplementation
         def serialize_cast_value(value)
           value
@@ -25,16 +34,13 @@ module ActiveModel
         end
       end
 
-      attr_reader :itself_if_serialize_cast_value_compatible
+      def itself_if_serialize_cast_value_compatible
+        self if self.class.serialize_cast_value_compatible?
+      end
 
       def initialize(...)
         super
-        @itself_if_serialize_cast_value_compatible = self if serialize_cast_value_compatible?
-      end
-
-      def serialize_cast_value_compatible?
-        ancestors = self.class.ancestors
-        ancestors.index(method(:serialize_cast_value).owner) <= ancestors.index(method(:serialize).owner)
+        self.class.serialize_cast_value_compatible? # eagerly compute
       end
     end
   end

@@ -3,8 +3,9 @@
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
-  # = Action View Capture Helper
   module Helpers # :nodoc:
+    # = Action View Capture \Helpers
+    #
     # \CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
     #
@@ -48,7 +49,13 @@ module ActionView
         @output_buffer ||= ActionView::OutputBuffer.new
         buffer = @output_buffer.capture { value = yield(*args) }
 
-        case string = buffer.presence || value
+        string = if @output_buffer.equal?(value)
+          buffer
+        else
+          buffer.presence || value
+        end
+
+        case string
         when OutputBuffer
           string.to_s
         when ActiveSupport::SafeBuffer

@@ -24,13 +24,13 @@ trix-toolbar .trix-button-group {
   border-radius: 3px; }
   trix-toolbar .trix-button-group:not(:first-child) {
     margin-left: 1.5vw; }
-    @media (max-device-width: 768px) {
+    @media (max-width: 768px) {
       trix-toolbar .trix-button-group:not(:first-child) {
         margin-left: 0; } }
 
 trix-toolbar .trix-button-group-spacer {
   flex-grow: 1; }
-  @media (max-device-width: 768px) {
+  @media (max-width: 768px) {
     trix-toolbar .trix-button-group-spacer {
       display: none; } }
 
@@ -57,7 +57,7 @@ trix-toolbar .trix-button {
     cursor: pointer; }
   trix-toolbar .trix-button:disabled {
     color: rgba(0, 0, 0, 0.125); }
-  @media (max-device-width: 768px) {
+  @media (max-width: 768px) {
     trix-toolbar .trix-button {
       letter-spacing: -0.01em;
       padding: 0 0.3em; } }
@@ -68,7 +68,7 @@ trix-toolbar .trix-button--icon {
   height: 1.6em;
   max-width: calc(0.8em + 4vw);
   text-indent: -9999px; }
-  @media (max-device-width: 768px) {
+  @media (max-width: 768px) {
     trix-toolbar .trix-button--icon {
       height: 2em;
       max-width: calc(0.8em + 3.5vw); } }
@@ -84,7 +84,7 @@ trix-toolbar .trix-button--icon {
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain; }
-    @media (max-device-width: 768px) {
+    @media (max-width: 768px) {
       trix-toolbar .trix-button--icon::before {
         right: 6%;
         left: 6%; } }
@@ -334,7 +334,9 @@ trix-editor .attachment__metadata {
     white-space: nowrap; }
 
 .trix-content {
-  line-height: 1.5; }
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word; }
   .trix-content * {
     box-sizing: border-box;
     margin: 0;

@@ -51,6 +51,14 @@ module ActiveRecord
       assert_equal 3, data.overloaded_float
     end
 
+    test ".type_for_attribute supports attribute aliases" do
+      with_alias = Class.new(OverloadedType) do
+        alias_attribute :overloaded_float, :x
+      end
+
+      assert_equal with_alias.type_for_attribute(:overloaded_float), with_alias.type_for_attribute(:x)
+    end
+
     test "overloaded properties with limit" do
       assert_equal 50, OverloadedType.type_for_attribute("overloaded_string_with_limit").limit
       assert_equal 255, UnoverloadedType.type_for_attribute("overloaded_string_with_limit").limit
@@ -335,7 +343,7 @@ module ActiveRecord
     end
 
     test "attributes not backed by database columns appear in inspect" do
-      inspection = OverloadedType.new.inspect
+      inspection = OverloadedType.new.full_inspect
 
       assert_includes inspection, "non_existent_decimal"
     end
@@ -349,7 +357,7 @@ module ActiveRecord
     end
 
     test "attributes do not require a connection is established" do
-      assert_not_called(ActiveRecord::Base, :connection) do
+      assert_not_called(ActiveRecord::Base, :lease_connection) do
         Class.new(OverloadedType) do
           attribute :foo, :string
         end

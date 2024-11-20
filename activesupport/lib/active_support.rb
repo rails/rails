@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2005-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -28,9 +28,11 @@ require "active_support/dependencies/autoload"
 require "active_support/version"
 require "active_support/deprecator"
 require "active_support/logger"
+require "active_support/broadcast_logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
 
+# :include: ../README.rdoc
 module ActiveSupport
   extend ActiveSupport::Autoload
 
@@ -51,23 +53,23 @@ module ActiveSupport
   autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
-  autoload :PerThreadRegistry
   autoload :SecureCompareRotator
 
   eager_autoload do
     autoload :BacktraceCleaner
-    autoload :ProxyObject
+    autoload :Benchmark
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
     autoload :Configurable
+    autoload :ClassAttribute
     autoload :Deprecation
+    autoload :Delegation
     autoload :Digest
     autoload :ExecutionContext
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
-    autoload :JsonWithMarshalFallback
     autoload :KeyGenerator
     autoload :MessageEncryptor
     autoload :MessageEncryptors
@@ -114,9 +116,15 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone=(value)
-    unless value
+    if !value
       ActiveSupport.deprecator.warn(
-        "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.2."
+        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.1. " \
+        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
+      )
+    elsif value != :zone
+      ActiveSupport.deprecator.warn(
+        "`to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. " \
+        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
       )
     end
 

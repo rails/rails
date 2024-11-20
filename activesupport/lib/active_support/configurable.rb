@@ -4,6 +4,8 @@ require "active_support/concern"
 require "active_support/ordered_options"
 
 module ActiveSupport
+  # = Active Support \Configurable
+  #
   # Configurable provides a <tt>config</tt> method to store and retrieve
   # configuration options as an OrderedOptions.
   module Configurable

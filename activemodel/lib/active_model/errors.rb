@@ -3,13 +3,12 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
-require "active_support/core_ext/string/filters"
 require "active_model/error"
 require "active_model/nested_error"
 require "forwardable"
 
 module ActiveModel
-  # == Active \Model \Errors
+  # = Active \Model \Errors
   #
   # Provides error related functionalities you can include in your object
   # for handling error messages and interacting with Action View helpers.
@@ -64,6 +63,7 @@ module ActiveModel
 
     extend Forwardable
 
+    ##
     # :method: each
     #
     # :call-seq: each(&block)
@@ -75,6 +75,31 @@ module ActiveModel
     #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
     #                                       options={:count=>3}>
     #   end
+
+    ##
+    # :method: clear
+    #
+    # :call-seq: clear
+    #
+    # Clears all errors. Clearing the errors does not, however, make the model
+    # valid. The next time the validations are run (for example, via
+    # ActiveRecord::Validations#valid?), the errors collection will be filled
+    # again if any validations fail.
+
+    ##
+    # :method: empty?
+    #
+    # :call-seq: empty?
+    #
+    # Returns true if there are no errors.
+
+    ##
+    # :method: size
+    #
+    # :call-seq: size
+    #
+    # Returns number of errors.
+
     def_delegators :@errors, :each, :clear, :empty?, :size, :uniq!
 
     # The actual array of +Error+ objects
@@ -472,6 +497,8 @@ module ActiveModel
       end
   end
 
+  # = Active \Model \StrictValidationFailed
+  #
   # Raised when a validation cannot be corrected by end users and are considered
   # exceptional.
   #
@@ -490,10 +517,14 @@ module ActiveModel
   class StrictValidationFailed < StandardError
   end
 
+  # = Active \Model \RangeError
+  #
   # Raised when attribute values are out of range.
   class RangeError < ::RangeError
   end
 
+  # = Active \Model \UnknownAttributeError
+  #
   # Raised when unknown attributes are supplied via mass assignment.
   #
   #   class Person

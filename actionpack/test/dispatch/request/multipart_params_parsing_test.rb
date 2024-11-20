@@ -159,6 +159,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
       fixture = FIXTURE_PATH + "/ruby_on_rails.jpg"
       params = { uploaded_data: fixture_file_upload(fixture, "image/jpeg") }
       post "/read", params: params
+      assert_equal Encoding::ASCII_8BIT, response.body.encoding
     end
   end
 

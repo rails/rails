@@ -2,6 +2,8 @@
 
 module ActiveRecord
   module Locking
+    # = \Pessimistic \Locking
+    #
     # Locking::Pessimistic provides support for row-level locking using
     # SELECT ... FOR UPDATE and other lock types.
     #

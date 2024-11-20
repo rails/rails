@@ -23,7 +23,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
     ActiveRecord::Base.establish_connection database_config
 
     begin
-      ActiveRecord::Base.connection
+      ActiveRecord::Base.lease_connection.connect!
     rescue
       @rx_adapter = @tx_adapter = nil
       skip "Couldn't connect to PostgreSQL: #{database_config.inspect}"
@@ -62,13 +62,13 @@ class PostgresqlAdapterTest < ActionCable::TestCase
 
     ActiveRecord::Base.connection_handler.clear_reloadable_connections!
 
-    assert adapter.active?
+    assert_predicate adapter, :active?
   end
 
   def test_default_subscription_connection_identifier
     subscribe_as_queue("channel") { }
 
-    identifiers = ActiveRecord::Base.connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
+    identifiers = ActiveRecord::Base.lease_connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
     assert_includes identifiers, ["ActionCable-PID-#{$$}"]
   end
 
@@ -81,7 +81,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
 
     subscribe_as_queue("channel", adapter) { }
 
-    identifiers = ActiveRecord::Base.connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
+    identifiers = ActiveRecord::Base.lease_connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
     assert_includes identifiers, ["hello-world-42"]
   end
 end

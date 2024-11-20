@@ -74,6 +74,15 @@ module ActionMailer
         end
       end
 
+      # Reads the fixture file for the given mailer.
+      #
+      # This is useful when testing mailers by being able to write the body of
+      # an email inside a fixture. See the testing guide for a concrete example:
+      # https://guides.rubyonrails.org/testing.html#revenge-of-the-fixtures
+      def read_fixture(action)
+        IO.readlines(File.join(Rails.root, "test", "fixtures", self.class.mailer_class.name.underscore, action))
+      end
+
       private
         def initialize_test_deliveries
           set_delivery_method :test
@@ -109,10 +118,6 @@ module ActionMailer
 
         def encode(subject)
           Mail::Encodings.q_value_encode(subject, charset)
-        end
-
-        def read_fixture(action)
-          IO.readlines(File.join(Rails.root, "test", "fixtures", self.class.mailer_class.name.underscore, action))
         end
     end
 

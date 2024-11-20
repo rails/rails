@@ -32,7 +32,7 @@ module ActiveRecord # :nodoc:
       # Declares a normalization for one or more attributes. The normalization
       # is applied when the attribute is assigned or updated, and the normalized
       # value will be persisted to the database. The normalization is also
-      # applied to the corresponding keyword argument of finder methods. This
+      # applied to the corresponding keyword argument of query methods. This
       # allows a record to be created and later queried using unnormalized
       # values.
       #
@@ -49,9 +49,18 @@ module ActiveRecord # :nodoc:
       # By default, the normalization will not be applied to +nil+ values. This
       # behavior can be changed with the +:apply_to_nil+ option.
       #
+      # Be aware that if your app was created before Rails 7.1, and your app
+      # marshals instances of the targeted model (for example, when caching),
+      # then you should set ActiveRecord.marshalling_format_version to +7.1+ or
+      # higher via either <tt>config.load_defaults 7.1</tt> or
+      # <tt>config.active_record.marshalling_format_version = 7.1</tt>.
+      # Otherwise, +Marshal+ may attempt to serialize the normalization +Proc+
+      # and raise +TypeError+.
+      #
       # ==== Options
       #
-      # * +:with+ - The normalization to apply.
+      # * +:with+ - Any callable object that accepts the attribute's value as
+      #   its sole argument, and returns it normalized.
       # * +:apply_to_nil+ - Whether to apply the normalization to +nil+ values.
       #   Defaults to +false+.
       #
@@ -69,15 +78,16 @@ module ActiveRecord # :nodoc:
       #   user.email                  # => "cruise-control@example.com"
       #   user.email_before_type_cast # => "cruise-control@example.com"
       #
+      #   User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count         # => 1
+      #   User.where(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]).count # => 0
+      #
       #   User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
       #   User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
       #
       #   User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
       def normalizes(*names, with:, apply_to_nil: false)
-        names.each do |name|
-          attribute(name) do |cast_type|
-            NormalizedValueType.new(cast_type: cast_type, normalizer: with, normalize_nil: apply_to_nil)
-          end
+        decorate_attributes(names) do |name, cast_type|
+          NormalizedValueType.new(cast_type: cast_type, normalizer: with, normalize_nil: apply_to_nil)
         end
 
         self.normalized_attributes += names.map(&:to_sym)
@@ -142,9 +152,7 @@ module ActiveRecord # :nodoc:
           [self.class, cast_type, normalizer, normalize_nil?].hash
         end
 
-        def inspect
-          Kernel.instance_method(:inspect).bind_call(self)
-        end
+        define_method(:inspect, Kernel.instance_method(:inspect))
 
         private
           def normalize(value)

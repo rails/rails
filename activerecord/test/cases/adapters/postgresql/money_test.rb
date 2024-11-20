@@ -11,7 +11,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute("set lc_monetary = 'C'")
     @connection.create_table("postgresql_moneys", force: true) do |t|
       t.money "wealth"
@@ -54,14 +54,22 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
 
   def test_money_type_cast
     type = PostgresqlMoney.type_for_attribute("wealth")
-    assert_equal(12345678.12, type.cast(+"$12,345,678.12"))
-    assert_equal(12345678.12, type.cast(+"$12.345.678,12"))
-    assert_equal(12345678.12, type.cast(+"12,345,678.12"))
-    assert_equal(12345678.12, type.cast(+"12.345.678,12"))
-    assert_equal(-1.15, type.cast(+"-$1.15"))
-    assert_equal(-2.25, type.cast(+"($2.25)"))
-    assert_equal(-1.15, type.cast(+"-1.15"))
-    assert_equal(-2.25, type.cast(+"(2.25)"))
+
+    {
+      "12,345,678.12" => 12345678.12,
+      "12.345.678,12" => 12345678.12,
+      "0.12" => 0.12,
+      "0,12" => 0.12,
+    }.each do |string, number|
+      assert_equal number, type.cast(string)
+      assert_equal number, type.cast("$#{string}")
+
+      assert_equal(-number, type.cast("-#{string}"))
+      assert_equal(-number, type.cast("-$#{string}"))
+
+      assert_equal(-number, type.cast("(#{string})"))
+      assert_equal(-number, type.cast("($#{string})"))
+    end
   end
 
   def test_money_regex_backtracking

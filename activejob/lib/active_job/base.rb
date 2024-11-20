@@ -11,11 +11,10 @@ require "active_job/exceptions"
 require "active_job/log_subscriber"
 require "active_job/logging"
 require "active_job/instrumentation"
-require "active_job/timezones"
-require "active_job/translation"
+require "active_job/execution_state"
 
 module ActiveJob # :nodoc:
-  # = Active Job
+  # = Active Job \Base
   #
   # Active Job objects can be configured to work with different backend
   # queuing frameworks. To specify a queue adapter to use:
@@ -71,8 +70,7 @@ module ActiveJob # :nodoc:
     include Exceptions
     include Instrumentation
     include Logging
-    include Timezones
-    include Translation
+    include ExecutionState
 
     ActiveSupport.run_load_hooks(:active_job, self)
   end

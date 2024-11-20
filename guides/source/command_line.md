@@ -46,25 +46,32 @@ Rails will set up what seems like a huge amount of stuff for such a tiny command
 
 If you wish to skip some files from being generated or skip some libraries, you can append any of the following arguments to your `rails new` command:
 
-| Argument                | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `--skip-git`            | Skip git init, .gitignore, and .gitattributes               |
-| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint    |
-| `--skip-keeps`          | Skip source control .keep files                             |
-| `--skip-action-mailer`  | Skip Action Mailer files                                    |
-| `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
-| `--skip-action-text`    | Skip Action Text gem                                        |
-| `--skip-active-record`  | Skip Active Record files                                    |
-| `--skip-active-job`     | Skip Active Job                                             |
-| `--skip-active-storage` | Skip Active Storage files                                   |
-| `--skip-action-cable`   | Skip Action Cable files                                     |
-| `--skip-asset-pipeline` | Skip Asset Pipeline                                         |
-| `--skip-javascript`     | Skip JavaScript files                                       |
-| `--skip-hotwire`        | Skip Hotwire integration                                    |
-| `--skip-jbuilder`       | Skip jbuilder gem                                           |
-| `--skip-test`           | Skip test files                                             |
-| `--skip-system-test`    | Skip system test files                                      |
-| `--skip-bootsnap`       | Skip bootsnap gem                                           |
+| Argument                | Description                                              |
+|-------------------------|----------------------------------------------------------|
+| `--skip-git`            | Skip git init, .gitignore, and .gitattributes            |
+| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint |
+| `--skip-keeps`          | Skip source control .keep files                          |
+| `--skip-action-mailer`  | Skip Action Mailer files                                 |
+| `--skip-action-mailbox` | Skip Action Mailbox gem                                  |
+| `--skip-action-text`    | Skip Action Text gem                                     |
+| `--skip-active-record`  | Skip Active Record files                                 |
+| `--skip-active-job`     | Skip Active Job                                          |
+| `--skip-active-storage` | Skip Active Storage files                                |
+| `--skip-action-cable`   | Skip Action Cable files                                  |
+| `--skip-asset-pipeline` | Skip Asset Pipeline                                      |
+| `--skip-javascript`     | Skip JavaScript files                                    |
+| `--skip-hotwire`        | Skip Hotwire integration                                 |
+| `--skip-jbuilder`       | Skip jbuilder gem                                        |
+| `--skip-test`           | Skip test files                                          |
+| `--skip-system-test`    | Skip system test files                                   |
+| `--skip-bootsnap`       | Skip bootsnap gem                                        |
+| `--skip-dev-gems`       | Skip adding development gems                             |
+| `--skip-thruster`       | Skip Thruster setup                                      |
+| `--skip-rubocop`        | Skip RuboCop setup                                       |
+| `--skip-brakeman`       | Skip brakeman setup                                      |
+| `--skip-ci`             | Skip GitHub CI files                                     |
+| `--skip-kamal`          | Skip Kamal setup                                         |
+| `--skip-solid`          | Skip Solid Cache, Queue, and Cable setup                 |
 
 These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
 
@@ -93,8 +100,6 @@ Let's see what it put in our `config/database.yml`:
 #   gem install pg
 # On macOS with Homebrew:
 #   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
-# On macOS with MacPorts:
-#   gem install pg -- --with-pg-config=/opt/local/lib/postgresql84/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -106,6 +111,7 @@ Let's see what it put in our `config/database.yml`:
 default: &default
   adapter: postgresql
   encoding: unicode
+
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
@@ -181,13 +187,16 @@ With no further work, `bin/rails server` will run our new shiny Rails app:
 $ cd my_app
 $ bin/rails server
 => Booting Puma
-=> Rails 7.0.0 application starting in development
+=> Rails 8.1.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
-* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
-* Min threads: 5, max threads: 5
-* Environment: development
-* Listening on tcp://localhost:3000
+* Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
+*  Min threads: 5
+*  Max threads: 5
+*  Environment: development
+*          PID: 5295
+* Listening on http://127.0.0.1:3000
+* Listening on http://[::1]:3000
 Use Ctrl-C to stop
 ```
 
@@ -211,7 +220,8 @@ INFO: You can also use the alias "g" to invoke the generator command: `bin/rails
 
 ```bash
 $ bin/rails generate
-Usage: rails generate GENERATOR [args] [options]
+Usage:
+  bin/rails generate GENERATOR [args] [options]
 
 ...
 ...
@@ -237,7 +247,8 @@ INFO: All Rails console utilities have help text. As with most *nix utilities, y
 
 ```bash
 $ bin/rails generate controller
-Usage: bin/rails generate controller NAME [action action] [options]
+Usage:
+  bin/rails generate controller NAME [action action] [options]
 
 ...
 ...
@@ -275,7 +286,7 @@ $ bin/rails generate controller Greetings hello
      invoke    test_unit
 ```
 
-What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
+What did all this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
 
 Check out the controller and modify it a little (in `app/controllers/greetings_controller.rb`):
 
@@ -408,7 +419,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 7.1.0)
+Loading development environment in sandbox (Rails 8.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -452,7 +463,7 @@ $ bin/rails dbconsole --database=animals
 
 ### `bin/rails runner`
 
-`runner` runs Ruby code in the context of Rails non-interactively. For instance:
+`runner` runs Ruby code in the context of the Rails application non-interactively, without having to open Rails `console`. For instance:
 
 ```bash
 $ bin/rails runner "Model.long_running_method"
@@ -472,6 +483,22 @@ You can even execute ruby code written in a file with runner.
 $ bin/rails runner lib/code_to_be_run.rb
 ```
 
+By default, `rails runner` scripts are automatically wrapped with the Rails Executor, which helps report uncaught exceptions for tasks like cron jobs.
+
+Therefore, executing `rails runner lib/long_running_scripts.rb` is functionally equivalent to the following:
+
+```ruby
+Rails.application.executor.wrap do
+  # executes code inside lib/long_running_scripts.rb
+end
+```
+
+You can opt out of this behaviour by using the `--skip-executor` option.
+
+```bash
+$ bin/rails runner --skip-executor lib/long_running_script.rb
+```
+
 ### `bin/rails destroy`
 
 Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
@@ -487,6 +514,7 @@ $ bin/rails generate model Oops
       create      test/models/oops_test.rb
       create      test/fixtures/oops.yml
 ```
+
 ```bash
 $ bin/rails destroy model Oops
       invoke  active_record
@@ -504,12 +532,12 @@ $ bin/rails destroy model Oops
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             7.0.0
-Ruby version              2.7.0 (x86_64-linux)
-RubyGems version          2.7.3
-Rack version              2.0.4
+Rails version             8.1.0
+Ruby version              3.2.0 (x86_64-linux)
+RubyGems version          3.3.7
+Rack version              3.0.8
 JavaScript Runtime        Node.js (V8)
-Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Middleware:               ActionDispatch::HostAuthorization, Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActionDispatch::ServerTiming, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::ActionableExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ContentSecurityPolicy::Middleware, ActionDispatch::PermissionsPolicy::Middleware, Rack::Head, Rack::ConditionalGet, Rack::ETag, Rack::TempfileReaper
 Application root          /home/foobar/my_app
 Environment               development
 Database adapter          sqlite3
@@ -661,6 +689,7 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 * `bin/rails stats` is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
 * `bin/rails secret` will give you a pseudo-random key to use for your session secret.
 * `bin/rails time:zones:all` lists all the timezones Rails knows about.
+* `bin/rails boot` boots the application and exits.
 
 ### Custom Rake Tasks
 
@@ -704,4 +733,10 @@ $ bin/rails "task_name[value 1,value2,value3]" # separate multiple args with a c
 $ bin/rails db:nothing
 ```
 
-NOTE: If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+
+```ruby
+task task_that_requires_app_code: [:environment] do
+  User.create!
+end
+```

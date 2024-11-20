@@ -11,7 +11,7 @@
   </p>
   <pre><code><%= h @exception_wrapper.message %></code></pre>
 
-  <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx, error_highlight_available: nil %>
+  <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx %>
 
   <p><%= @exception_wrapper.sub_template_message %></p>
 

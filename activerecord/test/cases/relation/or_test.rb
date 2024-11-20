@@ -4,7 +4,8 @@ require "cases/helper"
 require "models/author"
 require "models/categorization"
 require "models/post"
-require "models/citation"
+require "models/book"
+require "models/paragraph"
 
 module ActiveRecord
   class OrTest < ActiveRecord::TestCase
@@ -180,14 +181,14 @@ module ActiveRecord
   # https://www.sqlite.org/limits.html#max_expr_depth
   class TooManyOrTest < ActiveRecord::TestCase
     unless current_adapter?(:SQLite3Adapter)
-      fixtures :citations
+      fixtures :paragraphs
 
       def test_too_many_or
-        citations = 6000.times.map do |i|
-          Citation.where(id: i, book2_id: i * i)
+        paragraphs = 1001.times.map do |i|
+          Paragraph.where(id: i, book_id: i * i)
         end
 
-        assert_equal 6000, citations.inject(&:or).count
+        assert_equal 1001, paragraphs.inject(&:or).count
       end
     end
   end

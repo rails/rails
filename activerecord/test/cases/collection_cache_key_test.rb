@@ -72,14 +72,8 @@ module ActiveRecord
 
     test "cache_key for relation with table alias" do
       table_alias = Developer.arel_table.alias("omg_developers")
-      table_metadata = ActiveRecord::TableMetadata.new(Developer, table_alias)
-      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      developers = ActiveRecord::Relation.create(
-        Developer,
-        table: table_alias,
-        predicate_builder: predicate_builder
-      )
+      developers = ActiveRecord::Relation.create(Developer, table: table_alias)
       developers = developers.where(salary: 100000).order(updated_at: :desc)
       last_developer_timestamp = developers.first.updated_at
 
@@ -106,7 +100,6 @@ module ActiveRecord
       developers = Developer.where(name: "David")
       cache_key = developers.cache_key
 
-      sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
       developers.update_all(updated_at: Time.now.utc)
 
       assert_not_equal cache_key, developers.cache_key
@@ -116,7 +109,6 @@ module ActiveRecord
       developers = Developer.includes(:projects).where("projects.name": "Active Record")
       cache_key = developers.cache_key
 
-      sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
       developers.update_all(updated_at: Time.now.utc)
 
       assert_not_equal cache_key, developers.cache_key
@@ -152,7 +144,7 @@ module ActiveRecord
     test "it triggers at most one query" do
       developers = Developer.where(name: "David")
 
-      assert_queries(1) { developers.cache_key }
+      assert_queries_count(1) { developers.cache_key }
       assert_no_queries { developers.cache_key }
     end
 

@@ -40,7 +40,7 @@ This file is as follows:
 
 ```ruby
 #!/usr/bin/env ruby
-APP_PATH = File.expand_path('../config/application', __dir__)
+APP_PATH = File.expand_path("../config/application", __dir__)
 require_relative "../config/boot"
 require "rails/commands"
 ```
@@ -52,9 +52,10 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 `config/boot.rb` contains:
 
 ```ruby
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
 
 require "bundler/setup" # Set up gems listed in the Gemfile.
+require "bootsnap/setup" # Speed up boot time by caching expensive operations.
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
@@ -332,7 +333,7 @@ The `super` method will call `Rack::Server.start` which begins its definition as
 ```ruby
 module Rack
   class Server
-    def start &blk
+    def start(&blk)
       if options[:warn]
         $-w = true
       end
@@ -347,7 +348,6 @@ module Rack
 
       if options[:debug]
         $DEBUG = true
-        require "pp"
         p options[:server]
         pp wrapped_app
         pp app
@@ -418,7 +418,6 @@ module Rack
       def build_app_from_string
         Rack::Builder.new_from_string(self.options[:builder])
       end
-
   end
 end
 ```
@@ -447,7 +446,7 @@ module Rack
 
     # ...
 
-    def self.new_from_string(builder_script, file="(rackup)")
+    def self.new_from_string(builder_script, file = "(rackup)")
       eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
         TOPLEVEL_BINDING, file, 0
     end
@@ -610,7 +609,6 @@ module Rack
       def build_app_from_string
         Rack::Builder.new_from_string(self.options[:builder])
       end
-
   end
 end
 ```
@@ -656,7 +654,7 @@ module Rack
 
         events = options.delete(:Silent) ? ::Puma::Events.strings : ::Puma::Events.stdio
 
-        launcher = ::Puma::Launcher.new(conf, :events => events)
+        launcher = ::Puma::Launcher.new(conf, events: events)
 
         yield launcher if block_given?
         begin

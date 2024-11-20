@@ -55,7 +55,8 @@ module LocalCacheBehavior
     begin
       @cache.cleanup
     rescue NotImplementedError
-      skip
+      pass
+      return # Not implementing cleanup is valid
     end
 
     key = SecureRandom.uuid
@@ -157,7 +158,7 @@ module LocalCacheBehavior
     begin
       @cache.delete_matched("*")
     rescue NotImplementedError
-      skip
+      return # Not implementing delete_matched is valid
     end
 
     prefix = SecureRandom.alphanumeric
@@ -190,6 +191,7 @@ module LocalCacheBehavior
     @cache.with_local_cache do
       @cache.write(key, 1, raw: true)
       @peek.write(key, 2, raw: true)
+
       @cache.increment(key)
 
       expected = @peek.read(key, raw: true)
@@ -205,6 +207,7 @@ module LocalCacheBehavior
       @peek.write(key, 3, raw: true)
 
       @cache.decrement(key)
+
       expected = @peek.read(key, raw: true)
       assert_equal 2, Integer(expected)
       assert_equal expected, @cache.read(key, raw: true)
@@ -230,12 +233,22 @@ module LocalCacheBehavior
     other_value = SecureRandom.alphanumeric
     @cache.with_local_cache do
       @cache.write(key, value, raw: true)
-      @cache.write(other_key, other_value, raw: true)
+      @peek.write(other_key, other_value, raw: true)
       values = @cache.read_multi(key, other_key, raw: true)
       assert_equal value, @cache.read(key, raw: true)
       assert_equal other_value, @cache.read(other_key, raw: true)
       assert_equal value, values[key]
       assert_equal other_value, values[other_key]
+    end
+  end
+
+  def test_local_cache_of_read_multi_prioritizes_local_entries
+    key = "key#{rand}"
+    @cache.with_local_cache do
+      @cache.write(key, "foo")
+      @cache.send(:bypass_local_cache) { @cache.write(key, "bar") }
+
+      assert_equal({ key => "foo" }, @cache.read_multi(key))
     end
   end
 

@@ -44,39 +44,41 @@ are bundled together in [Action Pack](files/actionpack/README.rdoc).
 
 [Active Record](files/activerecord/README.rdoc), [Active Model](files/activemodel/README.rdoc), [Action Pack](files/actionpack/README.rdoc), and [Action View](files/actionview/README.rdoc) can each be used independently outside \Rails.
 
-In addition to that, Rails also comes with:
+In addition to that, \Rails also comes with:
 
 - [Action Mailer](files/actionmailer/README.rdoc), a library to generate and send emails
-- [Action Mailbox](files/actionmailbox/README.md), a library to receive emails within a Rails application
+- [Action Mailbox](files/actionmailbox/README.md), a library to receive emails within a \Rails application
 - [Active Job](files/activejob/README.md), a framework for declaring jobs and making them run on a variety of queuing backends
-- [Action Cable](files/actioncable/README.md), a framework to integrate WebSockets with a Rails application
-- [Active Storage](files/activestorage/README.md), a library to attach cloud and local files to Rails applications
+- [Action Cable](files/actioncable/README.md), a framework to integrate WebSockets with a \Rails application
+- [Active Storage](files/activestorage/README.md), a library to attach cloud and local files to \Rails applications
 - [Action Text](files/actiontext/README.md), a library to handle rich text content
 - [Active Support](files/activesupport/README.rdoc), a collection of utility classes and standard library extensions that are useful for \Rails, and may also be used independently outside \Rails
 
 ## Getting Started
 
-1. Install \Rails at the command prompt if you haven't yet:
+1.  Install \Rails at the command prompt if you haven't yet:
 
         $ gem install rails
 
-2. At the command prompt, create a new \Rails application:
+2.  At the command prompt, create a new \Rails application:
 
         $ rails new myapp
 
-   where "myapp" is the application name.
+    where "myapp" is the application name.
 
-3. Change directory to `myapp` and start the web server:
+3.  Change directory to `myapp` and start the web server:
 
         $ cd myapp
         $ bin/rails server
 
-   Run with `--help` or `-h` for options.
+    Run with `--help` or `-h` for options.
 
-4. Go to `http://localhost:3000` and you'll see the \Rails bootscreen with your \Rails and Ruby versions.
+4.  Go to `http://localhost:3000` and you'll see the \Rails bootscreen with your
+    \Rails and Ruby versions.
 
-5. Follow the guidelines to start developing your application. You may find
-   the following resources handy:
+5.  Follow the guidelines to start developing your application. You may find the
+    following resources handy:
+
     * [Getting Started with Rails](https://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](https://guides.rubyonrails.org)
     * [The API Documentation](https://api.rubyonrails.org)

@@ -6,3 +6,7 @@ end
 
 class ClothingItem::Used < ClothingItem
 end
+
+class ClothingItem::Sized < ClothingItem
+  query_constraints :clothing_type, :color, :size
+end

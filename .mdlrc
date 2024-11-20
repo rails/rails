@@ -1,0 +1,1 @@
+style "#{File.dirname(__FILE__)}/.mdlrc.rb"

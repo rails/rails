@@ -49,10 +49,10 @@ module FailureSafetyBehavior
     end
   end
 
-  def test_write_failure_returns_false
+  def test_write_failure_returns_nil
     key = SecureRandom.uuid
     emulating_unavailability do |cache|
-      assert_equal false, cache.write(key, SecureRandom.alphanumeric)
+      assert_nil cache.write(key, SecureRandom.alphanumeric)
     end
   end
 

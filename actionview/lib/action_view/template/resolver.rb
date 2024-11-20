@@ -4,15 +4,11 @@ require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
 require "action_view/template"
-require "thread"
 require "concurrent/map"
 
 module ActionView
   # = Action View Resolver
   class Resolver
-    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-    deprecate_constant "Path", "ActionView::TemplatePath", deprecator: ActionView.deprecator
-
     class PathParser # :nodoc:
       ParsedPath = Struct.new(:path, :details)
 

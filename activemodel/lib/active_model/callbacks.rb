@@ -4,14 +4,14 @@ require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
 
 module ActiveModel
-  # == Active \Model \Callbacks
+  # = Active \Model \Callbacks
   #
   # Provides an interface for any class to have Active Record like callbacks.
   #
   # Like the Active Record methods, the callback chain is aborted as soon as
   # one of the methods throws +:abort+.
   #
-  # First, extend <tt>ActiveModel::Callbacks</tt> from the class you are creating:
+  # First, extend +ActiveModel::Callbacks+ from the class you are creating:
   #
   #   class MyModel
   #     extend ActiveModel::Callbacks
@@ -60,7 +60,7 @@ module ActiveModel
   # Would only create the +after_create+ and +before_create+ callback methods in
   # your class.
   #
-  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
+  # NOTE: Defining the same callback multiple times will overwrite previous callback definitions.
   #
   module Callbacks
     def self.extended(base) # :nodoc:

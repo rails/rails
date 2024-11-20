@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+require "json"
 require "bigdecimal"
 require "helper"
-require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/integer/time"
+require "active_support/duration"
 require "jobs/kwargs_job"
 require "jobs/arguments_round_trip_job"
 require "support/stubs/strong_parameters"
@@ -16,12 +18,38 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   class ClassArgument; end
 
+  class MyClassWithPermitted
+    def self.permitted?
+    end
+  end
+
+  class MyString < String
+  end
+
+  class MyStringSerializer < ActiveJob::Serializers::ObjectSerializer
+    def serialize(argument)
+      super({ "value" => argument.to_s })
+    end
+
+    def deserialize(hash)
+      MyString.new(hash["value"])
+    end
+
+    private
+      def klass
+        MyString
+      end
+  end
+
+  class StringWithoutSerializer < String
+  end
+
   setup do
     @person = Person.find("5")
   end
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
-    "a", true, false,
+    "a", true, false, BigDecimal(5),
     :a,
     1.day,
     Date.new(2001, 2, 3),
@@ -49,28 +77,6 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   ].each do |arg|
     test "serializes #{arg.class} - #{arg.inspect} verbatim" do
       assert_arguments_unchanged arg
-    end
-  end
-
-  test "dangerously treats BigDecimal arguments as primitives not requiring serialization by default" do
-    assert_deprecated(<<~MSG.chomp, ActiveJob.deprecator) do
-      Primitive serialization of BigDecimal job arguments is deprecated as it may serialize via .to_s using certain queue adapters.
-      Enable config.active_job.use_big_decimal_serializer to use BigDecimalSerializer instead, which will be mandatory in Rails 7.2.
-
-      Note that if you application has multiple replicas, you should only enable this setting after successfully deploying your app to Rails 7.1 first.
-      This will ensure that during your deployment all replicas are capable of deserializing arguments serialized with BigDecimalSerializer.
-    MSG
-      assert_equal(
-        BigDecimal(5),
-        *ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize([BigDecimal(5)])),
-      )
-    end
-  end
-
-  test "safely serializes BigDecimal arguments if configured to use_big_decimal_serializer" do
-    # BigDecimal(5) example should be moved back up into array above in Rails 7.2
-    with_big_decimal_serializer do
-      assert_arguments_unchanged BigDecimal(5)
     end
   end
 
@@ -110,6 +116,32 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       { "a" => 1, "_aj_hash_with_indifferent_access" => true },
       ActiveJob::Arguments.serialize([parameters]).first
     )
+  end
+
+  # Regression test to #48561
+  test "serialize a class with permitted? defined" do
+    assert_arguments_unchanged MyClassWithPermitted
+  end
+
+  test "serialize a String subclass object" do
+    original_serializers = ActiveJob::Serializers.serializers
+    ActiveJob::Serializers.add_serializers(MyStringSerializer)
+
+    my_string = MyString.new("foo")
+    serialized = ActiveJob::Arguments.serialize([my_string])
+    deserialized = ActiveJob::Arguments.deserialize(JSON.load(JSON.dump(serialized))).first
+    assert_instance_of MyString, deserialized
+    assert_equal my_string, deserialized
+  ensure
+    ActiveJob::Serializers._additional_serializers = original_serializers
+  end
+
+  test "serialize a String subclass object without a serializer" do
+    string_without_serializer = StringWithoutSerializer.new("foo")
+    serialized = ActiveJob::Arguments.serialize([string_without_serializer])
+    deserialized = ActiveJob::Arguments.deserialize(JSON.load(JSON.dump(serialized))).first
+    assert_instance_of String, deserialized
+    assert_equal string_without_serializer, deserialized
   end
 
   test "serialize a hash" do
@@ -178,6 +210,12 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
+  test "should maintain a functional duration" do
+    duration = perform_round_trip([1.year]).first
+    assert_kind_of Hash, duration.parts
+    assert_equal 2.years, duration + 1.year
+  end
+
   test "should disallow non-string/symbol hash keys" do
     assert_raises ActiveJob::SerializationError do
       ActiveJob::Arguments.serialize [ { 1 => 2 } ]
@@ -235,13 +273,5 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       ArgumentsRoundTripJob.perform_later(*args) # Actually performed inline
 
       JobBuffer.last_value
-    end
-
-    def with_big_decimal_serializer(temporary = true)
-      original = ActiveJob.use_big_decimal_serializer
-      ActiveJob.use_big_decimal_serializer = temporary
-      yield
-    ensure
-      ActiveJob.use_big_decimal_serializer = original
     end
 end

@@ -20,16 +20,15 @@ module ActiveModel
         registrations[type_name] = block
       end
 
-      def lookup(symbol, *args)
+      def lookup(symbol, ...)
         registration = registrations[symbol]
 
         if registration
-          registration.call(symbol, *args)
+          registration.call(symbol, ...)
         else
           raise ArgumentError, "Unknown type #{symbol.inspect}"
         end
       end
-      ruby2_keywords(:lookup)
 
       private
         attr_reader :registrations

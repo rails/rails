@@ -10,7 +10,7 @@ class CacheEntryTest < ActiveSupport::TestCase
     entry = ActiveSupport::Cache::Entry.new("value", expires_in: 60)
     assert_not entry.expired?, "entry not expired"
     Time.stub(:now, Time.at(entry.expires_at + 1)) do
-      assert entry.expired?, "entry is expired"
+      assert_predicate entry, :expired?, "entry is expired"
     end
   end
 

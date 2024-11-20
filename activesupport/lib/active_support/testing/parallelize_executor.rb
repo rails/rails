@@ -9,6 +9,7 @@ module ActiveSupport
         @size = size
         @parallelize_with = with
         @threshold = threshold
+        @parallelized = false
       end
 
       def start
@@ -49,11 +50,15 @@ module ActiveSupport
         end
 
         def parallelized?
-          @parallelized if defined?(@parallelized)
+          @parallelized
         end
 
         def should_parallelize?
-          ENV["PARALLEL_WORKERS"] || tests_count > threshold
+          (ENV["PARALLEL_WORKERS"] || tests_count > threshold) && many_workers?
+        end
+
+        def many_workers?
+          size > 1
         end
 
         def tests_count
@@ -67,7 +72,7 @@ module ActiveSupport
         def execution_info
           if parallelized?
             "Running #{tests_count} tests in parallel using #{parallel_executor.size} #{parallelize_with}"
-          else
+          elsif many_workers?
             "Running #{tests_count} tests in a single process (parallelization threshold is #{threshold})"
           end
         end

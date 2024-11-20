@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "delegate"
 require "io/console/size"
 
@@ -66,8 +68,8 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `bin/rails routes` or looks at the RoutingError page.
-    # People should not use this class.
+    # executes `bin/rails routes` or looks at the RoutingError page. People should
+    # not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)
         @engines = {}
@@ -99,7 +101,7 @@ module ActionDispatch
             { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter[:grep]
             grep_pattern = Regexp.new(filter[:grep])
-            path = URI::DEFAULT_PARSER.escape(filter[:grep])
+            path = URI::RFC2396_PARSER.escape(filter[:grep])
             normalized_path = ("/" + path).squeeze("/")
 
             {
@@ -133,7 +135,8 @@ module ActionDispatch
             { name: route.name,
               verb: route.verb,
               path: route.path,
-              reqs: route.reqs }
+              reqs: route.reqs,
+              source_location: route.source_location }
           end
         end
 
@@ -239,13 +242,16 @@ module ActionDispatch
         private
           def draw_expanded_section(routes)
             routes.map.each_with_index do |r, i|
-              <<~MESSAGE.chomp
+              route_rows = <<~MESSAGE.chomp
                 #{route_header(index: i + 1)}
                 Prefix            | #{r[:name]}
                 Verb              | #{r[:verb]}
                 URI               | #{r[:path]}
                 Controller#Action | #{r[:reqs]}
               MESSAGE
+              source_location = "\nSource Location   | #{r[:source_location]}"
+              route_rows += source_location if r[:source_location].present?
+              route_rows
             end
           end
 
@@ -283,7 +289,7 @@ module ActionDispatch
       end
 
       def section_title(title)
-        @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+        @buffer << %(<tr><th colspan="5">#{title}</th></tr>)
       end
 
       def section(routes)

@@ -49,7 +49,7 @@ module ActionMailbox
     param_encoding :create, "RawEmail", Encoding::ASCII_8BIT
 
     def create
-      ActionMailbox::InboundEmail.create_and_extract_message_id! params.require("RawEmail")
+      ActionMailbox::InboundEmail.create_and_extract_message_id! mail
     rescue ActionController::ParameterMissing => error
       logger.error <<~MESSAGE
         #{error.message}
@@ -59,5 +59,12 @@ module ActionMailbox
       MESSAGE
       head :unprocessable_entity
     end
+
+    private
+      def mail
+        params.require("RawEmail").tap do |raw_email|
+          raw_email.prepend("X-Original-To: ", params.require("OriginalRecipient"), "\n") if params.key?("OriginalRecipient")
+        end
+      end
   end
 end

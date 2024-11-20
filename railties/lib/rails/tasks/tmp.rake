@@ -7,7 +7,7 @@ namespace :tmp do
   tmp_dirs = [ "tmp/cache",
                "tmp/sockets",
                "tmp/pids",
-               "tmp/cache/assets" ]
+             ]
 
   tmp_dirs.each { |d| directory d }
 

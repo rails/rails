@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Coders # :nodoc:
-    class JSON # :nodoc:
+    module JSON # :nodoc:
       def self.dump(obj)
         ActiveSupport::JSON.encode(obj)
       end

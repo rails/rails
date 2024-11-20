@@ -5,7 +5,7 @@ require "env_helpers"
 require "rails/command"
 require "rails/commands/server/server_command"
 
-class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
+class Rails::Command::ServerTest < ActiveSupport::TestCase
   include EnvHelpers
 
   def test_environment_with_server_option
@@ -48,6 +48,18 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
 
   def test_using_known_server_that_isnt_in_the_gemfile
     assert_match(/Could not load server "unicorn". Maybe you need to the add it to the Gemfile/, run_command("-u", "unicorn"))
+  end
+
+  def test_gem_not_suggested_when_name_not_same_as_handler
+    build_app
+
+    ["fastcgi", "lsws"].each do |server|
+      output = rails "server", "-u", server
+      assert_match(/Could not find server '#{server}'./, output)
+      assert_no_match("Gemfile", output)
+    end
+  ensure
+    teardown_app
   end
 
   def test_daemon_with_option
@@ -292,6 +304,12 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     args = %w(-u webrick -b 127.0.0.1 -p 4567)
     server = Rails::Server.new(parse_arguments(args))
     assert_equal "http://127.0.0.1:4567", server.served_url
+  end
+
+  def test_served_url_when_server_prints_it
+    args = %w(-u puma -b 127.0.0.1 -p 4567)
+    server = Rails::Server.new(parse_arguments(args))
+    assert_nil server.served_url
   end
 
   private

@@ -3,6 +3,7 @@
 require "active_support/json"
 require "active_support/time"
 require "active_support/messages/metadata"
+require "active_support/message_pack"
 
 module MessageMetadataTests
   extend ActiveSupport::Concern
@@ -91,6 +92,13 @@ module MessageMetadataTests
       assert_roundtrip "a string", codec, { purpose: "x", expires_in: 1.year }, { purpose: "x" }
     end
 
+    test "messages with non-string purpose are readable" do
+      each_scenario do |data, codec|
+        message = encode(data, codec, purpose: [ "x", 1 ])
+        assert_equal data, decode(message, codec, purpose: [ "x", 1 ])
+      end
+    end
+
     test "messages are readable regardless of use_message_serializer_for_metadata" do
       each_scenario do |data, codec|
         message = encode(data, codec, purpose: "x")
@@ -118,7 +126,7 @@ module MessageMetadataTests
       Marshal,
       JSON,
       ActiveSupport::JSON,
-      ActiveSupport::JsonWithMarshalFallback,
+      ActiveSupport::MessagePack,
       CustomSerializer,
     ]
 

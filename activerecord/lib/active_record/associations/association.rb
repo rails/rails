@@ -19,7 +19,7 @@ module ActiveRecord
     # Associations in Active Record are middlemen between the object that
     # holds the association, known as the <tt>owner</tt>, and the associated
     # result set, known as the <tt>target</tt>. Association metadata is available in
-    # <tt>reflection</tt>, which is an instance of <tt>ActiveRecord::Reflection::AssociationReflection</tt>.
+    # <tt>reflection</tt>, which is an instance of +ActiveRecord::Reflection::AssociationReflection+.
     #
     # For example, given
     #
@@ -33,7 +33,8 @@ module ActiveRecord
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association # :nodoc:
-      attr_reader :owner, :target, :reflection, :disable_joins
+      attr_accessor :owner
+      attr_reader :reflection, :disable_joins
 
       delegate :options, to: :reflection
 
@@ -49,10 +50,16 @@ module ActiveRecord
         @skip_strict_loading = nil
       end
 
+      def target
+        if @target.is_a?(Promise)
+          @target = @target.value
+        end
+        @target
+      end
+
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
-        @target = nil
         @stale_state = nil
       end
 
@@ -63,7 +70,7 @@ module ActiveRecord
       # Reloads the \target and returns +self+ on success.
       # The QueryCache is cleared if +force+ is true.
       def reload(force = false)
-        klass.connection.clear_query_cache if force && klass
+        klass.connection_pool.clear_query_cache if force && klass
         reset
         reset_scope
         load_target
@@ -111,6 +118,14 @@ module ActiveRecord
 
       def reset_scope
         @association_scope = nil
+      end
+
+      def set_strict_loading(record)
+        if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
+          record.strict_loading!
+        else
+          record.strict_loading!(false, mode: owner.strict_loading_mode)
+        end
       end
 
       # Set the inverse association, if possible
@@ -172,12 +187,19 @@ module ActiveRecord
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
-        @target = find_target if (@stale_state && stale_target?) || find_target?
+        @target = find_target(async: false) if (@stale_state && stale_target?) || find_target?
 
         loaded! unless loaded?
         target
       rescue ActiveRecord::RecordNotFound
         reset
+      end
+
+      def async_load_target # :nodoc:
+        @target = find_target(async: true) if (@stale_state && stale_target?) || find_target?
+
+        loaded! unless loaded?
+        nil
       end
 
       # We can't dump @reflection and @through_reflection since it contains the scope proc
@@ -210,6 +232,12 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
+      # Whether the association represents a single record
+      # or a collection of records.
+      def collection?
+        false
+      end
+
       private
         # Reader and writer methods call this so that consistent errors are presented
         # when the association target class does not exist.
@@ -217,13 +245,19 @@ module ActiveRecord
           klass
         end
 
-        def find_target
+        def find_target(async: false)
           if violates_strict_loading?
             Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
           scope = self.scope
-          return scope.to_a if skip_statement_cache?(scope)
+          if skip_statement_cache?(scope)
+            if async
+              return scope.load_async.then(&:to_a)
+            else
+              return scope.to_a
+            end
+          end
 
           sc = reflection.association_scope_cache(klass, owner) do |params|
             as = AssociationScope.create { params.bind }
@@ -231,12 +265,10 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) do |record|
-            set_inverse_instance(record)
-            if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
-              record.strict_loading!
-            else
-              record.strict_loading!(false, mode: owner.strict_loading_mode)
+          klass.with_connection do |c|
+            sc.execute(binds, c, async: async) do |record|
+              set_inverse_instance(record)
+              set_strict_loading(record)
             end
           end
         end
@@ -336,7 +368,8 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          record._has_attribute?(reflection.foreign_key)
+          foreign_key = Array(reflection.foreign_key)
+          foreign_key.all? { |key| record._has_attribute?(key) }
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,

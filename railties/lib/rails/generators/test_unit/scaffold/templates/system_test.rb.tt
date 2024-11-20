@@ -35,6 +35,8 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
     <%- attributes_hash.each do |attr, value| -%>
     <%- if boolean?(attr) -%>
     check "<%= attr.humanize %>" if <%= value %>
+    <%- elsif datetime?(attr) || time?(attr) -%>
+    fill_in "<%= attr.humanize %>", with: <%= value %>.to_s
     <%- else -%>
     fill_in "<%= attr.humanize %>", with: <%= value %>
     <%- end -%>

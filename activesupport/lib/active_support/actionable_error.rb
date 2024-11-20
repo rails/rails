@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # = Actionable Errors
+  #
   # Actionable errors lets you define actions to resolve an error.
   #
-  # To make an error actionable, include the <tt>ActiveSupport::ActionableError</tt>
+  # To make an error actionable, include the +ActiveSupport::ActionableError+
   # module and invoke the +action+ class macro to define the action. An action
   # needs a name and a block to execute.
   module ActionableError

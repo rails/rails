@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionText
   class Record < ActiveRecord::Base # :nodoc:
     self.abstract_class = true

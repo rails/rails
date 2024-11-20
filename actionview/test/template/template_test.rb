@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "logger"
 
 class TestERBTemplate < ActiveSupport::TestCase
   ERBHandler = ActionView::Template::Handlers::ERB.new
@@ -59,11 +58,11 @@ class TestERBTemplate < ActiveSupport::TestCase
 
   def new_template(body = "<%= hello %>", details = {})
     details = { format: :html, locals: [] }.merge details
-    ActionView::Template.new(body.dup, "hello template", details.delete(:handler) || ERBHandler, **{ virtual_path: "hello" }.merge!(details))
+    ActionView::Template.new(body.dup, "hello template", details.delete(:handler) || ERBHandler, virtual_path: "hello", **details)
   end
 
-  def render(locals = {})
-    @template.render(@context, locals)
+  def render(implicit_locals: [], **locals)
+    @template.render(@context, locals, implicit_locals: implicit_locals)
   end
 
   def setup
@@ -121,6 +120,14 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "hellopartialhello", render
   end
 
+  def test_rendering_non_string
+    my_object = Object.new
+    eval_handler = ->(_template, source) { source }
+    @template = ActionView::Template.new("my_object", "__id__", eval_handler, virtual_path: "hello", locals: [:my_object])
+    result = render(my_object: my_object)
+    assert_same my_object, result
+  end
+
   def test_resulting_string_is_utf8
     @template = new_template
     assert_equal Encoding::UTF_8, render.encoding
@@ -155,7 +162,7 @@ class TestERBTemplate < ActiveSupport::TestCase
       render(foo: "bar")
     end
 
-    assert_match(/no locals accepted/, error.message)
+    assert_match(/no locals accepted for hello template/, error.message)
   end
 
   def test_locals_can_not_be_specified_with_positional_arguments
@@ -170,6 +177,25 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_locals_can_be_specified_with_splat_arguments
     @template = new_template("<%# locals: (**etc) -%><%= etc[:foo] %>")
     assert_equal "bar", render(foo: "bar")
+  end
+
+  def test_locals_can_be_specified_with_keyword_and_splat_arguments
+    @template = new_template("<%# locals: (id:, **attributes) -%>\n<%= tag.hr(id: id, **attributes) %>")
+    assert_equal '<hr id="1" class="h-1">', render(id: 1, class: "h-1")
+  end
+
+  def test_locals_cannot_be_specified_with_positional_arguments
+    @template = new_template("<%# locals: (argument = 'content') -%>\n<%= argument %>")
+    assert_raises ActionView::Template::Error, match: "`argument` set as non-keyword argument for hello template. Locals can only be set as keyword arguments." do
+      render
+    end
+  end
+
+  def test_locals_cannot_be_specified_with_block_arguments
+    @template = new_template("<%# locals: (&block) -%>\n<%= tag.div(&block) %>")
+    assert_raises ActionView::Template::Error, match: "`block` set as non-keyword argument for hello template. Locals can only be set as keyword arguments." do
+      render { "content" }
+    end
   end
 
   def test_locals_can_be_specified
@@ -188,7 +214,7 @@ class TestERBTemplate < ActiveSupport::TestCase
       render
     end
 
-    assert_match(/missing local: :message/, error.message)
+    assert_match(/missing local: :message for hello template/, error.message)
   end
 
   def test_extra_locals_raises_error
@@ -197,7 +223,34 @@ class TestERBTemplate < ActiveSupport::TestCase
       render(message: "Hi", foo: "bar")
     end
 
-    assert_match(/unknown local: :foo/, error.message)
+    assert_match(/unknown local: :foo for hello template/, error.message)
+  end
+
+  def test_rails_injected_locals_does_not_raise_error_if_not_passed
+    @template = new_template("<%# locals: (message:) -%>")
+    assert_nothing_raised do
+      render(message: "Hi", message_counter: 1, message_iteration: 1, implicit_locals: %i[message_counter message_iteration])
+    end
+  end
+
+  def test_rails_injected_locals_can_be_specified
+    @template = new_template("<%# locals: (message: 'Hello') -%>\n<%= message %>")
+    assert_equal "Hello", render(message: "Hello", implicit_locals: %i[message])
+  end
+
+  def test_rails_local_assigns_and_strict_locals
+    @template = new_template("<%# locals: (class: ) -%>\n<%= local_assigns[:class] %>")
+    assert_equal "some-class", render(class: "some-class", implicit_locals: %i[message])
+  end
+
+  def test_rails_injected_locals_can_be_specified_as_kwargs
+    @template = new_template("<%# locals: (message: 'Hello', **kwargs) -%>\n<%= kwargs[:message_counter] %>-<%= kwargs[:message_iteration] %>")
+    assert_equal "1-2", render(message: "Hello", message_counter: 1, message_iteration: 2, implicit_locals: %i[message_counter message_iteration])
+  end
+
+  def test_rails_injected_locals_can_be_specified_as_required_argument
+    @template = new_template("<%# locals: (message: 'Hello', message_iteration:) -%>\n<%= message %>-<%= message_iteration %>")
+    assert_equal "Hello-2", render(message: "Hello", message_counter: 1, message_iteration: 2, implicit_locals: %i[message_counter message_iteration])
   end
 
   # TODO: This is currently handled inside ERB. The case of explicitly

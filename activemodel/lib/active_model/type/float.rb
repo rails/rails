@@ -4,6 +4,8 @@ require "active_support/core_ext/object/try"
 
 module ActiveModel
   module Type
+    # = Active Model \Float \Type
+    #
     # Attribute type for floating point numeric values. It is registered under
     # the +:float+ key.
     #
@@ -17,9 +19,9 @@ module ActiveModel
     # strings:
     #
     # - Blank strings are cast to +nil+.
-    # - <tt>"Infinity"</tt> is cast to <tt>Float::INFINITY</tt>.
+    # - <tt>"Infinity"</tt> is cast to +Float::INFINITY+.
     # - <tt>"-Infinity"</tt> is cast to <tt>-Float::INFINITY</tt>.
-    # - <tt>"NaN"</tt> is cast to <tt>Float::NAN</tt>.
+    # - <tt>"NaN"</tt> is cast to +Float::NAN+.
     #
     #   bag = BagOfCoffee.new
     #

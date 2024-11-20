@@ -20,7 +20,7 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_none_chainable
-    assert_queries(0) do
+    assert_queries_count(0) do
       assert_equal [], Developer.none.where(name: "David")
     end
   end
@@ -56,6 +56,16 @@ class NullRelationTest < ActiveRecord::TestCase
       assert_equal false, Developer.none.any?
       assert_equal false, Developer.none.one?
       assert_equal false, Developer.none.many?
+    end
+  end
+
+  def test_null_relation_used_with_constraints
+    post = Post.first
+    assert_no_queries do
+      scope = post.comments
+      none = Post.none
+      scope = scope.merge(none)
+      assert_equal 0, scope.size
     end
   end
 

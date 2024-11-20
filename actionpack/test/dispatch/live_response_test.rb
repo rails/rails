@@ -12,9 +12,9 @@ module ActionController
       end
 
       def test_header_merge
-        header = @response.header.merge("Foo" => "Bar")
-        assert_kind_of(ActionController::Live::Response::Header, header)
-        assert_not_equal header, @response.header
+        headers = @response.headers.merge("Foo" => "Bar")
+        assert_kind_of(ActionController::Live::Response::Headers, headers)
+        assert_not_equal headers, @response.headers
       end
 
       def test_initialize_with_default_headers
@@ -25,7 +25,7 @@ module ActionController
         end
 
         headers = r.create.headers
-        assert_kind_of(ActionController::Live::Response::Header, headers)
+        assert_kind_of(ActionController::Live::Response::Headers, headers)
         assert_equal "g", headers["omg"]
       end
 
@@ -85,36 +85,6 @@ module ActionController
         @response.headers["Content-Length"] = "1234"
         @response.stream.write "omg"
         assert_nil @response.headers["Content-Length"]
-      end
-
-      def test_headers_cannot_be_written_after_web_server_reads
-        @response.stream.write "omg"
-        latch = Concurrent::CountDownLatch.new
-
-        t = Thread.new {
-          @response.each do
-            latch.count_down
-          end
-        }
-
-        latch.wait
-        assert_predicate @response.headers, :frozen?
-        assert_raises(FrozenError) do
-          @response.headers["Content-Length"] = "zomg"
-        end
-
-        @response.stream.close
-        t.join
-      end
-
-      def test_headers_cannot_be_written_after_close
-        @response.stream.close
-        # we can add data until it's actually written, which happens on `each`
-        @response.each { |x| }
-
-        assert_raises(FrozenError) do
-          @response.headers["Content-Length"] = "zomg"
-        end
       end
     end
   end

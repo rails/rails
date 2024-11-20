@@ -13,7 +13,7 @@ module ActiveRecord
 
     def test_construction
       relation = Relation.new(FakeKlass, table: :b)
-      assert_equal FakeKlass, relation.klass
+      assert_equal FakeKlass, relation.model
       assert_equal :b, relation.table
       assert_not relation.loaded, "relation is not loaded"
     end
@@ -39,6 +39,25 @@ module ActiveRecord
         values = relation.public_send("#{method}_values")
         assert_equal [], values, method.to_s
         assert_predicate values, :frozen?, method.to_s
+      end
+    end
+
+    def test_multi_values_deduplication_with_merge
+      expected = {
+        unscope:   [ :where ],
+        extending: [ Module.new ],
+        with:      [ foo: Post.all ],
+      }
+      expected.default = [ Object.new ]
+
+      Relation::MULTI_VALUE_METHODS.each do |method|
+        getter, setter = "#{method}_values", "#{method}_values="
+        values = expected[method]
+        relation = Relation.new(FakeKlass)
+        relation.public_send(setter, values)
+
+        assert_equal values, relation.public_send(getter), method
+        assert_equal values, relation.merge(relation).public_send(getter), method
       end
     end
 
@@ -204,7 +223,7 @@ module ActiveRecord
 
       relation = Relation.new(klass)
       relation.merge!(where: ["foo = ?", "bar"])
-      assert_equal Relation::WhereClause.new(["foo = bar"]), relation.where_clause
+      assert_equal Relation::WhereClause.new([Arel.sql("(foo = ?)", "bar")]), relation.where_clause
     end
 
     def test_merging_readonly_false
@@ -291,8 +310,7 @@ module ActiveRecord
 
     def test_select_quotes_when_using_from_clause
       skip_if_sqlite3_version_includes_quoting_bug
-      quoted_join = ActiveRecord::Base.connection.quote_table_name("join")
-      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      selected = Post.select(:join).from(Post.select("id as #{quote_table_name("join")}")).map(&:join)
       assert_equal Post.pluck(:id).sort, selected.sort
     end
 
@@ -331,14 +349,14 @@ module ActiveRecord
 
     def test_relation_with_annotation_includes_comment_in_sql
       post_with_annotation = Post.where(id: 1).annotate("foo")
-      assert_sql(%r{/\* foo \*/}) do
+      assert_queries_match(%r{/\* foo \*/}) do
         assert post_with_annotation.first, "record should be found"
       end
     end
 
     def test_relation_with_annotation_chains_sql_comments
       post_with_annotation = Post.where(id: 1).annotate("foo").annotate("bar")
-      assert_sql(%r{/\* foo \*/ /\* bar \*/}) do
+      assert_queries_match(%r{/\* foo \*/ /\* bar \*/}) do
         assert post_with_annotation.first, "record should be found"
       end
     end
@@ -351,7 +369,7 @@ module ActiveRecord
     def test_relation_with_annotation_includes_comment_in_count_query
       post_with_annotation = Post.annotate("foo")
       all_count = Post.all.to_a.count
-      assert_sql(%r{/\* foo \*/}) do
+      assert_queries_match(%r{/\* foo \*/}) do
         assert_equal all_count, post_with_annotation.count
       end
     end
@@ -373,7 +391,7 @@ module ActiveRecord
     end
 
     def test_does_not_duplicate_optimizer_hints_on_merge
-      escaped_table = Post.connection.quote_table_name("posts")
+      escaped_table = quote_table_name("posts")
       expected = "SELECT /*+ OMGHINT */ #{escaped_table}.* FROM #{escaped_table}"
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
@@ -421,25 +439,25 @@ module ActiveRecord
     end
 
     test "no queries on empty IN" do
-      assert_queries(0) do
+      assert_queries_count(0) do
         Post.where(id: []).load
       end
     end
 
     test "can unscope empty IN" do
-      assert_queries(1) do
+      assert_queries_count(1) do
         Post.where(id: []).unscope(where: :id).load
       end
     end
 
     test "no queries on empty relation exists?" do
-      assert_queries(0) do
+      assert_queries_count(0) do
         Post.where(id: []).exists?(123)
       end
     end
 
     test "no queries on empty condition exists?" do
-      assert_queries(0) do
+      assert_queries_count(0) do
         Post.all.exists?(id: [])
       end
     end
@@ -457,7 +475,7 @@ module ActiveRecord
 
       def sqlite3_version_includes_quoting_bug?
         if current_adapter?(:SQLite3Adapter)
-          selected_quoted_column_names = ActiveRecord::Base.connection.exec_query(
+          selected_quoted_column_names = ActiveRecord::Base.lease_connection.exec_query(
             'SELECT "join" FROM (SELECT id AS "join" FROM posts) subquery'
           ).columns
           ["join"] != selected_quoted_column_names

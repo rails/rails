@@ -5,6 +5,8 @@ require "isolation/abstract_unit"
 module ApplicationTests
   module ConfigurationTests
     class CustomTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::Isolation
+
       def setup
         build_app
         FileUtils.rm_rf("#{app_path}/config/environments")
@@ -36,6 +38,10 @@ module ApplicationTests
         assert_respond_to x, :i_do_not_exist
         assert_kind_of Method, x.method(:i_do_not_exist)
         assert_kind_of ActiveSupport::OrderedOptions, x.i_do_not_exist
+
+        assert_raises ArgumentError, match: "wrong number of arguments (given 1, expected 0) when reading configuration `i_do_not_exist`" do
+          x.i_do_not_exist(false)
+        end
       end
 
       private

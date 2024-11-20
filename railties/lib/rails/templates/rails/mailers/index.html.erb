@@ -1,8 +1,15 @@
-<% @previews.each do |preview| %>
-<h3><%= link_to preview.preview_name.titleize, url_for(controller: "rails/mailers", action: "preview", path: preview.preview_name) %></h3>
-<ul>
-<% preview.emails.each do |email| %>
-<li><%= link_to email, url_for(controller: "rails/mailers", action: "preview", path: "#{preview.preview_name}/#{email}") %></li>
-<% end %>
-</ul>
+<h1><%= @page_title %></h1>
+
+<% if @previews.any? %>
+  <% @previews.each do |preview| %>
+  <h3><%= link_to preview.preview_name.titleize, url_for(controller: "rails/mailers", action: "preview", path: preview.preview_name) %></h3>
+  <ul>
+  <% preview.emails.each do |email| %>
+  <li><%= link_to email, url_for(controller: "rails/mailers", action: "preview", path: "#{preview.preview_name}/#{email}") %></li>
+  <% end %>
+  </ul>
+  <% end %>
+<% else %>
+  <p>You have not defined any Action Mailer Previews.</p>
+  <p>Read <%= link_to "Action Mailer Basics", "https://guides.rubyonrails.org/action_mailer_basics.html#previewing-emails" %> to learn how to define your first.</p>
 <% end %>

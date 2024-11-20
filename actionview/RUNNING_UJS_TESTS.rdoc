@@ -1,9 +1,0 @@
-== Running UJS tests
-
-Run the tests in headless mode by running:
-
-   rake test:ujs
-
-To run the tests in a browser, start the Rails UJS server by running:
-
-   rake ujs:server

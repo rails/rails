@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveStorage
+  # = Active Storage \Attached \One
+  #
   # Representation of a single attachment to a model.
   class Attached::One < Attached
     ##

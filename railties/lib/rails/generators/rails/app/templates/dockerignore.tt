@@ -2,17 +2,17 @@
 
 # Ignore git directory.
 /.git/
+/.gitignore
 
 # Ignore bundler config.
 /.bundle
 
+# Ignore all environment files.
+/.env*
+
 # Ignore all default key files.
 /config/master.key
 /config/credentials/*.key
-
-# Ignore all environment files.
-/.env*
-!/.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -23,7 +23,6 @@
 
 # Ignore pidfiles, but keep the directory.
 /tmp/pids/*
-!/tmp/pids/
 !/tmp/pids/.keep
 <% end -%>
 
@@ -32,7 +31,6 @@
 <% if keeps? -%>
 !/storage/.keep
 /tmp/storage/*
-!/tmp/storage/
 !/tmp/storage/.keep
 <% end -%>
 <% unless options.api? -%>
@@ -43,3 +41,21 @@
 !/app/assets/builds/.keep
 /public/assets
 <% end -%>
+<% unless options.skip_ci? -%>
+
+# Ignore CI service files.
+/.github
+<% end -%>
+
+<% unless options.skip_kamal? -%>
+# Ignore Kamal files.
+/config/deploy*.yml
+/.kamal
+
+<% end -%>
+# Ignore development files
+/.devcontainer
+
+# Ignore Docker-related files
+/.dockerignore
+/Dockerfile*

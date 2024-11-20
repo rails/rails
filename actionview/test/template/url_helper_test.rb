@@ -579,6 +579,11 @@ class UrlHelperTest < ActiveSupport::TestCase
       %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
       link_to("Hello", "http://www.example.com", method: :post, rel: "example")
     )
+
+    assert_dom_equal(
+      %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
+      link_to("Hello", "http://www.example.com", method: :post, rel: :example)
+    )
   end
 
   def test_link_tag_using_post_javascript_and_confirm
@@ -1302,7 +1307,7 @@ class PolymorphicControllerTest < ActionController::TestCase
     @routes = WorkshopsController::ROUTES
   end
 
-  def test_new_resource
+  def test_index_resource
     @controller = WorkshopsController.new
 
     get :index
@@ -1314,6 +1319,13 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { id: 1 }
     assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
+  end
+
+  def test_existing_cpk_resource
+    @controller = WorkshopsController.new
+
+    get :show, params: { id: "1-27" }
+    assert_equal %{/workshops/1-27\n<a href="/workshops/1-27">Workshop</a>}, @response.body
   end
 
   def test_current_page_when_options_does_not_respond_to_to_hash

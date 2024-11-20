@@ -17,10 +17,15 @@ module Rails
       initializer :setup_main_autoloader do
         autoloader = Rails.autoloaders.main
 
+        # Normally empty, but if the user already defined some, we won't
+        # override them. Important if there are custom namespaces associated.
+        already_configured_dirs = Set.new(autoloader.dirs)
+
         ActiveSupport::Dependencies.autoload_paths.freeze
         ActiveSupport::Dependencies.autoload_paths.uniq.each do |path|
           # Zeitwerk only accepts existing directories in `push_dir`.
           next unless File.directory?(path)
+          next if already_configured_dirs.member?(path.to_s)
 
           autoloader.push_dir(path)
           autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
@@ -72,6 +77,7 @@ module Rails
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           Zeitwerk::Loader.eager_load_all
+          Rails.eager_load!
           config.eager_load_namespaces.each(&:eager_load!)
 
           if config.reloading_enabled?
@@ -136,6 +142,7 @@ module Rails
           app.routes.prepend do
             get "/rails/info/properties" => "rails/info#properties", internal: true
             get "/rails/info/routes"     => "rails/info#routes",     internal: true
+            get "/rails/info/notes"      => "rails/info#notes",      internal: true
             get "/rails/info"            => "rails/info#index",      internal: true
           end
 
@@ -152,8 +159,8 @@ module Rails
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
         reloader.eager_load = app.config.eager_load
-        reloader.execute
         reloaders << reloader
+
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
@@ -168,6 +175,8 @@ module Rails
           reloader.execute
           ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
+
+        reloader.execute_unless_loaded if !app.routes.is_a?(Engine::LazyRouteSet) || app.config.eager_load
       end
 
       # Set clearing dependencies after the finisher hook to ensure paths
@@ -215,6 +224,12 @@ module Rails
           end
         else
           ActiveSupport::DescendantsTracker.disable_clear!
+        end
+      end
+
+      initializer :enable_yjit do
+        if config.yjit && defined?(RubyVM::YJIT.enable)
+          RubyVM::YJIT.enable
         end
       end
     end

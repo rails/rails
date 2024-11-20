@@ -69,30 +69,54 @@ module ActionDispatch
       end
     end
 
-    if defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
-      test "#source_extracts works with error_highlight" do
-        lineno = __LINE__
-        begin
-          1.time
-        rescue NameError => exc
-        end
+    class_eval "def throw_syntax_error; eval %(
+      'abc' + pluralize 'def'
+    ); end", "lib/file.rb", 42
 
-        wrapper = ExceptionWrapper.new(nil, exc)
+    test "#source_extracts works with eval syntax error" do
+      exception = begin throw_syntax_error; rescue SyntaxError => ex; ex; end
 
-        code = {}
-        File.foreach(__FILE__).to_a.drop(lineno - 1).take(6).each_with_index do |line, i|
-          code[lineno + i] = line
-        end
-        code[lineno + 2] = ["          1", ".time", "\n"]
-        assert_equal({ code: code, line_number: lineno + 2 }, wrapper.source_extracts.first)
+      wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+
+      assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
+       assert_equal [ code: "foo", line_number: 42 ], wrapper.source_extracts
+     end
+    end
+
+    test "#source_extracts works with nil backtrace_locations" do
+      exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      assert_empty wrapper.source_extracts
+    end
+
+    test "#source_extracts works with error_highlight" do
+      lineno = __LINE__
+      begin
+        1.time
+      rescue NameError => exc
       end
+
+      wrapper = ExceptionWrapper.new(nil, exc)
+
+      code = {}
+      File.foreach(__FILE__).to_a.drop(lineno - 1).take(6).each_with_index do |line, i|
+        code[lineno + i] = line
+      end
+      code[lineno + 2] = ["        1", ".time", "\n"]
+      assert_equal({ code: code, line_number: lineno + 2 }, wrapper.source_extracts.first)
     end
 
     test "#application_trace returns traces only from the application" do
       exception = begin index; rescue TestError => ex; ex; end
       wrapper = ExceptionWrapper.new(@cleaner, TopErrorProxy.new(exception, 1))
 
-      assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace.map(&:to_s)
+      if RUBY_VERSION >= "3.4"
+        assert_equal [ "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'" ], wrapper.application_trace.map(&:to_s)
+      else
+        assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace.map(&:to_s)
+      end
     end
 
     test "#status_code returns 400 for Rack::Utils::ParameterTypeError" do
@@ -160,30 +184,97 @@ module ActionDispatch
       exception = begin in_rack; rescue TestError => ex; TopErrorProxy.new(ex, 2); end
       wrapper = ExceptionWrapper.new(@cleaner, exception)
 
-      assert_equal({
-        "Application Trace" => [
-          exception_object_id: exception.object_id,
-          id: 0,
-          trace: "lib/file.rb:42:in `index'"
-        ],
-        "Framework Trace" => [
-          exception_object_id: exception.object_id,
-          id: 1,
-          trace: "/gems/rack.rb:43:in `in_rack'"
-        ],
-        "Full Trace" => [
-          {
+      if RUBY_VERSION >= "3.4"
+        assert_equal({
+          "Application Trace" => [
+            exception_object_id: exception.object_id,
+            id: 0,
+            trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
+          ],
+          "Framework Trace" => [
+            exception_object_id: exception.object_id,
+            id: 1,
+            trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
+          ],
+          "Full Trace" => [
+            {
+              exception_object_id: exception.object_id,
+              id: 0,
+              trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
+            },
+            {
+              exception_object_id: exception.object_id,
+              id: 1,
+              trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
+            }
+          ]
+        }.inspect, wrapper.traces.inspect)
+      else
+        assert_equal({
+          "Application Trace" => [
             exception_object_id: exception.object_id,
             id: 0,
             trace: "lib/file.rb:42:in `index'"
-          },
-          {
+          ],
+          "Framework Trace" => [
             exception_object_id: exception.object_id,
             id: 1,
             trace: "/gems/rack.rb:43:in `in_rack'"
-          }
-        ]
-      }.inspect, wrapper.traces.inspect)
+          ],
+          "Full Trace" => [
+            {
+              exception_object_id: exception.object_id,
+              id: 0,
+              trace: "lib/file.rb:42:in `index'"
+            },
+            {
+              exception_object_id: exception.object_id,
+              id: 1,
+              trace: "/gems/rack.rb:43:in `in_rack'"
+            }
+          ]
+        }.inspect, wrapper.traces.inspect)
+      end
+    end
+
+    test "#show? returns false when using :rescuable and the exceptions is not rescuable" do
+      exception = RuntimeError.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :rescuable }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal false, wrapper.show?(request)
+    end
+
+    test "#show? returns true when using :rescuable and the exceptions is rescuable" do
+      exception = AbstractController::ActionNotFound.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :rescuable }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal true, wrapper.show?(request)
+    end
+
+    test "#show? returns false when using :none and the exceptions is rescuable" do
+      exception = AbstractController::ActionNotFound.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :none }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal false, wrapper.show?(request)
+    end
+
+    test "#show? returns true when using :all and the exceptions is not rescuable" do
+      exception = RuntimeError.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :all }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal true, wrapper.show?(request)
     end
   end
 end

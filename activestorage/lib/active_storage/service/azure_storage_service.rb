@@ -7,12 +7,21 @@ require "azure/storage/blob"
 require "azure/storage/common/core/auth/shared_access_signature"
 
 module ActiveStorage
+  # = Active Storage \Azure Storage \Service
+  #
   # Wraps the Microsoft Azure Storage Blob Service as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::AzureStorageService < Service
     attr_reader :client, :container, :signer
 
     def initialize(storage_account_name:, storage_access_key:, container:, public: false, **options)
+      ActiveStorage.deprecator.warn <<~MSG.squish
+        `ActiveStorage::Service::AzureStorageService` is deprecated and will be
+        removed in Rails 8.1.
+        Please try the `azure-blob` gem instead.
+        This gem is not maintained by the Rails team, so please test your applications before deploying to production.
+      MSG
+
       @client = Azure::Storage::Blob::BlobService.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key, **options)
       @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container

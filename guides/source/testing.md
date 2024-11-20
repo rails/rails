@@ -95,10 +95,12 @@ A line by line examination of this file will help get you oriented to Rails test
 require "test_helper"
 ```
 
-By requiring this file, `test_helper.rb` the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all our tests.
+By requiring this file, `test_helper.rb`, the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all our tests.
 
 ```ruby
 class ArticleTest < ActiveSupport::TestCase
+  # ...
+end
 ```
 
 The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. Later in this guide, we'll see some of the methods it gives us.
@@ -152,7 +154,7 @@ test "should not save article without title" do
 end
 ```
 
-Let us run this newly added test (where `6` is the number of line where the test is defined).
+Let us run this newly added test (where `6` is the line number where the test is defined).
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
@@ -167,7 +169,7 @@ ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/model
 Expected true to be nil or false
 
 
-rails test test/models/article_test.rb:6
+bin/rails test test/models/article_test.rb:6
 
 
 
@@ -250,7 +252,7 @@ NameError: undefined local variable or method 'some_undefined_variable' for #<Ar
     test/models/article_test.rb:11:in 'block in <class:ArticleTest>'
 
 
-rails test test/models/article_test.rb:9
+bin/rails test test/models/article_test.rb:9
 
 
 
@@ -296,7 +298,7 @@ This test should now pass.
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
 Here's an extract of the assertions you can use with
-[`Minitest`](https://github.com/seattlerb/minitest), the default testing library
+[`Minitest`](https://github.com/minitest/minitest), the default testing library
 used by Rails. The `[msg]` parameter is an optional string message you can
 specify to make your test failure messages clearer.
 
@@ -332,6 +334,8 @@ specify to make your test failure messages clearer.
 | `assert_not_operator( obj1, operator, [obj2], [msg] )`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_predicate ( obj, predicate, [msg] )`                     | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
 | `assert_not_predicate ( obj, predicate, [msg] )`                 | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
+| `assert_error_reported(class) { block }`                         | Ensures that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
+| `assert_no_error_reported { block }`                             | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive &
@@ -349,15 +353,33 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 
 | Assertion                                                                         | Purpose |
 | --------------------------------------------------------------------------------- | ------- |
-| [`assert_difference(expressions, difference = 1, message = nil) {...}`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference) | Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
-| [`assert_no_difference(expressions, message = nil, &block)`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference) | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
-| [`assert_changes(expressions, message = nil, from:, to:, &block)`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_changes) | Test that the result of evaluating an expression is changed after invoking the passed in block.|
-| [`assert_no_changes(expressions, message = nil, &block)`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_changes) | Test the result of evaluating an expression is not changed after invoking the passed in block.|
-| [`assert_nothing_raised { block }`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_nothing_raised) | Ensures that the given block doesn't raise any exceptions.|
-| [`assert_recognizes(expected_options, path, extras={}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes) | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
-| [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates) | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
-| [`assert_response(type, message = nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_response) | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](https://rubydoc.info/gems/rack/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](https://rubydoc.info/gems/rack/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
-| [`assert_redirected_to(options = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_redirected_to) | Asserts that the response is a redirect to a URL matching the given options. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
+| [`assert_difference(expressions, difference = 1, message = nil) {...}`][] | Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
+| [`assert_no_difference(expressions, message = nil, &block)`][] | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
+| [`assert_changes(expressions, message = nil, from:, to:, &block)`][] | Test that the result of evaluating an expression is changed after invoking the passed in block.|
+| [`assert_no_changes(expressions, message = nil, &block)`][] | Test the result of evaluating an expression is not changed after invoking the passed in block.|
+| [`assert_nothing_raised { block }`][] | Ensures that the given block doesn't raise any exceptions.|
+| [`assert_recognizes(expected_options, path, extras={}, message=nil)`][] | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
+| [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`][] | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
+| [`assert_response(type, message = nil)`][] | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](https://rubydoc.info/gems/rack/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](https://rubydoc.info/gems/rack/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
+| [`assert_redirected_to(options = {}, message=nil)`][] | Asserts that the response is a redirect to a URL matching the given options. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
+| [`assert_queries_count(count = nil, include_schema: false, &block)`][] | Asserts that `&block` generates an `int` number of SQL queries.|
+| [`assert_no_queries(include_schema: false, &block)`][] | Asserts that `&block` generates no SQL queries.|
+| [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`][] | Asserts that `&block` generates SQL queries that match the pattern.|
+| [`assert_no_queries_match(pattern, &block)`][] | Asserts that `&block` generates no SQL queries that match the pattern.|
+
+[`assert_difference(expressions, difference = 1, message = nil) {...}`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference)
+[`assert_no_difference(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference
+[`assert_changes(expressions, message = nil, from:, to:, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_changes
+[`assert_no_changes(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_changes
+[`assert_nothing_raised { block }`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_nothing_raised
+[`assert_recognizes(expected_options, path, extras={}, message=nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes
+[`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates
+[`assert_response(type, message = nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_response
+[`assert_redirected_to(options = {}, message=nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_redirected_to
+[`assert_queries_count(count = nil, include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_count
+[`assert_no_queries(include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries
+[`assert_queries_match(pattern, count: nil, include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_match
+[`assert_no_queries_match(pattern, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries_match
 
 You'll see the usage of some of these assertions in the next chapter.
 
@@ -377,6 +399,50 @@ Each of these classes include `Minitest::Assertions`, allowing us to use all of 
 
 NOTE: For more information on `Minitest`, refer to [its
 documentation](http://docs.seattlerb.org/minitest).
+
+### Transactions
+
+By default, Rails automatically wraps tests in a database transaction that is
+rolled back after they finish. This makes tests independent of each other and
+changes to the database are only visible within a single test.
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  test "newly created users are active by default" do
+    # Since the test is implicitly wrapped in a database transaction, the user
+    # created here won't be seen by other tests.
+    assert User.create.active?
+  end
+end
+```
+
+The method `ActiveRecord::Base.current_transaction` still acts as intended,
+though:
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  test "current_transaction" do
+    # The implicit transaction around tests does not interfere with the
+    # application-level semantics of current_transaction.
+    assert User.current_transaction.blank?
+  end
+end
+```
+
+If there are [multiple writing databases](active_record_multiple_databases.html)
+in place, tests are wrapped in as many respective transactions, and all of them
+are rolled back.
+
+#### Opting-out of Test Transactions
+
+Individual test cases can opt-out:
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  # No implicit database transaction wraps the tests in this test case.
+  self.use_transactional_tests = false
+end
+```
 
 ### The Rails Test Runner
 
@@ -421,6 +487,12 @@ You can also run a test at a specific line by providing the line number.
 $ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
+You can also run a range of tests by providing the line range.
+
+```bash
+$ bin/rails test test/models/article_test.rb:6-20 # runs tests from line 6 to 20
+```
+
 You can also run an entire directory of tests by providing the path to the directory.
 
 ```bash
@@ -432,25 +504,36 @@ at the end of the test run and so on. Check the documentation of the test runner
 
 ```bash
 $ bin/rails test -h
-Usage: rails test [options] [files or directories]
+Usage:
+  bin/rails test [PATHS...]
 
-You can run a single test by appending a line number to a filename:
+Run tests except system tests
 
-    bin/rails test test/models/user_test.rb:27
+Examples:
+    You can run a single test by appending a line number to a filename:
 
-You can run multiple files and directories at the same time:
+        bin/rails test test/models/user_test.rb:27
 
-    bin/rails test test/controllers test/integration/login_test.rb
+    You can run multiple tests with in a line range by appending the line range to a filename:
 
-By default test failures and errors are reported inline during a run.
+        bin/rails test test/models/user_test.rb:10-20
+
+    You can run multiple files and directories at the same time:
+
+        bin/rails test test/controllers test/integration/login_test.rb
+
+    By default test failures and errors are reported inline during a run.
 
 minitest options:
     -h, --help                       Display this help.
         --no-plugins                 Bypass minitest plugin auto-loading (or set $MT_NO_PLUGINS).
     -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
     -v, --verbose                    Verbose. Show progress processing files.
+    -q, --quiet                      Quiet. Show no progress processing files.
+        --show-skips                 Show skipped at the end of run.
     -n, --name PATTERN               Filter run on /regexp/ or string.
         --exclude PATTERN            Exclude /regexp/ or string from run.
+    -S, --skip CODES                 Skip reporting of certain types of results (eg E).
 
 Known extensions: rails, pride
     -w, --warnings                   Run with Ruby warnings enabled
@@ -459,6 +542,7 @@ Known extensions: rails, pride
     -d, --defer-output               Output test failures and errors after the test run
     -f, --fail-fast                  Abort test run on first failure or error
     -c, --[no-]color                 Enable color in the output
+        --profile [COUNT]            Enable profiling of tests and list the slowest test cases (default: 10)
     -p, --pride                      Pride. Show your testing pride!
 ```
 
@@ -467,7 +551,7 @@ Known extensions: rails, pride
 To run all tests in a CI environment, there's just one command you need:
 
 ```bash
-bin/rails test
+$ bin/rails test
 ```
 
 If you are using [System Tests](#system-testing), `bin/rails test` will not run them, since
@@ -508,7 +592,7 @@ process. The databases will be suffixed with the number corresponding to the wor
 have 2 workers the tests will create `test-database-0` and `test-database-1` respectively.
 
 If the number of workers passed is 1 or fewer the processes will not be forked and the tests will not
-be parallelized and the tests will use the original `test-database` database.
+be parallelized and they will use the original `test-database` database.
 
 Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
 These can be useful if your app uses multiple databases or performs other tasks that depend on the number of
@@ -538,7 +622,7 @@ These methods are not needed or available when using parallel testing with threa
 If you prefer using threads or are using JRuby, a threaded parallelization option is provided. The threaded
 parallelizer is backed by Minitest's `Parallel::Executor`.
 
-To change the parallelization method to use threads over forks put the following in your `test_helper.rb`
+To change the parallelization method to use threads over forks put the following in your `test_helper.rb`:
 
 ```ruby
 class ActiveSupport::TestCase
@@ -558,15 +642,11 @@ $ PARALLEL_WORKERS=15 bin/rails test
 
 ### Testing Parallel Transactions
 
-Rails automatically wraps any test case in a database transaction that is rolled
-back after the test completes.  This makes test cases independent of each other
-and changes to the database are only visible within a single test.
+When you want to test code that runs parallel database transactions in threads,
+those can block each other because they are already nested under the implicit
+test transaction.
 
-When you want to test code that runs parallel transactions in threads,
-transactions can block each other because they are already nested under the test
-transaction.
-
-You can disable transactions in a test case class by setting
+To workaround this, you can disable transactions in a test case class by setting
 `self.use_transactional_tests = false`:
 
 ```ruby
@@ -622,7 +702,7 @@ the migrations against the development database (`bin/rails db:migrate`) will
 bring the schema up to date.
 
 NOTE: If there were modifications to existing migrations, the test database needs to
-be rebuilt. This can be done by executing `bin/rails db:test:prepare`.
+be rebuilt. This can be done by executing `bin/rails test:db`.
 
 ### The Low-Down on Fixtures
 
@@ -698,7 +778,7 @@ Consider an `Article` model that has an associated image as a `thumbnail`
 attachment, along with fixture data YAML:
 
 ```ruby
-class Article
+class Article < ApplicationRecord
   has_one_attached :thumbnail
 end
 ```
@@ -735,9 +815,9 @@ ERB allows you to embed Ruby code within templates. The YAML fixture format is p
 
 ```erb
 <% 1000.times do |n| %>
-user_<%= n %>:
-  username: <%= "user#{n}" %>
-  email: <%= "user#{n}@example.com" %>
+  user_<%= n %>:
+    username: <%= "user#{n}" %>
+    email: <%= "user#{n}@example.com" %>
 <% end %>
 ```
 
@@ -825,6 +905,8 @@ By default, system tests are run with the Selenium driver, using the Chrome
 browser, and a screen size of 1400x1400. The next section explains how to
 change the default settings.
 
+By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
+
 ### Changing the Default Settings
 
 Rails makes changing the default settings for system tests very simple. All
@@ -875,24 +957,19 @@ end
 
 If you want to use a remote browser, e.g.
 [Headless Chrome in Docker](https://github.com/SeleniumHQ/docker-selenium),
-you have to add remote `url` through `options`.
+you have to add remote `url`  and set `browser` as remote through `options`.
 
 ```ruby
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  options = ENV["SELENIUM_REMOTE_URL"].present? ? { url: ENV["SELENIUM_REMOTE_URL"] } : {}
+  url = ENV.fetch("SELENIUM_REMOTE_URL", nil)
+  options = if url
+    { browser: :remote, url: url }
+  else
+    { browser: :chrome }
+  end
   driven_by :selenium, using: :headless_chrome, options: options
-end
-```
-
-In such a case, the gem `webdrivers` is no longer required. You could remove it
-completely or add `require:` option in `Gemfile`.
-
-```ruby
-# ...
-group :test do
-  gem "webdrivers", require: !ENV["SELENIUM_REMOTE_URL"] || ENV["SELENIUM_REMOTE_URL"].empty?
 end
 ```
 
@@ -1023,7 +1100,7 @@ that the text from the new article's title is on the articles index page.
 #### Testing for Multiple Screen Sizes
 
 If you want to test for mobile sizes on top of testing for desktop,
-you can create another class that inherits from SystemTestCase and use in your
+you can create another class that inherits from `ActionDispatch::SystemTestCase` and use it in your
 test suite. In this example a file called `mobile_system_test_case.rb` is created
 in the `/test` directory with the following configuration.
 
@@ -1042,7 +1119,6 @@ Now you can test your app using multiple different configurations.
 require "mobile_system_test_case"
 
 class PostsTest < MobileSystemTestCase
-
   test "visiting the index" do
     visit posts_url
     assert_selector "h1", text: "Posts"
@@ -1086,6 +1162,8 @@ end
 
 Here the test is inheriting from `ActionDispatch::IntegrationTest`. This makes some additional helpers available for us to use in our integration tests.
 
+By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
+
 ### Helpers Available for Integration Tests
 
 In addition to the standard testing helpers, inheriting from `ActionDispatch::IntegrationTest` comes with some additional helpers available when writing integration tests. Let's get briefly introduced to the three categories of helpers we get to choose from.
@@ -1093,6 +1171,8 @@ In addition to the standard testing helpers, inheriting from `ActionDispatch::In
 For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
 
 When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use.
+
+If we need to upload files, take a look at [`ActionDispatch::TestProcess::FixtureFile`](https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html) to help.
 
 If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
 
@@ -1127,7 +1207,7 @@ class BlogFlowTest < ActionDispatch::IntegrationTest
 end
 ```
 
-We will take a look at `assert_select` to query the resulting HTML of a request in the "Testing Views" section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
+We will take a look at `assert_select` to query the resulting HTML of a request in the [Testing Views](#testing-views) section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
 
 When we visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
 
@@ -1283,6 +1363,8 @@ NOTE: If you followed the steps in the [Basic Authentication](getting_started.ht
 post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
 ```
 
+By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
+
 ### Available Request Types for Functional Tests
 
 If you're familiar with the HTTP protocol, you'll know that `get` is a type of request. There are 6 request types supported in Rails functional tests:
@@ -1313,7 +1395,7 @@ test "ajax request" do
 end
 ```
 
-### The Three Hashes of the Apocalypse
+### The Three Hashketeers!
 
 After a request has been made and processed, you will have 3 Hash objects ready for use:
 
@@ -1324,9 +1406,9 @@ After a request has been made and processed, you will have 3 Hash objects ready 
 As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
 
 ```ruby
-flash["gordon"]               flash[:gordon]
-session["shmession"]          session[:shmession]
-cookies["are_good_for_u"]     cookies[:are_good_for_u]
+flash["gordon"]               # or flash[:gordon]
+session["shmession"]          # or session[:shmession]
+cookies["are_good_for_u"]     # or cookies[:are_good_for_u]
 ```
 
 ### Instance Variables Available
@@ -1352,9 +1434,9 @@ end
 
 ### Setting Headers and CGI Variables
 
-[HTTP headers](https://tools.ietf.org/search/rfc2616#section-5.3)
+[HTTP headers](https://datatracker.ietf.org/doc/html/rfc2616#section-5.3)
 and
-[CGI variables](https://tools.ietf.org/search/rfc3875#section-4.1)
+[CGI variables](https://datatracker.ietf.org/doc/html/rfc3875#section-4.1)
 can be passed as headers:
 
 ```ruby
@@ -1367,7 +1449,7 @@ get articles_url, headers: { "HTTP_REFERER": "http://example.com/home" } # simul
 
 ### Testing `flash` Notices
 
-If you remember from earlier, one of the Three Hashes of the Apocalypse was `flash`.
+If you remember from earlier, one of the Three Hashketeers was `flash`.
 
 We want to add a `flash` message to our blog application whenever someone
 successfully creates a new Article.
@@ -1551,7 +1633,6 @@ end
 require "test_helper"
 
 class ProfileControllerTest < ActionDispatch::IntegrationTest
-
   test "should show profile" do
     # helper is now reusable from any controller test case
     sign_in_as users(:david)
@@ -1666,7 +1747,7 @@ assert_select "ol" do
 end
 ```
 
-This assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/master/lib/rails/dom/testing/assertions/selector_assertions.rb).
+This assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/main/lib/rails/dom/testing/assertions/selector_assertions.rb).
 
 ### Additional View-Based Assertions
 
@@ -1685,6 +1766,156 @@ assert_select_email do
   assert_select "small", "Please click the 'Unsubscribe' link if you want to opt-out."
 end
 ```
+
+Testing View Partials
+---------------------
+
+Partial templates - usually called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and reuse them throughout your templates.
+
+View tests provide an opportunity to test that partials render content the way you expect. View partial tests reside in `test/views/` and inherit from `ActionView::TestCase`.
+
+To render a partial, call `render` like you would in a template. The content is
+available through the test-local `#rendered` method:
+
+```ruby
+class ArticlePartialTest < ActionView::TestCase
+  test "renders a link to itself" do
+    article = Article.create! title: "Hello, world"
+
+    render "articles/article", article: article
+
+    assert_includes rendered, article.title
+  end
+end
+```
+
+Tests that inherit from `ActionView::TestCase` also have access to [`assert_select`](#testing-views) and the [other additional view-based assertions](#additional-view-based-assertions) provided by [rails-dom-testing][]:
+
+```ruby
+test "renders a link to itself" do
+  article = Article.create! title: "Hello, world"
+
+  render "articles/article", article: article
+
+  assert_select "a[href=?]", article_url(article), text: article.title
+end
+```
+
+In order to integrate with [rails-dom-testing][], tests that inherit from
+`ActionView::TestCase` declare a `document_root_element` method that returns the
+rendered content as an instance of a
+[Nokogiri::XML::Node](https://www.rubydoc.info/github/sparklemotion/nokogiri/Nokogiri/XML/Node):
+
+```ruby
+test "renders a link to itself" do
+  article = Article.create! title: "Hello, world"
+
+  render "articles/article", article: article
+  anchor = document_root_element.at("a")
+
+  assert_equal article.name, anchor.text
+  assert_equal article_url(article), anchor["href"]
+end
+```
+
+If your application uses Ruby >= 3.0 or higher, depends on [Nokogiri >= 1.14.0](https://github.com/sparklemotion/nokogiri/releases/tag/v1.14.0) or
+higher, and depends on [Minitest >= >5.18.0](https://github.com/minitest/minitest/blob/v5.18.0/History.rdoc#5180--2023-03-04-),
+`document_root_element` supports [Ruby's Pattern Matching](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
+
+```ruby
+test "renders a link to itself" do
+  article = Article.create! title: "Hello, world"
+
+  render "articles/article", article: article
+  anchor = document_root_element.at("a")
+  url = article_url(article)
+
+  assert_pattern do
+    anchor => { content: "Hello, world", attributes: [{ name: "href", value: url }] }
+  end
+end
+```
+
+If you'd like to access the same [Capybara-powered Assertions](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions)
+that your [Functional and System Testing](#functional-and-system-testing) tests
+utilize, you can define a base class that inherits from `ActionView::TestCase`
+and transforms the `document_root_element` into a `page` method:
+
+```ruby
+# test/view_partial_test_case.rb
+
+require "test_helper"
+require "capybara/minitest"
+
+class ViewPartialTestCase < ActionView::TestCase
+  include Capybara::Minitest::Assertions
+
+  def page
+    Capybara.string(rendered)
+  end
+end
+
+# test/views/article_partial_test.rb
+
+require "view_partial_test_case"
+
+class ArticlePartialTest < ViewPartialTestCase
+  test "renders a link to itself" do
+    article = Article.create! title: "Hello, world"
+
+    render "articles/article", article: article
+
+    assert_link article.title, href: article_url(article)
+  end
+end
+```
+
+Starting in Action View version 7.1, the `#rendered` helper method returns an
+object capable of parsing the view partial's rendered content.
+
+To transform the `String` content returned by the `#rendered` method into an
+object, define a parser by calling `.register_parser`. Calling
+`.register_parser :rss` defines a `#rendered.rss` helper method. For example,
+to parse rendered [RSS content][] into an object with `#rendered.rss`, register
+a call to `RSS::Parser.parse`:
+
+```ruby
+register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
+
+test "renders RSS" do
+  article = Article.create!(title: "Hello, world")
+
+  render formats: :rss, partial: article
+
+  assert_equal "Hello, world", rendered.rss.items.last.title
+end
+```
+
+By default, `ActionView::TestCase` defines a parser for:
+
+* `:html` - returns an instance of [Nokogiri::XML::Node](https://nokogiri.org/rdoc/Nokogiri/XML/Node.html)
+* `:json` - returns an instance of [ActiveSupport::HashWithIndifferentAccess](https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html)
+
+```ruby
+test "renders HTML" do
+  article = Article.create!(title: "Hello, world")
+
+  render partial: "articles/article", locals: { article: article }
+
+  assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
+end
+
+test "renders JSON" do
+  article = Article.create!(title: "Hello, world")
+
+  render formats: :json, partial: "articles/article", locals: { article: article }
+
+  assert_pattern { rendered.json => { title: "Hello, world" } }
+end
+```
+
+[rails-dom-testing]: https://github.com/rails/rails-dom-testing
+[RSS content]: https://www.rssboard.org/rss-specification
 
 Testing Helpers
 ---------------
@@ -1915,56 +2146,90 @@ NOTE: The `assert_emails` method is not tied to a particular deliver method and 
 Testing Jobs
 ------------
 
-Since your custom jobs can be queued at different levels inside your application,
-you'll need to test both the jobs themselves (their behavior when they get enqueued)
-and that other entities correctly enqueue them.
+Jobs can be tested in isolation (focusing on the job's behavior) and in context
+(focusing on the calling code's behavior).
 
-### A Basic Test Case
+### Testing Jobs in Isolation
 
-By default, when you generate a job, an associated test will be generated as well
-under the `test/jobs` directory. Here's an example test with a billing job:
+When you generate a job, an associated test file will also be generated in the
+`test/jobs` directory.
+
+Here is an example test for a billing job:
 
 ```ruby
 require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
-  test "that account is charged" do
-    BillingJob.perform_now(account, product)
+  test "account is charged" do
+    perform_enqueued_jobs do
+      BillingJob.perform_later(account, product)
+    end
     assert account.reload.charged_for?(product)
   end
 end
 ```
 
-This test is pretty simple and only asserts that the job got the work done
-as expected.
+The default queue adapter for tests will not perform jobs until
+[`perform_enqueued_jobs`][] is called. Additionally, it will clear all jobs
+before each test is run so that tests do not interfere with each other.
 
-By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
-your jobs are performed inline. It will also ensure that all previously performed
-and enqueued jobs are cleared before any test run so you can safely assume that
-no jobs have already been executed in the scope of each test.
+The test uses `perform_enqueued_jobs` and [`perform_later`][] instead of
+[`perform_now`][] so that if retries are configured, retry failures are caught
+by the test instead of being re-enqueued and ignored.
 
-### Custom Assertions and Testing Jobs inside Other Components
+[`perform_enqueued_jobs`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html#method-i-perform_enqueued_jobs
+[`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
+[`perform_now`]: https://api.rubyonrails.org/classes/ActiveJob/Execution/ClassMethods.html#method-i-perform_now
 
-Active Job ships with a bunch of custom assertions that can be used to lessen the verbosity of tests. For a full list of available assertions, see the API documentation for [`ActiveJob::TestHelper`](https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html).
+### Testing Jobs in Context
 
-It's a good practice to ensure that your jobs correctly get enqueued or performed
-wherever you invoke them (e.g. inside your controllers). This is precisely where
-the custom assertions provided by Active Job are pretty useful. For instance,
-within a model:
+It's good practice to test that jobs are correctly enqueued, for example, by a
+controller action. The [`ActiveJob::TestHelper`][] module provides several
+methods that can help with this, such as [`assert_enqueued_with`][].
+
+Here is an example that tests an account model method:
 
 ```ruby
 require "test_helper"
 
-class ProductTest < ActiveSupport::TestCase
+class AccountTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  test "billing job scheduling" do
+  test "#charge_for enqueues billing job" do
     assert_enqueued_with(job: BillingJob) do
-      product.charge(account)
+      account.charge_for(product)
     end
+
+    assert_not account.reload.charged_for?(product)
+
+    perform_enqueued_jobs
+
+    assert account.reload.charged_for?(product)
   end
 end
 ```
+
+[`ActiveJob::TestHelper`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html
+[`assert_enqueued_with`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html#method-i-assert_enqueued_with
+
+### Testing that Exceptions are Raised
+
+Testing that your job raises an exception in certain cases can be tricky, especially when you have retries configured. The `perform_enqueued_jobs` helper fails any test where a job raises an exception, so to have the test succeed when the exception is raised you have to call the job's `perform` method directly.
+
+```ruby
+require "test_helper"
+
+class BillingJobTest < ActiveJob::TestCase
+  test "does not charge accounts with insufficient funds" do
+    assert_raises(InsufficientFundsError) do
+      BillingJob.new(empty_account, product).perform
+    end
+    assert_not account.reload.charged_for?(product)
+  end
+end
+```
+
+This method is not recommended in general, as it circumvents some parts of the framework, such as argument serialization.
 
 Testing Action Cable
 --------------------
@@ -1975,7 +2240,7 @@ entities broadcast correct messages.
 
 ### Connection Test Case
 
-By default, when you generate new Rails application with Action Cable, a test for the base connection class (`ApplicationCable::Connection`) is generated as well under `test/channels/application_cable` directory.
+By default, when you generate a new Rails application with Action Cable, a test for the base connection class (`ApplicationCable::Connection`) is generated as well under `test/channels/application_cable` directory.
 
 Connection tests aim to check whether a connection's identifiers get assigned properly
 or that any improper connection requests are rejected. Here is an example:
@@ -2156,18 +2421,24 @@ Additional Testing Resources
 
 Rails provides built-in helper methods that enable you to assert that your time-sensitive code works as expected.
 
-Here is an example using the [`travel_to`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper:
+The following example uses the [`travel_to`][travel_to] helper:
 
 ```ruby
-# Lets say that a user is eligible for gifting a month after they register.
+# Given a user is eligible for gifting a month after they register.
 user = User.create(name: "Gaurish", activation_date: Date.new(2004, 10, 24))
 assert_not user.applicable_for_gifting?
+
 travel_to Date.new(2004, 11, 24) do
-  assert_equal Date.new(2004, 10, 24), user.activation_date # inside the `travel_to` block `Date.current` is mocked
+  # Inside the `travel_to` block `Date.current` is stubbed
+  assert_equal Date.new(2004, 10, 24), user.activation_date
   assert user.applicable_for_gifting?
 end
-assert_equal Date.new(2004, 10, 24), user.activation_date # The change was visible only inside the `travel_to` block.
+
+# The change was visible only inside the `travel_to` block.
+assert_equal Date.new(2004, 10, 24), user.activation_date
 ```
 
-Please see [`ActiveSupport::Testing::TimeHelpers` API Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html)
-for in-depth information about the available time helpers.
+Please see [`ActiveSupport::Testing::TimeHelpers`][time_helpers_api] API reference for more information about the available time helpers.
+
+[travel_to]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to
+[time_helpers_api]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html

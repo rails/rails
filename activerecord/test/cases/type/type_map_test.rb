@@ -103,8 +103,8 @@ module ActiveRecord
         mapping.register_type(/decimal/i) { |sql_type| sql_type }
         mapping.alias_type(/number/i, "decimal")
 
-        assert_equal mapping.lookup("number(20)"), "decimal(20)"
-        assert_equal mapping.lookup("number"), "decimal"
+        assert_equal "decimal(20)", mapping.lookup("number(20)")
+        assert_equal "decimal", mapping.lookup("number")
       end
 
       def test_fuzzy_lookup

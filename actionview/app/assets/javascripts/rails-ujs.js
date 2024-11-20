@@ -44,6 +44,17 @@ Released under the MIT license
     return element[EXPANDO][key] = value;
   };
   const $ = selector => Array.prototype.slice.call(document.querySelectorAll(selector));
+  const isContentEditable = function(element) {
+    var isEditable = false;
+    do {
+      if (element.isContentEditable) {
+        isEditable = true;
+        break;
+      }
+      element = element.parentElement;
+    } while (element);
+    return isEditable;
+  };
   const csrfToken = () => {
     const meta = document.querySelector("meta[name=csrf-token]");
     return meta && meta.content;
@@ -298,6 +309,9 @@ Released under the MIT license
     } else {
       element = e;
     }
+    if (isContentEditable(element)) {
+      return;
+    }
     if (matches(element, linkDisableSelector)) {
       return enableLinkElement(element);
     } else if (matches(element, buttonDisableSelector) || matches(element, formEnableSelector)) {
@@ -308,6 +322,9 @@ Released under the MIT license
   };
   const disableElement = e => {
     const element = e instanceof Event ? e.target : e;
+    if (isContentEditable(element)) {
+      return;
+    }
     if (matches(element, linkDisableSelector)) {
       return disableLinkElement(element);
     } else if (matches(element, buttonDisableSelector) || matches(element, formDisableSelector)) {
@@ -379,6 +396,9 @@ Released under the MIT license
     if (!method) {
       return;
     }
+    if (isContentEditable(this)) {
+      return;
+    }
     const href = rails.href(link);
     const csrfToken$1 = csrfToken();
     const csrfParam$1 = csrfParam();
@@ -408,6 +428,10 @@ Released under the MIT license
       return true;
     }
     if (!fire(element, "ajax:before")) {
+      fire(element, "ajax:stopped");
+      return false;
+    }
+    if (isContentEditable(element)) {
       fire(element, "ajax:stopped");
       return false;
     }

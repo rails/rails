@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionMailer
+  # = Action Mailer \MailHelper
+  #
   # Provides helper methods for ActionMailer::Base that can be used for easily
   # formatting messages, accessing mailer or message instances, and the
   # attachments list.
@@ -23,10 +25,18 @@ module ActionMailer
       }.join("\n\n")
 
       # Make list points stand on their own line
-      formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { "  #{$1} #{$2.strip}\n" }
-      formatted.gsub!(/[ ]*([#]+) ([^#]*)/) { "  #{$1} #{$2.strip}\n" }
+      output = +""
+      splits = formatted.split(/(\*+|\#+)/)
+      while line = splits.shift
+        if line.start_with?("*", "#") && splits.first&.start_with?(" ")
+          output.chomp!(" ") while output.end_with?(" ")
+          output << "  #{line} #{splits.shift.strip}\n"
+        else
+          output << line
+        end
+      end
 
-      formatted
+      output
     end
 
     # Access the mailer instance.

@@ -96,6 +96,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
     #=>   <input type="hidden" name="_method" value="post" autocomplete="off" />
     # After
     #=>   <input type="hidden" name="_method" value="patch" autocomplete="off" />
+    ```
 
 Action Mailer
 -------------

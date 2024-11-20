@@ -14,7 +14,7 @@ class DriverTest < ActiveSupport::TestCase
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, using: :chrome, screen_size: [1400, 1400], options: { url: "http://example.com/wd/hub" })
     assert_equal :selenium, driver.instance_variable_get(:@driver_type)
     assert_equal :chrome, driver.instance_variable_get(:@browser).name
-    assert_nil driver.instance_variable_get(:@browser).options
+    assert_instance_of Selenium::WebDriver::Chrome::Options, driver.instance_variable_get(:@browser).options
     assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
     assert_equal ({ url: "http://example.com/wd/hub" }), driver.instance_variable_get(:@options)
   end
@@ -28,6 +28,16 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal ({ url: "http://example.com/wd/hub" }), driver.instance_variable_get(:@options)
   end
 
+  test "initializing the driver with a headless chrome and custom path" do
+    original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
+    assert_nothing_raised do
+      ::Selenium::WebDriver::Chrome::Service.driver_path = "bin/test"
+      ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_chrome, screen_size: [1400, 1400])
+    end
+  ensure
+    ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
+  end
+
   test "initializing the driver with a headless firefox" do
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_firefox, screen_size: [1400, 1400], options: { url: "http://example.com/wd/hub" })
     assert_equal :selenium, driver.instance_variable_get(:@driver_type)
@@ -37,22 +47,14 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal ({ url: "http://example.com/wd/hub" }), driver.instance_variable_get(:@options)
   end
 
-  test "initializing the driver with a poltergeist" do
-    driver = assert_deprecated(ActionDispatch.deprecator) do
-      ActionDispatch::SystemTesting::Driver.new(:poltergeist, screen_size: [1400, 1400], options: { js_errors: false })
+  test "initializing the driver with a headless firefox and custom path" do
+    original_driver_path = ::Selenium::WebDriver::Firefox::Service.driver_path
+    assert_nothing_raised do
+      ::Selenium::WebDriver::Firefox::Service.driver_path = "bin/test"
+      ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_firefox, screen_size: [1400, 1400])
     end
-    assert_equal :poltergeist, driver.instance_variable_get(:@driver_type)
-    assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
-    assert_equal ({ js_errors: false }), driver.instance_variable_get(:@options)
-  end
-
-  test "initializing the driver with a webkit" do
-    driver = assert_deprecated(ActionDispatch.deprecator) do
-      ActionDispatch::SystemTesting::Driver.new(:webkit, screen_size: [1400, 1400], options: { skip_image_loading: true })
-    end
-    assert_equal :webkit, driver.instance_variable_get(:@driver_type)
-    assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
-    assert_equal ({ skip_image_loading: true }), driver.instance_variable_get(:@options)
+  ensure
+    ::Selenium::WebDriver::Firefox::Service.driver_path = original_driver_path
   end
 
   test "initializing the driver with a cuprite" do
@@ -60,6 +62,14 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal :cuprite, driver.instance_variable_get(:@driver_type)
     assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
     assert_equal ({ js_errors: false }), driver.instance_variable_get(:@options)
+  end
+
+  test "initializing the driver with Playwright" do
+    driver = ActionDispatch::SystemTesting::Driver.new(:playwright, screen_size: [1400, 1400], options: { headless: true })
+
+    assert_equal :playwright, driver.instance_variable_get(:@driver_type)
+    assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
+    assert_equal ({ headless: true }), driver.instance_variable_get(:@options)
   end
 
   test "define extra capabilities using chrome" do
@@ -72,7 +82,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "goog:chromeOptions" => {
-        "args" => ["start-maximized"],
+        "args" => ["--disable-search-engine-choice-screen", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
       },
@@ -91,7 +101,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "goog:chromeOptions" => {
-        "args" => ["--headless", "start-maximized"],
+        "args" => ["--disable-search-engine-choice-screen", "--headless", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
       },
@@ -110,7 +120,7 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
-        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
     }
@@ -127,7 +137,7 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["-headless", "--host=127.0.0.1"],
-        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
     }
@@ -142,15 +152,30 @@ class DriverTest < ActiveSupport::TestCase
     end
   end
 
-  test "preloads browser's driver_path" do
-    called = false
-
+  test "preloads browser's driver_path with DriverFinder if a path isn't already specified" do
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
-    ::Selenium::WebDriver::Chrome::Service.driver_path = -> { called = true }
+    ::Selenium::WebDriver::Chrome::Service.driver_path = nil
 
-    ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    # Our stub must return paths to a real executables, otherwise an internal Selenium assertion will fail.
+    # Note: SeleniumManager is private api
+    found_executable = RbConfig.ruby
+    ::Selenium::WebDriver::SeleniumManager.stub(:binary_paths, { "driver_path" => found_executable, "browser_path" => found_executable }) do
+      ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    end
 
-    assert called
+    assert_equal found_executable, ::Selenium::WebDriver::Chrome::Service.driver_path
+  ensure
+    ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
+  end
+
+  test "does not overwrite existing driver_path during preload" do
+    original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
+    # The driver_path must point to a real executable, otherwise an internal Selenium assertion will fail.
+    ::Selenium::WebDriver::Chrome::Service.driver_path = RbConfig.ruby
+
+    assert_no_changes -> { ::Selenium::WebDriver::Chrome::Service.driver_path } do
+      ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    end
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end

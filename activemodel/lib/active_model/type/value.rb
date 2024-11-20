@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \Value \Type
+    #
     # The base class for all attribute types. This class also serves as the
     # default type for attributes that do not specify a type.
     class Value
@@ -112,8 +114,8 @@ module ActiveModel
         false
       end
 
-      def map(value) # :nodoc:
-        yield value
+      def map(value, &) # :nodoc:
+        value
       end
 
       def ==(other)
@@ -131,8 +133,12 @@ module ActiveModel
       def assert_valid_value(_)
       end
 
-      def immutable_value(value) # :nodoc:
-        value
+      def serialized? # :nodoc:
+        false
+      end
+
+      def mutable? # :nodoc:
+        false
       end
 
       def as_json(*)

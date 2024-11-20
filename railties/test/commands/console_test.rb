@@ -18,6 +18,14 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
   end
 
+  def setup
+    @prev_rails_env = Rails.env
+  end
+
+  def teardown
+    Rails.env = @prev_rails_env
+  end
+
   def test_sandbox_option
     console = Rails::Console.new(app, parse_arguments(["--sandbox"]))
     assert_predicate console, :sandbox?
@@ -55,46 +63,27 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
   def test_console_defaults_to_IRB
     app = build_app(nil)
-    assert_equal IRB, Rails::Console.new(app).console
+    assert_equal "IRB", Rails::Console.new(app).console.name
   end
 
-  def test_console_disables_IRB_auto_completion_in_production
-    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
-    ENV["IRB_USE_AUTOCOMPLETE"] = nil
+  def test_prompt_env_colorization
+    app = build_app(nil)
+    irb_console = Rails::Console.new(app).console
+    red = "\e[31m"
+    blue = "\e[34m"
+    clear = "\e[0m"
 
-    with_rack_env "production" do
-      app = build_app(nil)
-      assert_equal IRB, Rails::Console.new(app).console
-      assert_equal "false", ENV["IRB_USE_AUTOCOMPLETE"]
-    end
-  ensure
-    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
-  end
+    Rails.env = "development"
+    assert_equal("#{blue}dev#{clear}", irb_console.colorized_env)
 
-  def test_console_accepts_override_on_IRB_auto_completion_flag
-    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
-    ENV["IRB_USE_AUTOCOMPLETE"] = "true"
+    Rails.env = "test"
+    assert_equal("#{blue}test#{clear}", irb_console.colorized_env)
 
-    with_rack_env "production" do
-      app = build_app(nil)
-      assert_equal IRB, Rails::Console.new(app).console
-      assert_equal "true", ENV["IRB_USE_AUTOCOMPLETE"]
-    end
-  ensure
-    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
-  end
+    Rails.env = "production"
+    assert_equal("#{red}prod#{clear}", irb_console.colorized_env)
 
-  def test_console_doesnt_disable_IRB_auto_completion_in_non_production
-    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
-    ENV["IRB_USE_AUTOCOMPLETE"] = nil
-
-    with_rails_env nil do
-      app = build_app(nil)
-      assert_equal IRB, Rails::Console.new(app).console
-      assert_nil ENV["IRB_USE_AUTOCOMPLETE"]
-    end
-  ensure
-    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
+    Rails.env = "custom_env"
+    assert_equal("custom_env", irb_console.colorized_env)
   end
 
   def test_default_environment_with_no_rails_env
@@ -165,9 +154,9 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
 
     def build_app(console)
-      mocked_console = Class.new do
+      mocked_app = Class.new do
         attr_accessor :sandbox
-        attr_reader :console, :disable_sandbox
+        attr_reader :console, :disable_sandbox, :sandbox_by_default
 
         def initialize(console)
           @console = console
@@ -180,7 +169,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
         def load_console
         end
       end
-      mocked_console.new(console)
+      mocked_app.new(console)
     end
 
     def parse_arguments(args)

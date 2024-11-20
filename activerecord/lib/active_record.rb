@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -25,15 +25,18 @@
 
 require "active_support"
 require "active_support/rails"
+require "active_support/ordered_options"
 require "active_model"
 require "arel"
 require "yaml"
+require "zlib"
 
 require "active_record/version"
 require "active_record/deprecator"
 require "active_model/attribute_set"
 require "active_record/errors"
 
+# :include: ../README.rdoc
 module ActiveRecord
   extend ActiveSupport::Autoload
 
@@ -48,10 +51,12 @@ module ActiveRecord
   autoload :Encryption
   autoload :Enum
   autoload :Explain
+  autoload :FixtureSet, "active_record/fixtures"
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
   autoload :LogSubscriber
+  autoload :Marshalling
   autoload :Migration
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
@@ -82,6 +87,7 @@ module ActiveRecord
   autoload :Timestamp
   autoload :TokenFor
   autoload :TouchLater
+  autoload :Transaction
   autoload :Transactions
   autoload :Translation
   autoload :Validations
@@ -98,7 +104,6 @@ module ActiveRecord
     autoload :DisableJoinsAssociationRelation
     autoload :FutureResult
     autoload :LegacyYamlAdapter
-    autoload :NullRelation
     autoload :Promise
     autoload :Relation
     autoload :Result
@@ -118,12 +123,15 @@ module ActiveRecord
   end
 
   module Coders
+    autoload :ColumnSerializer, "active_record/coders/column_serializer"
     autoload :JSON, "active_record/coders/json"
     autoload :YAMLColumn, "active_record/coders/yaml_column"
   end
 
   module AttributeMethods
     extend ActiveSupport::Autoload
+
+    autoload :CompositePrimaryKey
 
     eager_autoload do
       autoload :BeforeTypeCast
@@ -171,17 +179,37 @@ module ActiveRecord
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
 
+  singleton_class.attr_accessor :disable_prepared_statements
+  self.disable_prepared_statements = false
+
+  ##
+  # :singleton-method: lazily_load_schema_cache
   # Lazily load the schema cache. This option will load the schema cache
-  # when a connection is established rather than on boot. If set,
-  # +config.active_record.use_schema_cache_dump+ will be set to false.
+  # when a connection is established rather than on boot.
   singleton_class.attr_accessor :lazily_load_schema_cache
   self.lazily_load_schema_cache = false
 
+  ##
+  # :singleton-method: schema_cache_ignored_tables
   # A list of tables or regex's to match tables to ignore when
   # dumping the schema cache. For example if this is set to +[/^_/]+
   # the schema cache will not dump tables named with an underscore.
   singleton_class.attr_accessor :schema_cache_ignored_tables
   self.schema_cache_ignored_tables = []
+
+  # Checks to see if the +table_name+ is ignored by checking
+  # against the +schema_cache_ignored_tables+ option.
+  #
+  #   ActiveRecord.schema_cache_ignored_table?(:developers)
+  #
+  def self.schema_cache_ignored_table?(table_name)
+    ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
+      ignored === table_name
+    end
+  end
+
+  singleton_class.attr_accessor :database_cli
+  self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
 
   singleton_class.attr_reader :default_timezone
 
@@ -197,6 +225,8 @@ module ActiveRecord
 
   self.default_timezone = :utc
 
+  ##
+  # :singleton-method: db_warnings_action
   # The action to take when database query produces warning.
   # Must be one of :ignore, :log, :raise, :report, or a custom proc.
   # The default is :ignore.
@@ -226,6 +256,8 @@ module ActiveRecord
 
   self.db_warnings_action = :ignore
 
+  ##
+  # :singleton-method: db_warnings_ignore
   # Specify allowlist of database warnings.
   singleton_class.attr_accessor :db_warnings_ignore
   self.db_warnings_ignore = []
@@ -236,14 +268,8 @@ module ActiveRecord
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
 
-  def self.legacy_connection_handling=(_)
-    raise ArgumentError, <<~MSG.squish
-      The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1,
-      but is still defined in your configuration. Please remove this call as it no longer
-      has any effect."
-    MSG
-  end
-
+  ##
+  # :singleton-method: async_query_executor
   # Sets the async_query_executor for an application. By default the thread pool executor
   # set to +nil+ which will not run queries in the background. Applications must configure
   # a thread pool executor to use this feature. Options are:
@@ -271,7 +297,7 @@ module ActiveRecord
   # with the global thread pool async query executor.
   def self.global_executor_concurrency=(global_executor_concurrency)
     if self.async_query_executor.nil? || self.async_query_executor == :multi_thread_pool
-      raise ArgumentError, "`global_executor_concurrency` cannot be set when using the executor is nil or set to multi_thead_pool. For multiple thread pools, please set the concurrency in your database configuration."
+      raise ArgumentError, "`global_executor_concurrency` cannot be set when the executor is nil or set to `:multi_thread_pool`. For multiple thread pools, please set the concurrency in your database configuration."
     end
 
     @global_executor_concurrency = global_executor_concurrency
@@ -281,11 +307,22 @@ module ActiveRecord
     @global_executor_concurrency ||= nil
   end
 
+  @permanent_connection_checkout = true
+  singleton_class.attr_reader :permanent_connection_checkout
+
+  # Defines whether +ActiveRecord::Base.connection+ is allowed, deprecated, or entirely disallowed.
+  def self.permanent_connection_checkout=(value)
+    unless [true, :deprecated, :disallowed].include?(value)
+      raise ArgumentError, "permanent_connection_checkout must be one of: `true`, `:deprecated` or `:disallowed`"
+    end
+    @permanent_connection_checkout = value
+  end
+
   singleton_class.attr_accessor :index_nested_attribute_errors
   self.index_nested_attribute_errors = false
 
   ##
-  # :singleton-method:
+  # :singleton-method: verbose_query_logs
   #
   # Specifies if the methods calling database queries should be logged below
   # their relevant queries. Defaults to false.
@@ -293,7 +330,7 @@ module ActiveRecord
   self.verbose_query_logs = false
 
   ##
-  # :singleton-method:
+  # :singleton-method: queues
   #
   # Specifies the names of the queues used by background jobs.
   singleton_class.attr_accessor :queues
@@ -311,27 +348,21 @@ module ActiveRecord
   singleton_class.attr_accessor :before_committed_on_all_records
   self.before_committed_on_all_records = false
 
-  ##
-  # :singleton-method:
-  # Specify a threshold for the size of query result sets. If the number of
-  # records in the set exceeds the threshold, a warning is logged. This can
-  # be used to identify queries which load thousands of records and
-  # potentially cause memory bloat.
-  singleton_class.attr_accessor :warn_on_records_fetched_greater_than
-  self.warn_on_records_fetched_greater_than = false
+  singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
+  self.run_after_transaction_callbacks_in_order_defined = false
 
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
 
   ##
-  # :singleton-method:
+  # :singleton-method: action_on_strict_loading_violation
   # Set the application to log or raise when an association violates strict loading.
   # Defaults to :raise.
   singleton_class.attr_accessor :action_on_strict_loading_violation
   self.action_on_strict_loading_violation = :raise
 
   ##
-  # :singleton-method:
+  # :singleton-method: schema_format
   # Specifies the format to use when dumping the database schema with Rails'
   # Rakefile. If :sql, the schema is dumped as (potentially database-
   # specific) SQL statements. If :ruby, the schema is dumped as an
@@ -342,7 +373,7 @@ module ActiveRecord
   self.schema_format = :ruby
 
   ##
-  # :singleton-method:
+  # :singleton-method: error_on_ignored_order
   # Specifies if an error should be raised if the query has an order being
   # ignored when doing batch queries. Useful in applications where the
   # scope being ignored is error-worthy, rather than a warning.
@@ -350,19 +381,27 @@ module ActiveRecord
   self.error_on_ignored_order = false
 
   ##
-  # :singleton-method:
+  # :singleton-method: timestamped_migrations
   # Specify whether or not to use timestamps for migration versions
   singleton_class.attr_accessor :timestamped_migrations
   self.timestamped_migrations = true
 
   ##
-  # :singleton-method:
+  # :singleton-method: validate_migration_timestamps
+  # Specify whether or not to validate migration timestamps. When set, an error
+  # will be raised if a timestamp is more than a day ahead of the timestamp
+  # associated with the current time. +timestamped_migrations+ must be set to true.
+  singleton_class.attr_accessor :validate_migration_timestamps
+  self.validate_migration_timestamps = false
+
+  ##
+  # :singleton-method: migration_strategy
   # Specify strategy to use for executing migrations.
   singleton_class.attr_accessor :migration_strategy
   self.migration_strategy = Migration::DefaultStrategy
 
   ##
-  # :singleton-method:
+  # :singleton-method: dump_schema_after_migration
   # Specify whether schema dump should happen at the end of the
   # bin/rails db:migrate command. This is true by default, which is useful for the
   # development environment. This should ideally be false in the production
@@ -371,7 +410,7 @@ module ActiveRecord
   self.dump_schema_after_migration = true
 
   ##
-  # :singleton-method:
+  # :singleton-method: dump_schemas
   # Specifies which database schemas to dump when calling db:schema:dump.
   # If the value is :schema_search_path (the default), any schemas listed in
   # schema_search_path are dumped. Use :all to dump all schemas regardless
@@ -380,22 +419,8 @@ module ActiveRecord
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
 
-  def self.suppress_multiple_database_warning
-    ActiveRecord.deprecator.warn(<<-MSG.squish)
-      config.active_record.suppress_multiple_database_warning is deprecated and will be removed in Rails 7.2.
-      It no longer has any effect and should be removed from the configuration file.
-    MSG
-  end
-
-  def self.suppress_multiple_database_warning=(value)
-    ActiveRecord.deprecator.warn(<<-MSG.squish)
-      config.active_record.suppress_multiple_database_warning= is deprecated and will be removed in Rails 7.2.
-      It no longer has any effect and should be removed from the configuration file.
-    MSG
-  end
-
   ##
-  # :singleton-method:
+  # :singleton-method: verify_foreign_keys_for_fixtures
   # If true, Rails will verify all foreign keys in the database after loading fixtures.
   # An error will be raised if there are any foreign key violations, indicating incorrectly
   # written fixtures.
@@ -403,25 +428,18 @@ module ActiveRecord
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
 
-  ##
-  # :singleton-method:
-  # If true, Rails will continue allowing plural association names in where clauses on singular associations
-  # This behavior will be removed in Rails 7.2.
-  singleton_class.attr_accessor :allow_deprecated_singular_associations_name
-  self.allow_deprecated_singular_associations_name = true
-
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
 
   ##
-  # :singleton-method:
+  # :singleton-method: use_yaml_unsafe_load
   # Application configurable boolean that instructs the YAML Coder to use
   # an unsafe load if set to true.
   singleton_class.attr_accessor :use_yaml_unsafe_load
   self.use_yaml_unsafe_load = false
 
   ##
-  # :singleton-method:
+  # :singleton-method: raise_int_wider_than_64bit
   # Application configurable boolean that denotes whether or not to raise
   # an exception when the PostgreSQLAdapter is provided with an integer that
   # is wider than signed 64bit representation
@@ -429,11 +447,54 @@ module ActiveRecord
   self.raise_int_wider_than_64bit = true
 
   ##
-  # :singleton-method:
+  # :singleton-method: yaml_column_permitted_classes
   # Application configurable array that provides additional permitted classes
   # to Psych safe_load in the YAML Coder
   singleton_class.attr_accessor :yaml_column_permitted_classes
   self.yaml_column_permitted_classes = [Symbol]
+
+  ##
+  # :singleton-method: generate_secure_token_on
+  # Controls when to generate a value for <tt>has_secure_token</tt>
+  # declarations. Defaults to <tt>:create</tt>.
+  singleton_class.attr_accessor :generate_secure_token_on
+  self.generate_secure_token_on = :create
+
+  def self.marshalling_format_version
+    Marshalling.format_version
+  end
+
+  def self.marshalling_format_version=(value)
+    Marshalling.format_version = value
+  end
+
+  ##
+  # :singleton-method: protocol_adapters
+  # Provides a mapping between database protocols/DBMSs and the
+  # underlying database adapter to be used. This is used only by the
+  # <tt>DATABASE_URL</tt> environment variable.
+  #
+  # == Example
+  #
+  #   DATABASE_URL="mysql://myuser:mypass@localhost/somedatabase"
+  #
+  # The above URL specifies that MySQL is the desired protocol/DBMS, and the
+  # application configuration can then decide which adapter to use. For this example
+  # the default mapping is from <tt>mysql</tt> to <tt>mysql2</tt>, but <tt>:trilogy</tt>
+  # is also supported.
+  #
+  #   ActiveRecord.protocol_adapters.mysql = "mysql2"
+  #
+  # The protocols names are arbitrary, and external database adapters can be
+  # registered and set here.
+  singleton_class.attr_accessor :protocol_adapters
+  self.protocol_adapters = ActiveSupport::InheritableOptions.new(
+    {
+      sqlite: "sqlite3",
+      mysql: "mysql2",
+      postgres: "postgresql",
+    }
+  )
 
   def self.eager_load!
     super
@@ -443,6 +504,56 @@ module ActiveRecord
     ActiveRecord::AttributeMethods.eager_load!
     ActiveRecord::ConnectionAdapters.eager_load!
     ActiveRecord::Encryption.eager_load!
+  end
+
+  # Explicitly closes all database connections in all pools.
+  def self.disconnect_all!
+    ConnectionAdapters::PoolConfig.disconnect_all!
+  end
+
+  # Registers a block to be called after all the current transactions have been
+  # committed.
+  #
+  # If there is no currently open transaction, the block is called immediately.
+  #
+  # If there are multiple nested transactions, the block is called after the outermost one
+  # has been committed,
+  #
+  # If any of the currently open transactions is rolled back, the block is never called.
+  #
+  # If multiple transactions are open across multiple databases, the block will be invoked
+  # if and once all of them have been committed. But note that nesting transactions across
+  # two distinct databases is a sharding anti-pattern that comes with a world of hurts.
+  def self.after_all_transactions_commit(&block)
+    open_transactions = all_open_transactions
+
+    if open_transactions.empty?
+      yield
+    elsif open_transactions.size == 1
+      open_transactions.first.after_commit(&block)
+    else
+      count = open_transactions.size
+      callback = -> do
+        count -= 1
+        block.call if count.zero?
+      end
+      open_transactions.each do |t|
+        t.after_commit(&callback)
+      end
+      open_transactions = nil # rubocop:disable Lint/UselessAssignment avoid holding it in the closure
+    end
+  end
+
+  def self.all_open_transactions # :nodoc:
+    open_transactions = []
+    Base.connection_handler.each_connection_pool do |pool|
+      if active_connection = pool.active_connection
+        if active_connection.current_transaction.open? && active_connection.current_transaction.joinable?
+          open_transactions << active_connection.current_transaction
+        end
+      end
+    end
+    open_transactions
   end
 end
 

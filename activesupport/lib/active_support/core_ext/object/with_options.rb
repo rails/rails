@@ -5,9 +5,9 @@ require "active_support/option_merger"
 class Object
   # An elegant way to factor duplication out of options passed to a series of
   # method calls. Each method called in the block, with the block variable as
-  # the receiver, will have its options merged with the default +options+ hash
-  # provided. Each method called on the block variable must take an options
-  # hash as its final argument.
+  # the receiver, will have its options merged with the default +options+
+  # <tt>Hash</tt> or <tt>Hash</tt>-like object provided. Each method called on
+  # the block variable must take an options hash as its final argument.
   #
   # Without <tt>with_options</tt>, this code contains duplication:
   #
@@ -68,7 +68,7 @@ class Object
   # You can access these methods using the class name instead:
   #
   #   class Phone < ActiveRecord::Base
-  #     enum phone_number_type: { home: 0, office: 1, mobile: 2 }
+  #     enum :phone_number_type, { home: 0, office: 1, mobile: 2 }
   #
   #     with_options presence: true do
   #       validates :phone_number_type, inclusion: { in: Phone.phone_number_types.keys }

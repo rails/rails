@@ -1,16 +1,5 @@
 # frozen_string_literal: true
 
-desc "Generate a cryptographically secure secret key (this is typically used to generate a secret for cookie sessions)."
-task :secret do
-  require "securerandom"
-  puts SecureRandom.hex(64)
-end
-
-desc "List versions of all Rails frameworks and the environment"
-task about: :environment do
-  puts Rails::Info
-end
-
 namespace :time do
   desc "List all time zones, list by two-letter country code (`bin/rails time:zones[US]`), or list by UTC offset (`bin/rails time:zones[-8]`)"
   task :zones, :country_or_offset do |t, args|

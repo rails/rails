@@ -2,16 +2,17 @@
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods \Read
     module Read
       extend ActiveSupport::Concern
 
       module ClassMethods # :nodoc:
         private
-          def define_method_attribute(name, owner:)
+          def define_method_attribute(canonical_name, owner:, as: canonical_name)
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-              owner, name
+              owner, canonical_name
             ) do |temp_method_name, attr_name_expr|
-              owner.define_cached_method(name, as: temp_method_name, namespace: :active_record) do |batch|
+              owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
                   "  _read_attribute(#{attr_name_expr}) { |n| missing_attribute(n, caller) }" <<
@@ -29,7 +30,6 @@ module ActiveRecord
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        name = @primary_key if name == "id" && @primary_key
         @attributes.fetch_value(name, &block)
       end
 

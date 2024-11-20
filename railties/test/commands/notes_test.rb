@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/notes/notes_command"
 
 class Rails::Command::NotesTest < ActiveSupport::TestCase
   setup :build_app

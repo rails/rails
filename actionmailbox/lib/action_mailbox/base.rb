@@ -6,6 +6,8 @@ require "action_mailbox/callbacks"
 require "action_mailbox/routing"
 
 module ActionMailbox
+  # = Action Mailbox \Base
+  #
   # The base class for all application mailboxes. Not intended to be inherited from directly. Inherit from
   # +ApplicationMailbox+ instead, as that's where the app-specific routing is configured. This routing
   # is specified in the following ways:
@@ -55,7 +57,8 @@ module ActionMailbox
   # complete, the status is changed to +delivered+. If a bounce is triggered, then +bounced+. If an unhandled
   # exception is bubbled up, then +failed+.
   #
-  # Exceptions can be handled at the class level using the familiar +Rescuable+ approach:
+  # Exceptions can be handled at the class level using the familiar
+  # ActiveSupport::Rescuable approach:
   #
   #   class ForwardsMailbox < ApplicationMailbox
   #     rescue_from(ApplicationSpecificVerificationError) { bounced! }
@@ -98,11 +101,16 @@ module ActionMailbox
       inbound_email.delivered? || inbound_email.bounced?
     end
 
-
     # Enqueues the given +message+ for delivery and changes the inbound email's status to +:bounced+.
     def bounce_with(message)
       inbound_email.bounced!
       message.deliver_later
+    end
+
+    # Immediately sends the given +message+ and changes the inbound email's status to +:bounced+.
+    def bounce_now_with(message)
+      inbound_email.bounced!
+      message.deliver_now
     end
 
     private

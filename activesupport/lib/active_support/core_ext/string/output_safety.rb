@@ -77,10 +77,6 @@ module ActiveSupport # :nodoc:
       @html_safe = other.html_safe?
     end
 
-    def clone_empty
-      self[0, 0]
-    end
-
     def concat(value)
       unless value.nil?
         super(implicit_html_escape_interpolated_argument(value))
@@ -88,6 +84,10 @@ module ActiveSupport # :nodoc:
       self
     end
     alias << concat
+
+    def bytesplice(*args, value)
+      super(*args, implicit_html_escape_interpolated_argument(value))
+    end
 
     def insert(index, value)
       super(index, implicit_html_escape_interpolated_argument(value))
@@ -198,22 +198,7 @@ module ActiveSupport # :nodoc:
         if !html_safe? || arg.html_safe?
           arg
         else
-          arg_string = begin
-            arg.to_str
-          rescue NoMethodError => error
-            if error.name == :to_str
-              str = arg.to_s
-              ActiveSupport.deprecator.warn <<~MSG.squish
-                Implicit conversion of #{arg.class} into String by ActiveSupport::SafeBuffer
-                is deprecated and will be removed in Rails 7.1.
-                You must explicitly cast it to a String.
-              MSG
-              str
-            else
-              raise
-            end
-          end
-          CGI.escapeHTML(arg_string)
+          CGI.escapeHTML(arg.to_str)
         end
       end
 

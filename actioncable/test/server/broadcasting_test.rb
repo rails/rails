@@ -16,9 +16,7 @@ class BroadcastingTest < ActionCable::TestCase
     server = TestServer.new
 
     events = []
-    ActiveSupport::Notifications.subscribe "broadcast.action_cable" do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("broadcast.action_cable") { |event| events << event }
 
     broadcasting = "test_queue"
     message = { body: "test message" }
@@ -37,9 +35,7 @@ class BroadcastingTest < ActionCable::TestCase
     server = TestServer.new
 
     events = []
-    ActiveSupport::Notifications.subscribe "broadcast.action_cable" do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("broadcast.action_cable") { |event| events << event }
 
     broadcasting = "test_queue"
     message = { body: "test message" }

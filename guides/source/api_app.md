@@ -24,7 +24,7 @@ With the advent of client-side frameworks, more developers are using Rails to
 build a back-end that is shared between their web application and other native
 applications.
 
-For example, Twitter uses its [public API](https://developer.twitter.com/) in its web
+For example, X uses its [public API](https://developer.x.com/) in its web
 application, which is built as a static site that consumes JSON resources.
 
 Instead of using Rails to generate HTML that communicates with the server
@@ -150,6 +150,97 @@ This will do three main things for you:
   applications.
 - Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
+
+### Generating a New Resource
+
+To see how our newly created API handles generating a new resource, let's create
+a new Group resource. Each group will have a name.
+
+```bash
+$ bin/rails g scaffold Group name:string
+```
+
+Before we can use our scaffolded code, we need to update our database scheme.
+
+```bash
+$ bin/rails db:migrate
+```
+
+Now if we open our `GroupsController`, we should notice that with an API Rails
+app we are rendering JSON data only. On the index action we query for `Group.all`
+and assign it to an instance variable called `@groups`. Passing it to `render` with the
+`:json` option will automatically render the groups as JSON.
+
+```ruby
+# app/controllers/groups_controller.rb
+class GroupsController < ApplicationController
+  before_action :set_group, only: %i[ show update destroy ]
+
+  # GET /groups
+  def index
+    @groups = Group.all
+
+    render json: @groups
+  end
+
+  # GET /groups/1
+  def show
+    render json: @group
+  end
+
+  # POST /groups
+  def create
+    @group = Group.new(group_params)
+
+    if @group.save
+      render json: @group, status: :created, location: @group
+    else
+      render json: @group.errors, status: :unprocessable_entity
+    end
+  end
+
+  # PATCH/PUT /groups/1
+  def update
+    if @group.update(group_params)
+      render json: @group
+    else
+      render json: @group.errors, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /groups/1
+  def destroy
+    @group.destroy
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_group
+      @group = Group.find(params[:id])
+    end
+
+    # Only allow a list of trusted parameters through.
+    def group_params
+      params.expect(group: [:name])
+    end
+end
+```
+
+Finally we can add some groups to our database from the Rails console:
+
+```irb
+irb> Group.create(name: "Rails Founders")
+irb> Group.create(name: "Rails Contributors")
+```
+
+With some data in the app, we can boot up the server and visit <http://localhost:3000/groups.json> to see our JSON data.
+
+```json
+[
+{"id":1, "name":"Rails Founders", "created_at": ...},
+{"id":2, "name":"Rails Contributors", "created_at": ...}
+]
+```
 
 ### Changing an Existing Application
 
@@ -288,6 +379,7 @@ file.
 
 If your front-end server supports accelerated file sending, `Rack::Sendfile`
 will offload the actual file sending work to the front-end server.
+This enables Rails to finish request handling and free resources earlier.
 
 You can configure the name of the header that your front-end server uses for
 this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
@@ -321,24 +413,21 @@ format and make them available in your controller inside `params`.
 To use this, your client will need to make a request with JSON-encoded parameters
 and specify the `Content-Type` as `application/json`.
 
-Here's an example in jQuery:
+Here's an example:
 
 ```js
-jQuery.ajax({
-  type: 'POST',
-  url: '/people',
-  dataType: 'json',
-  contentType: 'application/json',
-  data: JSON.stringify({ person: { firstName: "Yehuda", lastName: "Katz" } }),
-  success: function(json) { }
-});
+fetch('/people', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ person: { firstName: 'Yehuda', lastName: 'Katz' } })
+}).then(response => response.json())
 ```
 
 `ActionDispatch::Request` will see the `Content-Type` and your parameters
 will be:
 
 ```ruby
-{ :person => { :firstName => "Yehuda", :lastName => "Katz" } }
+{ person: { firstName: "Yehuda", lastName: "Katz" } }
 ```
 
 ### Using Session Middlewares
@@ -359,7 +448,7 @@ built (like `config/application.rb`) and pass them to your preferred middleware,
 
 ```ruby
 # This also configures session_options for use below
-config.session_store :cookie_store, key: '_interslice_session'
+config.session_store :cookie_store, key: "_your_app_session"
 
 # Required for all session management (regardless of session_store)
 config.middleware.use ActionDispatch::Cookies
@@ -457,7 +546,8 @@ Some common modules you might want to add:
       self.cache_store = :mem_cache_store
     end
     ```
-  Rails does *not* pass this configuration automatically.
+
+    Rails does *not* pass this configuration automatically.
 
 The best place to add a module is in your `ApplicationController`, but you can
 also add modules to individual controllers.

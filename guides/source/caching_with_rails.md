@@ -34,7 +34,7 @@ fragment caching. By default Rails provides fragment caching. In order to use
 page and action caching you will need to add `actionpack-page_caching` and
 `actionpack-action_caching` to your `Gemfile`.
 
-By default, caching is only enabled in your production environment. You can play
+By default, Action Controller caching is only enabled in your production environment. You can play
 around with caching locally by running `rails dev:cache`, or by setting
 [`config.action_controller.perform_caching`][] to `true` in `config/environments/development.rb`.
 
@@ -122,6 +122,16 @@ All cached templates from previous renders will be fetched at once with much
 greater speed. Additionally, the templates that haven't yet been cached will be
 written to cache and multi fetched on the next render.
 
+The cache key can be configured. In the example below, it is prefixed with the
+current locale to ensure that different localizations of the product page
+do not overwrite each other:
+
+```html+erb
+<%= render partial: 'products/product',
+           collection: @products,
+           cached: ->(product) { [I18n.locale, product] } %>
+```
+
 ### Russian Doll Caching
 
 You may want to nest cached fragments inside other cached fragments. This is
@@ -176,15 +186,15 @@ cache.
 It is possible to share partials and associated caching between files with different MIME types. For example shared partial caching allows template writers to share a partial between HTML and JavaScript files. When templates are collected in the template resolver file paths they only include the template language extension and not the MIME type. Because of this templates can be used for multiple MIME types. Both HTML and JavaScript requests will respond to the following code:
 
 ```ruby
-render(partial: 'hotels/hotel', collection: @hotels, cached: true)
+render(partial: "hotels/hotel", collection: @hotels, cached: true)
 ```
 
 Will load a file named `hotels/hotel.erb`.
 
-Another option is to include the full filename of the partial to render.
+Another option is to include the `formats` attribute to the partial to render.
 
 ```ruby
-render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
+render(partial: "hotels/hotel", collection: @hotels, formats: :html, cached: true)
 ```
 
 Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.
@@ -205,14 +215,14 @@ how to decode:
 ```ruby
 render partial: "comments/comment", collection: commentable.comments
 render "comments/comments"
-render 'comments/comments'
-render('comments/comments')
+render "comments/comments"
+render("comments/comments")
 
-render "header" translates to render("comments/header")
+render "header" # translates to render("comments/header")
 
-render(@topic)         translates to render("topics/topic")
-render(topics)         translates to render("topics/topic")
-render(message.topics) translates to render("topics/topic")
+render(@topic)         # translates to render("topics/topic")
+render(topics)         # translates to render("topics/topic")
+render(message.topics) # translates to render("topics/topic")
 ```
 
 On the other hand, some calls need to be changed to make caching work properly.
@@ -332,7 +342,6 @@ For example:
 
 ```ruby
 class ProductsController < ApplicationController
-
   def index
     # Run a find query
     @products = Product.all
@@ -342,7 +351,6 @@ class ProductsController < ApplicationController
     # Run the same query again
     @products = Product.all
   end
-
 end
 ```
 
@@ -383,13 +391,13 @@ you can have multiple threads performing queries to the cache store at the same 
 If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+config.cache_store = :mem_cache_store, "cache.example.com", { pool: false }
 ```
 
 You can also override default pool settings by providing individual options to the `:pool` option:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool: { size: 32, timeout: 1 }
+config.cache_store = :mem_cache_store, "cache.example.com", { pool: { size: 32, timeout: 1 } }
 ```
 
 * `:size` - This option sets the number of connections per process (defaults to 5).
@@ -499,9 +507,8 @@ is often faster than waiting more than a second to retrieve it. Both read and
 write timeouts default to 1 second, but may be set lower if your network is
 consistently low-latency.
 
-By default, the cache store will not attempt to reconnect to Redis if the
-connection fails during a request. If you experience frequent disconnects you
-may wish to enable reconnect attempts.
+By default, the cache store will attempt to reconnect to Redis once if the
+connection fails during a request.
 
 Cache reads and writes never raise exceptions; they just return `nil` instead,
 behaving as if there was nothing in the cache. To gauge whether your cache is
@@ -514,13 +521,13 @@ was rescued.
 To get started, add the redis gem to your Gemfile:
 
 ```ruby
-gem 'redis'
+gem "redis"
 ```
 
 Finally, add the configuration in the relevant `config/environments/*.rb` file:
 
 ```ruby
-config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'] }
+config.cache_store = :redis_cache_store, { url: ENV["REDIS_URL"] }
 ```
 
 A more complex, production Redis cache store may look something like this:
@@ -529,14 +536,14 @@ A more complex, production Redis cache store may look something like this:
 cache_servers = %w(redis://cache-01:6379/0 redis://cache-02:6379/0)
 config.cache_store = :redis_cache_store, { url: cache_servers,
 
-  connect_timeout:    30,  # Defaults to 20 seconds
+  connect_timeout:    30,  # Defaults to 1 second
   read_timeout:       0.2, # Defaults to 1 second
   write_timeout:      0.2, # Defaults to 1 second
-  reconnect_attempts: 1,   # Defaults to 0
+  reconnect_attempts: 2,   # Defaults to 1
 
   error_handler: -> (method:, returning:, exception:) {
     # Report errors to Sentry as warnings
-    Sentry.capture_exception exception, level: 'warning',
+    Sentry.capture_exception exception, level: "warning",
       tags: { method: method, returning: returning }
   }
 }
@@ -600,7 +607,6 @@ It is the server's (i.e. our) responsibility to look for a last modified timesta
 
 ```ruby
 class ProductsController < ApplicationController
-
   def show
     @product = Product.find(params[:id])
 
@@ -640,7 +646,6 @@ If you don't have any special response processing and are using the default rend
 
 ```ruby
 class ProductsController < ApplicationController
-
   # This will automatically send back a :not_modified if the request is fresh,
   # and will render the default template (product.*) if it's stale.
 
@@ -650,6 +655,10 @@ class ProductsController < ApplicationController
   end
 end
 ```
+
+When both `last_modified` and `etag` are set, behavior varies depending on the value of `config.action_dispatch.strict_freshness`.
+If set to `true`, only the `etag` is considered as specified by RFC 7232 section 6.
+If set to `false`, both are considered and the cache is considered fresh if both conditions are satisfied, as was the historical Rails behavior.
 
 Sometimes we want to cache response, for example a static page, that never gets
 expired. To achieve this, we can use `http_cache_forever` helper and by doing
@@ -712,9 +721,12 @@ response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 Caching in Development
 ----------------------
 
-It's common to want to test the caching strategy of your application
-in development mode. Rails provides the rails command `dev:cache` to
-easily toggle caching on/off.
+By default, caching is *enabled* in development mode with
+[`:memory_store`](#activesupport-cache-memorystore).
+This doesn't apply to Action Controller caching, which is disabled
+by default.
+
+To enable Action Controller caching Rails provides the `bin/rails dev:cache` command.
 
 ```bash
 $ bin/rails dev:cache
@@ -723,8 +735,7 @@ $ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
 
-By default, when development mode caching is *off*, Rails uses
-[`:null_store`](#activesupport-cache-nullstore).
+To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
 
 References
 ----------

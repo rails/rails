@@ -2,6 +2,7 @@
 
 require "time"
 require "active_support/json"
+require_relative "serializer_with_fallback"
 
 module ActiveSupport
   module Messages # :nodoc:
@@ -9,11 +10,21 @@ module ActiveSupport
       singleton_class.attr_accessor :use_message_serializer_for_metadata
 
       ENVELOPE_SERIALIZERS = [
-        ::JSON,
+        *SerializerWithFallback::SERIALIZERS.values,
         ActiveSupport::JSON,
-        ActiveSupport::JsonWithMarshalFallback,
+        ::JSON,
         Marshal,
       ]
+
+      TIMESTAMP_SERIALIZERS = [
+        SerializerWithFallback::SERIALIZERS.fetch(:message_pack),
+        SerializerWithFallback::SERIALIZERS.fetch(:message_pack_allow_marshal),
+      ]
+
+      ActiveSupport.on_load(:message_pack) do
+        ENVELOPE_SERIALIZERS << ActiveSupport::MessagePack
+        TIMESTAMP_SERIALIZERS << ActiveSupport::MessagePack
+      end
 
       private
         def serialize_with_metadata(data, **metadata)
@@ -21,8 +32,8 @@ module ActiveSupport
 
           if has_metadata && !use_message_serializer_for_metadata?
             data_string = serialize_to_json_safe_string(data)
-            envelope = wrap_in_metadata_envelope({ "message" => data_string }, **metadata)
-            ActiveSupport::JSON.encode(envelope)
+            envelope = wrap_in_metadata_legacy_envelope({ "message" => data_string }, **metadata)
+            serialize_to_json(envelope)
           else
             data = wrap_in_metadata_envelope({ "data" => data }, **metadata) if has_metadata
             serialize(data)
@@ -31,16 +42,17 @@ module ActiveSupport
 
         def deserialize_with_metadata(message, **expected_metadata)
           if dual_serialized_metadata_envelope_json?(message)
-            envelope = ActiveSupport::JSON.decode(message)
+            envelope = deserialize_from_json(message)
             extracted = extract_from_metadata_envelope(envelope, **expected_metadata)
-            deserialize_from_json_safe_string(extracted["message"]) if extracted
+            deserialize_from_json_safe_string(extracted["message"])
           else
             deserialized = deserialize(message)
             if metadata_envelope?(deserialized)
-              extracted = extract_from_metadata_envelope(deserialized, **expected_metadata)
-              extracted["data"] if extracted
+              extract_from_metadata_envelope(deserialized, **expected_metadata)["data"]
+            elsif expected_metadata.none? { |k, v| v }
+              deserialized
             else
-              deserialized if expected_metadata.none? { |k, v| v }
+              throw :invalid_message_content, "missing metadata"
             end
           end
         end
@@ -56,10 +68,24 @@ module ActiveSupport
           { "_rails" => hash }
         end
 
+        def wrap_in_metadata_legacy_envelope(hash, expires_at: nil, expires_in: nil, purpose: nil)
+          expiry = pick_expiry(expires_at, expires_in)
+          hash["exp"] = expiry
+          hash["pur"] = purpose
+          { "_rails" => hash }
+        end
+
         def extract_from_metadata_envelope(envelope, purpose: nil)
           hash = envelope["_rails"]
-          return if hash["exp"] && Time.now.utc >= parse_expiry(hash["exp"])
-          return if hash["pur"] != purpose&.to_s
+
+          if hash["exp"] && Time.now.utc >= parse_expiry(hash["exp"])
+            throw :invalid_message_content, "expired"
+          end
+
+          if hash["pur"].to_s != purpose.to_s
+            throw :invalid_message_content, "mismatched purpose"
+          end
+
           hash
         end
 
@@ -72,11 +98,17 @@ module ActiveSupport
         end
 
         def pick_expiry(expires_at, expires_in)
-          if expires_at
-            expires_at.utc.iso8601(3)
+          expiry = if expires_at
+            expires_at.utc
           elsif expires_in
-            Time.now.utc.advance(seconds: expires_in).iso8601(3)
+            Time.now.utc.advance(seconds: expires_in)
           end
+
+          unless Metadata::TIMESTAMP_SERIALIZERS.include?(serializer)
+            expiry = expiry&.iso8601(3)
+          end
+
+          expiry
         end
 
         def parse_expiry(expires_at)
@@ -87,6 +119,19 @@ module ActiveSupport
           else
             Time.parse(expires_at)
           end
+        end
+
+        def serialize_to_json(data)
+          ActiveSupport::JSON.encode(data)
+        end
+
+        def deserialize_from_json(serialized)
+          ActiveSupport::JSON.decode(serialized)
+        rescue ::JSON::ParserError => error
+          # Throw :invalid_message_format instead of :invalid_message_serialization
+          # because here a parse error is due to a bad message rather than an
+          # incompatible `self.serializer`.
+          throw :invalid_message_format, error
         end
 
         def serialize_to_json_safe_string(data)

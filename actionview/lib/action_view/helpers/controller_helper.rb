@@ -4,6 +4,8 @@ require "active_support/core_ext/module/attr_internal"
 
 module ActionView
   module Helpers # :nodoc:
+    # = Action View Controller \Helpers
+    #
     # This module keeps all methods and behavior in ActionView
     # that simply delegates to the controller.
     module ControllerHelper # :nodoc:

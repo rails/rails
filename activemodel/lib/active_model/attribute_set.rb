@@ -71,7 +71,7 @@ module ActiveModel
     end
 
     def deep_dup
-      AttributeSet.new(attributes.deep_dup)
+      AttributeSet.new(attributes.transform_values(&:deep_dup))
     end
 
     def initialize_dup(_)
@@ -104,7 +104,7 @@ module ActiveModel
     end
 
     def ==(other)
-      attributes == other.attributes
+      other.is_a?(AttributeSet) && attributes == other.send(:attributes)
     end
 
     protected

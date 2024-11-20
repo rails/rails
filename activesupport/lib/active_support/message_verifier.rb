@@ -8,10 +8,12 @@ require "active_support/messages/codec"
 require "active_support/messages/rotator"
 
 module ActiveSupport
+  # = Active Support Message Verifier
+  #
   # +MessageVerifier+ makes it easy to generate and verify messages which are
   # signed to prevent tampering.
   #
-  # In a Rails application, you can use +Rails.application.message_verifier+
+  # In a \Rails application, you can use +Rails.application.message_verifier+
   # to manage unique instances of verifiers for each use case.
   # {Learn more}[link:classes/Rails/Application.html#method-i-message_verifier].
   #
@@ -27,6 +29,18 @@ module ActiveSupport
   #   if time.future?
   #     self.current_user = User.find(id)
   #   end
+  #
+  # === Signing is not encryption
+  #
+  # The signed messages are not encrypted. The payload is merely encoded (Base64 by default) and can be decoded by
+  # anyone. The signature is just assuring that the message wasn't tampered with. For example:
+  #
+  #     message = Rails.application.message_verifier('my_purpose').generate('never put secrets here')
+  #     # => "BAhJIhtuZXZlciBwdXQgc2VjcmV0cyBoZXJlBjoGRVQ=--a0c1c0827919da5e949e989c971249355735e140"
+  #     Base64.decode64(message.split("--").first) # no key needed
+  #     # => 'never put secrets here'
+  #
+  # If you also need to encrypt the contents, you must use ActiveSupport::MessageEncryptor instead.
   #
   # === Confine messages to a specific purpose
   #
@@ -68,21 +82,7 @@ module ActiveSupport
   #
   # Messages can then be verified and returned until expiry.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
-  # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
-  #
-  # === Alternative serializers
-  #
-  # By default MessageVerifier uses JSON to serialize the message. If you want to use
-  # another serialization method, you can set the serializer in the options
-  # hash upon initialization:
-  #
-  #   @verifier = ActiveSupport::MessageVerifier.new("secret", serializer: YAML)
-  #
-  # +MessageVerifier+ creates HMAC signatures using the SHA1 hash algorithm by default.
-  # If you want to use a different hash algorithm, you can change it by providing
-  # +:digest+ key as an option while initializing the verifier:
-  #
-  #   @verifier = ActiveSupport::MessageVerifier.new("secret", digest: "SHA256")
+  # +ActiveSupport::MessageVerifier::InvalidSignature+.
   #
   # === Rotating keys
   #
@@ -107,32 +107,66 @@ module ActiveSupport
   # Though the above would most likely be combined into one rotation:
   #
   #   verifier.rotate(old_secret, digest: "SHA256", serializer: Marshal)
-  #
-  # === Generating URL-safe strings
-  #
-  # By default MessageVerifier generates RFC 4648 compliant strings which are
-  # not URL-safe. In other words, they can contain "+" and "/". If you want to
-  # generate URL-safe strings (in compliance with "Base 64 Encoding with URL and
-  # Filename Safe Alphabet" in RFC 4648), you can pass <tt>url_safe: true</tt>
-  # to the constructor:
-  #
-  #   @verifier = ActiveSupport::MessageVerifier.new("secret", url_safe: true)
-  #   @verifier.generate("signed message") #=> URL-safe string
   class MessageVerifier < Messages::Codec
-    prepend Messages::Rotator::Verifier
+    prepend Messages::Rotator
 
     class InvalidSignature < StandardError; end
 
     SEPARATOR = "--" # :nodoc:
     SEPARATOR_LENGTH = SEPARATOR.length # :nodoc:
 
-    cattr_accessor :default_message_verifier_serializer, instance_accessor: false, default: :marshal
-
-    def initialize(secret, digest: nil, serializer: nil, url_safe: false)
+    # Initialize a new MessageVerifier with a secret for the signature.
+    #
+    # ==== Options
+    #
+    # [+:digest+]
+    #   Digest used for signing. The default is <tt>"SHA1"</tt>. See
+    #   +OpenSSL::Digest+ for alternatives.
+    #
+    # [+:serializer+]
+    #   The serializer used to serialize message data. You can specify any
+    #   object that responds to +dump+ and +load+, or you can choose from
+    #   several preconfigured serializers: +:marshal+, +:json_allow_marshal+,
+    #   +:json+, +:message_pack_allow_marshal+, +:message_pack+.
+    #
+    #   The preconfigured serializers include a fallback mechanism to support
+    #   multiple deserialization formats. For example, the +:marshal+ serializer
+    #   will serialize using +Marshal+, but can deserialize using +Marshal+,
+    #   ActiveSupport::JSON, or ActiveSupport::MessagePack. This makes it easy
+    #   to migrate between serializers.
+    #
+    #   The +:marshal+, +:json_allow_marshal+, and +:message_pack_allow_marshal+
+    #   serializers support deserializing using +Marshal+, but the others do
+    #   not. Beware that +Marshal+ is a potential vector for deserialization
+    #   attacks in cases where a message signing secret has been leaked. <em>If
+    #   possible, choose a serializer that does not support +Marshal+.</em>
+    #
+    #   The +:message_pack+ and +:message_pack_allow_marshal+ serializers use
+    #   ActiveSupport::MessagePack, which can roundtrip some Ruby types that are
+    #   not supported by JSON, and may provide improved performance. However,
+    #   these require the +msgpack+ gem.
+    #
+    #   When using \Rails, the default depends on +config.active_support.message_serializer+.
+    #   Otherwise, the default is +:marshal+.
+    #
+    # [+:url_safe+]
+    #   By default, MessageVerifier generates RFC 4648 compliant strings which are
+    #   not URL-safe. In other words, they can contain "+" and "/". If you want to
+    #   generate URL-safe strings (in compliance with "Base 64 Encoding with URL
+    #   and Filename Safe Alphabet" in RFC 4648), you can pass +true+.
+    #
+    # [+:force_legacy_metadata_serializer+]
+    #   Whether to use the legacy metadata serializer, which serializes the
+    #   message first, then wraps it in an envelope which is also serialized. This
+    #   was the default in \Rails 7.0 and below.
+    #
+    #   If you don't pass a truthy value, the default is set using
+    #   +config.active_support.use_message_serializer_for_metadata+.
+    def initialize(secret, **options)
       raise ArgumentError, "Secret should not be nil." unless secret
-      super(serializer: serializer || @@default_message_verifier_serializer, url_safe: url_safe)
+      super(**options)
       @secret = secret
-      @digest = digest&.to_s || "SHA1"
+      @digest = options[:digest]&.to_s || "SHA1"
     end
 
     # Checks if a signed message could have been generated by signing an object
@@ -145,7 +179,7 @@ module ActiveSupport
     #   tampered_message = signed_message.chop # editing the message invalidates the signature
     #   verifier.valid_message?(tampered_message) # => false
     def valid_message?(message)
-      !!extract_encoded(message)
+      !!catch_and_ignore(:invalid_message_format) { extract_encoded(message) }
     end
 
     # Decodes the signed message using the +MessageVerifier+'s secret.
@@ -186,10 +220,13 @@ module ActiveSupport
     #     verifier.verified(message, purpose: "greeting") # => nil
     #
     def verified(message, **options)
-      encoded = extract_encoded(message)
-      deserialize_with_metadata(decode(encoded), **options) if encoded
-    rescue ArgumentError => error
-      raise unless error.message.include?("invalid base64")
+      catch_and_ignore :invalid_message_format do
+        catch_and_raise :invalid_message_serialization do
+          catch_and_ignore :invalid_message_content do
+            read_message(message, **options)
+          end
+        end
+      end
     end
 
     # Decodes the signed message using the +MessageVerifier+'s secret.
@@ -220,8 +257,14 @@ module ActiveSupport
     #     verifier.verify(message)                      # => "bye"
     #     verifier.verify(message, purpose: "greeting") # => raises InvalidSignature
     #
-    def verify(*args, **options)
-      verified(*args, **options) || raise(InvalidSignature)
+    def verify(message, **options)
+      catch_and_raise :invalid_message_format, as: InvalidSignature do
+        catch_and_raise :invalid_message_serialization do
+          catch_and_raise :invalid_message_content, as: InvalidSignature do
+            read_message(message, **options)
+          end
+        end
+      end
     end
 
     # Generates a signed message for the provided value.
@@ -259,7 +302,19 @@ module ActiveSupport
     #   specified when verifying the message; otherwise, verification will fail.
     #   (See #verified and #verify.)
     def generate(value, **options)
+      create_message(value, **options)
+    end
+
+    def create_message(value, **options) # :nodoc:
       sign_encoded(encode(serialize_with_metadata(value, **options)))
+    end
+
+    def read_message(message, **options) # :nodoc:
+      deserialize_with_metadata(decode(extract_encoded(message)), **options)
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
     end
 
     private
@@ -269,14 +324,18 @@ module ActiveSupport
       end
 
       def extract_encoded(signed)
-        return if signed.nil? || !signed.valid_encoding?
+        if signed.nil? || !signed.valid_encoding?
+          throw :invalid_message_format, "invalid message string"
+        end
 
         if separator_index = separator_index_for(signed)
           encoded = signed[0, separator_index]
           digest = signed[separator_index + SEPARATOR_LENGTH, digest_length_in_hex]
         end
 
-        return unless digest_matches_data?(digest, encoded)
+        unless digest_matches_data?(digest, encoded)
+          throw :invalid_message_format, "mismatched digest"
+        end
 
         encoded
       end

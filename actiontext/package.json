@@ -1,9 +1,9 @@
 {
   "name": "@rails/actiontext",
-  "version": "7.1.0-alpha",
+  "version": "8.1.0-alpha",
   "description": "Edit and display rich text in Rails applications",
+  "module": "app/assets/javascripts/actiontext.esm.js",
   "main": "app/assets/javascripts/actiontext.js",
-  "type": "module",
   "files": [
     "app/assets/javascripts/*.js"
   ],
@@ -15,14 +15,14 @@
   "bugs": {
     "url": "https://github.com/rails/rails/issues"
   },
-  "author": "Basecamp, LLC",
+  "author": "37signals LLC",
   "contributors": [
     "Javan Makhmali <javan@javan.us>",
     "Sam Stephenson <sstephenson@gmail.com>"
   ],
   "license": "MIT",
   "dependencies": {
-    "@rails/activestorage": ">= 7.0.0-alpha1"
+    "@rails/activestorage": ">= 8.1.0-alpha"
   },
   "peerDependencies": {
     "trix": "^2.0.0"

@@ -39,6 +39,12 @@ module Arel # :nodoc: all
       end
     end
 
+    class As < Binary
+      def to_cte
+        Arel::Nodes::Cte.new(left.name, right)
+      end
+    end
+
     class Between < Binary; include FetchAttribute; end
 
     class GreaterThan < Binary
@@ -105,14 +111,7 @@ module Arel # :nodoc: all
       end
     end
 
-    class Or < Binary
-      def fetch_attribute(&block)
-        left.fetch_attribute(&block) && right.fetch_attribute(&block)
-      end
-    end
-
     %w{
-      As
       Assignment
       Join
       Union

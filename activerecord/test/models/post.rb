@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require "models/tag"
+require "models/tagging"
+require "models/comment"
+require "models/category"
+
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"
@@ -119,6 +124,13 @@ class Post < ActiveRecord::Base
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, join_table: "categories_posts", association_foreign_key: "category_id"
 
+  has_many :essays, through: :categories
+  has_many :authors_of_essays_named_bob,
+    -> { where(name: "Bob") },
+    through: :essays,
+    source: :writer,
+    source_type: "Author"
+
   has_many :taggings, as: :taggable, counter_cache: :tags_count
   has_many :tags, through: :taggings do
     def add_joins_and_select
@@ -234,6 +246,7 @@ class FirstPost < ActiveRecord::Base
 
   has_many :comments, foreign_key: :post_id
   has_one  :comment,  foreign_key: :post_id
+  has_one  :comment_with_inverse, class_name: "Comment", inverse_of: :post_with_inverse
 end
 
 class PostWithDefaultSelect < ActiveRecord::Base
@@ -328,6 +341,15 @@ end
 class SubConditionalStiPost < ConditionalStiPost
 end
 
+class PostWithDestroyCallback < ActiveRecord::Base
+  self.inheritance_column = :disabled
+  self.table_name = "posts"
+
+  before_destroy do
+    throw :abort if id == 1
+  end
+end
+
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
@@ -336,8 +358,12 @@ class FakeKlass
       ActiveRecord::Scoping::ScopeRegistry.instance
     end
 
-    def connection
-      Post.connection
+    def adapter_class
+      Post.adapter_class
+    end
+
+    def lease_connection
+      Post.lease_connection
     end
 
     def table_name

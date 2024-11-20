@@ -6,7 +6,7 @@ module ActiveRecord
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
         def indexes(table_name)
-          exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").filter_map do |row|
+          internal_exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").filter_map do |row|
             # Indexes SQLite creates implicitly for internal use start with "sqlite_".
             # See https://www.sqlite.org/fileformat2.html#intschema
             next if row["name"].start_with?("sqlite_")
@@ -23,10 +23,11 @@ module ActiveRecord
 
             /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+))?(?:\s*\/\*.*\*\/)?\z/i =~ index_sql
 
-            columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
+            columns = internal_exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
               col["name"]
             end
 
+            where = where.sub(/\s*\/\*.*\*\/\z/, "") if where
             orders = {}
 
             if columns.any?(&:nil?) # index created with an expression
@@ -53,6 +54,8 @@ module ActiveRecord
         end
 
         def add_foreign_key(from_table, to_table, **options)
+          assert_valid_deferrable(options[:deferrable])
+
           alter_table(from_table) do |definition|
             to_table = strip_table_name_prefix_and_suffix(to_table)
             definition.foreign_key(to_table, **options)
@@ -80,6 +83,10 @@ module ActiveRecord
           alter_table(from_table, foreign_keys)
         end
 
+        def virtual_table_exists?(table_name)
+          query_values(data_source_sql(table_name, type: "VIRTUAL TABLE"), "SCHEMA").any?
+        end
+
         def check_constraints(table_name)
           table_sql = query_value(<<-SQL, "SCHEMA")
             SELECT sql
@@ -102,8 +109,8 @@ module ActiveRecord
           end
         end
 
-        def remove_check_constraint(table_name, expression = nil, **options)
-          return if options[:if_exists] && !check_constraint_exists?(table_name, **options)
+        def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
+          return if if_exists && !check_constraint_exists?(table_name, **options)
 
           check_constraints = check_constraints(table_name)
           chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
@@ -132,12 +139,20 @@ module ActiveRecord
             super unless internal
           end
 
-          def new_column_from_field(table_name, field)
+          def new_column_from_field(table_name, field, definitions)
             default = field["dflt_value"]
 
             type_metadata = fetch_type_metadata(field["type"])
             default_value = extract_value_from_default(default)
-            default_function = extract_default_function(default_value, default)
+            generated_type = extract_generated_type(field)
+
+            if generated_type.present?
+              default_function = default
+            else
+              default_function = extract_default_function(default_value, default)
+            end
+
+            rowid = is_column_the_rowid?(field, definitions)
 
             Column.new(
               field["name"],
@@ -145,15 +160,29 @@ module ActiveRecord
               type_metadata,
               field["notnull"].to_i == 0,
               default_function,
-              collation: field["collation"]
+              collation: field["collation"],
+              auto_increment: field["auto_increment"],
+              rowid: rowid,
+              generated_type: generated_type
             )
+          end
+
+          INTEGER_REGEX = /integer/i
+          # if a rowid table has a primary key that consists of a single column
+          # and the declared type of that column is "INTEGER" in any mixture of upper and lower case,
+          # then the column becomes an alias for the rowid.
+          def is_column_the_rowid?(field, column_definitions)
+            return false unless INTEGER_REGEX.match?(field["type"]) && field["pk"] == 1
+            # is the primary key a single column?
+            column_definitions.one? { |c| c["pk"] > 0 }
           end
 
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'table','view'"
 
-            sql = +"SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'"
+            sql = +"SELECT name FROM pragma_table_list WHERE schema <> 'temp'"
+            sql << " AND name NOT IN ('sqlite_sequence', 'sqlite_schema')"
             sql << " AND name = #{scope[:name]}" if scope[:name]
             sql << " AND type IN (#{scope[:type]})"
             sql
@@ -166,11 +195,26 @@ module ActiveRecord
                 "'table'"
               when "VIEW"
                 "'view'"
+              when "VIRTUAL TABLE"
+                "'virtual'"
               end
             scope = {}
             scope[:name] = quote(name) if name
             scope[:type] = type if type
             scope
+          end
+
+          def assert_valid_deferrable(deferrable)
+            return if !deferrable || %i(immediate deferred).include?(deferrable)
+
+            raise ArgumentError, "deferrable must be `:immediate` or `:deferred`, got: `#{deferrable.inspect}`"
+          end
+
+          def extract_generated_type(field)
+            case field["hidden"]
+            when 2 then :virtual
+            when 3 then :stored
+            end
           end
       end
     end

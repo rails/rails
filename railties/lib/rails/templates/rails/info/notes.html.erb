@@ -1,0 +1,65 @@
+<style>
+  h2, p {
+    padding-left: 30px;
+  }
+  table {
+    margin: 0;
+    border-collapse: collapse;
+    word-wrap:break-word;
+    table-layout: fixed;
+    width:100%;
+  }
+  table thead tr {
+    border-bottom: 2px solid #ddd;
+  }
+  table th {
+    padding-left: 30px;
+    text-align: left;
+  }
+  table thead th.tag, table thead th.line-no {
+    width: 10%;
+  }
+  table tbody tr {
+    border-bottom: 1px solid #ddd;
+  }
+  table tbody tr:nth-child(odd) {
+    background: #f2f2f2;
+  }
+  table td {
+    padding: 4px 30px;
+  }
+  @media (prefers-color-scheme: dark) {
+    table tbody tr:nth-child(odd) {
+      background: #282828;
+    }
+  }
+</style>
+
+<h2>
+  Notes
+</h2>
+
+<table id="route_table" class="table">
+  <thead>
+    <th>File Name</th>
+    <th class="line-no">Line No.</th>
+    <th class="tag">Tag</th>
+    <th>Description</th>
+  </thead>
+  <tbody>
+    <% @annotations.each do |file, annotations| %>
+      <% annotations.each.with_index do |annotation, index| %>
+        <tr>
+          <% if index == 0 %>
+            <th rowspan="<%= annotations.size %>">
+              <%= file %>
+            </th>
+          <% end %>
+          <td class="line-no"><%= annotation.line %></td>
+          <td class="tag"><%= annotation.tag %></td>
+          <td><%= annotation.text %></td>
+        </tr>
+      <% end %>
+    <% end %>
+  </tbody>
+</table>

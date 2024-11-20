@@ -136,7 +136,7 @@ session, your session cookie is named `_session` and the user ID key is `user_id
 can use this approach:
 
 ```ruby
-verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
+verified_user = User.find_by(id: cookies.encrypted["_session"]["user_id"])
 ```
 
 [`ActionCable::Connection::Base`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Base.html
@@ -155,10 +155,9 @@ module ApplicationCable
     rescue_from StandardError, with: :report_error
 
     private
-
-    def report_error(e)
-      SomeExternalBugtrackingService.notify(e)
-    end
+      def report_error(e)
+        SomeExternalBugtrackingService.notify(e)
+      end
   end
 end
 ```
@@ -167,32 +166,25 @@ end
 
 #### Connection Callbacks
 
-There are `before_command`, `after_command`, and `around_command` callbacks available to be invoked before, after or around every command received by a client respectively.
-The term "command" here refers to any interaction received by a client (subscribing, unsubscribing or performing actions):
+[`ActionCable::Connection::Callbacks`][] provides callback hooks that are
+invoked when sending commands to the client, such as when subscribing,
+unsubscribing, or performing an action:
 
-```ruby
-# app/channels/application_cable/connection.rb
-module ApplicationCable
-  class Connection < ActionCable::Connection::Base
-    identified_by :user
+* [`before_command`][]
+* [`after_command`][]
+* [`around_command`][]
 
-    around_command :set_current_account
-
-    private
-
-    def set_current_account
-      # Now all channels could use Current.account
-      Current.set(account: user.account) { yield }
-    end
-  end
-end
-```
+[`ActionCable::Connection::Callbacks`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Callbacks.html
+[`after_command`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Callbacks/ClassMethods.html#method-i-after_command
+[`around_command`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Callbacks/ClassMethods.html#method-i-around_command
+[`before_command`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Callbacks/ClassMethods.html#method-i-before_command
 
 ### Channels
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
 typical MVC setup. By default, Rails creates a parent `ApplicationCable::Channel` class
-(which extends [`ActionCable::Channel::Base`][]) for encapsulating shared logic between your channels.
+(which extends [`ActionCable::Channel::Base`][]) for encapsulating shared logic between your channels,
+when you use the channel generator for the first time.
 
 #### Parent Channel Setup
 
@@ -204,8 +196,7 @@ module ApplicationCable
 end
 ```
 
-Then you would create your own channel classes. For example, you could have a
-`ChatChannel` and an `AppearanceChannel`:
+Your own channel classes could then look like these examples:
 
 ```ruby
 # app/channels/chat_channel.rb
@@ -247,45 +238,32 @@ specific channel to handle raised exceptions:
 ```ruby
 # app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
-  rescue_from 'MyError', with: :deliver_error_message
+  rescue_from "MyError", with: :deliver_error_message
 
   private
     def deliver_error_message(e)
-      broadcast_to(...)
+      # broadcast_to(...)
     end
 end
 ```
 
 #### Channel Callbacks
 
-`ApplicationCable::Channel` provides a number of callbacks that can be used to trigger logic
-during the life cycle of a channel. Available callbacks are:
+[`ActionCable::Channel::Callbacks`][] provides callback hooks that are invoked
+during the life cycle of a channel:
 
-- `before_subscribe`
-- `after_subscribe` (also aliased as: `on_subscribe`)
-- `before_unsubscribe`
-- `after_unsubscribe` (also aliased as: `on_unsubscribe`)
+* [`before_subscribe`][]
+* [`after_subscribe`][] (aliased as [`on_subscribe`][])
+* [`before_unsubscribe`][]
+* [`after_unsubscribe`][] (aliased as [`on_unsubscribe`][])
 
-NOTE: The `after_subscribe` callback is triggered whenever the `subscribed` method is called,
-even if subscription was rejected with the `reject` method. To trigger `after_subscribe`
-only on successful subscriptions, use `after_subscribe :send_welcome_message, unless: :subscription_rejected?`
-
-```ruby
-# app/channels/chat_channel.rb
-class ChatChannel < ApplicationCable::Channel
-  after_subscribe :send_welcome_message, unless: :subscription_rejected?
-  after_subscribe :track_subscription
-
-  private
-    def send_welcome_message
-      broadcast_to(...)
-    end
-
-    def track_subscription
-      # ...
-    end
-end
-```
+[`ActionCable::Channel::Callbacks`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks.html
+[`after_subscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-after_subscribe
+[`after_unsubscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-after_unsubscribe
+[`before_subscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-before_subscribe
+[`before_unsubscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-before_unsubscribe
+[`on_subscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-on_subscribe
+[`on_unsubscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-on_unsubscribe
 
 ## Client-Side Components
 
@@ -387,11 +365,11 @@ ActionCable.server.broadcast("chat_Best Room", { body: "This Room is Best Room."
 If you have a stream that is related to a model, then the broadcasting name
 can be generated from the channel and model. For example, the following code
 uses [`stream_for`][] to subscribe to a broadcasting like
-`comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
+`posts:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
 the GlobalID of the Post model.
 
 ```ruby
-class CommentsChannel < ApplicationCable::Channel
+class PostsChannel < ApplicationCable::Channel
   def subscribed
     post = Post.find(params[:id])
     stream_for post
@@ -402,7 +380,7 @@ end
 You can then broadcast to this channel by calling [`broadcast_to`][]:
 
 ```ruby
-CommentsChannel.broadcast_to(@post, @comment)
+PostsChannel.broadcast_to(@post, @comment)
 ```
 
 [`broadcast`]: https://api.rubyonrails.org/classes/ActionCable/Server/Broadcasting.html#method-i-broadcast
@@ -501,8 +479,8 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
 ActionCable.server.broadcast(
   "chat_#{room}",
   {
-    sent_by: 'Paul',
-    body: 'This is a cool chat app.'
+    sent_by: "Paul",
+    body: "This is a cool chat app."
   }
 )
 ```
@@ -533,7 +511,7 @@ const chatChannel = consumer.subscriptions.create({ channel: "ChatChannel", room
   received(data) {
     // data => { sent_by: "Paul", body: "This is a cool chat app." }
   }
-}
+})
 
 chatChannel.send({ sent_by: "Paul", body: "This is a cool chat app." })
 ```
@@ -570,7 +548,7 @@ class AppearanceChannel < ApplicationCable::Channel
   end
 
   def appear(data)
-    current_user.appear(on: data['appearing_on'])
+    current_user.appear(on: data["appearing_on"])
   end
 
   def away
@@ -653,28 +631,28 @@ consumer.subscriptions.create("AppearanceChannel", {
 #### Client-Server Interaction
 
 1. **Client** connects to the **Server** via `createConsumer()`. (`consumer.js`). The
-**Server** identifies this connection by `current_user`.
+  **Server** identifies this connection by `current_user`.
 
 2. **Client** subscribes to the appearance channel via
-`consumer.subscriptions.create({ channel: "AppearanceChannel" })`. (`appearance_channel.js`)
+  `consumer.subscriptions.create({ channel: "AppearanceChannel" })`. (`appearance_channel.js`)
 
 3. **Server** recognizes a new subscription has been initiated for the
-appearance channel and runs its `subscribed` callback, calling the `appear`
-method on `current_user`. (`appearance_channel.rb`)
+  appearance channel and runs its `subscribed` callback, calling the `appear`
+  method on `current_user`. (`appearance_channel.rb`)
 
 4. **Client** recognizes that a subscription has been established and calls
-`connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
-`appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
-data hash of `{ appearing_on: this.appearingOn }`. This is
-possible because the server-side channel instance automatically exposes all
-public methods declared on the class (minus the callbacks), so that these can be
-reached as remote procedure calls via a subscription's `perform` method.
+  `connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
+  `appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
+  data hash of `{ appearing_on: this.appearingOn }`. This is
+  possible because the server-side channel instance automatically exposes all
+  public methods declared on the class (minus the callbacks), so that these can be
+  reached as remote procedure calls via a subscription's `perform` method.
 
 5. **Server** receives the request for the `appear` action on the appearance
-channel for the connection identified by `current_user`
-(`appearance_channel.rb`). **Server** retrieves the data with the
-`:appearing_on` key from the data hash and sets it as the value for the `:on`
-key being passed to `current_user.appear`.
+  channel for the connection identified by `current_user`
+  (`appearance_channel.rb`). **Server** retrieves the data with the
+  `:appearing_on` key from the data hash and sets it as the value for the `:on`
+  key being passed to `current_user.appear`.
 
 ### Example 2: Receiving New Web Notifications
 
@@ -719,8 +697,8 @@ application:
 # Somewhere in your app this is called, perhaps from a NewCommentJob
 WebNotificationsChannel.broadcast_to(
   current_user,
-  title: 'New things!',
-  body: 'All the news fit to print'
+  title: "New things!",
+  body: "All the news fit to print"
 )
 ```
 
@@ -779,14 +757,13 @@ when using the same Redis server for multiple applications. See the [Redis Pub/S
 
 The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be passed in `ssl_params` key in the configuration YAML file.
 
-```
+```yaml
 production:
   adapter: redis
   url: rediss://10.10.3.153:tls_port
   channel_prefix: appname_production
-  ssl_params: {
+  ssl_params:
     ca_file: "/path/to/ca.crt"
-  }
 ```
 
 The options given to `ssl_params` are passed directly to the `OpenSSL::SSL::SSLContext#set_params` method and can be any valid attribute of the SSL context.
@@ -802,6 +779,8 @@ The PostgreSQL adapter uses Active Record's connection pool, and thus the
 application's `config/database.yml` database configuration, for its connection.
 This may change in the future. [#27214](https://github.com/rails/rails/issues/27214)
 
+NOTE: PostgreSQL has a [8000 bytes limit](https://www.postgresql.org/docs/current/sql-notify.html) on `NOTIFY` (the command used under the hood for sending notifications) which might be a constraint when dealing with large payloads.
+
 ### Allowed Request Origins
 
 Action Cable will only accept requests from specified origins, which are
@@ -809,7 +788,7 @@ passed to the server config as an array. The origins can be instances of
 strings or regular expressions, against which a check for the match will be performed.
 
 ```ruby
-config.action_cable.allowed_request_origins = ['https://rubyonrails.com', %r{http://ruby.*}]
+config.action_cable.allowed_request_origins = ["https://rubyonrails.com", %r{http://ruby.*}]
 ```
 
 To disable and allow requests from any origin:
@@ -849,7 +828,7 @@ You can change that in `config/database.yml` through the `pool` attribute.
 
 Client-side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
 
-```ruby
+```js
 import * as ActionCable from '@rails/actioncable'
 
 ActionCable.logger.enabled = true
@@ -863,7 +842,7 @@ the user account id if available, else "no-account" while tagging:
 
 ```ruby
 config.action_cable.log_tags = [
-  -> request { request.env['user_account_id'] || "no-account" },
+  -> request { request.env["user_account_id"] || "no-account" },
   :action_cable,
   -> request { request.uuid }
 ]
@@ -887,7 +866,7 @@ listen for WebSocket requests on `/websocket`, specify that path to
 ```ruby
 # config/application.rb
 class Application < Rails::Application
-  config.action_cable.mount_path = '/websocket'
+  config.action_cable.mount_path = "/websocket"
 end
 ```
 
@@ -918,8 +897,8 @@ run ActionCable.server
 
 Then to start the server:
 
-```
-bundle exec puma -p 28080 cable/config.ru
+```bash
+$ bundle exec puma -p 28080 cable/config.ru
 ```
 
 This starts a cable server on port 28080. To tell Rails to use this

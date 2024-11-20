@@ -5,6 +5,7 @@ require "active_support/json"
 
 class DirtyTest < ActiveModel::TestCase
   class DirtyModel
+    include ActiveModel::API
     include ActiveModel::Dirty
     define_attribute_methods :name, :color, :size, :status
 
@@ -184,7 +185,7 @@ class DirtyTest < ActiveModel::TestCase
     @model.status = "finished"
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
     assert_equal ["waiting", "finished"], @model.status_change
-    assert_equal @model.name_was, "Otto"
+    assert_equal "Otto", @model.name_was
   end
 
   test "using attribute_will_change! with a symbol" do

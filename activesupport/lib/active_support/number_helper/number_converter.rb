@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "bigdecimal"
+require "bigdecimal/util"
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/core_ext/hash/keys"
 require "active_support/i18n"
@@ -128,7 +130,7 @@ module ActiveSupport
       def execute
         if !number
           nil
-        elsif validate_float? && !valid_float?
+        elsif validate_float? && !valid_bigdecimal
           number
         else
           convert
@@ -162,19 +164,26 @@ module ActiveSupport
         end
 
         def translate_number_value_with_default(key, **i18n_options)
-          I18n.translate(key, **{ default: default_value(key), scope: :number }.merge!(i18n_options))
+          I18n.translate(key, default: default_value(key), scope: :number, **i18n_options)
         end
 
         def translate_in_locale(key, **i18n_options)
-          translate_number_value_with_default(key, **{ locale: options[:locale] }.merge(i18n_options))
+          translate_number_value_with_default(key, locale: options[:locale], **i18n_options)
         end
 
         def default_value(key)
           key.split(".").reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
         end
 
-        def valid_float?
-          Float(number, exception: false)
+        def valid_bigdecimal
+          case number
+          when Float, Rational
+            number.to_d(0)
+          when String
+            BigDecimal(number, exception: false)
+          else
+            number.to_d rescue nil
+          end
         end
     end
   end

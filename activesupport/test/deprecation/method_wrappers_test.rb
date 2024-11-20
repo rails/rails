@@ -39,10 +39,13 @@ class MethodWrappersTest < ActiveSupport::TestCase
 
   def test_deprecate_methods_warning_with_optional_deprecator
     @deprecator = ActiveSupport::Deprecation.new("next-release", "MyGem")
-    ActiveSupport::Deprecation.deprecate_methods(@klass, :old_method, deprecator: @deprecator)
+    other_deprecator = ActiveSupport::Deprecation.new
+    other_deprecator.deprecate_methods(@klass, :old_method, deprecator: @deprecator)
 
     assert_deprecated(/old_method .* MyGem next-release/, @deprecator) do
-      assert_equal @klass.new.new_method, @klass.new.old_method
+      assert_not_deprecated(other_deprecator) do
+        assert_equal @klass.new.new_method, @klass.new.old_method
+      end
     end
   end
 
