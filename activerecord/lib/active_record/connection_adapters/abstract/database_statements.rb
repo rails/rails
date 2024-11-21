@@ -148,6 +148,26 @@ module ActiveRecord
         internal_exec_query(sql, name, binds, prepare: prepare)
       end
 
+      # Executes +sql+ statement in the context of this connection using
+      # Returns an array of record hashes with the column names as keys and column values
+      # as values.
+      # Example usage:
+      #
+      #   ActiveRecord::Base.connection.simple_query("SELECT * FROM posts WHERE company_id = :company_id AND user_id = :user_id", company_id: company.id, user_id: user_id)
+      def simple_query(sql, binds = nil, **splat_binds)
+        if binds.nil? && splat_binds
+          binds = splat_binds
+        end
+
+        if binds.is_a?(Array)
+          sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, *binds])
+        else
+          sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, binds])
+        end
+
+        select_all(sanitized_sql).to_a
+      end
+
       # Executes insert +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.

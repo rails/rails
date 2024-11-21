@@ -1,3 +1,20 @@
+*   Add database method `simple_query`
+
+    ```ruby
+      sql = <<~SQL
+        SELECT
+          orders.category,
+          COUNT(*)
+        FROM orders
+        WHERE orders.company_id = :company_id AND orders.updated_by_user_id = :user_id
+        GROUP BY 1
+      SQL
+
+      ActiveRecord::Base.connection.simple_query(sql, company_id: company.id, user_id: user.id)
+    ```
+
+    *westonganger*
+
 *   Allow to reset cache counters for multiple records.
 
     ```

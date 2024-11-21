@@ -333,6 +333,55 @@ module ActiveRecord
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
 
+    def test_simple_query_with_splat
+      result = @connection.simple_query("SELECT id FROM posts WHERE id IN (:id, :id_2)", id: 1, id_2: 2)
+
+      first, second = result
+
+      assert result.is_a?(Array)
+
+      assert_equal 2, result.size
+
+      assert_equal({ "id" => 1 }, first)
+      assert_equal({ "id" => 2 }, second)
+    end
+
+    def test_simple_query_with_hash
+      result = @connection.simple_query("SELECT id FROM posts WHERE id IN (:id, :id_2)", { id: 1, id_2: 2 })
+
+      first, second = result
+
+      assert result.is_a?(Array)
+
+      assert_equal 2, result.size
+
+      assert_equal({ "id" => 1 }, first)
+      assert_equal({ "id" => 2 }, second)
+    end
+
+    def test_simple_query_with_array
+      result = @connection.simple_query("SELECT id FROM posts WHERE id IN (?, ?)", [1, 2])
+
+      first, second = result
+
+      assert result.is_a?(Array)
+
+      assert_equal 2, result.size
+
+      assert_equal({ "id" => 1 }, first)
+      assert_equal({ "id" => 2 }, second)
+    end
+
+    def test_simple_query_with_single_argument
+      result = @connection.simple_query("SELECT id FROM posts WHERE id = ?", 1)
+
+      assert result.is_a?(Array)
+
+      assert_equal 1, result.size
+
+      assert_equal({ "id" => 1 }, result.first)
+    end
+
     test "inspect does not show secrets" do
       output = @connection.inspect
 
