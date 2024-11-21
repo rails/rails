@@ -53,16 +53,15 @@ module Rails
       end
 
       def configure_test_helper
-        inject_into_file "test/test_helper.rb", after: "class ActiveSupport::TestCase\n" do
-          <<~RUBY
-            # Authentication helper method for tests
-            def login_as(user)
-              session = user.sessions.create!
-              Current.session = session
-              request = ActionDispatch::Request.new(Rails.application.env_config)
-              cookies = request.cookie_jar
-              cookies.signed[:session_id] = { value: session.id, httponly: true, same_site: :lax }
-            end
+        inject_into_file "test/test_helper.rb", after: "# Add more helper methods to be used by all tests here...\n" do
+          <<-RUBY
+    def login_as(user)
+      session = user.sessions.create!
+      Current.session = session
+      request = ActionDispatch::Request.new(Rails.application.env_config)
+      cookies = request.cookie_jar
+      cookies.signed[:session_id] = { value: session.id, httponly: true, same_site: :lax }
+    end
           RUBY
         end
       end
