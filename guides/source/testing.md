@@ -17,41 +17,30 @@ After reading this guide, you will know:
 Why Write Tests?
 ----------------
 
-Rails makes it super easy to write your tests. It starts by producing skeleton
-test code when you create your models and controllers.
+Writing automated tests can be a faster way of ensuring your code continues to work as expected than manual testing through the browser or the console. Failing tests can quickly reveal issues, allowing you to identify and fix bugs early in the development process. This practice not only improves the reliability of your code but also improves confidence in your changes.
 
-By running your Rails tests you can quickly and easily ensure your code still
-adheres to the desired functionality even after some major code refactoring.
-
-Rails tests can also simulate browser requests and thus you can test your
-application's response without having to view the output through your browser.
+Rails makes it easy to write tests. You can read more about Rails' built in support for testing in the next section.
 
 Introduction to Testing
 -----------------------
 
-Testing was woven into the Rails fabric from the very beginning, and is central
+With Rails, testing is central
 to the development process right from the creation of a new application.
 
 ### Test Setup
 
 Rails creates a `test` directory for you as soon as you create a Rails project
 using `rails new` _application_name_. If you list the contents of this directory
-then you shall see:
+then you will see:
 
 ```bash
 $ ls -F test
-application_system_test_case.rb  controllers/                     helpers/                         mailers/                         system/
-channels/                        fixtures/                        integration/                     models/                          test_helper.rb
+application_system_test_case.rb  controllers/                     helpers/                         mailers/                         system/                          fixtures/                        integration/                     models/                          test_helper.rb
 ```
 
 ### Test Directories
 
-The `helpers`, `mailers`, and `models` directories are where tests for view
-helpers, mailers, and models respectively should be stored. The `channels`
-directory is where tests for Action Cable connection and channels should be
-stored. The `controllers` directory is where tests for controllers, routes, and
-views should be stored. The `integration` directory is where tests for
-interactions between controllers should be stored.
+The `helpers`, `mailers`, and [`models`](#model-testing) directories store tests for view helpers, mailers, and models, respectively. The [`controllers`](#functional-testing-for-controllers) directory is used for tests related to controllers, routes, and views, where http requests will be simulated and assertions made on the outcomes. The [`integration`](#integration-testing) directory is reserved for tests that cover interactions between controllers.
 
 The system test directory holds system tests, which are used for full browser
 testing of your application. System tests allow you to test your application the
