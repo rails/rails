@@ -105,51 +105,57 @@ module ActionView
           raise WrongEncodingError.new(string, string.encoding)
         end
 
+        # Find which token in the source template spans the byte range that
+        # contains the error_column, then return the offset compared to the
+        # original source template.
+        #
+        # Iterate consecutive pairs of CODE or TEXT tokens, requiring
+        # a match of the first token before matching either token.
+        #
+        # For example, if we want to find tokens A, B, C, we do the following:
+        # 1. Find a match for A: test error_column or advance scanner.
+        # 2. Find a match for B or A:
+        #   a. If B: start over with next token set (B, C).
+        #   b. If A: test error_column or advance scanner.
+        #   c. Otherwise: Advance 1 byte
+        #
+        # Prioritize matching the next token over the current token once
+        # a match for the current token has been found. This is to prevent
+        # the current token from looping past the next token if they both
+        # match (i.e. if the current token is a single space character).
         def find_offset(compiled, source_tokens, error_column)
           compiled = StringScanner.new(compiled)
+          offset_source_tokens(source_tokens).each_cons(2) do |(name, str, offset), (_, next_str, _)|
+            matched_str = false
 
-          passed_tokens = []
+            until compiled.eos?
+              if matched_str && next_str && compiled.match?(next_str)
+                break
+              elsif compiled.match?(str)
+                matched_str = true
 
-          while tok = source_tokens.shift
-            tok_name, str = *tok
-            case tok_name
-            when :TEXT
-              loop do
-                break if compiled.match?(str)
-                compiled.getch
-              end
-              raise LocationParsingError unless compiled.scan(str)
-            when :CODE
-              if compiled.pos > error_column
-                raise LocationParsingError, "We went too far"
-              end
-
-              if compiled.pos + str.bytesize >= error_column
-                offset = error_column - compiled.pos
-                return passed_tokens.map(&:last).join.bytesize + offset
-              else
-                unless compiled.scan(str)
-                  raise LocationParsingError, "Couldn't find code snippet"
+                if name == :CODE && compiled.pos <= error_column && compiled.pos + str.bytesize >= error_column
+                  return error_column - compiled.pos + offset
                 end
-              end
-            when :OPEN
-              next_tok = source_tokens.first.last
-              loop do
-                break if compiled.match?(next_tok)
-                compiled.getch
-              end
-            when :CLOSE
-              next_tok = source_tokens.first.last
-              loop do
-                break if compiled.match?(next_tok)
-                compiled.getch
-              end
-            else
-              raise LocationParsingError, "Not implemented: #{tok.first}"
-            end
 
-            passed_tokens << tok
+                compiled.pos += str.bytesize
+              else
+                compiled.pos += 1
+              end
+            end
           end
+
+          raise LocationParsingError, "Couldn't find code snippet"
+        end
+
+        def offset_source_tokens(source_tokens)
+          source_offset = 0
+          with_offset = source_tokens.filter_map do |(name, str)|
+            result = [name, str, source_offset] if name == :CODE || name == :TEXT
+            source_offset += str.bytesize
+            result
+          end
+          with_offset << [:EOS, nil, source_offset]
         end
       end
     end
