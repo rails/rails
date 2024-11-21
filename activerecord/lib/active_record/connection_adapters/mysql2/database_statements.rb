@@ -53,7 +53,7 @@ module ActiveRecord
 
               begin
                 ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                  stmt.execute(*type_casted_binds)
+                  result = stmt.execute(*type_casted_binds)
                 end
               rescue ::Mysql2::Error
                 @statements.delete(sql)
@@ -61,6 +61,8 @@ module ActiveRecord
                 raise
               end
               verified!
+
+              result
             else
               raw_connection.query(sql)
             end
