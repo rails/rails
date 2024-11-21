@@ -1,3 +1,9 @@
+*   Improve reliability of ERB template error highlighting.
+    Fix infinite loops and crashes in highlighting and
+    improve tolerance for alternate ERB handlers.
+
+    *Martin Emde*
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   No changes.
