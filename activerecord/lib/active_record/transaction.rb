@@ -101,9 +101,6 @@ module ActiveRecord
     #
     # If the entire chain of nested transactions are all successfully committed,
     # the block is never called.
-    #
-    # If the transaction is already finalized, attempting to register a callback
-    # will raise ActiveRecord::ActiveRecordError.
     def after_rollback(&block)
       @internal_transaction&.after_rollback(&block)
     end
