@@ -26,7 +26,7 @@ module ActiveRecord
   #    # We are inside a real and not finalized transaction.
   #  end
   #
-  # Closed transactions are `blank?` too.
+  # Closed transactions are +blank?+ too.
   #
   # == Callbacks
   #
