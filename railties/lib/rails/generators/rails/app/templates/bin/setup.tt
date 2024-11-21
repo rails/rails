@@ -38,7 +38,7 @@ FileUtils.chdir APP_ROOT do
 
   unless ARGV.include?("--skip-server")
     puts "\n== Starting development server =="
-    STDOUT.flush # flush the output before exec(2) so that it displays
+    $stdout.flush # flush the output before exec(2) so that it displays
     exec "bin/dev"
   end
 end
