@@ -83,7 +83,7 @@ module Rails
           unless config.api_only
             middleware.use ::ActionDispatch::Flash
             middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
-            middleware.use ::ActionDispatch::PermissionsPolicy::Middleware
+            middleware.use ::ActionDispatch::PermissionsPolicy::Middleware if config.permissions_policy
           end
 
           middleware.use ::Rack::Head

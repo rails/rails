@@ -78,6 +78,11 @@ module Rails
         super
       end
 
+      def recognize_path_with_request(...)
+        Rails.application&.reload_routes_unless_loaded
+        super
+      end
+
       def routes
         Rails.application&.reload_routes_unless_loaded
         super

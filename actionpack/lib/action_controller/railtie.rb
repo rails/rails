@@ -48,11 +48,6 @@ module ActionController
         end
 
         ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
-
-        unless options.allow_deprecated_parameters_hash_equality.nil?
-          ActionController::Parameters.allow_deprecated_parameters_hash_equality =
-            options.allow_deprecated_parameters_hash_equality
-        end
       end
     end
 
@@ -85,7 +80,6 @@ module ActionController
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default,
-          :allow_deprecated_parameters_hash_equality
         )
 
         filtered_options.each do |k, v|

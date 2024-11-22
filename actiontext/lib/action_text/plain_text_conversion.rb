@@ -65,7 +65,12 @@ module ActionText
 
       def plain_text_for_blockquote_node(node, index)
         text = plain_text_for_block(node)
-        text.sub(/\A(\s*)(.+?)(\s*)\Z/m, '\1“\2”\3')
+        return "“”" if text.blank?
+
+        text = text.dup
+        text.insert(text.rindex(/\S/) + 1, "”")
+        text.insert(text.index(/\S/), "“")
+        text
       end
 
       def plain_text_for_li_node(node, index)

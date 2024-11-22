@@ -76,7 +76,7 @@ module ActiveRecord
 
     def initialize(model, table: nil, predicate_builder: nil, values: {})
       if table
-        predicate_builder ||= PredicateBuilder.new(TableMetadata.new(model, table))
+        predicate_builder ||= model.predicate_builder.with(TableMetadata.new(model, table))
       else
         table = model.arel_table
         predicate_builder ||= model.predicate_builder

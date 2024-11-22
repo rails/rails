@@ -127,7 +127,8 @@ module ActionView
                 wildcard_dependency << scanner.pre_match
 
                 while unmatched_brackets > 0 && !scanner.eos?
-                  scanner.scan_until(/[{}]/)
+                  found = scanner.scan_until(/[{}]/)
+                  return unless found
 
                   case scanner.matched
                   when "{"

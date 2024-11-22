@@ -171,7 +171,7 @@ module ActionController # :nodoc:
       # Call render_body if we are streaming instead of usual `render`.
       def _render_template(options)
         if options.delete(:stream)
-          # It shoudn't be necessary to set this.
+          # It shouldn't be necessary to set this.
           headers["cache-control"] ||= "no-cache"
 
           view_renderer.render_body(view_context, options)

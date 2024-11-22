@@ -11,18 +11,22 @@ gemfile(true) do
 end
 
 require "action_controller/railtie"
+require "minitest/autorun"
+require "rack/test"
 
 class TestApp < Rails::Application
+  config.load_defaults Rails::VERSION::STRING.to_f
   config.root = __dir__
+  config.eager_load = false
   config.hosts << "example.org"
   config.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)
-  Rails.logger  = config.logger
+end
+Rails.application.initialize!
 
-  routes.draw do
-    get "/" => "test#index"
-  end
+Rails.application.routes.draw do
+  get "/", to: "test#index"
 end
 
 class TestController < ActionController::Base
@@ -33,15 +37,13 @@ class TestController < ActionController::Base
   end
 end
 
-require "minitest/autorun"
-require "rack/test"
-
 class BugTest < ActiveSupport::TestCase
   include Rack::Test::Methods
 
   def test_returns_success
     get "/"
     assert last_response.ok?
+    assert_equal last_response.body, "Home"
   end
 
   private

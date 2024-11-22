@@ -124,6 +124,13 @@ class Post < ActiveRecord::Base
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, join_table: "categories_posts", association_foreign_key: "category_id"
 
+  has_many :essays, through: :categories
+  has_many :authors_of_essays_named_bob,
+    -> { where(name: "Bob") },
+    through: :essays,
+    source: :writer,
+    source_type: "Author"
+
   has_many :taggings, as: :taggable, counter_cache: :tags_count
   has_many :tags, through: :taggings do
     def add_joins_and_select

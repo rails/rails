@@ -42,6 +42,25 @@ module ActiveRecord
       end
     end
 
+    def test_multi_values_deduplication_with_merge
+      expected = {
+        unscope:   [ :where ],
+        extending: [ Module.new ],
+        with:      [ foo: Post.all ],
+      }
+      expected.default = [ Object.new ]
+
+      Relation::MULTI_VALUE_METHODS.each do |method|
+        getter, setter = "#{method}_values", "#{method}_values="
+        values = expected[method]
+        relation = Relation.new(FakeKlass)
+        relation.public_send(setter, values)
+
+        assert_equal values, relation.public_send(getter), method
+        assert_equal values, relation.merge(relation).public_send(getter), method
+      end
+    end
+
     def test_extensions
       relation = Relation.new(FakeKlass)
       assert_equal [], relation.extensions
@@ -291,8 +310,7 @@ module ActiveRecord
 
     def test_select_quotes_when_using_from_clause
       skip_if_sqlite3_version_includes_quoting_bug
-      quoted_join = ActiveRecord::Base.lease_connection.quote_table_name("join")
-      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      selected = Post.select(:join).from(Post.select("id as #{quote_table_name("join")}")).map(&:join)
       assert_equal Post.pluck(:id).sort, selected.sort
     end
 
@@ -373,7 +391,7 @@ module ActiveRecord
     end
 
     def test_does_not_duplicate_optimizer_hints_on_merge
-      escaped_table = Post.lease_connection.quote_table_name("posts")
+      escaped_table = quote_table_name("posts")
       expected = "SELECT /*+ OMGHINT */ #{escaped_table}.* FROM #{escaped_table}"
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query

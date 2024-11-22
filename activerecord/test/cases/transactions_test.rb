@@ -491,9 +491,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_deprecated(ActiveRecord.deprecator) do
-      transaction_with_shallow_return
-    end
+    transaction_with_shallow_return
     assert committed
 
     assert_predicate Topic.find(1), :approved?, "First should have been approved"

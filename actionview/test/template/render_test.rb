@@ -122,7 +122,8 @@ module RenderTestCases
     e = assert_raise ActionView::Template::Error do
       @view.render(template: "with_format", formats: [:json])
     end
-    assert_includes(e.message, "Missing partial /_missing with {:locale=>[:en], :formats=>[:json], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}.")
+    details = { locale: [:en], formats: [:json], variants: [], handlers: [:raw, :erb, :html, :builder, :ruby] }
+    assert_includes(e.message, "Missing partial /_missing with #{details}.")
   end
 
   def test_render_template_with_locale
@@ -206,6 +207,12 @@ module RenderTestCases
     assert_raises ActionView::MissingTemplate do
       @view.render(template: "../\\../test/abstract_unit.rb")
     end
+  end
+
+  def test_render_template_with_syntax_error
+    e = assert_raises(ActionView::Template::Error) { silence_warnings { @view.render(template: "test/syntax_error") } }
+    assert_match %r!syntax!, e.message
+    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
   end
 
   def test_render_runtime_error
@@ -343,12 +350,6 @@ module RenderTestCases
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
-  end
-
-  def test_render_template_with_syntax_error
-    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
-    assert_match %r!syntax!, e.message
-    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
   end
 
   def test_render_partial_with_errors

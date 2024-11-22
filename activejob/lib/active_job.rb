@@ -49,18 +49,6 @@ module ActiveJob
   autoload :TestCase
   autoload :TestHelper
 
-  def self.use_big_decimal_serializer
-    ActiveJob.deprecator.warn <<-WARNING.squish
-      Rails.application.config.active_job.use_big_decimal_serializer is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
-  def self.use_big_decimal_serializer=(value)
-    ActiveJob.deprecator.warn <<-WARNING.squish
-      Rails.application.config.active_job.use_big_decimal_serializer is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
   ##
   # :singleton-method: verbose_enqueue_logs
   #

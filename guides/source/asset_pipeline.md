@@ -708,7 +708,7 @@ asset host in Rails, you need to set [`config.asset_host`][] in
 `config/environments/production.rb`:
 
 ```ruby
-config.asset_host = 'mycdnsubdomain.fictional-cdn.com'
+config.asset_host = "mycdnsubdomain.fictional-cdn.com"
 ```
 
 NOTE: You only need to provide the "host", this is the subdomain and root
@@ -721,7 +721,7 @@ variable](https://en.wikipedia.org/wiki/Environment_variable) to make running a
 staging copy of your site easier:
 
 ```ruby
-config.asset_host = ENV['CDN_HOST']
+config.asset_host = ENV["CDN_HOST"]
 ```
 
 NOTE: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
@@ -832,7 +832,7 @@ year. You can do this in your Rails application by setting
 
 ```ruby
 config.public_file_server.headers = {
-  'Cache-Control' => 'public, max-age=31536000'
+  "Cache-Control" => "public, max-age=31536000"
 }
 ```
 
@@ -1035,7 +1035,7 @@ Now that you have a module that modifies the input data, it's time to register
 it as a preprocessor for your MIME type.
 
 ```ruby
-Sprockets.register_preprocessor 'text/css', AddComment
+Sprockets.register_preprocessor "text/css", AddComment
 ```
 
 

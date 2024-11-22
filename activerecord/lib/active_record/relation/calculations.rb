@@ -276,11 +276,11 @@ module ActiveRecord
     #   # => [2, 3]
     #
     #   Comment.joins(:person).pluck(:id, person: :id)
-    #   # SELECT comments.id, people.id FROM comments INNER JOIN people on comments.person_id = people.id
+    #   # SELECT comments.id, person.id FROM comments INNER JOIN people person ON person.id = comments.person_id
     #   # => [[1, 2], [2, 2]]
     #
     #   Comment.joins(:person).pluck(:id, person: [:id, :name])
-    #   # SELECT comments.id, people.id, people.name FROM comments INNER JOIN people on comments.person_id = people.id
+    #   # SELECT comments.id, person.id, person.name FROM comments INNER JOIN people person ON person.id = comments.person_id
     #   # => [[1, 2, 'David'], [2, 2, 'David']]
     #
     #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
@@ -311,8 +311,8 @@ module ActiveRecord
         relation.pluck(*column_names)
       else
         model.disallow_raw_sql!(flattened_args(column_names))
-        columns = arel_columns(column_names)
         relation = spawn
+        columns = relation.arel_columns(column_names)
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
@@ -508,7 +508,6 @@ module ActiveRecord
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
         group_fields = group_values
-        group_fields = group_fields.uniq if group_fields.size > 1
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
           association  = model._reflect_on_association(group_fields.first)
@@ -657,6 +656,7 @@ module ActiveRecord
         if column_name == :all
           column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
+          relation.unscope!(:order)
         else
           column_alias = Arel.sql("count_column")
           relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
@@ -665,11 +665,7 @@ module ActiveRecord
         subquery_alias = Arel.sql("subquery_for_count", retryable: true)
         select_value = operation_over_aggregate_column(column_alias, "count", false)
 
-        if column_name == :all
-          relation.unscope(:order).build_subquery(subquery_alias, select_value)
-        else
-          relation.build_subquery(subquery_alias, select_value)
-        end
+        relation.build_subquery(subquery_alias, select_value)
       end
   end
 end

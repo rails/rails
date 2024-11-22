@@ -11,6 +11,7 @@ gemfile(true) do
 end
 
 require "action_mailer/railtie"
+require "minitest/autorun"
 
 class TestMailer < ActionMailer::Base
   def hello_world
@@ -22,8 +23,6 @@ class TestMailer < ActionMailer::Base
     end
   end
 end
-
-require "minitest/autorun"
 
 class BugTest < ActionMailer::TestCase
   test "renders HTML and Text body" do

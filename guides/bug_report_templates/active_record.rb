@@ -12,13 +12,18 @@ gemfile(true) do
   gem "sqlite3"
 end
 
-require "active_record"
+require "active_record/railtie"
 require "minitest/autorun"
-require "logger"
 
 # This connection will do for database-independent bug reports.
-ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+ENV["DATABASE_URL"] = "sqlite3::memory:"
+
+class TestApp < Rails::Application
+  config.load_defaults Rails::VERSION::STRING.to_f
+  config.eager_load = false
+  config.logger = Logger.new($stdout)
+end
+Rails.application.initialize!
 
 ActiveRecord::Schema.define do
   create_table :posts, force: true do |t|
@@ -40,7 +45,7 @@ end
 class BugTest < ActiveSupport::TestCase
   def test_association_stuff
     post = Post.create!
-    post.comments << Comment.create!
+    post.comments.create!
 
     assert_equal 1, post.comments.count
     assert_equal 1, Comment.count

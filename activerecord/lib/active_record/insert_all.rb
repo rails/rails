@@ -240,7 +240,7 @@ module ActiveRecord
 
           values_list = insert_all.map_key_with_value do |key, value|
             next value if Arel::Nodes::SqlLiteral === value
-            types[key].serialize(types[key].cast(value))
+            ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
           end
 
           connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))

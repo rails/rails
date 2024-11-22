@@ -180,7 +180,7 @@ module ActiveRecord
         each_current_configuration(env) do |db_config|
           database_initialized = initialize_database(db_config)
 
-          seed = true if database_initialized
+          seed = true if database_initialized && db_config.seeds?
         end
 
         each_current_environment(env) do |environment|
@@ -240,13 +240,32 @@ module ActiveRecord
         end
       end
 
-      def migrate(version = nil)
+      def migrate_all
+        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
+        db_configs.each { |db_config| initialize_database(db_config) }
+
+        if db_configs.size == 1 && db_configs.first.primary?
+          ActiveRecord::Tasks::DatabaseTasks.migrate(skip_initialize: true)
+        else
+          mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions
+
+          mapped_versions.sort.each do |version, db_configs|
+            db_configs.each do |db_config|
+              ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
+                ActiveRecord::Tasks::DatabaseTasks.migrate(version, skip_initialize: true)
+              end
+            end
+          end
+        end
+      end
+
+      def migrate(version = nil, skip_initialize: false)
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
         check_target_version
 
-        initialize_database(migration_connection_pool.db_config)
+        initialize_database(migration_connection_pool.db_config) unless skip_initialize
 
         migration_connection_pool.migration_context.migrate(target_version) do |migration|
           if version.blank?
@@ -446,26 +465,10 @@ module ActiveRecord
         end
       end
 
-      def cache_dump_filename(db_config_or_name, schema_cache_path: nil)
-        if db_config_or_name.is_a?(DatabaseConfigurations::DatabaseConfig)
-          schema_cache_path ||
-            db_config_or_name.schema_cache_path ||
-            schema_cache_env ||
-            db_config_or_name.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
-        else
-          ActiveRecord.deprecator.warn(<<~MSG.squish)
-            Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 8.0. Pass a
-            `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object instead.
-          MSG
-
-          filename = if ActiveRecord::Base.configurations.primary?(db_config_or_name)
-            "schema_cache.yml"
-          else
-            "#{db_config_or_name}_schema_cache.yml"
-          end
-
-          schema_cache_path || schema_cache_env || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
-        end
+      def cache_dump_filename(db_config, schema_cache_path: nil)
+        schema_cache_path ||
+          db_config.schema_cache_path ||
+          db_config.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
       end
 
       def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
@@ -536,17 +539,6 @@ module ActiveRecord
       end
 
       private
-        def schema_cache_env
-          if ENV["SCHEMA_CACHE"]
-            ActiveRecord.deprecator.warn(<<~MSG.squish)
-              Setting `ENV["SCHEMA_CACHE"]` is deprecated and will be removed in Rails 8.0.
-              Configure the `:schema_cache_path` in the database configuration instead.
-            MSG
-
-            nil
-          end
-        end
-
         def with_temporary_pool(db_config, clobber: false)
           original_db_config = migration_class.connection_db_config
           pool = migration_class.connection_handler.establish_connection(db_config, clobber: clobber)

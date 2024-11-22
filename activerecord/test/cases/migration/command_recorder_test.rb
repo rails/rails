@@ -552,14 +552,13 @@ module ActiveRecord
       end
 
       def test_invert_rename_enum
-        enum = @recorder.inverse_of :rename_enum, [:dog_breed, to: :breed]
-        assert_equal [:rename_enum, [:breed, to: :dog_breed]], enum
+        enum = @recorder.inverse_of :rename_enum, [:dog_breed, :breed]
+        assert_equal [:rename_enum, [:breed, :dog_breed]], enum
       end
 
-      def test_invert_rename_enum_without_to
-        assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :rename_enum, [:breed]
-        end
+      def test_invert_rename_enum_with_to_option
+        enum = @recorder.inverse_of :rename_enum, [:dog_breed, to: :breed]
+        assert_equal [:rename_enum, [:breed, :dog_breed]], enum
       end
 
       def test_invert_add_enum_value

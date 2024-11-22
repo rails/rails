@@ -57,6 +57,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/action_controller\.perform_caching = true/, content)
     end
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/test:system/, content)
+      assert_no_match(/screenshots/, content)
+      assert_no_match(/scan_js/, content)
+      assert_no_match(/google-chrome-stable/, content)
+    end
   end
 
   def test_dockerfile

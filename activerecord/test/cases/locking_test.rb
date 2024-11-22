@@ -465,7 +465,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "unchangeable name", s.name
   end
 
-  def test_quote_table_name
+  def test_quote_table_name_reserved_word_references
     ref = references(:michael_magician)
     ref.favorite = !ref.favorite
     assert ref.save

@@ -27,6 +27,7 @@ module ActiveRecord
               col["name"]
             end
 
+            where = where.sub(/\s*\/\*.*\*\/\z/, "") if where
             orders = {}
 
             if columns.any?(&:nil?) # index created with an expression

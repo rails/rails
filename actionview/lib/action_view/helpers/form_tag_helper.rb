@@ -306,7 +306,7 @@ module ActionView
       #   # => <input type="hidden" name="collected_input" id="collected_input"
       #        value="" onchange="alert(&#39;Input collected!&#39;)" autocomplete="off" />
       def hidden_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: :hidden, autocomplete: "off"))
+        text_field_tag(name, value, options.merge(type: :hidden).with_defaults!(autocomplete: "off"))
       end
 
       # Creates a file upload field. If you are using file uploads then you will also need

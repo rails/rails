@@ -394,7 +394,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/", params: { "foo" => "bar" }, headers: { "action_dispatch.show_exceptions" => :all,
       "action_dispatch.parameter_filter" => [:foo] }
     assert_response 500
-    assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)
+
+    assert_match(CGI.escape_html({ "foo" => "[FILTERED]" }.inspect[1..-2]), body)
   end
 
   test "show registered original exception if the last exception is TemplateError" do

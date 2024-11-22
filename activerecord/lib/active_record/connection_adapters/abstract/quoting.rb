@@ -211,7 +211,7 @@ module ActiveRecord
         # Sanitize a string to appear within a SQL comment
         # For compatibility, this also surrounding "/*+", "/*", and "*/"
         # charcacters, possibly with single surrounding space.
-        # Then follows that by replacing any internal "*/" or "/ *" with
+        # Then follows that by replacing any internal "*/" or "/*" with
         # "* /" or "/ *"
         comment = value.to_s.dup
         comment.gsub!(%r{\A\s*/\*\+?\s?|\s?\*/\s*\Z}, "")

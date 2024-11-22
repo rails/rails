@@ -266,11 +266,13 @@ module Rails
       devcontainer_options = {
         database: options[:database],
         redis: options[:skip_solid] && !(options[:skip_action_cable] && options[:skip_active_job]),
+        kamal: !options[:skip_kamal],
         system_test: depends_on_system_test?,
         active_storage: !options[:skip_active_storage],
         dev: options[:dev],
         node: using_node?,
-        app_name: app_name
+        app_name: app_name,
+        skip_solid: options[:skip_solid]
       }
 
       Rails::Generators::DevcontainerGenerator.new([], devcontainer_options).invoke_all

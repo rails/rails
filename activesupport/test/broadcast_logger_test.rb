@@ -315,7 +315,7 @@ module ActiveSupport
         logger = BroadcastLogger.new(KwargsAcceptingLogger.new)
 
         logger.public_send(method, "Hello", foo: "bar")
-        assert_equal [[level, "{:foo=>\"bar\"} Hello", nil]], logger.broadcasts.sole.adds
+        assert_equal [[level, "#{{ foo: "bar" }} Hello", nil]], logger.broadcasts.sole.adds
       end
     end
 
@@ -323,7 +323,7 @@ module ActiveSupport
       logger = BroadcastLogger.new(KwargsAcceptingLogger.new)
 
       logger.add(::Logger::INFO, "Hello", foo: "bar")
-      assert_equal [[::Logger::INFO, "{:foo=>\"bar\"} Hello", nil]], logger.broadcasts.sole.adds
+      assert_equal [[::Logger::INFO, "#{{ foo: "bar" }} Hello", nil]], logger.broadcasts.sole.adds
     end
 
     class CustomLogger

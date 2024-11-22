@@ -172,6 +172,27 @@ module ActiveRecord
       assert_equal 1, events[1][:row_count]
     end
 
+    def test_payload_affected_rows
+      affected_row_values = []
+
+      ActiveSupport::Notifications.subscribed(
+        -> (event) { affected_row_values << event.payload[:affected_rows] },
+        "sql.active_record",
+      ) do
+        # The combination of MariaDB + Trilogy returns 0 for affected_rows with
+        # INSERT ... RETURNING
+        Book.insert_all!([{ name: "One" }, { name: "Two" }, { name: "Three" }, { name: "Four" }], returning: false)
+
+        Book.where(name: ["One", "Two", "Three"]).update_all(status: :published)
+
+        Book.where(name: ["Three", "Four"]).delete_all
+
+        Book.where(name: ["Three", "Four"]).delete_all
+      end
+
+      assert_equal [4, 3, 2, 0], affected_row_values
+    end
+
     def test_payload_connection_with_query_cache_disabled
       connection = ClothingItem.lease_connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|

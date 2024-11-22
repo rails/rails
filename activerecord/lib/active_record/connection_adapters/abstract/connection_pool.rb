@@ -316,14 +316,6 @@ module ActiveRecord
         connection_lease.sticky.nil?
       end
 
-      def connection
-        ActiveRecord.deprecator.warn(<<~MSG)
-          ActiveRecord::ConnectionAdapters::ConnectionPool#connection is deprecated
-          and will be removed in Rails 8.0. Use #lease_connection instead.
-        MSG
-        lease_connection
-      end
-
       def pin_connection!(lock_thread) # :nodoc:
         @pinned_connection ||= (connection_lease&.connection || checkout)
         @pinned_connections_depth += 1

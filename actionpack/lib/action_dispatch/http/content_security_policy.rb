@@ -8,8 +8,7 @@ require "active_support/core_ext/array/wrap"
 module ActionDispatch # :nodoc:
   # # Action Dispatch Content Security Policy
   #
-  # Configures the HTTP [Content-Security-Policy]
-  # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+  # Configures the HTTP [Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
   # response header to help protect against XSS and
   # injection attacks.
   #
@@ -227,8 +226,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Enable the [report-uri]
-    # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
+    # Enable the [report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
     # directive. Violation reports will be sent to the
     # specified URI:
     #
@@ -238,8 +236,7 @@ module ActionDispatch # :nodoc:
       @directives["report-uri"] = [uri]
     end
 
-    # Specify asset types for which [Subresource Integrity]
-    # (https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) is required:
+    # Specify asset types for which [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) is required:
     #
     #     policy.require_sri_for :script, :style
     #
@@ -255,8 +252,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Specify whether a [sandbox]
-    # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox)
+    # Specify whether a [sandbox](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox)
     # should be enabled for the requested resource:
     #
     #     policy.sandbox

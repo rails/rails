@@ -84,7 +84,7 @@ module ApplicationTests
 
       get("/", {}, "HTTPS" => "on")
       assert_equal 200, last_response.status
-      assert_equal "{:format=>:awesome, :handler=>RubbyHandler}", last_response.body
+      assert_equal({ format: :awesome, handler: RubbyHandler }.inspect, last_response.body)
     end
   end
 end

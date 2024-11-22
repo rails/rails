@@ -214,7 +214,7 @@ module ActiveModel
         end
       end
 
-      def generate_alias_attribute_methods(code_generator, new_name, old_name)
+      def generate_alias_attribute_methods(code_generator, new_name, old_name) # :nodoc:
         ActiveSupport::CodeGenerator.batch(code_generator, __FILE__, __LINE__) do |owner|
           attribute_method_patterns.each do |pattern|
             alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
@@ -321,8 +321,8 @@ module ActiveModel
         canonical_method_name = pattern.method_name(attr_name)
         public_method_name = pattern.method_name(as)
 
-        # If defining a regular attribute method, we don't override methods that are explictly
-        # defined in parrent classes.
+        # If defining a regular attribute method, we don't override methods that are explicitly
+        # defined in parent classes.
         if instance_method_already_implemented?(public_method_name)
           # However, for `alias_attribute`, we always define the method.
           # We check for override second because `instance_method_already_implemented?`

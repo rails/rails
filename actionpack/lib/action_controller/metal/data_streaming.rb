@@ -132,9 +132,7 @@ module ActionController # :nodoc:
         raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)
-          extension = Mime[content_type]
-          raise ArgumentError, "Unknown MIME type #{options[:type]}" unless extension
-          self.content_type = extension
+          self.content_type = content_type
         else
           if !type_provided && options[:filename]
             # If type wasn't provided, try guessing from file extension.

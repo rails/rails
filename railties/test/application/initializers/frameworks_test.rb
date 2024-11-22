@@ -220,7 +220,9 @@ module ApplicationTests
       rails %w(generate model post title:string)
 
       with_unhealthy_database do
-        app("development")
+        assert_nothing_raised do
+          app("development")
+        end
       end
     end
 

@@ -7,15 +7,9 @@ require "rails/railtie/configuration"
 
 module RailtiesTest
   class DynamicOptionsTest < ActiveSupport::TestCase
-    class Configuration < Rails::Railtie::Configuration
-      def reset_options
-        @@options = {}
-      end
-    end
-
     setup do
-      @config = Configuration.new
-      @config.reset_options
+      @config = Rails::Railtie::Configuration.dup.new
+      @config.class.class_variable_set(:@@options, {})
     end
 
     test "arbitrary keys can be set, reset, and read" do
