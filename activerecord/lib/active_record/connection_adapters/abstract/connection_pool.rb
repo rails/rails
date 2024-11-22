@@ -183,6 +183,31 @@ module ActiveRecord
         end
       end
 
+      module ExecutorHooks # :nodoc:
+        class << self
+          def run
+            # noop
+          end
+
+          def complete(_)
+            ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+              if (connection = pool.active_connection?)
+                transaction = connection.current_transaction
+                if transaction.closed? || !transaction.joinable?
+                  pool.release_connection
+                end
+              end
+            end
+          end
+        end
+      end
+
+      class << self
+        def install_executor_hooks(executor = ActiveSupport::Executor)
+          executor.register_hook(ExecutorHooks)
+        end
+      end
+
       include MonitorMixin
       prepend QueryCache::ConnectionPoolConfiguration
       include ConnectionAdapters::AbstractPool
@@ -291,14 +316,6 @@ module ActiveRecord
         connection_lease.sticky.nil?
       end
 
-      def connection
-        ActiveRecord.deprecator.warn(<<~MSG)
-          ActiveRecord::ConnectionAdapters::ConnectionPool#connection is deprecated
-          and will be removed in Rails 8.0. Use #lease_connection instead.
-        MSG
-        lease_connection
-      end
-
       def pin_connection!(lock_thread) # :nodoc:
         @pinned_connection ||= (connection_lease&.connection || checkout)
         @pinned_connections_depth += 1
@@ -332,6 +349,7 @@ module ActiveRecord
           end
 
           if @pinned_connection.nil?
+            connection.steal!
             connection.lock_thread = nil
             checkin(connection)
           end

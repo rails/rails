@@ -6,7 +6,6 @@ require "irb/command"
 module Rails
   class Console
     class RailsHelperBase < IRB::HelperMethod::Base
-      include ConsoleMethods
     end
 
     class ControllerHelper < RailsHelperBase
@@ -51,9 +50,16 @@ module Rails
       end
     end
 
-    class Reloader < IRB::Command::Base
-      include ConsoleMethods
+    class ReloadHelper < RailsHelperBase
+      description "Reloads the Rails application."
 
+      def execute
+        puts "Reloading..."
+        Rails.application.reloader.reload!
+      end
+    end
+
+    class ReloadCommand < IRB::Command::Base
       category "Rails console"
       description "Reloads the Rails application."
 
@@ -67,7 +73,8 @@ module Rails
     IRB::HelperMethod.register(:controller, ControllerInstance)
     IRB::HelperMethod.register(:new_session, NewSession)
     IRB::HelperMethod.register(:app, AppInstance)
-    IRB::Command.register(:reload!, Reloader)
+    IRB::HelperMethod.register(:reload!, ReloadHelper)
+    IRB::Command.register(:reload!, ReloadCommand)
 
     class IRBConsole
       def initialize(app)
@@ -109,10 +116,6 @@ module Rails
             Rails.backtrace_cleaner.filter(backtrace)
           end
         end
-
-        # Because some users/libs use Rails::ConsoleMethods to extend Rails console,
-        # we still include it for backward compatibility.
-        IRB::ExtendCommandBundle.include ConsoleMethods
 
         # Respect user's choice of prompt mode.
         IRB.conf[:PROMPT_MODE] = :RAILS_PROMPT if IRB.conf[:PROMPT_MODE] == :DEFAULT

@@ -1,25 +1,16 @@
-*   Enable DependencyTracker to evaluate renders with trailing interpolation.
+*   Fix a crash in ERB template error highlighting when the error occurs on a
+    line in the compiled template that is past the end of the source template.
 
-    ```erb
-    <%= render "maintenance_tasks/runs/info/#{run.status}" %>
-    ```
+    *Martin Emde*
 
-    Previously, the DependencyTracker would ignore this render, but now it will
-    mark all partials in the "maintenance_tasks/runs/info" folder as
-    dependencies.
+*   Improve reliability of ERB template error highlighting.
+    Fix infinite loops and crashes in highlighting and
+    improve tolerance for alternate ERB handlers.
 
-    *Hartley McGuire*
+    *Martin Emde*
 
-*   Rename `text_area` methods into `textarea`
+*   Allow `hidden_field` and `hidden_field_tag` to accept a custom autocomplete value.
 
-    Old names are still available as aliases.
+    *brendon*
 
-    *Sean Doyle*
-
-*   Rename `check_box*` methods into `checkbox*`.
-
-    Old names are still available as aliases.
-
-    *Jean Boussier*
-
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionview/CHANGELOG.md) for previous changes.

@@ -2,8 +2,6 @@
 
 # :markup: markdown
 
-require "set"
-
 module ActionController
   # See Renderers.add
   def self.add_renderer(key, &block)
@@ -154,27 +152,28 @@ module ActionController
     end
 
     add :json do |json, options|
-      json = json.to_json(options) unless json.kind_of?(String)
+      json_options = options.except(:callback, :content_type, :status)
+      json = json.to_json(json_options) unless json.kind_of?(String)
 
       if options[:callback].present?
         if media_type.nil? || media_type == Mime[:json]
-          self.content_type = Mime[:js]
+          self.content_type = :js
         end
 
         "/**/#{options[:callback]}(#{json})"
       else
-        self.content_type = Mime[:json] if media_type.nil?
+        self.content_type = :json if media_type.nil?
         json
       end
     end
 
     add :js do |js, options|
-      self.content_type = Mime[:js] if media_type.nil?
+      self.content_type = :js if media_type.nil?
       js.respond_to?(:to_js) ? js.to_js(options) : js
     end
 
     add :xml do |xml, options|
-      self.content_type = Mime[:xml] if media_type.nil?
+      self.content_type = :xml if media_type.nil?
       xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
   end

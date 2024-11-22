@@ -148,4 +148,14 @@ class AttributeAssignmentTest < ActiveModel::TestCase
     model = Model.new
     assert_nil model.assign_attributes(ProtectedParams.new({}))
   end
+
+  test "passing an object with each_pair but without each" do
+    model = Model.new
+    h = { name: "hello", description: "world" }
+    h.instance_eval { undef :each }
+    model.assign_attributes(h)
+
+    assert_equal "hello", model.name
+    assert_equal "world", model.description
+  end
 end

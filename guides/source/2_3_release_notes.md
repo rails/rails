@@ -503,7 +503,7 @@ A lot of folks have adopted the notion of using try() to attempt operations on o
 
 ### Object#tap Backport
 
-`Object#tap` is an addition to [Ruby 1.9](http://www.ruby-doc.org/core-1.9/classes/Object.html#M000309) and 1.8.7 that is similar to the `returning` method that Rails has had for a while: it yields to a block, and then returns the object that was yielded. Rails now includes code to make this available under older versions of Ruby as well.
+`Object#tap` is an addition to [Ruby 1.9](https://docs.ruby-lang.org/en/master/Kernel.html#method-i-tap) and 1.8.7 that is similar to the `returning` method that Rails has had for a while: it yields to a block, and then returns the object that was yielded. Rails now includes code to make this available under older versions of Ruby as well.
 
 ### Swappable Parsers for XMLmini
 

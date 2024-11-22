@@ -3,7 +3,6 @@
 require "cases/helper"
 require "models/account"
 require "models/entry"
-require "models/essay"
 require "models/message"
 require "models/recipient"
 require "models/comment"
@@ -12,12 +11,12 @@ require "models/uuid_message"
 require "models/uuid_comment"
 
 class DelegatedTypeTest < ActiveRecord::TestCase
-  fixtures :comments, :accounts, :essays
+  fixtures :comments, :accounts, :posts
 
   setup do
     @entry_with_message = Entry.create! entryable: Message.new(subject: "Hello world!"), account: accounts(:signals37)
     @entry_with_comment = Entry.create! entryable: comments(:greetings), account: accounts(:signals37)
-    @entry_with_essay = Entry.create! thing: essays(:mary_stay_home), account: accounts(:signals37)
+    @entry_with_post = Entry.create! thing: posts(:welcome), account: accounts(:signals37)
 
     if current_adapter?(:PostgreSQLAdapter)
       @uuid_entry_with_message = UuidEntry.create! uuid: SecureRandom.uuid, entryable: UuidMessage.new(uuid: SecureRandom.uuid, subject: "Hello world!")
@@ -37,7 +36,7 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   test "delegated class with custom foreign_type" do
     assert_equal Message, @entry_with_message.thing_class
     assert_equal Comment, @entry_with_comment.thing_class
-    assert_equal Essay, @entry_with_essay.thing_class
+    assert_equal Post, @entry_with_post.thing_class
   end
 
   test "delegated type name" do
@@ -57,9 +56,9 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   end
 
   test "delegated type predicates with custom foreign_type" do
-    assert_predicate @entry_with_essay, :essay?
-    assert_not @entry_with_message.essay?
-    assert_not @entry_with_comment.essay?
+    assert_predicate @entry_with_post, :post?
+    assert_not @entry_with_message.post?
+    assert_not @entry_with_comment.post?
   end
 
   test "scope" do
@@ -68,7 +67,7 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   end
 
   test "scope with custom foreign_type" do
-    assert_predicate Entry.essays.first, :essay?
+    assert_predicate Entry.posts.first, :post?
   end
 
   test "accessor" do
@@ -95,15 +94,6 @@ class DelegatedTypeTest < ActiveRecord::TestCase
 
     assert_equal @uuid_entry_with_comment.entryable_uuid, @uuid_entry_with_comment.uuid_comment_uuid
     assert_nil @uuid_entry_with_comment.uuid_message_uuid
-  end
-
-  test "association inverse_of" do
-    created = @entry_with_message.message
-    updated = @entry_with_message.build_entryable subject: "Goodbye world!"
-
-    assert_changes -> { @entry_with_message.reload.message }, from: created, to: updated do
-      updated.save!
-    end
   end
 
   test "touch account" do

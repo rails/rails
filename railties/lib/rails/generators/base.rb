@@ -424,11 +424,14 @@ module Rails
           path if File.exist?(path)
         end
 
+
         def gem_ruby_version
           version = Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version.to_s : RUBY_VERSION
 
           version.include?("preview") ? version.sub(".preview", "-preview").freeze : version
         end
+
+
     end
   end
 end

@@ -380,6 +380,16 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           end
         end
 
+        if supports_sql_standard_drop_constraint?
+          def test_remove_constraint
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
+
+            assert_equal 1, @connection.foreign_keys("astronauts").size
+            @connection.remove_constraint :astronauts, "fancy_named_fk"
+            assert_equal [], @connection.foreign_keys("astronauts")
+          end
+        end
+
         def test_remove_foreign_key_inferes_column
           @connection.add_foreign_key :astronauts, :rockets
 
@@ -590,6 +600,14 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
             output = dump_table_schema "astronauts"
 
             assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :immediate$}, output
+          end
+
+          def test_schema_dumping_with_special_chars_deferrable
+            @connection.add_reference :astronauts, :røcket, foreign_key: { to_table: :rockets, deferrable: :deferred }
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", column: "røcket_id", deferrable: :deferred$}, output
           end
         end
 

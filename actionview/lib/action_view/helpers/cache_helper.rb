@@ -98,7 +98,7 @@ module ActionView
       #   render "maintenance_tasks/runs/info/#{run.status}"
       #
       # Because the value passed to render ends in interpolation, Action View
-      # will mark all partials within the "maintenace_tasks/runs/info" folder as
+      # will mark all partials within the "maintenance_tasks/runs/info" folder as
       # dependencies.
       #
       # === Explicit dependencies

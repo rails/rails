@@ -1,0 +1,86 @@
+# Changes that are cosmetic and do not add anything substantial
+# to the stability, functionality, or testability of Rails will
+# generally not be accepted. Read more about our rationale behind
+# this decision: https://github.com/rails/rails/pull/13771#issuecomment-32746700
+
+# normalizes indentation and whitespace across the project
+80e66cc4d90bf8c15d1a5f6e3152e90147f00772
+# applies new string literal convention in *
+adca8154c6ffce978a5dbc514273cceecbb15f8e
+9ed740449884ba5841f756c4a5ccc0bce8f19082
+92e2d16a3c75d549fcd9422a31acd3323b74abaa
+78d3f84955bccad0ab161c5f2b4c1133813161a3
+6b3719b7577ab81171bab94a0492ae383dd279fe
+8b4e6bf23338e2080af537ea4f295e65a1d11388
+783763bde97bea3d0c200038453008a8cfff1e88
+69ab3eb57e8387b0dd9d672b5e8d9185395baa03
+f8477f13bfe554064bd25a57e5289b4ebaabb504
+b678eb57e93423ac8e2a0cc0b083ce556c6fb130
+b91ff557ef6f621d1b921f358fd5b8a5d9e9090e
+c3e7abddfb759eecb30cd59f27103fda4c4827dc
+35b3de8021e68649cac963bd82a74cc75d1f60f0
+628e51ff109334223094e30ad1365188bbd7f9c6
+4b6c68dfb810c836f87587a16353317d1a180805
+66a7cfa91045e05f134efc9ac0e226e66161e2e6
+bde6547bb6a8ddf18fb687bf20893d3dc87e0358
+93c9534c9871d4adad4bc33b5edc355672b59c61
+4c208254573c3428d82bd8744860bd86e1c78acb
+18a2513729ab90b04b1c86963e7d5b9213270c81
+9617db2078e8a85c8944392c21dd748f932bbd80
+4df2b779ddfcb27761c71e00e2b241bfa06a0950
+a731125f12c5834de7eae3455fad63ea4d348034
+d66e7835bea9505f7003e5038aa19b6ea95ceea1
+e6ab70c439301d533f14b3387ee181d843a86b30
+# modernizes hash syntax in *
+1607ee299d15c133b2b63dcfc840eddfba7e525b
+477568ee33bee0dc5e57b9df624142296e3951a4
+5c315a8fa6296904f5e0ba8da919fc395548cf98
+d22e522179c1c90e658c3ed0e9b972ec62306209
+fa911a74e15ef34bb435812f7d9cf7324253476f
+301ce2a6d11bc7a016f7ede71e3c6fd9fa0693a3
+63fff600accb41b56a3e6ac403d9b1732de3086d
+5b6eb1d58b48fada298215b2cccda89f993890c3
+12a70404cd164008879e63cc320356e6afee3adc
+60b67d76dc1d98e4269aac7705e9d8323eb42942
+# [Tests only] Enable Minitest/AssertPredicate rule
+19f8ab2e7d60dcdfd7664d6bea3a9fae55a3618c
+# Standardize nodoc comments
+18707ab17fa492eb25ad2e8f9818a320dc20b823
+# Add Style/RedundantFreeze to remove redudant .freeze
+aa3dcabd874a3e82e455e85a1c94a7abaac2900a
+# Enable Performance/UnfreezeString cop
+1b86d90136efb98c7b331a84ca163587307a49af
+# Arel: rubocop -a
+4c0a3d48804a363c7e9272519665a21f601b5248
+# Add more rubocop rules about whitespaces
+fe1f4b2ad56f010a4e9b93d547d63a15953d9dc2
+# Add three new rubocop rules
+55f9b8129a50206513264824abb44088230793c2
+# applies remaining conventions across the project
+b326e82dc012d81e9698cb1f402502af1788c1e9
+# remove redundant curlies from hash arguments
+411ccbdab2608c62aabdb320d52cb02d446bb39c
+# Deletes trailing whitespaces (over text files only find * -type f -exec sed 's/[ \t]*$//' -i {} ;)
+b95d6e84b00bd926b1118f6a820eca7a870b8c35
+b451de0d6de4df6bc66b274cec73b919f823d5ae
+# Replace assert ! with assert_not
+a1ac18671a90869ef81d02f2eafe8104e4eea34f
+# Use respond_to test helpers
+0d50cae996c51630361e8514e1f168b0c48957e1
+#  Change refute to assert_not
+211adb47e76b358ea15a3f756431c042ab231c23
+# Use assert_predicate and assert_not_predicate
+94333a4c31bd10c1f358c538a167e6a4589bae2d
+# Use assert_empty and assert_not_empty
+82c39e1a0b5114e2d89a80883a41090567a83196
+# Remove extra whitespace
+fda1863e1a8c120294c56482631d8254ad6125ff
+# Reduce string objects by using \ instead of + or << for concatenating strings
+b70fc698e157f2a768ba42efac08c08f4786b01c
+# Hash Syntax to 1.9 related changes
+eebb9ddf9ba559a510975c486fe59a4edc9da97d
+be4a4cd38ff2c2db0f6b69bb72fb3557bd5a6e21
+d20a52930aa80d7f219465d6fc414a68b16ef2a8
+3c580182ff3c16d2247aabc85100bf8c6edb0f82
+5ad7f8ab418f0c760dbb584f7c78d94ce32e9ee3
+a2c843885470dddbad9430963190464a22167921

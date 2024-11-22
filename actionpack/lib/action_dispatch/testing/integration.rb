@@ -284,7 +284,17 @@ module ActionDispatch
 
         # NOTE: rack-test v0.5 doesn't build a default uri correctly Make sure requested
         # path is always a full URI.
-        session.request(build_full_uri(path, request_env), request_env)
+        uri = build_full_uri(path, request_env)
+
+        if method == :get && String === request_env[:params]
+          # rack-test will needlessly parse and rebuild a :params
+          # querystring, using Rack's query parser. At best that's a
+          # waste of time; at worst it can change the value.
+
+          uri << "?" << request_env.delete(:params)
+        end
+
+        session.request(uri, request_env)
 
         @request_count += 1
         @request = ActionDispatch::Request.new(session.last_request.env)

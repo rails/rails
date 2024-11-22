@@ -103,7 +103,19 @@ module ActiveRecord
 
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
-      # Specifies the attributes that will be included in the output of the #inspect method
+      ##
+      # :singleton-method:
+      #
+      # Specifies the attributes that will be included in the output of the
+      # #inspect method:
+      #
+      #   Post.attributes_for_inspect = [:id, :title]
+      #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!">"
+      #
+      # When set to +:all+ inspect will list all the record's attributes:
+      #
+      #   Post.attributes_for_inspect = :all
+      #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
       class_attribute :attributes_for_inspect, instance_accessor: false, default: :all
 
       def self.application_record_class? # :nodoc:
@@ -350,7 +362,7 @@ module ActiveRecord
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect # :nodoc:
-        if self == Base
+        if self == Base || singleton_class?
           super
         elsif abstract_class?
           "#{super}(abstract)"
@@ -370,7 +382,7 @@ module ActiveRecord
       end
 
       def predicate_builder # :nodoc:
-        @predicate_builder ||= PredicateBuilder.new(table_metadata)
+        @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
       end
 
       def type_caster # :nodoc:
@@ -413,10 +425,6 @@ module ActiveRecord
           else
             relation
           end
-        end
-
-        def table_metadata
-          TableMetadata.new(self, arel_table)
         end
 
         def cached_find_by(keys, values)
@@ -529,12 +537,7 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      @attributes = @attributes.deep_dup
-      if self.class.composite_primary_key?
-        @primary_key.each { |key| @attributes.reset(key) }
-      else
-        @attributes.reset(@primary_key)
-      end
+      @attributes = init_attributes(other)
 
       _run_initialize_callbacks
 
@@ -544,6 +547,18 @@ module ActiveRecord
       @_start_transaction_state = nil
 
       super
+    end
+
+    def init_attributes(_) # :nodoc:
+      attrs = @attributes.deep_dup
+
+      if self.class.composite_primary_key?
+        @primary_key.each { |key| attrs.reset(key) }
+      else
+        attrs.reset(@primary_key)
+      end
+
+      attrs
     end
 
     # Populate +coder+ with attributes about this record that should be
@@ -615,7 +630,7 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if primary_key_values_present?
+      if self.class.composite_primary_key? ? primary_key_values_present? : id
         self.class.hash ^ id.hash
       else
         super
@@ -725,12 +740,26 @@ module ActiveRecord
       self.class.connection_handler
     end
 
-    # Returns the attributes specified by <tt>.attributes_for_inspect</tt> as a nicely formatted string.
+    # Returns the attributes of the record as a nicely formatted string.
+    #
+    #   Post.first.inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+    #
+    # The attributes can be limited by setting <tt>.attributes_for_inspect</tt>.
+    #
+    #   Post.attributes_for_inspect = [:id, :title]
+    #   Post.first.inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!">"
     def inspect
       inspect_with_attributes(attributes_for_inspect)
     end
 
-    # Returns the full contents of the record as a nicely formatted string.
+    # Returns all attributes of the record as a nicely formatted string,
+    # ignoring <tt>.attributes_for_inspect</tt>.
+    #
+    #   Post.first.full_inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+    #
     def full_inspect
       inspect_with_attributes(all_attributes_for_inspect)
     end

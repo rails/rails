@@ -30,7 +30,7 @@ module ActionController # :nodoc:
       # parameter.
       #
       # If you want to use multiple rate limits per controller, you need to give each of
-      # them and explicit name via the `name:` option.
+      # them an explicit name via the `name:` option.
       #
       # Examples:
       #
@@ -52,14 +52,15 @@ module ActionController # :nodoc:
       #       rate_limit to: 3, within: 2.seconds, name: "short-term"
       #       rate_limit to: 10, within: 5.minutes, name: "long-term"
       #     end
-      def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, store: cache_store, name: controller_path, **options)
+      def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, store: cache_store, name: nil, **options)
         before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store, name: name) }, **options
       end
     end
 
     private
       def rate_limiting(to:, within:, by:, with:, store:, name:)
-        count = store.increment("rate-limit:#{name}:#{instance_exec(&by)}", 1, expires_in: within)
+        cache_key = ["rate-limit", controller_path, name, instance_exec(&by)].compact.join(":")
+        count = store.increment(cache_key, 1, expires_in: within)
         if count && count > to
           ActiveSupport::Notifications.instrument("rate_limit.action_controller", request: request) do
             instance_exec(&with)

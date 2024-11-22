@@ -124,6 +124,17 @@ module ActiveRecord
         assert_equal expected, actual.configuration_hash
       end
 
+      def test_resolver_with_database_uri_containing_only_database_name
+        ENV["DATABASE_URL"] = "foo"
+        ENV["RAILS_ENV"] = "test"
+
+        config = { "test" => { "adapter" => "postgres", "database" => "not_foo", "host" => "localhost" } }
+        actual = resolve_db_config(:test, config)
+        expected = { adapter: "postgres", database: "foo", host: "localhost" }
+
+        assert_equal expected, actual.configuration_hash
+      end
+
       def test_jdbc_url
         config   = { "production" => { "adapter" => "abstract", "url" => "jdbc:postgres://localhost/foo" } }
         actual   = resolve_config(config, "production")

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
@@ -1136,6 +1135,7 @@ module ActiveRecord
             async:             async,
             connection:        self,
             transaction:       current_transaction.user_transaction.presence,
+            affected_rows:     0,
             row_count:         0,
             &block
           )

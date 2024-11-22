@@ -16,7 +16,7 @@ module ActiveSupport
       /Failed to validate the schema cache because/,
 
       # TODO: We need to decide what to do with this.
-      /Status code :unprocessable_entity is deprecated/
+      /Status code :unprocessable_entity is deprecated/,
     )
 
     SUPPRESSED_WARNINGS = Regexp.union(

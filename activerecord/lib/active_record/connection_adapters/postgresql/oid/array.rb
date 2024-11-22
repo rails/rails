@@ -65,7 +65,7 @@ module ActiveRecord
           end
 
           def map(value, &block)
-            value.map { |v| subtype.map(v, &block) }
+            value.is_a?(::Array) ? value.map(&block) : subtype.map(value, &block)
           end
 
           def changed_in_place?(raw_old_value, new_value)

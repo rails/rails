@@ -59,7 +59,7 @@ module ActiveModel
 
     private
       def _assign_attributes(attributes)
-        attributes.each do |k, v|
+        attributes.each_pair do |k, v|
           _assign_attribute(k, v)
         end
       end
