@@ -1,3 +1,8 @@
+*   Fix a crash in ERB template error highlighting when the error occurs on a
+    line in the compiled template that is past the end of the source template.
+
+    *Martin Emde*
+
 *   Improve reliability of ERB template error highlighting.
     Fix infinite loops and crashes in highlighting and
     improve tolerance for alternate ERB handlers.

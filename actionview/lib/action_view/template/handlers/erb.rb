@@ -42,7 +42,9 @@ module ActionView
         # source location inside the template.
         def translate_location(spot, backtrace_location, source)
           # Tokenize the source line
-          tokens = ::ERB::Util.tokenize(source.lines[backtrace_location.lineno - 1])
+          source_lines = source.lines
+          return nil if source_lines.size < backtrace_location.lineno
+          tokens = ::ERB::Util.tokenize(source_lines[backtrace_location.lineno - 1])
           new_first_column = find_offset(spot[:snippet], tokens, spot[:first_column])
           lineno_delta = spot[:first_lineno] - backtrace_location.lineno
           spot[:first_lineno] -= lineno_delta
@@ -51,7 +53,7 @@ module ActionView
           column_delta = spot[:first_column] - new_first_column
           spot[:first_column] -= column_delta
           spot[:last_column] -= column_delta
-          spot[:script_lines] = source.lines
+          spot[:script_lines] = source_lines
 
           spot
         rescue NotImplementedError, LocationParsingError
