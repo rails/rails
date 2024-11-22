@@ -2140,7 +2140,7 @@ Setting the value to `:none` configures Action Pack to raise all exceptions.
 | (original)            | `true`                |
 | 7.1                   | `:all`                |
 
-### `config.action_dispatch.strict_freshness`
+#### `config.action_dispatch.strict_freshness`
 
 Configures whether the `ActionDispatch::ETag` middleware should prefer the `ETag` header over the `Last-Modified` header when both are present in the response.
 
