@@ -1288,7 +1288,7 @@ only perform the necessary tasks once.
 Once the database and tables exist, the `db:prepare` task will not try to reload
 the seed data, even if the previously loaded seed data or the existing seed file
 have been altered or deleted. To reload the seed data, you can manually run
-`bin/rails db:seed`.
+`bin/rails db:seed:replant`.
 
 NOTE: This task will only load seeds if one of the databases or tables created
 is a primary database for the environment or is configured with `seeds: true`.
