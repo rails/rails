@@ -339,16 +339,32 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal expected, new_template(source).translate_location(backtrace_location, spot)
   end
 
+  # merely tests for the case where the backtrace and spot disagree about lineno
   def test_template_translate_location_lineno_offset
     highlight = "nomethoderror"
     source = "<%= nomethoderror %>"
-    compiled = "\n'.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
+    compiled = "'.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='"
 
     backtrace_location = Data.define(:lineno).new(lineno: 1)
     spot = spot_highlight(compiled, highlight, first_lineno: 2, last_lineno: 2)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
     assert_equal expected, new_template(source).translate_location(backtrace_location, spot)
+  end
+
+  # We are testing the failure case here. `find_offset` doesn't correctly handle the case
+  # where the line number is not the same in the backtrace and template.
+  def test_template_translate_location_with_multiline_code_source
+    highlight = "nomethoderror"
+    source = "<%=\ngood(\n nomethoderror\n) %>"
+    extracted_line = " nomethoderror\n"
+    compiled = "ValidatedOutputBuffer.wrap(@output_buffer, ({}), ' \ngood(\n nomethoderror\n" \
+               ") '.freeze, true).safe_none_append=( \ngood(\n nomethoderror\n) );\n@output_buffer"
+
+    backtrace_location = Data.define(:lineno).new(lineno: 6)
+    spot = spot_highlight(compiled, highlight, first_column: 1, first_lineno: 6, last_lineno: 6, snippet: extracted_line)
+
+    assert_equal spot, new_template(source).translate_location(backtrace_location, spot)
   end
 
   def test_template_translate_location_with_multibye_string_before_highlight
