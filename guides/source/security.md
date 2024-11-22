@@ -436,6 +436,91 @@ send_file filename, disposition: "inline"
 
 Another (additional) approach is to store the file names in the database and name the files on the disk after the ids in the database. This is also a good approach to avoid possible code in an uploaded file to be executed. The `attachment_fu` plugin does this in a similar way.
 
+Authentication
+--------------
+
+Rails 8 introduces a generator that adds authentication related models, controllers, views, routes, and migrations directly into your application. It uses the `bcrypt` gem for passwords. 
+
+To use this feature in a new application, you run `rails generate authentication`. Here are all of file it modifies and new files the generator adds:
+
+```ruby
+$ rails generate authentication
+      invoke  erb
+      create    app/views/passwords/new.html.erb
+      create    app/views/passwords/edit.html.erb
+      create    app/views/sessions/new.html.erb
+      create  app/models/session.rb
+      create  app/models/user.rb
+      create  app/models/current.rb
+      create  app/controllers/sessions_controller.rb
+      create  app/controllers/concerns/authentication.rb
+      create  app/controllers/passwords_controller.rb
+      create  app/mailers/passwords_mailer.rb
+      create  app/views/passwords_mailer/reset.html.erb
+      create  app/views/passwords_mailer/reset.text.erb
+      create  test/mailers/previews/passwords_mailer_preview.rb
+        gsub  app/controllers/application_controller.rb
+       route  resources :passwords, param: :token
+       route  resource :session
+        gsub  Gemfile
+      bundle  install --quiet
+    generate  migration CreateUsers email_address:string!:uniq password_digest:string! --force
+       rails  generate migration CreateUsers email_address:string!:uniq password_digest:string! --force 
+      invoke  active_record
+      create    db/migrate/20241010215312_create_users.rb
+    generate  migration CreateSessions user:references ip_address:string user_agent:string --force
+       rails  generate migration CreateSessions user:references ip_address:string user_agent:string --force 
+      invoke  active_record
+      create    db/migrate/20241010215314_create_sessions.rb
+```
+
+Next step is `rails db:migrate`, since migrations are created for `user` and `session` tables.
+
+Then, if you check `routes.rb` and go to `session/new`, you'll see a form that accepts an email and a password with "sign in" button. This form routes to the `SessionsController` which was added by the generator. The core functionality around session management is the `Authentication` Controller Concern, which is included in `ApplicationController`.
+
+There is also a "forgot password?" link on the "sign in" page that navigates to the `passwords/new` path. The `PasswordsController` runs through the flow for sending a password reset email. The mailers for this are also set up by the generator at `app/mailers/password_mailer.rb` and renders the following email to send to the user:
+
+```ruby
+# app/views/passwords_mailer/reset.html.erb
+<p>
+  You can reset your password within the next 15 minutes on
+  <%= link_to "this password reset page", edit_password_url(@user.password_reset_token) %>.
+</p>
+```
+
+After running the Authentication generator, you do need to implement your own *sign up flow* and add the necessary views, routes, and controller actions. There is no code generated that creates new `user` records and allows users to "Sign up" in the first place. This is something we'd need to wire up in our applications.
+
+Here is a list of modified files:
+
+```ruby
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   Gemfile
+	modified:   Gemfile.lock
+	modified:   app/controllers/application_controller.rb
+	modified:   config/routes.rb
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	app/controllers/concerns/authentication.rb
+	app/controllers/passwords_controller.rb
+	app/controllers/sessions_controller.rb
+	app/mailers/passwords_mailer.rb
+	app/models/current.rb
+	app/models/session.rb
+	app/models/user.rb
+	app/views/passwords/
+	app/views/passwords_mailer/
+	app/views/sessions/
+	db/migrate/
+	db/schema.rb
+	test/mailers/previews/
+```
+
+So that's what included as part of the Authentication feature with Rails 8.
+
 User Management
 ---------------
 
