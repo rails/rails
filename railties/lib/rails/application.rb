@@ -457,18 +457,21 @@ module Rails
     # is used to create all ActiveSupport::MessageVerifier and ActiveSupport::MessageEncryptor instances,
     # including the ones that sign and encrypt cookies.
     #
-    # In development and test, this is randomly generated and stored in a
-    # temporary file in <tt>tmp/local_secret.txt</tt>.
+    # We look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>, then in
+    # +credentials.secret_key_base+. For most applications, the correct place
+    # to store it is in the encrypted credentials file.
     #
-    # You can also set <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt> to trigger the use of a randomly generated
-    # secret_key_base that's stored in a temporary file. This is useful when precompiling assets for
-    # production as part of a build step that otherwise does not need access to the production secrets.
+    # In development and test, if the secret_key_base is still empty, it is
+    # randomly generated and stored in a temporary file in
+    # <tt>tmp/local_secret.txt</tt>.
+    #
+    # Generating a random secret_key_base and storing it in
+    # <tt>tmp/local_secret.txt</tt> can also be triggered by setting
+    # <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt>. This is useful when precompiling
+    # assets for production as part of a build step that otherwise does not
+    # need access to the production secrets.
     #
     # Dockerfile example: <tt>RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile</tt>.
-    #
-    # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
-    # then +credentials.secret_key_base+. For most applications, the correct place to store it is in the
-    # encrypted credentials file.
     def secret_key_base
       config.secret_key_base
     end
