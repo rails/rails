@@ -1643,7 +1643,7 @@ warning, or neither.
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 
-#### config.active_record.database_cli
+#### `config.active_record.database_cli`
 
 Controls which CLI tool will be used for accessing the database when running `rails dbconsole`. By default
 the standard tool for the database will be used (e.g. `psql` for PostgreSQL and `mysql` for MySQL). The option
