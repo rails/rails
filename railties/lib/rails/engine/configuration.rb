@@ -83,6 +83,7 @@ module Rails
           paths.add "app/helpers",         eager_load: true
           paths.add "app/models",          eager_load: true
           paths.add "app/mailers",         eager_load: true
+          paths.add "app/patches",         eager_load: true
           paths.add "app/views"
 
           # If you add more lib subdirectories here that should not be managed
@@ -110,6 +111,10 @@ module Rails
 
           paths
         end
+      end
+
+      def patch_paths
+        paths["app/patches"]
       end
 
       def root=(value)

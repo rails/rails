@@ -4,6 +4,7 @@ require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
 require "active_support/dependencies"
+require "rails/application/patch_loader"
 
 module Rails
   class Application
@@ -43,6 +44,12 @@ module Rails
         end
 
         autoloader.setup
+      end
+
+      initializer :add_patches do
+        config.patch_paths.each do |base_path|
+          PatchLoader.new(base_path).call
+        end
       end
 
       # Setup default session store if not already set in config/application.rb

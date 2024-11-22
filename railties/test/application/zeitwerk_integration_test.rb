@@ -374,4 +374,92 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_match %r/^Zeitwerk@rails.main: autoload set for ApplicationRecord/, out
     assert_match %r/^Zeitwerk@rails.once: autoload set for Utils/, out
   end
+
+  test "autoloading patches" do
+    app_file("app/models/user.rb", "class User; end")
+    app_file(
+      "app/models/concerns/user_methods.rb",
+      <<~RUBY
+        module UserMethods
+          def name
+            "Luke"
+          end
+        end
+      RUBY
+    )
+    app_file(
+      "app/patches/user_patch.rb",
+      <<~RUBY
+        module UserPatch
+          def self.prepended(base)
+            base.include(UserMethods)
+          end
+
+          def age
+            26
+          end
+
+          User.prepend(self)
+        end
+      RUBY
+    )
+
+    boot
+
+    assert User
+    assert User.new.respond_to?(:name)
+    assert User.new.respond_to?(:age)
+    assert_equal "Luke", User.new.name
+    assert_equal 26, User.new.age
+  end
+
+  test "autoloading patches for an engine" do
+    engine("blog") do |bukkit|
+      bukkit.write("lib/blog.rb", "class BlogEngine < Rails::Engine; end")
+      bukkit.write("app/models/blog/post.rb", "class Blog::Post; end")
+    end
+    app_file("app/patches/post_patch.rb", <<~RUBY)
+      module PostPatch
+        def title
+          "Hello"
+        end
+
+        Blog::Post.prepend(self)
+      end
+    RUBY
+
+    boot
+
+    assert Blog::Post
+    assert Blog::Post.new.respond_to?(:title)
+    assert_equal "Hello", Blog::Post.new.title
+  end
+
+  test "autoloading patches from an engine" do
+    engine("blog") do |bukkit|
+      bukkit.write("lib/blog.rb", "class BlogEngine < Rails::Engine; end")
+      bukkit.write("app/models/blog/post.rb", "class Blog::Post; end")
+    end
+    engine("cms") do |bukkit|
+      bukkit.write("lib/cms.rb", "class CmsEngine < Rails::Engine; end")
+      bukkit.write("app/models/cms/page.rb", "class Cms::Page; end")
+      bukkit.write("app/patches/cms/blog_post_patch.rb", <<~RUBY)
+        module Cms
+          module BlogPostPatch
+            def title
+              "Edited from CMS"
+            end
+
+            Blog::Post.prepend(self)
+          end
+        end
+      RUBY
+
+      boot
+
+      assert Blog::Post
+      assert Blog::Post.new.respond_to?(:title)
+      assert_equal "Edited from CMS", Blog::Post.new.title
+    end
+  end
 end

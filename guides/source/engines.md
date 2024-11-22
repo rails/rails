@@ -1070,27 +1070,7 @@ main Rails application.
 
 Engine models and controllers can be reopened by the parent application to extend or decorate them.
 
-Overrides may be organized in a dedicated directory `app/overrides`, ignored by the autoloader, and preloaded in a `to_prepare` callback:
-
-```ruby
-# config/application.rb
-module MyApp
-  class Application < Rails::Application
-    # ...
-
-    overrides = "#{Rails.root}/app/overrides"
-    Rails.autoloaders.main.ignore(overrides)
-
-    config.to_prepare do
-      Dir.glob("#{overrides}/**/*_override.rb").sort.each do |override|
-        load override
-      end
-    end
-  end
-end
-```
-
-#### Reopening Existing Classes Using `class_eval`
+Patches may be organized in a dedicated directory `app/patches`.
 
 For example, in order to override the engine model
 
@@ -1103,20 +1083,21 @@ module Blorgh
 end
 ```
 
-you just create a file that _reopens_ that class:
+you just create a module that prepends itself to the class:
 
 ```ruby
-# MyApp/app/overrides/models/blorgh/article_override.rb
-Blorgh::Article.class_eval do
+# MyApp/app/patches/my_app/blorgh_article_patch.rb
+module MyApp::BlorghArticlePatch
   # ...
+  Blorgh::Article.prepend self
 end
 ```
 
-It is very important that the override _reopens_ the class or module. Using the `class` or `module` keywords would define them if they were not already in memory, which would be incorrect because the definition lives in the engine. Using `class_eval` as shown above ensures you are reopening.
+It is very important that the override _prepends_ the class or module.
 
-#### Reopening Existing Classes Using ActiveSupport::Concern
+#### Changing Existing Classes Using ActiveSupport::Concern
 
-Using `Class#class_eval` is great for simple adjustments, but for more complex
+Using `Module#prepend` is great for simple adjustments, but for more complex
 class modifications, you might want to consider using [`ActiveSupport::Concern`]
 (https://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
 ActiveSupport::Concern manages load order of interlinked dependent modules and
@@ -1141,11 +1122,13 @@ end
 ```
 
 ```ruby
-# Blorgh/app/models/blorgh/article.rb
-module Blorgh
-  class Article < ApplicationRecord
-    include Blorgh::Concerns::Models::Article
+# MyApp/app/patches/my_app/blorgh_article_patch.rb
+module MyApp::BlorghArticlePatch
+  def self.prepended(base)
+    base.include Blorgh::Concerns::Models::Article
   end
+
+  Blorgh::Article.prepend self
 end
 ```
 
