@@ -11,6 +11,7 @@ module TestUnit # :nodoc:
       end
 
       def create_controller_test_files
+        template "test/controllers/sessions_controller_test.rb"
         template "test/controllers/passwords_controller_test.rb"
       end
     end
