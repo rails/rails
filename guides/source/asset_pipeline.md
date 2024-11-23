@@ -1078,32 +1078,60 @@ Advanced Asset Management
 
 Over the years there have been multiple default approaches for handling the
 assets. The web evolved and we started to see more and more JavaScript-heavy
-applications. In The Rails Doctrine we believe that [The Menu Is
-Omakase](https://rubyonrails.org/doctrine#omakase) so we focused on the default
-setup: **Sprockets with Import Maps**.
+applications.
 
-We are aware that there are no one-size-fits-it-all solutions for the various
-JavaScript and CSS frameworks/extensions available. There are other bundling
-libraries in the Rails ecosystem that should empower you in the cases where the
-default setup isn't enough.
+There are no one-size-fits-it-all solutions for the various JavaScript and CSS
+frameworks/extensions available, and there are other bundling libraries in the
+Rails ecosystem that should empower you in the cases where the default setup
+isn't enough.
 
-### jsbundling-rails
+### `jsbundling-rails`
 
-[`jsbundling-rails`](https://github.com/rails/jsbundling-rails) is a JavaScript
-run-time dependent alternative to the `importmap-rails` way of bundling JS with
-[Bun](https://bun.sh), [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/),
-or [Webpack](https://webpack.js.org/).
+[`jsbundling-rails`](https://github.com/rails/jsbundling-rails) is a gem that
+integrates modern JavaScript bundlers into your Rails application. It allows you
+to manage and bundle JavaScript assets with tools like [Bun](https://bun.sh),
+[esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or
+[Webpack](https://webpack.js.org/), offering a runtime-dependent approach for
+developers seeking flexibility and performance.
 
-The gem provides a build task in `package.json` to watch for changes and
-automatically generate output in development. For production, it automatically
-hooks `javascript:build` task into `assets:precompile` task to ensure that all
-your package dependencies have been installed and JavaScript has been built for
-all entry points.
+#### How `jsbundling-rails` Works
 
-**When to use instead of `importmap-rails`?** If your JavaScript code depends on
-transpiling so if you are using [Babel](https://babeljs.io/),
-[TypeScript](https://www.typescriptlang.org/) or React JSX format then
-`jsbundling-rails` is the correct way to go.
+1. After installation, it sets up your Rails app to use your chosen JavaScript
+   bundler.
+2. It creates a `build` script in your `package.json` file to compile your
+   JavaScript assets.
+3. During development, the `build:watch` script ensures live updates to your
+   assets as you make changes.
+4. In production, the gem ensures that JavaScript is built and included during
+   the precompilation step, reducing manual intervention. It does this by
+  hooking into Rails' `assets:precompile` task to build JavaScript for all entry
+  points during deployment. This integration ensures that your JavaScript is
+  production-ready with minimal configuration.
+
+The gem automatically handles entry-point discovery and configuration. By
+adhering to Rails conventions, `jsbundling-rails` simplifies the process of
+integrating complex JavaScript workflows into Rails projects.
+
+#### When Should You Use It?
+
+`jsbundling-rails` is ideal for Rails applications that:
+
+- Require modern JavaScript features like ES6+, TypeScript, or JSX.
+
+- Need to leverage bundler-specific optimizations like tree-shaking, code
+  splitting, or minification.
+- Use `Propshaft` for asset management and need a reliable way to integrate
+  precompiled JavaScript with the broader Rails asset pipeline.
+- Utilize libraries or frameworks that depend on a build step. For example,
+  projects requiring transpilation—such as those using
+  [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/),
+  or React JSX—benefit greatly from `jsbundling-rails`. These tools rely on a
+  build step, which the gem seamlessly supports.
+
+By offering deep integration with Rails tools like `Propshaft` and simplifying
+JavaScript workflows, `jsbundling-rails` empowers you to build rich, dynamic
+front-ends while staying productive and adhering to Rails conventions.
+
 
 ### cssbundling-rails
 
