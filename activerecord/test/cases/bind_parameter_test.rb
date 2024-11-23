@@ -238,8 +238,13 @@ if ActiveRecord::Base.lease_connection.prepared_statements
           #
           #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (1, 2, 3)
           #
-          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+          if current_adapter?(:Mysql2Adapter)
+            params = bind_params((1..3).map(&:to_s))
+          else
+            params = bind_params(1..3)
+          end
 
+          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{params})"
           arel_node = Arel.sql("SELECT #{table}.* FROM #{table} WHERE #{pk} IN (?)", [1, 2, 3])
           assert_equal sql, @connection.to_sql(arel_node)
           assert_queries_match(sql) { assert_equal 3, @connection.select_all(arel_node).length }
