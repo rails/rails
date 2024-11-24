@@ -1158,15 +1158,47 @@ Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using
 `tailwindcss-rails` for CSS you could completely avoid the Node dependency
 resulting in a less complex solution.
 
-### tailwindcss-rails
+### `tailwindcss-rails`
 
 [`tailwindcss-rails`](https://github.com/rails/tailwindcss-rails) is a wrapper
-gem for [the standalone executable
-version](https://tailwindcss.com/blog/standalone-cli) of Tailwind CSS v3
-framework. Used for new applications when `--css tailwind` is provided to the
-`rails new` command. Provides a `watch` process to automatically generate
-Tailwind output in development. For production it hooks into `assets:precompile`
-task.
+gem that integrates [Tailwind CSS](https://tailwindcss.com/) into your Rails
+application. By bundling Tailwind CSS with a [standalone
+executable](https://tailwindcss.com/blog/standalone-cli), it eliminates the need
+for Node.js or additional JavaScript dependencies. This makes it a lightweight
+and efficient solution for styling Rails applications.
 
-### import-maps
-???
+#### How `tailwindcss-rails` Works
+
+1. When installed, by providing `--css tailwind` to the
+  `rails new` command, the gem generates a `tailwind.config.js` file for customizing
+   your Tailwind setup and a `stylesheets/application.tailwind.css` file for
+   managing your CSS entry points.
+
+2. Instead of relying on Node.js, the gem uses a precompiled Tailwind CSS
+   binary. This standalone approach allows you to process and compile CSS
+   without adding a JavaScript runtime to your project.
+
+3. During development, changes to your Tailwind configuration or CSS files are
+   automatically detected and processed. The gem rebuilds your stylesheets and
+  provides a `watch` process to automatically generate Tailwind output in
+  development.
+
+4. In production, the gem hooks into the `assets:precompile` task. It processes
+   your Tailwind CSS files and generates optimized, production-ready
+   stylesheets, which are then included in the asset pipeline. The output is
+   fingerprinted and cached for efficient delivery.
+
+#### When Should You Use It?
+
+`tailwindcss-rails` is ideal for Rails applications that:
+
+- Want to use [Tailwind CSS](https://tailwindcss.com/) without introducing a
+  Node.js dependency or JavaScript build tools.
+- Require a minimal setup for managing utility-first CSS frameworks.
+- Need to take advantage of Tailwind's powerful features like custom themes,
+  variants, and plugins without complex configuration.
+
+The gem works seamlessly with Rails' asset pipeline tools, like Propshaft,
+ensuring that your CSS is preprocessed, digested, and efficiently served in
+production environments.
+
