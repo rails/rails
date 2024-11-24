@@ -1132,31 +1132,60 @@ By offering deep integration with Rails tools like `Propshaft` and simplifying
 JavaScript workflows, `jsbundling-rails` empowers you to build rich, dynamic
 front-ends while staying productive and adhering to Rails conventions.
 
+### `cssbundling-rails`
 
-### cssbundling-rails
+[`cssbundling-rails`](https://github.com/rails/cssbundling-rails) integrates
+modern CSS frameworks and tools into your Rails application. It allows you to
+bundle and process your stylesheets. Once processed, the resulting CSS is delivered
+via the Rails asset pipeline.
 
-[`cssbundling-rails`](https://github.com/rails/cssbundling-rails) allows
-bundling and processing of your CSS using [Tailwind
-CSS](https://tailwindcss.com/), [Bootstrap](https://getbootstrap.com/),
-[Bulma](https://bulma.io/), [PostCSS](https://postcss.org/), or [Dart
-Sass](https://sass-lang.com/), then delivers the CSS via the asset pipeline.
+#### How `cssbundling-rails` Works
 
-It works in a similar way to `jsbundling-rails` so adds the Node.js dependency
-to your application with `yarn build:css --watch` process to regenerate your
-stylesheets in development and hooks into `assets:precompile` task in
-production.
+1. After installation, it sets up your Rails app to use your chosen CSS
+   framework or processor.
+2. It creates a `build:css` script in your `package.json` file to compile your
+   stylesheets.
+3. During development, a `build:css --watch` task ensures live updates to your
+   CSS as you make changes, providing a smooth and responsive workflow.
+4. In production, the gem ensures your stylesheets are compiled and ready for
+   deployment. During the `assets:precompile` step, it installs all
+   `package.json` dependencies via `yarn` and runs the `yarn build:css` command
+   to process your stylesheet entry points. The resulting CSS output is then
+   digested by the asset pipeline and copied into the `public/assets` directory,
+   just like other asset pipeline files.
 
-**What's the difference between Sprockets?** Sprockets on its own is not able to
-transpile the Sass into CSS, Node.js is required to generate the `.css` files
-from your `.sass`  files. Once the `.css` files are generated then Sprockets is
-able to deliver them to your clients.
+This integration simplifies the process of preparing production-ready styles while ensuring all your CSS is managed and processed efficiently.
 
-NOTE: `cssbundling-rails` relies on Node to process the CSS. The
-`dartsass-rails` and `tailwindcss-rails` gems use standalone versions of
-Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using
-`importmap-rails` to handle your JavaScripts and `dartsass-rails` or
-`tailwindcss-rails` for CSS you could completely avoid the Node dependency
-resulting in a less complex solution.
+#### When Should You Use It?
+
+`cssbundling-rails` is ideal for Rails applications that:
+
+- Use CSS frameworks like [Tailwind CSS](https://tailwindcss.com/),
+  [Bootstrap](https://getbootstrap.com/) or [Bulma](https://bulma.io/) that
+  require processing during development or deployment.
+- Need advanced CSS capabilities such as custom preprocessing with
+  [PostCSS](https://postcss.org/) or [Dart Sass](https://sass-lang.com/)
+  plugins.
+- Require seamless integration of processed CSS into the Rails asset pipeline.
+- Benefit from live updates to stylesheets during development with minimal
+  manual intervention.
+
+NOTE: Unlike [`dartsass-rails`](https://github.com/rails/dartsass-rails) or
+[`tailwindcss-rails`](https://github.com/rails/tailwindcss-rails), which use
+standalone versions of [Dart Sass](https://sass-lang.com/) and [Tailwind
+CSS](https://tailwindcss.com/), `cssbundling-rails` introduces a Node.js
+dependency. This makes it a good choice for applications already relying on Node
+for JavaScript processing with gems like `jsbundling-rails`. However, if you're
+using [`importmap-rails`](https://github.com/rails/importmap-rails) for
+JavaScript and prefer to avoid Node, standalone alternatives like
+[`dartsass-rails`](https://github.com/rails/dartsass-rails) or
+[`tailwindcss-rails`](https://github.com/rails/tailwindcss-rails) offer a
+simpler setup.
+
+By integrating modern CSS workflows, automating production builds, and
+leveraging the Rails asset pipeline, `cssbundling-rails` enables developers to
+efficiently manage and deliver dynamic, production-ready styles while
+maintaining flexibility.
 
 ### `tailwindcss-rails`
 
