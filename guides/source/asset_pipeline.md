@@ -9,8 +9,8 @@ After reading this guide, you will know:
 
 * What the asset pipeline is and what it does.
 * The main features of Propshaft, and how to set it up.
-* Migrating from Sprockets to Propshaft.
-* Alternative libraries for more advanced asset management.
+* How to migrate from Sprockets to Propshaft.
+* How to use other libraries for more advanced asset management.
 
 --------------------------------------------------------------------------------
 
@@ -1066,13 +1066,6 @@ This prevents the specified directories from being processed by Propshaft while
 still allowing them to be part of the precompilation process.
 
 We use asset_helpers to make sprockets adjust the name for us.
-
-<!-- - We don't want asset helpers anymore so that node packages work out of the box
-  - We did that by taking the cSS compiler and scan for every way that a CSS file can reference an asset
-  -  We then generate a manifest file that maps the logical path to the fingerprinted path
-  -  If you are using something like bootstrap from node it will work out of the box
- -->
-
 Advanced Asset Management
 -------------------------
 
