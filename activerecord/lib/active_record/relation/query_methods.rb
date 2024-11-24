@@ -1432,7 +1432,7 @@ module ActiveRecord
 
     # Like #distinct_on, but modifies relation in place.
     def distinct_on!(*args) # :nodoc:
-      self.distinct_on_values += args
+      self.distinct_on_values |= args
       self
     end
 
@@ -1783,7 +1783,7 @@ module ActiveRecord
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
         arel.comment(*annotate_values) unless annotate_values.empty?
         arel.distinct(distinct_value)
-        arel.distinct_on(*arel_columns(distinct_on_values.uniq)) unless distinct_on_values.empty?
+        arel.distinct_on(*arel_columns(distinct_on_values)) unless distinct_on_values.empty?
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value
 
