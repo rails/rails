@@ -1202,3 +1202,59 @@ The gem works seamlessly with Rails' asset pipeline tools, like Propshaft,
 ensuring that your CSS is preprocessed, digested, and efficiently served in
 production environments.
 
+### `importmap-rails`
+
+[`importmap-rails`](https://github.com/rails/importmap-rails) enables a
+Node.js-free approach to managing JavaScript in Rails applications. It leverages
+modern browser support for [ES
+Modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
+to load JavaScript directly in the browser without requiring bundling or
+transpilation. This approach aligns with Rails' commitment to simplicity and
+convention over configuration.
+
+#### How `importmap-rails` Works
+
+-  After installation, `importmap-rails` configures your Rails app to use
+  `<script type="module">` tags to load JavaScript modules directly in the
+  browser.
+- JavaScript dependencies are managed using the `bin/importmap` command, which
+  pins modules to URLs, typically hosted on CDNs like
+  [jsDelivr](https://www.jsdelivr.com/) that host pre-bundled, browser-ready
+  versions of libraries. This eliminates the need for `node_modules` or a
+  package manager.
+- During development, there’s no bundling step, so updates to your JavaScript
+  are instantly available, streamlining the workflow.
+- In production, the gem integrates with Propshaft to serve JavaScript files as
+  part of the asset pipeline. Propshaft ensures files are digested, cached, and
+  production-ready. Dependencies are versioned, fingerprinted, and efficiently
+  delivered without manual intervention.
+
+NOTE: While Propshaft ensures proper asset handling, it does not handle
+JavaScript processing or transformations — `importmap-rails` assumes your
+JavaScript is already in a browser-compatible format. This is why it works best
+for projects that don't require transpiling or bundling.
+
+By eliminating the need for a build step and Node.js, `importmap-rails`
+simplifies JavaScript management while adhering to Rails conventions.
+
+#### When Should You Use It?
+
+`importmap-rails` is ideal for Rails applications that:
+
+- Do not require complex JavaScript features like transpiling or bundling.
+- Use modern JavaScript without relying on tools like
+  [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/),
+  or [React](https://react.dev/).
+- Seek a lightweight, dependency-free workflow without Node.js or npm.
+- Leverage Rails' built-in tools for managing simple JavaScript needs.
+
+Unlike other JavaScript solutions, `importmap-rails` provides a straightforward,
+out-of-the-box approach for Rails developers who want to avoid the complexity of
+a JavaScript build pipeline while still utilizing modern JavaScript
+capabilities.
+
+TIP: While `importmap-rails` is perfect for simpler JavaScript requirements, it may
+not suit applications requiring advanced optimizations like code splitting,
+tree-shaking, or minification. For those scenarios, consider using
+[`jsbundling-rails`](https://github.com/rails/jsbundling-rails), which
+integrates with popular JavaScript bundlers such as Webpack, esbuild, or Bun.
