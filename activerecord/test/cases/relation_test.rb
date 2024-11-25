@@ -47,6 +47,7 @@ module ActiveRecord
         unscope:   [ :where ],
         extending: [ Module.new ],
         with:      [ foo: Post.all ],
+        select:    [ :id, :id ],
       }
       expected.default = [ Object.new ]
 

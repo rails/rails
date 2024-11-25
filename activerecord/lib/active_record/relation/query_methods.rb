@@ -426,7 +426,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
-      self.select_values |= fields
+      self.select_values += fields
       self
     end
 

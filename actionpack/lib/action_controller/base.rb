@@ -128,7 +128,7 @@ module ActionController
   #
   # Action Controller sends content to the user by using one of five rendering
   # methods. The most versatile and common is the rendering of a template.
-  # Included in the Action Pack is the Action View, which enables rendering of ERB
+  # Also included with \Rails is Action View, which enables rendering of ERB
   # templates. It's automatically configured. The controller passes objects to the
   # view by assigning instance variables:
   #

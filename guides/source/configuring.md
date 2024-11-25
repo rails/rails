@@ -1643,7 +1643,7 @@ warning, or neither.
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 
-#### config.active_record.database_cli
+#### `config.active_record.database_cli`
 
 Controls which CLI tool will be used for accessing the database when running `rails dbconsole`. By default
 the standard tool for the database will be used (e.g. `psql` for PostgreSQL and `mysql` for MySQL). The option
@@ -2140,7 +2140,7 @@ Setting the value to `:none` configures Action Pack to raise all exceptions.
 | (original)            | `true`                |
 | 7.1                   | `:all`                |
 
-### `config.action_dispatch.strict_freshness`
+#### `config.action_dispatch.strict_freshness`
 
 Configures whether the `ActionDispatch::ETag` middleware should prefer the `ETag` header over the `Last-Modified` header when both are present in the response.
 
