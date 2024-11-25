@@ -1310,6 +1310,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /^module MyApp$/
   end
 
+  def test_devcontainer_supports_pretend
+    run_generator [ destination_root, "--devcontainer", "--pretend" ]
+
+    assert_no_file(".devcontainer/devcontainer.json")
+  end
+
   def test_devcontainer
     run_generator [destination_root, "--devcontainer", "--name=my-app"]
 
