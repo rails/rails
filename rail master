@@ -1,0 +1,56 @@
+source 'https://rubygems.org'
+
+gem 'rails', '~> 7.0.0'
+gem 'sqlite3'
+gem 'puma'
+gem 'sass-rails', '>= 6'
+gem 'webpacker', '~> 5.0'
+gem 'turbolinks', '~> 5'
+gem 'jbuilder', '~> 2.7'
+
+# Authentication
+gem 'devise'
+
+# Form handling
+gem 'simple_form'
+
+# Pagination
+gem 'kaminari'
+
+# File uploads
+gem 'carrierwave'
+
+# Testing
+gem 'rspec-rails', '~> 5.0.0'
+
+# Add additional libraries as needed
+
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.page(params[:page])
+  end
+end
+
+
+class Article < ApplicationRecord
+  mount_uploader :image, ImageUploader
+end
+
+class Article < ApplicationRecord
+  mount_uploader :image, ImageUploader
+end
+
+<h1>Articles</h1>
+<%= link_to 'New Article', new_article_path %>
+
+<% @articles.each do |article| %>
+  <div>
+    <h2><%= article.title %></h2>
+    <p><%= article.body %></p>
+    <% if article.image.present? %>
+      <%= image_tag article.image.url %>
+    <% end %>
+  </div>
+<% end %>
+
+<%= paginate @articles %>
