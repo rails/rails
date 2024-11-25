@@ -196,16 +196,29 @@ module ActionView
       #   # => <a href="https://rubyonrails.org/" data-turbo-confirm="Are you sure?">Visit Other Site</a>
       #
       def link_to(name = nil, options = nil, html_options = nil, &block)
-        html_options, options, name = options, name, block if block_given?
+        if block_given?
+          html_options, options, name = options, name, block
+        end
+
         options ||= {}
+        html_options ||= {}
+
+        # Check if options is a valid route or just HTML attributes (e.g., class, id)
+        if options.blank? || (options.is_a?(Hash) && options.keys.all? { |key| %w[class id data style].include?(key.to_s) })
+          url = ""  # Default URL
+        else
+          url = url_target(name, options)  # Generate URL if options is not just HTML attributes
+        end
 
         html_options = convert_options_to_data_attributes(options, html_options)
 
-        url = url_target(name, options)
-        html_options["href"] ||= url
+        # Set href if it's not already present
+        html_options["href"] = url unless html_options.key?("href")
 
         content_tag("a", name || url, html_options, &block)
       end
+
+
 
       # Generates a form containing a single button that submits to the URL created
       # by the set of +options+. This is the safest method to ensure links that
