@@ -36,5 +36,10 @@ module ActiveSupport
     def local?
       @local
     end
+
+    # Returns true if we're not in development or test environment.
+    def remote?
+      !local?
+    end
   end
 end
