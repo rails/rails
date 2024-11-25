@@ -10,8 +10,16 @@ gemfile(true) do
   # gem "rails", github: "rails/rails", branch: "main"
 end
 
+require "action_controller/railtie"
+require "action_view/railtie"
 require "minitest/autorun"
-require "action_view"
+
+class TestApp < Rails::Application
+  config.load_defaults Rails::VERSION::STRING.to_f
+  config.eager_load = false
+  config.logger = Logger.new($stdout)
+end
+Rails.application.initialize!
 
 class BugTest < ActionView::TestCase
   helper do

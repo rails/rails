@@ -1315,10 +1315,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       blog_post.delete_comments.delete(comments_to_delete)
     end
 
-    c = Sharded::Comment.lease_connection
-
-    blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
-    id = Regexp.escape(c.quote_table_name("sharded_comments.id"))
+    blog_id = Regexp.escape(quote_table_name("sharded_comments.blog_id"))
+    id = Regexp.escape(quote_table_name("sharded_comments.id"))
 
     query_constraints = /#{blog_id} = .* AND #{id} = .*/
     expectation = /DELETE.*WHERE.* \(#{query_constraints} OR #{query_constraints}\)/

@@ -639,6 +639,19 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal hotel, Hotel.joins(:cake_designers, :drink_designers).take
   end
 
+  def test_has_many_through_polymorphic_with_scope
+    Post.delete_all
+
+    post = Post.create!(title: "Catchy Title", body: "Interesting body.")
+    category = Category.create!(name: "Anything")
+    Post::CategoryPost.create!(post: post, category: category)
+
+    author = authors(:bob)
+    Essay.create!(writer: author, category: category)
+
+    assert_equal 1, Post.joins(:authors_of_essays_named_bob).count
+  end
+
   def test_has_many_through_reset_source_reflection_after_loading_is_complete
     preloaded = Category.preload(:ordered_post_comments).find(1, 2).last
     original = Category.find(2)

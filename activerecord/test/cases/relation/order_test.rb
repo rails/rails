@@ -7,8 +7,11 @@ require "models/book"
 class OrderTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses
 
+  def setup
+    Book.delete_all
+  end
+
   def test_order_asc
-    Book.destroy_all
     z = Book.create!(name: "Zulu", author: authors(:david))
     y = Book.create!(name: "Yankee", author: authors(:mary))
     x = Book.create!(name: "X-Ray", author: authors(:david))
@@ -26,7 +29,6 @@ class OrderTest < ActiveRecord::TestCase
   end
 
   def test_order_desc
-    Book.destroy_all
     z = Book.create!(name: "Zulu", author: authors(:david))
     y = Book.create!(name: "Yankee", author: authors(:mary))
     x = Book.create!(name: "X-Ray", author: authors(:david))
@@ -44,7 +46,6 @@ class OrderTest < ActiveRecord::TestCase
   end
 
   def test_order_with_association
-    Book.destroy_all
     z = Book.create!(name: "Zulu", author: authors(:david))
     y = Book.create!(name: "Yankee", author: authors(:mary))
     x = Book.create!(name: "X-Ray", author: authors(:david))
@@ -63,5 +64,27 @@ class OrderTest < ActiveRecord::TestCase
     assert_equal(author_desc_then_book_name, Book.includes(:author).order("authors.name desc", books: { name: :asc }))
     assert_equal(author_desc_then_book_name, Book.includes(:author).order(Author.arel_table[:name].desc, books: { name: :asc }))
     assert_equal(author_desc_then_book_name, Book.includes(:author).order({ authors: { name: :desc } }, :name))
+  end
+
+  def test_order_with_association_alias
+    z = Book.create!(name: "Zulu", author: authors(:david))
+    y = Book.create!(name: "Yankee", author: authors(:mary))
+    x = Book.create!(name: "X-Ray", author: authors(:david))
+
+    author_name = Author.arel_table.alias("author")[:name]
+
+    author_then_book_name = [x, z, y]
+
+    assert_equal(author_then_book_name, Book.includes(:author).order(author: { name: :asc }, books: { name: :asc }))
+    assert_equal(author_then_book_name, Book.includes(:author).order("author.name", books: { name: :asc }))
+    assert_equal(author_then_book_name, Book.includes(:author).order({ author: { name: :asc } }, :name))
+    assert_equal(author_then_book_name, Book.includes(:author).order(author_name, :name))
+
+    author_desc_then_book_name = [y, x, z]
+
+    assert_equal(author_desc_then_book_name, Book.includes(:author).order(author: { name: :desc }, books: { name: :asc }))
+    assert_equal(author_desc_then_book_name, Book.includes(:author).order("author.name desc", books: { name: :asc }))
+    assert_equal(author_desc_then_book_name, Book.includes(:author).order({ author: { name: :desc } }, :name))
+    assert_equal(author_desc_then_book_name, Book.includes(:author).order(author_name.desc, :name))
   end
 end

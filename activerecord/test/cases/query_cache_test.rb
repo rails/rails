@@ -141,6 +141,78 @@ class QueryCacheTest < ActiveRecord::TestCase
     clean_up_connection_handler
   end
 
+  def test_cache_is_not_applied_when_config_is_false
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: false))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :off
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_string
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: "unlimited"))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_integer
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: 42))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal 42, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_nil
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: nil))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal ActiveRecord::ConnectionAdapters::QueryCache::DEFAULT_SIZE, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_query_cache_with_forked_processes
       ActiveRecord::Base.connected_to(role: :reading) do

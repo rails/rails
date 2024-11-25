@@ -682,6 +682,7 @@ module ActiveRecord
 
       def test_disconnect_and_clear_reloadable_connections_attempt_to_wait_for_threads_to_return_their_conns
         skip_fiber_testing
+        @pool.checkout_timeout = 1.0 # allow extra time for our thread to get stuck
         [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
           thread = timed_join_result = nil
           @pool.with_connection do |connection|
@@ -726,7 +727,7 @@ module ActiveRecord
 
       def test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads
         skip_fiber_testing
-        with_single_connection_pool do |pool|
+        with_single_connection_pool(checkout_timeout: 1.0) do |pool|
           [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
             conn               = pool.lease_connection # drain the only available connection
             second_thread_done = Concurrent::Event.new
@@ -779,7 +780,7 @@ module ActiveRecord
 
       def test_clear_reloadable_connections_creates_new_connections_for_waiting_threads_if_necessary
         skip_fiber_testing
-        with_single_connection_pool do |pool|
+        with_single_connection_pool(checkout_timeout: 1.0) do |pool|
           conn = pool.lease_connection # drain the only available connection
           def conn.requires_reloading? # make sure it gets removed from the pool by clear_reloadable_connections
             true
@@ -999,8 +1000,8 @@ module ActiveRecord
           pool.connections.find_all(&:in_use?)
         end
 
-        def with_single_connection_pool
-          config = @db_config.configuration_hash.merge(pool: 1)
+        def with_single_connection_pool(**options)
+          config = @db_config.configuration_hash.merge(pool: 1, **options)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
           pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
 

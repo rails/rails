@@ -5,7 +5,6 @@
 require "abstract_controller/error"
 require "action_view"
 require "action_view/view_paths"
-require "set"
 
 module AbstractController
   class DoubleRenderError < Error

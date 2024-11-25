@@ -6,7 +6,7 @@ require "active_support/core_ext/string/inflections"
 
 class NormalizedAttributeTest < ActiveRecord::TestCase
   class NormalizedAircraft < Aircraft
-    normalizes :name, with: -> name { name.titlecase }
+    normalizes :name, with: -> name { name.presence&.titlecase }
     normalizes :manufactured_at, with: -> time { time.noon }
 
     attr_accessor :validated_name
@@ -81,6 +81,10 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
   test "finds record by normalized value" do
     assert_equal @time.noon, @aircraft.manufactured_at
     assert_equal @aircraft, NormalizedAircraft.find_by(manufactured_at: @time.to_s)
+  end
+
+  test "uses the same query when finding record by nil and normalized nil values" do
+    assert_equal NormalizedAircraft.where(name: nil).to_sql, NormalizedAircraft.where(name: "").to_sql
   end
 
   test "can stack normalizations" do

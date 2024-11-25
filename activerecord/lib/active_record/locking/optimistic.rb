@@ -9,7 +9,7 @@ module ActiveRecord
     # it was opened, an ActiveRecord::StaleObjectError exception is thrown if that has occurred
     # and the update is ignored.
     #
-    # Check out +ActiveRecord::Locking::Pessimistic+ for an alternative.
+    # Check out ActiveRecord::Locking::Pessimistic for an alternative.
     #
     # == Usage
     #

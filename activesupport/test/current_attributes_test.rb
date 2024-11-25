@@ -251,6 +251,10 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal({ counter_integer: 0, counter_callable: 0 }, Current.attributes)
   end
 
+  test "#attributes returns different objects each time" do
+    assert_not_same Current.attributes, Current.attributes
+  end
+
   test "CurrentAttributes restricted attribute names" do
     assert_raises ArgumentError, match: /Restricted attribute names: reset, set/ do
       class InvalidAttributeNames < ActiveSupport::CurrentAttributes

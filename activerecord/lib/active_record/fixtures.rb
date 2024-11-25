@@ -2,7 +2,6 @@
 
 require "erb"
 require "yaml"
-require "set"
 require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
 require "active_record/test_fixtures"

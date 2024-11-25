@@ -163,7 +163,7 @@ module ApplicationTests
       get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
-      assert_match(/source_location='.*'/, comment)
+      assert_match(/source_location='.*\d+'/, comment)
     end
 
     test "controller tags are not doubled up if already configured" do

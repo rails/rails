@@ -18,8 +18,8 @@ module ActionDispatch
   # 2616](https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2) requires.
   # Some Rack servers simply drop preceding headers, and only report the value
   # that was [given in the last
-  # header](https://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-server
-  # s). If you are behind multiple proxy servers (like NGINX to HAProxy to
+  # header](https://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers).
+  # If you are behind multiple proxy servers (like NGINX to HAProxy to
   # Unicorn) then you should test your Rack server to make sure your data is good.
   #
   # IF YOU DON'T USE A PROXY, THIS MAKES YOU VULNERABLE TO IP SPOOFING. This
@@ -117,10 +117,9 @@ module ActionDispatch
       # instead, so we check that too.
       #
       # As discussed in [this post about Rails IP
-      # Spoofing](https://web.archive.org/web/20170626095448/https://blog.gingerlime.c
-      # om/2012/rails-ip-spoofing-vulnerabilities-and-protection/), while the first IP
-      # in the list is likely to be the "originating" IP, it could also have been set
-      # by the client maliciously.
+      # Spoofing](https://web.archive.org/web/20170626095448/https://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection/),
+      # while the first IP in the list is likely to be the "originating" IP, it
+      # could also have been set by the client maliciously.
       #
       # In order to find the first address that is (probably) accurate, we take the
       # list of IPs, remove known and trusted proxies, and then take the last address

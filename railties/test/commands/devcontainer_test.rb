@@ -22,6 +22,7 @@ class Rails::Command::DevcontainerTest < ActiveSupport::TestCase
     assert_match "redis: false", output
     assert_match "system_test: true", output
     assert_match "node: false", output
+    assert_match "kamal: false", output
   end
 
   test "generates dev container for without solid gems" do

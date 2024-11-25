@@ -64,7 +64,7 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
-TIP: You can create new Rails apps come with a preconfigured Dev Container development environment. This
+TIP: You can create new Rails apps with a preconfigured Dev Container development environment. This
 is the fastest way to get started with Rails.
 For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
 
@@ -97,10 +97,10 @@ current version of Ruby installed:
 
 ```bash
 $ ruby --version
-ruby 3.1.0
+ruby 3.2.0
 ```
 
-Rails requires Ruby version 3.1.0 or later. It is preferred to use the latest Ruby version.
+Rails requires Ruby version 3.2.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -136,10 +136,10 @@ run the following in a new terminal:
 
 ```bash
 $ rails --version
-Rails 8.0.0
+Rails 8.1.0
 ```
 
-If it says something like "Rails 8.0.0", you are ready to continue.
+If it says something like "Rails 8.1.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -413,7 +413,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[8.0]
+class CreateArticles < ActiveRecord::Migration[8.1]
   def change
     create_table :articles do |t|
       t.string :title
@@ -471,17 +471,17 @@ Let's launch the console with this command:
 $ bin/rails console
 ```
 
-You should see an `irb` prompt like:
+You should see a rails console prompt like:
 
 ```irb
-Loading development environment (Rails 8.0.0)
-irb(main):001:0>
+Loading development environment (Rails 8.1.0)
+blog(dev)>
 ```
 
 At this prompt, we can initialize a new `Article` object:
 
 ```irb
-irb> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
+blog(dev)> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
 ```
 
 It's important to note that we have only *initialized* this object. This object
@@ -490,7 +490,7 @@ moment. To save the object to the database, we must call [`save`](
 https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save):
 
 ```irb
-irb> article.save
+blog(dev)> article.save
 (0.1ms)  begin transaction
 Article Create (0.4ms)  INSERT INTO "articles" ("title", "body", "created_at", "updated_at") VALUES (?, ?, ?, ?)  [["title", "Hello Rails"], ["body", "I am on Rails!"], ["created_at", "2020-01-18 23:47:30.734416"], ["updated_at", "2020-01-18 23:47:30.734416"]]
 (0.9ms)  commit transaction
@@ -502,7 +502,7 @@ indicates that the article has been inserted into our table. And if we take a
 look at the `article` object again, we see something interesting has happened:
 
 ```irb
-irb> article
+blog(dev)> article
 => #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
 ```
 
@@ -514,7 +514,7 @@ https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-fin
 on the model and pass the `id` as an argument:
 
 ```irb
-irb> Article.find(1)
+blog(dev)> Article.find(1)
 => #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
 ```
 
@@ -523,7 +523,7 @@ https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html
 on the model:
 
 ```irb
-irb> Article.all
+blog(dev)> Article.all
 => #<ActiveRecord::Relation [#<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">]>
 ```
 
@@ -567,7 +567,7 @@ file, and replace its contents with:
 </ul>
 ```
 
-The above code is a mixture of HTML and *ERB*. ERB, short for [Embedded Ruby](https://docs.ruby-lang.org/en/3.2/ERB.html), is a templating system that
+The above code is a mixture of HTML and *ERB*. ERB, short for [Embedded Ruby](https://docs.ruby-lang.org/en/master/ERB.html), is a templating system that
 evaluates Ruby code embedded in a document. Here, we can see two types of ERB
 tags: `<% %>` and `<%= %>`. The `<% %>` tag means "evaluate the enclosed Ruby
 code." The `<%= %>` tag means "evaluate the enclosed Ruby code, and output the
@@ -1326,7 +1326,7 @@ This command will generate four files:
 
 | File                                         | Purpose                                                                                                |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| db/migrate/20140120201010_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
+| db/migrate/\<timestamp\>_create_comments.rb  | Migration to create the comments table in your database                                                |
 | app/models/comment.rb                        | The Comment model                                                                                      |
 | test/models/comment_test.rb                  | Testing harness for the comment model                                                                 |
 | test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
@@ -1352,7 +1352,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[8.0]
+class CreateComments < ActiveRecord::Migration[8.1]
   def change
     create_table :comments do |t|
       t.string :commenter
@@ -1728,8 +1728,13 @@ And next, let's update the database with the generated migrations:
 $ bin/rails db:migrate
 ```
 
-To choose the status for the existing articles and comments you can add a default value to the generated migration files by adding the `default: "public"` option and launch the migrations again. You can also call in a rails console `Article.update_all(status: "public")` and `Comment.update_all(status: "public")`.
+To choose the status for the existing articles and comments you can add a default value to the generated migration files by adding the `default: "public"` option. Once you have made a change to the migration file you can re-run that last step again:
 
+```bash
+$ bin/rails db:migrate:redo
+```
+
+You can also call in a rails console `Article.update_all(status: "public")` and `Comment.update_all(status: "public")`.
 
 TIP: To learn more about migrations, see [Active Record Migrations](
 active_record_migrations.html).
@@ -1763,12 +1768,12 @@ class Article < ApplicationRecord
   validates :title, presence: true
   validates :body, presence: true, length: { minimum: 10 }
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = [ "public", "private", "archived" ]
 
   validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1779,12 +1784,12 @@ and in the `Comment` model:
 class Comment < ApplicationRecord
   belongs_to :article
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = [ "public", "private", "archived" ]
 
   validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1832,7 +1837,7 @@ A concern is only responsible for a focused subset of the model's responsibility
 ```ruby
 module Visible
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1843,14 +1848,14 @@ We can add our status validation to the concern, but this is slightly more compl
 module Visible
   extend ActiveSupport::Concern
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = [ "public", "private", "archived" ]
 
   included do
     validates :status, inclusion: { in: VALID_STATUSES }
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1887,7 +1892,7 @@ Class methods can also be added to concerns. If we want to display a count of pu
 module Visible
   extend ActiveSupport::Concern
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = [ "public", "private", "archived" ]
 
   included do
     validates :status, inclusion: { in: VALID_STATUSES }
@@ -1895,12 +1900,12 @@ module Visible
 
   class_methods do
     def public_count
-      where(status: 'public').count
+      where(status: "public").count
     end
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```

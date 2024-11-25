@@ -1,0 +1,29 @@
+name: Rails releaser tests
+
+on:
+  pull_request:
+    paths:
+    - "tools/releaser/**"
+  push:
+    paths:
+    - "tools/releaser/**"
+
+permissions:
+  contents: read
+
+jobs:
+  releaser_tests:
+    name: releaser tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby
+      - name: Bundle install
+        run: bundle install
+        working-directory: tools/releaser
+      - run: bundle exec rake
+        working-directory: tools/releaser

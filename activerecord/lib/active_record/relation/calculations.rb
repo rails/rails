@@ -275,9 +275,13 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
-    #   Comment.joins(:person).pluck(:id, person: [:id])
-    #   # SELECT comments.id, people.id FROM comments INNER JOIN people on comments.person_id = people.id
+    #   Comment.joins(:person).pluck(:id, person: :id)
+    #   # SELECT comments.id, person.id FROM comments INNER JOIN people person ON person.id = comments.person_id
     #   # => [[1, 2], [2, 2]]
+    #
+    #   Comment.joins(:person).pluck(:id, person: [:id, :name])
+    #   # SELECT comments.id, person.id, person.name FROM comments INNER JOIN people person ON person.id = comments.person_id
+    #   # => [[1, 2, 'David'], [2, 2, 'David']]
     #
     #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
@@ -307,8 +311,8 @@ module ActiveRecord
         relation.pluck(*column_names)
       else
         model.disallow_raw_sql!(flattened_args(column_names))
-        columns = arel_columns(column_names)
         relation = spawn
+        columns = relation.arel_columns(column_names)
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
@@ -447,10 +451,13 @@ module ActiveRecord
       end
 
       def aggregate_column(column_name)
-        return column_name if Arel::Expressions === column_name
-
-        arel_column(column_name.to_s) do |name|
-          column_name == :all ? Arel.sql("*", retryable: true) : Arel.sql(name)
+        case column_name
+        when Arel::Expressions
+          column_name
+        when :all
+          Arel.star
+        else
+          arel_column(column_name)
         end
       end
 
@@ -501,7 +508,6 @@ module ActiveRecord
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
         group_fields = group_values
-        group_fields = group_fields.uniq if group_fields.size > 1
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
           association  = model._reflect_on_association(group_fields.first)
@@ -630,27 +636,12 @@ module ActiveRecord
       end
 
       def select_for_count
-        if select_values.present?
-          return select_values.first if select_values.one?
-
-          adapter_class = model.adapter_class
-          select_values.map do |field|
-            column = if Arel.arel_node?(field)
-              field
-            else
-              arel_column(field.to_s) do |attr_name|
-                Arel.sql(attr_name)
-              end
-            end
-
-            if column.is_a?(Arel::Nodes::SqlLiteral)
-              column
-            else
-              "#{adapter_class.quote_table_name(column.relation.name)}.#{adapter_class.quote_column_name(column.name)}"
-            end
-          end.join(", ")
-        else
+        if select_values.empty?
           :all
+        else
+          with_connection do |conn|
+            arel_columns(select_values).map { |column| conn.visitor.compile(column) }.join(", ")
+          end
         end
       end
 
@@ -665,6 +656,7 @@ module ActiveRecord
         if column_name == :all
           column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
+          relation.unscope!(:order)
         else
           column_alias = Arel.sql("count_column")
           relation.select_values = [ aggregate_column(column_name).as(column_alias) ]

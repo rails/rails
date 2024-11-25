@@ -9,8 +9,11 @@ module AdapterHelper
   end
 
   def in_memory_db?
-    current_adapter?(:SQLite3Adapter) &&
-    ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
+    current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
+  end
+
+  def sqlite3_adapter_strict_strings_disabled?
+    current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.connection_pool.db_config.configuration_hash[:strict]
   end
 
   def mysql_enforcing_gtid_consistency?
@@ -40,6 +43,21 @@ module AdapterHelper
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       conn = ActiveRecord::Base.lease_connection
       conn.mariadb? && conn.database_version >= "10.2.1"
+    else
+      true
+    end
+  end
+
+  def supports_sql_standard_drop_constraint?
+    if current_adapter?(:SQLite3Adapter)
+      false
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      conn = ActiveRecord::Base.lease_connection
+      if conn.mariadb?
+        conn.database_version >= "10.3.13"
+      else
+        conn.database_version >= "8.0.19"
+      end
     else
       true
     end

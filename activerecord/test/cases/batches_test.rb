@@ -151,8 +151,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_quote_batch_order
-    c = Post.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))}/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("posts.id"))}/i) do
       Post.find_in_batches(batch_size: 1) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
@@ -161,8 +160,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_quote_batch_order_with_desc_order
-    c = Post.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("posts.id"))} DESC/) do
       Post.find_in_batches(batch_size: 1, order: :desc) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
@@ -613,41 +611,36 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_executes_range_queries_when_unconstrained
-    c = Post.lease_connection
-    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
     assert_queries_match(/WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
       Post.in_batches(of: 2) { |relation| assert_kind_of Post, relation.first }
     end
   end
 
   def test_in_batches_executes_in_queries_when_unconstrained_and_opted_out_of_ranges
-    c = Post.lease_connection
-    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
     assert_queries_match(/#{quoted_posts_id} IN \(.+\)/i) do
       Post.in_batches(of: 2, use_ranges: false) { |relation| assert_kind_of Post, relation.first }
     end
   end
 
   def test_in_batches_executes_in_queries_when_constrained
-    c = Post.lease_connection
-    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
     assert_queries_match(/#{quoted_posts_id} IN \(.+\)/i) do
       Post.where("id < ?", 5).in_batches(of: 2) { |relation| assert_kind_of Post, relation.first }
     end
   end
 
   def test_in_batches_executes_range_queries_when_constrained_and_opted_in_into_ranges
-    c = Post.lease_connection
-    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
     assert_queries_match(/#{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
       Post.where("id < ?", 5).in_batches(of: 2, use_ranges: true) { |relation| assert_kind_of Post, relation.first }
     end
   end
 
   def test_in_batches_no_subqueries_for_whole_tables_batching
-    c = Post.lease_connection
-    quoted_posts_id = Regexp.escape(c.quote_table_name("posts.id"))
-    assert_queries_match(/DELETE FROM #{Regexp.escape(c.quote_table_name("posts"))} WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <=/i) do
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+    assert_queries_match(/DELETE FROM #{Regexp.escape(quote_table_name("posts"))} WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <=/i) do
       Post.in_batches(of: 2).delete_all
     end
   end
@@ -663,8 +656,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_quote_batch_order
-    c = Post.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name('posts'))}\.#{Regexp.escape(c.quote_column_name('id'))}/) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("posts.id"))}/) do
       Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
@@ -673,8 +665,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_quote_batch_order_with_desc_order
-    c = Post.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("posts.id"))} DESC/) do
       Post.in_batches(of: 1, order: :desc) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
@@ -683,8 +674,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_enumerator_should_quote_batch_order_with_desc_order
-    c = Post.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("posts.id"))} DESC/) do
       relation = Post.in_batches(of: 1, order: :desc).first
       assert_kind_of ActiveRecord::Relation, relation
       assert_kind_of Post, relation.first
@@ -692,8 +682,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_enumerator_each_record_should_quote_batch_order_with_desc_order
-    c = Post.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("posts.id"))} DESC/) do
       Post.in_batches(of: 1, order: :desc).each_record do |record|
         assert_kind_of Post, record
       end
@@ -937,14 +926,8 @@ class EachTest < ActiveRecord::TestCase
   test ".find_each respects table alias" do
     assert_queries_count(1) do
       table_alias = Post.arel_table.alias("omg_posts")
-      table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
-      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      posts = ActiveRecord::Relation.create(
-        Post,
-        table: table_alias,
-        predicate_builder: predicate_builder
-      )
+      posts = ActiveRecord::Relation.create(Post, table: table_alias)
       posts.find_each { }
     end
   end

@@ -164,6 +164,8 @@ module ActiveRecord
 
             verified!
             handle_warnings(result)
+
+            notification_payload[:affected_rows] = result.cmd_tuples
             notification_payload[:row_count] = result.count
             result
           end

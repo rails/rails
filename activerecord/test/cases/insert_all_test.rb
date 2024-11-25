@@ -47,6 +47,17 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_with_type_casting_and_serialize_is_consistent
+    skip unless supports_insert_returning?
+
+    book_name = ["Array"]
+    created_book_id = Book.create!(name: book_name).id
+    inserted_book_id = Book.insert!({ name: book_name }, returning: :id).first["id"]
+    created_book = Book.find_by!(id: created_book_id)
+    inserted_book = Book.find_by!(id: inserted_book_id)
+    assert_equal created_book.name, inserted_book.name
+  end
+
   def test_insert_all
     assert_difference "Book.count", +10 do
       Book.insert_all! [
@@ -136,6 +147,14 @@ class InsertAllTest < ActiveRecord::TestCase
 
       assert_queries_match(/ON DUPLICATE KEY UPDATE/) do
         Book.insert_all [{ id: 1, name: "Agile Web Development with Rails" }]
+      end
+    end
+
+    def test_insert_all_succeeds_when_passed_no_attributes
+      skip unless supports_insert_on_duplicate_skip?
+
+      assert_nothing_raised do
+        Book.insert_all [{}]
       end
     end
   end

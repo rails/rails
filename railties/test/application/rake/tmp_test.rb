@@ -40,7 +40,9 @@ module ApplicationTests
 
       test "tmp:clear should work if folder missing" do
         FileUtils.remove_dir("#{app_path}/tmp")
-        rails "tmp:clear"
+        assert_nothing_raised do
+          rails "tmp:clear"
+        end
       end
     end
   end

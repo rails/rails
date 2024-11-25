@@ -20,6 +20,8 @@ require "models/club"
 require "models/membership"
 require "models/parrot"
 require "models/cpk"
+require "models/room"
+require "models/user"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -804,6 +806,28 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     new_club.create_membership
 
     assert_no_queries { new_club.save }
+  end
+
+  def test_has_one_double_belongs_to_destroys_both_from_either_end
+    landlord = User.create!
+    tenant = User.create!
+    room = Room.create!(landlord: landlord, tenant: tenant)
+
+    landlord.destroy!
+
+    assert_predicate(room, :destroyed?)
+    assert_predicate(landlord, :destroyed?)
+    assert_predicate(tenant, :destroyed?)
+
+    landlord = User.create!
+    tenant = User.create!
+    room = Room.create!(landlord: landlord, tenant: tenant)
+
+    tenant.destroy!
+
+    assert_predicate(room, :destroyed?)
+    assert_predicate(tenant, :destroyed?)
+    assert_predicate(landlord, :destroyed?)
   end
 
   class SpecialBook < ActiveRecord::Base

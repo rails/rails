@@ -346,15 +346,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
                  ActiveSupport::JSON.decode(json_string_and_date))
   end
 
-  if RUBY_VERSION >= "3.2"
-    def test_data_encoding
-      data = Data.define(:name, :email).new("test", "test@example.com")
+  def test_data_encoding
+    data = Data.define(:name, :email).new("test", "test@example.com")
 
-      assert_nothing_raised { data.to_json }
+    assert_nothing_raised { data.to_json }
 
-      assert_equal({ "name" => "test", "email" => "test@example.com" },
-        ActiveSupport::JSON.decode(data.to_json))
-    end
+    assert_equal({ "name" => "test", "email" => "test@example.com" },
+      ActiveSupport::JSON.decode(data.to_json))
   end
 
   def test_nil_true_and_false_represented_as_themselves

@@ -52,7 +52,7 @@ module ActiveRecord
       #   assert_queries_match(/LIMIT \?/) { Post.first }
       #
       # If the +:include_schema+ option is provided, any queries (including schema related)
-      #   that match the matcher are considered.
+      # that match the matcher are considered.
       #
       #   assert_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
       #
@@ -80,7 +80,7 @@ module ActiveRecord
       #   assert_no_queries_match(/SELECT/i) { post.comments }
       #
       # If the +:include_schema+ option is provided, any queries (including schema related)
-      #   that match the matcher are counted.
+      # that match the matcher are counted.
       #
       #   assert_no_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
       #

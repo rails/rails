@@ -1,5 +1,5 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/ruby
+// For format details, see https://containers.dev/implementors/json_reference/.
+// For config options, see the README at: https://github.com/devcontainers/templates/tree/main/src/ruby
 {
   "name": "<%= options[:app_name] %>",
   "dockerComposeFile": "compose.yaml",
@@ -23,7 +23,7 @@
   // Configure tool-specific properties.
   // "customizations": {},
 
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // Uncomment to connect as root instead. More info: https://containers.dev/implementors/json_reference/#remoteUser.
   // "remoteUser": "root",
 
 <%- if !mounts.empty? -%>

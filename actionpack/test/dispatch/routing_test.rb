@@ -3924,6 +3924,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/formats/1/items/2.json", format_item_path(1, 2, :json)
   end
 
+  def test_routes_with_double_colon
+    draw do
+      get "/sort::sort", to: "sessions#sort"
+    end
+
+    get "/sort:asc"
+    assert_equal "asc", @request.params[:sort]
+    assert_equal "sessions#sort", @response.body
+  end
+
 private
   def draw(&block)
     self.class.stub_controllers do |routes|
@@ -4968,11 +4978,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   test "exceptions have suggestions for fix" do
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?", error.detailed_message
-    else
-      assert_match "Did you mean?", error.message
-    end
+    assert_match "Did you mean?", error.detailed_message
   end
 
   # FIXME: we should fix all locations that raise this exception to provide

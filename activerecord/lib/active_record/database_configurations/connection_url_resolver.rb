@@ -81,7 +81,9 @@ module ActiveRecord
 
         def resolved_adapter
           adapter = uri.scheme && @uri.scheme.tr("-", "_")
-          adapter = ActiveRecord.protocol_adapters[adapter] || adapter
+          if adapter && ActiveRecord.protocol_adapters[adapter]
+            adapter = ActiveRecord.protocol_adapters[adapter]
+          end
           adapter
         end
 

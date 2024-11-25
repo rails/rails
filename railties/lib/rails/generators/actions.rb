@@ -516,9 +516,9 @@ module Rails
 
         def route_namespace_pattern(namespace)
           namespace.each_with_index.reverse_each.reduce(nil) do |pattern, (name, i)|
-            cummulative_margin = "\\#{i + 1}[ ]{2}"
-            blank_or_indented_line = "^[ ]*\n|^#{cummulative_margin}.*\n"
-            "(?:(?:#{blank_or_indented_line})*?^(#{cummulative_margin})namespace :#{name} do\n#{pattern})?"
+            cumulative_margin = "\\#{i + 1}[ ]{2}"
+            blank_or_indented_line = "^[ ]*\n|^#{cumulative_margin}.*\n"
+            "(?:(?:#{blank_or_indented_line})*?^(#{cumulative_margin})namespace :#{name} do\n#{pattern})?"
           end.then do |pattern|
             /^([ ]*).+\.routes\.draw do[ ]*\n#{pattern}/
           end

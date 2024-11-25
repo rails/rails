@@ -24,6 +24,4 @@ if ENV["encrypted_0fb9444d0374_key"] && ENV["encrypted_0fb9444d0374_iv"]
   task test: config_file
 end
 
-task :package
-
 task default: :test

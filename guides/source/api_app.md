@@ -448,7 +448,7 @@ built (like `config/application.rb`) and pass them to your preferred middleware,
 
 ```ruby
 # This also configures session_options for use below
-config.session_store :cookie_store, key: '_your_app_session'
+config.session_store :cookie_store, key: "_your_app_session"
 
 # Required for all session management (regardless of session_store)
 config.middleware.use ActionDispatch::Cookies

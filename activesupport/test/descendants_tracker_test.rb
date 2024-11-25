@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
-require "set"
 require "active_support/descendants_tracker"
 
 class DescendantsTrackerTest < ActiveSupport::TestCase

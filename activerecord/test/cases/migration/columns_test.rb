@@ -343,7 +343,7 @@ module ActiveRecord
         e = assert_raise(ArgumentError) do
           connection.change_column_null "test_models", "first_name", from: true, to: false
         end
-        assert_equal "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: {:from=>true, :to=>false}", e.message
+        assert_equal "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{{ from: true, to: false }}", e.message
       end
 
       def test_remove_column_no_second_parameter_raises_exception

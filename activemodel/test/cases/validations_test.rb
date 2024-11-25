@@ -170,7 +170,7 @@ class ValidationsTest < ActiveModel::TestCase
       # A common mistake -- we meant to call 'validates'
       Topic.validate :title, presence: true
     end
-    message = "Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend. Perhaps you meant to call `validates` instead of `validate`?"
+    message = "Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend, :except_on. Perhaps you meant to call `validates` instead of `validate`?"
     assert_equal message, error.message
   end
 
@@ -461,5 +461,30 @@ class ValidationsTest < ActiveModel::TestCase
     person = Person.new.freeze
     assert_predicate person, :frozen?
     assert_not person.valid?
+  end
+
+  def test_validate_with_except_on
+    Topic.validates :title, presence: true, except_on: :custom_context
+
+    topic = Topic.new
+    topic.validate
+
+    assert_equal ["can't be blank"], topic.errors[:title]
+
+    assert topic.validate(:custom_context)
+  end
+
+  def test_validations_some_with_except
+    Topic.validates :title, presence: { except_on: :custom_context }, length: { maximum: 10 }
+
+    assert_raise(ActiveModel::ValidationError) do
+      Topic.new.validate!
+    end
+
+    assert_raise(ActiveModel::ValidationError) do
+      Topic.new(title: "A" * 11).validate!(:custom_context)
+    end
+
+    assert Topic.new.validate!(:custom_context)
   end
 end

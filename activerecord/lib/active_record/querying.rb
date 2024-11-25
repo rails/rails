@@ -86,10 +86,10 @@ module ActiveRecord
 
       message_bus.instrument("instantiation.active_record", payload) do
         if result_set.includes_column?(inheritance_column)
-          result_set.map { |record| instantiate(record, column_types, &block) }
+          result_set.indexed_rows.map { |record| instantiate(record, column_types, &block) }
         else
           # Instantiate a homogeneous set
-          result_set.map { |record| instantiate_instance_of(self, record, column_types, &block) }
+          result_set.indexed_rows.map { |record| instantiate_instance_of(self, record, column_types, &block) }
         end
       end
     end

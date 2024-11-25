@@ -74,7 +74,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_equal 2, delete_sqls.count
 
     delete_sqls.each do |sql|
-      assert_match(/#{Regexp.escape(Sharded::Tag.lease_connection.quote_table_name("sharded_tags.blog_id"))} =/, sql)
+      assert_match(/#{Regexp.escape(quote_table_name("sharded_tags.blog_id"))} =/, sql)
     end
   ensure
     Sharded::Tag.delete_all
@@ -187,7 +187,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
     assert_equal 1, delete_sqls.count
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, delete_sqls.first)
+    assert_match(/#{Regexp.escape(quote_table_name("sharded_blog_posts.blog_id"))} =/, delete_sqls.first)
   ensure
     Sharded::BlogPostDestroyAsync.delete_all
     Sharded::CommentDestroyAsync.delete_all
@@ -303,7 +303,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_equal 2, delete_sqls.count
 
     delete_sqls.each do |sql|
-      assert_match(/#{Regexp.escape(Cpk::ChapterDestroyAsync.lease_connection.quote_table_name("cpk_chapters.author_id"))} =/, sql)
+      assert_match(/#{Regexp.escape(quote_table_name("cpk_chapters.author_id"))} =/, sql)
     end
   ensure
     Cpk::ChapterDestroyAsync.delete_all

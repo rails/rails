@@ -175,7 +175,7 @@
     -
       name: Error Reporting in Rails Applications
       url: error_reporting.html
-      description: This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
+      description: This guide introduces ways to manage errors that occur in Ruby on Rails applications.
     -
       name: Debugging Rails Applications
       url: debugging_rails_applications.html
@@ -331,10 +331,14 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
-      name: Version 8.0 - ?
+      name: Version 8.1 - ?
+      url: 8_1_release_notes.html
+      description: Release notes for Rails 8.1.
+      work_in_progress: true
+    -
+      name: Version 8.0 - November 2024
       url: 8_0_release_notes.html
       description: Release notes for Rails 8.0.
-      work_in_progress: true
     -
       name: Version 7.2 - August 2024
       url: 7_2_release_notes.html

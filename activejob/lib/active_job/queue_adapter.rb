@@ -50,6 +50,7 @@ module ActiveJob
         case name_or_adapter
         when Symbol, String
           queue_adapter = ActiveJob::QueueAdapters.lookup(name_or_adapter).new
+          queue_adapter.try(:check_adapter)
           assign_adapter(name_or_adapter.to_s, queue_adapter)
         else
           if queue_adapter?(name_or_adapter)

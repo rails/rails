@@ -1,4 +1,4 @@
-// For format details, see https://aka.ms/devcontainer.json.
+// For format details, see https://containers.dev/implementors/json_reference/.
 {
 	"name": "Rails project development",
 	"dockerComposeFile": "compose.yaml",
@@ -41,6 +41,6 @@
 		}
 	},
 
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// Uncomment to connect as root instead. More info: https://containers.dev/implementors/json_reference/#remoteUser.
 	// "remoteUser": "root"
 }

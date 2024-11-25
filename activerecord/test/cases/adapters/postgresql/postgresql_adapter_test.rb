@@ -474,6 +474,23 @@ module ActiveRecord
         end
       end
 
+      def test_translate_no_connection_exception_to_not_established
+        pid = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+        @connection.pool.checkout.execute("SELECT pg_terminate_backend(#{pid})")
+        # If you run `@connection.execute` after the backend process has been terminated,
+        # you will get the "server closed the connection unexpectedly" rather than "no connection to the server".
+        # Because what we want to test here is an error that occurs during `send_query`,
+        # which is called internally by `@connection.execute`, we will call it explicitly.
+        # The `send_query` changes the internal `PG::Connection#status` to `CONNECTION_BAD`,
+        # so any subsequent queries will get the "no connection to the server" error.
+        # https://github.com/postgres/postgres/blob/REL_17_0/src/interfaces/libpq/fe-exec.c#L1686-L1691
+        @connection.instance_variable_get(:@raw_connection).send_query("SELECT 1")
+
+        assert_raise ActiveRecord::ConnectionNotEstablished do
+          @connection.execute("SELECT 1")
+        end
+      end
+
       def test_reload_type_map_for_newly_defined_types
         @connection.create_enum "feeling", ["good", "bad"]
 

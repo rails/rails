@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "isolation/abstract_unit"
 
 class ZeitwerkIntegrationTest < ActiveSupport::TestCase

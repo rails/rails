@@ -7,10 +7,6 @@ module ActiveRecord
     class ColumnDefinitionTest < ActiveRecord::TestCase
       class DummyAdapter < AbstractAdapter
         class << self
-          def quote_table_name(table_name)
-            table_name.to_s
-          end
-
           def quote_column_name(column_name)
             column_name.to_s
           end

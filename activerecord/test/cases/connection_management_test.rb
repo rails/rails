@@ -50,6 +50,19 @@ module ActiveRecord
         assert_not ActiveRecord::Base.connection_handler.active_connections?(:all)
       end
 
+      test "connections are cleared even if inside a non-joinable transaction" do
+        ActiveRecord::Base.connection_pool.pin_connection!(Thread.current)
+        Thread.new do
+          assert ActiveRecord::Base.lease_connection
+          assert ActiveRecord::Base.connection_handler.active_connections?(:all)
+          _, _, body = @management.call(@env)
+          body.close
+          assert_not ActiveRecord::Base.connection_handler.active_connections?(:all)
+        end.join
+      ensure
+        ActiveRecord::Base.connection_pool.unpin_connection!
+      end
+
       def test_active_connections_are_not_cleared_on_body_close_during_transaction
         ActiveRecord::Base.transaction do
           _, _, body = @management.call(@env)
@@ -123,6 +136,7 @@ module ActiveRecord
           @executor ||= Class.new(ActiveSupport::Executor).tap do |exe|
             ActiveRecord::QueryCache.install_executor_hooks(exe)
             ActiveRecord::AsynchronousQueriesTracker.install_executor_hooks(exe)
+            ActiveRecord::ConnectionAdapters::ConnectionPool.install_executor_hooks(exe)
           end
         end
 

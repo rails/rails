@@ -263,7 +263,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     def test_binary_data_hash
       Binary.create(data: { a: 1 })
       wait
-      assert_match(/<7 bytes of binary data>/, @logger.logged(:debug).join)
+      assert_match(/<(6|7) bytes of binary data>/, @logger.logged(:debug).join)
     end
   end
 end

@@ -160,6 +160,12 @@ module ActionController
     #         render "posts/new", status: :unprocessable_entity
     #         # => renders app/views/posts/new.html.erb with HTTP status code 422
     #
+    # `:variants`
+    # :  This tells Rails to look for the first template matching any of the variations.
+    #
+    #         render "posts/index", variants: [:mobile]
+    #         # => renders app/views/posts/index.html+mobile.erb
+    #
     #--
     # Check for double render errors and set the content_type after rendering.
     def render(*args)
@@ -208,7 +214,7 @@ module ActionController
       end
 
       def _set_html_content_type
-        self.content_type = Mime[:html].to_s
+        self.content_type = :html
       end
 
       def _set_rendered_content_type(format)

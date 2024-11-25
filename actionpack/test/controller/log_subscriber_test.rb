@@ -173,7 +173,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
+    assert_equal "Parameters: #{{ "id" => "10" }}", logs[1]
   end
 
   def test_multiple_process_with_parameters
@@ -183,8 +183,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 6, logs.size
-    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
-    assert_equal 'Parameters: {"id"=>"20"}', logs[4]
+    assert_equal "Parameters: #{{ "id" => "10" }}", logs[1]
+    assert_equal "Parameters: #{{ "id" => "20" }}", logs[4]
   end
 
   def test_process_action_with_wrapped_parameters
@@ -193,7 +193,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_match '"person"=>{"name"=>"jose"}', logs[1]
+    assert_match({ "person" => { "name" => "jose" } }.inspect[1..-2], logs[1])
   end
 
   def test_process_action_with_view_runtime
@@ -242,9 +242,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     params = logs[1]
-    assert_match(/"amount"=>"\[FILTERED\]"/, params)
-    assert_match(/"lifo"=>"\[FILTERED\]"/, params)
-    assert_match(/"step"=>"1"/, params)
+    assert_match({ "amount" => "[FILTERED]" }.inspect[1..-2], params)
+    assert_match({ "lifo" => "[FILTERED]" }.inspect[1..-2], params)
+    assert_match({ "step" => "1" }.inspect[1..-2], params)
   end
 
   def test_redirect_to

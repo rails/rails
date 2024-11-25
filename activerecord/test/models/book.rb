@@ -24,6 +24,7 @@ class Book < ActiveRecord::Base
   enum :difficulty, [:easy, :medium, :hard], suffix: :to_read
   enum :cover, { hard: "hard", soft: "soft" }
   enum :boolean_status, { enabled: true, disabled: false }
+  enum :symbol_status, { proposed: :proposed, published: :published }, prefix: true
 
   def published!
     super

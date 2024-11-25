@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module ActiveSupport
   module IsolatedExecutionState # :nodoc:
     @isolation_level = nil

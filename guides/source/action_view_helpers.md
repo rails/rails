@@ -302,7 +302,7 @@ link_to "Profiles", profiles_path
 # => <a href="/profiles">Profiles</a>
 
 link_to nil, "https://example.com"
-# => <a href="https://www.example.com">https://www.example.com</a>
+# => <a href="https://example.com">https://example.com</a>
 
 link_to "Articles", articles_path, id: "articles", class: "article__container"
 # => <a href="/articles" class="article__container" id="articles">Articles</a>
@@ -688,7 +688,7 @@ For example, if you have a partial with a greeting that contains double quotes,
 you can escape the greeting to use in a JavaScript alert.
 
 ```html+erb
-<%# app/views/users/greeting.html.rb %>
+<%# app/views/users/greeting.html.erb %>
 My name is <%= current_user.name %>, and I'm here to say "Welcome to our website!"
 ```
 

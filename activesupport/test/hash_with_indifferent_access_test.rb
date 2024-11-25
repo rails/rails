@@ -98,6 +98,17 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_raise(NoMethodError) { @integers.with_indifferent_access.dup.symbolize_keys! }
   end
 
+  def test_stringify_keys_stringifies_integer_keys_for_hash_with_indifferent_access
+    assert_equal({ "0" => 1, "1" => 2 }, @integers.with_indifferent_access.stringify_keys)
+    assert_equal({ "ints" => { "0" => 1, "1" => 2 } }, { ints: @integers }.with_indifferent_access.deep_stringify_keys)
+  end
+
+  def test_stringify_keys_stringifies_non_string_keys_for_hash_with_indifferent_access
+    object = Object.new
+    hash = { object => 1 }
+    assert_equal({ object.to_s => 1 }, hash.with_indifferent_access.stringify_keys)
+  end
+
   def test_deep_symbolize_keys_preserves_integer_keys_for_hash_with_indifferent_access
     assert_equal @nested_integers, @nested_integers.with_indifferent_access.deep_symbolize_keys
     assert_raise(NoMethodError) { @nested_integers.with_indifferent_access.deep_dup.deep_symbolize_keys! }

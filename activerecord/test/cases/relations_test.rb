@@ -2458,14 +2458,8 @@ class RelationTest < ActiveRecord::TestCase
   private
     def custom_post_relation(alias_name = "omg_posts")
       table_alias = Post.arel_table.alias(alias_name)
-      table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
-      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      ActiveRecord::Relation.create(
-        Post,
-        table: table_alias,
-        predicate_builder: predicate_builder
-      )
+      ActiveRecord::Relation.create(Post, table: table_alias)
     end
 end
 

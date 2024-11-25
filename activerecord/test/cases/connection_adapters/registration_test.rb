@@ -70,37 +70,15 @@ module ActiveRecord
 
       test "#resolve raises if the adapter is using the pre 7.2 adapter registration API" do
         exception = assert_raises(ActiveRecord::AdapterNotFound) do
-          assert_deprecated(ActiveRecord.deprecator) do
-            ActiveRecord::ConnectionAdapters.resolve("fake_legacy")
-          end
+          ActiveRecord::ConnectionAdapters.resolve("fake_legacy")
         end
 
-        assert_match(
-          /Database configuration specifies 'fake_legacy' adapter but that adapter has not been registered. Ensure that the adapter in the Gemfile is at the latest version. If it is, then the adapter may need to be modified./,
+        assert_equal(
+          "Database configuration specifies nonexistent 'fake_legacy' adapter. Available adapters are: abstract, fake, mysql2, postgresql, sqlite3, trilogy. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile if it's not in the list of available adapters.",
           exception.message
         )
       ensure
         ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).delete("fake_legacy")
-      end
-
-      test "#resolve raises if the adapter maybe is using the pre 7.2 adapter registration API but we are not sure" do
-        exception = assert_raises(ActiveRecord::AdapterNotFound) do
-          assert_deprecated(ActiveRecord.deprecator) do
-            ActiveRecord::ConnectionAdapters.resolve("fake_misleading_legacy")
-          end
-        end
-
-        assert_match(
-          /Database configuration specifies nonexistent 'fake_misleading_legacy' adapter. Available adapters are:/,
-          exception.message
-        )
-
-        assert_match(
-          /Ensure that the adapter is spelled correctly in config\/database.yml and that you've added the necessary adapter gem to your Gemfile and that it is at its latest version. If it is up to date, the adapter may need to be modified./,
-          exception.message
-        )
-      ensure
-        ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).delete("fake_misleading_legacy")
       end
     end
   end

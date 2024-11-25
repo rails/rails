@@ -122,13 +122,13 @@ module ActiveSupport
             owner.define_cached_method(name, namespace: :current_attributes) do |batch|
               batch <<
                 "def #{name}" <<
-                "attributes[:#{name}]" <<
+                "@attributes[:#{name}]" <<
                 "end"
             end
             owner.define_cached_method("#{name}=", namespace: :current_attributes) do |batch|
               batch <<
                 "def #{name}=(value)" <<
-                "attributes[:#{name}] = value" <<
+                "@attributes[:#{name}] = value" <<
                 "end"
             end
           end
@@ -194,10 +194,14 @@ module ActiveSupport
 
     class_attribute :defaults, instance_writer: false, default: {}.freeze
 
-    attr_accessor :attributes
+    attr_writer :attributes
 
     def initialize
       @attributes = resolve_defaults
+    end
+
+    def attributes
+      @attributes.dup
     end
 
     # Expose one or more attributes within a block. Old values are returned after the block concludes.

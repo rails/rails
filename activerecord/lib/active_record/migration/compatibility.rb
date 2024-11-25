@@ -21,7 +21,7 @@ module ActiveRecord
       # New migration functionality that will never be backward compatible should be added directly to `ActiveRecord::Migration`.
       #
       # There are classes for each prior Rails version. Each class descends from the *next* Rails version, so:
-      # 5.2 < 6.0 < 6.1 < 7.0 < 7.1 < 7.2 < 8.0
+      # 5.2 < 6.0 < 6.1 < 7.0 < 7.1 < 7.2 < 8.0 < 8.1
       #
       # If you are introducing new migration functionality that should only apply from Rails 7 onward, then you should
       # find the class that immediately precedes it (6.1), and override the relevant migration methods to undo your changes.
@@ -29,7 +29,10 @@ module ActiveRecord
       # For example, Rails 6 added a default value for the `precision` option on datetime columns. So in this file, the `V5_2`
       # class sets the value of `precision` to `nil` if it's not explicitly provided. This way, the default value will not apply
       # for migrations written for 5.2, but will for migrations written for 6.0.
-      V8_0 = Current
+      V8_1 = Current
+
+      class V8_0 < V8_1
+      end
 
       class V7_2 < V8_0
       end

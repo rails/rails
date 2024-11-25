@@ -35,7 +35,7 @@ module ActiveRecord
       def nil?
         unless value_before_type_cast.is_a?(StatementCache::Substitute)
           value_before_type_cast.nil? ||
-            type.respond_to?(:subtype) && serializable? && value_for_database.nil?
+            (type.respond_to?(:subtype) || type.respond_to?(:normalizer)) && serializable? && value_for_database.nil?
         end
       end
 

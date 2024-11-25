@@ -53,7 +53,7 @@ module ActiveRecord
 
               begin
                 ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                  stmt.execute(*type_casted_binds)
+                  result = stmt.execute(*type_casted_binds)
                 end
               rescue ::Mysql2::Error
                 @statements.delete(sql)
@@ -61,13 +61,17 @@ module ActiveRecord
                 raise
               end
               verified!
+
+              result
             else
               raw_connection.query(sql)
             end
 
+            @affected_rows_before_warnings = raw_connection.affected_rows
+
+            notification_payload[:affected_rows] = @affected_rows_before_warnings
             notification_payload[:row_count] = result&.size || 0
 
-            @affected_rows_before_warnings = raw_connection.affected_rows
             raw_connection.abandon_results!
 
             verified!

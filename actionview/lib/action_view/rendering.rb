@@ -118,6 +118,7 @@ module ActionView
 
     def render_to_body(options = {})
       _process_options(options)
+      _process_render_template_options(options)
       _render_template(options)
     end
 
@@ -173,8 +174,7 @@ module ActionView
       end
 
       # Normalize options.
-      def _normalize_options(options)
-        options = super(options)
+      def _process_render_template_options(options)
         if options[:partial] == true
           options[:partial] = action_name
         end
@@ -184,7 +184,6 @@ module ActionView
         end
 
         options[:template] ||= (options[:action] || action_name).to_s
-        options
       end
   end
 end

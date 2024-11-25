@@ -243,6 +243,10 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       run_routes_command([ "--expanded" ])
     end
 
+    # Normalize the output
+    output.gsub!(/\.rb:\d+$/, ".rb:XX")
+    output.gsub!(/ \([\d.]+\) /, " (X.X.X) ")
+
     rails_gem_root = File.expand_path("../../../../", __FILE__)
 
     # rubocop:disable Layout/TrailingWhitespace
@@ -252,151 +256,151 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       Verb              | 
       URI               | /assets
       Controller#Action | Propshaft::Server
-      Source Location   | propshaft (1.0.0) lib/propshaft/railtie.rb:43
+      Source Location   | propshaft (X.X.X) lib/propshaft/railtie.rb:XX
       --[ Route 2 ]--------------
       Prefix            | cart
       Verb              | GET
       URI               | /cart(.:format)
       Controller#Action | cart#show
-      Source Location   | #{app_path}/config/routes.rb:2
+      Source Location   | #{app_path}/config/routes.rb:XX
       --[ Route 3 ]--------------
       Prefix            | rails_postmark_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/postmark/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/postmark/inbound_emails#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:5
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 4 ]--------------
       Prefix            | rails_relay_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/relay/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/relay/inbound_emails#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:6
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 5 ]--------------
       Prefix            | rails_sendgrid_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/sendgrid/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/sendgrid/inbound_emails#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:7
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 6 ]--------------
       Prefix            | rails_mandrill_inbound_health_check
       Verb              | GET
       URI               | /rails/action_mailbox/mandrill/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/mandrill/inbound_emails#health_check
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:10
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 7 ]--------------
       Prefix            | rails_mandrill_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/mandrill/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/mandrill/inbound_emails#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:11
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 8 ]--------------
       Prefix            | rails_mailgun_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)
       Controller#Action | action_mailbox/ingresses/mailgun/inbound_emails#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:14
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 9 ]--------------
       Prefix            | rails_conductor_inbound_emails
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#index
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:19
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 10 ]-------------
       Prefix            |#{" "}
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:19
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 11 ]-------------
       Prefix            | new_rails_conductor_inbound_email
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/new(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#new
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:19
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 12 ]-------------
       Prefix            | rails_conductor_inbound_email
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#show
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:19
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 13 ]-------------
       Prefix            | new_rails_conductor_inbound_email_source
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#new
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:20
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 14 ]-------------
       Prefix            | rails_conductor_inbound_email_sources
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/inbound_emails/sources(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:21
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 15 ]-------------
       Prefix            | rails_conductor_inbound_email_reroute
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)
       Controller#Action | rails/conductor/action_mailbox/reroutes#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:23
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 16 ]-------------
       Prefix            | rails_conductor_inbound_email_incinerate
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/:inbound_email_id/incinerate(.:format)
       Controller#Action | rails/conductor/action_mailbox/incinerates#create
-      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:24
+      Source Location   | #{rails_gem_root}/actionmailbox/config/routes.rb:XX
       --[ Route 17 ]-------------
       Prefix            | rails_service_blob
       Verb              | GET
       URI               | /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/redirect#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:5
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
       --[ Route 18 ]-------------
       Prefix            | rails_service_blob_proxy
       Verb              | GET
       URI               | /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/proxy#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:6
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
       --[ Route 19 ]-------------
       Prefix            |#{" "}
       Verb              | GET
       URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/redirect#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:7
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
       --[ Route 20 ]-------------
       Prefix            | rails_blob_representation
       Verb              | GET
       URI               | /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/redirect#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:9
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
       --[ Route 21 ]-------------
       Prefix            | rails_blob_representation_proxy
       Verb              | GET
       URI               | /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/proxy#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:10
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
       --[ Route 22 ]-------------
       Prefix            |#{" "}
       Verb              | GET
       URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/redirect#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:11
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
       --[ Route 23 ]-------------
       Prefix            | rails_disk_service
       Verb              | GET
       URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
       Controller#Action | active_storage/disk#show
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:13
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
       --[ Route 24 ]-------------
       Prefix            | update_rails_disk_service
       Verb              | PUT
       URI               | /rails/active_storage/disk/:encoded_token(.:format)
       Controller#Action | active_storage/disk#update
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:14
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
       --[ Route 25 ]-------------
       Prefix            | rails_direct_uploads
       Verb              | POST
       URI               | /rails/active_storage/direct_uploads(.:format)
       Controller#Action | active_storage/direct_uploads#create
-      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:15
+      Source Location   | #{rails_gem_root}/activestorage/config/routes.rb:XX
     MESSAGE
     # rubocop:enable Layout/TrailingWhitespace
   end

@@ -201,12 +201,6 @@ module ActionDispatch
       end
     end
 
-    def error_highlight_available?
-      # ErrorHighlight.spot with backtrace_location keyword is available since
-      # error_highlight 0.4.0
-      defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
-    end
-
     def trace_to_show
       if traces["Application Trace"].empty? && rescue_template != "routing_error"
         "Full Trace"

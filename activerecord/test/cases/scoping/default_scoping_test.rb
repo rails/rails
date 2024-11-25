@@ -705,11 +705,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_with_abstract_class_scope_should_be_executed_in_correct_context
-    vegetarian_pattern = /#{Regexp.escape(Lion.lease_connection.quote_table_name("lions.is_vegetarian"))}/i
-    gender_pattern     = /#{Regexp.escape(Lion.lease_connection.quote_table_name("lions.gender"))}/i
-
-    assert_match vegetarian_pattern, Lion.all.to_sql
-    assert_match gender_pattern, Lion.female.to_sql
+    assert_match %r/#{Regexp.escape(quote_table_name("lions.is_vegetarian"))}/i, Lion.all.to_sql
+    assert_match %r/#{Regexp.escape(quote_table_name("lions.gender"))}/i, Lion.female.to_sql
   end
 end
 

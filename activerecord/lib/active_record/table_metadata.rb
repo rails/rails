@@ -69,9 +69,7 @@ module ActiveRecord
 
     def predicate_builder
       if klass
-        predicate_builder = klass.predicate_builder.dup
-        predicate_builder.instance_variable_set(:@table, self)
-        predicate_builder
+        klass.predicate_builder.with(self)
       else
         PredicateBuilder.new(self)
       end

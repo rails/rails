@@ -272,6 +272,7 @@ module Rails
             #{error.detailed_message}
             Run `bin/rails generate --help` for more options.
           MSG
+          exit 1
         end
       end
 
