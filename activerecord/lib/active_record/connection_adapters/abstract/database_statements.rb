@@ -133,7 +133,8 @@ module ActiveRecord
       # Note: depending on your database connector, the result returned by this
       # method may be manually memory managed. Consider using #exec_query
       # wrapper instead.
-      def execute(sql, name = nil, allow_retry: false)
+      def execute(arel_or_sql_string, name = nil, allow_retry: false)
+        sql, _binds, _preparable, _allow_retry = to_sql_and_binds(arel_or_sql_string)
         internal_execute(sql, name, allow_retry: allow_retry)
       end
 
@@ -144,7 +145,8 @@ module ActiveRecord
       # Note: the query is assumed to have side effects and the query cache
       # will be cleared. If the query is read-only, consider using #select_all
       # instead.
-      def exec_query(sql, name = "SQL", binds = [], prepare: false)
+      def exec_query(arel_or_sql_string, name = "SQL", binds = [], prepare: false)
+        sql, binds, _preparable, _allow_retry = to_sql_and_binds(arel_or_sql_string)
         internal_exec_query(sql, name, binds, prepare: prepare)
       end
 

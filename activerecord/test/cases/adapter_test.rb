@@ -140,6 +140,21 @@ module ActiveRecord
       assert_not_empty result.columns
     end
 
+    test "#exec_query is compatible with Arel.sql with bindings" do
+      sanitized_sql = Arel.sql("SELECT * FROM subscribers WHERE id = :var", var: 1")
+      result = @connection.exec_query(sanitized_sql)
+      assert_instance_of(ActiveRecord::Result, result)
+      assert_empty result.rows
+      assert_not_empty result.columns
+    end
+
+    test "#execute is compatible with Arel.sql with bindings" do
+      sanitized_sql = Arel.sql("SELECT * FROM subscribers WHERE id = :var", var: 1")
+      assert_nothing_raised do
+        @connection.execute(sanitized_sql)
+      end
+    end
+
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_charset
         assert_not_nil @connection.charset
