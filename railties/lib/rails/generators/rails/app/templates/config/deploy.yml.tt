@@ -71,7 +71,7 @@ aliases:
   console: app exec --interactive --reuse "bin/rails console"
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
-  dbc: app exec --interactive --reuse "bin/rails dbconsole"
+  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
 
 <% unless skip_storage? %>
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
