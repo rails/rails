@@ -733,6 +733,194 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_kamal_db_config_sqlite
+    generator [destination_root]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      assert_nil YAML.load(content)["accessories"]
+    end
+
+    assert_file "config/database.yml", ~/host: tmp/
+
+    assert_file ".kamal/secrets", ~/TMP_DATABASE_PASSWORD/
+
+    assert_no_file "db/init.sh"
+  end
+
+  def test_kamal_db_config_postgresql
+    generator [destination_root], ["--database=postgresql"]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      expected_postgres_config = {
+        "db" => {
+          "image" => "postgres:15",
+          "roles" => ["web"],
+          "port" => "127.0.0.1:5432:5432",
+          "env" => {
+            "clear" => {
+              "POSTGRES_USER" => "tmp"
+            },
+            "secret" => %w(POSTGRES_PASSWORD),
+          },
+          "directories" => ["data:/var/lib/postgresql/data"]
+        }
+      }
+
+      content_hash = YAML.load(content)
+
+      assert_equal expected_postgres_config, content_hash["accessories"]
+      assert_includes content_hash["env"]["secret"], "TMP_DATABASE_PASSWORD"
+    end
+
+    assert_file "config/database.yml", /host: tmp/
+
+    assert_file ".kamal/secrets", /TMP_DATABASE_PASSWORD/
+
+    assert_no_file "db/init.sh"
+  end
+
+  def test_kamal_db_config_mysql
+    generator [destination_root], ["--database=mysql"]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      expected_mysql_config = {
+        "db" => {
+          "image" => "mysql:8.0",
+          "roles" => ["web"],
+          "port" => "127.0.0.1:3306:3306",
+          "env" => {
+            "clear" => {
+              "MYSQL_ROOT_HOST" => "%",
+              "MYSQL_USER" => "tmp"
+            },
+            "secret" => %w(MYSQL_ROOT_PASSWORD MYSQL_PASSWORD),
+          },
+          "directories" => ["data:/var/lib/mysql"],
+          "files" => ["db/init.sh:/docker-entrypoint-initdb.d/init.sh"]
+        }
+      }
+
+      content_hash = YAML.load(content)
+
+      assert_equal expected_mysql_config, content_hash["accessories"]
+      assert_includes content_hash["env"]["secret"], "TMP_DATABASE_PASSWORD"
+    end
+
+    assert_file "config/database.yml", /host: tmp/
+
+    assert_file ".kamal/secrets", /TMP_DATABASE_PASSWORD/
+
+    assert_file "db/init.sh"
+  end
+
+  def test_kamal_db_config_trilogy
+    generator [destination_root], ["--database=trilogy"]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      expected_trilogy_config = {
+        "db" => {
+          "image" => "mysql:8.0",
+          "roles" => ["web"],
+          "port" => "127.0.0.1:3306:3306",
+          "env" => {
+            "clear" => {
+              "MYSQL_ROOT_HOST" => "%",
+              "MYSQL_USER" => "tmp"
+            },
+            "secret" => %w(MYSQL_ROOT_PASSWORD MYSQL_PASSWORD),
+          },
+          "directories" => ["data:/var/lib/mysql"],
+          "files" => ["db/init.sh:/docker-entrypoint-initdb.d/init.sh"]
+        }
+      }
+
+      content_hash = YAML.load(content)
+
+      assert_equal expected_trilogy_config, content_hash["accessories"]
+      assert_includes content_hash["env"]["secret"], "TMP_DATABASE_PASSWORD"
+    end
+
+    assert_file "config/database.yml", /host: tmp/
+
+    assert_file ".kamal/secrets", /TMP_DATABASE_PASSWORD/
+
+    assert_file "db/init.sh", /ALTER USER 'tmp'@'%' IDENTIFIED WITH mysql_native_password BY '\${MYSQL_PASSWORD}';/
+  end
+
+  def test_kamal_db_config_mariadb_mysql
+    generator [destination_root], ["--database=mariadb-mysql"]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      expected_mariadb_mysql_config = {
+        "db" => {
+          "image" => "mariadb:10.5",
+          "roles" => ["web"],
+          "port" => "127.0.0.1:3306:3306",
+          "env" => {
+            "clear" => {
+              "MARIADB_ROOT_HOST" => "%",
+              "MARIADB_USER" => "tmp"
+            },
+            "secret" => %w(MARIADB_ROOT_PASSWORD MARIADB_PASSWORD),
+          },
+          "directories" => ["data:/var/lib/mysql"],
+          "files" => ["db/init.sh:/docker-entrypoint-initdb.d/init.sh"]
+        }
+      }
+
+      content_hash = YAML.load(content)
+
+      assert_equal expected_mariadb_mysql_config, content_hash["accessories"]
+      assert_includes content_hash["env"]["secret"], "TMP_DATABASE_PASSWORD"
+    end
+
+    assert_file "config/database.yml", /host: tmp/
+
+    assert_file ".kamal/secrets", /TMP_DATABASE_PASSWORD/
+
+    assert_file "db/init.sh"
+  end
+
+  def test_kamal_db_config_mariadb_trilogy
+    generator [destination_root], ["--database=mariadb-trilogy"]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      expected_mariadb_trilogy_config = {
+        "db" => {
+          "image" => "mariadb:10.5",
+          "roles" => ["web"],
+          "port" => "127.0.0.1:3306:3306",
+          "env" => {
+            "clear" => {
+              "MARIADB_ROOT_HOST" => "%",
+              "MARIADB_USER" => "tmp"
+            },
+            "secret" => %w(MARIADB_ROOT_PASSWORD MARIADB_PASSWORD),
+          },
+          "directories" => ["data:/var/lib/mysql"],
+          "files" => ["db/init.sh:/docker-entrypoint-initdb.d/init.sh"]
+        }
+      }
+
+      content_hash = YAML.load(content)
+
+      assert_equal expected_mariadb_trilogy_config, content_hash["accessories"]
+      assert_includes content_hash["env"]["secret"], "TMP_DATABASE_PASSWORD"
+    end
+
+    assert_file "config/database.yml", /host: tmp/
+
+    assert_file ".kamal/secrets", /TMP_DATABASE_PASSWORD/
+
+    assert_file "db/init.sh", /ALTER USER 'tmp'@'%' IDENTIFIED VIA mysql_native_password USING PASSWORD\('\${MARIADB_PASSWORD}'\);/
+  end
+
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc

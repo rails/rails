@@ -87,6 +87,9 @@ test:
 <%- if options.skip_solid? -%>
 production:
   <<: *default
+<% if respond_to?(:kamal_accessories_config_yaml, true) && kamal_accessories_config_yaml -%>
+  host: <%= app_name %>-db
+<% end -%>
   database: <%= app_name %>_production
   username: <%= app_name %>
   password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
@@ -94,6 +97,9 @@ production:
 production:
   primary: &primary_production
     <<: *default
+<% if respond_to?(:kamal_accessories_config_yaml, true) && kamal_accessories_config_yaml -%>
+    host: <%= app_name %>-db
+<% end -%>
     database: <%= app_name %>_production
     username: <%= app_name %>
     password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
