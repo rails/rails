@@ -225,6 +225,20 @@ module ActionDispatch
           end
         end
       end
+
+      def test_ignoring_scope_keyword_arguments
+        fakeset = FakeSet.new
+        mapper = Mapper.new(fakeset)
+
+        mapper.resources :posts do
+          mapper.scope action: :scope_action do
+            mapper.get "/foo", action: :main
+          end
+        end
+
+        assert_equal({ controller: "posts", action: "main" },
+                     fakeset.defaults.first)
+      end
     end
   end
 end
