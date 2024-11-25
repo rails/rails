@@ -1,3 +1,21 @@
+*   The BEGIN template annotation/comment is printed on the same line
+    with other element tags. This PR fixes that by moving the comment to its own line.
+
+    Before:
+
+    ```
+    <!-- BEGIN /Users/siaw23/Desktop/rails/actionview/test/fixtures/actionpack/test/greeting.html.erb --><p>This is grand!</p>
+    ```
+
+    After:
+
+    ```
+    <!-- BEGIN /Users/siaw23/Desktop/rails/actionview/test/fixtures/actionpack/test/greeting.html.erb -->
+    <p>This is grand!</p>
+    ```
+
+    *Emmanuel Hayford*
+
 *   Enable DependencyTracker to evaluate renders with trailing interpolation.
 
     ```erb
