@@ -348,6 +348,11 @@ module Rails
           Regexp.timeout ||= 1 if Regexp.respond_to?(:timeout=)
         when "8.1"
           load_defaults "8.0"
+
+          # Development and test environment tend to reload code and
+          # redefine methods (e.g. mocking), hence YJIT isn't generally
+          # faster in these environments.
+          self.yjit = !Rails.env.local?
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

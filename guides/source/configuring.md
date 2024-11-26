@@ -60,6 +60,8 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.1
 
+- [`config.yjit`](#config-yjit): `!Rails.env.local?`
+
 #### Default Values for Target Version 8.0
 
 - [`Regexp.timeout`](#regexp-timeout): `1`
@@ -644,6 +646,7 @@ deploying to a memory constrained environment you may want to set this to `false
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.2                   | `true`               |
+| 8.1                   | `!Rails.env.local?`  |
 
 ### Configuring Assets
 
