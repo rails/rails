@@ -467,16 +467,16 @@ $ rails generate authentication
         gsub  Gemfile
       bundle  install --quiet
     generate  migration CreateUsers email_address:string!:uniq password_digest:string! --force
-       rails  generate migration CreateUsers email_address:string!:uniq password_digest:string! --force 
+       rails  generate migration CreateUsers email_address:string!:uniq password_digest:string! --force
       invoke  active_record
       create    db/migrate/20241010215312_create_users.rb
     generate  migration CreateSessions user:references ip_address:string user_agent:string --force
-       rails  generate migration CreateSessions user:references ip_address:string user_agent:string --force 
+       rails  generate migration CreateSessions user:references ip_address:string user_agent:string --force
       invoke  active_record
       create    db/migrate/20241010215314_create_sessions.rb
 ```
 
-As shown above, the generator modifies the `Gemfile` to add the `bcrypt` gem. The authentication generator uses the `bcrypt` gem for storing a hashed version of the password in the database (instead of plain-text passwords). 
+As shown above, the generator modifies the `Gemfile` to add the `bcrypt` gem. The authentication generator uses the `bcrypt` gem for storing a hashed version of the password in the database (instead of plain-text passwords).
 
 The generator adds two migrations for creating `user` and `session` tables. Next step is the `rails db:migrate` command to run the migrations.
 
@@ -515,7 +515,7 @@ Untracked files:
 
 #### Forgot Password
 
-The authentication generator also implements forgot password functionality. You can see a "forgot password?" link on the "sign in" page. Clicking that link navigates to the `passwords/new` path and routes to the passwords controller. The `new` method of the `PasswordsController` class runs through the flow for sending a password reset email. 
+The authentication generator also implements forgot password functionality. You can see a "forgot password?" link on the "sign in" page. Clicking that link navigates to the `passwords/new` path and routes to the passwords controller. The `new` method of the `PasswordsController` class runs through the flow for sending a password reset email.
 
 The mailers for forgot password are also set up by the generator at `app/mailers/password_mailer.rb` and renders the following email to send to the user:
 
@@ -529,7 +529,7 @@ The mailers for forgot password are also set up by the generator at `app/mailers
 
 #### Implementation Details
 
-This section covers some of the implementation details for the authentication generator in Rails: The `has_secure_password` method, the `authenticate_by` method, and the `Authentication` concern. 
+This section covers some of the implementation details for the authentication generator in Rails: The `has_secure_password` method, the `authenticate_by` method, and the `Authentication` concern.
 
 The [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method is added to the `user` model and takes care of storing a hashed password using the `bcrypt` algorithm:
 
@@ -559,7 +559,7 @@ class SessionsController < ApplicationController
 end
 ```
 
-The core functionality around session management is implemented in the `Authentication` controller concern, which is included by the `ApplicationController` in your application. You can explore details of the [authentication concern](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/authentication/templates/app/controllers/concerns/authentication.rb.tt) in the source code. 
+The core functionality around session management is implemented in the `Authentication` controller concern, which is included by the `ApplicationController` in your application. You can explore details of the [authentication concern](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/authentication/templates/app/controllers/concerns/authentication.rb.tt) in the source code.
 
 TIP: You can find all of the details for the Authentication generator in the Rails source code. You are encouraged to explore the implementation details and not treat authentication as a black box.
 
