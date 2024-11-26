@@ -96,8 +96,6 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         }.first
         message = Car.all.explain.first
         assert_match(/^EXPLAIN/, message)
-        puts expected_query
-        puts message
         assert_match(expected_query, message)
       end
 
