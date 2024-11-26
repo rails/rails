@@ -205,20 +205,18 @@ module ActionView
 
         # Check if options is a valid route or just HTML attributes (e.g., class, id)
         if options.blank? || (options.is_a?(Hash) && options.keys.all? { |key| %w[class id data style].include?(key.to_s) })
-          url = ""  # Default URL
+          url = url_target(name, "/")
+          html_options = options
         else
           url = url_target(name, options)  # Generate URL if options is not just HTML attributes
         end
 
         html_options = convert_options_to_data_attributes(options, html_options)
-
         # Set href if it's not already present
         html_options["href"] = url unless html_options.key?("href")
 
         content_tag("a", name || url, html_options, &block)
       end
-
-
 
       # Generates a form containing a single button that submits to the URL created
       # by the set of +options+. This is the safest method to ensure links that

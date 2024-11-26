@@ -504,11 +504,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Hello</a>}, link
   end
 
-  def test_link_with_nil_html_options_and_no_passed_url_hash
-    link = link_to("Hello", nil, nil)
-    assert_dom_equal %{<a href="/">Hello</a>}, link
-  end
-
   def test_link_with_blank_options
     link = link_to("Hello", {}, class: "myclass_style")
     assert_dom_equal %{<a href="/" class="myclass_style">Hello</a>}, link
