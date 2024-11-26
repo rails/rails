@@ -238,10 +238,11 @@ if ActiveRecord::Base.lease_connection.prepared_statements
           #
           #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (1, 2, 3)
           #
-          if current_adapter?(:Mysql2Adapter)
-            params = bind_params((1..3).map(&:to_s))
+          params = if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+            # With MySQL integers are casted as string for security.
+            bind_params((1..3).map(&:to_s))
           else
-            params = bind_params(1..3)
+            bind_params(1..3)
           end
 
           sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{params})"
