@@ -568,10 +568,6 @@ The authentication generator is meant to be a solid starting point for securing 
 User Management
 ---------------
 
-NOTE: _Almost every web application has to deal with authorization and authentication. Instead of rolling your own, it is advisable to use common plug-ins. But keep them up-to-date, too. A few additional precautions can make your application even more secure._
-
-There are a number of authentication plug-ins for Rails available. Good ones, such as the popular [devise](https://github.com/heartcombo/devise) and [authlogic](https://github.com/binarylogic/authlogic), store only cryptographically hashed passwords, not plain-text passwords. Since Rails 3.1 you can also use the built-in [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method which supports secure password hashing, confirmation, and recovery mechanisms.
-
 ### Brute-Forcing Accounts
 
 NOTE: _Brute-force attacks on accounts are trial and error attacks on the login credentials. Fend them off with rate-limiting, more generic error messages and possibly require to enter a CAPTCHA._
