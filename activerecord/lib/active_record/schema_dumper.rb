@@ -317,7 +317,7 @@ module ActiveRecord
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
             parts = [
-              "add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}",
+              remove_prefix_and_suffix(foreign_key.from_table).inspect,
               remove_prefix_and_suffix(foreign_key.to_table).inspect,
             ]
 
@@ -329,16 +329,13 @@ module ActiveRecord
               parts << "primary_key: #{foreign_key.primary_key.inspect}"
             end
 
-            if foreign_key.export_name_on_schema_dump?
-              parts << "name: #{foreign_key.name.inspect}"
-            end
-
+            parts << "name: #{foreign_key.name.inspect}" if foreign_key.export_name_on_schema_dump?
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
             parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
             parts << "validate: #{foreign_key.validate?.inspect}" unless foreign_key.validate?
 
-            "  #{parts.join(', ')}"
+            "  add_foreign_key #{parts.join(', ')}"
           end
 
           stream.puts add_foreign_key_statements.sort.join("\n")
