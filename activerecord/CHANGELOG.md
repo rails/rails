@@ -2,7 +2,7 @@
 
     Using prepared statements with MySQL could result in a `NoMethodError` exception.
 
-    *Jean Boussier*, *Leo Arnold*
+    *Jean Boussier*, *Leo Arnold*, *zzak*
 
 *   Fix parsing of SQLite foreign key names when they contain non-ASCII characters
 

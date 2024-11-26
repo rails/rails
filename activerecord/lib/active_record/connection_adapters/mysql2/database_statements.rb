@@ -48,23 +48,37 @@ module ActiveRecord
             # made since we established the connection
             raw_connection.query_options[:database_timezone] = default_timezone
 
-            result = if prepare
-              stmt = @statements[sql] ||= raw_connection.prepare(sql)
+            result = if !prepared_statements || binds.nil? || binds.empty?
+              ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                result = raw_connection.query(sql)
+                @affected_rows_before_warnings = raw_connection.affected_rows
+                result
+              end
+              result
+            else
+              if prepare
+                stmt = @statements[sql] ||= raw_connection.prepare(sql)
+              else
+                stmt = raw_connection.prepare(sql)
+              end
 
               begin
                 ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
                   result = stmt.execute(*type_casted_binds)
+                  @affected_rows_before_warnings = stmt.affected_rows
+                  result
                 end
               rescue ::Mysql2::Error
-                @statements.delete(sql)
-                stmt.close
+                if prepare
+                  @statements.delete(sql)
+                else
+                  stmt.close
+                end
                 raise
               end
               verified!
 
               result
-            else
-              raw_connection.query(sql)
             end
 
             notification_payload[:row_count] = result&.size || 0

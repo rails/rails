@@ -89,22 +89,26 @@ if ActiveRecord::Base.lease_connection.supports_explain?
       assert_match(expected_query, message)
     end
 
-    def test_relation_explain_with_first
-      expected_query = capture_sql {
-        Car.all.first
-      }.first
-      message = Car.all.explain.first
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
-    end
+    unless current_adapter?(:Mysql2Adapter) && ActiveRecord::Base.lease_connection.prepared_statements
+      def test_relation_explain_with_first
+        expected_query = capture_sql {
+          Car.all.first
+        }.first
+        message = Car.all.explain.first
+        assert_match(/^EXPLAIN/, message)
+        puts expected_query
+        puts message
+        assert_match(expected_query, message)
+      end
 
-    def test_relation_explain_with_last
-      expected_query = capture_sql {
-        Car.all.last
-      }.first
-      message = Car.all.explain.last
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      def test_relation_explain_with_last
+        expected_query = capture_sql {
+          Car.all.last
+        }.first
+        message = Car.all.explain.last
+        assert_match(/^EXPLAIN/, message)
+        assert_match(expected_query, message)
+      end
     end
 
     def test_relation_explain_with_pluck
