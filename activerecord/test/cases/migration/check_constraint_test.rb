@@ -196,7 +196,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
             output = dump_table_schema "trades"
 
-            assert_match %r{\s+t.check_constraint "quantity > 0", name: "quantity_check", validate: false$}, output
+            assert_match %r{\s+add_check_constraint "trades", "quantity > 0", name: "quantity_check", validate: false$}, output
           end
 
           def test_schema_dumping_with_validate_true

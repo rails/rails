@@ -202,11 +202,16 @@ module ActiveRecord
           end
 
           indexes_in_create(table, tbl)
-          check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
+          remaining = check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
           exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
           unique_constraints_in_create(table, tbl) if @connection.supports_unique_constraints?
 
           tbl.puts "  end"
+
+          if remaining
+            tbl.puts
+            tbl.print remaining.string
+          end
 
           stream.print tbl.string
         rescue => e
@@ -272,22 +277,35 @@ module ActiveRecord
 
       def check_constraints_in_create(table, stream)
         if (check_constraints = @connection.check_constraints(table)).any?
-          add_check_constraint_statements = check_constraints.map do |check_constraint|
-            parts = [
-              "t.check_constraint #{check_constraint.expression.inspect}"
-            ]
+          check_valid, check_invalid = check_constraints.partition { |chk| chk.validate? }
 
-            if check_constraint.export_name_on_schema_dump?
-              parts << "name: #{check_constraint.name.inspect}"
+          unless check_valid.empty?
+            check_constraint_statements = check_valid.map do |check|
+              "    t.check_constraint #{check_parts(check).join(', ')}"
             end
 
-            parts << "validate: #{check_constraint.validate?.inspect}" unless check_constraint.validate?
-
-            "    #{parts.join(', ')}"
+            stream.puts check_constraint_statements.sort.join("\n")
           end
 
-          stream.puts add_check_constraint_statements.sort.join("\n")
+          unless check_invalid.empty?
+            remaining = StringIO.new
+            table_name = remove_prefix_and_suffix(table).inspect
+
+            add_check_constraint_statements = check_invalid.map do |check|
+              "  add_check_constraint #{([table_name] + check_parts(check)).join(', ')}"
+            end
+
+            remaining.puts add_check_constraint_statements.sort.join("\n")
+            remaining
+          end
         end
+      end
+
+      def check_parts(check)
+        check_parts = [ check.expression.inspect ]
+        check_parts << "name: #{check.name.inspect}" if check.export_name_on_schema_dump?
+        check_parts << "validate: #{check.validate?.inspect}" unless check.validate?
+        check_parts
       end
 
       def foreign_keys(table, stream)
