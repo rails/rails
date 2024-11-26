@@ -486,34 +486,34 @@ NOTE: After running the Authentication generator, you do need to implement your 
 
 Here is a list of modified files:
 
-```ruby
+```bash
 On branch main
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
-	modified:   Gemfile
-	modified:   Gemfile.lock
-	modified:   app/controllers/application_controller.rb
-	modified:   config/routes.rb
+  modified:   Gemfile
+  modified:   Gemfile.lock
+  modified:   app/controllers/application_controller.rb
+  modified:   config/routes.rb
 
 Untracked files:
   (use "git add <file>..." to include in what will be committed)
-	app/controllers/concerns/authentication.rb
-	app/controllers/passwords_controller.rb
-	app/controllers/sessions_controller.rb
-	app/mailers/passwords_mailer.rb
-	app/models/current.rb
-	app/models/session.rb
-	app/models/user.rb
-	app/views/passwords/
-	app/views/passwords_mailer/
-	app/views/sessions/
-	db/migrate/
-	db/schema.rb
-	test/mailers/previews/
+  app/controllers/concerns/authentication.rb
+  app/controllers/passwords_controller.rb
+  app/controllers/sessions_controller.rb
+  app/mailers/passwords_mailer.rb
+  app/models/current.rb
+  app/models/session.rb
+  app/models/user.rb
+  app/views/passwords/
+  app/views/passwords_mailer/
+  app/views/sessions/
+  db/migrate/
+  db/schema.rb
+  test/mailers/previews/
 ```
 
-#### Forgot Password
+### Forgot Password
 
 The authentication generator also implements forgot password functionality. You can see a "forgot password?" link on the "sign in" page. Clicking that link navigates to the `passwords/new` path and routes to the passwords controller. The `new` method of the `PasswordsController` class runs through the flow for sending a password reset email.
 
@@ -527,7 +527,7 @@ The mailers for forgot password are also set up by the generator at `app/mailers
 </p>
 ```
 
-#### Implementation Details
+### Implementation Details
 
 This section covers some of the implementation details for the authentication generator in Rails: The `has_secure_password` method, the `authenticate_by` method, and the `Authentication` concern.
 
