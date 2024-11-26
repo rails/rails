@@ -1406,7 +1406,7 @@ class FinderTest < ActiveRecord::TestCase
     with_env_tz "America/New_York" do
       with_timezone_config default: :local do
         topic = Topic.first
-        assert_equal topic, Topic.where(["written_on = ?", topic.written_on]).first
+        assert_equal topic, Topic.where(["written_on = ?", topic.written_on.getutc]).first
       end
     end
   end
@@ -1424,7 +1424,7 @@ class FinderTest < ActiveRecord::TestCase
     with_env_tz "America/New_York" do
       with_timezone_config default: :utc do
         topic = Topic.first
-        assert_equal topic, Topic.where(["written_on = ?", topic.written_on]).first
+        assert_equal topic, Topic.where(["written_on = ?", topic.written_on.getlocal]).first
       end
     end
   end
