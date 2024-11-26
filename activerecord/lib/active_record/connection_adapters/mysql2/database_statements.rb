@@ -48,7 +48,7 @@ module ActiveRecord
             # made since we established the connection
             raw_connection.query_options[:database_timezone] = default_timezone
 
-            result = if !prepared_statements || binds.nil? || binds.empty?
+            result = if binds.nil? || binds.empty?
               ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
                 result = raw_connection.query(sql)
                 @affected_rows_before_warnings = raw_connection.affected_rows
@@ -74,13 +74,14 @@ module ActiveRecord
                 else
                   stmt.close
                 end
+
                 raise
               end
+
               verified!
 
               result
             end
-
 
             notification_payload[:affected_rows] = @affected_rows_before_warnings
             notification_payload[:row_count] = result&.size || 0
