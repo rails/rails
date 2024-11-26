@@ -439,7 +439,9 @@ Another (additional) approach is to store the file names in the database and nam
 Authentication
 --------------
 
-Rails 8 introduces a generator that adds authentication related models, controllers, views, routes, and migrations directly into your application. It uses the `bcrypt` gem for passwords. 
+Rails 8 introduces an authentication generator, which is meant to be a solid starting point for securing your application by only allowing access to verified users.
+
+The authentication generator adds authentication related models, controllers, views, routes, and migrations to your application.
 
 To use this feature in a new application, you run `rails generate authentication`. Here are all of file it modifies and new files the generator adds:
 
@@ -474,21 +476,13 @@ $ rails generate authentication
       create    db/migrate/20241010215314_create_sessions.rb
 ```
 
-Next step is `rails db:migrate`, since migrations are created for `user` and `session` tables.
+As shown above, the generator modifies the `Gemfile` to add the `bcrypt` gem. The authentication generator uses the `bcrypt` gem for storing a hashed version of the password in the database (instead of plain-text passwords). 
 
-Then, if you check `routes.rb` and go to `session/new`, you'll see a form that accepts an email and a password with "sign in" button. This form routes to the `SessionsController` which was added by the generator. The core functionality around session management is the `Authentication` Controller Concern, which is included in `ApplicationController`.
+The generator adds two migrations for creating `user` and `session` tables. Next step is the `rails db:migrate` command to run the migrations.
 
-There is also a "forgot password?" link on the "sign in" page that navigates to the `passwords/new` path. The `PasswordsController` runs through the flow for sending a password reset email. The mailers for this are also set up by the generator at `app/mailers/password_mailer.rb` and renders the following email to send to the user:
+Then, if you check `routes.rb` and go to `session/new`, you'll see a form that accepts an email and a password with "sign in" button. This form routes to the `SessionsController` which was added by the generator. If you provide an email/password for a user that exists in the database, you will be able to successfully authenticate with those credentials and login to the application.
 
-```ruby
-# app/views/passwords_mailer/reset.html.erb
-<p>
-  You can reset your password within the next 15 minutes on
-  <%= link_to "this password reset page", edit_password_url(@user.password_reset_token) %>.
-</p>
-```
-
-After running the Authentication generator, you do need to implement your own *sign up flow* and add the necessary views, routes, and controller actions. There is no code generated that creates new `user` records and allows users to "Sign up" in the first place. This is something we'd need to wire up in our applications.
+NOTE: After running the Authentication generator, you do need to implement your own *sign up flow* and add the necessary views, routes, and controller actions. There is no code generated that creates new `user` records and allows users to "Sign up" in the first place. This is something you'll need to wire up based on the requirements of your applications.
 
 Here is a list of modified files:
 
@@ -519,7 +513,57 @@ Untracked files:
 	test/mailers/previews/
 ```
 
-So that's what included as part of the Authentication feature with Rails 8.
+#### Forgot Password
+
+The authentication generator also implements forgot password functionality. You can see a "forgot password?" link on the "sign in" page. Clicking that link navigates to the `passwords/new` path and routes to the passwords controller. The `new` method of the `PasswordsController` class runs through the flow for sending a password reset email. 
+
+The mailers for forgot password are also set up by the generator at `app/mailers/password_mailer.rb` and renders the following email to send to the user:
+
+```html
+# app/views/passwords_mailer/reset.html.erb
+<p>
+  You can reset your password within the next 15 minutes on
+  <%= link_to "this password reset page", edit_password_url(@user.password_reset_token) %>.
+</p>
+```
+
+#### Implementation Details
+
+This section covers some of the implementation details for the authentication generator in Rails: The `has_secure_password` method, the `authenticate_by` method, and the `Authentication` concern. 
+
+The [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method is added to the `user` model and takes care of storing a hashed password using the `bcrypt` algorithm:
+
+```ruby
+class User < ApplicationRecord
+  has_secure_password
+  has_many :sessions, dependent: :destroy
+
+  normalizes :email_address, with: -> e { e.strip.downcase }
+end
+```
+
+The [`authenticate_by`](https://api.rubyonrails.org/classes/ActiveRecord/SecurePassword/ClassMethods.html) method is used in the `SessionsController` while creating a new session to validate that the credentials provided by the user match the credentials stored in the database (e.g. password):
+
+```ruby
+class SessionsController < ApplicationController
+  def create
+    if user = User.authenticate_by(params.permit(:email_address, :password))
+      start_new_session_for user
+      redirect_to after_authentication_url
+    else
+      redirect_to new_session_url, alert: "Try another email address or password."
+    end
+  end
+
+  # ...
+end
+```
+
+The core functionality around session management is implemented in the `Authentication` controller concern, which is included by the `ApplicationController` in your application. You can explore details of the [authentication concern](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/authentication/templates/app/controllers/concerns/authentication.rb.tt) in the source code. 
+
+TIP: You can find all of the details for the Authentication generator in the Rails source code. You are encouraged to explore the implementation details and not treat authentication as a black box.
+
+The authentication generator is meant to be a solid starting point for securing your application by authenticating users.
 
 User Management
 ---------------
