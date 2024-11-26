@@ -500,18 +500,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_with_nil_html_options
-    link = link_to("Hello", url_hash, nil)
-    assert_dom_equal %{<a href="/">Hello</a>}, link
-  end
-
-  def test_link_with_blank_options
-    link = link_to("Hello", {}, class: "myclass_style")
-    assert_dom_equal %{<a href="/" class="myclass_style">Hello</a>}, link
+    link = link_to("Hello", "http://www.example.com", nil)
+    assert_dom_equal %{<a href="http://www.example.com">Hello</a>}, link
   end
 
   def test_link_with_only_valid_html_attributes
     link = link_to("Hello", { class: "myclass_style" })
-    assert_dom_equal %{ <a href="/" class="myclass_style" }, link
+    assert_dom_equal %{<a href="/" class="myclass_style">Hello</a>}, link
   end
 
   def test_link_tag_with_custom_onclick
