@@ -196,24 +196,18 @@ module ActionView
       #   # => <a href="https://rubyonrails.org/" data-turbo-confirm="Are you sure?">Visit Other Site</a>
       #
       def link_to(name = nil, options = nil, html_options = nil, &block)
-        if block_given?
-          html_options, options, name = options, name, block
-        end
-
+        html_options, options, name = options, name, block if block_given?
         options ||= {}
-        html_options ||= {}
-
-        # Check if options is a valid route or just HTML attributes (e.g., class, id)
-        if options.blank? || (options.is_a?(Hash) && options.keys.all? { |key| %w[class id data style].include?(key.to_s) })
-          url = url_target(name, "/")
-          html_options = options
-        else
-          url = url_target(name, options)  # Generate URL if options is not just HTML attributes
-        end
 
         html_options = convert_options_to_data_attributes(options, html_options)
-        # Set href if it's not already present
-        html_options["href"] = url unless html_options.key?("href")
+
+        url = url_target(name, options)
+        if url =~ /\b(class|style)\=/
+          # Remove the HTML attribute from the URL
+          url = url_target(name, "/")
+          html_options = options
+        end
+        html_options["href"] ||= url
 
         content_tag("a", name || url, html_options, &block)
       end

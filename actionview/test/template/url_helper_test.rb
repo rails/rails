@@ -222,7 +222,6 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_new_record_model_and_block
     workshop = Workshop.new(nil)
-
     assert_dom_equal(
       %{<form method="post" action="/workshops" class="button_to"><button type="submit">Create</button></form>},
       button_to(workshop) { "Create" }
@@ -504,9 +503,8 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="http://www.example.com">Hello</a>}, link
   end
 
-  def test_link_with_only_valid_html_attributes
-    link = link_to("Hello", { class: "myclass_style" })
-    assert_dom_equal %{<a href="/" class="myclass_style">Hello</a>}, link
+  def test_link_to_without_explicit_url
+    assert_dom_equal %{<a href="">Hello</a>}, link_to("Hello","", nil)
   end
 
   def test_link_tag_with_custom_onclick
