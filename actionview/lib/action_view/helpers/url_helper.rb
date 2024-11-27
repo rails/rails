@@ -202,7 +202,7 @@ module ActionView
         html_options = convert_options_to_data_attributes(options, html_options)
 
         url = url_target(name, options)
-        if url =~ /\b(class|style)\=/
+        if url.match?(/\b(class|style)=/)
           # Remove the HTML attribute from the URL
           url = url_target(name, "/")
           html_options = options

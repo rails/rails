@@ -504,7 +504,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_to_without_explicit_url
-    assert_dom_equal %{<a href="">Hello</a>}, link_to("Hello","", nil)
+    assert_dom_equal %{<a href="">Hello</a>}, link_to("Hello", "", nil)
   end
 
   def test_link_tag_with_custom_onclick
