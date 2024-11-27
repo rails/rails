@@ -1,3 +1,7 @@
+*   Ensure `connection.exec_query` and `connection.execute` allows `Arel.sql` as input. Previously would raise exception `TypeError: no implicit conversion of Arel::Nodes::BoundSqlLiteral into String`
+
+    *westonganger*
+
 *   Allow to reset cache counters for multiple records.
 
     ```
