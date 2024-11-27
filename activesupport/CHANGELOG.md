@@ -1,3 +1,7 @@
+*   Alter `ERB::Util.tokenize` to return :PLAIN token with full input string when string doesn't contain ERB tags.
+
+    *Martin Emde*
+
 *   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
 
     *Martin Emde*

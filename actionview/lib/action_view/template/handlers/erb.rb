@@ -152,8 +152,9 @@ module ActionView
 
         def offset_source_tokens(source_tokens)
           source_offset = 0
-          with_offset = source_tokens.filter_map do |(name, str)|
-            result = [name, str, source_offset] if name == :CODE || name == :TEXT
+          with_offset = source_tokens.filter_map do |name, str|
+            result = [:CODE, str, source_offset] if name == :CODE || name == :PLAIN
+            result = [:TEXT, str, source_offset] if name == :TEXT
             source_offset += str.bytesize
             result
           end
