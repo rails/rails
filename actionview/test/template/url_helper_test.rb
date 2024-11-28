@@ -72,7 +72,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_url_for_with_back
     referer = "http://www.example.com/referer"
-    @controller = Struct.new(:request).new(Struct.new(:env).new({ "HTTP_REFERER" => referer }))
+    @controller = Struct.new(:request).new(Struct.new(:env).new({ "HTTP_REFERER" => referer, "REQUEST_METHOD" => "GET" }))
 
     assert_equal "http://www.example.com/referer", url_for(:back)
   end
@@ -481,9 +481,16 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_tag_with_back
-    env = { "HTTP_REFERER" => "http://www.example.com/referer" }
+    env = { "HTTP_REFERER" => "http://www.example.com/referer", "REQUEST_METHOD" => "GET" }
     @controller = Struct.new(:request).new(Struct.new(:env).new(env))
     expected = %{<a href="#{env["HTTP_REFERER"]}">go back</a>}
+    assert_dom_equal expected, link_to("go back", :back)
+  end
+
+  def test_link_tag_with_back_non_get
+    env = { "HTTP_REFERER" => "http://www.example.com/referer", "REQUEST_METHOD" => "POST" }
+    @controller = Struct.new(:request).new(Struct.new(:env).new(env))
+    expected = %{<a href="javascript:history.back()">go back</a>}
     assert_dom_equal expected, link_to("go back", :back)
   end
 

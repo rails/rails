@@ -1,3 +1,8 @@
+*   Only link back to referer if referer is a `GET` request when passing `:back`
+    to `link_to`.
+
+    *Steve Polito*
+
 *   Fix a crash in ERB template error highlighting when the error occurs on a
     line in the compiled template that is past the end of the source template.
 

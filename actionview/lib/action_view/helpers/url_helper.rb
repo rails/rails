@@ -55,7 +55,9 @@ module ActionView
       def _filtered_referrer # :nodoc:
         if controller.respond_to?(:request)
           referrer = controller.request.env["HTTP_REFERER"]
-          if referrer && URI(referrer).scheme != "javascript"
+          request_method = controller.request.env["REQUEST_METHOD"]
+
+          if referrer && request_method == "GET" && URI(referrer).scheme != "javascript"
             referrer
           end
         end
