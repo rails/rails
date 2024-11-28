@@ -1513,6 +1513,9 @@ class RenderTest < ActionController::TestCase
       get :greeting
     end
 
+    first_line = @response.body.lines.first.chomp
+    assert_equal true, first_line.end_with?("-->")
+
     assert_includes @response.body, "<!-- BEGIN"
     assert_includes @response.body, "<!-- END"
     assert_includes @response.body, "test/fixtures/actionpack/test/greeting.html.erb"

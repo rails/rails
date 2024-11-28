@@ -1,3 +1,21 @@
+*   The BEGIN template annotation/comment is printed on the same line
+    with other element tags. This PR fixes that by moving the comment to its own line.
+
+    Before:
+
+    ```
+    <!-- BEGIN /Users/siaw23/Desktop/rails/actionview/test/fixtures/actionpack/test/greeting.html.erb --><p>This is grand!</p>
+    ```
+
+    After:
+
+    ```
+    <!-- BEGIN /Users/siaw23/Desktop/rails/actionview/test/fixtures/actionpack/test/greeting.html.erb -->
+    <p>This is grand!</p>
+    ```
+
+    *Emmanuel Hayford*
+
 *   Fix a crash in ERB template error highlighting when the error occurs on a
     line in the compiled template that is past the end of the source template.
 
