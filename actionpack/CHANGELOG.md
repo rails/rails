@@ -1,3 +1,9 @@
+*   In ExceptionWrapper, match backtrace lines with built templates more often,
+    allowing improved highlighting of errors within do-end blocks in templates.
+    Fix for Ruby 3.4 to match new method labels in backtrace.
+
+    *Martin Emde*
+
 *   Allow setting content type with a symbol of the Mime type.
 
     ```ruby

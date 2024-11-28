@@ -1,3 +1,8 @@
+*   Improve error highlighting of multi-line methods in ERB templates or
+    templates where the error occurs within a do-end block.
+
+    *Martin Emde*
+
 *   Fix a crash in ERB template error highlighting when the error occurs on a
     line in the compiled template that is past the end of the source template.
 
