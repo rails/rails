@@ -26,7 +26,8 @@ module ActionController # :nodoc:
       # page. <tt>send_file(params[:path])</tt> allows a malicious user to
       # download any file on your server.
       #
-      # Options:
+      # ==== Options:
+      #
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
       #   Defaults to <tt>File.basename(path)</tt>.
       # * <tt>:type</tt> - specifies an HTTP content type.
@@ -85,7 +86,8 @@ module ActionController # :nodoc:
       # download dialog) or as inline data. You may also set the content type,
       # the file name, and other things.
       #
-      # Options:
+      # ==== Options:
+      #
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
       # * <tt>:type</tt> - specifies an HTTP content type. Defaults to +application/octet-stream+.
       #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example +:json+.
