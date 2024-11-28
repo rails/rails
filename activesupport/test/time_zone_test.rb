@@ -920,4 +920,10 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "EDT", time.strftime("%Z")
     assert_equal true, time.isdst
   end
+
+  def test_standard_name
+    assert_equal "America/New_York", ActiveSupport::TimeZone["Eastern Time (US & Canada)"].standard_name
+    assert_equal "America/Montevideo", ActiveSupport::TimeZone["Montevideo"].standard_name
+    assert_equal "America/Toronto", ActiveSupport::TimeZone["America/Toronto"].standard_name
+  end
 end

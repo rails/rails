@@ -1,3 +1,15 @@
+*   Add `ActiveSupport::TimeZone#standard_name` method
+
+    ``` ruby
+    zone = ActiveSupport::TimeZone['Hawaii']
+    # Old way
+    ActiveSupport::TimeZone::MAPPING[zone.name]
+    # New way
+    zone.standard_name # => 'Pacific/Honolulu'
+    ```
+
+    *Bogdan Gusiev*
+
 *   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
 
     *Martin Emde*

@@ -313,6 +313,12 @@ module ActiveSupport
     end
     # :startdoc:
 
+    # Returns a standard time zone name defined by IANA
+    # https://www.iana.org/time-zones
+    def standard_name
+      MAPPING[name] || name
+    end
+
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
       @utc_offset || tzinfo&.current_period&.base_utc_offset
@@ -340,14 +346,14 @@ module ActiveSupport
     # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def =~(re)
-      re === name || re === MAPPING[name]
+      re === name || re === standard_name
     end
 
     # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def match?(re)
-      (re == name) || (re == MAPPING[name]) ||
-        ((Regexp === re) && (re.match?(name) || re.match?(MAPPING[name])))
+      (re == name) || (re == standard_name) ||
+        ((Regexp === re) && (re.match?(name) || re.match?(standard_name)))
     end
 
     # Returns a textual representation of this time zone.
