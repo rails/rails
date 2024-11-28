@@ -1,3 +1,7 @@
+*   Add `bluetooth`, `mediasession`, `navigation-override` and `otp-credentials` to `permissions_policy`
+
+    *Emmanuel Hayford*
+
 *   Allow setting content type with a symbol of the Mime type.
 
     ```ruby
