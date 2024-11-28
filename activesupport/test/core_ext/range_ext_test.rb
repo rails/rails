@@ -279,4 +279,83 @@ class RangeTest < ActiveSupport::TestCase
     datetime = DateTime.now
     assert(((datetime - 1.hour)..datetime).step(1) { })
   end
+
+  def test_date_range_with_numeric_step
+    enum = (Date.new(2005, 12, 10)..Date.new(2005, 12, 15)).step(2)
+
+    assert_equal [Date.new(2005, 12, 10), Date.new(2005, 12, 12), Date.new(2005, 12, 14)], enum.to_a
+  end
+
+  def test_date_range_with_day_step
+    enum = (Date.new(2005, 12, 10)..Date.new(2005, 12, 15)).step(2.days)
+
+    assert_equal [Date.new(2005, 12, 10), Date.new(2005, 12, 12), Date.new(2005, 12, 14)], enum.to_a
+    assert_kind_of Enumerator, enum
+  end
+
+  def test_date_range_with_month_step
+    enum = (Date.new(2005, 01, 01)..Date.new(2005, 03, 01)).step(1.month)
+
+    assert_equal [Date.new(2005, 01, 01), Date.new(2005, 02, 01), Date.new(2005, 03, 01)], enum.to_a
+  end
+
+  def test_end_of_month_date_range_with_month_step
+    enum = (Date.new(2005, 01, 31)..Date.new(2005, 03, 31)).step(1.month)
+
+    assert_equal [Date.new(2005, 01, 31), Date.new(2005, 02, 28), Date.new(2005, 03, 31)], enum.to_a
+  end
+
+  def test_date_range_with_year_step
+    enum = (Date.new(2005, 01, 01)...Date.new(2008, 01, 01)).step(1.year)
+
+    assert_equal [Date.new(2005, 01, 01), Date.new(2006, 01, 01), Date.new(2007, 01, 01)], enum.to_a
+  end
+
+  def test_beginless_date_range_step
+    assert_raise TypeError do
+      (..Date.new(2008, 02, 01)).step(1.day)
+    end
+  end
+
+  def test_endless_date_range_step
+    enum = (Date.new(2005, 01, 01)..).step(1.year)
+
+    assert_equal [Date.new(2005, 01, 01), Date.new(2006, 01, 01), Date.new(2007, 01, 01)], enum.first(3)
+  end
+
+  def test_date_range_with_step_and_block
+    range = (Date.new(2005, 01, 01)..Date.new(2005, 03, 01))
+
+    result = []
+    step_range = range.step(1.month) { |element| result << (element + 1.day) }
+
+    assert_equal [Date.new(2005, 01, 02), Date.new(2005, 02, 02), Date.new(2005, 03, 02)], result
+    assert_equal step_range, range
+  end
+
+  def test_date_range_with_end_greater_than_begin_and_step
+    enum = (Date.new(2005, 01, 01)..Date.new(2000, 01, 01)).step(1.year)
+
+    assert_equal [], enum.to_a
+  end
+
+  def test_time_range_with_duration_step
+    enum = (Time.utc(2005, 01, 01, 17, 0, 0)..).step(1.hour)
+
+    assert_equal [
+      Time.utc(2005, 01, 01, 17, 0, 0),
+      Time.utc(2005, 01, 01, 18, 0, 0),
+      Time.utc(2005, 01, 01, 19, 0, 0),
+    ], enum.first(3)
+  end
+
+  def test_date_time_range_with_duration_step
+    enum = (DateTime.new(2005, 01, 01, 17, 0, 0)..).step(1.hour)
+
+    assert_equal [
+      DateTime.new(2005, 01, 01, 17, 0, 0),
+      DateTime.new(2005, 01, 01, 18, 0, 0),
+      DateTime.new(2005, 01, 01, 19, 0, 0),
+    ], enum.first(3)
+  end
 end

@@ -1,3 +1,21 @@
+*   Add support for `ActiveSupport::Duration` step for ranges.
+
+    Previously:
+
+    ```ruby
+    (Date.new(2005, 1, 31)..).step(1.month).first(3).map(&:to_s)
+    # => ["2005-01-31", "9205-01-31", "16405-01-31"]
+    ```
+
+    After this change:
+
+    ```ruby
+    (Date.new(2005, 1, 31)..).step(1.month).first(3).map(&:to_s)
+    # => ["2005-01-31", "2005-02-28", "2005-03-31"]
+    ```
+
+    *Lovro Bikić*
+
 *   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
 
     *Martin Emde*
