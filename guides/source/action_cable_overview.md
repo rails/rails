@@ -105,6 +105,10 @@ module ApplicationCable
       self.current_user = find_verified_user
     end
 
+    # Any cleanup needed when the connection is terminated
+    def disconnect
+    end
+
     private
       def find_verified_user
         if verified_user = User.find_by(id: cookies.encrypted[:user_id])
@@ -227,6 +231,10 @@ class ChatChannel < ApplicationCable::Channel
   # become a subscriber to this channel.
   def subscribed
   end
+
+  # Called when the consumer unsubscribes from this channel.
+  def unsubscribed
+  end
 end
 ```
 
@@ -337,6 +345,64 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "1st Room" })
 consumer.subscriptions.create({ channel: "ChatChannel", room: "2nd Room" })
 ```
 
+Rails provides a generator to scaffold the server and client-side channel files:
+
+```bash
+$ bin/rails generate channel
+Usage:
+  rails generate channel NAME [method method] [options]
+
+...
+
+Example:
+========
+    bin/rails generate channel Chat speak
+
+    creates a Chat channel class, test and JavaScript asset:
+        Channel:    app/channels/chat_channel.rb
+        Test:       test/channels/chat_channel_test.rb
+        Assets:     $JAVASCRIPT_PATH/channels/chat_channel.js
+```
+
+#### Importing Channels
+
+You can import channels with import maps by defining an `index.js`
+entry file:
+
+```js
+// app/javascript/channels/chat_channel.js
+import consumer from "./consumer"
+consumer.subscriptions.create({ channel: "ChatChannel", room: "1st Room" })
+
+// app/javascript/channels/index.js
+import "channels/chat_channel"
+```
+
+Then, pin the entry file in your import map config:
+
+```ruby
+# config/importmap.rb
+pin_all_from "app/javascript/channels", under: "channels"
+```
+
+Finally, import the entry file in `app/javascript/application.js` to make
+the channels available throughout your app:
+
+```js
+// app/javascript/application.js
+import "channels"
+```
+
+You can selectively import channels with `javascript_import_module_tag`
+to load them on specific pages:
+
+```ruby
+# app/views/chat/index.html.erb
+<% content_for :head do %>
+  <%= javascript_import_module_tag "channels/chat_channel" %>
+<% end %>
+```
+
 ## Client-Server Interactions
 
 ### Streams
@@ -383,10 +449,42 @@ You can then broadcast to this channel by calling [`broadcast_to`][]:
 PostsChannel.broadcast_to(@post, @comment)
 ```
 
+#### Stopping Streams
+
+You can stop streaming from a model broadcasting with
+[`stop_stream_for`][]. For example, you might want to
+stop a post's stream when the user leaves the page:
+
+```ruby
+class PostsChannel < ApplicationCable::Channel
+  def unsubscribed
+    post = Post.find(params[:id])
+    stop_stream_for post
+  end
+end
+```
+
+You can also stop streaming from a broadcasting by passing it
+to [`stop_stream_from`].
+
+```ruby
+class PostsChannel < ApplicationCable::Channel
+  def unsubscribed
+    stop_stream_from params[:broadcasting]
+  end
+end
+```
+
+Alternatively, you can stop all streams from a channel
+with [`stop_all_streams`].
+
 [`broadcast`]: https://api.rubyonrails.org/classes/ActionCable/Server/Broadcasting.html#method-i-broadcast
 [`broadcast_to`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Broadcasting/ClassMethods.html#method-i-broadcast_to
 [`stream_for`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_for
 [`stream_from`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stream_from
+[`stop_stream_for`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stop_stream_for
+[`stop_stream_from`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stop_stream_from
+[`stop_all_streams`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Streams.html#method-i-stop_all_streams
 
 ### Broadcastings
 
@@ -712,11 +810,6 @@ The channel has been instructed to stream everything that arrives at
 callback. The data passed as an argument is the hash sent as the second parameter
 to the server-side broadcast call, JSON encoded for the trip across the wire
 and unpacked for the data argument arriving as `received`.
-
-### More Complete Examples
-
-See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples)
-repository for a full example of how to set up Action Cable in a Rails app and adding channels.
 
 ## Configuration
 
