@@ -345,6 +345,7 @@ module ActiveRecord
         @lock.synchronize do
           return false unless @raw_connection
           @raw_connection.query ";"
+          verified!
         end
         true
       rescue PG::Error
