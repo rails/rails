@@ -445,6 +445,12 @@ module ActiveRecord
       end
     end
 
+    test "runs queries when using pick with expression column and empty IN" do
+      assert_queries_count(1) do
+        assert_equal 0, Post.where(id: []).pick(Arel.sql("COUNT(*)"))
+      end
+    end
+
     test "can unscope empty IN" do
       assert_queries_count(1) do
         Post.where(id: []).unscope(where: :id).load
