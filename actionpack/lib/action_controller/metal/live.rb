@@ -324,7 +324,8 @@ module ActionController
     # Sends a stream to the browser, which is helpful when you're generating exports or other running data where you
     # don't want the entire file buffered in memory first. Similar to send_data, but where the data is generated live.
     #
-    # Options:
+    # ==== Options:
+    #
     # * <tt>:filename</tt> - suggests a filename for the browser to use.
     # * <tt>:type</tt> - specifies an HTTP content type.
     #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example :json.
