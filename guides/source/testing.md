@@ -166,8 +166,9 @@ the test pass.
 #### Your First Failing Test
 
 To see how a test failure is reported, you can add a failing test to the
-`article_test.rb` test case. Here, we are asserting that the article will not
-save, which will fail the test when the article saves successfully.
+`article_test.rb` test case. In this example, we assert that the article will 
+not save without meeting certain criteria; hence, if the article saves 
+successfully, the test will fail, demonstrating a test failure.
 
 ```ruby
 test "should not save article without title" do
@@ -176,7 +177,7 @@ test "should not save article without title" do
 end
 ```
 
-Let us run this newly added test (where `6` is the line number where the test is
+Let us run this newly added test (with `6` being the line number where the test is
 defined).
 
 ```bash
@@ -202,13 +203,11 @@ Finished in 0.023918s, 41.8090 runs/s, 41.8090 assertions/s.
 1 runs, 1 assertions, 1 failures, 0 errors, 0 skips
 ```
 
-In the output, `F` denotes a failure. You can see the corresponding trace shown
-under `Failure` along with the name of the failing test. The next few lines
-contain the stack trace followed by a message that mentions the actual value and
-the expected value by the assertion. The default assertion messages provide just
-enough information to help pinpoint the error. To make the assertion failure
-message more readable, every assertion provides an optional message parameter,
-as shown here:
+In the output, `F` indicates a test failure. The trace under `Failure` includes the name of the failing test, 
+followed by a stack trace and a message showing the actual value and the expected value from the 
+assertion. The default assertion messages offer just enough information to help identify the error. 
+For improved readability, every assertion allows an optional message parameter to customize the failure 
+message, as shown below:
 
 ```ruby
 test "should not save article without title" do
@@ -259,7 +258,7 @@ functionality, then we wrote some code which adds the functionality and finally
 we ensured that our test passes. This approach to software development is
 referred to as _Test-Driven Development_ (TDD).
 
-#### Encountering and Asserting Error-Presence
+#### Reporting Errors
 
 To see how an error gets reported, here's a test containing an error:
 
@@ -297,8 +296,8 @@ Finished in 0.040609s, 49.2500 runs/s, 24.6250 assertions/s.
 2 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 ```
 
-Notice the 'E' in the output. It denotes a test with error. The green dot above
-the 'finished' line denotes the one passing test.
+Notice the 'E' in the output. It denotes a test with an error. The green dot above
+the 'Finished' line denotes the one passing test.
 
 NOTE: The execution of each test method stops as soon as any error or an
 assertion failure is encountered, and the test suite continues with the next
@@ -306,10 +305,10 @@ method. All test methods are executed in random order. The
 [`config.active_support.test_order`][] option can be used to configure test
 order.
 
-When a test fails you are presented with the corresponding backtrace. By default
-Rails filters that backtrace and will only print lines relevant to your
-application. This eliminates the framework noise and helps to focus on your
-code. However there are situations when you want to see the full backtrace. Set
+When a test fails you are presented with the corresponding backtrace. By default,
+Rails filters the backtrace and will only print lines relevant to your
+application. This eliminates noise and helps you to focus on your
+code. However, in situations when you want to see the full backtrace, set
 the `-b` (or `--backtrace`) argument to enable this behavior:
 
 ```bash
@@ -340,7 +339,7 @@ Assertions are the worker bees of testing. They are the ones that actually
 perform the checks to ensure that things are going as planned.
 
 Here's an extract of the assertions you can use with
-[`Minitest`](https://github.com/minitest/minitest), the default testing library
+[`minitest`](https://github.com/minitest/minitest), the default testing library
 used by Rails. The `[msg]` parameter is an optional string message you can
 specify to make your test failure messages clearer.
 
@@ -380,16 +379,15 @@ specify to make your test failure messages clearer.
 | `assert_no_error_reported { block }`                             | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
-The above are a subset of assertions that minitest supports. For an exhaustive &
-more up-to-date list, please check the [Minitest API
+The above are a subset of assertions that minitest supports. For an exhaustive and
+more up-to-date list, please check the [minitest API
 documentation](http://docs.seattlerb.org/minitest/Minitest), specifically
 [`Minitest::Assertions`](http://docs.seattlerb.org/minitest/Minitest/Assertions.html).
 
-Because of the modular nature of the testing framework, it is possible to create
-your own assertions. In fact, that's exactly what Rails does. It includes some
+With minitest you can add your own assertions. In fact, that's exactly what Rails does. It includes some
 specialized assertions to make your life easier.
 
-NOTE: Creating your own assertions is an advanced topic that we won't cover in
+NOTE: Creating your own assertions is a topic that we won't cover in
 this guide.
 
 ### Rails-Specific Assertions
@@ -404,7 +402,7 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_no_changes(expressions, message = nil, &block)`][] | Test the result of evaluating an expression is not changed after invoking the passed in block.|
 | [`assert_nothing_raised { block }`][] | Ensures that the given block doesn't raise any exceptions.|
 | [`assert_recognizes(expected_options, path, extras={}, message=nil)`][] | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
-| [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`][] | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
+| [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`][] | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extra parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
 | [`assert_routing(expected_path, options, defaults={}, extras = {}, message=nil)`][] | Asserts that `path` and `options` match both ways; in other words, it verifies that `path` generates `options` and then that `options` generates `path`. This essentially combines `assert_recognizes` and `assert_generates` into one step. The extras hash allows you to specify options that would normally be provided as a query string to the action. The message parameter allows you to specify a custom error message to display upon failure.|
 | [`assert_response(type, message = nil)`][] | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](https://rubydoc.info/gems/rack/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](https://rubydoc.info/gems/rack/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
 | [`assert_redirected_to(options = {}, message=nil)`][] | Asserts that the response is a redirect to a URL matching the given options. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
@@ -446,7 +444,7 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 
 You'll see the usage of some of these assertions in the next chapter.
 
-### Assertions in Our Test Cases
+### Assertions in Test Cases
 
 All the basic assertions such as `assert_equal` defined in
 `Minitest::Assertions` are also available in the classes we use in our own test
@@ -461,15 +459,15 @@ cases. In fact, Rails provides the following classes for you to inherit from:
 * [`Rails::Generators::TestCase`](https://api.rubyonrails.org/classes/Rails/Generators/TestCase.html)
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of
-the basic assertions in our tests.
+the basic assertions in your tests.
 
-NOTE: For more information on `Minitest`, refer to its
+NOTE: For more information on `minitest`, refer to the
 [documentation](http://docs.seattlerb.org/minitest).
 
 ### Transactions
 
 By default, Rails automatically wraps tests in a database transaction that is
-rolled back after they finish. This makes tests independent of each other and
+rolled back once completed. This makes tests independent of each other and
 means that changes to the database are only visible within a single test.
 
 ```ruby
@@ -482,12 +480,12 @@ class MyTest < ActiveSupport::TestCase
 end
 ```
 
-The method `ActiveRecord::Base.current_transaction` still acts as intended,
+The method [`ActiveRecord::Base.current_transaction`](https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-current_transaction) still acts as intended,
 though:
 
 ```ruby
 class MyTest < ActiveSupport::TestCase
-  test "current_transaction" do
+  test "Active Record current_transaction method works as expected" do
     # The implicit transaction around tests does not interfere with the
     # application-level semantics of the current_transaction.
     assert User.current_transaction.blank?
@@ -514,8 +512,7 @@ end
 
 We can run all of our tests at once by using the `bin/rails test` command.
 
-Or we can run a single test file by passing the `bin/rails test` command the
-filename containing the test cases.
+Or we can run a single test file by appending the filename to the `bin/rails test` command.
 
 ```bash
 $ bin/rails test test/models/article_test.rb
@@ -570,7 +567,7 @@ $ bin/rails test test/controllers # run all tests from specific directory
 ```
 
 The test runner also provides a lot of other features like failing fast,
-deferring test output at the end of the test run and so on. Check the
+showing verbose progress, and so on. Check the
 documentation of the test runner as follows:
 
 ```bash
@@ -619,13 +616,9 @@ Known extensions: rails, pride
 The Test Database
 -----------------
 
-Just about every Rails application interacts heavily with a database and, as a
-result, your tests will need a database to interact with as well. To write
-efficient tests, you'll need to understand how to set up this database and
-populate it with sample data.
+Just about every Rails application interacts heavily with a database and so your tests will need a database to interact with as well. This section covers how to set up this test database and populate it with sample data.
 
-By default, every Rails application has three environments: development, test,
-and production. The database for each one of them is configured in
+As mentioned in the [Test Envionment section](#the-test-environment), every Rails application has three environments: development, test, and production. The database for each one of them is configured in
 `config/database.yml`.
 
 A dedicated test database allows you to set up and interact with test data in
@@ -634,12 +627,12 @@ without worrying about the data in the development or production databases.
 
 ### Maintaining the Test Database Schema
 
-In order to run your tests, your test database will need to have the current
-structure. The test helper checks whether your test database has any pending
+In order to run your tests, your test database needs the current
+schema. The test helper checks whether your test database has any pending
 migrations. It will try to load your `db/schema.rb` or `db/structure.sql` into
 the test database. If migrations are still pending, an error will be raised.
 Usually this indicates that your schema is not fully migrated. Running the
-migrations against the development database (`bin/rails db:migrate`) will bring
+migrations against the development database (using `bin/rails db:migrate`) will bring
 the schema up to date.
 
 NOTE: If there were modifications to existing migrations, the test database
@@ -662,7 +655,7 @@ NOTE: Fixtures are not designed to create every object that your tests need, and
 are best managed when only used for default data that can be applied to the
 common case.
 
-Fixtures can be stored in your `test/fixtures` directory.
+Fixtures are stored in your `test/fixtures` directory.
 
 #### YAML
 
@@ -688,7 +681,7 @@ Each fixture is given a name followed by an indented list of colon-separated
 key/value pairs. Records are typically separated by a blank line. You can place
 comments in a fixture file by using the # character in the first column.
 
-If you are working with [associations](/association_basics.html), you can define
+If you are working with [associations](association_basics.html), you can define
 a reference node between two different fixtures. Here's an example with a
 `belongs_to`/`has_many` association:
 
@@ -747,7 +740,7 @@ first:
   title: An Article
 ```
 
-Assuming that there is an image/png encoded file at
+Assuming that there is an [image/png][] encoded file at
 `test/fixtures/files/first.png`, the following YAML fixture entries will
 generate the related `ActiveStorage::Blob` and `ActiveStorage::Attachment`
 records:
@@ -768,7 +761,7 @@ first_thumbnail_attachment:
 [image/png]:
     https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types#image_types
 
-#### ERB and Fixtures
+#### Embedding Code in Fixtures
 
 ERB allows you to embed Ruby code within templates. The YAML fixture format is
 pre-processed with ERB when Rails loads fixtures. This allows you to use Ruby to
@@ -794,17 +787,16 @@ default. Loading involves three steps:
 
 TIP: In order to remove existing data from the database, Rails tries to disable
 referential integrity triggers (like foreign keys and check constraints). If you
-are getting annoying permission errors on running tests, make sure the database
+are getting permission errors on running tests, make sure the database
 user has the permission to disable these triggers in the testing environment.
 (In PostgreSQL, only superusers can disable all triggers. Read more about
-PostgreSQL permissions
-[here](https://www.postgresql.org/docs/current/sql-altertable.html)).
+[permissions in the PostgreSQL docs](https://www.postgresql.org/docs/current/sql-altertable.html)).
 
 #### Fixtures are Active Record Objects
 
 Fixtures are instances of Active Record. As mentioned above, you can access the
 object directly because it is automatically available as a method whose scope is
-local of the test case. For example:
+local to the test case. For example:
 
 ```ruby
 # this will return the User object for the fixture named david
@@ -813,7 +805,7 @@ users(:david)
 # this will return the property for david called id
 users(:david).id
 
-# methods available on the User class can also be accessed
+# methods available to the User class can also be accessed
 david = users(:david)
 david.call(david.partner)
 ```
@@ -830,7 +822,7 @@ users(:david, :steve)
 Model Testing
 -------------
 
-Model tests are used to test the various models of your application and their
+Model tests are used to test the models of your application and their
 associated logic. You can test this logic using the assertions and fixtures that
 we've explored in the sections above.
 
@@ -1847,7 +1839,7 @@ end
 
 If your application uses Ruby >= 3.0 or higher, depends on [Nokogiri >=
 1.14.0](https://github.com/sparklemotion/nokogiri/releases/tag/v1.14.0) or
-higher, and depends on [Minitest >=
+higher, and depends on [minitest >=
 >5.18.0](https://github.com/minitest/minitest/blob/v5.18.0/History.rdoc#5180--2023-03-04-),
 `document_root_element` supports [Ruby's Pattern
 Matching](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
@@ -2615,7 +2607,7 @@ threads.
 ### Parallel Testing with Threads
 
 If you prefer using threads or are using JRuby, a threaded parallelization
-option is provided. The threaded parallelizer is backed by Minitest's
+option is provided. The threaded parallelizer is backed by minitest's
 `Parallel::Executor`.
 
 To change the parallelization method to use threads over forks put the following
