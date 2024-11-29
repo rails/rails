@@ -708,4 +708,13 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal(%(#<ActiveModel::Errors [#{errors.first.inspect}]>), errors.inspect)
   end
+
+  test "#excluding" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:email, :blank)
+
+    assert_equal 1, errors.excluding(:email).count
+    assert_equal :name, errors.excluding(:email).first.attribute
+  end
 end

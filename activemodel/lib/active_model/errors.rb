@@ -452,6 +452,14 @@ module ActiveModel
       Error.full_message(attribute, message, @base)
     end
 
+    # Returns all the errors excluding the ones in the list of +attributes+.
+    #
+    #   person.errors.excluding(:name) # => All errors with name removed from the list
+    #   person.errors.where(:name, :email) # => All errors with name and email removed from the list
+    def excluding(*attributes)
+      @errors.reject { |error| attributes.include?(error.attribute) }
+    end
+
     # Translates an error message in its default scope
     # (<tt>activemodel.errors.messages</tt>).
     #
