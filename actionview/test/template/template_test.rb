@@ -332,7 +332,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = "<%= nomethoderror %>"
     compiled = "'.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
@@ -345,7 +345,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = "<%= nomethoderror %>"
     compiled = "'.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='"
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight, first_lineno: 2, last_lineno: 2)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
@@ -361,7 +361,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     compiled = "ValidatedOutputBuffer.wrap(@output_buffer, ({}), ' \ngood(\n nomethoderror\n" \
                ") '.freeze, true).safe_none_append=( \ngood(\n nomethoderror\n) );\n@output_buffer"
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 6)
+    backtrace_location = Struct.new(:lineno).new(6)
     spot = spot_highlight(compiled, highlight, first_column: 1, first_lineno: 6, last_lineno: 6, snippet: extracted_line)
 
     assert_equal spot, new_template(source).translate_location(backtrace_location, spot)
@@ -372,7 +372,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = String.new("\u{a5}<%= nomethoderror %>", encoding: Encoding::UTF_8) # yen symbol
     compiled = String.new("\u{a5}'.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n", encoding: Encoding::UTF_8)
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
@@ -384,7 +384,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = "<%= nomatch %>"
     compiled = "this source does not contain the highlight, so the original spot is returned"
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight, first_column: 50)
 
     assert_equal spot, new_template(source).translate_location(backtrace_location, spot)
@@ -395,7 +395,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = " nomethoderror <%= nomethoderror %>"
     compiled = " nomethoderror '.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
@@ -407,7 +407,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = "<%= goodcode %> <%= nomethoderror %>"
     compiled = "'.freeze; @output_buffer.append=  goodcode ; @output_buffer.safe_append=' '.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
@@ -419,7 +419,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = "<%= goodcode %><%= nomethoderror %>"
     compiled = "'.freeze; @output_buffer.append=  goodcode ; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
@@ -431,7 +431,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = "<%= nomethoderror %>"
     compiled = "ValidatedOutputBuffer.wrap(@output_buffer, ({}), ' nomethoderror '.freeze, true).safe_none_append=  nomethoderror ; @output_buffer.safe_append='\n"
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
@@ -443,7 +443,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     source = "<%= flakymethod %> flakymethod <%= flakymethod " # fails on second call, no tailing %>
     compiled = "ValidatedOutputBuffer.wrap(@output_buffer, ({}), ' flakymethod '.freeze, true).safe_none_append=( flakymethod );@output_buffer.safe_append=' flakymethod '.freeze;ValidatedOutputBuffer.wrap(@output_buffer, ({}), ' flakymethod '.freeze, true).safe_none_append=( flakymethod "
 
-    backtrace_location = Struct.new(:lineno).new(lineno: 1)
+    backtrace_location = Struct.new(:lineno).new(1)
     spot = spot_highlight(compiled, highlight)
     expected = spot_highlight(source, highlight, snippet: compiled)
 
