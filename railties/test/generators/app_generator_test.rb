@@ -544,7 +544,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory("test/system")
 
     assert_file ".github/workflows/ci.yml" do |content|
-      assert_no_match(/google-chrome-stable/, content)
+      assert_match(/db:test:prepare test/, content)
+      assert_no_match(/test:system/, content)
+      assert_no_match(/screenshots/, content)
     end
   end
 
