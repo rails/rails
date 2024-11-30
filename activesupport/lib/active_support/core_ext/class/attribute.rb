@@ -84,8 +84,8 @@ class Class
   #
   #   class_attribute :settings, default: {}
   def class_attribute(*attrs, instance_accessor: true,
-    instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil)
-
+    instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil
+  )
     class_methods, methods = [], []
     attrs.each do |name|
       unless name.is_a?(Symbol) || name.is_a?(String)
