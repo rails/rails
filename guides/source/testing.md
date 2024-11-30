@@ -589,7 +589,7 @@ $ PARALLEL_WORKERS=15 bin/rails test
 
 When parallelizing tests, Active Record automatically handles creating a database and loading the schema into the database for each
 process. The databases will be suffixed with the number corresponding to the worker. For example, if you
-have 2 workers the tests will create `test-database-0` and `test-database-1` respectively.
+have 2 workers the tests will create `test-database_0` and `test-database_1` respectively.
 
 If the number of workers passed is 1 or fewer the processes will not be forked and the tests will not
 be parallelized and they will use the original `test-database` database.
