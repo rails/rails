@@ -1,3 +1,18 @@
+*   Add `ActiveSupport::Configurable.config=` writer
+
+    ```ruby
+    class User
+      include ActiveSupport::Configurable
+    end
+
+    User.config = { allowed_access: true, level: 1 }
+
+    User.config.allowed_access # => true
+    User.config.level          # => 1
+    ```
+
+    *Sean Doyle*
+
 *   Alter `ERB::Util.tokenize` to return :PLAIN token with full input string when string doesn't contain ERB tags.
 
     *Martin Emde*

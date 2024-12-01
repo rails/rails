@@ -4031,6 +4031,34 @@ development:
 Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
 ```
 
+Classes can include [ActiveSupport::Configurable](https://api.rubyonrails.org/classes/ActiveSupport/Configurable.html) to add class-level and instance-level access to a configuration object.
+
+```ruby
+class Payment
+  include ActiveSupport::Configurable
+end
+
+Payment.config.environment = "development"
+
+Payment.config.environment # => "development"
+
+payment = Payment.new
+
+payment.config.environment # => "development"
+```
+
+Classes that include `ActiveSupport::Configurable` also support writing
+configurations loaded from `Rails::Application.config_for`:
+
+```ruby
+Payment.config = Rails::Application.config_for(:payment)
+
+Payment.config.environment  # => "development"
+Payment.config.merchant_id  # => "development_merchant_id"
+Payment.config.public_key   # => "development_public_key"
+Payment.config.private_key  # => "development_private_key"
+```
+
 Search Engines Indexing
 -----------------------
 

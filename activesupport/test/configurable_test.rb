@@ -40,6 +40,56 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_equal :bar, Parent.config.foo
   end
 
+  test "Class-level configuration hash is writable" do
+    assert_changes -> { Child.config.foo }, from: :bar, to: :baz do
+      Child.config = { foo: :baz }
+    end
+    assert_kind_of ActiveSupport::Configurable::Configuration, Child.config
+    assert_equal :baz, Child.new.foo
+
+    assert_changes -> { Child.config.foo }, from: :baz, to: :qux do
+      Child.config = ActiveSupport::InheritableOptions.new(foo: :qux)
+    end
+    assert_kind_of ActiveSupport::Configurable::Configuration, Child.config
+    assert_equal :qux, Child.new.foo
+
+    assert_changes -> { Child.config.foo }, from: :qux, to: :bar do
+      Child.config = nil
+    end
+    assert_kind_of ActiveSupport::Configurable::Configuration, Child.config
+    assert_equal :bar, Child.new.foo
+
+    assert_raises ArgumentError, match: %(value "junk" does not respond to #to_h) do
+      Child.config = "junk"
+    end
+  end
+
+  test "instance-level configuration hash is writable" do
+    child = Child.new
+
+    assert_changes -> { child.config.foo }, from: :bar, to: :baz do
+      child.config = { foo: :baz }
+    end
+    assert_kind_of ActiveSupport::Configurable::Configuration, child.config
+    assert_equal :baz, child.foo
+
+    assert_changes -> { child.config.foo }, from: :baz, to: :qux do
+      child.config = ActiveSupport::InheritableOptions.new(foo: :qux)
+    end
+    assert_kind_of ActiveSupport::Configurable::Configuration, child.config
+    assert_equal :qux, child.foo
+
+    assert_changes -> { child.config.foo }, from: :qux, to: :bar do
+      child.config = nil
+    end
+    assert_kind_of ActiveSupport::Configurable::Configuration, child.config
+    assert_equal Child.config, child.config
+
+    assert_raises ArgumentError, match: %(value "junk" does not respond to #to_h) do
+      child.config = "junk"
+    end
+  end
+
   test "configuration accessors are not available on instance" do
     instance = Parent.new
 

@@ -36,6 +36,47 @@ module ActiveSupport
         end
       end
 
+      # Load values from instances of InheritableOptions, OrderedOptions, or
+      # Hash into the Class-level configuration.
+      #
+      #     require "active_support/configurable"
+      #
+      #     class User
+      #       include ActiveSupport::Configurable
+      #     end
+      #
+      #     User.config = { allowed_access: true, level: 1 }
+      #
+      #     user = User.new
+      #
+      #     user.config.allowed_access # => true
+      #     user.config.level          # => 1
+      #
+      # Supports assigning configurations read via Rails::Application#config_for.
+      # For example, consider the following YAML file:
+      #
+      #     # config/users.yml
+      #     shared:
+      #       allowed_access: true
+      #       level: 1
+      #
+      # Configuration values read via the Rails::Application#config_for can be
+      # assigned directly:
+      #
+      #     User.config = Rails.application.config_for(:users)
+      #
+      #     User.config.allowed_access # => true
+      #     User.config.level # => 1
+      def config=(value)
+        if value.nil?
+          @_config = nil
+        elsif value.respond_to?(:to_h)
+          @_config = Class.new(Configuration).new(value.to_h)
+        else
+          raise ArgumentError.new("value #{value.inspect} does not respond to #to_h")
+        end
+      end
+
       def configure
         yield config
       end
@@ -154,6 +195,31 @@ module ActiveSupport
     #   user.config.level          # => 1
     def config
       @_config ||= self.class.config.inheritable_copy
+    end
+
+    # Load values from instances of InheritableOptions, OrderedOptions, or
+    # Hash into the Instance-level configuration.
+    #
+    #  require "active_support/configurable"
+    #
+    #  class User
+    #    include ActiveSupport::Configurable
+    #  end
+    #
+    #  user = User.new
+    #
+    #  user.config = { allowed_access: true, level: 1 }
+    #
+    #  user.config.allowed_access # => true
+    #  user.config.level          # => 1
+    def config=(value)
+      if value.nil?
+        @_config = nil
+      elsif value.respond_to?(:to_h)
+        @_config = Class.new(Configuration).new(value.to_h)
+      else
+        raise ArgumentError.new("value #{value.inspect} does not respond to #to_h")
+      end
     end
   end
 end
