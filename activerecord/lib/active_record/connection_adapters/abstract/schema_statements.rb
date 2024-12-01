@@ -1878,8 +1878,13 @@ module ActiveRecord
           sm_table = quote_table_name(pool.schema_migration.table_name)
 
           if versions.is_a?(Array)
-            sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-            sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
+            sorted_versions = versions.sort { |a, b| b.to_s.reverse <=> a.to_s.reverse }
+
+            sql = +<<~SQL
+              -- Versions are sorted by reverse representations of numbers (abc -> cba) in descending order.
+              INSERT INTO #{sm_table} (version) VALUES
+            SQL
+            sql << sorted_versions.map { |v| "(#{quote(v)})" }.join(",\n")
             sql << ";"
             sql
           else
