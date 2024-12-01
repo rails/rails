@@ -109,3 +109,86 @@ class AdapterPreventWritesTest < ActiveRecord::AbstractMysqlTestCase
       super(@conn, "ex", definition, &block)
     end
 end
+
+class AdapterPreventWritesLocksTest < ActiveRecord::AbstractMysqlTestCase
+  include DdlHelper
+
+  def setup
+    @conn = ActiveRecord::Base.lease_connection
+  end
+
+  def test_lock_table_raises_error_while_preventing_writes
+    with_example_table do
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @conn.execute("LOCK TABLE `ex` WRITE")
+        end
+      end
+    end
+  end
+
+  def test_lock_tables_raises_error_while_preventing_writes
+    with_example_table do
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @conn.execute("LOCK TABLES `ex` WRITE")
+        end
+      end
+    end
+  end
+
+  def test_unlock_table_raises_error_while_preventing_writes
+    with_example_table do
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @conn.execute("UNLOCK TABLE")
+        end
+      end
+    end
+  end
+
+  def test_unlock_tables_raises_error_while_preventing_writes
+    with_example_table do
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @conn.execute("UNLOCK TABLES")
+        end
+      end
+    end
+  end
+
+  def test_for_update_raises_error_while_preventing_writes
+    with_example_table do
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @conn.execute("SELECT * FROM `ex` FOR UPDATE")
+        end
+      end
+    end
+  end
+
+  def test_for_share_raises_error_while_preventing_writes
+    with_example_table do
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @conn.execute("SELECT * FROM `ex` FOR SHARE")
+        end
+      end
+    end
+  end
+
+  def test_read_lock_raises_error_while_preventing_writes
+    with_example_table do
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) do
+          @conn.execute("FLUSH TABLES WITH READ LOCK")
+        end
+      end
+    end
+  end
+
+  private
+    def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
+      super(@conn, "ex", definition, &block)
+    end
+end

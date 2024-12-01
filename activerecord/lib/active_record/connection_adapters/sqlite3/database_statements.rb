@@ -15,6 +15,18 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
+        LOCK_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_lock_query_regexp(
+          # transaction locks
+          :immediate_transaction, :exclusive_transaction,
+        ) # :nodoc:
+        private_constant :LOCK_QUERY
+
+        def lock_query?(sql) # :nodoc:
+          LOCK_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          LOCK_QUERY.match?(sql.b)
+        end
+
         def explain(arel, binds = [], _options = [])
           sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
           result = internal_exec_query(sql, "EXPLAIN", [])
