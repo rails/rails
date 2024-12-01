@@ -13,15 +13,21 @@ class ModelGeneratorIntegrationTest < ActiveSupport::TestCase
   teardown :teardown_app
 
   def test_model_generator
-    output = rails "generate", "model", "Account"
-    assert_no_match(/The name 'Account' is either already used in your application or reserved by Ruby on Rails./, output)
-    assert_migration "db/migrate/create_accounts.rb"
+    Dir.chdir(app_path) do
+      output = quietly { capture(:stderr) { `bin/rails generate model Account` } }
+
+      assert_no_match(/The name 'Account' is either already used in your application or reserved by Ruby on Rails./, output)
+      assert_migration "db/migrate/create_accounts.rb"
+    end
   end
 
   def test_model_generator_revoke
-    output = rails "destroy", "model", "DoesNotExist"
-    assert_match(/The class 'DoesNotExist' does not exist/, output)
-    assert_no_migration "db/migrate/create_does_not_exists.rb"
+    Dir.chdir(app_path) do
+      output = quietly { capture(:stderr) { `bin/rails destroy model DoesNotExist` } }
+
+      assert_match(/The class 'DoesNotExist' does not exist/, output)
+      assert_no_migration "db/migrate/create_does_not_exists.rb"
+    end
   end
 end
 
