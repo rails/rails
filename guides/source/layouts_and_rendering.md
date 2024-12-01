@@ -458,7 +458,7 @@ With this set of variants Rails will look for the following set of templates and
 
 If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
 
-Instead of setting the variant on the render call you may also set it on the request object in your controller action.
+Instead of setting the variant on the render call you may also set [`request.variant`](https://api.rubyonrails.org/classes/ActionDispatch/Http/MimeNegotiation.html#method-i-variant-3D) in your controller action. Learn more about variants in the [Action Controller Overview](./action_controller_overview.html#request-variant) guides.
 
 ```ruby
 def index
@@ -474,6 +474,8 @@ private
     variant
   end
 ```
+
+NOTE: Adding many new variant templates with similarities to existing template files can make maintaining your view code more difficult.
 
 #### Finding Layouts
 
