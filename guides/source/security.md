@@ -441,9 +441,9 @@ Authentication
 
 Rails 8 introduces an authentication generator, which provides a solid starting point for securing your application by only allowing access to verified users.
 
-The authentication generator adds authentication related models, controllers, views, routes, and migrations to your application.
+The authentication generator adds relevant models, controllers, views, routes, and migrations to your application.
 
-To use this feature in a new application, you run `rails generate authentication`. Here are all of the files it modifies and new files the generator adds:
+To use this feature in your application, you run `rails generate authentication`. Here are all of the files it modifies and new files the generator adds:
 
 ```bash
 $ rails generate authentication
@@ -521,7 +521,7 @@ Untracked files:
 
 The authentication generator also adds reset password functionality. You can see a "forgot password?" link on the "sign in" page. Clicking that link navigates to the `/passwords/new` path and routes to the passwords controller. The `new` method of the `PasswordsController` class runs through the flow for sending a password reset email.
 
-The mailers for *forgot password* are also set up by the generator at `app/mailers/password_mailer.rb` and renders the following email to send to the user:
+The mailers for *reset password* are also set up by the generator at `app/mailers/password_mailer.rb` and render the following email to send to the user:
 
 ```html+erb
 # app/views/passwords_mailer/reset.html.erb
@@ -567,7 +567,7 @@ The core functionality around session management is implemented in the `Authenti
 
 TIP: You can find all of the details for the Authentication generator in the Rails source code. You are encouraged to explore the implementation details and not treat authentication as a black box.
 
-The authentication generator is meant to be a solid starting point for securing your application by authenticating users.
+The authentication generator adds all of the files needed for securing your application with basic authentication and password reset functionality.
 
 User Management
 ---------------
