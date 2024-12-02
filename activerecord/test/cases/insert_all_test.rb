@@ -758,7 +758,7 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "written", Book.find(2).status
   end
 
-  if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_upsert_all_updates_using_values_function_on_duplicate_raw_sql
       skip unless supports_insert_on_duplicate_update?
 
