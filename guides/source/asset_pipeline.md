@@ -713,7 +713,7 @@ best practice is to use a CDN in front of your application.
 
 A common pattern for using a CDN is to set your production application as the
 "origin" server. This means when a browser requests an asset from the CDN and
-there is a cache miss, it will grab the file from your server on the fly and
+there is a cache miss, it will instead source the file from your server and
 then cache it. For example if you are running a Rails application on
 `example.com` and have a CDN configured at `mycdnsubdomain.fictional-cdn.com`,
 then when a request is made to
