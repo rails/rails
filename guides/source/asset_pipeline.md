@@ -34,8 +34,8 @@ Pipeline has adapted over time, refer to the section below.
 The simplified design of Propshaft, compared to its predecessor
 [Sprockets](https://github.com/rails/sprockets), focuses on essential asset
 management tasks, and it leaves more complex tasks, such as JavaScript and CSS
-bundling and minification, to specialized tools like `js-bundling-rails` and
-`css-bundling-rails`, which can be added separately to your application.
+bundling and minification, to specialized tools like [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
+[`css-bundling-rails`](https://github.com/rails/cssbundling-rails), which can be added separately to your application.
 Propshaft focuses on fingerprinting and emphasizes generating digest-based URLs
 for assets, allowing browsers to cache them, thus minimizing the need for
 intricate compilation and bundling.
@@ -278,7 +278,7 @@ Propshaft:
     If, for some reason, your project requires advanced features like dependency
     chaining, modern JavaScript syntax, or CSS pre-processing (e.g.,
     [Sass](https://sass-lang.com/) or [PostCSS](https://postcss.org/)), consider
-    using `js-bundling-rails` or `css-bundling-rails`. These gems integrate
+    using [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) or [`css-bundling-rails`](https://github.com/rails/cssbundling-rails). These gems integrate
     tools like [Webpack](https://webpack.js.org/),
     [esbuild](https://esbuild.github.io/), or [Vite](https://vite.dev/) into
     your Rails application, enabling you to handle complex asset requirements
@@ -1248,4 +1248,4 @@ simplifies JavaScript management while adhering to Rails conventions.
 `importmap-rails` is ideal for Rails applications that:
 
 - Do not require complex JavaScript features like transpiling or bundling.
-- Use modern JavaScript without relying on tools like [Babel
+- Use modern JavaScript without relying on tools like [Babel](https://babeljs.io/).
