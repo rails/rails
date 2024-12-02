@@ -204,7 +204,7 @@ a main JavaScript file that relied on other files to be loaded first. Sprockets
 managed this for you automatically, checking dependencies and loading everything
 in the correct order.
 
-With Propshaft, it doesn’t automatically understand these dependencies. If
+Propshaft doesn’t automatically understand these dependencies. If
 you have files that depend on each other, you’ll need to manage the order in
 which they load by organizing the files yourself or making sure they’re included
 in the right sequence in your HTML or layout files. By specifying each file
