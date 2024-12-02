@@ -160,6 +160,8 @@ module ActiveRecord
       end
 
       def defined_for?(to_table: nil, validate: nil, **options)
+        options = options.slice(*self.options.keys)
+
         (to_table.nil? || to_table.to_s == self.to_table) &&
           (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
           options.all? { |k, v| Array(self.options[k]).map(&:to_s) == Array(v).map(&:to_s) }
@@ -186,6 +188,8 @@ module ActiveRecord
       end
 
       def defined_for?(name:, expression: nil, validate: nil, **options)
+        options = options.slice(*self.options.keys)
+
         self.name == name.to_s &&
           (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
           options.all? { |k, v| self.options[k].to_s == v.to_s }
