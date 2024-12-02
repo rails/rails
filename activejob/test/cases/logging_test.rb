@@ -368,4 +368,20 @@ class LoggingTest < ActiveSupport::TestCase
     ActiveJob.perform_all_later(LoggingJob.new("Dummy"), HelloJob.new("Jamie"), HelloJob.new("John"))
     assert_match(/Enqueued 3 jobs to .+ \(2 HelloJob, 1 LoggingJob\)/, @logger.messages)
   end
+
+  def test_enqueue_all_graceful_failure_when_enqueued_count_is_nil
+    original_adapter = ActiveJob::Base.queue_adapter
+    stubbed_inline_adapter = ActiveJob::QueueAdapters::InlineAdapter.new
+    def stubbed_inline_adapter.respond_to?(method_name, include_private = false)
+      method_name == :enqueue_all || super
+    end
+    def stubbed_inline_adapter.enqueue_all(*)
+      nil
+    end
+    ActiveJob::Base.queue_adapter = stubbed_inline_adapter
+    ActiveJob.perform_all_later(LoggingJob.new("Dummy"), HelloJob.new("Jamie"), HelloJob.new("John"))
+    assert_match(/Failed enqueuing 3 jobs to .+/, @logger.messages)
+  ensure
+    ActiveJob::Base.queue_adapter = original_adapter
+  end
 end
