@@ -36,7 +36,7 @@ The simplified design of Propshaft, compared to its predecessor
 management tasks, and it leaves more complex tasks, such as JavaScript and CSS
 bundling and minification, to specialized tools like [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
 [`css-bundling-rails`](https://github.com/rails/cssbundling-rails), which can be added separately to your application.
-Propshaft focuses on fingerprinting and emphasizes generating digest-based URLs
+Propshaft focuses on [fingerprinting](#fingerprinting) and emphasizes generating digest-based URLs
 for assets, allowing browsers to cache them, thus minimizing the need for
 intricate compilation and bundling.
 
