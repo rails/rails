@@ -32,6 +32,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
     expected = <<~STR
+    -- Versions are sorted by reverse representations of numbers (abc -> cba) in descending order.
     INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
     ('20100301010101'),
     ('20100201010101'),

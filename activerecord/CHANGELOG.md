@@ -1,3 +1,16 @@
+*   Change the order of `INSERT` statements in `structure.sql` dumps
+
+    Previously, the versions were sorted in decreasing order. Within large teams, this
+    potentially caused many merge conflicts near the top of the list.
+
+    Now, the versions are sorted by their reverse representations, in decreasing order.
+    This will greatly reduce the likelihood of merge conflicts as now new versions
+    can be inserted at any place in the existing list.
+
+    For existing apps, there will be a large diff the next time `structure.sql` is generated.
+
+    *fatkodima*
+
 *   Remember when a database connection has recently been verified (for
     two seconds, by default), to avoid repeated reverifications during a
     single request.
