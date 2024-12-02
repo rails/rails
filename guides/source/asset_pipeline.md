@@ -353,7 +353,7 @@ Follow these steps for setup Propshaft in your Rails application:
 1. Create a new Rails 8 application:
 
     ```bash
-    $ rails new myapp
+    $ rails new app_name
     ```
     This command generates a new Rails application with Propshaft included by
     default.
