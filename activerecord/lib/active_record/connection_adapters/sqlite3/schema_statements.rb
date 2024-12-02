@@ -75,6 +75,7 @@ module ActiveRecord
               Base.pluralize_table_names ? table.pluralize : table
             end
             table = strip_table_name_prefix_and_suffix(table)
+            options = options.slice(*fk.options.keys)
             fk_to_table = strip_table_name_prefix_and_suffix(fk.to_table)
             fk_to_table == table && options.all? { |k, v| fk.options[k].to_s == v.to_s }
           end || raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{to_table || options}")

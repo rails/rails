@@ -102,7 +102,13 @@ module ActiveRecord
             else
               value.getlocal
             end
-          when Date, Time
+          when Time
+            if default_timezone == :utc
+              value.utc? ? value : value.getutc
+            else
+              value.utc? ? value.getlocal : value
+            end
+          when Date
             value
           else
             super

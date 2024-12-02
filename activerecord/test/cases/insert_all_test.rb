@@ -188,10 +188,10 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_skip_duplicates_strategy_does_not_secretly_upsert
     skip unless supports_insert_on_duplicate_skip?
 
-    book = Book.create!(author_id: 8, name: "Refactoring", format: "EXPECTED")
+    book = Book.create!(format: "EXPECTED", author_id: 8, name: "Refactoring")
 
     assert_no_difference "Book.count" do
-      Book.insert({ author_id: 8, name: "Refactoring", format: "UNEXPECTED" })
+      Book.insert_all([{ format: "UNEXPECTED", author_id: 8, name: "Refactoring" }])
     end
 
     assert_equal "EXPECTED", book.reload.format
@@ -787,7 +787,7 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "written", Book.find(2).status
   end
 
-  if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_upsert_all_updates_using_values_function_on_duplicate_raw_sql
       skip unless supports_insert_on_duplicate_update?
 

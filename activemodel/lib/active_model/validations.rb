@@ -176,7 +176,7 @@ module ActiveModel
           options = options.dup
           options[:except_on] = Array(options[:except_on])
           options[:unless] = [
-            ->(o) { (options[:except_on] & Array(o.validation_context)).any? },
+            ->(o) { options[:except_on].intersect?(Array(o.validation_context)) },
             *options[:unless]
           ]
         end

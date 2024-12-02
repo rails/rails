@@ -1,3 +1,20 @@
+*   Use `_N` as a parallel tests databases suffixes
+
+    Peviously, `-N` was used as a suffix. This can cause problems for RDBMSes
+    which do not support dashes in database names.
+
+    *fatkodima*
+
+*   Remember when a database connection has recently been verified (for
+    two seconds, by default), to avoid repeated reverifications during a
+    single request.
+
+    This should recreate a similar rate of verification as in Rails 7.1,
+    where connections are leased for the duration of a request, and thus
+    only verified once.
+
+    *Matthew Draper*
+
 *   Allow to reset cache counters for multiple records.
 
     ```

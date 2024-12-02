@@ -169,7 +169,7 @@ class ERB
       while !source.eos?
         pos = source.pos
         source.scan_until(/(?:#{start_re}|#{finish_re})/)
-        raise NotImplementedError if source.matched.nil?
+        return [[:PLAIN, source.string]] unless source.matched?
         len = source.pos - source.matched.bytesize - pos
 
         case source.matched

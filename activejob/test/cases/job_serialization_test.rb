@@ -38,6 +38,17 @@ class JobSerializationTest < ActiveSupport::TestCase
     assert_equal h2.serialize, h3.serialize
   end
 
+  test "deserialize raises a specific exception on unknown `job_class`" do
+    payload = HelloJob.new.serialize
+
+    # Simulate the job class being missing, for example during rolling deploys when
+    # the server enqueues a new job but the job processor hasn't been restarted yet.
+    payload["job_class"] = "IDontExist"
+    assert_raises(ActiveJob::UnknownJobClassError) do
+      HelloJob.deserialize(payload)
+    end
+  end
+
   test "deserialize sets locale" do
     job = HelloJob.new
     job.deserialize "locale" => "es"

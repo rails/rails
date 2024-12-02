@@ -40,17 +40,19 @@ module ActionView
 
         # Translate an error location returned by ErrorHighlight to the correct
         # source location inside the template.
-        def translate_location(spot, backtrace_location, source)
-          # Tokenize the source line
+        def translate_location(spot, _backtrace_location, source)
+          compiled = spot[:script_lines]
+          highlight = compiled[spot[:first_lineno] - 1]&.byteslice((spot[:first_column] - 1)...spot[:last_column])
+          return nil if highlight.blank?
+
           source_lines = source.lines
-          return nil if source_lines.size < backtrace_location.lineno
-          tokens = ::ERB::Util.tokenize(source_lines[backtrace_location.lineno - 1])
-          new_first_column = find_offset(spot[:snippet], tokens, spot[:first_column])
-          lineno_delta = spot[:first_lineno] - backtrace_location.lineno
+          lineno_delta = find_lineno_offset(compiled, source_lines, highlight, spot[:first_lineno])
+
+          tokens = ::ERB::Util.tokenize(source_lines[spot[:first_lineno] - lineno_delta - 1])
+          column_delta = find_offset(spot[:snippet], tokens, spot[:first_column])
+
           spot[:first_lineno] -= lineno_delta
           spot[:last_lineno] -= lineno_delta
-
-          column_delta = spot[:first_column] - new_first_column
           spot[:first_column] -= column_delta
           spot[:last_column] -= column_delta
           spot[:script_lines] = source_lines
@@ -107,6 +109,28 @@ module ActionView
           raise WrongEncodingError.new(string, string.encoding)
         end
 
+        # Return the offset between the error lineno and the source lineno.
+        # Searches in reverse from the backtrace lineno so we have a better
+        # chance of finding the correct line
+        #
+        # The compiled template is likely to be longer than the source.
+        # Use the difference between the compiled and source sizes to
+        # determine the earliest line that could contain the highlight.
+        def find_lineno_offset(compiled, source_lines, highlight, error_lineno)
+          first_index = error_lineno - 1 - compiled.size + source_lines.size
+          first_index = 0 if first_index < 0
+
+          last_index = error_lineno - 1
+          last_index = source_lines.size - 1 if last_index >= source_lines.size
+
+          last_index.downto(first_index) do |line_index|
+            next unless source_lines[line_index].include?(highlight)
+            return error_lineno - 1 - line_index
+          end
+
+          raise LocationParsingError, "Couldn't find code snippet"
+        end
+
         # Find which token in the source template spans the byte range that
         # contains the error_column, then return the offset compared to the
         # original source template.
@@ -137,7 +161,7 @@ module ActionView
                 matched_str = true
 
                 if name == :CODE && compiled.pos <= error_column && compiled.pos + str.bytesize >= error_column
-                  return error_column - compiled.pos + offset
+                  return compiled.pos - offset
                 end
 
                 compiled.pos += str.bytesize
@@ -152,8 +176,9 @@ module ActionView
 
         def offset_source_tokens(source_tokens)
           source_offset = 0
-          with_offset = source_tokens.filter_map do |(name, str)|
-            result = [name, str, source_offset] if name == :CODE || name == :TEXT
+          with_offset = source_tokens.filter_map do |name, str|
+            result = [:CODE, str, source_offset] if name == :CODE || name == :PLAIN
+            result = [:TEXT, str, source_offset] if name == :TEXT
             source_offset += str.bytesize
             result
           end

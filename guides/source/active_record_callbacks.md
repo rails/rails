@@ -837,58 +837,57 @@ lead to invalid data.
 [`upsert_all`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert_all
 
-Suppressing Callbacks
----------------------
+Suppressing Saving
+------------------
 
-In certain scenarios, you may need to temporarily prevent certain callbacks from
-being executed within your Rails application. This can be useful when you want
-to skip specific actions during certain operations without permanently disabling
-the callbacks.
+In certain scenarios, you may need to temporarily prevent records from being
+saved within your callbacks.
+This can be useful if you have a record with complex nested associations and want
+to skip saving specific records during certain operations without permanently disabling
+the callbacks or introducing complex conditional logic.
 
-Rails provides a mechanism for suppressing callbacks using the
-[`ActiveRecord::Suppressor`
-module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html). By
-using this module, you can wrap a block of code where you want to suppress
-callbacks, ensuring that they are not executed during that specific operation.
+Rails provides a mechanism to prevent saving records using the
+[`ActiveRecord::Suppressor` module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html).
+By using this module, you can wrap a block of code where you want to avoid
+saving records of a specific type that otherwise would be saved by the code block.
 
-Let's consider a scenario where we have a `User` model with a callback that
-sends a welcome email to new users after they sign up. However, there might be
-cases where we want to create a user without sending the welcome email, such as
-during seeding the database with test data.
+Let's consider a scenario where a user has many notifications.
+Creating a `User` will automatically create a `Notification` record as well.
 
 ```ruby
 class User < ApplicationRecord
-  after_create :send_welcome_email
+  has_many :notifications
 
-  def send_welcome_email
-    puts "Welcome email sent to #{self.email}"
+  after_create :create_welcome_notification
+
+  def create_welcome_notification
+    notifications.create(event: "sign_up")
   end
+end
+
+class Notification < ApplicationRecord
+  belongs_to :user
 end
 ```
 
-In this example, the `after_create` callback triggers the `send_welcome_email`
-method every time a new user is created.
-
-To create a user without sending the welcome email, we can use the
-`ActiveRecord::Suppressor` module as follows:
+To create a user without creating a notification, we can use the
+ActiveRecord::Suppressor module as follows:
 
 ```ruby
-User.suppress do
+Notification.suppress do
   User.create(name: "Jane", email: "jane@example.com")
 end
 ```
 
-In the above code, the `User.suppress` block ensures that the
-`send_welcome_email` callback is not executed during the creation of the "Jane"
-user, allowing us to create the user without sending the welcome email.
+In the above code, the `Notification.suppress` block ensures that the
+`Notification` is not saved during the creation of the "Jane" user.
 
-WARNING: Using the Active Record Suppressor, while potentially beneficial for
-selectively controlling callback execution, can introduce complexity and
-unexpected behavior. Suppressing callbacks can obscure the intended flow of your
+WARNING: Using the Active Record Suppressor can introduce complexity and
+unexpected behavior. Suppressing saving can obscure the intended flow of your
 application, leading to difficulties in understanding and maintaining the
-codebase over time. Carefully consider the implications of suppressing
-callbacks, ensuring thorough documentation and thoughtful testing to mitigate
-risks of unintended side effects, performance issues, and test failures.
+codebase over time. Carefully consider the implications of using the suppressor,
+ensuring thorough documentation and thoughtful testing to mitigate
+risks of unintended side effects and test failures.
 
 Halting Execution
 -----------------

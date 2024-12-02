@@ -126,12 +126,12 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           <%- end -%>
           # REDIS_URL: redis://localhost:6379/0
-        <%- if options[:api] -%>
+        <%- if options[:api] || options[:skip_system_test] -%>
         run: bin/rails db:test:prepare test
         <%- else -%>
         run: bin/rails db:test:prepare test test:system
         <%- end -%>
-      <%- unless options[:api] -%>
+      <%- unless options[:api] || options[:skip_system_test] -%>
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4

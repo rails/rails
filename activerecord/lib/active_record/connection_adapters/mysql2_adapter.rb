@@ -106,7 +106,14 @@ module ActiveRecord
       end
 
       def active?
-        connected? && @lock.synchronize { @raw_connection&.ping } || false
+        if connected?
+          @lock.synchronize do
+            if @raw_connection&.ping
+              verified!
+              true
+            end
+          end
+        end || false
       end
 
       alias :reset! :reconnect!
