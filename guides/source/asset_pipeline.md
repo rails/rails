@@ -612,7 +612,7 @@ ensuring that your application can handle high traffic efficiently.
 Rails compiles assets into a single location and uses the asset fingerprinting
 method to ensure that users receive the most up-to-date version of the asset.
 You can precompile assets using the `rails:assets:precompile` task. You can read
-ore about this is the [Fingerprinting section](#fingerprinting). By default,
+more about this in the [Fingerprinting section](#fingerprinting). By default,
 Rails assumes assets have been precompiled and will be served as static assets
 by your web server.
 
