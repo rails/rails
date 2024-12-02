@@ -50,7 +50,7 @@ module ActiveJob
       info do
         jobs = event.payload[:jobs]
         adapter = event.payload[:adapter]
-        enqueued_count = event.payload[:enqueued_count]
+        enqueued_count = event.payload[:enqueued_count].to_i
 
         if enqueued_count == jobs.size
           enqueued_jobs_message(adapter, jobs)

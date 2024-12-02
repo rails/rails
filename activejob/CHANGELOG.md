@@ -1,3 +1,10 @@
+*  Avoid crashing in Active Job logger when logging enqueueing errors
+
+  `ActiveJob.perform_all_later` could fail with a `TypeError` when all
+  provided jobs failed to be enqueueed.
+
+  *Efstathios Stivaros*
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   No changes.
