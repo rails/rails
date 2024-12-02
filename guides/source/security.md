@@ -35,9 +35,9 @@ Authentication
 
 Authentication is often one the first features implemented in a web application. It serves as the foundation for securing user data and is part of most modern web applications.
 
-Starting with version 8.0, Rails now comes with a default authentication generator, which provides a solid starting point for securing your application by only allowing access to verified users.
+Starting with version 8.0, Rails comes with a default authentication generator, which provides a solid starting point for securing your application by only allowing access to verified users.
 
-The authentication generator adds all of the relevant models, controllers, views, routes, and migrations needed for securing your application with basic authentication and password reset functionality.
+The authentication generator adds all of the relevant models, controllers, views, routes, and migrations needed for basic authentication and password reset functionality.
 
 To use this feature in your application, you can run `rails generate authentication`. Here are all of the files the generator modifies and new files it adds:
 
