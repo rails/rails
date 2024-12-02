@@ -7,7 +7,7 @@ This guide describes common security problems in web applications and how to avo
 
 After reading this guide, you will know:
 
-* How use the built-in authentication generator.
+* How to use the built-in authentication generator.
 * All countermeasures _that are highlighted_.
 * The concept of sessions in Rails, what to put in there and popular attack methods.
 * How just visiting a site can be a security problem (with CSRF).
@@ -35,9 +35,9 @@ Authentication
 
 Authentication is often one the first features implemented in a web application. It serves as the foundation for securing user data and is part of most modern web applications.
 
-Rails 8 introduces an authentication generator, which provides a solid starting point for securing your application by only allowing access to verified users.
+Starting with version 8.0, Rails now comes with a default authentication generator, which provides a solid starting point for securing your application by only allowing access to verified users.
 
-The authentication generator adds relevant models, controllers, views, routes, and migrations to your application.
+The authentication generator adds all of the relevant models, controllers, views, routes, and migrations needed for securing your application with basic authentication and password reset functionality.
 
 To use this feature in your application, you can run `rails generate authentication`. Here are all of the files the generator modifies and new files it adds:
 
@@ -169,7 +169,7 @@ The core functionality around session management is implemented in the `Authenti
 
 TIP: You can find all of the details for the Authentication generator in the Rails source code. You are encouraged to explore the implementation details and not treat authentication as a black box.
 
-The authentication generator adds all of the files needed for securing your application with basic authentication and password reset functionality.
+With the authentication generator configured as above, your application is ready for a more secure user authentication and password recovery process in just a few steps.
 
 Sessions
 --------
