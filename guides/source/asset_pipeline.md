@@ -428,7 +428,7 @@ Follow these steps for setup Propshaft in your Rails application:
     This command starts your Rails server, and you can view your application in
     a web browser.
 
-6. View your application in a web browser:
+6. Preview your application:
 
     Open your web browser and navigate to `http://localhost:3000`. You should
     see your Rails application with the included assets.
