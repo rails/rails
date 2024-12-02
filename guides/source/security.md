@@ -439,13 +439,13 @@ Another (additional) approach is to store the file names in the database and nam
 Authentication
 --------------
 
-Rails 8 introduces an authentication generator, which is meant to be a solid starting point for securing your application by only allowing access to verified users.
+Rails 8 introduces an authentication generator, which provides a solid starting point for securing your application by only allowing access to verified users.
 
 The authentication generator adds authentication related models, controllers, views, routes, and migrations to your application.
 
-To use this feature in a new application, you run `rails generate authentication`. Here are all of file it modifies and new files the generator adds:
+To use this feature in a new application, you run `rails generate authentication`. Here are all of the files it modifies and new files the generator adds:
 
-```ruby
+```bash
 $ rails generate authentication
       invoke  erb
       create    app/views/passwords/new.html.erb
@@ -476,13 +476,17 @@ $ rails generate authentication
       create    db/migrate/20241010215314_create_sessions.rb
 ```
 
-As shown above, the generator modifies the `Gemfile` to add the `bcrypt` gem. The authentication generator uses the `bcrypt` gem for storing a hashed version of the password in the database (instead of plain-text passwords).
+As shown above, the authentication generator modifies the `Gemfile` to add the `bcrypt` gem. The generator uses the `bcrypt` gem for storing a hash of the password in the database (instead of plain-text passwords). As this process is not reversible, there's no way to go from the hash back to the password.
 
-The generator adds two migrations for creating `user` and `session` tables. Next step is the `rails db:migrate` command to run the migrations.
+The generator adds two migrations for creating `user` and `session` tables. Next step is to run the migrations:
 
-Then, if you check `routes.rb` and go to `session/new`, you'll see a form that accepts an email and a password with "sign in" button. This form routes to the `SessionsController` which was added by the generator. If you provide an email/password for a user that exists in the database, you will be able to successfully authenticate with those credentials and login to the application.
+```bash
+$ bin/rails db:migrate
+```
 
-NOTE: After running the Authentication generator, you do need to implement your own *sign up flow* and add the necessary views, routes, and controller actions. There is no code generated that creates new `user` records and allows users to "Sign up" in the first place. This is something you'll need to wire up based on the requirements of your applications.
+Then, if you visit `/session/new` in your browser (you will see this route has been added in `routes.rb`), you'll see a form that accepts an email and a password with "sign in" button. This form routes to the `SessionsController` which was added by the generator. If you provide an email/password for a user that exists in the database, you will be able to successfully authenticate with those credentials and login to the application.
+
+NOTE: After running the Authentication generator, you do need to implement your own *sign up flow* and add the necessary views, routes, and controller actions. There is no code generated that creates new `user` records and allows users to "sign up" in the first place. This is something you'll need to wire up based on the requirements of your applications.
 
 Here is a list of modified files:
 
@@ -513,13 +517,13 @@ Untracked files:
   test/mailers/previews/
 ```
 
-### Forgot Password
+### Reset Password
 
-The authentication generator also implements forgot password functionality. You can see a "forgot password?" link on the "sign in" page. Clicking that link navigates to the `passwords/new` path and routes to the passwords controller. The `new` method of the `PasswordsController` class runs through the flow for sending a password reset email.
+The authentication generator also adds reset password functionality. You can see a "forgot password?" link on the "sign in" page. Clicking that link navigates to the `/passwords/new` path and routes to the passwords controller. The `new` method of the `PasswordsController` class runs through the flow for sending a password reset email.
 
-The mailers for forgot password are also set up by the generator at `app/mailers/password_mailer.rb` and renders the following email to send to the user:
+The mailers for *forgot password* are also set up by the generator at `app/mailers/password_mailer.rb` and renders the following email to send to the user:
 
-```html
+```html+erb
 # app/views/passwords_mailer/reset.html.erb
 <p>
   You can reset your password within the next 15 minutes on
