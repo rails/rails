@@ -272,7 +272,11 @@ module ActiveSupport
         def duplicates?(other)
           case @filter
           when Symbol
-            matches?(other.kind, other.filter)
+            if matches?(other.kind, other.filter)
+              raise :FOUND_IT
+            else
+              false
+            end
           else
             false
           end
