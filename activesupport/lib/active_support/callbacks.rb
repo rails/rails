@@ -273,7 +273,8 @@ module ActiveSupport
           case @filter
           when Symbol
             if matches?(other.kind, other.filter)
-              raise :FOUND_IT
+              puts "WARNING: overriding"
+              false
             else
               false
             end
