@@ -51,7 +51,12 @@ module ActiveRecord
             result = if binds.nil? || binds.empty?
               ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
                 result = raw_connection.query(sql)
-                @affected_rows_before_warnings = raw_connection.affected_rows
+                # Ref: https://github.com/brianmario/mysql2/pull/1383
+                # As of mysql2 0.5.6 `#affected_rows` might raise Mysql2::Error if a prepared statement
+                # from that same connection was GCed while `#query` released the GVL.
+                # By avoiding to call `#affected_rows` when we have a result, we reduce the likeliness
+                # of hitting the bug.
+                @affected_rows_before_warnings = result&.size || raw_connection.affected_rows
                 result
               end
               result
