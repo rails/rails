@@ -136,7 +136,39 @@ module ActiveRecord
   # if the records themselves have been changed. This is to protect against
   # <tt>SystemStackError</tt> caused by circular association validations. The one
   # exception is if a custom validation context is used, in which case the validations
-  # will always fire on the associated records.
+  # will always fire on the loaded associated records.
+  #
+  #   class Post < ActiveRecord::Base
+  #     has_many :comments
+  #
+  #     after_create :create_invalid_comment
+  #
+  #     def create_invalid_comment
+  #       comments.new(validate: false)
+  #     end
+  #   end
+  #
+  #   class Comment < ActiveRecord::Base
+  #     belongs_to :post
+  #
+  #     validates :body, presence: true
+  #   end
+  #
+  # We can save a post with a invalid comment.
+  #
+  #   post = Post.create #=> true
+  #   post.comments.first.valid? #=> false
+  #
+  # We cannot save the post with custom validation context because the
+  # associated invalid comment is loaded and its validations always fire.
+  #
+  #   post.save(context: :whatever) #=> false
+  #
+  # We can save the post with custom validation context if the associated
+  # invalid comment is not loaded.
+  #
+  #   post.reload
+  #   post.save(context: :whatever) #=> true
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
