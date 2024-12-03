@@ -503,8 +503,6 @@ environment.
 
 ### Coding Links to Assets
 
-Here's your updated section with the correct information for Propshaft:
-
 Propshaft does not add any new methods for accessing your assets – you still use
 the familiar `stylesheet_link_tag`:
 
