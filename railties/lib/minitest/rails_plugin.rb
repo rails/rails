@@ -25,7 +25,7 @@ module Minitest
     end
   end
 
-  class ProfileReporter < StatisticsReporter
+  class ProfileReporter < Reporter
     def initialize(io = $stdout, options = {})
       super
       @results = []
