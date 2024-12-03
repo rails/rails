@@ -1091,9 +1091,11 @@ developers seeking flexibility and performance.
    deployment. This integration ensures that your JavaScript is production-ready
    with minimal configuration.
 
-The gem automatically handles entry-point discovery and configuration. By
-adhering to Rails conventions, `jsbundling-rails` simplifies the process of
-integrating complex JavaScript workflows into Rails projects.
+The gem automatically handles entry-point discovery - identifying the primary
+JavaScript files to bundle by following Rails conventions, typically looking in
+directories like `app/javascript/` and configuration. By adhering to Rails
+conventions, `jsbundling-rails` simplifies the process of integrating complex
+JavaScript workflows into Rails projects.
 
 #### When Should You Use It?
 
