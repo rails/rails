@@ -339,7 +339,7 @@ asset paths to their precompiled file paths.
 Using Propshaft in your app
 ----------------------------------
 
-Propshaft is the default asset pipeline in Rails 8, so you don’t need to install
+From version 8.0, Propshaft is the default asset pipeline in Rails, so you don’t need to install
 it separately. When you create a new Rails 8 application, Propshaft is included
 by default.
 
