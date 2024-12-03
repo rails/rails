@@ -729,6 +729,14 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_resets_relation
+    audit_logs = Developer.create!(name: "Alice").audit_logs.load
+
+    assert_changes "audit_logs.loaded?", from: true, to: false do
+      audit_logs.insert_all!([{ message: "event" }])
+    end
+  end
+
   def test_insert_all_create_with
     assert_difference "Book.where(format: 'X').count", +2 do
       Book.create_with(format: "X").insert_all!([ { name: "A" }, { name: "B" } ])
@@ -758,6 +766,14 @@ class InsertAllTest < ActiveRecord::TestCase
 
     assert_difference "author.books.count", +1 do
       author.books.upsert_all([{ name: "My little book", isbn: "1974522598", author_id: second_author.id }])
+    end
+  end
+
+  def test_upsert_all_resets_relation
+    audit_logs = Developer.create!(name: "Alice").audit_logs.load
+
+    assert_changes "audit_logs.loaded?", from: true, to: false do
+      audit_logs.upsert_all([{ id: 1, message: "event" }])
     end
   end
 

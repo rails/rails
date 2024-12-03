@@ -17,7 +17,7 @@ module ActiveRecord
 
     %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{method}(attributes, **kwargs)
+        def #{method}(...)
           if @association.reflection.through_reflection?
             raise ArgumentError, "Bulk insert or upsert is currently not supported for has_many through association"
           end
