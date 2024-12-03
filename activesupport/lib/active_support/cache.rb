@@ -286,7 +286,7 @@ module ActiveSupport
       #   <tt>coder: nil</tt> to avoid the overhead of safeguarding against
       #   mutation.
       #
-      #   The +:coder+ option is mutally exclusive with the +:serializer+ and
+      #   The +:coder+ option is mutually exclusive with the +:serializer+ and
       #   +:compressor+ options. Specifying them together will raise an
       #   +ArgumentError+.
       #
@@ -419,7 +419,7 @@ module ActiveSupport
       #     t1.join
       #
       #     p val_1 # => "new value 1"
-      #     p val_2 # => "oritinal value"
+      #     p val_2 # => "original value"
       #     p cache.fetch("foo") # => "new value 1"
       #
       #     # The entry requires 3 seconds to expire (expires_in + race_condition_ttl)
@@ -556,7 +556,7 @@ module ActiveSupport
 
         instrument_multi :write_multi, normalized_hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
-            memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+            memo[normalize_key(name, options)] = Entry.new(value, **options, version: normalize_version(name, options))
           end
 
           write_multi_entries entries, **options
@@ -664,7 +664,7 @@ module ActiveSupport
         key = normalize_key(name, options)
 
         instrument(:write, key, options) do
-          entry = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+          entry = Entry.new(value, **options, version: normalize_version(name, options))
           write_entry(key, entry, **options)
         end
       end

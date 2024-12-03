@@ -47,6 +47,11 @@ module ActiveModel
       def serializable?(value, &_)
         true
       end
+
+      private
+        def max_value
+          ::Float::INFINITY
+        end
     end
   end
 end

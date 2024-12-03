@@ -315,7 +315,7 @@ module ActiveRecord
         columns = relation.arel_columns(column_names)
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
-          if where_clause.contradiction?
+          if where_clause.contradiction? && !possible_aggregation?(column_names)
             ActiveRecord::Result.empty(async: @async)
           else
             model.with_connection do |c|
@@ -448,6 +448,13 @@ module ActiveRecord
 
       def distinct_select?(column_name)
         column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
+      end
+
+      def possible_aggregation?(column_names)
+        column_names.any? do |column_name|
+          Arel.arel_node?(column_name) ||
+            (column_name.is_a?(String) && column_name.include?("("))
+        end
       end
 
       def aggregate_column(column_name)
@@ -656,6 +663,7 @@ module ActiveRecord
         if column_name == :all
           column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
+          relation.unscope!(:order)
         else
           column_alias = Arel.sql("count_column")
           relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
@@ -664,11 +672,7 @@ module ActiveRecord
         subquery_alias = Arel.sql("subquery_for_count", retryable: true)
         select_value = operation_over_aggregate_column(column_alias, "count", false)
 
-        if column_name == :all
-          relation.unscope(:order).build_subquery(subquery_alias, select_value)
-        else
-          relation.build_subquery(subquery_alias, select_value)
-        end
+        relation.build_subquery(subquery_alias, select_value)
       end
   end
 end

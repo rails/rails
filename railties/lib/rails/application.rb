@@ -609,7 +609,7 @@ module Rails
     end
 
     def railties_initializers(current) # :nodoc:
-      initializers = []
+      initializers = Initializable::Collection.new
       ordered_railties.reverse.flatten.each do |r|
         if r == self
           initializers += current

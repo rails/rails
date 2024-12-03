@@ -69,7 +69,7 @@ module ActiveRecord
         Rails.logger.broadcast_to(console)
       end
       ActiveRecord.verbose_query_logs = false
-      ActiveRecord::Base.attributes_for_inspect = :all if Rails.env.production?
+      ActiveRecord::Base.attributes_for_inspect = :all
     end
 
     runner do

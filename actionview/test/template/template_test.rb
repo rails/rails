@@ -65,6 +65,18 @@ class TestERBTemplate < ActiveSupport::TestCase
     @template.render(@context, locals, implicit_locals: implicit_locals)
   end
 
+  def spot_highlight(compiled, highlight, first_column: nil, **options)
+    # rindex by default since our tests usually put the highlight last
+    first_column ||= compiled.byterindex(highlight) || 999
+    last_column = first_column + highlight.bytesize
+    spot = {
+      first_column:, last_column:, snippet: compiled,
+      first_lineno: 1, last_lineno: 1, script_lines: compiled.lines,
+    }
+    spot.merge!(options)
+    spot
+  end
+
   def setup
     @context = Context.with_empty_template_cache.empty
     super
@@ -313,5 +325,106 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_template_inspect
     @template = new_template("hello")
     assert_equal "#<ActionView::Template hello template locals=[]>", @template.inspect
+  end
+
+  def test_template_translate_location
+    highlight = "nomethoderror"
+    source = "<%= nomethoderror %>"
+    compiled = "'.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
+
+    spot = spot_highlight(compiled, highlight)
+    expected = spot_highlight(source, highlight, snippet: compiled)
+
+    assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_template_translate_location_with_multiline_code_source
+    highlight = "nomethoderror"
+    source = "<%=\ngood(\n nomethoderror\n) %>"
+    extracted_line = " nomethoderror\n"
+    compiled = "ValidatedOutputBuffer.wrap(@output_buffer, ({}), '\ngood(\n nomethoderror\n) '.freeze, true).safe_none_append=(\ngood(\n nomethoderror\n) );\n@output_buffer"
+
+    spot = spot_highlight(compiled, highlight, first_column: 1, first_lineno: 6, last_lineno: 6, snippet: extracted_line)
+    expected = spot_highlight(source, highlight, first_column: 1, first_lineno: 3, last_lineno: 3, snippet: extracted_line)
+
+    assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_template_translate_location_with_multibye_string_before_highlight
+    highlight = "nope"
+    # ensure the byte offset is enough to make us miss the highlight if wrong
+    multibyte = String.new("\u{a5}\u{a5}\u{a5}\u{a5}\u{a5}\u{a5}\u{a5}", encoding: Encoding::UTF_8) # yen symbol
+    source = "#{multibyte}<%= nope %>"
+    compiled = "#{multibyte}'.freeze; @output_buffer.append=  nope ; @output_buffer.safe_append='\n"
+
+    spot = spot_highlight(compiled, highlight)
+    expected = spot_highlight(source, highlight, snippet: compiled)
+
+    assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_template_translate_location_no_match_in_compiled
+    highlight = "nomatch"
+    source = "<%= nomatch %>"
+    compiled = "this source does not contain the highlight, so the original spot is returned"
+
+    spot = spot_highlight(compiled, highlight, first_column: 50)
+
+    assert_equal spot, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_template_translate_location_text_includes_highlight
+    highlight = "nomethoderror"
+    source = " nomethoderror <%= nomethoderror %>"
+    compiled = " nomethoderror '.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
+
+    spot = spot_highlight(compiled, highlight)
+    expected = spot_highlight(source, highlight, snippet: compiled)
+
+    assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_template_translate_location_space_separated_erb_tags
+    highlight = "nomethoderror"
+    source = "<%= goodcode %> <%= nomethoderror %>"
+    compiled = "'.freeze; @output_buffer.append=  goodcode ; @output_buffer.safe_append=' '.freeze; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
+
+    spot = spot_highlight(compiled, highlight)
+    expected = spot_highlight(source, highlight, snippet: compiled)
+
+    assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_template_translate_location_consecutive_erb_tags
+    highlight = "nomethoderror"
+    source = "<%= goodcode %><%= nomethoderror %>"
+    compiled = "'.freeze; @output_buffer.append=  goodcode ; @output_buffer.append=  nomethoderror ; @output_buffer.safe_append='\n"
+
+    spot = spot_highlight(compiled, highlight)
+    expected = spot_highlight(source, highlight, snippet: compiled)
+
+    assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_template_translate_location_repeated_highlight_in_compiled_template
+    highlight = "nomethoderror"
+    source = "<%= nomethoderror %>"
+    compiled = "ValidatedOutputBuffer.wrap(@output_buffer, ({}), ' nomethoderror '.freeze, true).safe_none_append=  nomethoderror ; @output_buffer.safe_append='\n"
+
+    spot = spot_highlight(compiled, highlight)
+    expected = spot_highlight(source, highlight, snippet: compiled)
+
+    assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_template_translate_location_flaky_pathological_template
+    highlight = "flakymethod"
+    source = "<%= flakymethod %> flakymethod <%= flakymethod " # fails on second call, no tailing %>
+    compiled = "ValidatedOutputBuffer.wrap(@output_buffer, ({}), ' flakymethod '.freeze, true).safe_none_append=( flakymethod );@output_buffer.safe_append=' flakymethod '.freeze;ValidatedOutputBuffer.wrap(@output_buffer, ({}), ' flakymethod '.freeze, true).safe_none_append=( flakymethod "
+
+    spot = spot_highlight(compiled, highlight)
+    expected = spot_highlight(source, highlight, snippet: compiled)
+
+    assert_equal expected, new_template(source).translate_location(nil, spot)
   end
 end

@@ -36,6 +36,12 @@ module ActiveRecord
         assert_equal POSTS_WITH_TAGS_AND_MULTIPLE_COMMENTS, relation.order(:id).pluck(:id)
       end
 
+      def test_with_when_invalid_argument_is_passed
+        assert_raises ArgumentError, match: /\AUnsupported argument type: #<Post:0x[0-9a-f]+> Post\z/ do
+          Post.with(Post.where(type: "Post"))
+        end
+      end
+
       def test_multiple_with_calls
         relation = Post
           .with(posts_with_tags: Post.where("tags_count > 0"))

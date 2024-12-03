@@ -181,7 +181,7 @@ NOTE: Support for parsing XML parameters has been extracted into a gem named `ac
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods [`controller_name`][] and [`action_name`][] instead to access these values. Any other parameters defined by the routing, such as `:id`, will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route that captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-get '/clients/:status', to: 'clients#index', foo: 'bar'
+get "/clients/:status", to: "clients#index", foo: "bar"
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar", as if it were passed in the query string. Your controller will also receive `params[:action]` as "index" and `params[:controller]` as "clients".
@@ -210,7 +210,7 @@ end
 And the following route:
 
 ```ruby
-get '/books/:id', to: 'books#show'
+get "/books/:id", to: "books#show"
 ```
 
 When a user opens the URL `/books/4_2`, the controller will extract the composite
@@ -469,14 +469,14 @@ Rails sets up a session key (the name of the cookie) when signing the session da
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-Rails.application.config.session_store :cookie_store, key: '_your_app_session'
+Rails.application.config.session_store :cookie_store, key: "_your_app_session"
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+Rails.application.config.session_store :cookie_store, key: "_your_app_session", domain: ".example.com"
 ```
 
 Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `bin/rails credentials:edit`.
@@ -702,7 +702,7 @@ into `String`s:
 class CookiesController < ApplicationController
   def set_cookie
     cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
-    redirect_to action: 'read_cookie'
+    redirect_to action: "read_cookie"
   end
 
   def read_cookie
@@ -1145,7 +1145,7 @@ class MyController < ActionController::Base
   include ActionController::Live
 
   def stream
-    response.headers['Content-Type'] = 'text/event-stream'
+    response.headers["Content-Type"] = "text/event-stream"
     100.times {
       response.stream.write "hello world\n"
       sleep 1
@@ -1181,7 +1181,7 @@ class LyricsController < ActionController::Base
   include ActionController::Live
 
   def show
-    response.headers['Content-Type'] = 'text/event-stream'
+    response.headers["Content-Type"] = "text/event-stream"
     song = Song.find(params[:id])
 
     song.each do |line|
@@ -1242,13 +1242,13 @@ Sometimes it's desirable to filter out from log files some sensitive locations y
 You can do that by using the `config.filter_redirect` configuration option:
 
 ```ruby
-config.filter_redirect << 's3.amazonaws.com'
+config.filter_redirect << "s3.amazonaws.com"
 ```
 
 You can set it to a String, a Regexp, or an array of both.
 
 ```ruby
-config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
+config.filter_redirect.concat ["s3.amazonaws.com", /private_path/]
 ```
 
 Matching URLs will be replaced with '[FILTERED]'. However, if you only wish to filter the parameters, not the whole URLs,

@@ -207,7 +207,12 @@ module ActiveRecord
         !(@raw_connection.nil? || @raw_connection.closed?)
       end
 
-      alias_method :active?, :connected?
+      def active?
+        if connected?
+          verified!
+          true
+        end
+      end
 
       alias :reset! :reconnect!
 
@@ -407,7 +412,7 @@ module ActiveRecord
       end
       alias :add_belongs_to :add_reference
 
-      FK_REGEX = /.*FOREIGN KEY\s+\("(\w+)"\)\s+REFERENCES\s+"(\w+)"\s+\("(\w+)"\)/
+      FK_REGEX = /.*FOREIGN KEY\s+\("([^"]+)"\)\s+REFERENCES\s+"(\w+)"\s+\("(\w+)"\)/
       DEFERRABLE_REGEX = /DEFERRABLE INITIALLY (\w+)/
       def foreign_keys(table_name)
         # SQLite returns 1 row for each column of composite foreign keys.
@@ -784,9 +789,9 @@ module ActiveRecord
 
         def table_info(table_name)
           if supports_virtual_columns?
-            internal_exec_query("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA")
+            internal_exec_query("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA", allow_retry: true)
           else
-            internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
+            internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA", allow_retry: true)
           end
         end
 

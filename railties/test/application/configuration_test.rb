@@ -4815,6 +4815,17 @@ module ApplicationTests
       assert_instance_of ActiveJob::QueueAdapters::TestAdapter, adapter
     end
 
+    test "Regexp.timeout is set to 1s by default" do
+      app "development"
+      assert_equal 1, Regexp.timeout
+    end
+
+    test "Regexp.timeout can be configured" do
+      add_to_config "Regexp.timeout = 5"
+      app "development"
+      assert_equal 5, Regexp.timeout
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

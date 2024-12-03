@@ -674,7 +674,7 @@ module ActiveRecord
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
 
-            # We make sure to run query transformers on the orignal thread
+            # We make sure to run query transformers on the original thread
             sql = preprocess_query(sql)
             future_result = async.new(
               pool,

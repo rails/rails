@@ -375,6 +375,23 @@ class AddDetailsToProducts < ActiveRecord::Migration[8.1]
 end
 ```
 
+`NOT NULL` constraints can be imposed from the command line using the `!`
+shortcut:
+
+```bash
+$ bin/rails generate migration AddEmailToUsers email:string!
+```
+
+will produce this migration
+
+```ruby
+class AddEmailToUsers < ActiveRecord::Migration[8.1]
+  def change
+    add_column :users, :email, :string, null: false
+  end
+end
+```
+
 TIP: For further help with generators, run `bin/rails generate --help`.
 Alternatively, you can also run `bin/rails generate model --help` or `bin/rails
 generate migration --help` for help with specific generators.
@@ -512,7 +529,7 @@ by passing `index: true` or an options hash to the `:index` option:
 ```ruby
 create_table :users do |t|
   t.string :name, index: true
-  t.string :email, index: { unique: true, name: 'unique_emails' }
+  t.string :email, index: { unique: true, name: "unique_emails" }
 end
 ```
 
@@ -692,8 +709,7 @@ They need to be added separately using `add_index`.
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
 
-NOTE: `null` and `default` cannot be specified via command line when generating
-migrations.
+NOTE: `default` cannot be specified via command line when generating migrations.
 
 ### References
 
@@ -1367,7 +1383,7 @@ class CreateProducts < ActiveRecord::Migration[8.1]
     suppress_messages { add_index :products, :name }
     say "and an index!", true
 
-    say_with_time 'Waiting for a while' do
+    say_with_time "Waiting for a while" do
       sleep 10
       250
     end

@@ -105,7 +105,7 @@ module ActionView
       #
       # Example with <tt>@post.person_id => 2</tt>:
       #
-      #   select :post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
+      #   select :post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true }
       #
       # would become:
       #

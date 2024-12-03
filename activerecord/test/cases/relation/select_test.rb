@@ -102,9 +102,9 @@ module ActiveRecord
     end
 
     def test_select_with_hash_argument_without_aliases
-      post = Post.select(posts: [:title, :id]).take
-      assert_not_nil post.title
-      assert_not_nil post.id
+      post = Post.select(posts: [:title, "title as post_title"]).first
+      assert_equal "Welcome to the weblog", post.title
+      assert_equal "Welcome to the weblog", post.post_title
     end
 
     def test_select_with_hash_argument_with_few_tables
@@ -113,6 +113,14 @@ module ActiveRecord
       assert_equal post.title, post.post_title
       assert_not_nil post.comment_body
       assert_not_nil post.post_title
+    end
+
+    def test_select_preserves_duplicate_columns
+      quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+      quoted_posts = Regexp.escape(quote_table_name("posts"))
+      assert_queries_match(/SELECT #{quoted_posts_id}, #{quoted_posts_id} FROM #{quoted_posts}/i) do
+        Post.select(:id, :id).to_a
+      end
     end
 
     def test_reselect

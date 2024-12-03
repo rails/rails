@@ -47,6 +47,7 @@ module ActiveRecord
         unscope:   [ :where ],
         extending: [ Module.new ],
         with:      [ foo: Post.all ],
+        select:    [ :id, :id ],
       }
       expected.default = [ Object.new ]
 
@@ -441,6 +442,12 @@ module ActiveRecord
     test "no queries on empty IN" do
       assert_queries_count(0) do
         Post.where(id: []).load
+      end
+    end
+
+    test "runs queries when using pick with expression column and empty IN" do
+      assert_queries_count(1) do
+        assert_equal 0, Post.where(id: []).pick(Arel.sql("COUNT(*)"))
       end
     end
 

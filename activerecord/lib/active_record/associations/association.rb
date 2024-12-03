@@ -188,6 +188,9 @@ module ActiveRecord
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
         @target = find_target(async: false) if (@stale_state && stale_target?) || find_target?
+        if !@target && set_through_target_for_new_record?
+          @target = through_association.target.association(reflection.source_reflection_name).target
+        end
 
         loaded! unless loaded?
         target
@@ -232,7 +235,7 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
-      # Whether the association represent a single record
+      # Whether the association represents a single record
       # or a collection of records.
       def collection?
         false
@@ -319,6 +322,10 @@ module ActiveRecord
 
         def find_target?
           !loaded? && (!owner.new_record? || foreign_key_present?) && klass
+        end
+
+        def set_through_target_for_new_record?
+          owner.new_record? && reflection.through_reflection? && through_association.target
         end
 
         # Returns true if there is a foreign key present on the owner which

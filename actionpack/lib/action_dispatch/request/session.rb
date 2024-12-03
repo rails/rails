@@ -155,6 +155,7 @@ module ActionDispatch
         load_for_write!
         @delegate[key.to_s] = value
       end
+      alias store []=
 
       # Clears the session.
       def clear

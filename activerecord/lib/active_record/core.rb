@@ -103,7 +103,19 @@ module ActiveRecord
 
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
-      # Specifies the attributes that will be included in the output of the #inspect method
+      ##
+      # :singleton-method:
+      #
+      # Specifies the attributes that will be included in the output of the
+      # #inspect method:
+      #
+      #   Post.attributes_for_inspect = [:id, :title]
+      #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!">"
+      #
+      # When set to +:all+ inspect will list all the record's attributes:
+      #
+      #   Post.attributes_for_inspect = :all
+      #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
       class_attribute :attributes_for_inspect, instance_accessor: false, default: :all
 
       def self.application_record_class? # :nodoc:
@@ -728,12 +740,26 @@ module ActiveRecord
       self.class.connection_handler
     end
 
-    # Returns the attributes specified by <tt>.attributes_for_inspect</tt> as a nicely formatted string.
+    # Returns the attributes of the record as a nicely formatted string.
+    #
+    #   Post.first.inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+    #
+    # The attributes can be limited by setting <tt>.attributes_for_inspect</tt>.
+    #
+    #   Post.attributes_for_inspect = [:id, :title]
+    #   Post.first.inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!">"
     def inspect
       inspect_with_attributes(attributes_for_inspect)
     end
 
-    # Returns the full contents of the record as a nicely formatted string.
+    # Returns all attributes of the record as a nicely formatted string,
+    # ignoring <tt>.attributes_for_inspect</tt>.
+    #
+    #   Post.first.full_inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+    #
     def full_inspect
       inspect_with_attributes(all_attributes_for_inspect)
     end

@@ -40,6 +40,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Notable changes
 
+*   Set `Regexp.timeout` to `1`s by default to improve security over Regexp Denial-of-Service attacks.
+
 Action Cable
 ------------
 

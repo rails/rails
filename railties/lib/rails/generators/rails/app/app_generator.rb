@@ -271,9 +271,10 @@ module Rails
         active_storage: !options[:skip_active_storage],
         dev: options[:dev],
         node: using_node?,
-        app_name: app_name
+        app_name: app_name,
+        skip_solid: options[:skip_solid],
+        pretend: options[:pretend]
       }
-
       Rails::Generators::DevcontainerGenerator.new([], devcontainer_options).invoke_all
     end
   end
