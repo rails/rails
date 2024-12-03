@@ -230,7 +230,7 @@ will be wrapped within the `:user` key like this:
 { name: "acme", address: "123 Carrot Street", user: { name: "acme", address: "123 Carrot Street" } }
 ```
 
-NOTE: Wrap Parameters add a clone of the parameters to the hash within a key
+NOTE: Wrap Parameters adds a clone of the parameters to the hash within a key
 that is the same as the controller name. As a result, both the original version
 of the parameters and the "wrapped" version of the parameters will exist in the
 params hash.
@@ -284,7 +284,7 @@ values.
 ### Composite Key Parameters
 
 [Composite key parameters](active_record_composite_primary_keys.html) contain
-multiple values in one parameter separated by a delimiter (e.g., a comma).
+multiple values in one parameter separated by a delimiter (e.g., an underscore).
 Therefore, you will need to extract each value so that you can pass them to
 Active Record. You can use the `extract_value`  method to do that.
 
@@ -325,9 +325,6 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-NOTE: The `default_url_options` method must return a hash with keys that are
-symbols.
-
 The specified defaults will be used as a starting point when generating URLs.
 They can be overridden by the options passed to `url_for` or any path helper
 such as `posts_path`. For example, by setting `locale: I18n.locale`, Rails will
@@ -352,7 +349,7 @@ can also be defined in a specific controller, in which case it only applies to
 URLs generated for that controller.
 
 In a given request, the method is not actually called for every single generated
-URL. For performance reasons the returned hash is cached.
+URL. For performance reasons the returned hash is cached per request.
 
 Strong Parameters
 -----------------
@@ -370,13 +367,13 @@ a 400 Bad Request being returned if not all required parameters are passed in.
 ```ruby
 class PeopleController < ActionController::Base
   # This will raise an ActiveModel::ForbiddenAttributesError
-  # because it's using mass assignment without an explicit permit
+  # because it's using mass assignment without an explicit permit.
   def create
     Person.create(params[:person])
   end
 
   # This will work as we are using `person_params` helper method, which has the
-  # call to `permit` to allow mass assignment.
+  # call to `expect` to allow mass assignment.
   def update
     person = Person.find(params[:id])
     person.update!(person_params)
@@ -385,9 +382,9 @@ class PeopleController < ActionController::Base
 
   private
     # Using a private method to encapsulate the permitted parameters is a good
-    # pattern. you can use the same list for both create and update.
+    # pattern. You can use the same list for both create and update.
     def person_params
-      params.require(:person).permit(:name, :age)
+      params.expect(person: [:name, :age])
     end
 end
 ```
@@ -489,7 +486,7 @@ params.expect(log_entry: {})
 This marks the `:log_entry` parameters hash and any sub-hash of it as permitted
 and does not check for permitted scalars, anything is accepted.
 
-WARNING: Extreme care should be taken when using calling `expect` with an empty
+WARNING: Extreme care should be taken when calling `expect` with an empty
 hash, as it will allow all current and future model attributes to be
 mass-assigned.
 
@@ -529,8 +526,8 @@ name, emails, friends = params.expect(
 This declaration permits the `name`, `emails`, and `friends` attributes and
 returns them each. It is expected that `emails` will be an array of permitted
 scalar values, and that `friends` will be an array of resources (note the new
-double array syntax to explicitly require an array) with specific attributes:
-they should have a `name` attribute (any permitted scalar values allowed), a
+double array syntax to explicitly require an array) with specific attributes.
+These attributes should have a `name` attribute (any permitted scalar values allowed), a
 `hobbies` attribute as an array of permitted scalar values, and a `family`
 attribute which is restricted to a hash with only a `name` key and any permitted
 scalar value.
