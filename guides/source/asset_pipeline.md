@@ -107,6 +107,7 @@ For example, if your application has three JavaScript files:
 Bundling will merge these into a single application.js file.
 
 ```javascript
+// app/javascript/application.js
 // Contents of menu.js, cart.js, and checkout.js are combined here
 ```
 
