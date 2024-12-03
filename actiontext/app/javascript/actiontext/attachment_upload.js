@@ -5,6 +5,7 @@ export class AttachmentUpload {
     this.attachment = attachment
     this.element = element
     this.directUpload = new DirectUpload(attachment.file, this.directUploadUrl, this)
+    this.dispatch("initialize")
   }
 
   start() {
@@ -12,7 +13,12 @@ export class AttachmentUpload {
     this.dispatch("start")
   }
 
+  directUploadWillCreateBlobWithXHR(xhr) {
+    this.dispatch("before-blob-request", { xhr })
+  }
+
   directUploadWillStoreFileWithXHR(xhr) {
+    this.dispatch("before-storage-request", { xhr })
     xhr.upload.addEventListener("progress", event => {
       // Scale upload progress to 0-90% range
       const progress = (event.loaded / event.total) * 90
@@ -91,6 +97,8 @@ export class AttachmentUpload {
 
   dispatch(name, detail = {}) {
     detail.attachment = this.attachment
+    detail.file = this.directUpload.file
+    detail.id = this.directUpload.id
     return dispatchEvent(this.element, `direct-upload:${name}`, { detail })
   }
 
