@@ -182,7 +182,7 @@ environments. When you reference an asset in your application, Rails uses the
 manifest to find the correct fingerprinted filename to include in the HTML
 output.
 
-Features
+Propshaft Features
 --------
 
 Propshaft expects that your assets are already in a browser-ready format—like
