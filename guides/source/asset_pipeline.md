@@ -1245,7 +1245,7 @@ JavaScript is already in a browser-compatible format. This is why it works best
 for projects that don't require transpiling or bundling.
 
 By eliminating the need for a build step and Node.js, `importmap-rails`
-simplifies JavaScript management while adhering to Rails conventions.
+simplifies JavaScript management.
 
 #### When Should You Use It?
 
