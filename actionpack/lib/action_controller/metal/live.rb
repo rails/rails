@@ -352,7 +352,7 @@ module ActionController
       ActiveSupport::Notifications.instrument("send_stream.action_controller", payload) do
         response.headers["Content-Type"] =
           (type.is_a?(Symbol) ? Mime[type].to_s : type) ||
-          Mime::Type.lookup_by_extension(File.extname(filename).downcase.delete("."))&.to_s ||
+          Mime::Type.lookup_by_extension(File.extname(filename).delete("."))&.to_s ||
           "application/octet-stream"
 
         response.headers["Content-Disposition"] =

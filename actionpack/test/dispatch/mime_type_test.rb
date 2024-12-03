@@ -144,6 +144,10 @@ class MimeTypeTest < ActiveSupport::TestCase
     Mime::Type.unregister(:example_api)
   end
 
+  test "lookup extension case insensitive" do
+    assert_equal Mime[:png], Mime::Type.lookup_by_extension("PNG")
+  end
+
   test "register callbacks" do
     registered_mimes = []
     Mime::Type.register_callback do |mime|
