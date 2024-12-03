@@ -565,25 +565,25 @@ automatically pull in the latest version each time you reload the page.
 
 #### Automatic Reloading of Assets
 
-Rails ensures that asset changes are immediately reflected in the browser. It
-checks for updates with every request, so that when you edit an asset like a
-JavaScript or CSS file, reloading the page will display the changes instantly
-without needing to restart the server.
+If you're using Propshaft on its own, it automatically checks for updates to
+assets like JavaScript, CSS, or images with every request. This means you can
+edit these files, reload the browser, and instantly see the changes without
+needing to restart the Rails server.
 
-#### Propshaft Integration in Development
+When using modern JavaScript bundlers such as
+[esbuild](https://esbuild.github.io/) or [Webpack](https://webpack.js.org/)
+alongside Propshaft, the workflow combines both tools effectively:
 
-The integration of Propshaft in a Rails application is handled by the standard
-Rails development environment. Propshaft will automatically serve and manage
-assets by compiling and serving updated versions directly from the file system
-without manual intervention. This is done as part of the usual Rails asset
-pipeline, with the default configuration ensuring the most recent asset changes
-are served on page reload.
+- The bundler watches for changes in your JavaScript and CSS files, compiles
+  them into the appropriate build directory, and keeps the files up to date.
+- Propshaft ensures that the latest compiled assets are served to the browser
+  whenever a request is made.
 
-For modern JavaScript bundlers like [esbuild](https://esbuild.github.io/) or
-[Webpack](https://webpack.js.org/) (if used alongside Propshaft), you may run
-the `./bin/dev` command, which watches for changes in JavaScript and CSS files
-and compiles them into the appropriate build directory. Propshaft will detect
-changes in the assets and serve the compiled files to the browser.
+For these setups, running `./bin/dev` starts both the Rails server and the asset
+bundler's development server.
+
+In either case, Propshaft ensures that changes to your assets are reflected as
+soon as the browser page is reloaded, without requiring a server restart.
 
 #### Improving Performance with File Watchers
 
