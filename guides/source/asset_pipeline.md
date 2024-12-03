@@ -77,16 +77,20 @@ it below.
 
 Transpilation involves converting code from one language or format to another.
 
-For example, converting CoffeeScript to JavaScript.
+For example, converting TypeScript to JavaScript.
 
-```javascript
-alert "Hello, world!"
+```typescript
+const greet = (name: string): void => {
+  console.log(`Hello, ${name}!`);
+};
 ```
 
 After transpilation, this code becomes:
 
 ```javascript
-alert("Hello, world!");
+const greet = (name) => {
+  console.log(`Hello, ${name}!`);
+};
 ```
 
 In the past, pre-processors like [Sass](https://sass-lang.com/) and
@@ -908,10 +912,11 @@ Migrating from Sprockets to Propshaft
 Propshaft is intentionally simpler than
 [Sprockets](https://github.com/rails/sprockets-rails), which may make migrating
 from Sprockets a fair amount of work. This is especially true if you rely on
-Sprockets for tasks like transpiling [CoffeeScript](https://coffeescript.org/)
-or [Sass](https://sass-lang.com/), or if you're using gems that provide this
-functionality. In such cases, you'll either need to stop transpiling or switch
-to a Node-based transpiler, such as those provided by
+Sprockets for tasks like transpiling
+[TypeScript](https://www.typescriptlang.org/) or [Sass](https://sass-lang.com/),
+or if you're using gems that provide this functionality. In such cases, you'll
+either need to stop transpiling or switch to a Node-based transpiler, such as
+those provided by
 [`jsbundling-rails`](https://github.com/rails/jsbundling-rails) or
 [`cssbundling-rails`](https://github.com/rails/cssbundling-rails). Read more
 about these in the [Advanced Asset Management
