@@ -89,8 +89,6 @@ module ActiveRecord
                 raise
               end
 
-              verified!
-
               result
             end
 
