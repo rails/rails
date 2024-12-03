@@ -723,7 +723,7 @@ request to the CDN that comes in to the same URL will hit the cached copy. When
 the CDN can serve an asset directly the request never touches your Rails server.
 Since the assets from a CDN are geographically closer to the browser, the
 request is faster, and since your server doesn't need to spend time serving
-assets, it can focus on serving application code as fast as possible.
+assets, it can focus on serving application code.
 
 ##### Set up a CDN to Serve Static Assets
 
