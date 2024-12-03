@@ -1,3 +1,19 @@
+*   `ActiveRecord::Middleware::ShardSelector` supports granular database connection switching.
+
+    A new configuration option, `class_name:`, is introduced to
+    `config.active_record.shard_selector` to allow an application to specify the abstract connection
+    class to be switched by the shard selection middleware. The default class is
+    `ActiveRecord::Base`.
+
+    For example, this configuration tells `ShardSelector` to switch shards using
+    `AnimalsRecord.connected_to`:
+
+    ```
+    config.active_record.shard_selector = { class_name: "AnimalsRecord" }
+    ```
+
+    *Mike Dalessio*
+
 *   Reset relations after `insert_all`/`upsert_all`.
 
     Bulk insert/upsert methods will now call `reset` if used on a relation, matching the behavior of `update_all`.
