@@ -63,8 +63,6 @@ module ActionController # :nodoc:
       def allow_browser(versions:, block:)
         require_relative "useragent"
 
-        using PatchedUserAgent
-
         if BrowserBlocker.new(request, versions: versions).blocked?
           ActiveSupport::Notifications.instrument("browser_block.action_controller", request: request, versions: versions) do
             block.is_a?(Symbol) ? send(block) : instance_exec(&block)
@@ -76,6 +74,8 @@ module ActionController # :nodoc:
         SETS = {
           modern: { safari: 17.2, chrome: 120, firefox: 121, opera: 106, ie: false }
         }
+
+        using PatchedUserAgent
 
         attr_reader :request, :versions
 
