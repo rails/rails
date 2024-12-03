@@ -1,3 +1,11 @@
+*   Dispatch all Active Storage `direct-upload:`-prefixed events
+
+    Add support for `direct-upload:before-blob-request` and `direct-upload:before-storage-request`.
+
+    Add `id` and `file` properties for parity with Active Storage.
+
+    *Sean Doyle*
+
 *   Change `ActionText::RichText#embeds` assignment from `before_save` to `before_validation`
 
     *Sean Doyle*
