@@ -1164,8 +1164,7 @@ simpler setup.
 
 By integrating modern CSS workflows, automating production builds, and
 leveraging the Rails asset pipeline, `cssbundling-rails` enables developers to
-efficiently manage and deliver dynamic, production-ready styles while
-maintaining flexibility.
+efficiently manage and deliver dynamic styles.
 
 ### `tailwindcss-rails`
 
