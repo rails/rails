@@ -333,7 +333,7 @@ Once precompiled, these assets can be referenced by their logical path using
 helpers like `asset_path`, `image_tag`, and `javascript_include_tag`. In production,
 when `assets:precompile` is run, these references are automatically turned into
 digest-aware paths. This is done using a `manifest.json` file that is
-automatically generated in` public/assets/.manifest.json`. This file maps logical
+automatically generated in` public/assets/manifest.json`. This file maps logical
 asset paths to their precompiled file paths.
 
 Using Propshaft in your app
