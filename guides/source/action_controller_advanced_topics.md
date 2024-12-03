@@ -31,7 +31,7 @@ is a type of malicious attack where unauthorized requests are submitted by
 impersonating a user that the web application trusts.
 
 The first step to avoid this type of attack is to ensure that all "destructive"
-actions (create, update, and destroy) in your application use non-GET requests.
+actions (create, update, and destroy) in your application use non-GET requests (like POST, PUT and DELETE).
 
 However, a malicious site can still send a non-GET request to your site, so
 Rails builds in request forgery protection into controllers.
@@ -265,7 +265,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-The file will read and streamed at 4 kB at a time by default, to avoid loading
+The file will be read and streamed at 4 kB at a time by default, to avoid loading
 the entire file into memory at once. You can turn off streaming with the
 `:stream` option or adjust the block size with the `:buffer_size` option.
 

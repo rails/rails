@@ -52,7 +52,7 @@ end
 
 Given the above `ClientsController`, if a user goes to `/clients/new` in your
 application to add a new client, Rails will create an instance of
-`ClientsController` and call its new method. If the `new` method is empty, Rails
+`ClientsController` and call its `new` method. If the `new` method is empty, Rails
 will automatically render the `new.html.erb` view by default.
 
 In the `new` method, the controller would typically create an instance of the
@@ -68,12 +68,14 @@ end
 NOTE: All controllers inherit from `ApplicationController`, which in turn
 inherits from
 [`ActionController::Base`](https://api.rubyonrails.org/classes/ActionController/Base.html).
+For [API only](https://guides.rubyonrails.org/api_app.html) applications `ApplicationController` inherits from
+[`ActionController::API`](https://edgeapi.rubyonrails.org/classes/ActionController/API.html).
 
 ### Controller Naming Convention
 
-Rails favors making the last word in the controller's name plural. For example,
+Rails favors making the resource in the controller's name plural. For example,
 `ClientsController` is preferred over `ClientController` and
-`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController`
+`SiteAdminsController` over `SiteAdminController` or `SitesAdminsController`.
 However, the plural names are not strictly required (e.g.
 `ApplicationController`).
 
@@ -110,7 +112,7 @@ Data sent by the incoming request is available in your controller in the
 [`params`][] hash. There are two types of parameter data:
 
 - Query string parameters which are sent as part of the URL (for example, after
-  the `?` in `example.com/accounts?filter=free`).
+  the `?` in `http://example.com/accounts?filter=free`).
 - POST parameters which are submitted from an HTML form.
 
 Rails does not make a distinction between query string parameters and POST
@@ -142,8 +144,8 @@ end
 ```
 
 NOTE: The `params` hash is not a plain old Ruby Hash; instead, it is an
-[`ActionController::Parameters`][] object. While it behaves like Hash, it does
-not inherit from Hash.
+[`ActionController::Parameters`][] object. It does not inherit from Hash, but it behaves mostly like Hash.
+It provides methods for filtering `params` and, unlike a Hash, keys `:foo` and `"foo"` are considered to be the same.
 
 [`params`]:
     https://api.rubyonrails.org/classes/ActionController/StrongParameters.html#method-i-params
@@ -154,14 +156,14 @@ not inherit from Hash.
 
 The `params` hash is not limited to one-dimensional keys and values. It can
 contain nested arrays and hashes. To send an array of values, append an empty
-pair of square brackets "[]" to the key name:
+pair of square brackets `[]` to the key name:
 
 ```
 GET /users?ids[]=1&ids[]=2&ids[]=3
 ```
 
 NOTE: The actual URL in this example will be encoded as
-"/users?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as the "[" and "]" characters are
+`/users?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3` as the `[` and `]` characters are
 not allowed in URLs. Most of the time you don't have to worry about this because
 the browser will encode it for you, and Rails will decode it automatically, but
 if you ever find yourself having to send those requests to the server manually
@@ -196,8 +198,8 @@ interchangeably as keys.
 ### JSON Parameters
 
 If your application exposes an API, you will likely accept parameters in JSON
-format. If the "Content-Type" header of your request is set to
-"application/json", Rails will automatically load your parameters into the
+format. If the `content-type` header of your request is set to
+`application/json`, Rails will automatically load your parameters into the
 `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
@@ -206,8 +208,10 @@ So for example, if you are sending this JSON content:
 { "user": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-Your controller will receive `params[:user]` as `{ "name" => "acme", "address"
-=> "123 Carrot Street" }`.
+Your controller will receive:
+```ruby
+{ "user" => { "name" => "acme", "address" => "123 Carrot Street" } }
+```
 
 #### Configuring Wrap Parameters
 
