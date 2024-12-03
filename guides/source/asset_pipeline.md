@@ -51,8 +51,8 @@ $ rails new app_name --skip-asset-pipeline
 
 NOTE: Prior to version 8, the asset pipeline was powered by Sprockets. You can
 read more about the [Sprockets Asset
-Pipeline](https://guides.rubyonrails.org/v7.2/asset_pipeline.html) in the Rails
-Guides.
+Pipeline](https://guides.rubyonrails.org/v7.2/asset_pipeline.html) in previous
+versions of the Rails Guides.
 
 Evolution of Asset Management Techniques
 ----------------------------------------
