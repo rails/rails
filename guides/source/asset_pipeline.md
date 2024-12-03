@@ -17,9 +17,8 @@ After reading this guide, you will know:
 What is an Asset Pipeline?
 ---------------------------
 
-The Rails Asset Pipeline is a framework designed for organizing, caching, and
-serving static assets. Assets typically include JavaScript, CSS, images, and
-other static files that are served to the user. It streamlines and optimizes the
+The Rails Asset Pipeline is a library designed for organizing, caching, and
+serving static assets, such as JavaScript, CSS, and image files. It streamlines and optimizes the
 management of these assets to enhance the performance and maintainability of the
 application.
 
