@@ -367,7 +367,7 @@ GEM
     mini_magick (4.13.2)
     mini_mime (1.1.5)
     mini_portile2 (2.8.7)
-    minitest (5.25.1)
+    minitest (5.25.2)
     minitest-bisect (1.7.0)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
@@ -698,7 +698,7 @@ DEPENDENCIES
   libxml-ruby
   listen (~> 3.3)
   mdl (!= 0.13.0)
-  minitest
+  minitest (!= 5.25.3)
   minitest-bisect
   minitest-ci
   minitest-retry
