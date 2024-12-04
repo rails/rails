@@ -403,7 +403,11 @@ module ActiveRecord
         type ||= column.sql_type
 
         unless options.key?(:default)
-          options[:default] = column.default
+          options[:default] = if column.default_function
+            -> { column.default_function }
+          else
+            column.default
+          end
         end
 
         unless options.key?(:null)
