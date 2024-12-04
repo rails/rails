@@ -197,6 +197,35 @@ When this form is submitted, the value of `params[:user]` will be `{ "name" =>
 The `params` object acts like a Hash, but lets you use symbols and strings
 interchangeably as keys.
 
+### Composite Key Parameters
+
+[Composite key parameters](active_record_composite_primary_keys.html) contain
+multiple values in one parameter separated by a delimiter (e.g., an underscore).
+Therefore, you will need to extract each value so that you can pass them to
+Active Record. You can use the `extract_value`  method to do that.
+
+For example, given the following controller:
+
+```ruby
+class BooksController < ApplicationController
+  def show
+    # Extract the composite ID value from URL parameters.
+    id = params.extract_value(:id)
+    @book = Book.find(id)
+  end
+end
+```
+
+And this route:
+
+```ruby
+get "/books/:id", to: "books#show"
+```
+
+When a user requests the URL `/books/4_2`, the controller will extract the
+composite key value `["4", "2"]` and pass it to `Book.find`. The `extract_value`
+method may be used to extract arrays out of any delimited parameters.
+
 ### JSON Parameters
 
 If your application exposes an API, you will likely accept parameters in JSON
@@ -282,35 +311,6 @@ values.
     https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-controller_name
 [`action_name`]:
     https://api.rubyonrails.org/classes/AbstractController/Base.html#method-i-action_name
-
-### Composite Key Parameters
-
-[Composite key parameters](active_record_composite_primary_keys.html) contain
-multiple values in one parameter separated by a delimiter (e.g., an underscore).
-Therefore, you will need to extract each value so that you can pass them to
-Active Record. You can use the `extract_value`  method to do that.
-
-For example, given the following controller:
-
-```ruby
-class BooksController < ApplicationController
-  def show
-    # Extract the composite ID value from URL parameters.
-    id = params.extract_value(:id)
-    @book = Book.find(id)
-  end
-end
-```
-
-And this route:
-
-```ruby
-get "/books/:id", to: "books#show"
-```
-
-When a user requests the URL `/books/4_2`, the controller will extract the
-composite key value `["4", "2"]` and pass it to `Book.find`. The `extract_value`
-method may be used to extract arrays out of any delimited parameters.
 
 ### The `default_url_options` Method
 
@@ -548,7 +548,7 @@ because, normally, it does not exist when calling `new`:
 params.fetch(:blog, {}).permit(:title, :author)
 ```
 
-Example 2: The model class method `accepts_nested_attributes_for` allows you to
+**Example 2**: The model class method `accepts_nested_attributes_for` allows you to
 update and destroy associated records. This is based on the `id` and `_destroy`
 parameters:
 
@@ -557,7 +557,7 @@ parameters:
 params.expect(author: [ :name, books_attributes: [[ :title, :id, :_destroy ]] ])
 ```
 
-Example 3: Hashes with integer keys are treated differently, and you can declare
+**Example 3**: Hashes with integer keys are treated differently, and you can declare
 the attributes as if they were direct children. You get these kinds of
 parameters when you use `accepts_nested_attributes_for` in combination with a
 `has_many` association:
@@ -571,7 +571,7 @@ parameters when you use `accepts_nested_attributes_for` in combination with a
 params.expect(book: [ :title, chapters_attributes: [[ :title ]] ])
 ```
 
-Example 4: Imagine a scenario where you have parameters representing a product
+**Example 4**: Imagine a scenario where you have parameters representing a product
 name, and a hash of arbitrary data associated with that product, and you want to
 permit the product name attribute and also the whole data hash:
 
