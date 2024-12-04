@@ -132,6 +132,11 @@ module ActiveModel
       @attributes.to_hash
     end
 
+    # Returns a hash of attributes for assignment to the database.
+    def attributes_for_database
+      @attributes.values_for_database
+    end
+
     # Returns an array of attribute names as strings.
     #
     #   class Person
