@@ -34,14 +34,29 @@ The first step to avoid this type of attack is to ensure that all "destructive"
 actions (create, update, and destroy) in your application use non-GET requests (like POST, PUT and DELETE).
 
 However, a malicious site can still send a non-GET request to your site, so
-Rails builds in request forgery protection into controllers.
+Rails builds in request forgery protection into controllers by default.
 
-This is done by adding a token, which is only known to your server, to each
-request. When a request reaches your application, Rails verifies the received
-token with the token in the session. If an incoming request does not have the
-proper matching token, the server will deny access.
+This is done by adding a token using the
+[protect_from_forgery](https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection/ClassMethods.html#method-i-protect_from_forgery)
+method. This token is added to each request and is only known to your server.
+Rails verifies the received token with the token in the session. If an incoming
+request does not have the proper matching token, the server will deny access.
 
-For example, when you generate a form like this:
+The CSRF token is added automatically when `config.action_controller.default_protect_from_forgery` is set to `true`, which is the default for newly created Rails applications. It can also be manually like this:
+
+```ruby
+class ApplicationController < ActionController::Base
+  protect_from_forgery with: :exception
+end
+```
+
+NOTE: All subclasses of `ActionController::Base` are protected by default and
+will raise an `ActionController::InvalidAuthenticityToken` error on unverified
+requests.
+
+### Authenticity Token in Forms
+
+When you generate a form using `form_with` like this:
 
 ```erb
 <%= form_with model: @user do |form| %>
@@ -50,8 +65,8 @@ For example, when you generate a form like this:
 <% end %>
 ```
 
-A CSRF token named `authenticity_token` is added as a hidden field in the
-generated HTML:
+A CSRF token named `authenticity_token` is automatically added as a hidden field
+in the generated HTML:
 
 ```html
 <form accept-charset="UTF-8" action="/users/1" method="post">
@@ -79,10 +94,6 @@ method.
 The `form_authenticity_token` method generates a valid authentication token.
 That can be useful in places where Rails does not add it automatically, like in
 custom Ajax calls.
-
-NOTE: All subclasses of `ActionController::Base` are protected by default and
-will raise an `ActionController::InvalidAuthenticityToken` error on unverified
-requests.
 
 You can learn more details about the CSRF attack as well as CSRF countermeasures
 in the [Security Guide](security.html#cross-site-request-forgery-csrf).

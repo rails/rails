@@ -967,13 +967,13 @@ data. These can also be changed in an initializer:
 Rails.application.config.session_store :cookie_store, key: "_your_app_session"
 ```
 
+NOTE: Be sure to restart your server when you modify an initializer file.
+
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 Rails.application.config.session_store :cookie_store, key: "_your_app_session", domain: ".example.com"
 ```
-
-NOTE: Be sure to restart your server when you modify an initializer file.
 
 TIP: See [`config.session_store`](configuring.html#config-session-store) in the
 configuration guide for more information.
