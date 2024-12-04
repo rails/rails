@@ -55,6 +55,8 @@ application to add a new client, Rails will create an instance of
 `ClientsController` and call its `new` method. If the `new` method is empty, Rails
 will automatically render the `new.html.erb` view by default.
 
+NOTE: The `new` method is an instance method here, called on an instance of `ClientsController`. This should not be confused with the `new` class method (ie`ClientsController.new`).
+
 In the `new` method, the controller would typically create an instance of the
 `Client` model, and make it available as an instance variable called `@client`
 in the view:
@@ -331,13 +333,13 @@ such as `posts_path`. For example, by setting `locale: I18n.locale`, Rails will
 automatically add the locale to every URL:
 
 ```ruby
-posts_path # => "/en/posts"
+posts_path # => "/posts?locale=en"
 ```
 
 You can still override this default if needed:
 
 ```ruby
-posts_path(locale: :fr) # => "/fr/posts"
+posts_path(locale: :fr) # => "/posts?locale=fr"
 ```
 
 NOTE: Under the hood, `posts_path` is a shorthand for calling `url_for` with the
@@ -536,7 +538,7 @@ scalar value.
 
 Here are some examples of how to use `permit` for different use cases.
 
-Example 1: You may want to use the permitted attributes in your `new` action.
+**Example 1**: You may want to use the permitted attributes in your `new` action.
 This raises the problem that you can't use [`require`][] on the root key
 because, normally, it does not exist when calling `new`:
 
