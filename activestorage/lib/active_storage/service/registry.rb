@@ -22,11 +22,19 @@ module ActiveStorage
       end
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class}#{configurations_for_inspect}>"
+    end
+
     private
       attr_reader :configurations, :services
 
       def configurator
         @configurator ||= ActiveStorage::Service::Configurator.new(configurations)
+      end
+
+      def configurations_for_inspect
+        configurations.any? ? " configurations=[#{configurations.keys.map(&:inspect).join(", ")}]" : ""
       end
   end
 end
