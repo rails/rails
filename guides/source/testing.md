@@ -462,7 +462,7 @@ Each of these classes include `Minitest::Assertions`, allowing us to use all of
 the basic assertions in your tests.
 
 NOTE: For more information on `minitest`, refer to the
-[documentation](http://docs.seattlerb.org/minitest).
+[minitest documentation](http://docs.seattlerb.org/minitest).
 
 ### Transactions
 
@@ -841,12 +841,7 @@ Instead, they inherit from
 Functional Testing for Controllers
 ----------------------------------
 
-In Rails, a focus on testing the various actions of a controller is a form of
-writing functional tests. Remember, your controllers handle the incoming web
-requests to your application and eventually respond with a rendered view. 
-
-When writing functional tests, you are focusing on testing how your actions
-handle the requests and the expected result or response. Functional controller
+When writing functional tests, you are focusing on testing how controller actions handle the requests and the expected result or response. Functional controller
 tests are sometimes used in cases where system tests are not appropriate, e.g.,
 to confirm an API response.
 
@@ -947,8 +942,7 @@ post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
 ```
 
 NOTE: If you try running the `test_should_create_article` test from
-`articles_controller_test.rb` it will fail on account of the newly added model
-level validation and rightly so.
+`articles_controller_test.rb` it will (correctly) fail due to the newly added model-level validation.
 
 Let us modify the `test_should_create_article` test in
 `articles_controller_test.rb` so that this test passes:
@@ -973,7 +967,7 @@ to add authorization to every request header to get all the tests passing:
 post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
 ```
 
-### Available Request Types for Functional Tests
+### HTTP Request Types for Functional Tests
 
 If you're familiar with the HTTP protocol, you'll know that `get` is a type of
 request. There are 6 request types supported in Rails functional tests:
@@ -986,19 +980,16 @@ request. There are 6 request types supported in Rails functional tests:
 * `delete`
 
 All of the request types have equivalent methods that you can use. In a typical
-C.R.U.D. application you'll be using `get`, `post`, `put`, and `delete` most
-often.
+C.R.U.D. application you'll be using `post`, `get`, `put`, and `delete` most often.
 
 NOTE: Functional tests do not verify whether the specified request type is
-accepted by the action, we're more concerned with the result. Request tests
-exist for this use case to make your tests more purposeful.
+accepted by the action; instead, they focus on the result. For testing the request type, request tests are available, making your tests more purposeful.
 
 ### Testing XHR (Ajax) Requests
 
-An AJAX request (Asynchronous Javscript and XML) is a type of request where
-information is sent over a server without the page reloading. To test Ajax
-requests, you can specify the `xhr: true` option to `get`, `post`, `patch`,
-`put`, and `delete` methods. For example:
+An AJAX request (Asynchronous Javscript and XML) is a technique where content is fetched from the server using asynchronous HTTP requests and the relevant parts of the page are updated without requiring a full page load. 
+
+To test Ajax requests, you can specify the `xhr: true` option to `get`, `post`, `patch`, `put`, and `delete` methods. For example:
 
 ```ruby
 test "ajax request" do
@@ -1038,7 +1029,6 @@ a request is made:
 * `@request` - The request object
 * `@response` - The response object
 
-
 ```ruby
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
@@ -1069,7 +1059,7 @@ get articles_url, headers: { "HTTP_REFERER": "http://example.com/home" } # simul
 
 ### Testing `flash` Notices
 
-As we have seen in the secctions above, one of the three hash objects we have
+As we have seen in the [sections above](#testing-other-request-objects), one of the three hash objects we have
 access to is `flash`.
 
 We want to add a `flash` message to our blog application whenever someone
@@ -1128,7 +1118,7 @@ def create
 end
 ```
 
-Now if we run our tests, we should see it pass:
+Now, if we run our tests, we should see it pass:
 
 ```bash
 $ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
@@ -1147,7 +1137,7 @@ Finished in 0.081972s, 12.1993 runs/s, 48.7972 assertions/s.
 NOTE: If you generated your controller using the scaffold generator, the flash
 message will already be implemented in your `create` action.
 
-### Putting It Together
+### Tests for `show`, `update`, and `delete` Actions
 
 At this point we have looked at tests for the `:index` as well as the`:create`
 action. What about the other actions?
@@ -1162,13 +1152,13 @@ test "should show article" do
 end
 ```
 
-If you remember from our discussion earlier on fixtures, the `articles()` method
-will give us access to our articles fixtures.
+If you remember from our discussion earlier on [fixtures](#fixtures), the `articles()` method
+will give us access to the articles fixtures.
 
 How about deleting an existing article?
 
 ```ruby
-test "should destroy article" do
+test "should delete article" do
   article = articles(:one)
   assert_difference("Article.count", -1) do
     delete article_url(article)
@@ -1178,7 +1168,7 @@ test "should destroy article" do
 end
 ```
 
-We can also consider a test for updating an existing article.
+Let's also consider a test for updating an existing article.
 
 ```ruby
 test "should update article" do
@@ -1193,12 +1183,12 @@ test "should update article" do
 end
 ```
 
-Notice we're starting to see some duplication in these three tests, they both
-access the same article fixture data. It is possible to D.R.Y. this up ('Don't
-Repeat Yourself') by using the `setup` and `teardown` methods provided by
+Notice that there is some duplication in these three tests - they both
+access the same article fixture data. It is possible to D.R.Y. ('Don't
+Repeat Yourself') the implementation by using the `setup` and `teardown` methods provided by
 `ActiveSupport::Callbacks`.
 
-Our tests now might look something like the below.
+The tests might look like this:
 
 ```ruby
 require "test_helper"
@@ -1241,15 +1231,14 @@ end
 ```
 
 NOTE: Similar to other callbacks in Rails, the `setup` and `teardown` methods
-can also be used by passing a block, lambda, or method name as a symbol to call.
+can also accept a block, lambda, or a method name as a symbol to be called.
 
 Integration Testing
 -------------------
 
-Integration tests take functional controller tests one step further, as they are
-focussed on testing how various parts of our application interact. They are
+Integration tests take functional controller tests one step further - they focus on testing how various parts of our application interact, and are
 generally used to test important workflows within our application. Rails
-integration tests can be stored in the `test/integration` directory. 
+integration tests are stored in the `test/integration` directory. 
 
 Rails provides a generator to create an integration test skeleton for us.
 
@@ -1271,25 +1260,24 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Here the test is inheriting from `ActionDispatch::IntegrationTest`. This makes
-some additional [helpers](testing.html#helpers-available-for-integration-tests)
-available for us to use in our integration tests, alongside the standard testing
+Here the test is inheriting from [`ActionDispatch::IntegrationTest`](https://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest.html). This makes
+some additional [helpers available for integration tests](testing.html#helpers-available-for-integration-tests) alongside the standard testing
 helpers.
 
 ### Implementing an Integration Test
 
-Let's add an integration test to our blog application. We'll start with a basic
-workflow of creating a new blog article, to verify that everything is working
+Let's add an integration test to our blog application, by starting with a basic
+workflow of creating a new blog article to verify that everything is working
 properly.
 
-We'll start by generating our integration test skeleton:
+Start by generating the integration test skeleton:
 
 ```bash
 $ bin/rails generate integration_test blog_flow
 ```
 
-It should have created a test file placeholder for us. With the output of the
-previous command we should see:
+It should have created a test file placeholder. With the output of the
+previous command you should see:
 
 ```
       invoke  test_unit
@@ -1304,23 +1292,23 @@ require "test_helper"
 class BlogFlowTest < ActionDispatch::IntegrationTest
   test "can see the welcome page" do
     get "/"
-    assert_dom "h1", "Welcome#index"
+    assert_selector "h1", "Welcome#index"
   end
 end
 ```
 
-We will take a look at `assert_dom` to query the resulting HTML of a request in
+Let's take a look at `assert_selector` to query the resulting HTML of a request in
 the [Testing Views](#testing-views) section below. It is used for testing the
-response of our request by asserting the presence of key HTML elements and their
+response of the request by asserting the presence of key HTML elements and their
 content.
 
-When we visit our root path, we should see `welcome/index.html.erb` rendered for
+If you visit the root path, you should see `welcome/index.html.erb` rendered for
 the view. So this assertion should pass.
 
 #### Creating Articles Integration
 
-We can also test our ability to create a new article in our blog and display the
-resulting article.
+To test the ability to create a new article in our blog and display the
+resulting article, see the example below:
 
 ```ruby
 test "can create an article" do
@@ -1336,13 +1324,11 @@ test "can create an article" do
 end
 ```
 
-Let's break this test down so we can understand it.
+Let's break this test down:
 
-We start by calling the `:new` action on our Articles controller. This response
-should be successful.
+The `:new` action of our Articles controller is called first, and the response should be successful.
 
-After this we make a post request to the `:create` action of our Articles
-controller:
+Next, a `post` request is made to the `:create` action of the Articles controller:
 
 ```ruby
 post "/articles",
@@ -1351,51 +1337,37 @@ assert_response :redirect
 follow_redirect!
 ```
 
-The two lines following the request are to handle the redirect we setup when
-creating a new article.
+The two lines following the request are to handle the redirect setup when creating a new article.
 
 NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent
 requests after a redirect is made.
 
-Finally we can assert that our response was successful and our new article is
-readable on the page.
+Finally it can be asserted that the response was successful and the newly-created article is readable on the page.
 
-#### Taking It Further
-
-We were able to successfully test a very small workflow for visiting our blog
-and creating a new article. If we wanted to take this further we could add tests
-for adding comments, editing comments or removing articles. Integration tests
-are a great place to experiment with all kinds of use cases for our
-applications.
+A very small workflow for visiting our blog
+and creating a new article was successfully tested above. To extend this, additional tests could be added for features like adding comments, editing comments or removing articles. Integration tests
+are a great place to experiment with all kinds of use cases for our applications.
 
 ### Helpers Available for Integration Tests
 
-Here are some of the other helpers we can choose from in our integration tests.
+There are numerous helpers to choose from to aid in the integration tests. Some include:
 
-For dealing with the integration test runner, see
-[`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
+* [`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html) for helpers relating to the integration test runner, including creating a new session.
 
-When performing requests, we will have
-[`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html)
-available for our use.
+* [`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) for performing requests.
 
-If we need to upload files, take a look at
-[`ActionDispatch::TestProcess::FixtureFile`](https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html)
-to help.
+* [`ActionDispatch::TestProcess::FixtureFile`](https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html) for uploading files.
 
-If we need to modify the session, or state of our integration test, take a look
-at
-[`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html)
-to help.
+* [`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to modify sessions or the state of the integration tests.
 
 System Testing
 --------------
 
-Similarly to integration testing, system testing also allows you to test how the
+Similarly to integration testing, system testing allows you to test how the
 components of your app work together, but from the point of view of a user. It
 does this by running tests in either a real or a headless browser (a browser
 which runs in the background without opening a visible window). System tests use
-Capybara under the hood.
+[Capybara](https://www.rubydoc.info/github/jnicklas/capybara) under the hood.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for
@@ -1435,9 +1407,8 @@ When you generate a new application or scaffold, an
 where all the configuration for your system tests should live.
 
 If you want to change the default settings, you can change what the system tests
-are "driven by". Say you want to change the driver from Selenium to Cuprite.
-First add the `cuprite` gem to your `Gemfile`. Then in your
-`application_system_test_case.rb` file do the following:
+are "driven by". If you want to change the driver from Selenium to Cuprite, you'd add the `cuprite` gem to your `Gemfile`. Then in your
+`application_system_test_case.rb` file you'd do the following:
 
 ```ruby
 require "test_helper"
@@ -1498,7 +1469,7 @@ Now you should get a connection to the remote browser.
 $ SELENIUM_REMOTE_URL=http://localhost:4444/wd/hub bin/rails test:system
 ```
 
-If your application in test is running remote too, e.g. within a Docker
+If your application is remote, e.g. within a Docker
 container, Capybara needs more input about how to [call remote
 servers](https://github.com/teamcapybara/capybara#calling-remote-servers).
 
@@ -1506,10 +1477,10 @@ servers](https://github.com/teamcapybara/capybara#calling-remote-servers).
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  def setup
+  def setup do
     Capybara.server_host = "0.0.0.0" # bind to all interfaces
     Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
-    super
+    end
   end
   # ...
 end
@@ -1519,7 +1490,7 @@ Now you should get a connection to a remote browser and server, regardless if it
 is running in a Docker container or CI.
 
 If your Capybara configuration requires more setup than provided by Rails, this
-additional configuration could be added into the
+additional configuration can be added into the
 `application_system_test_case.rb` file.
 
 Please see [Capybara's
@@ -1528,8 +1499,8 @@ settings.
 
 ### Implementing a System Test
 
-Now we're going to add a system test to our blog application. We'll demonstrate
-writing a system test by visiting the index page and creating a new blog
+Next a system test will be added to the blog application. This example will demonstrate how to
+write a system test by visiting the index page and creating a new blog
 article.
 
 If you used the scaffold generator, a system test skeleton was automatically
@@ -1540,7 +1511,7 @@ system test skeleton.
 $ bin/rails generate system_test articles
 ```
 
-It should have created a test file placeholder for us. With the output of the
+It should have created a test file placeholder. With the output of the
 previous command you should see:
 
 ```
@@ -1548,7 +1519,7 @@ previous command you should see:
       create    test/system/articles_test.rb
 ```
 
-Now let's open that file and write our first assertion:
+Now, let's open that file and write the first assertion:
 
 ```ruby
 require "application_system_test_case"
@@ -1600,16 +1571,16 @@ index page. This will redirect the browser to `/articles/new`.
 
 Then the test will fill in the title and body of the article with the specified
 text. Once the fields are filled in, "Create Article" is clicked on which will
-send a POST request to create the new article in the database.
+send a POST request to `/articles/create`.
 
 We will be redirected back to the articles index page and there we assert that
 the text from the new article's title is on the articles index page.
 
 #### Testing for Multiple Screen Sizes
 
-If you want to test for mobile sizes on top of testing for desktop, you can
+If you want to test for mobile sizes in addition to testing for desktop, you can
 create another class that inherits from `ActionDispatch::SystemTestCase` and use
-it in your test suite. In this example a file called
+it in your test suite. In this example, a file called
 `mobile_system_test_case.rb` is created in the `/test` directory with the
 following configuration.
 
@@ -1655,16 +1626,15 @@ take a screenshot of the browser.
 
 The beauty of system testing is that it is similar to [integration
 testing](#integration-testing) in that it tests the user's interaction with your
-controller, model, and view, but system testing is much more robust and actually
+controller, model, and view, but system testing
 tests your application as if a real user were using it. With system tests, you
-can test anything that the user themselves would do in your application such as
+can test anything that a user would do in your application such as
 commenting, deleting articles, publishing draft articles, etc.
 
 Test Helpers
 ------------
 
-To avoid code duplication, you can add your own test helpers. Sign in helper can
-be a good example:
+To avoid code duplication, you can add your own test helpers. Here is an example for signing in:
 
 ```ruby
 # test/test_helper.rb
@@ -1753,9 +1723,7 @@ Testing Routes
 --------------
 
 Like everything else in your Rails application, you can test your routes. Route
-tests reside in `test/controllers/` or are part of controller tests.
-
-NOTE: If your application has complex routes, Rails provides a number of useful
+tests reside in `test/controllers/` or are part of controller tests. If your application has complex routes, Rails provides a number of useful
 helpers to test them.
 
 For more information on routing assertions available in Rails, see the API
@@ -1809,16 +1777,15 @@ assert_dom "ol" do
 end
 ```
 
-The `assert_dom_equal` method tests two HTML strings for equivalency, as in the
-example below:
+The `assert_dom_equal` method compares two HTML strings to see if they are equal:
 
 ```ruby
 assert_dom_equal '<a href="http://www.further-reading.com">Read more</a>',
   link_to("Read more", "http://www.further-reading.com")
 ```
 
-These assertions are quite powerful. For more advanced usage, refer to their
-[documentation](https://github.com/rails/rails-dom-testing).
+For more advanced usage, refer to the
+[`rails-dom-testing` documentation](https://github.com/rails/rails-dom-testing).
 
 In order to integrate with [rails-dom-testing][], tests that inherit from
 `ActionView::TestCase` declare a `document_root_element` method that returns the
@@ -1837,9 +1804,9 @@ test "renders a link to itself" do
 end
 ```
 
-If your application uses Ruby >= 3.0 or higher, depends on [Nokogiri >=
+If your application depends on [Nokogiri >=
 1.14.0](https://github.com/sparklemotion/nokogiri/releases/tag/v1.14.0) or
-higher, and depends on [minitest >=
+higher, and [minitest >=
 >5.18.0](https://github.com/minitest/minitest/blob/v5.18.0/History.rdoc#5180--2023-03-04-),
 `document_root_element` supports [Ruby's Pattern
 Matching](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
@@ -1860,7 +1827,7 @@ end
 
 If you'd like to access the same [Capybara-powered
 Assertions](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions)
-that your [Functional and System Testing](#functional-and-system-testing) tests
+that your [System Testing](#system-testing) tests
 utilize, you can define a base class that inherits from `ActionView::TestCase`
 and transforms the `document_root_element` into a `page` method:
 
@@ -1963,7 +1930,7 @@ end
 ### Testing View Partials
 
 [Partial](layouts_and_rendering.html#using-partials) templates - usually called
-"partials" - are another device for breaking the rendering process into more
+"partials" - can break the rendering process into more
 manageable chunks. With partials, you can extract pieces of code from your
 templates to separate files and reuse them throughout your templates.
 
@@ -2541,7 +2508,7 @@ which runs all tests including system tests.
 Parallel Testing
 ----------------
 
-Parallel testing allows you to parallelize your test suite. While forking
+Running tests in parallel reduces the time it takes your entire test suite to run. While forking
 processes is the default method, threading is supported as well. Running tests
 in parallel reduces the time it takes your entire test suite to run.
 
@@ -2549,8 +2516,8 @@ in parallel reduces the time it takes your entire test suite to run.
 
 The default parallelization method is to fork processes using Ruby's DRb system.
 The processes are forked based on the number of workers provided. The default
-number is the actual core count on the machine you are on, but can be changed by
-the number passed to the parallelize method.
+number is the actual core count on the machine, but can be changed by
+the number passed to the `parallelize` method.
 
 To enable parallelization add the following to your `test_helper.rb`:
 
@@ -2623,7 +2590,7 @@ Rails applications generated from JRuby or TruffleRuby will automatically
 include the `with: :threads` option.
 
 NOTE: As in the section above, you can also use the environment variable
-`PARALLEL_WORKERS` in this context, to be able to change the number of workers
+`PARALLEL_WORKERS` in this context, to change the number of workers
 your test run should use.
 
 ### Testing Parallel Transactions
@@ -2648,7 +2615,7 @@ end
 NOTE: With disabled transactional tests, you have to clean up any data tests
 create as changes are not automatically rolled back after the test completes.
 
-### Threshold to parallelize tests
+### Threshold to Parallelize tests
 
 Running tests in parallel adds an overhead in terms of database setup and
 fixture loading. Because of this, Rails won't parallelize executions that
@@ -2692,8 +2659,6 @@ config.eager_load = ENV["CI"].present?
 
 Starting with Rails 7, newly generated applications are configured that way by
 default.
-
-### Bare Test Suites
 
 If your project does not have continuous integration, you can still eager load
 in the test suite by calling `Rails.application.eager_load!`:
