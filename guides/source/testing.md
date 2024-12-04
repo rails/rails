@@ -858,7 +858,7 @@ The easiest way to see functional tests in action is to generate a controller
 using the scaffold generator:
 
 ```bash
-$ bin/rails generate scaffold_controller article title:string body:text
+$ bin/rails generate scaffold_controller article
 ...
 create  app/controllers/articles_controller.rb
 ...
