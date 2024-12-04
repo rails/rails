@@ -872,7 +872,9 @@ module ActiveRecord
         #--
         # if owner_thread param is omitted, this must be called in synchronize block
         def remove_connection_from_thread_cache(conn, owner_thread = conn.owner)
-          @leases[owner_thread].clear(conn)
+          if owner_thread
+            @leases[owner_thread].clear(conn)
+          end
         end
         alias_method :release, :remove_connection_from_thread_cache
 
