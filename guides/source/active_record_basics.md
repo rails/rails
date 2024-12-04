@@ -125,6 +125,25 @@ Here are some more examples of model class names and corresponding table names:
 | `Product`        | `products`     |
 | `Person`         | `people`       |
 
+For models nested inside of a module, only the first parent module will be used as
+a prefix onto the table. It will first be singularized, and then followed by an underscore.
+
+If the module is labeled as `abstract`, then it will
+not be used as a prefix.
+
+For example
+
+```ruby
+module Library
+  module Bookshelf
+    class Book < ApplicationRecord
+    end
+  end
+end
+```
+
+The above would produce `bookshelf_books` and not `library_bookshelf_books`
+
 ### Schema Conventions
 
 Active Record uses conventions for column names in the database tables as well,
