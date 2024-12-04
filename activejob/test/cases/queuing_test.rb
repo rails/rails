@@ -87,19 +87,13 @@ class QueuingTest < ActiveSupport::TestCase
 
   test "perform_all_later instrumentation" do
     jobs = HelloJob.new("Jamie"), HelloJob.new("John")
-    called = false
 
-    subscriber = proc do |_, _, _, _, payload|
-      called = true
-      assert payload[:adapter]
-      assert_equal jobs, payload[:jobs]
-      assert_equal 2, payload[:enqueued_count]
-    end
-
-    ActiveSupport::Notifications.subscribed(subscriber, "enqueue_all.active_job") do
+    payload = capture_notifications("enqueue_all.active_job") do
       ActiveJob.perform_all_later(jobs)
-    end
+    end.first.payload
 
-    assert called
+    assert payload[:adapter]
+    assert_equal jobs, payload[:jobs]
+    assert_equal 2, payload[:enqueued_count]
   end
 end
