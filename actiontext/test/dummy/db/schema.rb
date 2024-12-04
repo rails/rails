@@ -27,7 +27,7 @@ ActiveRecord::Schema[8.1].define(version: 2019_03_17_200724) do
     t.integer "record_id", null: false
     t.integer "blob_id", null: false
     t.datetime "created_at", precision: nil, null: false
-    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["blob_id"], name: "index_prefix_active_storage_attachments_suffix_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
@@ -40,7 +40,7 @@ ActiveRecord::Schema[8.1].define(version: 2019_03_17_200724) do
     t.bigint "byte_size", null: false
     t.string "checksum", null: false
     t.datetime "created_at", precision: nil, null: false
-    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+    t.index ["key"], name: "index_prefix_active_storage_blobs_suffix_on_key", unique: true
   end
 
   create_table "active_storage_variant_records", force: :cascade do |t|
@@ -70,7 +70,7 @@ ActiveRecord::Schema[8.1].define(version: 2019_03_17_200724) do
   create_table "reviews", force: :cascade do |t|
     t.integer "message_id", null: false
     t.string "author_name", null: false
-    t.index ["message_id"], name: "index_reviews_on_message_id"
+    t.index ["message_id"], name: "index_prefix_reviews_suffix_on_message_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
