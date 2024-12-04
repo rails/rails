@@ -1,3 +1,20 @@
+*   SQLite extensions can be configured in `config/database.yml`.
+
+    The database configuration option `extensions:` allows an application to load SQLite extensions
+    when using `sqlite3` >= v2.4.0. The array members may be filesystem paths or the names of
+    modules that respond to `.to_path`:
+
+    ``` yaml
+    development:
+      adapter: sqlite3
+      extensions:
+        - SQLean::UUID                     # module name responding to `.to_path`
+        - .sqlpkg/nalgeon/crypto/crypto.so # or a filesystem path
+        - <%= AppExtensions.location %>    # or ruby code returning a path
+    ```
+
+    *Mike Dalessio*
+
 *   `ActiveRecord::Middleware::ShardSelector` supports granular database connection switching.
 
     A new configuration option, `class_name:`, is introduced to
