@@ -624,6 +624,21 @@ end
 NOTE: To delete a cookie, you need to use `cookies.delete(:key)`. Setting the
 `key` to a `nil` value does not delete the cookie.
 
+When passed a scalar value, the cookie will be deleted when the user closes their browser.
+If you want the cookie to expire at a specific time, pass a hash with the `:expires` option when setting the cookie.
+For example, to set a cookie that expires in 1 hour:
+
+```ruby
+cookies[:login] = { value: "XJ-122", expires: 1.hour }
+```
+
+If you want to create cookies that never expire use the permanent cookie jar.
+This sets the assigned cookies to have an expiration date 20 years from now.
+
+```ruby
+cookies.permanent[:locale] = "fr"
+```
+
 ### Encrypted and Signed Cookies
 
 Since cookies are stored on the client browser, they can be susceptible to
@@ -723,7 +738,7 @@ To remove something from the session, delete the key/value pair. Deleting the
 class SessionsController < ApplicationController
   def destroy
     session.delete(:current_user_id)
-    # Clear the current user as well
+    # Clear the current user as well.
     @current_user = nil
     redirect_to root_url, status: :see_other
   end
@@ -784,9 +799,15 @@ redirect_to root_url, notice: "You have successfully logged out."
 redirect_to root_url, alert: "There was an issue."
 ```
 
-You can set any key in a flash (similar to sessions), you're not limited to
-`notice` and `alert`. For example, setting `redirect_to root_url, flash: {
-just_signed_up: true }` will allow you to have the below in the view:
+You're not limited to `notice` and `alert`.
+You can set any key in a flash (similar to sessions), by assigning it to the `:flash` argument.
+For example, assigning `:just_signed_up`:
+
+```ruby
+redirect_to root_url, flash: { just_signed_up: true }
+```
+
+This will allow you to have the below in the view:
 
 ```erb
 <% if flash[:just_signed_up] %>
@@ -884,7 +905,7 @@ end
 [`flash.now`]:
     https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-now
 
-### Session Storage Options
+### Session Stores
 
 All sessions have a unique ID that represents the session object; these session
 IDs are stored in a cookie. The actual session objects use one of the following
@@ -895,12 +916,14 @@ storage mechanisms:
   cache.
 * [`ActionDispatch::Session::ActiveRecordStore`][activerecord-session_store] -
   Stores the data in a database using Active Record (requires the
-  [`activerecord-session_store`][activerecord-session_store] gem)
-* A custom store or a store provided by a third party gem
+  [`activerecord-session_store`][activerecord-session_store] gem).
+* A custom store or a store provided by a third party gem.
 
 For most session stores, the unique session ID in the cookie is used to look up
 session data on the server (e.g. a database table). Rails does not allow you to
 pass the session ID in the URL as this is less secure.
+
+#### `CookieStore`
 
 The `CookieStore` is the default and recommended session store. It stores all
 session data in the cookie itself (the session ID is still available to you if
@@ -912,6 +935,8 @@ options - but this is usually enough. Storing large amounts of data in the
 session is discouraged. You should especially avoid storing complex objects
 (such as model instances) in the session.
 
+#### `CacheStore`
+
 You can use the `CacheStore` if your sessions don't store critical data or don't
 need to be around for long periods (for instance if you just use the flash for
 messaging). This will store sessions using the cache implementation you have
@@ -921,6 +946,9 @@ or administration. The downside is that the session storage will be temporary
 and they could disappear at any time.
 
 Read more about session storage in the [Security Guide](security.html#sessions).
+
+### Session Storage Options
+
 
 There are a few configuration options related to session storage. You can
 configure the type of storage in an initializer:
@@ -960,8 +988,9 @@ credentials:edit`.
 secret_key_base: 492f...
 ```
 
-WARNING: Changing the secret_key_base when using the `CookieStore` will
-invalidate all existing sessions.
+WARNING: Changing the `secret_key_base` when using the `CookieStore` will
+invalidate all existing sessions. You'll need to configure a [cookie rotator](https://edgeguides.rubyonrails.org/configuring.html#config-action-dispatch-cookies-rotations)
+to rotate existing sessions.
 
 [`ActionDispatch::Session::CookieStore`]:
     https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
@@ -1078,7 +1107,7 @@ The `around_action` callback also wraps rendering. In the example above, view
 rendering will be included in the `duration`. The code after the `yield` in an
 `around_action` is run even when there is an exception in the associated action
 and there is an `ensure` block in the callback. (This is different from
-`after_action` callbacks where exception in the action cancels the
+`after_action` callbacks where an exception in the action cancels the
 `after_action` code.)
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
@@ -1142,14 +1171,14 @@ of the controller but gets `controller` and `action` as an argument.
 
 In general, the class being used for a `*_action` callback must implement a
 method with the same name as the action callback. So for the `before_action`
-action callback, the class must implement a `before` method, and so on. Also,
+callback, the class must implement a `before` method, and so on. Also,
 the `around` method must `yield` to execute the action.
 
 The Request and Response Objects
 --------------------------------
 
 Every controller has two methods, [`request`][] and [`response`][], which can be
-used to access the request object and the response objects associated with the
+used to access the request and response objects associated with the
 current request cycle. The `request` method returns an instance of
 [`ActionDispatch::Request`][]. The [`response`][] method returns an an instance
 of [`ActionDispatch::Response`][], an object representing what is going to be
@@ -1208,21 +1237,25 @@ access to the various parameters.
 The response object is built up during the execution of the action from
 rendering data to be sent back to the client browser. It's not usually used
 directly but sometimes, in an `after_action` callback for example, it can be
-useful to access the response directly. One use case is for setting custom
-response headers:
+useful to access the response directly. One use case is for setting the content type header:
 
 ```ruby
-response.headers["Content-Type"] = "application/pdf"
+response.content_type = "application/pdf"
+```
+
+Another use case is for setting custom response headers:
+
+```ruby
+response.headers["X-Custom-Header"] = "some value"
 ```
 
 The `headers` attribute is a hash which maps header names to header values.
 Rails sets some headers automatically but if you need to update a header or add
 a custom header, you can use `response.headers` as in the example above.
 
-NOTE: In the above case it would make more sense to use the `content_type`
-setter directly with `response.content_type`.
+NOTE: The `headers` method can be accessed directly in the controller as well.
 
-Here are some of the properies of the `response` object:
+Here are some of the properties of the `response` object:
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
