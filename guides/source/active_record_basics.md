@@ -141,6 +141,7 @@ module Library
   end
 end
 ```
+
 The above would produce `bookshelf_books` and not `library_bookshelf_books`
 
 ### Schema Conventions
