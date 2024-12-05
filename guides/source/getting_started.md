@@ -968,7 +968,7 @@ Because we passed a new `Product` instance to the form builder, it automatically
 
 To handle this, we first need to implement the `create` action in our controller.
 
-```ruby#14,15,16,17,18,19,20,21,22,23,24,25,26,27
+```ruby#14-27
 class ProductsController < ApplicationController
   def index
     @products = Product.all
