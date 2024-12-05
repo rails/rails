@@ -1627,7 +1627,13 @@ Here's an extract of the assertions provided by
 
 | Assertion                                                        | Purpose |
 | ---------------------------------------------------------------- | ------- |
-| `assert_selector`                                                | Asserts that a given selector is on the page. |
+| `assert_button(locator = nil, **options, &optional_filter_block)`| Checks if the page has a button with the given text, value or id. |
+| `assert_current_path(string, **options)`                         | Asserts that the page has the given path. |
+| `assert_field(locator = nil, **options, &optional_filter_block)` | Checks if the page has a form field with the given label, name or id. |
+| `assert_link(locator = nil, **options, &optional_filter_block)`  | Checks if the page has a link with the given text or id. |
+| `assert_selector(*args, &optional_filter_block)`                 | Asserts that a given selector is on the page. |
+| `assert_table(locator = nil, **options, &optional_filter_block`  | Checks if the page has a table with the given id or caption. |
+| `assert_text(type, text, **options)`                             | Asserts that the page has the given text content. |
 
 
 #### Screenshot Helper
