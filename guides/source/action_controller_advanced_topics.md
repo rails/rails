@@ -110,7 +110,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-TIP: Modern browsers includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+. You can use caniuse.com to check for browser versions supporting the features you'd like to use.
+TIP: Modern browsers includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+. You can use [caniuse.com](https://caniuse.com/) to check for browser versions supporting the features you'd like to use.
 
 In addition to the default of `:modern`, you can also specify the browser versions manually:
 
