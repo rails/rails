@@ -98,9 +98,12 @@
       description: >
         Action Controllers are the core of a web request in Rails.
         This guide covers how controllers work and how they fit into the
-        request cycle of your application. It includes sessions, filters,
-        cookies, data streaming, and dealing with exceptions raised by a
-        request, among other topics.
+        request cycle of your application. Topics include accessing parameters in controller actions, using sessions and cookies, controller callbacks.
+    -
+      name: Action Controller Advanced Topics
+      url: action_controller_advanced_topics.html
+      description: >
+        This guide covers a number of advanced topics related to controllers in a Rails application such as protecting against cross-site request forgery, HTTP authentication, data streaming, and dealing with exceptions, log filtering, and more.
     -
       name: Rails Routing from the Outside In
       url: routing.html
