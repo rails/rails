@@ -274,7 +274,7 @@ class PeopleController < ActionController::Base
     # permit list between create and update. Also, you can specialize
     # this method with per-user checking of permissible attributes.
     def person_params
-      params.expect(person: [:name, :age])
+      params.expect(person: [ :name, :age ])
     end
 end
 ```
@@ -327,7 +327,7 @@ When expecting params from a form, use `expect` to ensure that the root key
 is present and the attributes are permitted.
 
 ```ruby
-user_params = params.expect(user: [:username, :password])
+user_params = params.expect(user: [ :username, :password ])
 user_params.has_key?(:username) # => true
 ```
 
@@ -360,21 +360,21 @@ You can also use `expect` (or `permit`) on nested parameters, like:
 # Given the example expected params:
 params = ActionController::Parameters.new(
   name: "Martin",
-  emails: ["me@example.com"],
+  emails: [ "me@example.com" ],
   friends: [
-    { name: "André", family: { name: "RubyGems" }, hobbies: ["keyboards", "card games"] },
-    { name: "Kewe", family: { name: "Baroness" }, hobbies: ["video games"] },
+    { name: "André", family: { name: "RubyGems" }, hobbies: [ "keyboards", "card games" ] },
+    { name: "Kewe", family: { name: "Baroness" }, hobbies: [ "video games" ] }
   ]
 )
 # the following expect will ensure the params are permitted
 name, emails, friends = params.expect(
   :name,                 # permitted scalar
   emails: [],            # array of permitted scalars
-  friends: [[            # array of permitted Parameter hashes
+  friends: [ [            # array of permitted Parameter hashes
     :name,               # permitted scalar
-    family: [:name],     # family: { name: "permitted scalar" }
+    family: [ :name ],     # family: { name: "permitted scalar" }
     hobbies: []          # array of permitted scalars
-  ]]
+  ] ]
 )
 
 ```
@@ -396,7 +396,7 @@ parameters:
 
 ```ruby
 # permit :id and :_destroy
-params.expect(author: [ :name, books_attributes: [[ :title, :id, :_destroy ]] ])
+params.expect(author: [ :name, books_attributes: [ [ :title, :id, :_destroy ] ] ])
 ```
 
 Hashes with integer keys are treated differently, and you can declare
@@ -410,7 +410,7 @@ with a `has_many` association:
 #             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
 #                                        "2" => {"title" => "Second Chapter"}}}}
 
-params.expect(book: [ :title, chapters_attributes: [[ :title ]] ])
+params.expect(book: [ :title, chapters_attributes: [ [ :title ] ] ])
 ```
 
 Imagine a scenario where you have parameters representing a product
@@ -772,7 +772,7 @@ In this example, the action callback is added to `ApplicationController` and thu
 
 ```ruby
 class LoginsController < ApplicationController
-  skip_before_action :require_login, only: [:new, :create]
+  skip_before_action :require_login, only: [ :new, :create ]
 end
 ```
 
@@ -1248,7 +1248,7 @@ config.filter_redirect << "s3.amazonaws.com"
 You can set it to a String, a Regexp, or an array of both.
 
 ```ruby
-config.filter_redirect.concat ["s3.amazonaws.com", /private_path/]
+config.filter_redirect.concat [ "s3.amazonaws.com", /private_path/ ]
 ```
 
 Matching URLs will be replaced with '[FILTERED]'. However, if you only wish to filter the parameters, not the whole URLs,

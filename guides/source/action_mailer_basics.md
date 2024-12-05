@@ -904,7 +904,7 @@ class UserMailer < ApplicationMailer
 
     # An Interceptor alternative.
     def sandbox_staging
-      message.to = ["sandbox@example.com"] if Rails.env.staging?
+      message.to = [ "sandbox@example.com" ] if Rails.env.staging?
     end
 
     # A callback has more context than the comparable Observer example.
@@ -1084,7 +1084,7 @@ sent.
 ```ruby
 class SandboxEmailInterceptor
   def self.delivering_email(message)
-    message.to = ["sandbox@example.com"]
+    message.to = [ "sandbox@example.com" ]
   end
 end
 ```

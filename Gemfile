@@ -58,7 +58,7 @@ group :rubocop do
   gem "rubocop-md", require: false
 
   # This gem is used in Railties tests so it must be a development dependency.
-  gem "rubocop-rails-omakase", require: false
+  gem "rubocop-rails-omakase", github: "rails/rubocop-rails-omakase", require: false
 end
 
 group :mdl do
