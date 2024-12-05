@@ -101,6 +101,13 @@ module ActiveRecord
             attribute_names = attribute_names.dup if attribute_names.frozen?
             attribute_names << locking_column
 
+            if self[locking_column].nil?
+              raise(<<-MSG.squish)
+                For optimistic locking, '#{locking_column}' should not be set to `nil`/`NULL`.
+                Are you missing a default value or validation on '#{locking_column}'?
+              MSG
+            end
+
             self[locking_column] += 1
 
             affected_rows = self.class._update_record(
