@@ -349,15 +349,15 @@ module ActiveRecord
       def test_change_column_null_does_not_change_default_functions
         skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && supports_default_expression?
 
-        expected_function = connection.mariadb? ? "current_timestamp(6)" : "(now())"
+        function = connection.mariadb? ? "current_timestamp(6)" : "(now())"
 
-        connection.change_column_default "test_models", "created_at", -> { "(now())" }
+        connection.change_column_default "test_models", "created_at", -> { function }
         TestModel.reset_column_information
-        assert_equal expected_function, TestModel.columns_hash["created_at"].default_function
+        assert_equal function, TestModel.columns_hash["created_at"].default_function
 
         connection.change_column_null "test_models", "created_at", true
         TestModel.reset_column_information
-        assert_equal expected_function, TestModel.columns_hash["created_at"].default_function
+        assert_equal function, TestModel.columns_hash["created_at"].default_function
       end
 
       def test_remove_column_no_second_parameter_raises_exception
