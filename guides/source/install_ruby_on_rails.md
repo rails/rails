@@ -7,6 +7,8 @@ This guide will walk you through installing the Ruby programming language and th
 
 While your OS might come with Ruby pre-installed, it's often outdated and can't be upgraded. Using a version manager like [Mise](https://mise.jdx.dev/getting-started.html) allows you to install the latest Ruby version, use a different Ruby version for each app, and easily upgrade to new versions when they're released.
 
+Alternatively, you can use Dev Containers to run Rails without installing Ruby or Rails directly on your machine. Check out the [Getting Started with Dev Containers](getting_started_with_devcontainer.html) guide to learn more.
+
 --------------------------------------------------------------------------------
 
 ## Choose Your Operating System
