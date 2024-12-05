@@ -644,7 +644,7 @@ GEM
     uber (0.1.0)
     unicode-display_width (2.6.0)
     uri (0.13.1)
-    useragent (0.16.10)
+    useragent (0.16.11)
     w3c_validators (1.3.7)
       json (>= 1.8)
       nokogiri (~> 1.6)
