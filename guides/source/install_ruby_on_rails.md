@@ -9,7 +9,7 @@ While your OS might come with Ruby pre-installed, it's often outdated and can't 
 
 --------------------------------------------------------------------------------
 
-## Choose your operating system
+## Choose Your Operating System
 
 Follow the section for the operating system you use:
 
@@ -68,7 +68,7 @@ $ mise use -g ruby@3
 
 ### Install Ruby on Windows
 
-The Windows Subsystem for Linux will provide the best experience for Ruby on Rails development on Windows. It runs Ubuntu inside of Windows which allows you to work in an environment that is close to what your servers will run in production.
+The Windows Subsystem for Linux (WSL) will provide the best experience for Ruby on Rails development on Windows. It runs Ubuntu inside of Windows which allows you to work in an environment that is close to what your servers will run in production.
 
 You will need Windows 11 or Windows 10 version 2004 and higher (Build 19041 and higher).
 
@@ -98,7 +98,7 @@ $ source ~/.bashrc
 $ mise use -g ruby@3
 ```
 
-Verifying your Ruby install
+Verifying Your Ruby Install
 ---------------------------
 
 Once Ruby is installed, you can verify it works by running:
@@ -109,7 +109,7 @@ ruby 3.3.6
 ```
 
 Installing Rails
-------------------------
+----------------
 
 A "gem" in Ruby is a self-contained package of a library or Ruby program. We can use Ruby's `gem` command to install the latest version of Rails and its dependencies from [RubyGems.org](https://rubygems.org).
 

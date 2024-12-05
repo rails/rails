@@ -282,7 +282,7 @@ store(dev)> Rails.version
 It works!
 
 Active Record Model Basics
--------------------------
+--------------------------
 
 When we ran the Rails model generator to create the `Product` model, it created a file at `app/models/product.rb`. This file creates a class that uses Active Record for interacting with our `products` database table.
 
@@ -526,7 +526,7 @@ Now let's build a web interface for our Products.
 We are done with the console for now, so you can exit out of it by running `exit`.
 
 A Request's Journey Through Rails
----------------------
+---------------------------------
 
 To get Rails saying "Hello", you need to create at minimum a _route_, a _controller_ with an _action_, and a _view_. A route maps a request to a controller action. A controller action performs the necessary work to handle the request, and prepares any data for the view. A view displays data in a desired format.
 
@@ -1005,7 +1005,7 @@ The `create` action handles the data submitted by the form, but it needs to be f
 
 In `product_params`, we tell Rails to inspect the params and ensure there is a key named `:product` with an array of parameters as the value. The only permitted parameters for products is `:name` and Rails will ignore any other parameters. This protects our application from malicious users who might try to hack our application.
 
-#### Handling errors
+#### Handling Errors
 
 After assigning these params to the new `Product`, we can try to save it to the database. `@product.save` tells Active Record to run validations and save the record to the database.
 
@@ -1330,7 +1330,7 @@ end
 
 Log out and visit the products index and show pages to see they're accessible without being authenticated.
 
-### Showing Links For Authenticated Users Only
+### Showing Links for Authenticated Users Only
 
 Since only logged in users can create products, we can modify the index view to only display the new product link if the user is authenticated.
 
@@ -1460,7 +1460,7 @@ We haven't written any JavaScript yet, but we have been using Hotwire on the fro
 Learn more in the [Asset Pipeline](asset_pipeline.html) and [Working with JavaScript in Rails](working_with_javascript_in_rails.html) guides.
 
 Rich Text Fields with Action Text
---------------------------------
+---------------------------------
 
 Many applications need rich text with embeds (i.e. multimedia elements) and Rails provides this functionality out of the box with Action Text.
 
@@ -1820,7 +1820,7 @@ Then update `app/views/products/show.html.erb` to render this partial after the 
 <%= render "inventory", product: @product %>
 ```
 
-### In stock email notifications
+### In Stock Email Notifications
 
 Action Mailer is a feature of Rails that allows you to send emails. We'll use it to notify subscribers when a product is back in stock.
 
@@ -1963,7 +1963,7 @@ Active Record keeps track of changes to attributes so `back_in_stock?` checks th
 
 `notify_subscribers` uses the Active Record association to query the `subscribers` table for all subscribers for this specific product and then queues up the `in_stock` email to be sent to each of them.
 
-### Extracting A Concern
+### Extracting a Concern
 
 The Product model now has a decent amount of code for handling notifications. To better organize our code, we can extract this to an `ActiveSupport::Concern`. A Concern is a Ruby module with some syntactic sugar to make using them easier.
 
@@ -2202,7 +2202,7 @@ You can use this as a starting place to continue building out a test suite with 
 
 Learn more about [Testing Rails Applications](testing.html)
 
-Consistently formatted code with Rubocop
+Consistently Formatted Code with Rubocop
 ----------------------------------------
 
 When writing code we may sometimes use inconsistent formatting. Rails comes with a linter called Rubocop that helps keep our code formatted consistently.
