@@ -111,7 +111,7 @@ end
 
 This is called a test case, because the `ArticleTest` class inherits from
 `ActiveSupport::TestCase`. It therefore also has all the methods from
-`ActiveSupport::TestCase` available to it. [Later in this guide](#assertions-in-our-test-cases), we'll see some
+`ActiveSupport::TestCase` available to it. [Later in this guide](#assertions-in-test-cases), we'll see some
 of the methods this gives us.
 
 Any method defined within a class inherited from `Minitest::Test` (which is the
@@ -830,8 +830,21 @@ Rails model tests are stored under the `test/models` directory. Rails provides a
 generator to create a model test skeleton for you.
 
 ```bash
-$ bin/rails generate test_unit:model article title:string body:text
+$ bin/rails generate test_unit:model article
 create  test/models/article_test.rb
+```
+
+This command will generate the following file:
+
+```ruby
+# article_test.rb
+require "test_helper"
+
+class ArticleTest < ActiveSupport::TestCase
+  # test "the truth" do
+  #   assert true
+  # end
+end
 ```
 
 Model tests don't have their own superclass like `ActionMailer::TestCase`.
@@ -1607,6 +1620,16 @@ class PostsTest < MobileSystemTestCase
 end
 ```
 
+#### Capybara Assertions
+
+Here's an extract of the assertions provided by
+[`Capybara`](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) which can be used in system tests.
+
+| Assertion                                                        | Purpose |
+| ---------------------------------------------------------------- | ------- |
+| `assert_selector`                                                | Asserts that a given selector is on the page. |
+
+
 #### Screenshot Helper
 
 The
@@ -1859,6 +1882,8 @@ class ArticlePartialTest < ViewPartialTestCase
   end
 end
 ```
+
+More information about the assertions included by Capybara can be found in the [Capybara Assertions](#capybara-assertions) section.
 
 Starting in Action View version 7.1, the `#rendered` helper method returns an
 object capable of parsing the view partial's rendered content.
