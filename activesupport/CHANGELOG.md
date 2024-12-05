@@ -1,3 +1,8 @@
+*   Avoid wrapping redis in a `ConnectionPool` when using `ActiveSupport::Cache::RedisCacheStore` if the `:redis`
+    option is already a `ConnectionPool`.
+
+    *Joshua Young*
+
 *   Alter `ERB::Util.tokenize` to return :PLAIN token with full input string when string doesn't contain ERB tags.
 
     *Martin Emde*
