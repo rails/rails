@@ -3110,7 +3110,7 @@ class Author < ApplicationRecord
 end
 ```
 
-By default, querying `@auth books.size` results in a database call to perform a
+By default, querying `author.books.size` results in a database call to perform a
 `COUNT(*)` query. To optimize this, you can add a counter cache to the
 _belonging_ model (in this case, `Book`). This way, Rails can return the count
 directly from the cache without querying the database.
