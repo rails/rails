@@ -112,7 +112,7 @@ module ActiveRecord
 
     # Returns true if the transaction doesn't exist or is finalized.
     def closed?
-      @internal_transaction.nil? || @internal_transaction.state.finalized?
+      @internal_transaction.nil? || @internal_transaction.closed?
     end
 
     alias_method :blank?, :closed?

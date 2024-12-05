@@ -550,7 +550,7 @@ module ActiveRecord
       if active_connection = pool.active_connection
         current_transaction = active_connection.current_transaction
 
-        if current_transaction.open? && current_transaction.joinable? && !current_transaction.state.invalidated?
+        if current_transaction.open? && current_transaction.joinable?
           open_transactions << current_transaction
         end
       end
