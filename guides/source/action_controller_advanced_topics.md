@@ -98,6 +98,42 @@ custom Ajax calls.
 You can learn more details about the CSRF attack as well as CSRF countermeasures
 in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 
+Controlling Allowed Browser Versions
+------------------------------------
+
+Starting with version 8.0, Rails controllers use [`allow_browser`](https://api.rubyonrails.org/classes/ActionController/AllowBrowser/ClassMethods.html#method-i-allow_browser) method in `ApplicationController` to allow only modern browsers by default.
+
+```ruby
+class ApplicationController < ActionController::Base
+  # Only allow modern browsers supporting webp images, web push, badges, import # maps, CSS nesting, and CSS :has.
+  allow_browser versions: :modern
+end
+```
+
+TIP: Modern browsers includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+. You can use caniuse.com to check for browser versions supporting the features you'd like to use.
+
+In addition to the default of `:modern`, you can also specify the browser versions manually:
+
+```ruby
+class ApplicationController < ActionController::Base
+  # All versions of Chrome and Opera will be allowed, but no versions of "internet explorer" (ie). Safari needs to be 16.4+ and Firefox 121+.
+  allow_browser versions: { safari: 16.4, firefox: 121, ie: false }
+end
+```
+
+Browsers matched in the hash passed to `versions:` will be blocked if they’re below the versions specified. This means that all other browsers not mentioned in `versions:` (Chrome and Opera in the above example), as well as agents that aren’t reporting a user-agent header, _will be_ allowed access.
+
+You can also use `allow_browser` in a given controller and specify actions using `only` or `except`. For example:
+
+```ruby
+class MessagesController < ApplicationController
+  # In addition to the browsers blocked by ApplicationController, also block Opera below 104 and Chrome below 119 for the show action.
+  allow_browser versions: { opera: 104, chrome: 119 }, only: :show
+end
+```
+
+A browser that’s blocked will, by default, be served the file in `public/406-unsupported-browser.html` with a HTTP status code of “406 Not Acceptable”.
+
 HTTP Authentication
 -------------------
 

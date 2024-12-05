@@ -952,7 +952,6 @@ Read more about session storage in the [Security Guide](security.html#sessions).
 
 ### Session Storage Options
 
-
 There are a few configuration options related to session storage. You can
 configure the type of storage in an initializer:
 
