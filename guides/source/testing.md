@@ -40,9 +40,9 @@ application_system_test_case.rb  controllers/                     helpers/      
 
 ### Test Directories
 
-The `helpers`, `mailers`, and [`models`](#model-testing) directories store tests for view helpers, mailers, and models, respectively. The [`controllers`](#functional-testing-for-controllers) directory is used for tests related to controllers, routes, and views, where http requests will be simulated and assertions made on the outcomes. The [`integration`](#integration-testing) directory is reserved for tests that cover interactions between controllers.
+The `helpers`, `mailers`, and `models` directories store tests for [view helpers](#testing-view-helpers), [mailers](#testing-mailers), and [models](#model-testing), respectively. The `controllers` directory is used for [tests related to controllers](#functional-testing-for-controllers), routes, and views, where HTTP requests will be simulated and assertions made on the outcomes. The `integration` directory is reserved for [tests that cover interactions between controllers](#integration-testing).
 
-The `system` test directory holds system tests, which are used for full browser
+The `system` test directory holds [system tests](#system-testing), which are used for full browser
 testing of your application. System tests allow you to test your application the
 way your users experience it and help you test your JavaScript as well. System
 tests inherit from [Capybara](https://github.com/teamcapybara/capybara) and perform in-browser tests for your application.
@@ -145,7 +145,7 @@ as a method name, including those containing punctuation characters. While this
 may require using `define_method` and `send` to define and invoke such 
 methods, there are few formal restrictions on the names themselves.
 
-Next, let's look at our first assertion:
+This part of a test is called an 'assertion':
 
 ```ruby
 assert true
@@ -166,7 +166,7 @@ the test pass.
 #### Your First Failing Test
 
 To see how a test failure is reported, you can add a failing test to the
-`article_test.rb` test case. In this example, we assert that the article will 
+`article_test.rb` test case. In this example, it is asserted that the article will 
 not save without meeting certain criteria; hence, if the article saves 
 successfully, the test will fail, demonstrating a test failure.
 
@@ -177,8 +177,8 @@ test "should not save article without title" do
 end
 ```
 
-Let us run this newly added test (with `6` being the line number where the test is
-defined).
+Here is the output if this newly added test is run (with `6` being the line number where the test is
+defined):
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
@@ -203,7 +203,7 @@ Finished in 0.023918s, 41.8090 runs/s, 41.8090 assertions/s.
 1 runs, 1 assertions, 1 failures, 0 errors, 0 skips
 ```
 
-In the output, `F` indicates a test failure. The trace under `Failure` includes the name of the failing test, 
+In the output, `F` indicates a test failure. The section under `Failure` includes the name of the failing test, 
 followed by a stack trace and a message showing the actual value and the expected value from the 
 assertion. The default assertion messages offer just enough information to help identify the error. 
 For improved readability, every assertion allows an optional message parameter to customize the failure 
@@ -224,7 +224,7 @@ ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/model
 Saved the article without a title
 ```
 
-To get this test to pass we can add a model level validation for the `title`
+To get this test to pass a model-level validation can be added for the `title`
 field.
 
 ```ruby
@@ -233,9 +233,8 @@ class Article < ApplicationRecord
 end
 ```
 
-Now the test should pass, as we have not initialized the article in our test
-with a `title`, so the model validation will prevent the save. Let us verify by
-running the test again:
+Now the test should pass, as the article in our test
+has not been initialized with a `title`, so the model validation will prevent the save. This can be verified by running the test again:
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
@@ -253,10 +252,7 @@ Finished in 0.027476s, 36.3952 runs/s, 36.3952 assertions/s.
 
 The small green dot displayed means that the test has passed successfully.
 
-NOTE: In that process, we first wrote a test which fails for a desired
-functionality, then we wrote some code which adds the functionality and finally
-we ensured that our test passes. This approach to software development is
-referred to as _Test-Driven Development_ (TDD).
+NOTE: In that process, a test was written first which fails for a desired functionality, then after, some code was written which adds the functionality. Finally, the test was run again to ensure it passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
 
 #### Reporting Errors
 
@@ -315,7 +311,7 @@ the `-b` (or `--backtrace`) argument to enable this behavior:
 $ bin/rails test -b test/models/article_test.rb
 ```
 
-If we want this test to pass we can modify it to use `assert_raises` (so we are
+If you want this test to pass you can modify it to use `assert_raises` (so you are
 now checking for the presence of the error) like so:
 
 ```ruby
@@ -387,7 +383,7 @@ documentation](http://docs.seattlerb.org/minitest/Minitest), specifically
 With minitest you can add your own assertions. In fact, that's exactly what Rails does. It includes some
 specialized assertions to make your life easier.
 
-NOTE: Creating your own assertions is a topic that we won't cover in
+NOTE: Creating your own assertions is a topic that we won't cover in depth in
 this guide.
 
 ### Rails-Specific Assertions
@@ -568,7 +564,7 @@ $ bin/rails test test/controllers # run all tests from specific directory
 
 The test runner also provides a lot of other features like failing fast,
 showing verbose progress, and so on. Check the
-documentation of the test runner as follows:
+documentation of the test runner using the command below:
 
 ```bash
 $ bin/rails test -h
@@ -632,7 +628,7 @@ schema. The test helper checks whether your test database has any pending
 migrations. It will try to load your `db/schema.rb` or `db/structure.sql` into
 the test database. If migrations are still pending, an error will be raised.
 Usually this indicates that your schema is not fully migrated. Running the
-migrations against the development database (using `bin/rails db:migrate`) will bring
+migrations (using `bin/rails db:migrate RAILS_ENV=test`) will bring
 the schema up to date.
 
 NOTE: If there were modifications to existing migrations, the test database
@@ -715,7 +711,7 @@ Article `first` found in `fixtures/articles.yml` for the latter.
 
 NOTE: For associations to reference one another by name, you can use the fixture
 name instead of specifying the `id:` attribute on the associated fixtures. Rails
-will auto assign a primary key to be consistent between runs. For more
+will auto-assign a primary key to be consistent between runs. For more
 information on this association behavior please read the [Fixtures API
 documentation](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
