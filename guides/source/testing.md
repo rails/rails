@@ -1310,13 +1310,9 @@ class BlogFlowTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Let's take a look at `assert_selector` to query the resulting HTML of a request in
-the [Testing Views](#testing-views) section below. It is used for testing the
-response of the request by asserting the presence of key HTML elements and their
-content.
+If you visit the root path, you should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
 
-If you visit the root path, you should see `welcome/index.html.erb` rendered for
-the view. So this assertion should pass.
+NOTE: The assertion `assert_selector` is available in integration tests to check the presence of key HTML elements and their content. It is similar to `assert_dom`, which should be used when [testing views](#testing-views) as outlined in the section below.
 
 #### Creating Articles Integration
 
