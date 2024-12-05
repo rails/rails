@@ -12,6 +12,7 @@ After reading this guide, you will know:
 * The basic principles of MVC (Model, View, Controller) and RESTful design.
 * How to quickly generate the starting pieces of a Rails application.
 * How to deploy your app to production using Kamal.
+
 --------------------------------------------------------------------------------
 
 Introduction
@@ -241,6 +242,7 @@ Now that you have defined what change to make to the database, use the following
 ```bash
 $ bin/rails db:migrate
 ```
+
 This command checks for any new migrations and applies them to your database. Its output looks like this:
 
 ```bash
@@ -375,6 +377,7 @@ store(dev)> Product.where(name: "Pants")
   Product Load (1.5ms)  SELECT "products".* FROM "products" WHERE "products"."name" = 'Pants' /* loading for pp */ LIMIT 11 /*application='Store'*/
 => [#<Product:0x000000012184d858 id: 2, name: "Pants", created_at: "2024-11-09 16:36:01.856751000 +0000", updated_at: "2024-11-09 16:36:01.856751000 +0000">]
 ```
+
 This generates a `SELECT` SQL query but also adds a `WHERE` clause to filter the records that have a `name` matching `"Pants"`. This also returns an `ActiveRecord::Relation` because multiple records may have the same name.
 
 We can use `order(name: :asc)` to sort records by name in ascending alphabetical order by `name`.
@@ -990,9 +993,9 @@ class ProductsController < ApplicationController
 
   private
 
-	def product_params
-	  params.expect(product: [ :name ])
-	end
+    def product_params
+      params.expect(product: [ :name ])
+    end
 end
 ```
 
@@ -1053,7 +1056,7 @@ class ProductsController < ApplicationController
 
   def update
     @product = Product.find(params[:id])
-	if @product.update(product_params)
+    if @product.update(product_params)
       redirect_to @product
     else
       render :new, status: :unprocessable_entity
@@ -1062,9 +1065,9 @@ class ProductsController < ApplicationController
 
   private
 
-	def product_params
-	  params.expect(product: [ :name ])
-	end
+    def product_params
+      params.expect(product: [ :name ])
+    end
 end
 ```
 
@@ -1113,7 +1116,7 @@ class ProductsController < ApplicationController
   end
 
   def update
-	if @product.update(product_params)
+    if @product.update(product_params)
       redirect_to @product
     else
       render :new, status: :unprocessable_entity
@@ -1207,7 +1210,7 @@ class ProductsController < ApplicationController
   end
 
   def update
-	if @product.update(product_params)
+    if @product.update(product_params)
       redirect_to @product
     else
       render :new, status: :unprocessable_entity
@@ -1225,9 +1228,9 @@ class ProductsController < ApplicationController
       @product = Product.find(params[:id])
     end
 
-	def product_params
-	  params.expect(product: [ :name ])
-	end
+    def product_params
+      params.expect(product: [ :name ])
+    end
 end
 ```
 
@@ -1641,7 +1644,7 @@ en:
   hello: "Hello world"
   products:
     index:
-	    title: "Products"
+      title: "Products"
 ```
 
 In the Spanish locales file, we can do the same thing:

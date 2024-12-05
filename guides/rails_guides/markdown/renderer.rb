@@ -182,7 +182,7 @@ module RailsGuides
           return [nil, []] unless language
 
           language, lines = language.split("#", 2)
-          lines = lines.to_s.split(",").flat_map{ parse_range(_1) }
+          lines = lines.to_s.split(",").flat_map { parse_range(_1) }
 
           [language, lines]
         end
