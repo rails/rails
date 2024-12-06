@@ -328,6 +328,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal 5, pool.instance_variable_get(:@timeout)
     end
 
+    def test_no_connection_pooling_by_default_when_already_pool
+      redis = ::ConnectionPool.new(size: 10, timeout: 2.5) { Redis.new }
+      cache = ActiveSupport::Cache.lookup_store(:redis_cache_store, redis: redis)
+      pool = cache.redis
+      assert_kind_of ::ConnectionPool, pool
+      assert_same redis, pool
+      assert_equal 10, pool.size
+      assert_equal 2.5, pool.instance_variable_get(:@timeout)
+    end
+
     private
       def store
         [:redis_cache_store]
