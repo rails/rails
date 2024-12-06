@@ -1,3 +1,9 @@
+*   Accept a block for `ActiveJob::ConfiguredJob#perform_later`.
+
+    This was inconsistent with a regular `ActiveJob::Base#perform_later`.
+
+    *fatkodima*
+
 *   Raise a more specific error during deserialization when a previously serialized job class is now unknown.
 
     `ActiveJob::UnknownJobClassError` will be raised instead of a more generic
