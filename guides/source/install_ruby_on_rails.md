@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Install Ruby on Rails Guide
-=====================
+===========================
 
 This guide will walk you through installing the Ruby programming language and the Rails framework on your operating system.
 
@@ -115,7 +115,7 @@ Installing Rails
 
 A "gem" in Ruby is a self-contained package of a library or Ruby program. We can use Ruby's `gem` command to install the latest version of Rails and its dependencies from [RubyGems.org](https://rubygems.org).
 
-Run the following to install the latest Rails and make it available in your terminal:
+Run the following command to install the latest Rails and make it available in your terminal:
 
 ```bash
 $ gem install rails

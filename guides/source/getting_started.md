@@ -237,7 +237,7 @@ The `create_table` block then defines which columns and types should be defined 
 
 ### Running Migrations
 
-Now that you have defined what change to make to the database, use the following command to run the migrations:
+Now that you have defined what changes to make to the database, use the following command to run the migrations:
 
 ```bash
 $ bin/rails db:migrate
@@ -470,7 +470,7 @@ store(dev)> product.destroy
 => #<Product:0x0000000125813d48 id: 1, name: "T-Shirt", created_at: "2024-11-09 22:39:38.498730000 +0000", updated_at: "2024-11-09 22:39:38.498730000 +0000">
 ```
 
-This deleted the T-Shirt product from our database. We can confirm this with `Product.all` to see that that it only returns Pants.
+This deleted the T-Shirt product from our database. We can confirm this with `Product.all` to see that it only returns Pants.
 
 ```irb
 store(dev)> Product.all
@@ -1527,7 +1527,7 @@ Create a new product and add a description with bold and italic text. You'll see
 Check out the [Action Text Overview](action_text_overview.html) to learn more.
 
 File Uploads with Active Storage
--------------------------------
+--------------------------------
 
 Action Text is built upon another feature of Rails called Active Storage that makes it easy to upload files.
 
