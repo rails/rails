@@ -40,7 +40,7 @@ application_system_test_case.rb  controllers/                     helpers/      
 
 ### Test Directories
 
-The `helpers`, `mailers`, and `models` directories store tests for [view helpers](#testing-view-helpers), [mailers](#testing-mailers), and [models](#model-testing), respectively. The `controllers` directory is used for [tests related to controllers](#functional-testing-for-controllers), routes, and views, where HTTP requests will be simulated and assertions made on the outcomes. The `integration` directory is reserved for [tests that cover interactions between controllers](#integration-testing).
+The `helpers`, `mailers`, and `models` directories store tests for [view helpers](#testing-view-helpers), [mailers](#testing-mailers), and [models](#testing-models), respectively. The `controllers` directory is used for [tests related to controllers](#functional-testing-for-controllers), routes, and views, where HTTP requests will be simulated and assertions made on the outcomes. The `integration` directory is reserved for [tests that cover interactions between controllers](#integration-testing).
 
 The `system` test directory holds [system tests](#system-testing), which are used for full browser
 testing of your application. System tests allow you to test your application the
@@ -815,8 +815,8 @@ users(:david, :steve)
 ```
 
 
-Model Testing
--------------
+Testing Models
+--------------
 
 Model tests are used to test the models of your application and their
 associated logic. You can test this logic using the assertions and fixtures that
@@ -923,37 +923,37 @@ The `get` method kicks off the web request and populates the results into the
   (e.g. query string parameters or article variables).
 * `headers`: for setting the headers that will be passed with the request.
 * `env`: for customizing the request environment as needed.
-* `xhr`: whether the request is Ajax request or not. Can be set to true for
-  marking the request as Ajax.
+* `xhr`: whether the request is AJAX request or not. Can be set to true for
+  marking the request as AJAX.
 * `as`: for encoding the request with different content type.
 
 All of these keyword arguments are optional.
 
-Example: Calling the `:show` action for the first `Article`, passing in an
+Example: Calling the `:show` action (via a `get` request) for the first `Article`, passing in an
 `HTTP_REFERER` header:
 
 ```ruby
 get article_url(Article.first), headers: { "HTTP_REFERER" => "http://example.com/home" }
 ```
 
-Another example: Calling the `:update` action for the last `Article`, passing in
-new text for the `title` in `params`, as an Ajax request:
+Another example: Calling the `:update` action (via a `patch` request) for the last `Article`, passing in
+new text for the `title` in `params`, as an AJAX request:
 
 ```ruby
 patch article_url(Article.last), params: { article: { title: "updated" } }, xhr: true
 ```
 
-One more example: Calling the `:create` action to create a new article, passing
+One more example: Calling the `:create` action (via a `post` request) to create a new article, passing
 in text for the `title` in `params`, as JSON request:
 
 ```ruby
-post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
+post articles_url, params: { article: { title: "Ahoy!" } }, as: :json
 ```
 
 NOTE: If you try running the `test_should_create_article` test from
 `articles_controller_test.rb` it will (correctly) fail due to the newly added model-level validation.
 
-Let us modify the `test_should_create_article` test in
+Now to modify the `test_should_create_article` test in
 `articles_controller_test.rb` so that this test passes:
 
 ```ruby
@@ -994,14 +994,14 @@ C.R.U.D. application you'll be using `post`, `get`, `put`, and `delete` most oft
 NOTE: Functional tests do not verify whether the specified request type is
 accepted by the action; instead, they focus on the result. For testing the request type, request tests are available, making your tests more purposeful.
 
-### Testing XHR (Ajax) Requests
+### Testing XHR (AJAX) Requests
 
 An AJAX request (Asynchronous Javscript and XML) is a technique where content is fetched from the server using asynchronous HTTP requests and the relevant parts of the page are updated without requiring a full page load. 
 
-To test Ajax requests, you can specify the `xhr: true` option to `get`, `post`, `patch`, `put`, and `delete` methods. For example:
+To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`, `patch`, `put`, and `delete` methods. For example:
 
 ```ruby
-test "ajax request" do
+test "AJAX request" do
   article = articles(:one)
   get article_url(article), xhr: true
 
@@ -1068,13 +1068,9 @@ get articles_url, headers: { "HTTP_REFERER": "http://example.com/home" } # simul
 
 ### Testing `flash` Notices
 
-As we have seen in the [sections above](#testing-other-request-objects), one of the three hash objects we have
-access to is `flash`.
+As can be seen in the [testing other request objects section](#testing-other-request-objects), one of the three hash objects that is accessible in the tests is `flash`. This section outlines how to test the appearance of a `flash` message in our blog application whenever someone successfully creates a new article.
 
-We want to add a `flash` message to our blog application whenever someone
-successfully creates a new Article.
-
-Let's start by adding this assertion to our `test_should_create_article` test:
+First, an assertion should be added to the `test_should_create_article` test:
 
 ```ruby
 test "should create article" do
@@ -1087,7 +1083,7 @@ test "should create article" do
 end
 ```
 
-If we run our test now, we should see a failure:
+If the test is run now, it should fail:
 
 ```bash
 $ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
@@ -1111,8 +1107,8 @@ ArticlesControllerTest#test_should_create_article [/test/controllers/articles_co
 1 runs, 4 assertions, 1 failures, 0 errors, 0 skips
 ```
 
-Let's implement the flash message now in our controller. Our `:create` action
-should now look like this:
+Now implement the flash message in the controller. The `:create` action
+should look like this:
 
 ```ruby
 def create
@@ -1127,7 +1123,7 @@ def create
 end
 ```
 
-Now, if we run our tests, we should see it pass:
+Now, if the tests are run they should pass:
 
 ```bash
 $ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
@@ -1148,10 +1144,10 @@ message will already be implemented in your `create` action.
 
 ### Tests for `show`, `update`, and `delete` Actions
 
-At this point we have looked at tests for the `:index` as well as the`:create`
-action. What about the other actions?
+So far in the guide tests for the `:index` as well as the`:create`
+action have been outlined. What about the other actions?
 
-Let's make sure we have a test for `:show`:
+You can write a test for `:show` as follows:
 
 ```ruby
 test "should show article" do
@@ -1161,8 +1157,7 @@ test "should show article" do
 end
 ```
 
-If you remember from our discussion earlier on [fixtures](#fixtures), the `articles()` method
-will give us access to the articles fixtures.
+If you remember from our discussion earlier on [fixtures](#fixtures), the `articles()` method will provide access to the articles fixtures.
 
 How about deleting an existing article?
 
@@ -1177,7 +1172,7 @@ test "should delete article" do
 end
 ```
 
-Let's also consider a test for updating an existing article.
+Here is a test for updating an existing article:
 
 ```ruby
 test "should update article" do
@@ -1245,11 +1240,11 @@ can also accept a block, lambda, or a method name as a symbol to be called.
 Integration Testing
 -------------------
 
-Integration tests take functional controller tests one step further - they focus on testing how various parts of our application interact, and are
-generally used to test important workflows within our application. Rails
+Integration tests take functional controller tests one step further - they focus on testing how several parts of an application interact, and are
+generally used to test important workflows. Rails
 integration tests are stored in the `test/integration` directory. 
 
-Rails provides a generator to create an integration test skeleton for us.
+Rails provides a generator to create an integration test skeleton as follows:
 
 ```bash
 $ bin/rails generate integration_test user_flows
@@ -1293,7 +1288,7 @@ previous command you should see:
       create    test/integration/blog_flow_test.rb
 ```
 
-Now let's open that file and write our first assertion:
+Now open that file and write the first assertion:
 
 ```ruby
 require "test_helper"
@@ -1329,8 +1324,6 @@ test "can create an article" do
 end
 ```
 
-Let's break this test down:
-
 The `:new` action of our Articles controller is called first, and the response should be successful.
 
 Next, a `post` request is made to the `:create` action of the Articles controller:
@@ -1355,7 +1348,7 @@ are a great place to experiment with all kinds of use cases for our applications
 
 ### Helpers Available for Integration Tests
 
-There are numerous helpers to choose from to aid in the integration tests. Some include:
+There are numerous helpers to choose from for use in integration tests. Some include:
 
 * [`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html) for helpers relating to the integration test runner, including creating a new session.
 
