@@ -252,7 +252,7 @@ This command checks for any new migrations and applies them to your database. It
 == 20240426151900 CreateProducts: migrated (0.0031s) ==========================
 ```
 
-TIP: If you make a mistake, you can run `rails db:rollback` to undo the last migration.
+TIP: If you make a mistake, you can run `bin/rails db:rollback` to undo the last migration.
 
 Rails Console
 -------------
@@ -852,7 +852,7 @@ It would be helpful for the index page to link to the show page for each product
 
 Refresh this page in your browser and you'll see that this works, but we can do better.
 
-Rails provides helper methods for generating paths and URLs. When you run `rails routes`, you'll see the Prefix column. This prefix matches the helpers you can use for generating URLs with Ruby code.
+Rails provides helper methods for generating paths and URLs. When you run `bin/rails routes`, you'll see the Prefix column. This prefix matches the helpers you can use for generating URLs with Ruby code.
 
 ```
                                   Prefix Verb   URI Pattern                                                                                       Controller#Action
