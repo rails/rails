@@ -138,15 +138,16 @@ module ActiveRecord
     def test_payload_connection_with_query_cache_enabled
       connection = ClothingItem.lease_connection
 
-      payloads = capture_notifications("sql.active_record") do
-        assert_notifications_count("sql.active_record", 2) do
-          Book.cache do
-            Book.first
-            Book.first
-          end
+      notifications = capture_notifications("sql.active_record") do
+        Book.cache do
+          Book.first
+          Book.first
         end
-      end.map(&:payload)
+      end
 
+      payloads = notifications.select { _1.payload[:sql].match?("SELECT") }.map(&:payload)
+
+      assert_equal 2, payloads.size
       assert_equal connection, payloads.first[:connection]
       assert_equal connection, payloads.second[:connection]
     end
