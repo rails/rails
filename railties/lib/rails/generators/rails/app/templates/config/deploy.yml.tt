@@ -121,7 +121,7 @@ builder:
 #     directories:
 #       - data:/var/lib/mysql
 #   redis:
-#     image: redis:7.0
+#     image: valkey/valkey:8
 #     host: 192.168.0.2
 #     port: 6379
 #     directories:
