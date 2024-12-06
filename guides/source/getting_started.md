@@ -163,13 +163,13 @@ This page is the *smoke test* for a new Rails application, ensuring that everyth
 
 To stop the Rails server anytime, press `Ctrl-C` in your terminal.
 
-### Automatic Reloading in Development
+### Autoloading in Development
 
 Developer happiness is a cornerstone philosophy of Rails and one way of achieving this is with automatic code reloading in development.
 
 Once you start the Rails server, new files or changes to existing files are detected and automatically loaded or reloaded as necessary. This allows you to focus on building without having to restart your Rails server after every change.
 
-You may also notice that Rails applications rarely use `require` statements. Rails uses naming conventions to require files automatically so you can focus on writing your application code.
+You may also notice that Rails applications rarely use `require` statements like you may have seen in other programming languages. Rails uses naming conventions to require files automatically so you can focus on writing your application code.
 
 See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html) for more details.
 
@@ -584,7 +584,7 @@ end
 
 This route tells Rails to look for GET requests to the `/products` path. In this example, we specified `"products#index"` for where to route the request.
 
-When Rails sees a request that matches, it will send the request to the `ProductsController` and the `index` action inside of that controller. This is how Rails will the request and return a response to the browser.
+When Rails sees a request that matches, it will send the request to the `ProductsController` and the `index` action inside of that controller. This is how Rails will process the request and return a response to the browser.
 
 You'll notice that we don't need to specify the protocol, domain, or query params in our routes. That's basically because the protocol and domain make sure the request reaches your server. From there, Rails picks up the request and knows which path to use for responding to the request based on what routes are defined. The query params are like options that Rails can use to apply to the request, so they are typically used in the controller for filtering the data.
 
@@ -927,7 +927,7 @@ We can update `app/views/products/index.html.erb` to link to the new action.
 <div id="products">
   <% @products.each do |product| %>
     <div>
-        <%= link_to product.name, product %>
+      <%= link_to product.name, product %>
     </div>
   <% end %>
 </div>
