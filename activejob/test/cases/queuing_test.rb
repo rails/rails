@@ -50,6 +50,15 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
+  test "configured job is yielded to block after enqueue with successfully_enqueued property set" do
+    HelloJob.set(queue: :some_queue).perform_later "John" do |job|
+      assert_equal "John says hello", JobBuffer.last_value
+      assert_equal [ "John" ], job.arguments
+      assert_equal "some_queue", job.queue_name
+      assert_equal true, job.successfully_enqueued?
+    end
+  end
+
   test "when enqueuing raises an EnqueueError job is yielded to block with error set on job" do
     EnqueueErrorJob.perform_later do |job|
       assert_equal false, job.successfully_enqueued?
