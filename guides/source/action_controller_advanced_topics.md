@@ -182,7 +182,7 @@ credentials are hashed instead and a
 is sent.
 
 Using digest authentication with Rails can be done by using
-the[`authenticate_or_request_with_http_digest`][] method:
+the [`authenticate_or_request_with_http_digest`][] method:
 
 ```ruby
 class AdminsController < ApplicationController
@@ -199,7 +199,7 @@ class AdminsController < ApplicationController
 end
 ```
 
-The`authenticate_or_request_with_http_digest` block takes only one argument -
+The `authenticate_or_request_with_http_digest` block takes only one argument -
 the username. The block returns the password if found. If the return value is
 `false` or `nil`, it is considered an authentication failure.
 
@@ -212,7 +212,7 @@ Token authentication (aka "Bearer" authentication) is an authentication method
 where a client receives a unique token after successfully logging in, which it
 then includes in the `Authorization` header of future requests. Instead of
 sending credentials with each request, the client sends this
-[token]((https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token.html))
+[token](https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token.html)
 (a string that represents the user's session) as a "bearer" of the
 authentication.
 
