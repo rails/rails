@@ -999,7 +999,6 @@ class ProductsController < ApplicationController
   end
 
   private
-
     def product_params
       params.expect(product: [ :name ])
     end
@@ -1071,7 +1070,6 @@ class ProductsController < ApplicationController
   end
 
   private
-
     def product_params
       params.expect(product: [ :name ])
     end
@@ -1131,7 +1129,6 @@ class ProductsController < ApplicationController
   end
 
   private
-
     def set_product
       @product = Product.find(params[:id])
     end
@@ -1230,7 +1227,6 @@ class ProductsController < ApplicationController
   end
 
   private
-
     def set_product
       @product = Product.find(params[:id])
     end
@@ -1377,7 +1373,7 @@ Using the `cache` method, we can store HTML in the cache. Let's cache the header
 
 By passing `@product` into `cache`, Rails generates a unique cache key for the product. Active Record objects have a `cache_key` method that returns a String like `"products/1"`. The `cache` helper in the views combines this with the template digest to create a unique key for this HTML.
 
-To enable caching in development, run `rails dev:cache` in your terminal.
+To enable caching in development, run `bin/rails dev:cache` in your terminal.
 
 When you visit a product's show action (like `/products/2`), you'll see the new caching lines in your Rails server logs:
 
