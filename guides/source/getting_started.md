@@ -495,6 +495,13 @@ class Product < ApplicationRecord
 end
 ```
 
+You might remember that Rails automatically reloads changes during development. However, if the console is running when you make updates to the code, you'll need to manually refresh it. So let' do this now by running 'reload!'.
+
+```irb
+store(dev)> reload!
+Reloading...
+```
+
 Let's try to create a Product without a name in the Rails console.
 
 ```irb
