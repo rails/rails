@@ -330,8 +330,7 @@ Unlike Sprockets, which only copied assets that were explicitly included in a
 bundle, Propshaft automatically processes all assets from the specified paths.
 This includes images, stylesheets, JavaScript files, and more.
 
-If you want to exclude certain directories from this process, you can use
-`config.assets.excluded_paths`. Read more about this in the [Fingerprinting
+If you want to exclude certain directories from this process, you can [Fingerprinting
 section](#fingerprinting).
 
 Once precompiled, these assets can be referenced by their logical path using
@@ -410,8 +409,6 @@ Follow these steps for setup Propshaft in your Rails application:
     This layout includes the `main.css` stylesheet and `main.js` JavaScript file
     in your application.
 
-    TIP: If you need to include static files (e.g., fonts, PDFs), place them in
-    app/assets or public. Files in public are served directly without preprocessing.
 
 4. Precompile Assets for Production
 
