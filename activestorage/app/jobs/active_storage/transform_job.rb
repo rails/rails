@@ -3,10 +3,10 @@
 class ActiveStorage::TransformJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:transform] }
 
-  discard_on ActiveRecord::RecordNotFound, ActiveStorage::UnrepresentableError
+  discard_on ActiveRecord::RecordNotFound
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
-  def perform(blob, transformations)
-    blob.representation(transformations).processed
+  def perform(blob, transformation)
+    blob.representation(transformation).processed
   end
 end

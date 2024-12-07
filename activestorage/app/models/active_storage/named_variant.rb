@@ -3,19 +3,26 @@
 class ActiveStorage::NamedVariant # :nodoc:
   attr_reader :transformations, :preprocessed
 
-  def initialize(transformations)
-    @preprocessed = transformations[:preprocessed]
-    @transformations = transformations.except(:preprocessed)
+  def initialize(options)
+    @preprocessed      = options[:preprocessed]
+    @generation_option = options[:generation]
+    @transformations   = options.except(:preprocessed, :generation)
   end
 
-  def preprocessed?(record)
-    case preprocessed
-    when Symbol
-      record.send(preprocessed)
-    when Proc
-      preprocessed.call(record)
-    else
-      preprocessed
-    end
+  def generation(record)
+    return @generation_option if @generation_option
+    preprocessed?(record) ? :delayed : :on_demand
   end
+
+  private
+    def preprocessed?(record)
+      case preprocessed
+      when Symbol
+        record.send(preprocessed)
+      when Proc
+        preprocessed.call(record)
+      else
+        preprocessed
+      end
+    end
 end
