@@ -1113,8 +1113,8 @@ JavaScript workflows into Rails projects.
   or React JSX—benefit greatly from `jsbundling-rails`. These tools rely on a
   build step, which the gem seamlessly supports.
 
-By offering deep integration with Rails tools like `Propshaft` and simplifying
-JavaScript workflows, `jsbundling-rails` empowers you to build rich, dynamic
+By integrating with Rails tools like `Propshaft` and simplifying
+JavaScript workflows, `jsbundling-rails` allows you to build rich, dynamic
 front-ends while staying productive and adhering to Rails conventions.
 
 ### `cssbundling-rails`
