@@ -1367,9 +1367,8 @@ does this by running tests in either a real or a headless browser (a browser
 which runs in the background without opening a visible window). System tests use
 [Capybara](https://www.rubydoc.info/github/jnicklas/capybara) under the hood.
 
-For creating Rails system tests, you use the `test/system` directory in your
-application. Rails provides a generator to create a system test skeleton for
-you.
+Rails system tests are stored in the `test/system` directory in your
+application. To generate a system test skeleton, run the following command:
 
 ```bash
 $ bin/rails generate system_test users
@@ -1405,7 +1404,7 @@ When you generate a new application or scaffold, an
 where all the configuration for your system tests should live.
 
 If you want to change the default settings, you can change what the system tests
-are "driven by". If you want to change the driver from Selenium to Cuprite, you'd add the `cuprite` gem to your `Gemfile`. Then in your
+are "driven by". If you want to change the driver from Selenium to Cuprite, you'd add the [`cuprite`](https://github.com/rubycdp/cuprite) gem to your `Gemfile`. Then in your
 `application_system_test_case.rb` file you'd do the following:
 
 ```ruby
@@ -1497,9 +1496,8 @@ settings.
 
 ### Implementing a System Test
 
-Next a system test will be added to the blog application. This example will demonstrate how to
-write a system test by visiting the index page and creating a new blog
-article.
+This section will demonstrate how to
+add a system test to your application, which tests a visit to the index page to create a new blog article.
 
 If you used the scaffold generator, a system test skeleton was automatically
 created for you. If you didn't use the scaffold generator, start by creating a
@@ -1544,7 +1542,7 @@ sure to run `bin/rails test:system` to actually run them. You can also run
 
 #### Creating Articles System Test
 
-Now let's test the flow for creating a new article in our blog.
+Now you can test the flow for creating a new article.
 
 ```ruby
 test "should create Article" do
@@ -1571,8 +1569,7 @@ Then the test will fill in the title and body of the article with the specified
 text. Once the fields are filled in, "Create Article" is clicked on which will
 send a POST request to `/articles/create`.
 
-We will be redirected back to the articles index page and there we assert that
-the text from the new article's title is on the articles index page.
+This redirects the user back to the articles index page, and there it is asserted that the text from the new article's title is on the articles index page.
 
 #### Testing for Multiple Screen Sizes
 
@@ -1638,7 +1635,7 @@ take a screenshot of the browser.
 
 #### Taking It Further
 
-The beauty of system testing is that it is similar to [integration
+System testing is similar to [integration
 testing](#integration-testing) in that it tests the user's interaction with your
 controller, model, and view, but system testing
 tests your application as if a real user were using it. With system tests, you
@@ -1681,7 +1678,7 @@ end
 #### Using Separate Files
 
 If you find your helpers are cluttering `test_helper.rb`, you can extract them
-into separate files. One good place to store them is `test/lib` or
+into separate files. A good place to store them is `test/lib` or
 `test/test_helpers`.
 
 ```ruby
@@ -1693,7 +1690,7 @@ module MultipleAssertions
 end
 ```
 
-These helpers can then be explicitly required as needed and included as needed
+These helpers can then be explicitly required and included as needed:
 
 ```ruby
 require "test_helper"
@@ -1708,7 +1705,7 @@ class NumberTest < ActiveSupport::TestCase
 end
 ```
 
-or they can continue to be included directly into the relevant parent classes
+They can also continue to be included directly into the relevant parent classes:
 
 ```ruby
 # test/test_helper.rb
@@ -1737,7 +1734,7 @@ Testing Routes
 --------------
 
 Like everything else in your Rails application, you can test your routes. Route
-tests reside in `test/controllers/` or are part of controller tests. If your application has complex routes, Rails provides a number of useful
+tests are stored in `test/controllers/` or are part of controller tests. If your application has complex routes, Rails provides a number of useful
 helpers to test them.
 
 For more information on routing assertions available in Rails, see the API
@@ -1749,8 +1746,10 @@ Testing Views
 
 Testing the response to your request by asserting the presence of key HTML
 elements and their content is one way to test the views of your application.
-Like route tests, view tests reside in `test/controllers/` or are part of
-controller tests. 
+Like route tests, view tests are stored in `test/controllers/` or are part of
+controller tests.
+
+### Querying the HTML
 
 Methods like `assert_dom` and `assert_dom_equal` allow you to query HTML
 elements of the response by using a simple yet powerful syntax.
@@ -1820,8 +1819,7 @@ end
 
 If your application depends on [Nokogiri >=
 1.14.0](https://github.com/sparklemotion/nokogiri/releases/tag/v1.14.0) or
-higher, and [minitest >=
->5.18.0](https://github.com/minitest/minitest/blob/v5.18.0/History.rdoc#5180--2023-03-04-),
+higher, and [minitest >= 5.18.0](https://github.com/minitest/minitest/blob/v5.18.0/History.rdoc#5180--2023-03-04-),
 `document_root_element` supports [Ruby's Pattern
 Matching](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
 
@@ -1875,6 +1873,8 @@ end
 ```
 
 More information about the assertions included by Capybara can be found in the [Capybara Assertions](#capybara-assertions) section.
+
+### Parsing View Content
 
 Starting in Action View version 7.1, the `#rendered` helper method returns an
 object capable of parsing the view partial's rendered content.
