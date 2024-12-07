@@ -16,8 +16,9 @@ module ActiveRecord
           result.map_types!(@type_map_for_results).values
         end
 
+        copy_to = /copy\s+.*\(?.*\)?\s+to\s+(stdout|program.*|('|").*('|"))/i
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :close, :declare, :fetch, :move, :set, :show
+          :close, copy_to, :declare, :fetch, :move, :set, :show
         ) # :nodoc:
         private_constant :READ_QUERY
 
