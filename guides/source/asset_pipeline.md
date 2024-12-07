@@ -1163,7 +1163,7 @@ CSS](https://tailwindcss.com/), `cssbundling-rails` introduces a Node.js
 dependency. This makes it a good choice for applications already relying on Node
 for JavaScript processing with gems like `jsbundling-rails`. However, if you're
 using [`importmap-rails`](https://github.com/rails/importmap-rails) for
-JavaScript and prefer to avoid Node, standalone alternatives like
+JavaScript and prefer to avoid Node.js, standalone alternatives like
 [`dartsass-rails`](https://github.com/rails/dartsass-rails) or
 [`tailwindcss-rails`](https://github.com/rails/tailwindcss-rails) offer a
 simpler setup.
