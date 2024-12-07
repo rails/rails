@@ -289,7 +289,7 @@ Propshaft:
     your Rails application, enabling you to handle complex asset requirements
     alongside Propshaft.
 
-    Use `js-bundling-rails` with these tools to bundle JavaScript files, manage
+    Use [`js-bundling-rails`](https://github.com/rails/jsbundling-rails)with these tools to bundle JavaScript files, manage
     dependencies, and transpile modern JavaScript for browser compatibility. For
     more details, check the [`js-bundling-rails`
     documentation](https://github.com/rails/jsbundling-rails).
@@ -656,6 +656,12 @@ the latest versions of the assets are served. To manually run precompilation:
 
 ```bash
 $ RAILS_ENV=production rails assets:precompile
+```
+
+You can also set ENV["SECRET_KEY_BASE_DUMMY"] to trigger the use of a randomly generated secret_key_base that’s stored in a temporary file. This is useful when precompiling assets for production as part of a build step that otherwise does not need access to the production secrets.
+
+```bash
+$ RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 rails assets:precompile
 ```
 
 By default, assets are served from the `/assets` directory.
