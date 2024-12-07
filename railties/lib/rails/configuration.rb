@@ -49,6 +49,10 @@ module Rails
         @delete_operations = delete_operations
       end
 
+      def create_stack
+        self.class.new
+      end
+
       def insert_before(...)
         @operations << -> middleware { middleware.insert_before(...) }
       end
