@@ -1173,6 +1173,7 @@ ActiveRecord::Schema.define do
     t.integer :books_count, null: false, default: 0
     t.integer :update_count, null: false, default: 0
     t.index :nick, unique: true
+    t.references :account
   end
 
   create_table :subscriptions, force: true do |t|
