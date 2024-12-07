@@ -3,11 +3,11 @@
 The Asset Pipeline
 ==================
 
-This guide covers the asset pipeline.
+This guide explains how to handle essential asset management tasks.
 
 After reading this guide, you will know:
 
-* What the asset pipeline is and what it does.
+* What is an asset pipeline.
 * The main features of Propshaft, and how to set it up.
 * How to migrate from Sprockets to Propshaft.
 * How to use other libraries for more advanced asset management.
@@ -1040,7 +1040,7 @@ Propshaft](https://github.com/rails/propshaft/blob/main/UPGRADING.md).
 ## Advanced Asset Management
 
 Over the years, there have been multiple default approaches for handling assets.
-As the web evolved, we began to see more JavaScript-heavy applications.
+As the web evolved, we began to see more JavaScript-heavy applications. In The Rails Doctrine we believe that [The Menu Is Omakase](https://rubyonrails.org/doctrine#omakase) so we focused on the default setup within Propshaft.
 
 There is no one-size-fits-all solution for the various JavaScript and CSS
 frameworks and extensions available. However, there are other bundling libraries
