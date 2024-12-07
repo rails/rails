@@ -420,7 +420,7 @@ Follow these steps for setup Propshaft in your Rails application:
     generate the precompiled assets:
 
     ```bash
-    $ rails assets:precompile
+    $ bin/rails assets:precompile
     ```
 
     This step bundles and optimizes your assets for faster delivery in production.
