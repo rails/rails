@@ -135,9 +135,10 @@ whitespace, comments, and newlines).
 Before minification:
 
 ```javascript
-function add(a, b) {
+function add(number1, number2) {
     // Adds two numbers
-    return a + b;
+    var sum = number1 + number2;
+    return sum;
 }
 ```
 
