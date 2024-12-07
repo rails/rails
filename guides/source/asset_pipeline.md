@@ -312,10 +312,10 @@ identifiers to asset filenames. This ensures that whenever an asset is updated,
 the browser sees it as a new file and loads the latest version instead of using
 an older, cached one.
 
-Sprockets automatically handles asset fingerprinting by appending a hash to
-filenames whenever assets are updated. Similarly, Propshaft uses content-based
+Propshaft uses content-based
 fingerprinting and automatically updates asset paths in CSS to reference
-digested filenames. However, for JavaScript files, you’ll need to manually
+digested filenames. Similarly, Sprockets automatically handles asset fingerprinting by appending a hash to
+filenames whenever assets are updated. However, for JavaScript files, you’ll need to manually
 trigger the transformation or use a bundler to ensure the correct filenames are
 applied.
 
