@@ -29,7 +29,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # :method:
   #
   # Returns the associated ActiveStorage::Attachment instances.
-  has_many :attachments
+  has_many :attachments, autosave: false
 
   ##
   # :singleton-method:
