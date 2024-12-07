@@ -191,7 +191,7 @@ Assets can be referenced through their logical paths using helpers like
 `asset_path`, `image_tag`, `javascript_include_tag`, and other asset helper
 tags. After running assets:precompile in production, these logical references
 are automatically converted into their fingerprinted paths using the
-`manifest.json` file found in `public/assets`.
+`.manifest.json` file found in `public/assets`.
 
 Its possible to exclude certain directories from this process, you can read more
 about it in the [Fingerprinting section](#fingerprinting-versioning-with-digest-based-urls).
@@ -249,14 +249,14 @@ instead of using a potentially outdated cached copy.
 
 #### Manifest Files
 
-In Propshaft, the `manifest.json` file is automatically generated during the
+In Propshaft, the `.manifest.json` file is automatically generated during the
 asset precompilation process. This file maps original asset filenames to their
 fingerprinted versions, ensuring proper cache invalidation and efficient asset
-management. Located in the `public/assets` directory, the `manifest.json` file
+management. Located in the `public/assets` directory, the `.manifest.json` file
 helps Rails resolve asset paths at runtime, allowing it to reference the correct
 fingerprinted files.
 
-The default `manifest.json` includes entries for main assets like
+The default `.manifest.json` includes entries for main assets like
 `application.js` and `application.css` as well as other files, such as images.
 Here's an example of what the JSON might look like:
 
@@ -274,12 +274,6 @@ encourage caches everywhere (whether at CDNs, at ISPs, in networking equipment,
 or in web browsers) to keep their own copy of the content. When the content is
 updated, the fingerprint will change. This will cause the remote clients to
 request a new copy of the content. This is generally known as cache busting.
-
-
-Fingerprinting is enabled by default for both the development and production
-environments. When you reference an asset in your application, Rails uses the
-manifest to find the correct fingerprinted filename to include in the HTML
-output.
 
 #### Digested Assets in Views
 
@@ -472,21 +466,7 @@ Follow these steps for setup Propshaft in your Rails application:
     This layout includes the `main.css` stylesheet and `main.js` JavaScript file
     in your application.
 
-
-4. Precompile Assets for Production
-
-    In development, assets are served directly from the source, however, in
-    production, you must precompile assets. Run the following command to
-    generate the precompiled assets:
-
-    ```bash
-    $ bin/rails assets:precompile
-    ```
-
-    This step bundles and optimizes your assets for faster delivery in
-    production.
-
-5. Start your Rails server:
+4. Start your Rails server:
 
     ```bash
     $ bin/rails server
@@ -584,27 +564,18 @@ generates something like this:
 
 #### Precompiling Assets
 
-Rails comes bundled with a command to compile asset manifests and other files in
-the asset pipeline.
-
-Precompilation converts source asset files (e.g., SASS, TypeScript, CSS, or any
-other preprocessed files) into files ready to be served to clients. This can
-include tasks like compilation, minification, or uglification, depending on the
-application's needs. The resulting files are then placed in the `public/assets`
-directory, from where they are delivered by the server.
-
-In development mode, precompilation is usually not necessary because the Rails
-application server can serve the files directly, often with live reloading
-enabled.
-
 In production, precompilation is typically run during deployment to ensure that
-the latest versions of the assets are served. To manually run precompilation:
+the latest versions of the assets are served. Propshaft was explicitly not designed to provide full transpiler capabilities. However, it does offer an input -> output compiler setup that by default is used to translate `url(asset)` function calls in CSS to `url(digested-asset)` instead and source mapping comments likewise.
+
+To manually run precompilation you can use the following command:
 
 ```bash
 $ RAILS_ENV=production rails assets:precompile
 ```
 
-You can also set ENV["SECRET_KEY_BASE_DUMMY"] to trigger the use of a randomly
+After doing this, all assets in the load path will be copied (or compiled when using [advanced asset management](#advanced-asset-management)) in the precompilation step and stamped with a digest hash.
+
+Additionally, You can also set ENV["SECRET_KEY_BASE_DUMMY"] to trigger the use of a randomly
 generated secret_key_base that’s stored in a temporary file. This is useful when
 precompiling assets for production as part of a build step that otherwise does
 not need access to the production secrets.
