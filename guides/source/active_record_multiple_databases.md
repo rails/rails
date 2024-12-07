@@ -457,6 +457,9 @@ class ShardRecord < ApplicationRecord
     shard_two: { writing: :primary_shard_two, reading: :primary_shard_two_replica }
   }
 end
+
+class Person < ShardRecord
+end
 ```
 
 If you're using shards, make sure both `migrations_paths` and `schema_dump` remain unchanged for
@@ -472,13 +475,13 @@ Then models can swap shards manually via the `connected_to` API. If
 using sharding, both a `role` and a `shard` must be passed:
 
 ```ruby
-ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
-  @id = Person.create! # Creates a record in shard named ":default"
+ShardRecord.connected_to(role: :writing, shard: :shard_one) do
+  @person = Person.create! # Creates a record in shard shard_one
 end
 
-ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
-  Person.find(@id) # Can't find record, doesn't exist because it was created
-                   # in the shard named ":default".
+ShardRecord.connected_to(role: :writing, shard: :shard_two) do
+  Person.find(@person.id) # Can't find record, doesn't exist because it was created
+                   # in the shard named ":shard_one".
 end
 ```
 
@@ -486,7 +489,7 @@ The horizontal sharding API also supports read replicas. You can swap the
 role and the shard with the `connected_to` API.
 
 ```ruby
-ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+ShardRecord.connected_to(role: :reading, shard: :shard_one) do
   Person.first # Lookup record from read replica of shard one.
 end
 ```
