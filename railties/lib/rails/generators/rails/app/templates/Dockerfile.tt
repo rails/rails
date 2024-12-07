@@ -38,10 +38,17 @@ RUN apt-get update -qq && \
 ARG NODE_VERSION=<%= node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
 ENV PATH=/usr/local/node/bin:$PATH
+<% if yarn_through_corepack? -%>
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+    rm -rf /tmp/node-build-master
+RUN corepack enable && yarn set version $YARN_VERSION
+<% else -%>
 RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
     /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     npm install -g yarn@$YARN_VERSION && \
     rm -rf /tmp/node-build-master
+<% end -%>
 
 <% end -%>
 <% if using_bun? -%>
@@ -61,7 +68,7 @@ RUN bundle install && \
 <% if using_node? -%>
 # Install node modules
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 <% end -%>
 <% if using_bun? -%>
