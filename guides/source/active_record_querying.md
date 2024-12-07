@@ -2294,30 +2294,17 @@ irb> nina.save
 Finding by SQL
 --------------
 
-If you'd like to use your own SQL to find records in a table you can use [`find_by_sql`][]. The `find_by_sql` method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
+If you'd like to use your own SQL to find records in a table and return ActiveRecord objects you can use [`find_by_sql`][]. The `find_by_sql` method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
 
 ```irb
-irb> Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id ORDER BY customers.created_at desc")
+irb> sanitized_sql = Arel.sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id WHERE orders.company_id = :company_id ORDER BY customers.created_at desc", company_id: company.id)
+irb> Customer.find_by_sql(sanitized_sql)
 => [#<Customer id: 1, first_name: "Lucas" ...>, #<Customer id: 2, first_name: "Jan" ...>, ...]
 ```
 
-`find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
+Before using `find_by_sql` you should consider if `select_all` is better for you use cases. However it is different in that `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated ActiveRecord objects.
 
 [`find_by_sql`]: https://api.rubyonrails.org/classes/ActiveRecord/Querying.html#method-i-find_by_sql
-
-### `select_all`
-
-`find_by_sql` has a close relative called [`lease_connection.select_all`][]. `select_all` will retrieve
-objects from the database using custom SQL just like `find_by_sql` but will not instantiate them.
-This method will return an instance of `ActiveRecord::Result` class and calling `to_a` on this
-object would return you an array of hashes where each hash indicates a record.
-
-```irb
-irb> Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_a
-=> [{"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"}, {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}]
-```
-
-[`lease_connection.select_all`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-select_all
 
 ### `pluck`
 
@@ -2777,3 +2764,43 @@ following pointers may be helpful:
 * MariaDB: [EXPLAIN](https://mariadb.com/kb/en/mariadb/explain/)
 
 * PostgreSQL: [Using EXPLAIN](https://www.postgresql.org/docs/current/static/using-explain.html)
+
+Using Raw SQL
+---------------
+
+### Sanitizing Raw SQL input
+
+`Arel.sql` can help you safely sanitize input into your queries or query fragments
+
+```irb
+irb> sanitized_sql = Arel.sql("SELECT * FROM customers WHERE company_id = :company_id", company_id: company.id)
+=> "SELECT * FROM customers WHERE company_id = 1"
+
+### Executing model agnostic SQL queries for reads
+
+`select_all` will retrieve objects from the database using custom SQL. This method will return an instance of `ActiveRecord::Result` class and calling `to_a` on this object would return you an array of hashes where each hash indicates a row.
+
+```irb
+irb> sanitized_sql = Arel.sql("SELECT first_name, created_at FROM customers WHERE company_id = :company_id", company_id: company.id)
+irb> result = ApplicationRecord.connection.select_all(sanitized_sql)
+irb> result.to_a
+=> [{"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"}, {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}]
+```
+
+[`connection.select_all`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-select_all
+
+### Executing model agnostic SQL queries for writes
+
+While ActiveRecord supports [quite a few different write methods](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html), its largely recommended to just use `exec_query` as it should support all use cases. `exec_query` returns a non-adapter specific response object `ActiveRecord::Result`.
+
+Similar to `select_all`, the method `exec_query` will return an instance of `ActiveRecord::Result` class and calling `to_a` on this object would return you an array of hashes where each hash indicates a row if there are any return values for your particular write query.
+
+```irb
+irb> sanitized_sql = Arel.sql("UPDATE products SET price = 'free' WHERE company_id = :company_id", company_id: company.id)
+irb> result = ApplicationRecord.connection.exec_query(sanitized_sql)
+irb> result.to_a
+```
+
+[`connection.exec_query`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-exec_query
+
+Its worth mentioning that it is generally recommended to avoid usage of the `execute` method as it returns a response which is different for database adapter. Its recommended to use the `exec_query` method instead as it always returns an `ActiveRecord::Result` object. Another reason to avoid `execute` is that it may have memory usage side effects if you are not following any adapter specific logic, with `exec_query` this is handled automatically.
