@@ -428,7 +428,7 @@ Follow these steps for setup Propshaft in your Rails application:
 5. Start your Rails server:
 
     ```bash
-    $ rails server
+    $ bin/rails server
     ```
     This command starts your Rails server so you can view your application in
     a web browser.
