@@ -2103,8 +2103,6 @@ The goals of testing your mailer classes are to ensure that:
 * the email content is correct (subject, sender, body, etc)
 * the right emails are being sent at the right times
 
-#### From All Sides
-
 There are two aspects of testing your mailer, the unit tests and the functional
 tests. In the unit tests, you run the mailer in isolation with tightly
 controlled inputs and compare the output to a known value (a
