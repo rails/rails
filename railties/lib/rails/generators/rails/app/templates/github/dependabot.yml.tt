@@ -10,3 +10,10 @@ updates:
   schedule:
     interval: daily
   open-pull-requests-limit: 10
+<%- if using_js_runtime? -%>
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+<% end -%>
