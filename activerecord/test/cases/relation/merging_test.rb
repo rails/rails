@@ -94,7 +94,6 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]))
 
-
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
@@ -139,7 +138,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
-    author_id = Author.lease_connection.quote_table_name("authors.id")
+    author_id = quote_table_name("authors.id")
     assert_queries_match(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end

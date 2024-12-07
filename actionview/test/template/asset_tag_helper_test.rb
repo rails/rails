@@ -25,7 +25,7 @@ class AssetTagHelperTest < ActionView::TestCase
   attr_reader :request, :response
 
   class FakeRequest
-    attr_accessor :script_name
+    attr_accessor :script_name, :content_security_policy_nonce_directives
     def protocol() "http://" end
     def ssl?() false end
     def host_with_port() "localhost" end
@@ -722,6 +722,27 @@ class AssetTagHelperTest < ActionView::TestCase
       expected = "<http://example.com/style.css>; rel=preload; as=style; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush,<http://example.com/all.js>; rel=preload; as=script; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush"
       assert_equal expected, @response.headers["link"]
     end
+  end
+
+  def test_should_set_preload_links_with_nonce
+    @request.content_security_policy_nonce_directives = %w(script-src)
+    with_preload_links_header do
+      preload_link_tag("http://example.com/preload.js")
+      stylesheet_link_tag("http://example.com/style.css", nonce: true)
+      javascript_include_tag("http://example.com/all.js", nonce: true)
+      expected = "<http://example.com/preload.js>; rel=preload; as=script; type=text/javascript; nonce=iyhD0Yc0W+c=,<http://example.com/style.css>; rel=preload; as=style; nonce=iyhD0Yc0W+c=; nopush,<http://example.com/all.js>; rel=preload; as=script; nonce=iyhD0Yc0W+c=; nopush"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
+  def test_should_set_preload_link_tag_nonce_if_listed_in_csp_directives
+    @request.content_security_policy_nonce_directives = %w(script-src)
+    assert_equal %(<link rel="preload" href="/application.js" as="script" type="text/javascript" nonce="iyhD0Yc0W+c=">), preload_link_tag("/application.js")
+    assert_equal %(<link rel="preload" href="/style.css" as="style" type="text/css">), preload_link_tag("/style.css")
+
+    @request.content_security_policy_nonce_directives = %w(style-src)
+    assert_equal %(<link rel="preload" href="/application.js" as="script" type="text/javascript">), preload_link_tag("/application.js")
+    assert_equal %(<link rel="preload" href="/style.css" as="style" type="text/css" nonce="iyhD0Yc0W+c=">), preload_link_tag("/style.css")
   end
 
   def test_should_not_preload_links_when_disabled

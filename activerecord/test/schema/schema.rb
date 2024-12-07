@@ -138,6 +138,7 @@ ActiveRecord::Schema.define do
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
+    t.column :symbol_status, :string, default: "proposed"
     t.string :isbn
     t.string :external_id
     t.column :original_name, :string
@@ -809,6 +810,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :minimalistics, force: true do |t|
+    t.bigint :expires_at
   end
 
   create_table :mixed_case_monkeys, force: true, id: false do |t|
@@ -1070,6 +1072,8 @@ ActiveRecord::Schema.define do
   create_table :rooms, force: true do |t|
     t.references :user
     t.references :owner
+    t.references :landlord
+    t.references :tenant
   end
 
   disable_referential_integrity do

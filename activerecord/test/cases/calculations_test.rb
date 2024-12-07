@@ -227,7 +227,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_not_use_alias_for_grouped_field
-    assert_queries_match(/GROUP BY #{Regexp.escape(Account.lease_connection.quote_table_name("accounts.firm_id"))}/i) do
+    assert_queries_match(/GROUP BY #{Regexp.escape(quote_table_name("accounts.firm_id"))}/i) do
       c = Account.group(:firm_id).order("accounts_firm_id").sum(:credit_limit)
       assert_equal [1, 2, 6, 9], c.keys.compact
     end
@@ -817,6 +817,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
+  def test_sum_with_grouped_calculation
+    expected = { 0 => 0, 1 => 0, 3 => 0 }
+
+    assert_equal(expected, Post.group(:tags_count).sum)
+  end
+
   def test_from_option_with_specified_index
     edges = Edge.from("edges /*! USE INDEX(unique_edge_index) */")
     assert_equal Edge.count(:all), edges.count(:all)
@@ -976,7 +982,10 @@ class CalculationsTest < ActiveRecord::TestCase
       [2, "The Second Topic of the day"],
       [3, "The Third Topic of the day"]
     ]
+    assert_equal expected, Topic.order(:id).limit(3).pluck(:id, topics: :title)
+    assert_equal expected, Topic.order(:id).limit(3).pluck("id", "topics" => "title")
     assert_equal expected, Topic.order(:id).limit(3).pluck(:id, topics: [:title])
+    assert_equal expected, Topic.order(:id).limit(3).pluck("id", "topics" => ["title"])
   end
 
   def test_pluck_with_hash_argument_with_multiple_tables
@@ -985,6 +994,8 @@ class CalculationsTest < ActiveRecord::TestCase
       [1, 2, "Thank you again for the welcome"],
       [2, 3, "Don't think too hard"]
     ]
+    assert_equal expected, Post.joins(:comments).order(posts: { id: :asc }, comments: { id: :asc }).limit(3).pluck(:id, comments: [:id, :body])
+    assert_equal expected, Post.joins(:comments).order(posts: { id: :asc }, comments: { id: :asc }).limit(3).pluck(posts: :id, comments: [:id, :body])
     assert_equal expected, Post.joins(:comments).order(posts: { id: :asc }, comments: { id: :asc }).limit(3).pluck(posts: [:id], comments: [:id, :body])
   end
 
@@ -1145,11 +1156,13 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_with_join
     assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, topics: [:id])
+    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, topics: :id)
     assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, :"topics.id")
   end
 
   def test_pluck_with_join_alias
     assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, topic: [:id])
+    assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, topic: :id)
     assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, :"topic.id")
   end
 
@@ -1178,9 +1191,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_group_by_with_quoted_count_and_order_by_alias
-    quoted_posts_id = Post.lease_connection.quote_table_name("posts.id")
     expected = { "SpecialPost" => 1, "StiPost" => 1, "Post" => 9 }
-    actual = Post.group(:type).order("count_posts_id").count(quoted_posts_id)
+    actual = Post.group(:type).order("count_posts_id").count(quote_table_name("posts.id"))
     assert_equal expected, actual
   end
 
@@ -1233,6 +1245,18 @@ class CalculationsTest < ActiveRecord::TestCase
     takes_relation = Topic.select(:approved, :id).order(:id)
     assert_equal [1, 2, 3, 4, 5], takes_relation.pluck(:id)
     assert_equal [false, true, true, true, true], takes_relation.pluck(:approved)
+  end
+
+  def test_pluck_with_qualified_name_on_loaded
+    topics = Topic.joins(:replies).order(:id)
+
+    assert_not_predicate topics, :loaded?
+    assert_equal [[1, 2], [3, 4]], topics.pluck("topics.id", "replies.id")
+
+    topics.load
+
+    assert_predicate topics, :loaded?
+    assert_equal [[1, 2], [3, 4]], topics.pluck("topics.id", "replies.id")
   end
 
   def test_pluck_columns_with_same_name

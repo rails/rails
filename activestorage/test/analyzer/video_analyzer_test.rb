@@ -87,10 +87,10 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
   end
 
   test "instrumenting analysis" do
-    events = subscribe_events_from("analyze.active_storage")
-
-    blob = create_file_blob(filename: "video_without_audio_stream.mp4", content_type: "video/mp4")
-    blob.analyze
+    events = capture_notifications("analyze.active_storage") do
+      blob = create_file_blob(filename: "video_without_audio_stream.mp4", content_type: "video/mp4")
+      blob.analyze
+    end
 
     assert_equal 1, events.size
     assert_equal({ analyzer: "ffprobe" }, events.first.payload)

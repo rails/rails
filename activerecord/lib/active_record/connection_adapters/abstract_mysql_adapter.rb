@@ -98,7 +98,7 @@ module ActiveRecord
       end
 
       def supports_index_sort_order?
-        !mariadb? && database_version >= "8.0.1"
+        mariadb? ? database_version >= "10.8.1" : database_version >= "8.0.1"
       end
 
       def supports_expression_index?
@@ -628,22 +628,26 @@ module ActiveRecord
       end
 
       def build_insert_sql(insert) # :nodoc:
-        no_op_column = quote_column_name(insert.keys.first)
+        # Can use any column as it will be assigned to itself.
+        no_op_column = quote_column_name(insert.keys.first) if insert.keys.first
 
         # MySQL 8.0.19 replaces `VALUES(<expression>)` clauses with row and column alias names, see https://dev.mysql.com/worklog/task/?id=6312 .
         # then MySQL 8.0.20 deprecates the `VALUES(<expression>)` see https://dev.mysql.com/worklog/task/?id=13325 .
         if supports_insert_raw_alias_syntax?
+          quoted_table_name = insert.model.quoted_table_name
           values_alias = quote_table_name("#{insert.model.table_name.parameterize}_values")
           sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
 
           if insert.skip_duplicates?
-            sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{values_alias}.#{no_op_column}"
+            if no_op_column
+              sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{quoted_table_name}.#{no_op_column}"
+            end
           elsif insert.update_duplicates?
             if insert.raw_update_sql?
               sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
             else
               sql << " ON DUPLICATE KEY UPDATE "
-              sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
+              sql << insert.touch_model_timestamps_unless { |column| "#{quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
               sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
             end
           end
@@ -651,7 +655,9 @@ module ActiveRecord
           sql = +"INSERT #{insert.into} #{insert.values_list}"
 
           if insert.skip_duplicates?
-            sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
+            if no_op_column
+              sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
+            end
           elsif insert.update_duplicates?
             sql << " ON DUPLICATE KEY UPDATE "
             if insert.raw_update_sql?
@@ -742,9 +748,7 @@ module ActiveRecord
 
       private
         def strip_whitespace_characters(expression)
-          expression = expression.gsub(/\\n|\\\\/, "")
-          expression = expression.gsub(/\s{2,}/, " ")
-          expression
+          expression.gsub('\\\n', "").gsub("x0A", "").squish
         end
 
         def extended_type_map_key
@@ -949,7 +953,7 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA")
+          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
         end
 
         def create_table_info(table_name) # :nodoc:

@@ -28,7 +28,8 @@ module ActionController # :nodoc:
       # `send_file(params[:path])` allows a malicious user to download any file on
       # your server.
       #
-      # Options:
+      # #### Options:
+      #
       # *   `:filename` - suggests a filename for the browser to use. Defaults to
       #     `File.basename(path)`.
       # *   `:type` - specifies an HTTP content type. You can specify either a string
@@ -90,7 +91,8 @@ module ActionController # :nodoc:
       # inline data. You may also set the content type, the file name, and other
       # things.
       #
-      # Options:
+      # #### Options:
+      #
       # *   `:filename` - suggests a filename for the browser to use.
       # *   `:type` - specifies an HTTP content type. Defaults to
       #     `application/octet-stream`. You can specify either a string or a symbol
@@ -132,9 +134,7 @@ module ActionController # :nodoc:
         raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)
-          extension = Mime[content_type]
-          raise ArgumentError, "Unknown MIME type #{options[:type]}" unless extension
-          self.content_type = extension
+          self.content_type = content_type
         else
           if !type_provided && options[:filename]
             # If type wasn't provided, try guessing from file extension.

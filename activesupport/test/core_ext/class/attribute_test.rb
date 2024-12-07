@@ -103,6 +103,7 @@ class ClassAttributeTest < ActiveSupport::TestCase
     object = @klass.new
 
     object.singleton_class.setting = "foo"
+    assert_equal "foo", object.singleton_class.setting
     assert_equal "foo", object.setting
     assert_nil @klass.setting
 
@@ -156,5 +157,52 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_predicate @klass.new, :system?
     instance.system = 2
     assert_equal 2, instance.system
+  end
+
+  module Prepending
+    @read = 0
+    @write = 0
+
+    singleton_class.attr_accessor :read, :write
+
+    def setting
+      Prepending.read += 1
+      super
+    end
+
+    def setting=(value)
+      Prepending.write += 1
+      super
+    end
+  end
+
+  test "allow to prepend accessors" do
+    @klass.singleton_class.prepend(Prepending)
+
+    @klass.setting
+    assert_equal 1, Prepending.read
+
+    @klass.setting = true
+    assert_equal 1, Prepending.write
+    assert_equal 1, Prepending.read
+
+    @klass.setting
+    assert_equal 2, Prepending.read
+
+    @sub.setting = false
+    assert_equal 2, Prepending.write
+    assert_equal 2, Prepending.read
+
+    @sub.setting = true
+    assert_equal 3, Prepending.write
+    assert_equal 2, Prepending.read
+  end
+
+  test "can check if value is set on a sub class" do
+    # Note: this isn't a public API test and it's OK to break it.
+    # However if it's broken make sure to update ActiveSupport::Callbacks::ClassMethods#set_callbacks
+    assert_equal false, @sub.singleton_class.private_method_defined?(:__class_attr_setting, false)
+    @sub.setting = true
+    assert_equal true, @sub.singleton_class.private_method_defined?(:__class_attr_setting, false)
   end
 end

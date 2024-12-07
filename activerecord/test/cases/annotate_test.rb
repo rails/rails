@@ -7,7 +7,8 @@ class AnnotateTest < ActiveRecord::TestCase
   fixtures :posts
 
   def test_annotate_wraps_content_in_an_inline_comment
-    quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+    quoted_posts = Regexp.escape(quote_table_name("posts"))
 
     assert_queries_match(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* foo \*/}i) do
       posts = Post.select(:id).annotate("foo")
@@ -16,7 +17,8 @@ class AnnotateTest < ActiveRecord::TestCase
   end
 
   def test_annotate_is_sanitized
-    quoted_posts_id, quoted_posts = regexp_escape_table_name("posts.id"), regexp_escape_table_name("posts")
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+    quoted_posts = Regexp.escape(quote_table_name("posts"))
 
     assert_queries_match(%r{SELECT #{quoted_posts_id} FROM #{quoted_posts} /\* \* /foo/ \* \*/}i) do
       posts = Post.select(:id).annotate("*/foo/*")
@@ -43,9 +45,4 @@ class AnnotateTest < ActiveRecord::TestCase
       assert posts.first
     end
   end
-
-  private
-    def regexp_escape_table_name(name)
-      Regexp.escape(Post.lease_connection.quote_table_name(name))
-    end
 end

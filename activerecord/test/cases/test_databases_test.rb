@@ -14,7 +14,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       }
 
       base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      expected_database = "#{base_db_config.database}-2"
+      expected_database = "#{base_db_config.database}_2"
 
       ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
         assert_equal expected_database, db_config.database
@@ -37,7 +37,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
 
       idx = 42
       base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      expected_database = "#{base_db_config.database}-#{idx}"
+      expected_database = "#{base_db_config.database}_#{idx}"
 
       ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
         assert_equal expected_database, db_config.database

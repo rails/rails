@@ -2418,7 +2418,7 @@ class BillingJobTest < ActiveJob::TestCase
     assert_raises(InsufficientFundsError) do
       BillingJob.new(empty_account, product).perform
     end
-    refute account.reload.charged_for?(product)
+    assert_not account.reload.charged_for?(product)
   end
 end
 ```

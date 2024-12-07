@@ -86,6 +86,14 @@ module RailInspector
                 end
               @configs[target] = value
             end
+
+            def visit_opassign(node)
+              if node.operator.name == :"||="
+                visit_assign(node)
+              else
+                super
+              end
+            end
           end
 
           private
@@ -112,6 +120,7 @@ module RailInspector
 
             def respond_to_framework?(node)
               if node in SyntaxTree::CallNode[
+                   receiver: nil,
                    message: SyntaxTree::Ident[value: "respond_to?"],
                    arguments: SyntaxTree::ArgParen[
                      arguments: SyntaxTree::Args[

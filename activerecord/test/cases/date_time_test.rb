@@ -17,6 +17,15 @@ class DateTimeTest < ActiveRecord::TestCase
     ActiveRecord.default_timezone = :utc
   end
 
+  def test_high_precision_current_timestamp
+    current_timestamp = Task.with_connection { |conn| conn.high_precision_current_timestamp }
+
+    task = Task.create!
+    task = Task.select(current_timestamp => :starting).find(task.id)
+
+    assert_in_delta Time.now, task.starting, 1
+  end
+
   def test_saves_both_date_and_time
     with_env_tz "America/New_York" do
       with_timezone_config default: :utc do

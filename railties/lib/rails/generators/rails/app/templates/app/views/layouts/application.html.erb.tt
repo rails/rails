@@ -19,10 +19,10 @@
 
     <%- style_link_target = options[:skip_asset_pipeline] ? "\"application\"" : ":app" -%>
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
-    <%%# Includes all stylesheet files in app/views/stylesheets %>
+    <%%# Includes all stylesheet files in app/assets/stylesheets %>
     <%%= stylesheet_link_tag <%= style_link_target %> %>
     <%- else -%>
-    <%%# Includes all stylesheet files in app/views/stylesheets %>
+    <%%# Includes all stylesheet files in app/assets/stylesheets %>
     <%%= stylesheet_link_tag <%= style_link_target %>, "data-turbo-track": "reload" %>
     <%- end -%>
   </head>

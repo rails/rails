@@ -103,7 +103,19 @@ module ActiveRecord
 
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
-      # Specifies the attributes that will be included in the output of the #inspect method
+      ##
+      # :singleton-method:
+      #
+      # Specifies the attributes that will be included in the output of the
+      # #inspect method:
+      #
+      #   Post.attributes_for_inspect = [:id, :title]
+      #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!">"
+      #
+      # When set to +:all+ inspect will list all the record's attributes:
+      #
+      #   Post.attributes_for_inspect = :all
+      #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
       class_attribute :attributes_for_inspect, instance_accessor: false, default: :all
 
       def self.application_record_class? # :nodoc:
@@ -525,12 +537,7 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      @attributes = @attributes.deep_dup
-      if self.class.composite_primary_key?
-        @primary_key.each { |key| @attributes.reset(key) }
-      else
-        @attributes.reset(@primary_key)
-      end
+      @attributes = init_attributes(other)
 
       _run_initialize_callbacks
 
@@ -540,6 +547,18 @@ module ActiveRecord
       @_start_transaction_state = nil
 
       super
+    end
+
+    def init_attributes(_) # :nodoc:
+      attrs = @attributes.deep_dup
+
+      if self.class.composite_primary_key?
+        @primary_key.each { |key| attrs.reset(key) }
+      else
+        attrs.reset(@primary_key)
+      end
+
+      attrs
     end
 
     # Populate +coder+ with attributes about this record that should be
@@ -611,7 +630,7 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if primary_key_values_present?
+      if self.class.composite_primary_key? ? primary_key_values_present? : id
         self.class.hash ^ id.hash
       else
         super
@@ -708,11 +727,29 @@ module ActiveRecord
       @strict_loading_mode == :all
     end
 
-    # Marks this record as read only.
+    # Prevents records from being written to the database:
+    #
+    #   customer = Customer.new
+    #   customer.readonly!
+    #   customer.save # raises ActiveRecord::ReadOnlyRecord
     #
     #   customer = Customer.first
     #   customer.readonly!
-    #   customer.save # Raises an ActiveRecord::ReadOnlyRecord
+    #   customer.update(name: 'New Name') # raises ActiveRecord::ReadOnlyRecord
+    #
+    # Read-only records cannot be deleted from the database either:
+    #
+    #   customer = Customer.first
+    #   customer.readonly!
+    #   customer.destroy # raises ActiveRecord::ReadOnlyRecord
+    #
+    # Please, note that the objects themselves are still mutable in memory:
+    #
+    #   customer = Customer.new
+    #   customer.readonly!
+    #   customer.name = 'New Name' # OK
+    #
+    # but you won't be able to persist the changes.
     def readonly!
       @readonly = true
     end
@@ -721,12 +758,26 @@ module ActiveRecord
       self.class.connection_handler
     end
 
-    # Returns the attributes specified by <tt>.attributes_for_inspect</tt> as a nicely formatted string.
+    # Returns the attributes of the record as a nicely formatted string.
+    #
+    #   Post.first.inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+    #
+    # The attributes can be limited by setting <tt>.attributes_for_inspect</tt>.
+    #
+    #   Post.attributes_for_inspect = [:id, :title]
+    #   Post.first.inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!">"
     def inspect
       inspect_with_attributes(attributes_for_inspect)
     end
 
-    # Returns the full contents of the record as a nicely formatted string.
+    # Returns all attributes of the record as a nicely formatted string,
+    # ignoring <tt>.attributes_for_inspect</tt>.
+    #
+    #   Post.first.full_inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+    #
     def full_inspect
       inspect_with_attributes(all_attributes_for_inspect)
     end

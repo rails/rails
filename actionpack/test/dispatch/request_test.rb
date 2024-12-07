@@ -1116,21 +1116,14 @@ class RequestParameters < BaseRequestTest
     end
   end
 
-  if Rack.release < "3"
-    test "parameters not accessible after rack parse error of invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo%81E=1")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
+  test "parameters containing an invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "foo=%81E")
+    assert_raises(ActionController::BadRequest) { request.parameters }
+  end
 
-    test "parameters containing an invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo=%81E")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
-
-    test "parameters containing a deeply nested invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
+  test "parameters containing a deeply nested invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
+    assert_raises(ActionController::BadRequest) { request.parameters }
   end
 
   test "POST parameters containing invalid UTF8 character" do
@@ -1151,7 +1144,7 @@ class RequestParameters < BaseRequestTest
   test "query parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
     request = stub_request("QUERY_STRING" => "foo=%81E")
 
-    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
+    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
       assert_nothing_raised do
         request.parameters
       end
@@ -1167,7 +1160,7 @@ class RequestParameters < BaseRequestTest
       :input => data
     )
 
-    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
+    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
       assert_nothing_raised do
         request.parameters
       end

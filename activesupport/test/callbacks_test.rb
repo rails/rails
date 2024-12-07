@@ -256,7 +256,7 @@ module CallbacksTest
       end
     end
 
-    def respond_to_missing?(sym)
+    def respond_to_missing?(sym, include_private = false)
       sym.match?(/^(log|wrap)_/) || super
     end
   end

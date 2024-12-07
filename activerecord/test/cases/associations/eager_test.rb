@@ -497,22 +497,20 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
-    quoted_posts_id = Comment.lease_connection.quote_table_name("posts") + "." + Comment.lease_connection.quote_column_name("id")
     assert_nothing_raised do
-      Comment.includes(:post).references(:posts).where("#{quoted_posts_id} = ?", 4)
+      Comment.includes(:post).references(:posts).where("#{quote_table_name("posts.id")} = ?", 4)
     end
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_unquoted_table_name
     assert_nothing_raised do
-      Comment.all.merge!(includes: :post, order: "posts.id").to_a
+      Comment.includes(:post).references(:posts).order("posts.id")
     end
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
-    quoted_posts_id = Comment.lease_connection.quote_table_name("posts") + "." + Comment.lease_connection.quote_column_name("id")
     assert_nothing_raised do
-      Comment.includes(:post).references(:posts).order(quoted_posts_id)
+      Comment.includes(:post).references(:posts).order(quote_table_name("posts.id"))
     end
   end
 
@@ -881,11 +879,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     error = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: :taggingz).find(6)
     }
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?  tagging", error.detailed_message
-    else
-      assert_match "Did you mean?  tagging\n", error.message
-    end
+    assert_match "Did you mean?  tagging", error.detailed_message
   end
 
   def test_eager_has_many_through_with_order
@@ -1147,12 +1141,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_association_loading_notification
-    notifications = messages_for("instantiation.active_record") do
+    payload = capture_notifications("instantiation.active_record") do
       Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
-    end
-
-    message = notifications.first
-    payload = message.last
+    end.first.payload
     count = Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
 
     # eagerloaded row count should be greater than just developer count
@@ -1161,25 +1152,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_base_messages
-    notifications = messages_for("instantiation.active_record") do
+    payload = capture_notifications("instantiation.active_record") do
       Developer.all.to_a
-    end
-    message = notifications.first
-    payload = message.last
+    end.first.payload
 
     assert_equal Developer.all.to_a.count, payload[:record_count]
     assert_equal Developer.name, payload[:class_name]
-  end
-
-  def messages_for(name)
-    notifications = []
-    ActiveSupport::Notifications.subscribe(name) do |*args|
-      notifications << args
-    end
-    yield
-    notifications
-  ensure
-    ActiveSupport::Notifications.unsubscribe(name)
   end
 
   def test_load_with_sti_sharing_association
@@ -1703,9 +1681,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 3, comments_collection.size
     end.last
 
-    c = Sharded::BlogPost.lease_connection
-    quoted_blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
-    quoted_blog_post_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_post_id"))
+    quoted_blog_id = Regexp.escape(quote_table_name("sharded_comments.blog_id"))
+    quoted_blog_post_id = Regexp.escape(quote_table_name("sharded_comments.blog_post_id"))
     assert_match(/WHERE #{quoted_blog_id} IN \(.+\) AND #{quoted_blog_post_id} IN \(.+\)/, sql)
   end
 

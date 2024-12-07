@@ -88,7 +88,7 @@ module RailsGuides
             when "bash"
               /^\$ /
             when "irb"
-              /^irb.*?> /
+              /^(irb.*?|\w+\(\w+\))> /
             end
 
           if prompt_regexp

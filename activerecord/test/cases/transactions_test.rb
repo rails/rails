@@ -67,6 +67,14 @@ module TransactionCallbacksTests
       raise ActiveRecord::Rollback
     end
     assert_equal 0, called
+
+    called = 0
+    Topic.transaction do |transaction|
+      transaction.instance_variable_get(:@internal_transaction).invalidate!
+      ActiveRecord.after_all_transactions_commit { called += 1 }
+      assert_equal 1, called
+    end
+    assert_equal 1, called
   end
 
   def test_after_current_transaction_commit_multidb_nested_transactions
@@ -491,9 +499,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_deprecated(ActiveRecord.deprecator) do
-      transaction_with_shallow_return
-    end
+    transaction_with_shallow_return
     assert committed
 
     assert_predicate Topic.find(1), :approved?, "First should have been approved"

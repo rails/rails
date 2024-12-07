@@ -18,6 +18,12 @@ module Arel
           as = attr.as("foo")
           assert_kind_of Arel::Nodes::SqlLiteral, as.right
         end
+
+        it "converts right to SqlLiteral if a symbol" do
+          attr = Table.new(:users)[:id]
+          as = attr.as(:foo)
+          assert_kind_of Arel::Nodes::SqlLiteral, as.right
+        end
       end
 
       describe "equality" do

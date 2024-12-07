@@ -50,7 +50,7 @@ module ActiveJob
       info do
         jobs = event.payload[:jobs]
         adapter = event.payload[:adapter]
-        enqueued_count = event.payload[:enqueued_count]
+        enqueued_count = event.payload[:enqueued_count].to_i
 
         if enqueued_count == jobs.size
           enqueued_jobs_message(adapter, jobs)
@@ -125,7 +125,7 @@ module ActiveJob
         "Stopped retrying #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message}), which reoccurred on #{job.executions} attempts."
       end
     end
-    subscribe_log_level :enqueue_retry, :error
+    subscribe_log_level :retry_stopped, :error
 
     def discard(event)
       job = event.payload[:job]

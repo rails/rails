@@ -59,6 +59,8 @@ module ActiveRecord
         def convert_to_id(value)
           if primary_key.is_a?(Array)
             primary_key.map do |attribute|
+              next nil if value.nil?
+
               if attribute == "id"
                 value.id_value
               else
