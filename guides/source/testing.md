@@ -66,7 +66,7 @@ are a way of mocking up data to use in your tests, so that you don't have to use
 about them in the [Fixtures](#fixtures) section below.
 
 A `jobs` directory will also be created for your job tests when you first
-[generate a job](active_job_basics.html#create-the-job). 
+[generate a job](active_job_basics.html#create-the-job).
 
 The `test_helper.rb` file holds the default configuration for your tests.
 
@@ -1034,7 +1034,7 @@ request type, request tests are available, making your tests more purposeful.
 
 An AJAX request (Asynchronous Javscript and XML) is a technique where content is
 fetched from the server using asynchronous HTTP requests and the relevant parts
-of the page are updated without requiring a full page load. 
+of the page are updated without requiring a full page load.
 
 To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
 `patch`, `put`, and `delete` methods. For example:
@@ -1093,7 +1093,7 @@ end
 
 HTTP headers are pieces of information sent along with HTTP requests to provide
 important metadata. CGI variables are environment variables used to exchange
-information between the web server and the application. 
+information between the web server and the application.
 
 HTTP headers and CGI variables can be tested by being passed as headers:
 
@@ -1287,7 +1287,7 @@ Integration Testing
 Integration tests take functional controller tests one step further - they focus
 on testing how several parts of an application interact, and are generally used
 to test important workflows. Rails integration tests are stored in the
-`test/integration` directory. 
+`test/integration` directory.
 
 Rails provides a generator to create an integration test skeleton as follows:
 
@@ -1743,7 +1743,7 @@ class ProfileControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-#### Using Separate Files
+### Using Separate Files
 
 If you find your helpers are cluttering `test_helper.rb`, you can extract them
 into separate files. A good place to store them is `test/lib` or
@@ -1784,7 +1784,7 @@ class ActionDispatch::IntegrationTest
 end
 ```
 
-#### Eagerly Requiring Helpers
+### Eagerly Requiring Helpers
 
 You may find it convenient to eagerly require helpers in `test_helper.rb` so
 your test files have implicit access to them. This can be accomplished using
@@ -2256,7 +2256,7 @@ class UserMailerTest < ActionMailer::TestCase
     email = UserMailer.with(all: "good").create_invite("me@example.com", "friend@example.com")
 
     # Test that the email got enqueued with the correct mailer parameters and arguments
-    assert_enqueued_email_with UserMailer, :create_invite, 
+    assert_enqueued_email_with UserMailer, :create_invite,
     params: { all: "good" }, args: ["me@example.com", "friend@example.com"] do
       email.deliver_later
     end
