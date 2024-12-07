@@ -35,7 +35,7 @@ bundling and minification, to specialized tools like
 [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
 [`css-bundling-rails`](https://github.com/rails/cssbundling-rails), which can be
 added separately to your application. Propshaft focuses on
-[fingerprinting](#fingerprinting) and emphasizes generating digest-based URLs
+[fingerprinting](#fingerprinting-versioning-with-digest-based-urls) and emphasizes generating digest-based URLs
 for assets, allowing browsers to cache them, thus minimizing the need for
 intricate compilation and bundling.
 
@@ -194,7 +194,7 @@ are automatically converted into their fingerprinted paths using the
 `manifest.json` file found in `public/assets`.
 
 Its possible to exclude certain directories from this process, you can read more
-about it in the [Fingerprinting section](#fingerprinting).
+about it in the [Fingerprinting section](#fingerprinting-versioning-with-digest-based-urls).
 
 #### CSS and ERB
 
@@ -420,6 +420,7 @@ Follow these steps for setup Propshaft in your Rails application:
     ```bash
     $ rails new app_name
     ```
+
     This command generates a new Rails application with Propshaft included by
     default.
 
@@ -490,6 +491,7 @@ Follow these steps for setup Propshaft in your Rails application:
     ```bash
     $ bin/rails server
     ```
+
     This command starts your Rails server so you can view your application in a
     web browser.
 
@@ -559,7 +561,7 @@ ensuring that your application can handle high traffic efficiently.
 Rails compiles assets into a single location and uses the asset fingerprinting
 method to ensure that users receive the most up-to-date version of the asset.
 You can precompile assets using the `rails:assets:precompile` task. You can read
-more about this in the [Fingerprinting section](#fingerprinting). By default,
+more about this in the [Fingerprinting section](#fingerprinting-versioning-with-digest-based-urls). By default,
 Rails assumes assets have been precompiled and will be served as static assets
 by your web server.
 
@@ -916,6 +918,7 @@ Bundling combines multiple files into one to reduce the number of HTTP requests
 a browser needs to make to render a page.
 
 For example, if your application has three JavaScript files:
+
 - menu.js
 - cart.js
 - checkout.js
@@ -981,15 +984,14 @@ whenever assets are updated, ensuring proper cache invalidation. With Propshaft,
 you’ll need to handle certain aspects manually. For example, while asset
 fingerprinting works, you might need to use a bundler or trigger transformations
 manually for JavaScript files to ensure filenames are updated correctly. Read
-more about [fingerprinting in Propshaft](#fingerprinting).
+more about [fingerprinting in Propshaft](#fingerprinting-versioning-with-digest-based-urls).
 
 #### Precompilation
 
 Sprockets only processed assets explicitly included in a bundle. In contrast,
 Propshaft automatically processes all assets located in the specified paths,
 including images, stylesheets, JavaScript files, and more, without requiring
-explicit bundling. Read more about [asset precompilation and digesting in
-Propshaft](#asset-precompilation-and-digesting).
+explicit bundling. Read more about [asset digesting](#asset-digesting).
 
 ### Migration Steps
 
@@ -1013,31 +1015,23 @@ handle asset digesting and serving.
 
 Some key steps in the migration include:
 
-1. Remove several sprocket gems using the `bundle remove <gem name>` :
+1. Remove several sprocket gems using the `bundle remove <gem name>`:
 
-  ```bash
-  bundle remove sprockets
-  bundle remove sprockets-rails
-  bundle remove sass-rails
-  ```
+    ```bash
+    bundle remove sprockets
+    bundle remove sprockets-rails
+    bundle remove sass-rails
+    ```
 
-2. Delete the `config/assets.rb` and `assets/config/manifest.js` files from your
-   project.
+2. Delete the `config/assets.rb` and `assets/config/manifest.js` files from your project.
 
-3. If you've already upgraded to Rails 8, then Propshaft is already included in
-   your application, otherwise, install it using `bundle add propshaft`.
+3. If you've already upgraded to Rails 8, then Propshaft is already included in your application. Otherwise, install it using `bundle add propshaft`.
 
-4. Remove the `config.assets.paths << Rails.root.join('app', 'assets')` line
-   from your `application.rb` file.
+4. Remove the `config.assets.paths << Rails.root.join('app', 'assets')` line from your `application.rb` file.
 
-5. Migrate asset helpers by replacing all instances of asset helpers (e.g.,
-`image_url`) with standard URLs because Propshaft utilizes relative paths. For
-example, image_url("logo.png") will become url("/logo.png).
+5. Migrate asset helpers by replacing all instances of asset helpers (e.g., `image_url`) with standard URLs because Propshaft utilizes relative paths. For example, `image_url("logo.png")` will become `url("/logo.png")`.
 
-6. If you're relying on Sprockets for transpiling, you'll need to switch to a
-   Node-based transpiler like Webpack, esbuild, or Vite. You can use the
-   `jsbundling-rails` and `cssbundling-rails` gems to integrate these tools into
-   your Rails application.
+6. If you're relying on Sprockets for transpiling, you'll need to switch to a Node-based transpiler like Webpack, esbuild, or Vite. You can use the `jsbundling-rails` and `cssbundling-rails` gems to integrate these tools into your Rails application.
 
 For more information, you can read the [detailed guide on how to migrate from
 Sprockets to
