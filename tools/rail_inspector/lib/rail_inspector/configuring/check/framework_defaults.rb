@@ -21,6 +21,8 @@ module RailInspector
 
               next if defaults_file_content.include? app_config
 
+              next if config == "self.yjit"
+
               add_error(config)
             end
           end
@@ -69,6 +71,7 @@ module RailInspector
 
           def check_defaults(defaults)
             header, configs = defaults[0], defaults[2, defaults.length - 3]
+            configs ||= []
 
             version = header.match(/\d\.\d/)[0]
 

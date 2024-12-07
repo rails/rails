@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest"
+gem "minitest", "!= 5.25.3"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -26,7 +26,7 @@ gem "dartsass-rails"
 gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
-gem "kamal", ">= 2.0.0.rc2", require: false
+gem "kamal", ">= 2.1.0", require: false
 gem "thruster", require: false
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
@@ -104,11 +104,9 @@ group :job do
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
-  gem "delayed_job", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
-  gem "delayed_job_active_record", require: false
 end
 
 # Action Cable

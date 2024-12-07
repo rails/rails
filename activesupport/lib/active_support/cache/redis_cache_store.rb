@@ -111,15 +111,25 @@ module ActiveSupport
 
       # Creates a new Redis cache store.
       #
-      # There are four ways to provide the Redis client used by the cache: the
-      # +:redis+ param can be a Redis instance or a block that returns a Redis
-      # instance, or the +:url+ param can be a string or an array of strings
-      # which will be used to create a Redis instance or a +Redis::Distributed+
-      # instance.
+      # There are a few ways to provide the Redis client used by the cache:
+      #
+      # 1. The +:redis+ param can be:
+      #    - A Redis instance.
+      #    - A +ConnectionPool+ instance wrapping a Redis instance.
+      #    - A block that returns a Redis instance.
+      #
+      # 2. The +:url+ param can be:
+      #    - A string used to create a Redis instance.
+      #    - An array of strings used to create a +Redis::Distributed+ instance.
+      #
+      # If the final Redis instance is not already a +ConnectionPool+, it will
+      # be wrapped in one using +ActiveSupport::Cache::Store::DEFAULT_POOL_OPTIONS+.
+      # These options can be overridden with the +:pool+ param, or the pool can be
+      # disabled with +:pool: false+.
       #
       #   Option  Class       Result
-      #   :redis  Proc    ->  options[:redis].call
       #   :redis  Object  ->  options[:redis]
+      #   :redis  Proc    ->  options[:redis].call
       #   :url    String  ->  Redis.new(url: …)
       #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
       #
@@ -148,8 +158,12 @@ module ActiveSupport
       #   cache.exist?('bar') # => false
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
+        redis = redis_options[:redis]
 
-        if pool_options = self.class.send(:retrieve_pool_options, redis_options)
+        already_pool = redis.instance_of?(::ConnectionPool) ||
+                       (redis.respond_to?(:wrapped_pool) && redis.wrapped_pool.instance_of?(::ConnectionPool))
+
+        if !already_pool && pool_options = self.class.send(:retrieve_pool_options, redis_options)
           @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
         else
           @redis = self.class.build_redis(**redis_options)

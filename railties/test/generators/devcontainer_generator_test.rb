@@ -254,7 +254,7 @@ module Rails
         assert_compose_file do |compose|
           assert_includes compose["services"]["rails-app"]["depends_on"], "redis"
           expected_redis_config = {
-            "image" => "redis:7.2",
+            "image" => "valkey/valkey:8",
             "restart" => "unless-stopped",
             "volumes" => ["redis-data:/data"]
           }
@@ -280,6 +280,24 @@ module Rails
 
         assert_devcontainer_json_file do |devcontainer_json|
           assert_not_includes devcontainer_json["forwardPorts"], 6379
+        end
+      end
+
+      def test_kamal_option_default
+        run_generator
+
+        assert_devcontainer_json_file do |devcontainer_json|
+          assert_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+          assert_equal "$KAMAL_REGISTRY_PASSWORD", devcontainer_json["containerEnv"]["KAMAL_REGISTRY_PASSWORD"]
+        end
+      end
+
+      def test_kamal_option_skip
+        run_generator ["--skip-kamal"]
+
+        assert_devcontainer_json_file do |devcontainer_json|
+          assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+          assert_not_includes devcontainer_json["containerEnv"].keys, "KAMAL_REGISTRY_PASSWORD"
         end
       end
 

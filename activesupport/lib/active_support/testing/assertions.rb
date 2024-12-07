@@ -324,7 +324,7 @@ module ActiveSupport
               source.delete_prefix!("{")
               source.strip!
               # It won't read nice if the callable contains multiple
-              # lines, and it should be a rare occurence anyway.
+              # lines, and it should be a rare occurrence anyway.
               # Same if it takes arguments.
               if !source.include?("\n") && !source.start_with?("|")
                 return source

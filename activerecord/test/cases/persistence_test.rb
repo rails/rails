@@ -63,6 +63,8 @@ class PersistenceTest < ActiveRecord::TestCase
       assert_not_nil record.modified_time_without_precision
       assert_not_nil record.modified_time_function
 
+      assert_equal "A", record.binary_default_function
+
       if supports_identity_columns?
         klass = Class.new(ActiveRecord::Base) do
           self.table_name = "postgresql_identity_table"
@@ -456,6 +458,17 @@ class PersistenceTest < ActiveRecord::TestCase
     client = company.becomes(Client)
     assert_equal "37signals", client.name
     assert_equal %w{name}, client.changed
+  end
+
+  def test_becomes_preserve_record_status
+    company = Company.new(name: "37signals")
+    client = company.becomes(Client)
+    assert_predicate client, :new_record?
+
+    company.save
+    client = company.becomes(Client)
+    assert_predicate client, :persisted?
+    assert_predicate client, :previously_new_record?
   end
 
   def test_becomes_initializes_missing_attributes

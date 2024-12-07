@@ -68,12 +68,17 @@ module ActionDispatch
         ActiveSupport::ParameterFilter.new(filters)
       end
 
-      KV_RE   = "[^&;=]+"
-      PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
       def filtered_query_string # :doc:
-        query_string.gsub(PAIR_RE) do |_|
-          parameter_filter.filter($1 => $2).first.join("=")
+        parts = query_string.split(/([&;])/)
+        filtered_parts = parts.map do |part|
+          if part.include?("=")
+            key, value = part.split("=", 2)
+            parameter_filter.filter(key => value).first.join("=")
+          else
+            part
+          end
         end
+        filtered_parts.join("")
       end
     end
   end

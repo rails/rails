@@ -3,23 +3,30 @@
 module ActiveSupport
   module ClassAttribute # :nodoc:
     class << self
-      def redefine(owner, name, value)
+      def redefine(owner, name, namespaced_name, value)
         if owner.singleton_class?
-          owner.redefine_method(name) { value }
-          owner.send(:public, name)
+          if owner.attached_object.is_a?(Module)
+            redefine_method(owner, namespaced_name, private: true) { value }
+          else
+            redefine_method(owner, name) { value }
+          end
         end
 
-        owner.redefine_singleton_method(name) { value }
-        owner.singleton_class.send(:public, name)
+        redefine_method(owner.singleton_class, namespaced_name, private: true) { value }
 
-        owner.redefine_singleton_method("#{name}=") do |new_value|
+        redefine_method(owner.singleton_class, "#{namespaced_name}=", private: true) do |new_value|
           if owner.equal?(self)
             value = new_value
           else
-            ::ActiveSupport::ClassAttribute.redefine(self, name, new_value)
+            ::ActiveSupport::ClassAttribute.redefine(self, name, namespaced_name, new_value)
           end
         end
-        owner.singleton_class.send(:public, "#{name}=")
+      end
+
+      def redefine_method(owner, name, private: false, &block)
+        owner.silence_redefinition_of_method(name)
+        owner.define_method(name, &block)
+        owner.send(:private, name) if private
       end
     end
   end

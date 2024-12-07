@@ -47,9 +47,8 @@ module ActiveRecord
           @configuration_hash[:schema_dump] = false
         end
 
-        if @configuration_hash[:query_cache] == "false"
-          @configuration_hash[:query_cache] = false
-        end
+        query_cache = parse_query_cache
+        @configuration_hash[:query_cache] = query_cache unless query_cache.nil?
 
         to_boolean!(@configuration_hash, :replica)
         to_boolean!(@configuration_hash, :database_tasks)
@@ -58,6 +57,17 @@ module ActiveRecord
       end
 
       private
+        def parse_query_cache
+          case value = @configuration_hash[:query_cache]
+          when /\A\d+\z/
+            value.to_i
+          when "false"
+            false
+          else
+            value
+          end
+        end
+
         def to_boolean!(configuration_hash, key)
           if configuration_hash[key].is_a?(String)
             configuration_hash[key] = configuration_hash[key] != "false"

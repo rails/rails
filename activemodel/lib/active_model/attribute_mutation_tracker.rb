@@ -5,7 +5,7 @@ require "active_support/core_ext/object/duplicable"
 
 module ActiveModel
   class AttributeMutationTracker # :nodoc:
-    OPTION_NOT_GIVEN = Object.new
+    OPTION_NOT_GIVEN = Object.new.freeze
 
     def initialize(attributes)
       @attributes = attributes

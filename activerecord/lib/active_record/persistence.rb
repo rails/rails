@@ -492,6 +492,7 @@ module ActiveRecord
         becoming.instance_variable_set(:@attributes, @attributes)
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)
+        becoming.instance_variable_set(:@previously_new_record, previously_new_record?)
         becoming.instance_variable_set(:@destroyed, destroyed?)
         becoming.errors.copy!(errors)
       end
@@ -930,7 +931,7 @@ module ActiveRecord
           )
 
           returning_columns.zip(returning_values).each do |column, value|
-            _write_attribute(column, value) if !_read_attribute(column)
+            _write_attribute(column, type_for_attribute(column).deserialize(value)) if !_read_attribute(column)
           end if returning_values
         end
 
