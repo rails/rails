@@ -284,6 +284,10 @@ console do
 end
 ```
 
+#### `config.content_security_policy_nonce_auto`
+
+Allows you to automatically attach a nonce to tags affected by directives specified by `config.content_security_policy_nonce_directives`. This is useful when you want to automatically use a nonce with inline scripts and styles. Defaults to `false`.
+
 #### `config.content_security_policy_nonce_directives`
 
 See [Adding a Nonce](security.html#adding-a-nonce) in the Security Guide

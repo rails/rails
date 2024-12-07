@@ -72,6 +72,12 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"])
+      ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["style-src", "style-src-elem", "style-src-attr"])
+      ActionView::Helpers::JavaScriptHelper.auto_include_nonce = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"])
+    end
+
+    config.after_initialize do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
           send "#{k}=", v
