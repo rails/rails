@@ -278,7 +278,7 @@ Propshaft:
     While this approach can work for small projects or simple use cases, it
     can become tedious and error-prone for larger applications.
 
-4. Consider bundling your JavaScript or CSS using a bundler
+4. Bundle your JavaScript or CSS using a bundler
 
     If, for some reason, your project requires advanced features like dependency
     chaining, modern JavaScript syntax, or CSS pre-processing (e.g.,
