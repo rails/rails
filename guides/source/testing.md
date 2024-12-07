@@ -1876,13 +1876,13 @@ More information about the assertions included by Capybara can be found in the [
 
 ### Parsing View Content
 
-Starting in Action View version 7.1, the `#rendered` helper method returns an
+Starting in Action View version 7.1, the `rendered` helper method returns an
 object capable of parsing the view partial's rendered content.
 
-To transform the `String` content returned by the `#rendered` method into an
-object, define a parser by calling `.register_parser`. Calling `.register_parser
-:rss` defines a `#rendered.rss` helper method. For example, to parse rendered
-[RSS content][] into an object with `#rendered.rss`, register a call to
+To transform the `String` content returned by the `rendered` method into an
+object, define a parser by calling [`register_parser`](https://apidock.com/rails/v7.1.3.4/ActionView/TestCase/Behavior/ClassMethods/register_parser). Calling `register_parser
+:rss` defines a `rendered.rss` helper method. For example, to parse rendered
+[RSS content][] into an object with `rendered.rss`, register a call to
 `RSS::Parser.parse`:
 
 ```ruby
@@ -1947,8 +1947,8 @@ end
 
 [Partial](layouts_and_rendering.html#using-partials) templates - usually called
 "partials" - can break the rendering process into more
-manageable chunks. With partials, you can extract pieces of code from your
-templates to separate files and reuse them throughout your templates.
+manageable chunks. With partials, you can extract sections of code from your
+views to separate files and reuse them in multiple places.
 
 View tests provide an opportunity to test that partials render content the way
 you expect. View partial tests can be stored in `test/views/` and inherit from
@@ -1986,7 +1986,7 @@ end
 
 ### Testing View Helpers
 
-A helper is just a simple module where you can define methods which are
+A helper is a module where you can define methods which are
 available in your views.
 
 In order to test helpers, all you need to do is check that the output of the
@@ -2036,9 +2036,7 @@ There are two aspects of testing your mailer, the unit tests and the functional
 tests. In the unit tests, you run the mailer in isolation with tightly
 controlled inputs and compare the output to a known value (a
 [fixture](#fixtures)). In the functional tests you don't so much test the
-details produced by the mailer; instead, we test that our controllers and models
-are using the mailer in the right way. You test to prove that the right email
-was sent at the right time.
+details produced by the mailer; instead, you test that the controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.
 
 ### Unit Testing
 
@@ -2062,9 +2060,7 @@ above.
 
 #### The Basic Test Case
 
-Here's a unit test to test a mailer named `UserMailer` whose action `invite` is
-used to send an invitation to a friend. It is an adapted version of the base
-test created by the generator for an `invite` action.
+Here's a unit test to test a mailer named `UserMailer` whose action `invite` is used to send an invitation to a friend:
 
 ```ruby
 require "test_helper"
@@ -2089,10 +2085,9 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-In the test we create the email and store the returned object in the `email`
-variable. We then ensure that it was sent (the first assert), then, in the
-second batch of assertions, we ensure that the email does indeed contain what we
-expect. The helper `read_fixture` is used to read in the content from this file.
+In the test the email is created and the returned object is stored in the `email`
+variable. The first assert checks it was sent, then, in the
+second batch of assertions, the email contents are checked. The helper `read_fixture` is used to read in the content from this file.
 
 NOTE: `email.body.to_s` is present when there's only one (HTML or text) part
 present. If the mailer provides both, you can test your fixture against specific
@@ -2524,9 +2519,7 @@ which runs all tests including system tests.
 Parallel Testing
 ----------------
 
-Running tests in parallel reduces the time it takes your entire test suite to run. While forking
-processes is the default method, threading is supported as well. Running tests
-in parallel reduces the time it takes your entire test suite to run.
+Running tests in parallel reduces the time it takes your entire test suite to run. While forking processes is the default method, threading is supported as well.
 
 ### Parallel Testing with Processes
 
@@ -2679,26 +2672,12 @@ default.
 If your project does not have continuous integration, you can still eager load
 in the test suite by calling `Rails.application.eager_load!`:
 
-#### Minitest
-
 ```ruby
 require "test_helper"
 
 class ZeitwerkComplianceTest < ActiveSupport::TestCase
   test "eager loads all files without errors" do
     assert_nothing_raised { Rails.application.eager_load! }
-  end
-end
-```
-
-#### RSpec
-
-```ruby
-require "rails_helper"
-
-RSpec.describe "Zeitwerk compliance" do
-  it "eager loads all files without errors" do
-    expect { Rails.application.eager_load! }.not_to raise_error
   end
 end
 ```
