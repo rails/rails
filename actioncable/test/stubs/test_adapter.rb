@@ -7,6 +7,7 @@ class SuccessAdapter < ActionCable::SubscriptionAdapter::Base
   def subscribe(channel, callback, success_callback = nil)
     subscriber_map[channel] << callback
     @@subscribe_called = { channel: channel, callback: callback, success_callback: success_callback }
+    success_callback&.call
   end
 
   def unsubscribe(channel, callback)
