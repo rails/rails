@@ -158,8 +158,11 @@ module ActiveSupport
       #   cache.exist?('bar') # => false
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
+        redis = redis_options[:redis]
 
-        already_pool = redis_options[:redis].instance_of?(::ConnectionPool)
+        already_pool = redis.instance_of?(::ConnectionPool) ||
+                       (redis.respond_to?(:wrapped_pool) && redis.wrapped_pool.instance_of?(::ConnectionPool))
+
         if !already_pool && pool_options = self.class.send(:retrieve_pool_options, redis_options)
           @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
         else
