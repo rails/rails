@@ -188,7 +188,7 @@ manifest to find the correct fingerprinted filename to include in the HTML
 output.
 
 Propshaft Features
---------
+------------------
 
 Propshaft expects that your assets are already in a browser-ready format—like
 plain CSS, JavaScript, or preprocessed images (like JPEGs or PNGs). Propshaft’s
