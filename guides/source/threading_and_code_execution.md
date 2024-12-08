@@ -35,6 +35,58 @@ Rails' in-built concurrency will cover the day-to-day needs of many application 
 
 NOTE: You can read more about how to configure Rails' in-built concurrency in the [Framework Behavior](#framework-behavior) section.
 
+### `CurrentAttributes` and Threading
+
+The [`ActiveSupport::CurrentAttributes`](https://edgeapi.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html) class is a special class in Rails that helps you manage temporary data for each request in your app, and helps make sure this data is available to the whole system. It keeps this data separate for every request (even if there are multiple threads running) and makes sure the data is cleaned up automatically when the request is done.
+
+You can think of this class as a place to store data that you need to access anywhere in your app without having to pass it around in your code.
+
+To use the `Current` class to store data, first you need to create a file as below, with `attribute` values for the attributes and models whose values you would like to access throughout your application. You can also define a method (e.g the `user` method below) which, when called, will return set values:
+
+```ruby
+# app/models/current.rb
+class Current < ActiveSupport::CurrentAttributes
+  attribute :account, :user
+
+  resets { Time.zone = nil }
+
+  def user=(user)
+    super
+    self.account = user.account
+    Time.zone    = user.time_zone
+  end
+end
+```
+
+In the example above, you will now have access to `Current.user` elsewhere in your application. For example, in authenticating a user: 
+
+```ruby
+# app/controllers/concerns/authentication.rb
+module Authentication
+  extend ActiveSupport::Concern
+
+  included do
+    before_action :authenticate
+  end
+
+  private
+    def authenticate
+      if authenticated_user = User.find_by(id: cookies.encrypted[:user_id])
+        Current.user = authenticated_user
+      else
+        redirect_to new_session_url
+      end
+    end
+end
+```
+WARNING: It’s easy to put too many attributes in the `Current` class and tangle your model as a result. Current should only be used for a few, top-level globals, like account, user, and request details.
+
+### Isolated Execution State
+
+The `active_support.isolation_level` value in your `configuration.rb` file provides you the option to define where Rails internal state should be stored while tasks are run. If you use a fiber-based server or job processor (e.g. [`falcon`](https://github.com/socketry/falcon)), you should set this value to `:fiber`, otherwise it is best to set it to `:thread`.
+
+### Going Futher
+
 The next section of this guide details advanced ways of directly wrapping code within the Rails framework, and how extensions and applications with particular concurrency requirements, such as library maintainers, should do this.
 
 Wrapping Application Code
@@ -241,10 +293,6 @@ management. When `config.enable_reloading` is `false` and `config.eager_load` is
 `true` (`production` defaults), no reloading will occur, so it does not need the
 Reloading Interlock. With the default settings in the `development` environment, the
 Executor will use the Reloading Interlock to ensure code reloading is performed safely.
-
-#### Isolated Execution State
-
-The `active_support.isolation_level` value in your `configuration.rb` file defines where Rails internal state should be stored while tasks are run. If you use a fiber-based server or job processor (e.g. [`falcon`](https://github.com/socketry/falcon)), you should set this value to `:fiber`, otherwise it is best to set it to `:thread`.
 
 Load Interlock
 --------------
