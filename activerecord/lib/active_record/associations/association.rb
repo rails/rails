@@ -189,7 +189,10 @@ module ActiveRecord
       def load_target
         @target = find_target(async: false) if (@stale_state && stale_target?) || find_target?
         if !@target && set_through_target_for_new_record?
-          @target = through_association.target.association(reflection.source_reflection_name).target
+          @target = reflection.chain.reverse.drop(1).reduce(through_association.target) do |middle_target, reflection|
+            break unless middle_target
+            middle_target.association(reflection.source_reflection_name).target
+          end
         end
 
         loaded! unless loaded?

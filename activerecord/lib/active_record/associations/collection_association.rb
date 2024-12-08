@@ -273,12 +273,13 @@ module ActiveRecord
         if find_target?
           @target = merge_target_lists(find_target, target)
         elsif target.empty? && set_through_target_for_new_record?
-          @target = if through_reflection.collection?
-            through_association.target.flat_map do |record|
-              record.association(reflection.source_reflection_name).target
+          @target = reflection.chain.reverse.drop(1).reduce(through_association.target) do |middle_target, reflection|
+            break [] unless middle_target.any?
+            if reflection.collection?
+              middle_target.flat_map { |record| record.association(reflection.source_reflection_name).target }
+            else
+              middle_target.association(reflection.source_reflection_name).target
             end
-          else
-            through_association.target.association(reflection.source_reflection_name).target
           end
         end
 
