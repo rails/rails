@@ -69,7 +69,8 @@ module Rails
       end
 
       private
-        EXACT_TEST_ARGUMENT_PATTERN = /^-n|^--name\b|#{Rails::TestUnit::Runner::PATH_ARGUMENT_PATTERN}/
+        EXACT_TEST_ARGUMENT_PATTERN = /^(-n\b|--name\b|[^-])/
+        private_constant :EXACT_TEST_ARGUMENT_PATTERN
 
         def run_prepare_task
           Rails::Command::RakeCommand.perform("test:prepare", [], {})
