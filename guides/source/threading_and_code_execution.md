@@ -228,12 +228,13 @@ additional threads.
 
 ### Configuration
 
+#### Reloader and Executor Configuration
+
 The Reloader only checks for file changes when [`config.enable_reloading`](configuring.html#config-enable-reloading) is
 `true` and so is [`config.reload_classes_only_on_change`](configuring.html#config-reload-classes-only-on-change). These are the defaults in the
 `development` environment.
 
-When `config.enable_reloading` is `false` (in `production`, by default), the
-Reloader is only a pass-through to the Executor.
+When `config.enable_reloading` is `false` (in `production`, by default), the Reloader is only a pass-through to the Executor.
 
 The Executor always has important work to do, like database connection
 management. When `config.enable_reloading` is `false` and `config.eager_load` is
@@ -241,8 +242,12 @@ management. When `config.enable_reloading` is `false` and `config.eager_load` is
 Reloading Interlock. With the default settings in the `development` environment, the
 Executor will use the Reloading Interlock to ensure code reloading is performed safely.
 
-Reloading Interlock
--------------------
+#### Isolated Execution State
+
+The `active_support.isolation_level` value in your `configuration.rb` file defines where Rails internal state should be stored while tasks are run. If you use a fiber-based server or job processor (e.g. [`falcon`](https://github.com/socketry/falcon)), you should set this value to `:fiber`, otherwise it is best to set it to `:thread`.
+
+Load Interlock
+--------------
 
 The Reloading Interlock ensures that code reloading can be performed safely in a
 multi-threaded runtime environment.
