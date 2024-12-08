@@ -1539,11 +1539,10 @@ servers](https://github.com/teamcapybara/capybara#calling-remote-servers).
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  def setup do
-    Capybara.server_host = "0.0.0.0" # bind to all interfaces
-    Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
+  setup do
+      Capybara.server_host = "0.0.0.0" # bind to all interfaces
+      Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
     end
-  end
   # ...
 end
 ```
