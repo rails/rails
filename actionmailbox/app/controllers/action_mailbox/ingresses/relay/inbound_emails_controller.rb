@@ -55,7 +55,7 @@ module ActionMailbox
       if request.body
         ActionMailbox::InboundEmail.create_and_extract_message_id! request.body.read
       else
-        head :unprocessable_entity
+        head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
       end
     end
 
