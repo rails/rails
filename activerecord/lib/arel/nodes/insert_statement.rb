@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class InsertStatement < Arel::Nodes::Node
-      attr_accessor :relation, :columns, :values, :select
+      attr_accessor :relation, :columns, :values, :select, :with
 
       def initialize(relation = nil)
         super()
@@ -11,6 +11,7 @@ module Arel # :nodoc: all
         @columns  = []
         @values   = nil
         @select   = nil
+        @with     = nil
       end
 
       def initialize_copy(other)
@@ -21,7 +22,7 @@ module Arel # :nodoc: all
       end
 
       def hash
-        [@relation, @columns, @values, @select].hash
+        [@relation, @columns, @values, @select, @with].hash
       end
 
       def eql?(other)
@@ -29,7 +30,8 @@ module Arel # :nodoc: all
           self.relation == other.relation &&
           self.columns == other.columns &&
           self.select == other.select &&
-          self.values == other.values
+          self.values == other.values &&
+          self.with == other.with
       end
       alias :== :eql?
     end
