@@ -28,15 +28,15 @@ built for an era where transpilation, bundling and compression are less critical
 for basic applications, thanks to better browser support and faster networks and
 HTTP/2 capabilities.
 
-The simplified design of Propshaft, focuses on essential asset
-management tasks, and it leaves more complex tasks, such as JavaScript and CSS
-bundling and minification, to specialized tools like
+The simplified design of Propshaft, focuses on essential asset management tasks,
+and it leaves more complex tasks, such as JavaScript and CSS bundling and
+minification, to specialized tools like
 [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
 [`css-bundling-rails`](https://github.com/rails/cssbundling-rails), which can be
 added separately to your application. Propshaft focuses on
-[fingerprinting](#fingerprinting-versioning-with-digest-based-urls) and emphasizes generating digest-based URLs
-for assets, allowing browsers to cache them, thus minimizing the need for
-intricate compilation and bundling.
+[fingerprinting](#fingerprinting-versioning-with-digest-based-urls) and
+emphasizes generating digest-based URLs for assets, allowing browsers to cache
+them, thus minimizing the need for intricate compilation and bundling.
 
 The [Propshaft](https://github.com/rails/propshaft) gem is enabled by default in
 new Rails 8 applications. If, for some reason, you want to disable it during
@@ -46,10 +46,13 @@ setup, you can use the `--skip-asset-pipeline` option:
 $ rails new app_name --skip-asset-pipeline
 ```
 
-NOTE: Before Rails version 8, the asset pipeline in Rails was powered by [Sprockets](https://github.com/rails/sprockets). You can read about the [Sprockets Asset
+NOTE: Before Rails version 8, the asset pipeline in Rails was powered by
+[Sprockets](https://github.com/rails/sprockets). You can read about the
+[Sprockets Asset
 Pipeline](https://guides.rubyonrails.org/v7.2/asset_pipeline.html) in previous
 versions of the Rails Guides. You can also explore the [evolution of asset
-management techniques](#evolution-of-asset-management-techniques) to see how the Rails Asset Pipeline has evolved over time.
+management techniques](#evolution-of-asset-management-techniques) to see how the
+Rails Asset Pipeline has evolved over time.
 
 Propshaft Features
 ------------------
@@ -210,9 +213,9 @@ management. Located in the `public/assets` directory, the `.manifest.json` file
 helps Rails resolve asset paths at runtime, allowing it to reference the correct
 fingerprinted files.
 
-The `.manifest.json` includes entries for main assets like
-`application.js` and `application.css` as well as other files, such as images.
-Here's an example of what the JSON might look like:
+The `.manifest.json` includes entries for main assets like `application.js` and
+`application.css` as well as other files, such as images. Here's an example of
+what the JSON might look like:
 
 ```json
 {
@@ -427,7 +430,7 @@ Follow these steps for setup Propshaft in your Rails application:
     This command starts your Rails server so you can view your application in a
     web browser.
 
-6. Preview your application:
+5. Preview your application:
 
     Open your web browser and navigate to `http://localhost:3000`. You should
     see your Rails application with the included assets.
@@ -895,7 +898,8 @@ whenever assets are updated, ensuring proper cache invalidation. With Propshaft,
 you’ll need to handle certain aspects manually. For example, while asset
 fingerprinting works, you might need to use a bundler or trigger transformations
 manually for JavaScript files to ensure filenames are updated correctly. Read
-more about [fingerprinting in Propshaft](#fingerprinting-versioning-with-digest-based-urls).
+more about [fingerprinting in
+Propshaft](#fingerprinting-versioning-with-digest-based-urls).
 
 #### Precompilation
 
