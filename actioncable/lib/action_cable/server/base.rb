@@ -75,7 +75,7 @@ module ActionCable
       # The worker pool is where we run connection callbacks and channel actions. We
       # do as little as possible on the server's main thread. The worker pool is an
       # executor service that's backed by a pool of threads working from a task queue.
-      # The thread pool size maxes out at 4 worker threads by default. Tune the size
+      # The thread pool has a fixed size of 4 worker threads by default. Tune the size
       # yourself with `config.action_cable.worker_pool_size`.
       #
       # Using Active Record, Redis, etc within your channel actions means you'll get a
@@ -89,7 +89,7 @@ module ActionCable
       # connections. Use a smaller worker pool or a larger database connection pool
       # instead.
       def worker_pool
-        @worker_pool || @mutex.synchronize { @worker_pool ||= ActionCable::Server::Worker.new(max_size: config.worker_pool_size) }
+        @worker_pool || @mutex.synchronize { @worker_pool ||= ActionCable::Server::Worker.new(size: config.worker_pool_size) }
       end
 
       # Adapter used for all streams/broadcasting.
