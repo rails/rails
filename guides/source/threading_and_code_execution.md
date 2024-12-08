@@ -111,6 +111,42 @@ This operation will block temporarily if another
 thread is currently either autoloading a constant or unloading/reloading
 the application.
 
+#### Examples of Wrapped Application Code
+
+Any time your library or component needs to invoke code that will need to run in the application, this code should be wrapped to ensure thread safety and a consistent and clean runtime state.
+
+For example, you may be setting a `Current` user (using [`ActiveSupport::CurrentAttributes`](https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)).
+
+```ruby
+def log_with_user_context(message)
+  Rails.application.executor.wrap do
+    Current.user = User.find_by(id: 1)
+  end
+end
+```
+
+You may be triggering an ActiveRecord callback or lifecycle hook in an application:
+
+```ruby
+def perform_task_with_record(record)
+  Rails.application.executor.wrap do
+    record.save! # Executes before_save, after_save, etc.
+  end
+end
+```
+
+Or enqueuing or performing a background job within the application:
+
+```ruby
+def enqueue_background_job(job_class, *args)
+  Rails.application.executor.wrap do
+    job_class.perform_later(*args)
+  end
+end
+```
+
+These are just a few of many possible other use cases, including rendering views or templates, broadcasting via [`Action Cable`](action_cable_overview.html) or using [`Rails.cache`](caching_with_rails.html).
+
 ### The Reloader
 
 Like the Executor, the [Reloader](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html) also wraps application code. If the Executor is
@@ -194,8 +230,6 @@ The above are the entry points to the framework, so they are responsible for
 ensuring their respective threads are protected, and deciding whether a reload
 is necessary. Most other components only need to use the Executor when they spawn
 additional threads.
-
-
 
 ### Configuration
 
