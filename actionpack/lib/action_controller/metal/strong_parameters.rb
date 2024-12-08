@@ -801,7 +801,7 @@ module ActionController
     # Assigns a value to a given `key`. The given key may still get filtered out
     # when #permit is called.
     def []=(key, value)
-      @parameters[key] = value
+      @parameters[key] = convert_value_to_parameters(value)
     end
 
     # Returns a parameter for the given `key`. If the `key` can't be found, there
