@@ -58,28 +58,6 @@ class Server < ::Rack::Server
 end
 ```
 
-### `rackup`
-
-To use `rackup` instead of Rails' `bin/rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
-
-```ruby
-# Rails.root/config.ru
-require_relative "config/environment"
-run Rails.application
-```
-
-And start the server:
-
-```bash
-$ rackup config.ru
-```
-
-To find out more about different `rackup` options, you can run:
-
-```bash
-$ rackup --help
-```
-
 ### Development and Auto-reloading
 
 Middlewares are loaded once and are not monitored for changes. You will have to restart the server for changes to be reflected in the running application.

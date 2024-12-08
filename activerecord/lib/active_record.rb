@@ -548,8 +548,10 @@ module ActiveRecord
     open_transactions = []
     Base.connection_handler.each_connection_pool do |pool|
       if active_connection = pool.active_connection
-        if active_connection.current_transaction.open? && active_connection.current_transaction.joinable?
-          open_transactions << active_connection.current_transaction
+        current_transaction = active_connection.current_transaction
+
+        if current_transaction.open? && current_transaction.joinable? && !current_transaction.state.invalidated?
+          open_transactions << current_transaction
         end
       end
     end

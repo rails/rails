@@ -1125,14 +1125,20 @@ module ActiveRecord
         super
       end
 
+      %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
+        class_eval <<~RUBY, __FILE__, __LINE__ + 1
+          def #{method}(...)
+            scope.#{method}(...).tap { reset }
+          end
+        RUBY
+      end
+
       delegate_methods = [
         QueryMethods,
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [:select] + [
-        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all, :load_async
-      ]
+      } - self.public_instance_methods(false) - [ :select ] + [ :scoping, :values, :load_async ]
 
       delegate(*delegate_methods, to: :scope)
 

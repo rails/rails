@@ -7,26 +7,20 @@ end
 
 class ActionMailbox::Base::NotificationsTest < ActiveSupport::TestCase
   test "instruments processing" do
-    events = []
-    ActiveSupport::Notifications.subscribe("process.action_mailbox") { |event| events << event }
-
     mailbox = RepliesMailbox.new(create_inbound_email_from_fixture("welcome.eml"))
-    mailbox.perform_processing
+    expected_payload = {
+      mailbox:,
+      inbound_email: {
+        id: 1,
+        message_id: "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com",
+        status: "processing"
+      }
+    }
 
-    assert_equal 1, events.length
-    assert_equal "process.action_mailbox", events[0].name
-    assert_equal(
-      {
-        mailbox: mailbox,
-        inbound_email: {
-          id: 1,
-          message_id: "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com",
-          status: "processing"
-        }
-      },
-      events[0].payload
-    )
-  ensure
-    ActiveSupport::Notifications.unsubscribe("process.action_mailbox")
+    assert_notifications_count("process.action_mailbox", 1) do
+      assert_notification("process.action_mailbox", expected_payload) do
+        mailbox.perform_processing
+      end
+    end
   end
 end

@@ -129,12 +129,13 @@ module ActiveRecord
           #   Project.primary_key # => "foo_id"
           def primary_key=(value)
             @primary_key = if value.is_a?(Array)
-              @composite_primary_key = true
               include CompositePrimaryKey
               @primary_key = value.map { |v| -v.to_s }.freeze
             elsif value
               -value.to_s
             end
+
+            @composite_primary_key = value.is_a?(Array)
             @attributes_builder = nil
           end
 

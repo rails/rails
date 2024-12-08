@@ -3,13 +3,13 @@
 module LocalCacheBehavior
   def test_instrumentation_with_local_cache
     key = SecureRandom.uuid
-    events = with_instrumentation "write" do
+    events = capture_notifications("cache_write.active_support") do
       @cache.write(key, SecureRandom.uuid)
     end
     assert_equal @cache.class.name, events[0].payload[:store]
 
     @cache.with_local_cache do
-      events = with_instrumentation "read" do
+      events = capture_notifications("cache_read.active_support") do
         @cache.read(key)
         @cache.read(key)
       end

@@ -609,6 +609,14 @@ module Rails
         packages.compact.sort
       end
 
+      def ci_packages
+        if depends_on_system_test?
+          dockerfile_build_packages << "google-chrome-stable"
+        else
+          dockerfile_build_packages
+        end
+      end
+
       def css_gemfile_entry
         return if options[:api]
         return unless options[:css]

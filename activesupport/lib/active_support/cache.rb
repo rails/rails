@@ -186,6 +186,9 @@ module ActiveSupport
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
     class Store
+      # Default +ConnectionPool+ options
+      DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
+
       cattr_accessor :logger, instance_writer: true
       cattr_accessor :raise_on_invalid_cache_expiration_time, default: false
 
@@ -194,9 +197,6 @@ module ActiveSupport
 
       class << self
         private
-          DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
-          private_constant :DEFAULT_POOL_OPTIONS
-
           def retrieve_pool_options(options)
             if options.key?(:pool)
               pool_options = options.delete(:pool)
@@ -556,7 +556,7 @@ module ActiveSupport
 
         instrument_multi :write_multi, normalized_hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
-            memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+            memo[normalize_key(name, options)] = Entry.new(value, **options, version: normalize_version(name, options))
           end
 
           write_multi_entries entries, **options
@@ -664,7 +664,7 @@ module ActiveSupport
         key = normalize_key(name, options)
 
         instrument(:write, key, options) do
-          entry = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+          entry = Entry.new(value, **options, version: normalize_version(name, options))
           write_entry(key, entry, **options)
         end
       end

@@ -1660,7 +1660,7 @@ instructed otherwise.
 If you're working with composite primary keys in your Rails models and need to
 ensure the correct handling of associations, please refer to the [Associations
 section of the Composite Primary Keys
-guide](active_record_composite_primary_keys#associations-between-models-with-composite-primary-keys).
+guide](active_record_composite_primary_keys.html#associations-between-models-with-composite-primary-keys).
 This section provides comprehensive guidance on setting up and using
 associations with composite primary keys in Rails, including how to specify
 composite foreign keys when necessary.
@@ -3110,7 +3110,7 @@ class Author < ApplicationRecord
 end
 ```
 
-By default, querying `@auth books.size` results in a database call to perform a
+By default, querying `author.books.size` results in a database call to perform a
 `COUNT(*)` query. To optimize this, you can add a counter cache to the
 _belonging_ model (in this case, `Book`). This way, Rails can return the count
 directly from the cache without querying the database.
