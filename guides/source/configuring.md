@@ -648,19 +648,29 @@ deploying to a memory constrained environment you may want to set this to `false
 | 7.2                   | `true`               |
 | 8.1                   | `!Rails.env.local?`  |
 
-### Configuring Assets
+### Configuring the Asset Pipeline
+
+The configuration of the asset pipeline depends on the gems used. Both
+[propshaft](https://github.com/rails/propshaft) (the default) and
+[sprockets-rails](https://github.com/rails/sprockets-rails) come with their own
+defaults defined.
 
 #### `config.assets.css_compressor`
 
-Defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
+Defines the CSS compressor to be used by `sprockets-rails`. It is set to `:sass` by `sassc-rails`. The
+unique alternative value at the moment is `:yui`, which uses the
+`yui-compressor` gem.
 
 #### `config.assets.js_compressor`
 
-Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier`, and `:yui`, which require the use of the `terser`, `closure-compiler`, `uglifier`, or `yui-compressor` gems respectively.
+Defines the JavaScript compressor to be used `sprockets-rails`. Possible values are `:terser`,
+`:closure`, `:uglifier`, and `:yui`, which require the use of the `terser`,
+`closure-compiler`, `uglifier`, or `yui-compressor` gems respectively.
 
 #### `config.assets.gzip`
 
-A flag that enables the creation of gzipped version of compiled assets, along with non-gzipped assets. Set to `true` by default.
+A flag that enables the creation of gzipped version of compiled assets, along
+with non-gzipped assets. Set to `true` by `sprockets-rails`.
 
 #### `config.assets.paths`
 
@@ -683,7 +693,8 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.assets.prefix`
 
-Defines the prefix where assets are served from. Defaults to `/assets`.
+Defines the prefix where assets are served from. Set to `/assets` by
+`propshaft` and `sprocket-rails`.
 
 #### `config.assets.manifest`
 
@@ -691,11 +702,13 @@ Defines the full path to be used for the asset precompiler's manifest file. Defa
 
 #### `config.assets.digest`
 
-Enables the use of SHA256 fingerprints in asset names. Set to `true` by default.
+Enables the use of SHA256 fingerprints in asset names. Set to `true` by
+`sprocket-rails`.
 
 #### `config.assets.debug`
 
-Disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
+Disables the concatenation and compression of assets. Set to `false` by
+`sprocket-rails`.
 
 #### `config.assets.version`
 
@@ -703,7 +716,8 @@ Is an option string that is used in SHA256 hash generation. This can be changed 
 
 #### `config.assets.compile`
 
-Is a boolean that can be used to turn on live Sprockets compilation in production.
+Is a boolean that can be used to turn on live Sprockets compilation in
+production. Set to `true` by `sprocket-rails`.
 
 #### `config.assets.logger`
 
@@ -711,7 +725,8 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby `Logge
 
 #### `config.assets.quiet`
 
-Disables logging of assets requests. Set to `true` by default in `config/environments/development.rb`.
+Disables logging of assets requests. Set to `false` by `propshaft` and
+`sprocket-rails`.
 
 ### Configuring Generators
 
