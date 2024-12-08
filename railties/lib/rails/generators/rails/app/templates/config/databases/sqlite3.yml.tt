@@ -9,9 +9,30 @@ default: &default
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
+<%- if options.skip_solid? -%>
 development:
   <<: *default
   database: storage/development.sqlite3
+<%- else -%>
+development:
+  primary: &primary_development
+    <<: *default
+    database: storage/development.sqlite3
+  cache:
+    <<: *primary_development
+    database: storage/development_cache.sqlite3
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_development
+    database: storage/development_queue.sqlite3    
+    migrations_paths: db/queue_migrate
+  <%- unless options.skip_action_cable? -%>
+  cable:
+    <<: *primary_development
+    database: storage/development_cable.sqlite3    
+    migrations_paths: db/cable_migrate
+  <%- end -%>
+<%- end -%>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
