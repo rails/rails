@@ -487,4 +487,20 @@ class ValidationsTest < ActiveModel::TestCase
 
     assert Topic.new.validate!(:custom_context)
   end
+
+  def test_comparison_validator_bypasses_check_for_presence_if_already_checked_before
+    Topic.validates :price, presence: true, comparison: { greater_than: 0 }
+    t = Topic.new
+
+    assert_predicate t, :invalid?
+    assert_equal ["can't be blank"], t.errors[:price]
+  end
+
+  def test_comparison_validator_checks_for_presence_if_not_already_checked_before
+    Topic.validates :price, comparison: { greater_than: 0 }
+    t = Topic.new
+
+    assert_predicate t, :invalid?
+    assert_equal ["can't be blank"], t.errors[:price]
+  end
 end
