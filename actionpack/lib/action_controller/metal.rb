@@ -128,7 +128,7 @@ module ActionController
     # #### Returns
     # *   `string`
     def self.controller_name
-      @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore unless anonymous?)
+      @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore unless anonymous?).freeze
     end
 
     def self.make_response!(request)
