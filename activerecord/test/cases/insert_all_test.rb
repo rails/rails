@@ -770,6 +770,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_resets_relation
+    skip unless supports_insert_on_duplicate_update?
+
     audit_logs = Developer.create!(name: "Alice").audit_logs.load
 
     assert_changes "audit_logs.loaded?", from: true, to: false do
@@ -786,6 +788,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_has_many_through
+    skip unless supports_insert_on_duplicate_update?
+
     book = Book.first
     assert_raise(ArgumentError) { book.subscribers.upsert_all([ { nick: "Jimmy" } ]) }
   end
