@@ -68,6 +68,9 @@ TIP: You can create new Rails apps with a preconfigured Dev Container developmen
 is the fastest way to get started with Rails.
 For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
 
+TIP: For a better editor integration experience, you can follow
+[this guide](https://shopify.github.io/ruby-lsp/editors.html).
+
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
 needed.
