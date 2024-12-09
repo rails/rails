@@ -4,13 +4,24 @@ require "test_helper"
 require "minitest/mock"
 require "stubs/test_server"
 
-class ActionCable::Connection::StreamTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
+class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
+  class TestSocket < ActionCable::Server::Socket
+    class TestConnection
+      def initialize(socket)
+        @socket = socket
+      end
+
+      def handle_open = @socket.connect
+
+      def handle_close = @socket.disconnect
+    end
+
     attr_reader :connected, :websocket, :errors
 
     def initialize(*)
       super
       @errors = []
+      @connection = TestConnection.new(self)
     end
 
     def connect
@@ -19,10 +30,6 @@ class ActionCable::Connection::StreamTest < ActionCable::TestCase
 
     def disconnect
       @connected = false
-    end
-
-    def send_async(method, *args)
-      send method, *args
     end
 
     def on_error(message)
@@ -60,10 +67,10 @@ class ActionCable::Connection::StreamTest < ActionCable::TestCase
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
       env["rack.hijack"] = -> { env["rack.hijack_io"] = io }
 
-      Connection.new(@server, env).tap do |connection|
-        connection.process
-        connection.send :handle_open
-        assert connection.connected
+      TestSocket.new(@server, env).tap do |socket|
+        socket.process
+        socket.send :handle_open
+        assert socket.connected
       end
     end
 end

@@ -5,26 +5,15 @@
 require "nio"
 
 module ActionCable
-  module Connection
+  module Server
     class StreamEventLoop
       def initialize
-        @nio = @executor = @thread = nil
+        @nio = @thread = nil
         @map = {}
         @stopping = false
         @todo = Queue.new
 
         @spawn_mutex = Mutex.new
-      end
-
-      def timer(interval, &block)
-        Concurrent::TimerTask.new(execution_interval: interval, &block).tap(&:execute)
-      end
-
-      def post(task = nil, &block)
-        task ||= block
-
-        spawn
-        @executor << task
       end
 
       def attach(io, stream)
@@ -66,12 +55,6 @@ module ActionCable
             return if @thread && @thread.status
 
             @nio ||= NIO::Selector.new
-
-            @executor ||= Concurrent::ThreadPoolExecutor.new(
-              min_threads: 1,
-              max_threads: 10,
-              max_queue: 0,
-            )
 
             @thread = Thread.new { run }
 
