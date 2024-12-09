@@ -33,7 +33,7 @@ In order to develop secure web applications you have to keep up to date on all l
 Authentication
 --------------
 
-Authentication is often one the first features implemented in a web application. It serves as the foundation for securing user data and is part of most modern web applications.
+Authentication is often one of the first features implemented in a web application. It serves as the foundation for securing user data and is part of most modern web applications.
 
 Starting with version 8.0, Rails comes with a default authentication generator, which provides a solid starting point for securing your application by only allowing access to verified users.
 
@@ -72,7 +72,7 @@ $ rails generate authentication
       create    db/migrate/20241010215314_create_sessions.rb
 ```
 
-As shown above, the authentication generator modifies the `Gemfile` to add the `bcrypt` gem. The generator uses the `bcrypt` gem for storing a hash of the password in the database (instead of plain-text passwords). As this process is not reversible, there's no way to go from the hash back to the password.
+As shown above, the authentication generator modifies the `Gemfile` to add the [bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) gem. The generator uses the `bcrypt` gem for storing a hash of the password in the database (instead of plain-text passwords). As this process is not reversible, there's no way to go from the hash back to the password.
 
 The generator adds two migrations for creating `user` and `session` tables. Next step is to run the migrations:
 
