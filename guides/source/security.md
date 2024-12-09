@@ -169,6 +169,16 @@ If the credentials are valid, a new `Session` is created for that user.
 
 The core functionality around session management is implemented in the `Authentication` controller concern, which is included by the `ApplicationController` in your application. You can explore details of the [authentication concern](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/authentication/templates/app/controllers/concerns/authentication.rb.tt) in the source code.
 
+One method to note in the `Authentication` concern is `authenticated?`, a helper method available in view templates. You can use this method to conditionally display links and/or buttons depending on whether a user is currently authenticated. For example:
+
+```html+erb
+<% if authenticated? %>
+  <%= button_to "Sign Out", session_path, method: :delete  %></li>
+<% else %>
+  <%= link_to "Sign In", new_session_path %>
+<% end %>
+```
+
 TIP: You can find all of the details for the Authentication generator in the Rails source code. You are encouraged to explore the implementation details and not treat authentication as a black box.
 
 With the authentication generator configured as above, your application is ready for a more secure user authentication and password recovery process in just a few steps.
