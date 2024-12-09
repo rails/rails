@@ -762,7 +762,6 @@ module ActiveRecord
         def handle_warnings(sql)
           return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
-          @affected_rows_before_warnings = @raw_connection.affected_rows
           warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
           result = [
