@@ -72,9 +72,9 @@ $ rails generate authentication
       create    db/migrate/20241010215314_create_sessions.rb
 ```
 
-As shown above, the authentication generator modifies the `Gemfile` to add the [bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) gem. The generator uses the `bcrypt` gem for storing a hash of the password in the database (instead of plain-text passwords). As this process is not reversible, there's no way to go from the hash back to the password.
+As shown above, the authentication generator modifies the `Gemfile` to add the [bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) gem. The generator uses the `bcrypt` gem to create a hash of the password, which is then stored in the database (instead of the plain-text password). As this process is not reversible, there's no way to go from the hash back to the password. The hashing algorithm is deterministic though, so the stored password is able to be compared with the hash of the user-inputted password during authentication.
 
-The generator adds two migrations for creating `user` and `session` tables. Next step is to run the migrations:
+The generator adds two migration files for creating `user` and `session` tables. Next step is to run the migrations:
 
 ```bash
 $ bin/rails db:migrate
