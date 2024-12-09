@@ -58,7 +58,7 @@ Let's verify the correct version of Rails is installed. To display the current v
 
 ```bash
 $ rails --version
-Rails 8.1.0
+Rails 8.0.0
 ```
 
 The version shown should be Rails 8.0.0 or higher.
@@ -199,9 +199,9 @@ You'll see the following in your terminal:
 
 This command does several things. It creates...
 
-1. a migration in the `db/migrate` folder
-2. an Active Record model in `app/models/product.rb`
-3. tests and test fixtures for this model
+1. A migration in the `db/migrate` folder.
+2. An Active Record model in `app/models/product.rb`.
+3. Tests and test fixtures for this model.
 
 NOTE: Model names are *singular*, because an instantiated model represents a single record in the database (i.e., You are creating a _product_ to add to the database.).
 
@@ -259,7 +259,7 @@ Rails Console
 
 Now that we have created our products table, we can interact with it in Rails. Let's try it out.
 
-For this, we're going to use a feature of Rails called the *console*.  The console is a helpful, interactive tool for testing our code in our Rails application.
+For this, we're going to use a Rails feature called the *console*. The console is a helpful, interactive tool for testing our code in our Rails application.
 
 ```bash
 $ bin/rails console
@@ -268,7 +268,7 @@ $ bin/rails console
 You will be presented with a prompt like the following:
 
 ```irb
-Loading development environment (Rails 8.1.0)
+Loading development environment (Rails 8.0.0)
 store(dev)>
 ```
 
@@ -341,7 +341,7 @@ store(dev)> product
 => #<Product:0x00000001221f6260 id: 1, name: "T-Shirt", created_at: "2024-11-09 16:35:01.117836000 +0000", updated_at: "2024-11-09 16:35:01.117836000 +0000">
 ```
 
-Similar to `save`, we can use `create` to instantiate and save an Active Record model in a single call.
+Similar to `save`, we can use `create` to instantiate and save an Active Record object in a single call.
 
 ```irb
 store(dev)> Product.create(name: "Pants")
@@ -2013,7 +2013,7 @@ end
 
 Concerns are a great way to organize features of your Rails application. As you add more features to the Product, the class will become messy. Instead, we can use Concerns to extract each feature out into a self-contained module like `Product::Notifications` which contains all the functionality for handling subscribers and how notifications are sent.
 
-Extracting code into concerns also helps make features reusable. For example, we could introduce  a new model that also needs subscriber notifications. This module could be used in multiple models to provide the same functionality.
+Extracting code into concerns also helps make features reusable. For example, we could introduce a new model that also needs subscriber notifications. This module could be used in multiple models to provide the same functionality.
 
 ### Unsubscribe links
 
@@ -2361,7 +2361,7 @@ To make background jobs more robust, Rails uses `solid_queue` for production env
 
 Solid Queue is enabled for our production Kamal deployment using the `SOLID_QUEUE_IN_PUMA: true` environment variable to `config/deploy.yml`. This tells our web server, Puma, to start and stop the Solid Queue process automatically.
 
-When emails are sent with Action Mailer's `deliver_later`, these emails will be sent to ActiveJob for sending in the background so they don't delay the HTTP request. With Solid Queue in production, emails will be sent in the background, automatically retried if they fail to send, and jobs are kept safe in the database during restarts.
+When emails are sent with Action Mailer's `deliver_later`, these emails will be sent to Active Job for sending in the background so they don't delay the HTTP request. With Solid Queue in production, emails will be sent in the background, automatically retried if they fail to send, and jobs are kept safe in the database during restarts.
 
 What's Next?
 ------------
