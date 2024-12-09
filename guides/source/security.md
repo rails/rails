@@ -129,7 +129,7 @@ The mailers for *reset password* are also set up by the generator at `app/mailer
 
 ### Implementation Details
 
-This section covers some of the implementation details for the authentication generator in Rails: The `has_secure_password` method, the `authenticate_by` method, and the `Authentication` concern.
+This section covers some of the implementation details around the authentication flow added by the authentication generator: The `has_secure_password` method, the `authenticate_by` method, and the `Authentication` concern.
 
 #### `has_secure_password`
 
@@ -146,7 +146,7 @@ end
 
 #### `authenticate_by`
 
-The [`authenticate_by`](https://api.rubyonrails.org/classes/ActiveRecord/SecurePassword/ClassMethods.html) method is used in the `SessionsController` while creating a new session to validate that the credentials provided by the user match the credentials stored in the database (e.g. password):
+The [`authenticate_by`](https://api.rubyonrails.org/classes/ActiveRecord/SecurePassword/ClassMethods.html) method is used in the `SessionsController` while creating a new session to validate that the credentials provided by the user match the credentials stored in the database (e.g. password) for that user:
 
 ```ruby
 class SessionsController < ApplicationController
@@ -162,6 +162,8 @@ class SessionsController < ApplicationController
   # ...
 end
 ```
+
+If the credentials are valid, a new `Session` is created for that user.
 
 #### Session Management
 
