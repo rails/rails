@@ -134,12 +134,13 @@ module RailsGuides
 
         view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
-          edge:     @edge,
-          version:  @version,
-          epub:     "epub/#{epub_filename}",
-          language: @language,
-          direction: @direction,
-          uuid:      SecureRandom.uuid
+          edge:          @edge,
+          version:       @version,
+          epub:          "epub/#{epub_filename}",
+          language:      @language,
+          direction:     @direction,
+          uuid:          SecureRandom.uuid,
+          canonical_url: canonical_url(output_file)
         )
         view.extend(Helpers)
 
@@ -165,6 +166,12 @@ module RailsGuides
         File.open(output_path, "w") do |f|
           f.write(result)
         end
+      end
+
+      def canonical_url(path)
+        url = "https://guides.rubyonrails.org/"
+        url += path unless path == "index.html"
+        url
       end
 
       def warn_about_broken_links(html)
