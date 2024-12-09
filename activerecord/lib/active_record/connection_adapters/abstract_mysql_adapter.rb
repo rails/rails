@@ -759,7 +759,7 @@ module ActiveRecord
           end
         end
 
-        def handle_warnings(sql)
+        def handle_warnings(_initial_result, sql)
           return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
           warning_count = @raw_connection.warning_count

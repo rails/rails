@@ -29,7 +29,6 @@ module ActiveRecord
               raw_connection.next_result
             end
             verified!
-            handle_warnings(sql)
 
             notification_payload[:affected_rows] = result.affected_rows
             notification_payload[:row_count] = result.count

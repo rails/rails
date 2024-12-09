@@ -94,7 +94,6 @@ module ActiveRecord
             raw_connection.abandon_results!
 
             verified!
-            handle_warnings(sql)
             result
           ensure
             if reset_multi_statement && active?
