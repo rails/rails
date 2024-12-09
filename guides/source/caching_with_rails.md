@@ -45,23 +45,6 @@ For instance, it will not impact low-level caching, that we address
 
 [`config.action_controller.perform_caching`]: configuring.html#config-action-controller-perform-caching
 
-### Page Caching
-
-Page caching is a Rails mechanism which allows the request for a generated page
-to be fulfilled by the web server (i.e. Apache or NGINX) without having to go
-through the entire Rails stack. While this is super fast it can't be applied to
-every situation (such as pages that need authentication). Also, because the
-web server is serving a file directly from the filesystem you will need to
-implement cache expiration.
-
-INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching).
-
-### Action Caching
-
-Page Caching cannot be used for actions that have before filters - for example, pages that require authentication. This is where Action Caching comes in. Action Caching works like Page Caching except the incoming web request hits the Rails stack so that before filters can be run on it before the cache is served. This allows authentication and other restrictions to be run while still serving the result of the output from a cached copy.
-
-INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_caching gem](https://github.com/rails/actionpack-action_caching). See [DHH's key-based cache expiration overview](https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
-
 ### Fragment Caching
 
 Dynamic web applications usually build pages with a variety of components not
