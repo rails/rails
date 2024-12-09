@@ -5,6 +5,7 @@
 
     *Efstathios Stivaros*
 
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   No changes.

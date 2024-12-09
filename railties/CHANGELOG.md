@@ -1,3 +1,16 @@
+*   Skip generation system tests related code for CI when `--skip-system-test` is given.
+
+    *fatkodima*
+
+*   Don't add bin/thrust if thruster is not in Gemfile.
+
+    *Étienne Barrié*
+
+*   Don't install a package for system test when applications don't use it.
+
+    *y-yagi*
+
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   No changes.

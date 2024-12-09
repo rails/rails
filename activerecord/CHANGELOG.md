@@ -1,3 +1,27 @@
+*   Fix `add_unique_constraint`/`add_check_constraint`/`add_foreign_key` to be revertible when given invalid options.
+
+    *fatkodima*
+
+*   Fix asynchronous destroying of polymorphic `belongs_to` associations.
+
+    *fatkodima*
+
+*   Fix `insert_all` to not update existing records.
+
+    *fatkodima*
+
+*   `NOT VALID` constraints should not dump in `create_table`.
+
+    *Ryuta Kamizono*
+
+*   Fix finding by nil composite primary key association.
+
+    *fatkodima*
+
+*   Properly reset composite primary key configuration when setting a primary key.
+
+    *fatkodima*
+
 *   Fix Mysql2Adapter support for prepared statements
 
     Using prepared statements with MySQL could result in a `NoMethodError` exception.
@@ -22,6 +46,11 @@
 
     *Edouard Chin*
 
+*   Restore back the ability to pass only database name to `DATABASE_URL`.
+
+    *fatkodima*
+
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   Fix support for `query_cache: false` in `database.yml`.
@@ -29,6 +58,7 @@
     `query_cache: false` would no longer entirely disable the Active Record query cache.
 
     *zzak*
+
 
 ## Rails 8.0.0.rc2 (October 30, 2024) ##
 
