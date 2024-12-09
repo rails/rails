@@ -1529,7 +1529,8 @@ module ActiveRecord
         return if down? && !migrated.include?(migration.version.to_i)
         return if up?   &&  migrated.include?(migration.version.to_i)
 
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+        message = up? ? "Migrating to" : "Reverting"
+        Base.logger.info "#{message} #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
           migration.migrate(@direction)
