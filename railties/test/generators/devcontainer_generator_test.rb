@@ -350,6 +350,7 @@ module Rails
 
           assert_devcontainer_json_file do |devcontainer_json|
             assert_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/github-cli:1"
+            assert_includes devcontainer_json["features"].keys, "ghcr.io/rails/devcontainer/features/bundler-cache"
             assert_includes devcontainer_json["forwardPorts"], 3000
           end
 
