@@ -33,13 +33,21 @@ In order to develop secure web applications you have to keep up to date on all l
 Authentication
 --------------
 
-Authentication is often one of the first features implemented in a web application. It serves as the foundation for securing user data and is part of most modern web applications.
+Authentication is often one of the first features implemented in a web
+application. It serves as the foundation for securing user data and is part of
+most modern web applications.
 
-Starting with version 8.0, Rails comes with a default authentication generator, which provides a solid starting point for securing your application by only allowing access to verified users.
+Starting with version 8.0, Rails comes with a default authentication generator,
+which provides a solid starting point for securing your application by only
+allowing access to verified users.
 
-The authentication generator adds all of the relevant models, controllers, views, routes, and migrations needed for basic authentication and password reset functionality.
+The authentication generator adds all of the relevant models, controllers,
+views, routes, and migrations needed for basic authentication and password reset
+functionality.
 
-To use this feature in your application, you can run `rails generate authentication`. Here are all of the files the generator modifies and new files it adds:
+To use this feature in your application, you can run `rails generate
+authentication`. Here are all of the files the generator modifies and new files
+it adds:
 
 ```bash
 $ rails generate authentication
@@ -72,17 +80,33 @@ $ rails generate authentication
       create    db/migrate/20241010215314_create_sessions.rb
 ```
 
-As shown above, the authentication generator modifies the `Gemfile` to add the [bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) gem. The generator uses the `bcrypt` gem to create a hash of the password, which is then stored in the database (instead of the plain-text password). As this process is not reversible, there's no way to go from the hash back to the password. The hashing algorithm is deterministic though, so the stored password is able to be compared with the hash of the user-inputted password during authentication.
+As shown above, the authentication generator modifies the `Gemfile` to add the
+[bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) gem. The generator uses
+the `bcrypt` gem to create a hash of the password, which is then stored in the
+database (instead of the plain-text password). As this process is not
+reversible, there's no way to go from the hash back to the password. The hashing
+algorithm is deterministic though, so the stored password is able to be compared
+with the hash of the user-inputted password during authentication.
 
-The generator adds two migration files for creating `user` and `session` tables. Next step is to run the migrations:
+The generator adds two migration files for creating `user` and `session` tables.
+Next step is to run the migrations:
 
 ```bash
 $ bin/rails db:migrate
 ```
 
-Then, if you visit `/session/new` in your browser (you will see this route has been added in `routes.rb`), you'll see a form that accepts an email and a password with "sign in" button. This form routes to the `SessionsController` which was added by the generator. If you provide an email/password for a user that exists in the database, you will be able to successfully authenticate with those credentials and login to the application.
+Then, if you visit `/session/new` in your browser (you will see this route has
+been added in `routes.rb`), you'll see a form that accepts an email and a
+password with "sign in" button. This form routes to the `SessionsController`
+which was added by the generator. If you provide an email/password for a user
+that exists in the database, you will be able to successfully authenticate with
+those credentials and login to the application.
 
-NOTE: After running the Authentication generator, you do need to implement your own *sign up flow* and add the necessary views, routes, and controller actions. There is no code generated that creates new `user` records and allows users to "sign up" in the first place. This is something you'll need to wire up based on the requirements of your application.
+NOTE: After running the Authentication generator, you do need to implement your
+own *sign up flow* and add the necessary views, routes, and controller actions.
+There is no code generated that creates new `user` records and allows users to
+"sign up" in the first place. This is something you'll need to wire up based on
+the requirements of your application.
 
 Here is a list of modified files:
 
@@ -115,9 +139,15 @@ Untracked files:
 
 ### Reset Password
 
-The authentication generator also adds reset password functionality. You can see a "forgot password?" link on the "sign in" page. Clicking that link navigates to the `/passwords/new` path and routes to the passwords controller. The `new` method of the `PasswordsController` class runs through the flow for sending a password reset email.
+The authentication generator also adds reset password functionality. You can see
+a "forgot password?" link on the "sign in" page. Clicking that link navigates to
+the `/passwords/new` path and routes to the passwords controller. The `new`
+method of the `PasswordsController` class runs through the flow for sending a
+password reset email.
 
-The mailers for *reset password* are also set up by the generator at `app/mailers/password_mailer.rb` and render the following email to send to the user:
+The mailers for *reset password* are also set up by the generator at
+`app/mailers/password_mailer.rb` and render the following email to send to the
+user:
 
 ```html+erb
 # app/views/passwords_mailer/reset.html.erb
@@ -129,11 +159,16 @@ The mailers for *reset password* are also set up by the generator at `app/mailer
 
 ### Implementation Details
 
-This section covers some of the implementation details around the authentication flow added by the authentication generator: The `has_secure_password` method, the `authenticate_by` method, and the `Authentication` concern.
+This section covers some of the implementation details around the authentication
+flow added by the authentication generator: The `has_secure_password` method,
+the `authenticate_by` method, and the `Authentication` concern.
 
 #### `has_secure_password`
 
-The [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method is added to the `user` model and takes care of storing a hashed password using the `bcrypt` algorithm:
+The
+[`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password)
+method is added to the `user` model and takes care of storing a hashed password
+using the `bcrypt` algorithm:
 
 ```ruby
 class User < ApplicationRecord
@@ -146,7 +181,11 @@ end
 
 #### `authenticate_by`
 
-The [`authenticate_by`](https://api.rubyonrails.org/classes/ActiveRecord/SecurePassword/ClassMethods.html) method is used in the `SessionsController` while creating a new session to validate that the credentials provided by the user match the credentials stored in the database (e.g. password) for that user:
+The
+[`authenticate_by`](https://api.rubyonrails.org/classes/ActiveRecord/SecurePassword/ClassMethods.html)
+method is used in the `SessionsController` while creating a new session to
+validate that the credentials provided by the user match the credentials stored
+in the database (e.g. password) for that user:
 
 ```ruby
 class SessionsController < ApplicationController
@@ -167,9 +206,17 @@ If the credentials are valid, a new `Session` is created for that user.
 
 #### Session Management
 
-The core functionality around session management is implemented in the `Authentication` controller concern, which is included by the `ApplicationController` in your application. You can explore details of the [authentication concern](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/authentication/templates/app/controllers/concerns/authentication.rb.tt) in the source code.
+The core functionality around session management is implemented in the
+`Authentication` controller concern, which is included by the
+`ApplicationController` in your application. You can explore details of the
+[authentication
+concern](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/authentication/templates/app/controllers/concerns/authentication.rb.tt)
+in the source code.
 
-One method to note in the `Authentication` concern is `authenticated?`, a helper method available in view templates. You can use this method to conditionally display links and/or buttons depending on whether a user is currently authenticated. For example:
+One method to note in the `Authentication` concern is `authenticated?`, a helper
+method available in view templates. You can use this method to conditionally
+display links/buttons depending on whether a user is currently authenticated.
+For example:
 
 ```html+erb
 <% if authenticated? %>
@@ -179,9 +226,13 @@ One method to note in the `Authentication` concern is `authenticated?`, a helper
 <% end %>
 ```
 
-TIP: You can find all of the details for the Authentication generator in the Rails source code. You are encouraged to explore the implementation details and not treat authentication as a black box.
+TIP: You can find all of the details for the Authentication generator in the
+Rails source code. You are encouraged to explore the implementation details and
+not treat authentication as a black box.
 
-With the authentication generator configured as above, your application is ready for a more secure user authentication and password recovery process in just a few steps.
+With the authentication generator configured as above, your application is ready
+for a more secure user authentication and password recovery process in just a
+few steps.
 
 Sessions
 --------
