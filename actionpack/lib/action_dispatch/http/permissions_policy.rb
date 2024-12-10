@@ -175,7 +175,7 @@ module ActionDispatch # :nodoc:
           source
         when Symbol
           source.to_s
-        when Proc
+        when ActiveSupport::Callable
           if context.nil?
             raise RuntimeError, "Missing context for the dynamic permissions policy source: #{source.inspect}"
           else
