@@ -262,12 +262,26 @@ not being installed.
 
 #### Attachment Direct Upload JavaScript Events
 
+Action Text dispatches [Active Storage Direct Upload
+Events](active_storage_overview.html#direct-upload-javascript-events) during the
+File attachment lifecycle.
+
+In addition to the typical `event.detail` properties, Action Text also
+dispatches events with an
+[`event.detail.attachment`](https://github.com/basecamp/trix/?tab=readme-ov-file#inserting-a-file)
+property.
+
 | Event name | Event target | Event data (`event.detail`) | Description |
 | --- | --- | --- | --- |
 | `direct-upload:start` | `<input>` | `{id, file}` | A direct upload is starting. |
 | `direct-upload:progress` | `<input>` | `{id, file, progress}` | As requests to store files progress. |
 | `direct-upload:error` | `<input>` | `{id, file, error}` | An error occurred. An `alert` will display unless this event is canceled. |
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
+
+NOTE: It is possible for files uploaded by Action Text through [Active Storage
+Direct Uploads](active_storage_overview.html#direct-uploads) to never be
+embedded within rich text content. Consider [purging unattached
+uploads](active_storage_overview.html#purging-unattached-uploads) regularly.
 
 ### Signed GlobalID
 
