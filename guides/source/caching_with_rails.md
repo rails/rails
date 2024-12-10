@@ -596,6 +596,33 @@ values with `Rails.cache` and then try to pull them out with the `dalli` gem.
 However, you also don't need to worry about exceeding the memcached size limit or
 violating syntax rules.
 
+Compression options
+-------------------
+
+The default cache compressor is Zlib. To define a new custom compressor that also decompresses old cache entries, you can check compressed values for Zlib's `"\x78"` signature.
+
+Here's how you can configure a [zstd-ruby](https://github.com/SpringMT/zstd-ruby) compressor, which offers better performance and compression ratios than Zlib.
+
+```ruby
+require "zstd-ruby"
+
+module ZSTDCompressor
+  def self.deflate(payload)
+    ::Zstd.compress(payload, level: 10)
+  end
+
+  def self.inflate(payload)
+    if payload.start_with?("\x78")
+      Zlib.inflate(payload)
+    else
+      ::Zstd.decompress(payload)
+    end
+  end
+end
+
+config.cache_store = :mem_cache_store, { compressor: ZSTDCompressor }
+```
+
 Conditional GET Support
 -----------------------
 
