@@ -32,26 +32,30 @@ module ActiveModel
       module ClassMethods
         # Defines a callback that will get called right before validation.
         #
-        #   class Person
+        #   class User
         #     include ActiveModel::Validations
         #     include ActiveModel::Validations::Callbacks
         #
-        #     attr_accessor :name
+        #     attr_accessor :username, :email
         #
-        #     validates_length_of :name, maximum: 6
+        #     validates :email, format: { with: /@/ }
         #
-        #     before_validation :remove_whitespaces
+        #     before_validation :ensure_username_has_value
         #
         #     private
-        #       def remove_whitespaces
-        #         name.strip!
+        #       def ensure_username_has_value
+        #         self.username = email if username.blank?
         #       end
         #   end
         #
-        #   person = Person.new
-        #   person.name = '  bob  '
-        #   person.valid? # => true
-        #   person.name   # => "bob"
+        #   user = User.new
+        #   user.email = 'john.doe@example.com'
+        #   user.valid?   # => true
+        #   user.email    # => 'john.doe@example.com'
+        #   user.username # => 'john.doe@example.com'
+        #
+        # If your goal is to normalize ActiveRecord attributes, consider using
+        # ActiveRecord::Normalization::ClassMethods.normalizes instead.
         def before_validation(*args, &block)
           options = args.extract_options!
 
