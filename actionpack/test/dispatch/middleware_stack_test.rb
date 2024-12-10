@@ -25,6 +25,11 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     end
   end
 
+  class NestedMiddlewareContainer
+    def merge_into
+    end
+  end
+
   def setup
     @stack = ActionDispatch::MiddlewareStack.new
     @stack.use FooMiddleware
@@ -94,9 +99,29 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack[1].klass
   end
 
+  test "insert_before inserts middleware before a nested middleware container" do
+    nested_middleware_container = NestedMiddlewareContainer.new
+    @stack.use nested_middleware_container
+    @stack.insert_before(nested_middleware_container, BazMiddleware)
+
+    assert_equal BazMiddleware, @stack[2].klass
+    assert @stack[3].is_a?(ActionDispatch::MiddlewareStack::MiddlewareContainer)
+    assert_equal nested_middleware_container, @stack[3].container
+  end
+
   test "insert_after inserts middleware after another middleware class" do
     @stack.insert_after(BarMiddleware, BazMiddleware)
     assert_equal BazMiddleware, @stack[2].klass
+  end
+
+  test "insert_after inserts middleware after a nested middleware group" do
+    nested_middleware_container = NestedMiddlewareContainer.new
+    @stack.unshift nested_middleware_container
+    @stack.insert_after(nested_middleware_container, BazMiddleware)
+
+    assert_equal BazMiddleware, @stack[1].klass
+    assert @stack[0].is_a?(ActionDispatch::MiddlewareStack::MiddlewareContainer)
+    assert_equal nested_middleware_container, @stack[0].container
   end
 
   test "swaps one middleware out for another" do
@@ -213,5 +238,13 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "includes a middleware" do
     assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
+  end
+
+  test "accepts a mergeable item as a MiddlewareContainer" do
+    nested_middleware_container = NestedMiddlewareContainer.new
+
+    @stack.use nested_middleware_container
+    assert @stack.last.is_a?(ActionDispatch::MiddlewareStack::MiddlewareContainer)
+    assert_equal nested_middleware_container, @stack.last.container
   end
 end
