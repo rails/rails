@@ -8,7 +8,7 @@ This guide is an introduction to speeding up your Rails application with caching
 After reading this guide, you will know about:
 
 * Solid Cache - a database-backed Active Support cache store.
-* Basic Caching Strategies including Fragment and Russian doll caching.
+* Types of Caching Strategies including Fragment and Russian doll caching.
 * How to manage the caching dependencies.
 * Alternative cache stores.
 * Cache Keys
@@ -21,10 +21,10 @@ What is Caching?
 
 Caching means storing content generated during the request-response cycle and
 reusing it when responding to similar requests. It's like keeping your favorite
-coffee mug right on your desk instead of in the kitchen cabinet—it’s ready when
+coffee mug right on your desk instead of in the kitchen cabinet — it’s ready when
 you need it, saving you time and effort.
 
-Caching is one of the most effective way to boost an application's performance.
+Caching is one of the most effective ways to boost an application's performance.
 It allows websites running on modest infrastructure — a single server with a
 single database — to sustain thousands of concurrent users.
 
@@ -32,8 +32,8 @@ Rails provides a set of caching features out of the box which allows you to not
 only cache data, but also to tackle challenges like cache expiration, cache
 dependencies, and cache invalidation.
 
-In this guide, you’ll explore Rails' comprehensive caching strategies, from page
-caching to fragment caching and beyond. By mastering these techniques, you’ll
+In this guide, you can explore Rails' comprehensive caching strategies, from page
+caching to fragment caching and beyond. By using these techniques, you can
 empower your Rails applications to serve millions of views while keeping
 response times low and server bills manageable.
 
