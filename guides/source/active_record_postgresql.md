@@ -516,6 +516,28 @@ irb> event.duration
 => 2 days
 ```
 
+### Timestamps
+
+* [Date/Time Types](https://www.postgresql.org/docs/current/datatype-datetime.html)
+
+Rails migrations with timestamps store the time a model was created or updated. By default, the columns use the `timestamp without time zone` data type.
+
+While this works ok, [PostgreSQL best practices](https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timestamp_.28without_time_zone.29) recommend that `timestamp with time zone` is used instead for timezone-aware timestamps.
+
+Support for this data type was added to Active Record in <https://github.com/rails/rails/pull/41084>, but must be configured in Rails apps before it can be used for new migrations.
+
+To configure `timestamp with time zone` as your new timestamp default data type, place the following configuration in `config/application.rb`.
+
+```ruby
+# config/application.rb
+ActiveSupport.on_load(:active_record_postgresqladapter) do
+  self.datetime_type = :timestamptz
+end
+```
+
+With that configuration in place, generate and apply new migrations, then verify their timestamps use the `timestamp with time zone` data type.
+
+
 UUID Primary Keys
 -----------------
 
