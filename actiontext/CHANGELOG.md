@@ -1,3 +1,8 @@
+*   Update vendored trix version to 2.1.10
+
+    *John Hawthorn*
+
+
 ## Rails 7.1.5 (October 30, 2024) ##
 
 *   No changes.
