@@ -62,6 +62,7 @@ If you wish to skip some files from being generated or skip some libraries, you 
 | `--skip-javascript`     | Skip JavaScript files                                    |
 | `--skip-hotwire`        | Skip Hotwire integration                                 |
 | `--skip-jbuilder`       | Skip jbuilder gem                                        |
+| `--skip-kamal`          | Skip Kamal files                                         |
 | `--skip-test`           | Skip test files                                          |
 | `--skip-system-test`    | Skip system test files                                   |
 | `--skip-bootsnap`       | Skip bootsnap gem                                        |
