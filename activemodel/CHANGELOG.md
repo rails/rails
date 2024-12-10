@@ -1,3 +1,8 @@
+## Rails 7.1.5.1 (December 10, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.1.5 (October 30, 2024) ##
 
 *   Fix regression in `alias_attribute` to work with user defined methods.

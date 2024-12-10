@@ -71,23 +71,23 @@
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
 "@rails/actioncable@file:/Users/jhawthorn/src/rails-release/actioncable":
-  version "7.1.500"
+  version "7.1.501"
   resolved "file:actioncable"
 
 "@rails/actiontext@file:/Users/jhawthorn/src/rails-release/actiontext":
-  version "7.1.500"
+  version "7.1.501"
   resolved "file:actiontext"
   dependencies:
     "@rails/activestorage" ">= 7.1.0-alpha"
 
 "@rails/activestorage@>= 7.1.0-alpha", "@rails/activestorage@file:/Users/jhawthorn/src/rails-release/activestorage":
-  version "7.1.500"
+  version "7.1.501"
   resolved "file:activestorage"
   dependencies:
     spark-md5 "^3.0.1"
 
 "@rails/ujs@file:/Users/jhawthorn/src/rails-release/actionview":
-  version "7.1.500"
+  version "7.1.501"
   resolved "file:actionview"
 
 "@rollup/plugin-commonjs@^19.0.1":
@@ -186,6 +186,11 @@
   integrity sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==
   dependencies:
     "@types/node" "*"
+
+"@types/trusted-types@^2.0.7":
+  version "2.0.7"
+  resolved "https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz"
+  integrity sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==
 
 "@webassemblyjs/ast@1.9.0":
   version "1.9.0"
@@ -1728,6 +1733,13 @@ domain-browser@^1.1.1:
   version "1.2.0"
   resolved "https://registry.npmjs.org/domain-browser/-/domain-browser-1.2.0.tgz"
   integrity sha512-jnjyiM6eRyZl2H+W8Q/zLMA481hzi0eszAaBUzIVnmYVDBbnLxVNnfu1HgEBvCbL+71FrxMl3E6lpKH7Ge3OXA==
+
+dompurify@^3.2.3:
+  version "3.2.3"
+  resolved "https://registry.npmjs.org/dompurify/-/dompurify-3.2.3.tgz"
+  integrity sha512-U1U5Hzc2MO0oW3DF+G9qYN0aT7atAou4AgI0XjWz061nyBPbdxkfdhfy5uMgGn6+oLFCfn44ZGbdDqCzVmlOWA==
+  optionalDependencies:
+    "@types/trusted-types" "^2.0.7"
 
 duplexify@^3.4.2, duplexify@^3.6.0:
   version "3.7.1"
@@ -3460,9 +3472,9 @@ magic-string@^0.25.7:
     sourcemap-codec "^1.4.8"
 
 magic-string@^0.30.3:
-  version "0.30.12"
-  resolved "https://registry.npmjs.org/magic-string/-/magic-string-0.30.12.tgz"
-  integrity sha512-Ea8I3sQMVXr8JhN4z+H/d8zwo+tYDgHE9+5G4Wnrwhs0gaK9fXTKx0Tw5Xwsd/bCPTTZNRAdpyzvoeORe9LYpw==
+  version "0.30.15"
+  resolved "https://registry.npmjs.org/magic-string/-/magic-string-0.30.15.tgz"
+  integrity sha512-zXeaYRgZ6ldS1RJJUrMrYgNJ4fdwnyI6tVqoiIhyCyv5IVTK9BU8Ic2l253GGETQHxI4HNUwhJ3fjDhKqEoaAw==
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.0"
 
@@ -5187,9 +5199,11 @@ tough-cookie@~2.4.3:
     punycode "^1.4.1"
 
 trix@^2.0.0:
-  version "2.1.7"
-  resolved "https://registry.npmjs.org/trix/-/trix-2.1.7.tgz"
-  integrity sha512-RyFmjLJfxP2nuAKqgVqJ40wk4qoYfDQtyi71q6ozkP+X4EOILe+j5ll5g/suvTyMx7BacGszNWzjnx9Vbj17sw==
+  version "2.1.10"
+  resolved "https://registry.npmjs.org/trix/-/trix-2.1.10.tgz"
+  integrity sha512-PrMOKriE76tJbjqiOFpjTiRkOomWBiGPT/YrBw83HJ5SlFAcybYZVjVlkDkOrFZoYI4qCfWUw42BTAjSE9KSYQ==
+  dependencies:
+    dompurify "^3.2.3"
 
 tsconfig-paths@^3.15.0:
   version "3.15.0"
