@@ -1,3 +1,7 @@
+*   Fix MySQL default functions getting dropped when changing a column's nullability.
+
+    *Bastian Bartmann*
+
 *   Fix `add_unique_constraint`/`add_check_constraint`/`add_foreign_key` to be revertible when given invalid options.
 
     *fatkodima*
