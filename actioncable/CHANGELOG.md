@@ -1,3 +1,10 @@
+*   Ensure the Postgresql adapter always use a dedicated connection even during system tests.
+
+    Fix an issue with the Action Cable Postgresql adapter causing deadlock or various weird
+    pg client error during system tests.
+
+    *Jean Boussier*
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   No changes.

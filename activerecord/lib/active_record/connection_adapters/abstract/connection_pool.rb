@@ -693,6 +693,14 @@ module ActiveRecord
         Thread.pass
       end
 
+      def new_connection # :nodoc:
+        connection = db_config.new_connection
+        connection.pool = self
+        connection
+      rescue ConnectionNotEstablished => ex
+        raise ex.set_pool(self)
+      end
+
       private
         def connection_lease
           @leases[ActiveSupport::IsolatedExecutionState.context]
@@ -877,14 +885,6 @@ module ActiveRecord
           end
         end
         alias_method :release, :remove_connection_from_thread_cache
-
-        def new_connection
-          connection = db_config.new_connection
-          connection.pool = self
-          connection
-        rescue ConnectionNotEstablished => ex
-          raise ex.set_pool(self)
-        end
 
         # If the pool is not at a <tt>@size</tt> limit, establish new connection. Connecting
         # to the DB is done outside main synchronized section.
