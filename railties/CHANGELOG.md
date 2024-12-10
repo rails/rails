@@ -1,3 +1,7 @@
+*   Generate session controller tests when running the authentication generator.
+
+    *Jerome Dalbert*
+
 *   Don't enable YJIT in development and test environments
 
     Development and test environment tend to reload code and redefine methods (e.g. mocking),
