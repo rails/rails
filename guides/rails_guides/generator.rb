@@ -188,6 +188,7 @@ module RailsGuides
           [@source_dir],
           edge:          @edge,
           version:       @version,
+          path:          output_file,
           epub:          "epub/#{epub_filename}",
           language:      @language,
           direction:     @direction,
