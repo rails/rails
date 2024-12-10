@@ -359,15 +359,15 @@ Solid Cache is a database-backed Active Support cache store and is a great choic
 
 By leveraging the speed of modern SSDs, like NVMe, Solid Cache is designed to overcome the limitations of traditional memory-only caches like Redis and Memcached. You get the following benefits with With Solid Cache:
 
-- Larger Cache Sizes: The cached data is stored on a disk instead of in memory - this allows you to cache large amounts of data without worrying about the high cost. In Memory caches like Redis and Memcached are expensive to scale because the come with very little storage capacity.
+- Larger Cache Sizes: The cached data is stored on a disk instead of in memory - this allows you to cache large amounts of data without worrying about the high cost. Memory-only caches like Redis and Memcached are expensive to scale because the come with very little storage capacity.
 
 - Cost-Effective: Solid Cache is much more cost-effective than traditional memory-only caches. Memory-only caches are expensive to scale because they require a lot of memory. Solid Cache is much cheaper because it uses disk storage which is much cheaper than memory.
 
-- Simplified Infrastructure: No need for additional dependencies like Redis or Memcached. Additionally, Solid Cache uses a relational database to store cached data, making it easy to integrate into existing database setups.
+- Simplified Infrastructure: No need for additional dependencies like Redis or Memcached. Additionally, Solid Cache uses a relational database to store cached data, making it simpler to integrate into existing database setups.
 
-While the SSD is slightly slower than RAM, the difference is negligible for most applications, and it makes up for it because it doesn't need invalidate as often since it can store more data. On average, this means there are fewer cache misses, which results in faster response times.
+While SSDs are slightly slower than RAM, the difference is minimal for most applications. SSDs compensate for this by not needing to be invalidated as frequently, since they can store much more data. As a result, there are fewer cache misses on average, leading to fast response times.
 
-Solid Cache operates as a FIFO (first in, first out) cache. Although it is less efficient than an LRU (least recently used) cache, its design compensates for this through an extended cache lifespan.
+Solid Cache uses a FIFO (First In, First Out) caching strategy, where the first item added to the cache is the first one to be removed when the cache reaches its limit. This approach is simpler but less efficient compared to an LRU (Least Recently Used) cache, which removes the least recently accessed items first, better optimizing for frequently used data. However, Solid Cache compensates for the lower efficiency of FIFO by allowing the cache to live longer, reducing the frequency of invalidations and improving overall performance in many scenarios.
 
 Solid Cache is enabled by default in Rails 8.0. However, if you'd prefer not to utilize it, you can skip Solid Cache:
 
@@ -443,7 +443,7 @@ The background task only runs when there are writes, so the process stays idle w
 
 ### Sharding the Cache
 
-If you need even more scalability, Solid Cache supports sharding — splitting the cache across multiple databases. This spreads the load, making your cache even more powerful. To enable sharding, add multiple cache databases to your database.yml:
+If you need more scalability, Solid Cache supports sharding — splitting the cache across multiple databases. This spreads the load, making your cache even more powerful. To enable sharding, add multiple cache databases to your database.yml:
 
 ```yaml
 # config/database.yml
@@ -466,12 +466,6 @@ Additionally, you must specify the shards in the cache configuration:
 production:
   databases: [cache_shard1, cache_shard2, cache_shard3]
 ```
-
-<!-- ```yaml
-# config/cache.yml
-production:
-  shards: [cache_shard1, cache_shard2, cache_shard3]
-``` -->
 
 ### Encryption
 
