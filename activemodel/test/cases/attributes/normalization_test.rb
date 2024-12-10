@@ -1,12 +1,20 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "models/aircraft"
-require "active_support/core_ext/string/inflections"
 
 class NormalizedAttributeTest < ActiveModel::TestCase
+  class Aircraft
+    include ActiveModel::Model
+    include ActiveModel::Attributes::Normalization
+
+    attribute :manufactured_at, :datetime, default: -> { Time.current }
+    attribute :name, :string
+    attribute :wheels_count, :integer, default: 0
+    attribute :wheels_owned_at, :datetime
+  end
+
   class NormalizedAircraft < Aircraft
-    include ActiveModel::Normalization
+    include ActiveModel::Attributes::Normalization
 
     normalizes :name, with: -> name { name.presence&.titlecase }
     normalizes :manufactured_at, with: -> time { time.noon }
@@ -47,7 +55,7 @@ class NormalizedAttributeTest < ActiveModel::TestCase
     assert_equal "Fly High", @aircraft.name
   end
 
-  test "normalizes value without record" do
+  test "normalizes value without model" do
     assert_equal "Titlecase Me", NormalizedAircraft.normalize_value_for(:name, "titlecase ME")
   end
 
@@ -66,7 +74,7 @@ class NormalizedAttributeTest < ActiveModel::TestCase
 
   test "normalizes nil if apply_to_nil" do
     including_nil = Class.new(Aircraft) do
-      include ActiveModel::Normalization
+      include ActiveModel::Attributes::Normalization
 
       normalizes :name, with: -> name { name&.titlecase || "Untitled" }, apply_to_nil: true
     end
@@ -85,7 +93,7 @@ class NormalizedAttributeTest < ActiveModel::TestCase
 
   test "minimizes number of times normalization is applied" do
     count_applied = Class.new(Aircraft) do
-      include ActiveModel::Normalization
+      include ActiveModel::Attributes::Normalization
 
       normalizes :name, with: -> name { name.succ }
     end
