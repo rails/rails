@@ -1408,7 +1408,7 @@ We can move the form into a file called `app/views/products/_form.html.erb`. The
 filename starts with an underscore to denote this is a partial.
 
 We also want to replace any instance variables with a local variable, which we
-can define when we render the partial. We'll replace `@product` with `product`.
+can define when we render the partial. We'll do this by replacing `@product` with `product`.
 
 ```erb#1
 <%= form_with model: product do |form| %>
