@@ -137,7 +137,11 @@ module ActiveRecord
           end
 
           def default_insert_value(column)
-            column.default
+            if column.default_function
+              Arel.sql(column.default_function)
+            else
+              column.default
+            end
           end
       end
     end
