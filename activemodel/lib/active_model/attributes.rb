@@ -158,8 +158,9 @@ module ActiveModel
       end
       alias :attribute= :_write_attribute
 
-      def attribute(attr_name)
-        @attributes.fetch_value(attr_name)
+      def attribute(attr_name, &block)
+        @attributes.fetch_value(attr_name, &block)
       end
+      alias :_read_attribute :attribute
   end
 end
