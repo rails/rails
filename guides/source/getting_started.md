@@ -844,7 +844,7 @@ The `show` action expects a file in `app/views/products/show.html.erb`. Let's cr
 <%= link_to "Back", products_path %>
 ```
 
-It would be helpful for the index page to link to the show page for each product so we can click on them to navigate. We can update the `index.html.erb` view to link to this new page to use an anchor tag to the path for the `show` action.
+It would be helpful for the index page to link to the show page for each product so we can click on them to navigate. We can update the `app/views/products/index.html.erb` view to link to this new page to use an anchor tag to the path for the `show` action.
 
 ```erb#6,8
 <h1>Products</h1>
@@ -985,7 +985,7 @@ Because we passed a new `Product` instance to the form builder, it automatically
 
 To handle this, we first need to implement the `create` action in our controller.
 
-```ruby#14-27
+```ruby#14-26
 class ProductsController < ApplicationController
   def index
     @products = Product.all
@@ -1103,7 +1103,7 @@ A `before_action` allows you to extract shared code between actions and run it *
 
 This is a good example of the DRY (Don't Repeat Yourself) philosophy in action.
 
-```ruby#2,8-9,24-25,27-33,37-39
+```ruby#2,8-9,24-25,27-33,36-38
 class ProductsController < ApplicationController
   before_action :set_product, only: %i[ show edit update ]
 
@@ -1170,7 +1170,7 @@ We also want to replace any instance variables with a local variable, which we c
 <% end %>
 ```
 
-To use this partial in our new view, we can replace the form with a render call:
+To use this partial in our `app/views/products/new.html.erb` view, we can replace the form with a render call:
 
 ```erb#3
 <h1>New product</h1>
@@ -1249,7 +1249,7 @@ end
 
 To make this work, we need to add a Delete button to `app/views/products/show.html.erb`:
 
-```erb
+```erb#5
 <h1><%= @product.name %></h1>
 
 <%= link_to "Back", products_path %>
@@ -1311,7 +1311,7 @@ To log out of the application, we can add a button to the top of `app/views/layo
 
 Add a small `<nav>` section inside the `<body>` with a link to Home and a Log out button.
 
-```erb
+```erb#5-8
 <!DOCTYPE html>
 <html>
   <!-- ... -->
@@ -1334,7 +1334,7 @@ However, our store's product index and show pages should be accessible to everyo
 
 To allow guests to view products, we can allow unauthenticated access in our controller.
 
-```ruby
+```ruby#2
 class ProductsController < ApplicationController
   allow_unauthenticated_access only: %i[ index show ]
   # ...
@@ -1345,7 +1345,7 @@ Log out and visit the products index and show pages to see they're accessible wi
 
 ### Showing Links for Authenticated Users Only
 
-Since only logged in users can create products, we can modify the index view to only display the new product link if the user is authenticated.
+Since only logged in users can create products, we can modify the `app/views/products/index.html.erb` view to only display the new product link if the user is authenticated.
 
 ```erb
 <%= link_to "New product", new_product_path if authenticated? %>
@@ -1359,9 +1359,12 @@ Optionally, you can include a link to this route in the navbar to add a Login li
 <%= link_to "Login", new_session_path unless authenticated? %>
 ```
 
-You can also update the Edit and Destroy links on the show view to only display if authenticated.
+You can also update the Edit and Destroy links on the `app/views/products/show.html.erb` view to only display if authenticated.
 
-```erb#1,4
+```erb#4,7
+<h1><%= @product.name %></h1>
+
+<%= link_to "Back", products_path %>
 <% if authenticated? %>
   <%= link_to "Edit", edit_product_path(@product) %>
   <%= button_to "Destroy", @product, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
@@ -1383,7 +1386,11 @@ Using the `cache` method, we can store HTML in the cache. Let's cache the header
 
 By passing `@product` into `cache`, Rails generates a unique cache key for the product. Active Record objects have a `cache_key` method that returns a String like `"products/1"`. The `cache` helper in the views combines this with the template digest to create a unique key for this HTML.
 
-To enable caching in development, run `bin/rails dev:cache` in your terminal.
+To enable caching in development, run the following command in your terminal.
+
+```bash
+$ bin/rails dev:cache
+```
 
 When you visit a product's show action (like `/products/2`), you'll see the new caching lines in your Rails server logs:
 
@@ -1623,7 +1630,7 @@ es:
 
 We need to tell Rails which locale to use. The simplest option is to look for a locale param in the URL. We can do this in `app/controllers/application_controller.rb` with the following:
 
-```ruby
+```ruby#4,6-9
 class ApplicationController < ActionController::Base
   # ...
 
@@ -1695,7 +1702,7 @@ $ bin/rails db:migrate
 
 We'll need to add the inventory count to the product form in `app/views/products/_form.html.erb`.
 
-```erb
+```erb#4-7
 <%= form_with model: product do |form| %>
   <%# ... %>
 
@@ -1712,7 +1719,7 @@ We'll need to add the inventory count to the product form in `app/views/products
 
 The controller also needs `:inventory_count` added to the permitted parameters.
 
-```ruby
+```ruby#2
     def product_params
       params.expect(product: [ :name, :description, :featured_image, :inventory_count ])
     end
@@ -1720,7 +1727,7 @@ The controller also needs `:inventory_count` added to the permitted parameters.
 
 It would also be helpful to validate that our inventory count is never a negative number, so let's also add a validation for that in our model.
 
-```ruby
+```ruby#6
 class Product < ApplicationRecord
   has_one_attached :featured_image
   has_rich_text :description
@@ -1791,7 +1798,7 @@ Our redirect sets a notice in the Rails flash. The flash is used for storing mes
 
 To display the flash message, let's add the notice to `app/views/layouts/application.html.erb` inside the body:
 
-```erb
+```erb#4
 <html>
   <!-- ... -->
   <body>
@@ -1847,7 +1854,7 @@ This generates a class at `app/mailers/product_mailer.rb` with an `in_stock` met
 
 Update this method to mail to a subscriber's email address.
 
-```ruby
+```ruby#7-10
 class ProductMailer < ApplicationMailer
   # Subject can be set in your I18n file at config/locales/en.yml
   # with the following lookup:
@@ -2013,6 +2020,7 @@ Now that the code triggering the notification has been extracted into the Notifi
 class Product < ApplicationRecord
   include Notifications
 
+  has_many :subscribers, dependent: :destroy
   has_one_attached :featured_image
   has_rich_text :description
 
@@ -2037,14 +2045,14 @@ First, we need a route for unsubscribing that will be the URL we include in emai
 
 Active Record has a feature called `generates_token_for` that can generate unique tokens to find database records for different purposes. We can use this for generating a unique unsubscribe token to use in the email's unsubscribe URL.
 
-```ruby
+```ruby#3
 class Subscriber < ApplicationRecord
   belongs_to :product
   generates_token_for :unsubscribe
 end
 ```
 
-Our controller will first look up the Subscriber record from the token in the URL. Once the subscriber is found, it will destroy the record and redirect to the homepage.
+Our controller will first look up the Subscriber record from the token in the URL. Once the subscriber is found, it will destroy the record and redirect to the homepage. Create `app/controllers/unsubscribes_controller.rb` and add the following code:
 
 ```ruby
 class UnsubscribesController < ApplicationController
@@ -2068,7 +2076,7 @@ Last but not least, let's add the unsubscribe link to our email templates.
 
 In `app/views/product_mailer/in_stock.html.erb`, add a `link_to`:
 
-```erb
+```erb#5
 <h1>Good news!</h1>
 
 <p><%= link_to @product.name, product_url(@product) %> is back in stock.</p>
@@ -2078,7 +2086,7 @@ In `app/views/product_mailer/in_stock.html.erb`, add a `link_to`:
 
 In `app/views/product_mailer/in_stock.text.erb`, add the URL in plain text:
 
-```erb
+```erb#6
 Good news!
 
 <%= @product.name %> is back in stock.
@@ -2104,19 +2112,17 @@ Fixtures are predefined sets of data that populate your test database before run
 
 This file will be empty by default - you need to populate it with fixtures for your tests.
 
-Let’s update the product fixtures file with this data:
+Let’s update the product fixtures file at `test/fixtures/products.yml` with the following:
 
 ```yaml
-# test/fixtures/products.yml
 tshirt:
   name: T-Shirt
   inventory_count: 15
 ```
 
-And for subscribers, let's add these two fixtures:
+And for subscribers, let's add these two fixtures to `test/fixtures/subscribers.yml`:
 
 ```yaml
-# test/fixtures/subscribers.yml
 david:
   product: tshirt
   email: david@example.org
@@ -2126,7 +2132,7 @@ chris:
   email: chris@example.org
 ```
 
-You'll notice that we can reference the Product fixture by name here. Rails associates this automatically for us in the database so we don't have to manage record IDs and associations in tests.
+You'll notice that we can reference the `Product` fixture by name here. Rails associates this automatically for us in the database so we don't have to manage record IDs and associations in tests.
 
 These fixtures will be automatically inserted into the database when we run our test suite.
 
@@ -2224,13 +2230,16 @@ We can check our code for consistency by running:
 
 ```bash
 $ bin/rubocop
+```
+
+This will print out any offenses and tell you what they are.
+
+```bash
 Inspecting 53 files
 .....................................................
 
 53 files inspected, no offenses detected
 ```
-
-This will print out any offenses and tell you what they are.
 
 Rubocop can automatically fix offsenses using the `--autocorrect` flag (or its short version `-a`).
 
