@@ -1,3 +1,10 @@
+*   Fix a race condition in `ActiveRecord::Base#method_missing` when lazily defining attributes.
+
+    If multiple thread were concurrently triggering attribute definition on the same model,
+    it could result in a `NoMethodError` being raised.
+
+    *Jean Boussier*
+
 ## Rails 7.1.5 (October 30, 2024) ##
 
 *   Fix marshalling of unsaved associated records in 7.1 format.
