@@ -5,11 +5,13 @@ module ActiveRecord # :nodoc:
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :normalized_attributes, default: Set.new
-
-      before_validation :normalize_changed_in_place_attributes
+      include ActiveModel::Normalization
     end
 
+    ##
+    # :method: normalize_attribute
+    # :call-seq: normalize_attribute(name)
+    #
     # Normalizes a specified attribute using its declared normalizations.
     #
     # ==== Examples
@@ -23,12 +25,12 @@ module ActiveRecord # :nodoc:
     #   legacy_user.normalize_attribute(:email)
     #   legacy_user.email # => "cruise-control@example.com"
     #   legacy_user.save
-    def normalize_attribute(name)
-      # Treat the value as a new, unnormalized value.
-      self[name] = self[name]
-    end
 
     module ClassMethods
+      ##
+      # :method: normalizes
+      # :call-seq: normalizes(*names, with:, apply_to_nil: false)
+      #
       # Declares a normalization for one or more attributes. The normalization
       # is applied when the attribute is assigned or updated, and the normalized
       # value will be persisted to the database. The normalization is also
@@ -85,14 +87,11 @@ module ActiveRecord # :nodoc:
       #   User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
       #
       #   User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
-      def normalizes(*names, with:, apply_to_nil: false)
-        decorate_attributes(names) do |name, cast_type|
-          NormalizedValueType.new(cast_type: cast_type, normalizer: with, normalize_nil: apply_to_nil)
-        end
 
-        self.normalized_attributes += names.map(&:to_sym)
-      end
-
+      ##
+      # :method: normalize_value_for
+      # :call-seq: normalize_value_for(name, value)
+      #
       # Normalizes a given +value+ using normalizations declared for +name+.
       #
       # ==== Examples
@@ -103,61 +102,6 @@ module ActiveRecord # :nodoc:
       #
       #   User.normalize_value_for(:email, " CRUISE-CONTROL@EXAMPLE.COM\n")
       #   # => "cruise-control@example.com"
-      def normalize_value_for(name, value)
-        type_for_attribute(name).cast(value)
-      end
     end
-
-    private
-      def normalize_changed_in_place_attributes
-        self.class.normalized_attributes.each do |name|
-          normalize_attribute(name) if attribute_changed_in_place?(name)
-        end
-      end
-
-      class NormalizedValueType < DelegateClass(ActiveModel::Type::Value) # :nodoc:
-        include ActiveModel::Type::SerializeCastValue
-
-        attr_reader :cast_type, :normalizer, :normalize_nil
-        alias :normalize_nil? :normalize_nil
-
-        def initialize(cast_type:, normalizer:, normalize_nil:)
-          @cast_type = cast_type
-          @normalizer = normalizer
-          @normalize_nil = normalize_nil
-          super(cast_type)
-        end
-
-        def cast(value)
-          normalize(super(value))
-        end
-
-        def serialize(value)
-          serialize_cast_value(cast(value))
-        end
-
-        def serialize_cast_value(value)
-          ActiveModel::Type::SerializeCastValue.serialize(cast_type, value)
-        end
-
-        def ==(other)
-          self.class == other.class &&
-            normalize_nil? == other.normalize_nil? &&
-            normalizer == other.normalizer &&
-            cast_type == other.cast_type
-        end
-        alias eql? ==
-
-        def hash
-          [self.class, cast_type, normalizer, normalize_nil?].hash
-        end
-
-        define_method(:inspect, Kernel.instance_method(:inspect))
-
-        private
-          def normalize(value)
-            normalizer.call(value) unless value.nil? && !normalize_nil?
-          end
-      end
   end
 end
