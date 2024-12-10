@@ -494,6 +494,68 @@ module ActiveModel
         end
     end
 
+    # Returns the value of the attribute identified by +attr_name+ after it has
+    # been type cast. (For information about specific type casting behavior, see
+    # the types under ActiveModel::Type.)
+    #
+    #   class Person
+    #     include ActiveModel::Model
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :name, :string
+    #     attribute :date_of_birth, :date
+    #   end
+    #
+    #   person = Person.new(name: "Francesco", date_of_birth: "2004-12-12")
+    #   person[:name]            # => "Francesco"
+    #   person[:date_of_birth]   # => Date.new(2004, 12, 12)
+    #
+    # Raises ActiveModel::MissingAttributeError if the attribute is missing.
+    #
+    #   person = Person.new
+    #   person[:name]            # => "Francesco"
+    #   person[:date_of_death]   # => ActiveModel::MissingAttributeError: missing attribute 'date_of_death' for Person
+    def [](attr_name)
+      read_attribute(attr_name) { |n| missing_attribute(n, caller) }
+    end
+
+    # Returns the value of the attribute identified by +attr_name+ after it
+    # has been type cast. For example, a date attribute will cast "2004-12-12"
+    # to <tt>Date.new(2004, 12, 12)</tt>. (For information about specific type
+    # casting behavior, see the types under ActiveModel::Type.)
+    def read_attribute(attr_name, &block)
+      name = attr_name.to_s
+      name = self.class.attribute_aliases[name] || name
+
+      _read_attribute(name, &block)
+    end
+
+    # Updates the attribute identified by +attr_name+ using the specified
+    # +value+. The attribute value will be type cast upon being read.
+    #
+    #   class Person
+    #     include ActiveModel::Model
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :date_of_birth, :date
+    #   end
+    #
+    #   person = Person.new
+    #   person[:date_of_birth] = "2004-12-12"
+    #   person[:date_of_birth] # => Date.new(2004, 12, 12)
+    def []=(attr_name, value)
+      write_attribute(attr_name, value)
+    end
+
+    # Updates the attribute identified by +attr_name+ using the specified
+    # +value+. The attribute value will be type cast upon being read.
+    def write_attribute(attr_name, value)
+      name = attr_name.to_s
+      name = self.class.attribute_aliases[name] || name
+
+      _write_attribute(name, value)
+    end
+
     # Allows access to the object attributes, which are held in the hash
     # returned by <tt>attributes</tt>, as though they were first-class
     # methods. So a +Person+ class with a +name+ attribute can for example use
@@ -553,8 +615,16 @@ module ActiveModel
         raise ActiveModel::MissingAttributeError, "missing attribute '#{attr_name}' for #{self.class}", stack
       end
 
-      def _read_attribute(attr)
-        __send__(attr)
+      def _read_attribute(attr_name, &block)
+        __send__(attr_name)
+      rescue NoMethodError
+        block.call(attr_name)
+      end
+
+      def _write_attribute(attr_name, value)
+        __send__(:"#{attr_name}=", value)
+      rescue NoMethodError
+        missing_attribute(attr_name, caller)
       end
 
       module AttrNames # :nodoc:
