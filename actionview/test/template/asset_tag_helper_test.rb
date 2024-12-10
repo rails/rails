@@ -15,6 +15,24 @@ module AssetTagHelperTestHelpers
   ensure
     ActionView::Helpers::AssetTagHelper.preload_links_header = original_preload_links_header
   end
+
+  def with_auto_include_nonce_for_scripts(new_auto_include_nonce_for_scripts = true)
+    original_auto_include_nonce_for_scripts = ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts = new_auto_include_nonce_for_scripts
+
+    yield
+  ensure
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts = original_auto_include_nonce_for_scripts
+  end
+
+  def with_auto_include_nonce_for_styles(new_auto_include_nonce_for_styles = true)
+    original_auto_include_nonce_for_styles = ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = new_auto_include_nonce_for_styles
+
+    yield
+  ensure
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = original_auto_include_nonce_for_styles
+  end
 end
 
 class AssetTagHelperTest < ActionView::TestCase
@@ -540,6 +558,12 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_dom_equal %(<script src="/javascripts/bank.js" nonce="iyhD0Yc0W+c="></script>), javascript_include_tag("bank", nonce: true)
   end
 
+  def test_javascript_include_tag_nonce_with_auto_nonce
+    with_auto_include_nonce_for_scripts do
+      assert_dom_equal %(<script src="/javascripts/bank.js" nonce="iyhD0Yc0W+c="></script>), javascript_include_tag("bank")
+    end
+  end
+
   def test_stylesheet_path
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -562,6 +586,12 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_stylesheet_link_tag_nonce
     assert_dom_equal %(<link rel="stylesheet" href="/stylesheets/foo.css" nonce="iyhD0Yc0W+c="></link>), stylesheet_link_tag("foo.css", nonce: true)
+  end
+
+  def test_stylesheet_link_tag_nonce_with_auto_nonce
+    with_auto_include_nonce_for_styles do
+      assert_dom_equal %(<link rel="stylesheet" href="/stylesheets/foo.css" nonce="iyhD0Yc0W+c="></link>), stylesheet_link_tag("foo.css")
+    end
   end
 
   def test_stylesheet_link_tag_with_missing_source

@@ -4,6 +4,8 @@ module ActionView
   module Helpers # :nodoc:
     # = Action View JavaScript \Helpers
     module JavaScriptHelper
+      mattr_accessor :auto_include_nonce
+
       JS_ESCAPE_MAP = {
         "\\"    => "\\\\",
         "</"    => '<\/',
@@ -81,7 +83,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        if html_options[:nonce] == true
+        if html_options[:nonce] == true || (!html_options.key?(:nonce) && auto_include_nonce)
           html_options[:nonce] = content_security_policy_nonce
         end
 
