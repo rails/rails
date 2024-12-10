@@ -26,8 +26,11 @@ module ActiveRecord
           end
       end
 
-      # Updates the attribute identified by +attr_name+ using the specified
-      # +value+. The attribute value will be type cast upon being read.
+      ##
+      # :method: write_attribute
+      # :call-seq: write_attribute(attr_name, value)
+      #
+      # See ActiveModel::AttributeMethods#write_attribute.
       def write_attribute(attr_name, value)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
