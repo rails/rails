@@ -450,7 +450,8 @@ module ActiveRecord
     end
 
     def test_where_on_association_with_custom_primary_key_with_array_of_ids
-      essay = Essay.where(writer: ["David"]).first
+      author = authors(:david)
+      essay = Essay.where(author: [author.name]).first
 
       assert_equal essays(:david_modest_proposal), essay
     end

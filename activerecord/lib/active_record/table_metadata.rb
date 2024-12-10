@@ -62,6 +62,10 @@ module ActiveRecord
       reflection&.through_reflection?
     end
 
+    def association_name
+      reflection&.name
+    end
+
     def reflect_on_aggregation(aggregation_name)
       klass&.reflect_on_aggregation(aggregation_name)
     end
