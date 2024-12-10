@@ -1583,9 +1583,9 @@ To log out of the application, we can add a button to the top of
 you want to include in every page like a header or footer.
 
 Add a small `<nav>` section inside the `<body>` with a link to Home and a Log
-out button.
+out button and wrap `yield` with a `<main>` tag.
 
-```erb#5-8
+```erb#5-8,10,12
 <!DOCTYPE html>
 <html>
   <!-- ... -->
@@ -1595,7 +1595,9 @@ out button.
       <%= button_to "Log out", session_path, method: :delete if authenticated? %>
     </nav>
 
-    <%= yield %>
+    <main>
+      <%= yield %>
+    </main>
   </body>
 </html>
 ```
@@ -1709,96 +1711,6 @@ on the second request. Rails also changes the cache key when records are updated
 to ensure that it never renders stale cache data.
 
 Learn more in the [Caching with Rails](caching_with_rails.html) guide.
-
-Adding CSS & JavaScript
------------------------
-
-CSS & JavaScript are core parts of building web applications, so let's learn how
-to use them with Rails.
-
-### Propshaft
-
-Rails' asset pipeline is called Propshaft. It takes your CSS, JavaScript,
-images, and other assets and serves them to your browser. In production,
-Propshaft keeps track of each version of your assets so they can be cached to
-make your pages faster. Check out the
-[Asset Pipeline guide](asset_pipeline.html) to learn more about how this works.
-
-Let's modify `app/assets/stylesheets/application.css` and change our font to
-sans-serif.
-
-```css
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-nav {
-  display: flex;
-  gap: 0.5rem;
-}
-
-img {
-  max-width: 800px;
-}
-
-.notice {
-  color: green;
-}
-```
-
-Refresh your page and you'll see the CSS has been applied.
-
-### Import Maps
-
-Rails uses import maps for JavaScript by default. This allows you to write
-modern JavaScript modules with no build steps.
-
-You can find the JavaScript pins in `config/importmap.rb`. This file maps the
-JavaScript package names with the source file which is used to generate the
-importmap tag in the browser.
-
-```ruby
-# Pin npm packages by running ./bin/importmap
-
-pin "application"
-pin "@hotwired/turbo-rails", to: "turbo.min.js"
-pin "@hotwired/stimulus", to: "stimulus.min.js"
-pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
-pin_all_from "app/javascript/controllers", under: "controllers"
-```
-
-TIP: Each pin maps a JavaScript package name (e.g., `"@hotwired/turbo-rails"`)
-to a specific file or URL (e.g., `"turbo.min.js"`). `pin_all_from` maps all
-files in a directory (e.g., `app/javascript/controllers`) to a namespace (e.g.,
-`"controllers"`).
-
-Import maps keep the setup clean and minimal, while still supporting modern
-JavaScript features.
-
-What are these JavaScript files already in our import map? They are a frontend
-framework called Hotwire that Rails uses by default.
-
-### Hotwire
-
-Hotwire is a JavaScript framework designed to take full advantage of server-side
-generated HTML. It is comprised of 3 core components:
-
-1. [**Turbo**](https://turbo.hotwired.dev/) handles navigation, form
-   submissions, page components, and updates without writing any custom
-   JavaScript.
-2. [**Stimulus**](https://stimulus.hotwired.dev/) provides a framework for when
-   you need custom JavaScript to add functionality to the page.
-3. [**Native**](https://native.hotwired.dev/) allows you to make hybrid mobile
-   apps by embedding your web app and progressively enhancing it with native
-   mobile features.
-
-We haven't written any JavaScript yet, but we have been using Hotwire on the
-frontend. For instance, the form you created to add and edit a product was
-powered by Turbo.
-
-Learn more in the [Asset Pipeline](asset_pipeline.html) and
-[Working with JavaScript in Rails](working_with_javascript_in_rails.html)
-guides.
 
 Rich Text Fields with Action Text
 ---------------------------------
@@ -2511,6 +2423,143 @@ without raising any errors.
 
 Use the Rails console to send another email and test the unsubscribe link in the
 logs.
+
+Adding CSS & JavaScript
+-----------------------
+
+CSS & JavaScript are core to building web applications, so let's learn how to
+use them with Rails.
+
+### Propshaft
+
+Rails' asset pipeline is called Propshaft. It takes your CSS, JavaScript,
+images, and other assets and serves them to your browser. In production,
+Propshaft keeps track of each version of your assets so they can be cached to
+make your pages faster. Check out the
+[Asset Pipeline guide](asset_pipeline.html) to learn more about how this works.
+
+Let's modify `app/assets/stylesheets/application.css` and change our font to
+sans-serif.
+
+```css
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 1rem;
+}
+
+nav {
+  justify-content: flex-end;
+  display: flex;
+  font-size: 0.875em;
+  gap: 0.5rem;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+nav a {
+  display: inline-block;
+}
+
+main {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+.notice {
+  color: green;
+}
+
+section.product {
+  display: flex;
+  gap: 1rem;
+  flex-direction: row;
+}
+
+section.product img {
+  border-radius: 8px;
+  flex-basis: 50%;
+  max-width: 50%;
+}
+```
+
+Then we'll update `app/views/products/show.html.erb` to use these new styles.
+
+```erb#1,3,6,18-19
+<p><%= link_to "Back", products_path %></p>
+
+<section class="product">
+  <%= image_tag @product.featured_image if @product.featured_image.attached? %>
+
+  <section class="product-info">
+    <% cache @product do %>
+      <h1><%= @product.name %></h1>
+      <%= @product.description %>
+    <% end %>
+
+    <%= render "inventory", product: @product %>
+
+    <% if authenticated? %>
+      <%= link_to "Edit", edit_product_path(@product) %>
+      <%= button_to "Delete", @product, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
+    <% end %>
+  </section>
+</section>
+```
+
+Refresh your page and you'll see the CSS has been applied.
+
+### Import Maps
+
+Rails uses import maps for JavaScript by default. This allows you to write
+modern JavaScript modules with no build steps.
+
+You can find the JavaScript pins in `config/importmap.rb`. This file maps the
+JavaScript package names with the source file which is used to generate the
+importmap tag in the browser.
+
+```ruby
+# Pin npm packages by running ./bin/importmap
+
+pin "application"
+pin "@hotwired/turbo-rails", to: "turbo.min.js"
+pin "@hotwired/stimulus", to: "stimulus.min.js"
+pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
+pin_all_from "app/javascript/controllers", under: "controllers"
+```
+
+TIP: Each pin maps a JavaScript package name (e.g., `"@hotwired/turbo-rails"`)
+to a specific file or URL (e.g., `"turbo.min.js"`). `pin_all_from` maps all
+files in a directory (e.g., `app/javascript/controllers`) to a namespace (e.g.,
+`"controllers"`).
+
+Import maps keep the setup clean and minimal, while still supporting modern
+JavaScript features.
+
+What are these JavaScript files already in our import map? They are a frontend
+framework called Hotwire that Rails uses by default.
+
+### Hotwire
+
+Hotwire is a JavaScript framework designed to take full advantage of server-side
+generated HTML. It is comprised of 3 core components:
+
+1. [**Turbo**](https://turbo.hotwired.dev/) handles navigation, form
+   submissions, page components, and updates without writing any custom
+   JavaScript.
+2. [**Stimulus**](https://stimulus.hotwired.dev/) provides a framework for when
+   you need custom JavaScript to add functionality to the page.
+3. [**Native**](https://native.hotwired.dev/) allows you to make hybrid mobile
+   apps by embedding your web app and progressively enhancing it with native
+   mobile features.
+
+We haven't written any JavaScript yet, but we have been using Hotwire on the
+frontend. For instance, the form you created to add and edit a product was
+powered by Turbo.
+
+Learn more in the [Asset Pipeline](asset_pipeline.html) and
+[Working with JavaScript in Rails](working_with_javascript_in_rails.html)
+guides.
 
 Testing
 -------
