@@ -5,26 +5,176 @@ Caching with Rails: An Overview
 
 This guide is an introduction to speeding up your Rails application with caching.
 
-Caching means to store content generated during the request-response cycle and
-to reuse it when responding to similar requests.
+After reading this guide, you will know about:
 
-Caching is often the most effective way to boost an application's performance.
-Through caching, websites running on a single server with a single database
-can sustain a load of thousands of concurrent users.
-
-Rails provides a set of caching features out of the box. This guide will teach
-you the scope and purpose of each one of them. Master these techniques and your
-Rails applications can serve millions of views without exorbitant response times
-or server bills.
-
-After reading this guide, you will know:
-
-* Fragment and Russian doll caching.
-* How to manage the caching dependencies.
+* Solid Cache, database-backed Active Support cache store.
+* Basic Caching Strategies including Fragment and Russian doll caching.
 * Alternative cache stores.
 * Conditional GET support.
+* How to manage the caching dependencies.
+* Cache Expiration.
 
 --------------------------------------------------------------------------------
+
+What is Caching?
+---------------------------
+
+Caching means storing content generated during the request-response cycle and
+reusing it when responding to similar requests. It's like keeping your favorite
+coffee mug right on your desk instead of in the kitchen cabinet—it’s ready when
+you need it, saving you time and effort.
+
+Caching is one of the most effective way to boost an application's performance.
+It allows websites running on modest infrastructure — a single server with a
+single database — to sustain thousands of concurrent users.
+
+Rails provides a set of caching features out of the box which allows you to not
+only cache data, but also to tackle challenges like cache expiration, cache
+dependencies, and cache invalidation.
+
+In this guide, you’ll explore Rails' comprehensive caching strategies, from page caching to fragment caching and beyond. By mastering these techniques, you’ll empower your Rails applications to serve millions of views while keeping response times low and server bills manageable.
+
+Solid Cache
+-----------
+
+Solid Cache is a database-backed Active Support cache store and is a great choice for applications that need to cache large amounts of data.
+
+By leveraging the speed of modern SSDs, like NVMe, Solid Cache is designed to overcome the limitations of traditional memory-only caches like Redis and Memcached. You get the following benefits with With Solid Cache:
+
+- Larger Cache Sizes: The cached data is stored on a disk instead of in memory - this allows you to cache large amounts of data without worrying about the high cost. In Memory caches like Redis and Memcached are expensive to scale because the come with very little storage capacity.
+
+- Cost-Effective: Solid Cache is much more cost-effective than traditional memory-only caches. Memory-only caches are expensive to scale because they require a lot of memory. Solid Cache is much cheaper because it uses disk storage which is much cheaper than memory.
+
+- Simplified Infrastructure: No need for additional dependencies like Redis or Memcached. Additionally, Solid Cache uses a relational database to store cached data, making it easy to integrate into existing database setups.
+
+While the SSD is slightly slower than RAM, the difference is negligible for most applications, and it makes up for it because it doesn't need invalidate as often since it can store more data. On average, this means there are fewer cache misses, which results in faster response times.
+
+Solid Cache is enabled by default in Rails 8.0. However, if you'd prefer not to utilize it, you can skip Solid Cache:
+
+```bash
+rails new app_name --skip-solid
+```
+
+WARNING: Both Solid Cache and Solid Queue are bundled behind the `--skip-solid` flag. If you still want to use Solid Queue but not Solid Cache, you can enable Solid Queue by running `rails app:enable-solid-queue`.
+
+### Configuring the database
+
+To use Solid Cache, you can configure the database connection in your `config/database.yml` file. Here's an example configuration for a SQLite database:
+
+```yaml
+production:
+  primary:
+    <<: *default
+    database: storage/production.sqlite3
+  cache:
+    <<: *default
+    database: storage/production_cache.sqlite3
+    migrations_paths: db/cache_migrate
+```
+
+In this configuration, the `cache` database is used to store cached data. You can also specify a different database adapter, like MySQL or PostgreSQL, if you prefer.
+
+```yaml
+production:
+  primary: &primary_production
+    <<: *default
+    database: app_production
+    username: app
+    password: <%= ENV["APP_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: app_production_cache
+    migrations_paths: db/cache_migrate
+```
+
+### Customizing the Cache Store
+
+Solid Cache can be customized through the config/cache.yml file or .
+
+```yaml
+default: &default
+  store_options:
+    # Cap age of oldest cache entry to fulfill retention policies
+    max_age: <%= 60.days.to_i %>
+    max_size: <%= 256.megabytes %>
+    namespace: <%= Rails.env %>
+```
+
+For the full list of keys for store_options see [Cache configuration](https://github.com/rails/solid_cache#cache-configuration).
+
+Here, you can adjust the `max_age` and `max_size` options to control the age and size of the cache entries.
+
+### Handling Cache Expiration
+
+Solid Cache tracks cache writes by incrementing a counter with each write. When the counter reaches 50% of the `expiry_batch_size` from the [Cache configuration](https://github.com/rails/solid_cache#cache-configuration), a background task is triggered to handle cache expiry. This approach ensures cache records expire faster than they are written when the cache needs to shrink.
+
+The background task only runs when there are writes, so the process stays idle when the cache is not being updated. If you prefer to run the expiry process in a background job instead of a thread, set `expiry_method` from the[Cache configuration](https://github.com/rails/solid_cache#cache-configuration) to `:job`, which will enqueue a `SolidCache::ExpiryJob`.
+
+### Sharding the Cache
+
+If you need even more scalability, Solid Cache supports sharding — splitting the cache across multiple databases. This spreads the load, making your cache even more powerful. To enable sharding, add multiple cache databases to your database.yml:
+
+```yaml
+# config/database.yml
+production:
+  cache_shard1:
+    database: cache1_production
+    host: cache1-db
+  cache_shard2:
+    database: cache2_production
+    host: cache2-db
+  cache_shard3:
+    database: cache3_production
+    host: cache3-db
+```
+
+Additionally, you must specify the shards in the cache configuration:
+
+```yaml
+# config/cache.yml
+production:
+  databases: [cache_shard1, cache_shard2, cache_shard3]
+```
+
+<!-- ```yaml
+# config/cache.yml
+production:
+  shards: [cache_shard1, cache_shard2, cache_shard3]
+``` -->
+
+
+### Encryption
+
+Solid Cache supports encryption to protect sensitive data. To enable encryption, set the `encrypt` value in your cache configuration:
+
+```yaml
+# config/cache.yml
+production:
+  encrypt: true
+```
+
+You will need to set up your application to use[Active Record Encryption](active_record_encryption.html).
+
+### Using Solid Cache in Development
+
+By default, the development environment is still configured to use memory cache. If you want to use Solid Cache in development, make sure to ensure the `cache` database is created and migrated:
+
+```bash
+development:
+  <<: * default
+  database: cache
+```
+
+You should also set the `cache_store` configuration in `config/environments/development.rb`:
+
+
+```ruby
+config.cache_store = :solid_cache_store
+```
+
+
+
+
 
 Basic Caching
 -------------
