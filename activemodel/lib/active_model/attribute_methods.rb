@@ -54,11 +54,11 @@ module ActiveModel
   #       end
   #
   #       def clear_attribute(attr)
-  #         send("#{attr}=", nil)
+  #         self[attr] = nil
   #       end
   #
   #       def reset_attribute_to_default!(attr)
-  #         send("#{attr}=", 'Default Name')
+  #         self[attr] = 'Default Name'
   #       end
   #   end
   module AttributeMethods
@@ -99,7 +99,7 @@ module ActiveModel
       #
       #     private
       #       def clear_attribute(attr)
-      #         send("#{attr}=", nil)
+      #         self[attr] = nil
       #       end
       #   end
       #
@@ -135,7 +135,7 @@ module ActiveModel
       #
       #     private
       #       def attribute_short?(attr)
-      #         send(attr).length < 5
+      #         self[attr].length < 5
       #       end
       #   end
       #
@@ -171,7 +171,7 @@ module ActiveModel
       #
       #     private
       #       def reset_attribute_to_default!(attr)
-      #         send("#{attr}=", 'Default Name')
+      #         self[attr] = 'Default Name'
       #       end
       #   end
       #
@@ -198,7 +198,7 @@ module ActiveModel
       #
       #     private
       #       def attribute_short?(attr)
-      #         send(attr).length < 5
+      #         self[attr].length < 5
       #       end
       #   end
       #
@@ -274,7 +274,7 @@ module ActiveModel
       #
       #     private
       #       def clear_attribute(attr)
-      #         send("#{attr}=", nil)
+      #         self[attr] = nil
       #       end
       #   end
       def define_attribute_methods(*attr_names)
@@ -308,7 +308,7 @@ module ActiveModel
       #
       #     private
       #       def attribute_short?(attr)
-      #         send(attr).length < 5
+      #         self[attr].length < 5
       #       end
       #   end
       #
@@ -367,7 +367,7 @@ module ActiveModel
       #
       #     private
       #       def attribute_short?(attr)
-      #         send(attr).length < 5
+      #         self[attr].length < 5
       #       end
       #   end
       #
@@ -492,6 +492,64 @@ module ActiveModel
         end
     end
 
+    # Returns the value of the attribute identified by +attr_name+ after it has
+    # been type cast. (For information about specific type casting behavior, see
+    # the types under ActiveModel::Type.)
+    #
+    #   class Person
+    #     include ActiveModel::AttributeMethods
+    #
+    #     attr_accessor :name
+    #   end
+    #
+    #   person = Person.new
+    #   person.name = "Francesco"
+    #   person[:name] # => "Francesco"
+    #
+    # Raises ActiveModel::MissingAttributeError if the attribute is missing.
+    #
+    #   person = Person.new
+    #   person[:date_of_birth]   # => ActiveModel::MissingAttributeError: missing attribute 'date_of_birth' for Person
+    def [](attr_name)
+      read_attribute(attr_name) { |n| missing_attribute(n, caller) }
+    end
+
+    # Returns the value of the attribute identified by +attr_name+ after it
+    # has been type cast. For example, a date attribute will cast "2004-12-12"
+    # to <tt>Date.new(2004, 12, 12)</tt>. (For information about specific type
+    # casting behavior, see the types under ActiveModel::Type.)
+    def read_attribute(attr_name, &block)
+      name = attr_name.to_s
+      name = self.class.attribute_aliases[name] || name
+
+      _read_attribute(name, &block)
+    end
+
+    # Updates the attribute identified by +attr_name+ using the specified
+    # +value+. The attribute value will be type cast upon being read.
+    #
+    #   class Person
+    #     include ActiveModel::AttributeMethods
+    #
+    #     attr_accessor :name
+    #   end
+    #
+    #   person = Person.new
+    #   person[:name] = "Francesco"
+    #   person.name # => "Francesco"
+    def []=(attr_name, value)
+      write_attribute(attr_name, value)
+    end
+
+    # Updates the attribute identified by +attr_name+ using the specified
+    # +value+. The attribute value will be type cast upon being read.
+    def write_attribute(attr_name, value)
+      name = attr_name.to_s
+      name = self.class.attribute_aliases[name] || name
+
+      _write_attribute(name, value)
+    end
+
     # Allows access to the object attributes, which are held in the hash
     # returned by <tt>attributes</tt>, as though they were first-class
     # methods. So a +Person+ class with a +name+ attribute can for example use
@@ -553,6 +611,14 @@ module ActiveModel
 
       def _read_attribute(attr)
         __send__(attr)
+      rescue NoMethodError
+        block_given? ? yield(attr) : missing_attribute(attr, caller)
+      end
+
+      def _write_attribute(attr, value)
+        __send__(:"#{attr}=", value)
+      rescue NoMethodError
+        missing_attribute(attr, caller)
       end
 
       module AttrNames # :nodoc:

@@ -22,16 +22,11 @@ module ActiveRecord
           end
       end
 
-      # Returns the value of the attribute identified by +attr_name+ after it
-      # has been type cast. For example, a date attribute will cast "2004-12-12"
-      # to <tt>Date.new(2004, 12, 12)</tt>. (For information about specific type
-      # casting behavior, see the types under ActiveModel::Type.)
-      def read_attribute(attr_name, &block)
-        name = attr_name.to_s
-        name = self.class.attribute_aliases[name] || name
-
-        @attributes.fetch_value(name, &block)
-      end
+      ##
+      # :method: read_attribute
+      # :call-seq: read_attribute(attr_name, &block)
+      #
+      # See ActiveModel::AttributeMethods#read_attribute.
 
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the read_attribute API
