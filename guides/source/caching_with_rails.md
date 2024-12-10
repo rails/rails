@@ -7,12 +7,12 @@ This guide is an introduction to speeding up your Rails application with caching
 
 After reading this guide, you will know about:
 
-* Solid Cache, database-backed Active Support cache store.
+* Solid Cache - a database-backed Active Support cache store.
 * Basic Caching Strategies including Fragment and Russian doll caching.
-* Alternative cache stores.
-* Conditional GET support.
 * How to manage the caching dependencies.
-* Cache Expiration.
+* Alternative cache stores.
+* Cache Keys
+* Conditional GET support.
 
 --------------------------------------------------------------------------------
 
