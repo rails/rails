@@ -1,3 +1,7 @@
+*   Fix MySQL default functions getting dropped when changing a column's nullability.
+
+    *Bastian Bartmann*
+
 *   Fix parsing of SQLite foreign key names when they contain non-ASCII characters
 
     *Zacharias Knudsen*
