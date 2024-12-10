@@ -49,6 +49,8 @@ By leveraging the speed of modern SSDs, like NVMe, Solid Cache is designed to ov
 
 While the SSD is slightly slower than RAM, the difference is negligible for most applications, and it makes up for it because it doesn't need invalidate as often since it can store more data. On average, this means there are fewer cache misses, which results in faster response times.
 
+Solid Cache operates as a FIFO (first in, first out) cache. Although it is less efficient than an LRU (least recently used) cache, its design compensates for this through an extended cache lifespan.
+
 Solid Cache is enabled by default in Rails 8.0. However, if you'd prefer not to utilize it, you can skip Solid Cache:
 
 ```bash
@@ -86,6 +88,17 @@ production:
     database: app_production_cache
     migrations_paths: db/cache_migrate
 ```
+
+If `database` or [`databases`](#sharding-the-cache) is not specified in the cache configuration, Solid Cache will use the ActiveRecord::Base connection pool. This means that cache reads and writes will be part of any wrapping database transaction.
+
+In production, the cache store is configured to use the solid cache store:
+
+```yaml
+  # config/environments/production.rb
+  config.cache_store = :solid_cache_store
+```
+
+You can access the cache by calling `Rails.cache`.
 
 ### Customizing the Cache Store
 
@@ -155,22 +168,6 @@ production:
 
 You will need to set up your application to use[Active Record Encryption](active_record_encryption.html).
 
-### Using Solid Cache in Development
-
-By default, the development environment is still configured to use memory cache. If you want to use Solid Cache in development, make sure to ensure the `cache` database is created and migrated:
-
-```bash
-development:
-  <<: * default
-  database: cache
-```
-
-You should also set the `cache_store` configuration in `config/environments/development.rb`:
-
-
-```ruby
-config.cache_store = :solid_cache_store
-```
 
 Basic Caching
 -------------
@@ -487,15 +484,15 @@ simply be explicit in a comment, like:
 <%= some_helper_method(person) %>
 ```
 
-Cache Stores
-------------
+Other Cache Stores
+------------------
 
-Rails provides different stores for the cached data (apart from SQL and page
-caching).
+Rails provides different stores for the cached data (with the exception of SQL
+Caching).
 
 ### Configuration
 
-You can set up your application's default cache store by setting the
+You can set up your a different cache store by setting the
 `config.cache_store` configuration option. Other parameters can be passed as
 arguments to the cache store's constructor:
 
@@ -509,10 +506,11 @@ You can access the cache by calling `Rails.cache`.
 
 #### Connection Pool Options
 
-By default, [`:mem_cache_store`](#activesupport-cache-memcachestore) and
-[`:redis_cache_store`](#activesupport-cache-rediscachestore) are configured to use
-connection pooling. This means that if you're using Puma, or another threaded server,
-you can have multiple threads performing queries to the cache store at the same time.
+[`:mem_cache_store`](#activesupport-cache-memcachestore) and
+[`:redis_cache_store`](#activesupport-cache-rediscachestore) are configured to
+use connection pooling. This means that if you're using Puma, or another
+threaded server, you can have multiple threads performing queries to the cache
+store at the same time.
 
 If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
 
@@ -586,8 +584,6 @@ share a cache by using a shared file system, but that setup is not recommended.
 As the cache will grow until the disk is full, it is recommended to
 periodically clear out old entries.
 
-This is the default cache store implementation (at `"#{root}/tmp/cache/"`) if
-no explicit `config.cache_store` is supplied.
 
 [`ActiveSupport::Cache::FileStore`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
 
@@ -859,6 +855,20 @@ $ bin/rails dev:cache
 Development mode is now being cached.
 $ bin/rails dev:cache
 Development mode is no longer being cached.
+```
+
+If you want to use Solid Cache in development, set the `cache_store`
+configuration in `config/environments/development.rb`:
+
+```ruby
+config.cache_store = :solid_cache_store
+```
+and ensure the `cache` database is created and migrated:
+
+```bash
+development:
+  <<: * default
+  database: cache
 ```
 
 To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
