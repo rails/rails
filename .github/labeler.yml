@@ -1,0 +1,42 @@
+actioncable:
+- changed-files:
+  - any-glob-to-any-file: "actioncable/**/*"
+actionmailbox:
+- changed-files:
+  - any-glob-to-any-file: "actionmailbox/**/*"
+actionmailer:
+- changed-files:
+  - any-glob-to-any-file: "actionmailer/**/*"
+actionpack:
+- changed-files:
+  - any-glob-to-any-file: "actionpack/**/*"
+actiontext:
+- changed-files:
+  - any-glob-to-any-file: "actiontext/**/*"
+actionview:
+- changed-files:
+  - any-glob-to-any-file: "actionview/**/*"
+activejob:
+- changed-files:
+  - any-glob-to-any-file: "activejob/**/*"
+activemodel:
+- changed-files:
+  - any-glob-to-any-file: "activemodel/**/*"
+activerecord:
+- changed-files:
+  - any-glob-to-any-file: "activerecord/**/*"
+activestorage:
+- changed-files:
+  - any-glob-to-any-file: "activestorage/**/*"
+activesupport:
+- changed-files:
+  - any-glob-to-any-file: "activesupport/**/*"
+rails-ujs:
+- changed-files:
+  - any-glob-to-any-file: "actionview/app/assets/javascripts/rails-ujs/**/*"
+railties:
+- changed-files:
+  - any-glob-to-any-file: "railties/**/*"
+docs:
+- changed-files:
+  - any-glob-to-any-file: "guides/**/*"
