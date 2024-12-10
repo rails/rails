@@ -1,3 +1,10 @@
+*   Fix a race condition in `ActiveRecord::Base#method_missing` when lazily defining attributes.
+
+    If multiple thread were concurrently triggering attribute definition on the same model,
+    it could result in a `NoMethodError` being raised.
+
+    *Jean Boussier*
+
 *   Fix MySQL default functions getting dropped when changing a column's nullability.
 
     *Bastian Bartmann*
