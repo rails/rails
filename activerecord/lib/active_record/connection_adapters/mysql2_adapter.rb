@@ -55,6 +55,7 @@ module ActiveRecord
       def initialize(...)
         super
 
+        @affected_rows_before_warnings = nil
         @config[:flags] ||= 0
 
         if @config[:flags].kind_of? Array
@@ -92,14 +93,6 @@ module ActiveRecord
 
       # HELPER METHODS ===========================================
 
-      def each_hash(result, &block) # :nodoc:
-        if block_given?
-          result.each(as: :hash, symbolize_keys: true, &block)
-        else
-          to_enum(:each_hash, result)
-        end
-      end
-
       def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
       end
@@ -113,7 +106,14 @@ module ActiveRecord
       end
 
       def active?
-        connected? && @lock.synchronize { @raw_connection&.ping } || false
+        if connected?
+          @lock.synchronize do
+            if @raw_connection&.ping
+              verified!
+              true
+            end
+          end
+        end || false
       end
 
       alias :reset! :reconnect!

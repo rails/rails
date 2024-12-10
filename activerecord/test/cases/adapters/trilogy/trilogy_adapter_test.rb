@@ -222,8 +222,6 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
         assert_includes payload, :type_casted_binds
         assert_equal [], payload[:type_casted_binds]
 
-        # :stament_name is always nil and never set 🤷‍♂️
-        assert_includes payload, :statement_name
         assert_nil payload[:statement_name]
 
         assert_not_includes payload, :cached

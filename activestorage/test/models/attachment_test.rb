@@ -159,6 +159,10 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_nothing_raised { attachment.destroy }
   end
 
+  test "can create an attachment with the record having no attachment reflections" do
+    assert_nothing_raised { ActiveStorage::Attachment.create!(name: "whatever", record: @user, blob: create_blob) }
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil

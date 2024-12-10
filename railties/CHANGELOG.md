@@ -1,6 +1,12 @@
-*   Use Kamal for deployment by default, which includes generating a Rails-specific config/deploy.yml.
-    This can be skipped using --skip-kamal. See more: https://kamal-deploy.org/
+*   Don't enable YJIT in development and test environments
 
-    *DHH*
+    Development and test environment tend to reload code and redefine methods (e.g. mocking),
+    hence YJIT isn't generally faster in these environments.
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/railties/CHANGELOG.md) for previous changes.
+    *Ali Ismayilov*, *Jean Boussier*
+
+*   Only include PermissionsPolicy::Middleware if policy is configured.
+
+    *Petrik de Heus*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.

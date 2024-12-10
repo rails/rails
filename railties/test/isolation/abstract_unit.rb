@@ -105,6 +105,10 @@ module TestHelpers
   module Generation
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
+      @prev_rails_app_class = Rails.app_class
+      @prev_rails_application = Rails.application
+      Rails.app_class = Rails.application = nil
+
       @prev_rails_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
@@ -145,10 +149,13 @@ module TestHelpers
       add_to_env_config :development, "config.action_view.annotate_rendered_view_with_filenames = false"
 
       remove_from_env_config("development", "config.generators.apply_rubocop_autocorrect_after_generate!")
+      add_to_env_config :production, "config.log_level = :error"
     end
 
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
+      Rails.app_class = @prev_rails_app_class if @prev_rails_app_class
+      Rails.application = @prev_rails_application if @prev_rails_application
       FileUtils.rm_rf(tmp_path)
     end
 
@@ -262,9 +269,9 @@ module TestHelpers
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
-      @app.config.log_level = :info
+      @app.config.log_level = :error
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-      @app.config.middleware.delete Rails::Rack::LoadRoutes
+      @app.config.active_support.to_time_preserves_timezone = :zone
 
       yield @app if block_given?
       @app.initialize!
@@ -609,20 +616,13 @@ Module.new do
     f.puts 'require "rails/all"'
   end
 
-  assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
-  unless Dir.exist?("#{assets_path}/node_modules")
-    Dir.chdir(assets_path) do
-      sh "yarn install"
-    end
-  end
-
   FileUtils.mkdir_p "#{app_template_path}/app/javascript"
   File.write("#{app_template_path}/app/javascript/application.js", "\n")
 
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
   contents = File.read("#{app_template_path}/config/application.rb")
-  contents.sub!(/^Bundler\.require.*/, "%w(sprockets/railtie importmap-rails).each { |r| require r }")
+  contents.sub!(/^Bundler\.require.*/, "%w(propshaft importmap-rails).each { |r| require r }")
   File.write("#{app_template_path}/config/application.rb", contents)
 
   require "rails"
@@ -637,7 +637,6 @@ Module.new do
   require "action_cable"
   require "action_mailbox"
   require "action_text"
-  require "sprockets"
 
   require "action_view/helpers"
   require "action_dispatch/routing/route_set"

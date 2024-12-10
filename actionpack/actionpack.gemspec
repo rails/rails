@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Web-flow and rendering framework putting the VC in MVC (part of Rails)."
   s.description = "Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server."
 
-  s.required_ruby_version = ">= 3.1.0"
+  s.required_ruby_version = ">= 3.2.0"
 
   s.license = "MIT"
 
@@ -36,7 +36,6 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
 
   s.add_dependency "nokogiri", ">= 1.8.5"
-  s.add_dependency "racc"
   s.add_dependency "rack",      ">= 2.2.4"
   s.add_dependency "rack-session", ">= 1.0.1"
   s.add_dependency "rack-test", ">= 0.6.3"

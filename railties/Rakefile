@@ -5,7 +5,7 @@ require "rake/testtask"
 
 task default: :test
 
-task :package
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 desc "Run all unit tests"
 task test: "test:isolated"

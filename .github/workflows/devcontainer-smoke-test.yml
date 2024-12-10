@@ -31,11 +31,7 @@ jobs:
           bundler-cache: true
 
       - name: Generate rails app sqlite3
-        run: bundle exec railties/exe/rails new myapp_sqlite --database="sqlite3" --dev
-
-      - name: Remove old deprecated docker-compose
-        run: |
-          sudo rm /usr/local/bin/docker-compose
+        run: bundle exec railties/exe/rails new myapp_sqlite --database="sqlite3" --dev --devcontainer
 
       - name: Test devcontainer sqlite3
         uses: devcontainers/ci@v0.3
@@ -44,7 +40,7 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: sqlite3
-          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
 
@@ -52,7 +48,7 @@ jobs:
         run: docker ps -q | xargs docker stop
 
       - name: Generate rails app postgresql
-        run: bundle exec railties/exe/rails new myapp_postgresql --database="postgresql" --dev
+        run: bundle exec railties/exe/rails new myapp_postgresql --database="postgresql" --dev --devcontainer
 
       - name: Test devcontainer postgresql
         uses: devcontainers/ci@v0.3
@@ -61,15 +57,15 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: postgresql
-          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
-          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test && bin/rails test:system
 
       - name: Stop all containers
         run: docker ps -q | xargs docker stop
 
       - name: Generate rails app mysql
-        run: bundle exec railties/exe/rails new myapp_mysql --database="mysql" --dev
+        run: bundle exec railties/exe/rails new myapp_mysql --database="mysql" --dev --devcontainer
 
       - name: Test devcontainer mysql
         uses: devcontainers/ci@v0.3
@@ -78,7 +74,7 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: mysql
-          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
 
@@ -86,7 +82,7 @@ jobs:
         run: docker ps -q | xargs docker stop
 
       - name: Generate rails app trilogy
-        run: bundle exec railties/exe/rails new myapp_trilogy --database="trilogy" --dev
+        run: bundle exec railties/exe/rails new myapp_trilogy --database="trilogy" --dev --devcontainer
 
       - name: Test devcontainer trilogy
         uses: devcontainers/ci@v0.3
@@ -95,7 +91,7 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: trilogy
-          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
 

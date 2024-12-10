@@ -6,11 +6,10 @@ require "irb/command"
 module Rails
   class Console
     class RailsHelperBase < IRB::HelperMethod::Base
-      include ConsoleMethods
     end
 
     class ControllerHelper < RailsHelperBase
-      description "Gets the helper methods available to the controller."
+      description "Gets helper methods available to ApplicationController."
 
       # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
       def execute
@@ -19,7 +18,7 @@ module Rails
     end
 
     class ControllerInstance < RailsHelperBase
-      description "Gets a new instance of a controller object."
+      description "Gets a new instance of ApplicationController."
 
       # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
       def execute
@@ -28,7 +27,7 @@ module Rails
     end
 
     class NewSession < RailsHelperBase
-      description "Create a new session. If a block is given, the new session will be yielded to the block before being returned."
+      description "[Deprecated] Please use `app(true)` instead."
 
       def execute(*)
         app = Rails.application
@@ -43,7 +42,7 @@ module Rails
     end
 
     class AppInstance < NewSession
-      description "Reference the global 'app' instance, created on demand. To recreate the instance, pass a non-false value as the parameter."
+      description "Creates a new ActionDispatch::Integration::Session and memoizes it. Use `app(true)` to create a new instance."
 
       def execute(create = false)
         @app_integration_instance = nil if create
@@ -51,13 +50,10 @@ module Rails
       end
     end
 
-    class Reloader < IRB::Command::Base
-      include ConsoleMethods
+    class ReloadHelper < RailsHelperBase
+      description "Reloads the Rails application."
 
-      category "Rails console"
-      description "Reloads the environment."
-
-      def execute(*)
+      def execute
         puts "Reloading..."
         Rails.application.reloader.reload!
       end
@@ -67,7 +63,7 @@ module Rails
     IRB::HelperMethod.register(:controller, ControllerInstance)
     IRB::HelperMethod.register(:new_session, NewSession)
     IRB::HelperMethod.register(:app, AppInstance)
-    IRB::Command.register(:reload!, Reloader)
+    IRB::HelperMethod.register(:reload!, ReloadHelper)
 
     class IRBConsole
       def initialize(app)
@@ -89,9 +85,8 @@ module Rails
         end
 
         env = colorized_env
-        app_name = @app.class.module_parent_name.underscore.dasherize
         prompt_prefix = "%N(#{env})"
-        IRB.conf[:IRB_NAME] = app_name
+        IRB.conf[:IRB_NAME] = @app.name
 
         IRB.conf[:PROMPT][:RAILS_PROMPT] = {
           PROMPT_I: "#{prompt_prefix}> ",
@@ -110,10 +105,6 @@ module Rails
             Rails.backtrace_cleaner.filter(backtrace)
           end
         end
-
-        # Because some users/libs use Rails::ConsoleMethods to extend Rails console,
-        # we still include it for backward compatibility.
-        IRB::ExtendCommandBundle.include ConsoleMethods
 
         # Respect user's choice of prompt mode.
         IRB.conf[:PROMPT_MODE] = :RAILS_PROMPT if IRB.conf[:PROMPT_MODE] == :DEFAULT

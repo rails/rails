@@ -12,28 +12,34 @@ module Rails
 
         desc "update", "Update configs and some other initially generated files (or use just update:configs or update:bin)"
         def perform
+          require_application!
+          Rails.application.deprecators.silenced = true
+
           configs
           bin
+          public_directory
           active_storage
           display_upgrade_guide_info
         end
 
         desc "configs", "Update config files in the application config/ directory", hide: true
         def configs
-          require_application!
           app_generator.create_boot_file
           app_generator.update_config_files
         end
 
         desc "bin", "Add or update executables in the application bin/ directory", hide: true
         def bin
-          require_application!
           app_generator.update_bin_files
+        end
+
+        desc "public_directory", "Add or update files in the application public/ directory", hide: true
+        def public_directory
+          app_generator.create_public_files
         end
 
         desc "active_storage", "Run the active_storage:update command", hide: true
         def active_storage
-          require_application!
           app_generator.update_active_storage
         end
 
@@ -62,23 +68,25 @@ module Rails
               skip_action_mailbox: !defined?(ActionMailbox::Engine),
               skip_action_text:    !defined?(ActionText::Engine),
               skip_action_cable:   !defined?(ActionCable::Engine),
+              skip_brakeman:       skip_gem?("brakeman"),
+              skip_rubocop:        skip_gem?("rubocop"),
+              skip_thruster:       skip_gem?("thruster"),
               skip_test:           !defined?(Rails::TestUnitRailtie),
               skip_system_test:    Rails.application.config.generators.system_tests.nil?,
-              asset_pipeline:      asset_pipeline,
               skip_asset_pipeline: asset_pipeline.nil?,
               skip_bootsnap:       !defined?(Bootsnap),
             }.merge(options)
           end
 
           def asset_pipeline
-            case
-            when defined?(Sprockets::Railtie)
-              "sprockets"
-            when defined?(Propshaft::Railtie)
-              "propshaft"
-            else
-              nil
-            end
+            "propshaft" if defined?(Propshaft::Railtie)
+          end
+
+          def skip_gem?(gem_name)
+            gem gem_name
+            false
+          rescue LoadError
+            true
           end
       end
     end

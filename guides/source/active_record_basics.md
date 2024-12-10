@@ -58,8 +58,9 @@ database access code you have to write.
 
 NOTE: Basic knowledge of relational database management systems (RDBMS) and
 structured query language (SQL) is helpful in order to fully understand Active
-Record. Please refer to [this tutorial][sqlcourse] (or [this one][rdbmsinfo]) or
-study them by other means if you would like to learn more.
+Record. Please refer to [this SQL tutorial][sqlcourse] (or [this RDBMS
+tutorial][rdbmsinfo]) or study them by other means if you would like to learn
+more.
 
 ### Active Record as an ORM Framework
 
@@ -212,7 +213,7 @@ and results in this:
 # Columns `created_at` and `updated_at` are added by `t.timestamps`.
 
 # db/migrate/20240220143807_create_books.rb
-class CreateBooks < ActiveRecord::Migration
+class CreateBooks < ActiveRecord::Migration[8.1]
   def change
     create_table :books do |t|
       t.string :title
@@ -250,7 +251,7 @@ purposes.
 Active Record models are placed under the `app/models` directory by default. But
 you may want to organize your models by placing similar models under their own
 folder and namespace. For example, `order.rb` and `review.rb` under
-`app/models/books` with `Book::Order` and `Book::Review` class names,
+`app/models/book` with `Book::Order` and `Book::Review` class names,
 respectively. You can create namespaced models with Active Record.
 
 In the case where the `Book` module does not already exist, the `generate`
@@ -492,13 +493,15 @@ book = Book.find(42)
 The above resulting in this SQL:
 
 ```sql
-SELECT "books".* FROM "books" WHERE "books"."author" = ? LIMIT ?  [["author", "J.R.R. Tolkien"], ["LIMIT", 1]]
+-- Book.find_by(title: "Metaprogramming Ruby 2")
+SELECT "books".* FROM "books" WHERE "books"."title" = ? LIMIT ?  [["title", "Metaprogramming Ruby 2"], ["LIMIT", 1]]
 
+-- Book.find(42)
 SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIMIT", 1]]
 ```
 
 ```ruby
-# Find all books with a given an author, sort by created_at in reverse chronological order.
+# Find all books by a given author, sort by created_at in reverse chronological order.
 Book.where(author: "Douglas Adams").order(created_at: :desc)
 ```
 
@@ -585,11 +588,12 @@ unique, is not already in the database, follows a specific format, and many
 more.
 
 Methods like `save`, `create` and `update` validate a model before persisting it
-to the database. When a model is invalid these methods return `false` and no
-database operations are performed. All of these methods have a bang counterpart
-(that is, `save!`, `create!` and `update!`), which are stricter in that they
-raise an `ActiveRecord::RecordInvalid` exception when validation fails. A quick
-example to illustrate:
+to the database. If the model is invalid, no database operations are performed. In
+this case the `save` and `update` methods return `false`. The `create` method still
+returns the object, which can be checked for errors. All of these
+methods have a bang counterpart (that is, `save!`, `create!` and `update!`),
+which are stricter in that they raise an `ActiveRecord::RecordInvalid` exception
+when validation fails. A quick example to illustrate:
 
 ```ruby
 class User < ApplicationRecord
@@ -603,6 +607,16 @@ irb> user.save
 => false
 irb> user.save!
 ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+```
+
+The `create` method always returns the model, regardless of
+its validity. You can then inspect this model for any errors.
+
+```irb
+irb> user = User.create
+=> #<User:0x000000013e8b5008 id: nil, name: nil>
+irb> user.errors.full_messages
+=> ["Name can't be blank"]
 ```
 
 You can learn more about validations in the [Active Record Validations
@@ -645,7 +659,7 @@ files which are executed against any database that Active Record supports.
 Here's a migration that creates a new table called `publications`:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[8.0]
+class CreatePublications < ActiveRecord::Migration[8.1]
   def change
     create_table :publications do |t|
       t.string :title

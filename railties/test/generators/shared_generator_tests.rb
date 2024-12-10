@@ -50,7 +50,7 @@ module SharedGeneratorTests
     assert_match %r/conflicting option/i, error.message
   end
 
-  def test_skeleton_is_created
+  def test_codebase_is_created
     run_generator
 
     generated_files_and_folders = []
@@ -78,6 +78,24 @@ module SharedGeneratorTests
     assert_equal generated_files_and_folders.sort, default_files, "The expected list of generated files is not alphabetical"
 
     default_files.each { |path| assert_file path }
+
+    assert_file "#{application_path}/config/application.rb", /\s+require\s+["']rails\/all["']/
+
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
+      assert_match(/config\.active_storage/, content)
+    end
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_match(/config\.action_mailer\.delivery_method = :test/, content)
+      assert_match(/config\.active_storage/, content)
+    end
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+      assert_match(/config\.active_storage/, content)
+    end
+
+    assert_load_defaults
+    assert_gem_for_active_storage
   end
 
   def test_plugin_new_generate_pretend
@@ -223,59 +241,52 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/application.rb", /^require\s+["']rails\/test_unit\/railtie["']/
   end
 
-  def test_generator_without_skips
-    run_generator
-    assert_file "#{application_path}/config/application.rb", /\s+require\s+["']rails\/all["']/
-    assert_file "#{application_path}/config/environments/development.rb" do |content|
-      assert_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
-    end
-    assert_file "#{application_path}/config/environments/test.rb" do |content|
-      assert_match(/config\.action_mailer\.delivery_method = :test/, content)
-    end
-    assert_file "#{application_path}/config/environments/production.rb" do |content|
-      assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
-      assert_match(/^  # config\.require_master_key = true/, content)
-    end
-  end
-
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_directory "#{application_path}/db/"
     assert_no_file "#{application_path}/config/database.yml"
     assert_no_file "#{application_path}/app/models/application_record.rb"
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+
+    assert_file "#{application_path}/config/application.rb" do |content|
+      assert_match(/#\s+require\s+["']active_record\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_mailbox\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_text\/engine["']/, content)
+    end
+
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
     assert_file "#{application_path}/bin/setup" do |setup_content|
       assert_no_match(/db:prepare/, setup_content)
     end
-  end
-
-  def test_generator_for_active_storage
-    run_generator([destination_root])
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
-      assert_match(/config\.active_storage/, content)
+      assert_no_match(/config\.active_storage/, content)
     end
 
     assert_file "#{application_path}/config/environments/production.rb" do |content|
-      assert_match(/config\.active_storage/, content)
+      assert_no_match(/config\.active_storage/, content)
     end
 
     assert_file "#{application_path}/config/environments/test.rb" do |content|
-      assert_match(/config\.active_storage/, content)
+      assert_no_match(/config\.active_storage/, content)
     end
 
-    assert_file "#{application_path}/config/storage.yml"
-    assert_directory "#{application_path}/storage"
-    assert_directory "#{application_path}/tmp/storage"
+    assert_no_file "#{application_path}/config/storage.yml"
+
+    assert_gitattributes_does_not_have_schema_file
+
+    assert_file "Gemfile" do |contents|
+      assert_no_match(/solid_cache/, contents)
+      assert_no_match(/sqlite/, contents)
+    end
   end
 
   def test_generator_if_skip_active_storage_is_given
     run_generator [destination_root, "--skip-active-storage"]
 
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+    assert_frameworks_are_not_required_when_active_storage_is_skipped
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
       assert_no_match(/config\.active_storage/, content)
@@ -290,26 +301,16 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
+
+    assert_gems_when_active_storage_is_skipped
+    assert_dockerfile_when_active_storage_is_skipped
   end
 
-  def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
+  def test_generator_does_not_create_storage_dir_if_skip_active_storage_is_given_and_not_using_sqlite
+    run_generator [destination_root, "--skip-active-storage", "--database=postgresql"]
 
-    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
-
-    assert_file "#{application_path}/config/environments/development.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
-
-    assert_file "#{application_path}/config/environments/production.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
-
-    assert_file "#{application_path}/config/environments/test.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
-    end
-
-    assert_no_file "#{application_path}/config/storage.yml"
+    assert_no_directory "#{application_path}/storage"
+    assert_no_directory "#{application_path}/tmp/storage"
   end
 
   def test_generator_if_skip_action_mailer_is_given
@@ -333,32 +334,18 @@ module SharedGeneratorTests
     run_generator [destination_root, "--skip-action-cable", "--webpack"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "#{application_path}/config/cable.yml"
-    assert_no_file "#{application_path}/app/javascript/consumer.js"
-    assert_no_directory "#{application_path}/app/javascript/channels"
-    assert_no_directory "#{application_path}/app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/"redis"/, content)
     end
   end
 
-  def test_generator_when_sprockets_is_not_used
-    run_generator [destination_root, "-a", "none"]
+  def test_generator_when_asset_pipeline_is_not_used
+    run_generator [destination_root, "--skip-asset-pipeline"]
 
     assert_no_file "#{application_path}/config/initializers/assets.rb"
-    assert_no_file "#{application_path}/app/assets/config/manifest.js"
 
     assert_file "Gemfile" do |content|
-      assert_no_match(/sass-rails/, content)
-    end
-
-    assert_file "#{application_path}/config/environments/development.rb" do |content|
-      assert_no_match(/config\.assets\.debug/, content)
-    end
-
-    assert_file "#{application_path}/config/environments/production.rb" do |content|
-      assert_no_match(/config\.assets\.digest/, content)
-      assert_no_match(/config\.assets\.css_compressor/, content)
-      assert_no_match(/config\.assets\.compile/, content)
+      assert_no_match(/propshaft/, content)
     end
   end
 
@@ -397,7 +384,36 @@ module SharedGeneratorTests
     assert_file "myproject/Gemfile", %r{^gem ["']rails["'], github: ["']rails/rails["'], branch: ["']main["']$}
   end
 
+  def test_generated_files_have_no_rubocop_warnings
+    run_generator
+
+    Dir.chdir(destination_root) do
+      output = `./bin/rubocop`
+
+      assert_predicate $?, :success?, "bin/rubocop did not exit successfully:\n#{output}"
+    end
+  end
+
   private
+    def assert_load_defaults
+    end
+
+    def assert_gem_for_active_storage
+    end
+
+    def assert_frameworks_are_not_required_when_active_storage_is_skipped
+      assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+    end
+
+    def assert_gems_when_active_storage_is_skipped
+    end
+
+    def assert_dockerfile_when_active_storage_is_skipped
+    end
+
+    def assert_gitattributes_does_not_have_schema_file
+    end
+
     def fixtures_root
       File.expand_path("../fixtures", __dir__)
     end
@@ -406,8 +422,13 @@ module SharedGeneratorTests
       @bundle_commands = []
       @bundle_command_stub ||= -> (command, *) { @bundle_commands << command }
 
+      @rails_commands = []
+      @rails_command_stub ||= -> (command, *_) { @rails_commands << command }
+
       generator.stub(:bundle_command, @bundle_command_stub) do
-        super
+        generator.stub(:rails_command, @rails_command_stub) do
+          super
+        end
       end
     end
 

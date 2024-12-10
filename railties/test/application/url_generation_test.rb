@@ -21,7 +21,6 @@ module ApplicationTests
         config.eager_load = false
         config.hosts << proc { true }
         config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-        config.middleware.delete Rails::Rack::LoadRoutes
       end
 
       Rails.application.initialize!

@@ -2,7 +2,7 @@
 
 module Rails
   module Rack
-    autoload :Logger,     "rails/rack/logger"
-    autoload :LoadRoutes, "rails/rack/load_routes"
+    autoload :Logger, "rails/rack/logger"
+    autoload :SilenceRequest, "rails/rack/silence_request"
   end
 end

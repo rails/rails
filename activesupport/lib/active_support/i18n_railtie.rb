@@ -14,15 +14,18 @@ module I18n
 
     config.eager_load_namespaces << I18n
 
-    # Set the i18n configuration after initialization since a lot of
-    # configuration is still usually done in application initializers.
-    config.after_initialize do |app|
+    # Make sure i18n is ready before eager loading, in case any eager loaded
+    # code needs it.
+    config.before_eager_load do |app|
       I18n::Railtie.initialize_i18n(app)
     end
 
-    # Trigger i18n config before any eager loading has happened
-    # so it's ready if any classes require it when eager loaded.
-    config.before_eager_load do |app|
+    # i18n initialization needs to run after application initialization, since
+    # initializers may configure i18n.
+    #
+    # If the application eager loaded, this was done on before_eager_load. The
+    # hook is still OK, though, because initialize_i18n is idempotent.
+    config.after_initialize do |app|
       I18n::Railtie.initialize_i18n(app)
     end
 
@@ -49,7 +52,8 @@ module I18n
         when :load_path
           I18n.load_path += value
         when :raise_on_missing_translations
-          setup_raise_on_missing_translations_config(app)
+          strict = value == :strict
+          setup_raise_on_missing_translations_config(app, strict)
         else
           I18n.public_send("#{setting}=", value)
         end
@@ -62,8 +66,9 @@ module I18n
 
       if app.config.reloading_enabled?
         directories = watched_dirs_with_extensions(reloadable_paths)
-        reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
-          I18n.load_path.keep_if { |p| File.exist?(p) }
+        root_load_paths = I18n.load_path.select { |path| path.to_s.start_with?(Rails.root.to_s) }
+        reloader = app.config.file_watcher.new(root_load_paths, directories) do
+          I18n.load_path.delete_if { |path| path.to_s.start_with?(Rails.root.to_s) && !File.exist?(path) }
           I18n.load_path |= reloadable_paths.flat_map(&:existent)
         end
 
@@ -71,15 +76,18 @@ module I18n
         app.reloader.to_run do
           reloader.execute_if_updated { require_unload_lock! }
         end
-        reloader.execute
       end
 
       @i18n_inited = true
     end
 
-    def self.setup_raise_on_missing_translations_config(app)
+    def self.setup_raise_on_missing_translations_config(app, strict)
       ActiveSupport.on_load(:action_view) do
         ActionView::Helpers::TranslationHelper.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+      end
+
+      ActiveSupport.on_load(:active_model_translation) do
+        ActiveModel::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations if strict
       end
 
       if app.config.i18n.raise_on_missing_translations &&

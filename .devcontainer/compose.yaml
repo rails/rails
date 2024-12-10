@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   rails:
     build:
@@ -11,10 +9,6 @@ services:
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
-
-    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
-    networks:
-      - default
 
     depends_on:
       - postgres
@@ -28,8 +22,6 @@ services:
   postgres:
     image: postgres:latest
     restart: unless-stopped
-    networks:
-      - default
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
@@ -40,18 +32,14 @@ services:
   mariadb:
     image: mariadb:latest
     restart: unless-stopped
-    networks:
-      - default
     volumes:
       - mariadb-data:/var/lib/mysql
     environment:
       MARIADB_ROOT_PASSWORD: root
 
   redis:
-    image: redis:latest
+    image: valkey/valkey:8
     restart: unless-stopped
-    networks:
-      - default
     volumes:
       - redis-data:/data
 
@@ -59,11 +47,6 @@ services:
     image: memcached:latest
     restart: unless-stopped
     command: ["-m", "1024"]
-    networks:
-      - default
-
-networks:
-  default:
 
 volumes:
   postgres-data:

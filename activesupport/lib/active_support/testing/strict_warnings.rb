@@ -15,9 +15,8 @@ module ActiveSupport
       /Ignoring .*\.yml because it has expired/,
       /Failed to validate the schema cache because/,
 
-      # Ref: https://bugs.ruby-lang.org/issues/15554
-      # This new Ruby 3.4 warning is still being fined tuned to reduce false positives
-      /the block passed to/,
+      # TODO: We need to decide what to do with this.
+      /Status code :unprocessable_entity is deprecated/,
     )
 
     SUPPRESSED_WARNINGS = Regexp.union(

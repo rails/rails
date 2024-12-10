@@ -98,9 +98,12 @@
       description: >
         Action Controllers are the core of a web request in Rails.
         This guide covers how controllers work and how they fit into the
-        request cycle of your application. It includes sessions, filters,
-        cookies, data streaming, and dealing with exceptions raised by a
-        request, among other topics.
+        request cycle of your application. Topics include accessing parameters in controller actions, using sessions and cookies, controller callbacks.
+    -
+      name: Action Controller Advanced Topics
+      url: action_controller_advanced_topics.html
+      description: >
+        This guide covers a number of advanced topics related to controllers in a Rails application such as protecting against cross-site request forgery, HTTP authentication, data streaming, and dealing with exceptions, log filtering, and more.
     -
       name: Rails Routing from the Outside In
       url: routing.html
@@ -175,7 +178,7 @@
     -
       name: Error Reporting in Rails Applications
       url: error_reporting.html
-      description: This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
+      description: This guide introduces ways to manage errors that occur in Ruby on Rails applications.
     -
       name: Debugging Rails Applications
       url: debugging_rails_applications.html
@@ -218,10 +221,6 @@
       url: autoloading_and_reloading_constants.html
       description: This guide documents how autoloading and reloading constants work.
     -
-      name: "Migrating from Classic to Zeitwerk"
-      url: "classic_to_zeitwerk_howto.html"
-      description: "This guide documents how to migrate Rails applications from `classic` to `zeitwerk` mode."
-    -
       name: "Caching with Rails: An Overview"
       url: caching_with_rails.html
       description: This guide is an introduction to speeding up your Rails application with caching.
@@ -234,6 +233,14 @@
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
+    -
+      name: Tuning Performance for Deployment
+      url: tuning_performance_for_deployment.html
+      description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
+
+-
+  name: Advanced Active Record
+  documents:
     -
       name: Active Record and PostgreSQL
       work_in_progress: true
@@ -327,15 +334,18 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
-      name: Version 8.0 - ?
-      url: 8_0_release_notes.html
-      description: Release notes for Rails 8.0.
+      name: Version 8.1 - ?
+      url: 8_1_release_notes.html
+      description: Release notes for Rails 8.1.
       work_in_progress: true
     -
-      name: Version 7.2 - ?
+      name: Version 8.0 - November 2024
+      url: 8_0_release_notes.html
+      description: Release notes for Rails 8.0.
+    -
+      name: Version 7.2 - August 2024
       url: 7_2_release_notes.html
       description: Release notes for Rails 7.2.
-      work_in_progress: true
     -
       name: Version 7.1 - October 2023
       url: 7_1_release_notes.html

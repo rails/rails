@@ -6,6 +6,7 @@ require "models/book_destroy_async"
 require "models/essay_destroy_async"
 require "models/tag"
 require "models/tagging"
+require "models/author"
 require "models/essay"
 require "models/category"
 require "models/post"
@@ -74,7 +75,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_equal 2, delete_sqls.count
 
     delete_sqls.each do |sql|
-      assert_match(/#{Regexp.escape(Sharded::Tag.lease_connection.quote_table_name("sharded_tags.blog_id"))} =/, sql)
+      assert_match(/#{Regexp.escape(quote_table_name("sharded_tags.blog_id"))} =/, sql)
     end
   ensure
     Sharded::Tag.delete_all
@@ -187,7 +188,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
     assert_equal 1, delete_sqls.count
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, delete_sqls.first)
+    assert_match(/#{Regexp.escape(quote_table_name("sharded_blog_posts.blog_id"))} =/, delete_sqls.first)
   ensure
     Sharded::BlogPostDestroyAsync.delete_all
     Sharded::CommentDestroyAsync.delete_all
@@ -207,6 +208,20 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     DlKeyedBelongsTo.delete_all
     DestroyAsyncParent.delete_all
+  end
+
+  test "polymorphic belongs_to" do
+    writer = Author.create(name: "David")
+    essay = EssayDestroyAsync.create!(name: "Der be treasure", writer: writer)
+
+    essay.destroy
+
+    assert_difference -> { Author.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  ensure
+    EssayDestroyAsync.delete_all
+    Author.delete_all
   end
 
   test "has_one" do
@@ -303,7 +318,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_equal 2, delete_sqls.count
 
     delete_sqls.each do |sql|
-      assert_match(/#{Regexp.escape(Cpk::ChapterDestroyAsync.lease_connection.quote_table_name("cpk_chapters.author_id"))} =/, sql)
+      assert_match(/#{Regexp.escape(quote_table_name("cpk_chapters.author_id"))} =/, sql)
     end
   ensure
     Cpk::ChapterDestroyAsync.delete_all

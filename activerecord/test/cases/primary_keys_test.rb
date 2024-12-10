@@ -256,6 +256,17 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_raises(ActiveModel::MissingAttributeError) { dashboard.id = "1" }
   end
 
+  def test_reconfiguring_primary_key_resets_composite_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "cpk_books"
+    end
+
+    assert_predicate klass, :composite_primary_key?
+
+    klass.primary_key = :id
+    assert_not_predicate klass, :composite_primary_key?
+  end
+
   def composite_primary_key_is_false_for_a_non_cpk_model
     assert_not_predicate Dashboard, :composite_primary_key?
   end
@@ -351,7 +362,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     assert_no_match %r{t\.index \["code"\]}, schema
   end
 
-  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && supports_datetime_with_precision?
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     test "schema typed primary key column" do
       @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
       schema = dump_table_schema("scheduled_logs")

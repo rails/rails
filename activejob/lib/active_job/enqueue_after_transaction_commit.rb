@@ -2,31 +2,31 @@
 
 module ActiveJob
   module EnqueueAfterTransactionCommit # :nodoc:
-    extend ActiveSupport::Concern
-
-    included do
-      ##
-      # :singleton-method:
-      #
-      # Defines if enqueueing this job from inside an Active Record transaction
-      # automatically defers the enqueue to after the transaction commits.
-      #
-      # It can be set on a per job basis:
-      #  - `:always` forces the job to be deferred.
-      #  - `:never` forces the job to be queued immediately.
-      #  - `:default` lets the queue adapter define the behavior (recommended).
-      class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: :never
-    end
-
     private
       def raw_enqueue
+        enqueue_after_transaction_commit = self.class.enqueue_after_transaction_commit
+
         after_transaction = case self.class.enqueue_after_transaction_commit
         when :always
+          ActiveJob.deprecator.warn(<<~MSG.squish)
+            Setting `#{self.class.name}.enqueue_after_transaction_commit = :always` is deprecated and will be removed in Rails 8.1.
+            Set to `true` to always enqueue the job after the transaction is committed.
+          MSG
           true
         when :never
+          ActiveJob.deprecator.warn(<<~MSG.squish)
+            Setting `#{self.class.name}.enqueue_after_transaction_commit = :never` is deprecated and will be removed in Rails 8.1.
+            Set to `false` to never enqueue the job after the transaction is committed.
+          MSG
           false
-        else # :default
-          queue_adapter.enqueue_after_transaction_commit?
+        when :default
+          ActiveJob.deprecator.warn(<<~MSG.squish)
+            Setting `#{self.class.name}.enqueue_after_transaction_commit = :default` is deprecated and will be removed in Rails 8.1.
+            Set to `false` to never enqueue the job after the transaction is committed.
+          MSG
+          false
+        else
+          enqueue_after_transaction_commit
         end
 
         if after_transaction

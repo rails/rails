@@ -89,7 +89,9 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    User
+    assert_nothing_raised do
+      User
+    end
   end
 
   test "load config/environments/environment before Bootstrap initializers" do
@@ -310,7 +312,6 @@ class LoadingTest < ActiveSupport::TestCase
       Rails.configuration.after_routes_loaded do
         $counter *= 3
       end
-      Rails.application.reload_routes!
     RUBY
 
     app_file "app/models/user.rb", <<-MODEL
@@ -374,7 +375,6 @@ class LoadingTest < ActiveSupport::TestCase
       Rails.configuration.after_routes_loaded do
         $counter *= 3
       end
-      Rails.application.reload_routes!
     RUBY
 
     boot_app "development"

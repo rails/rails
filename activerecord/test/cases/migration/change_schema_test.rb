@@ -294,8 +294,7 @@ module ActiveRecord
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "timestamp(6) without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-          sql_type = supports_datetime_with_precision? ? "datetime(6)" : "datetime"
-          assert_equal sql_type, column.sql_type
+          assert_equal "datetime(6)", column.sql_type
         else
           assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
@@ -468,8 +467,22 @@ module ActiveRecord
         assert_not connection.table_exists?(:testings)
       end
 
+      def test_drop_tables_if_exists
+        connection.create_table(:testings)
+        connection.create_table(:sobrinho)
+        assert connection.table_exists?(:testings)
+        assert connection.table_exists?(:sobrinho)
+        connection.drop_table(:testings, :sobrinho, if_exists: true)
+        assert_not connection.table_exists?(:testings)
+        assert_not connection.table_exists?(:sobrinho)
+      end
+
       def test_drop_table_if_exists_nothing_raised
         assert_nothing_raised { connection.drop_table(:nonexistent, if_exists: true) }
+      end
+
+      def test_drop_tables_if_exists_nothing_raised
+        assert_nothing_raised { connection.drop_table(:nonexistent, :nonexistent_sobrinho, if_exists: true) }
       end
 
       private

@@ -2,23 +2,20 @@
 
 require "abstract_unit"
 
-module ActionController
-  class Base
-    include ActionController::Testing
-  end
-end
-
 class InfoControllerTest < ActionController::TestCase
+  include ActiveSupport::Testing::Isolation
   tests Rails::InfoController
-  Rails.application.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
 
   def setup
+    ActionController::Base.include ActionController::Testing
+
     Rails.application.routes.draw do
       namespace :test do
         get :nested_route, to: "test#show"
       end
       get "/rails/info/properties" => "rails/info#properties"
       get "/rails/info/routes" => "rails/info#routes"
+      get "/rails/info/notes" => "rails/info#notes"
       post "/rails/:test/properties" => "rails/info#properties"
       put "/rails/:test/named_properties" => "rails/info#properties", as: "named_rails_info_properties"
     end
@@ -50,8 +47,12 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller allows requests when all requests are considered local" do
+    @request.env["REMOTE_ADDR"] = "example.org"
+    Rails.application.config.consider_all_requests_local = true
     get :properties
     assert_response :success
+  ensure
+    Rails.application.config.consider_all_requests_local = false
   end
 
   test "info controller allows local requests" do
@@ -67,6 +68,26 @@ class InfoControllerTest < ActionController::TestCase
   test "info controller renders with routes" do
     get :routes
     assert_response :success
+  end
+
+  test "info controller routes shows source location" do
+    Rails.env = "development"
+    Rails.configuration.eager_load = false
+    Rails.application.initialize!
+    Rails.application.routes.draw do
+      namespace :test do
+        get :nested_route, to: "test#show"
+      end
+      get "/rails/info/routes" => "rails/info#routes"
+    end
+
+    get :routes
+
+    assert_select("table tr") do
+      assert_select("td", text: "test_nested_route_path")
+      assert_select("td", text: "test/test#show")
+      assert_select("td", text: "#{__FILE__}:79")
+    end
   end
 
   test "info controller search returns exact matches for route names" do
@@ -118,10 +139,11 @@ class InfoControllerTest < ActionController::TestCase
     assert exact_results.size == 0, "should not case-insensitive match HTTP Verb methods"
 
     get :routes, params: { query: "GET" }
-    assert exact_results.size == 3, "should match complete HTTP Verb methods"
+    assert exact_results.size == 4, "should match complete HTTP Verb methods"
     assert exact_results.include? "/test/nested_route(.:format)"
     assert exact_results.include? "/rails/info/properties(.:format)"
     assert exact_results.include? "/rails/info/routes(.:format)"
+    assert exact_results.include? "/rails/info/notes(.:format)"
   end
 
   test "info controller search returns exact matches for route Controller#Action(s)" do
@@ -140,9 +162,10 @@ class InfoControllerTest < ActionController::TestCase
     assert exact_results.size == 0, "should not match unnamed routes"
 
     get :routes, params: { query: "rails_info" }
-    assert fuzzy_results.size == 3, "should match incomplete route names"
+    assert fuzzy_results.size == 4, "should match incomplete route names"
     assert fuzzy_results.include? "/rails/info/properties(.:format)"
     assert fuzzy_results.include? "/rails/info/routes(.:format)"
+    assert fuzzy_results.include? "/rails/info/notes(.:format)"
     assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
 
     get :routes, params: { query: "/rails/info/routes" }

@@ -17,6 +17,12 @@ class RenderJsonTest < ActionController::TestCase
     end
   end
 
+  class InspectOptions
+    def as_json(options = {})
+      { options: options }
+    end
+  end
+
   class TestController < ActionController::Base
     protect_from_forgery
 
@@ -58,6 +64,10 @@ class RenderJsonTest < ActionController::TestCase
 
     def render_json_without_options
       render json: JsonRenderable.new
+    end
+
+    def render_json_inspect_options
+      render json: InspectOptions.new
     end
   end
 
@@ -123,5 +133,10 @@ class RenderJsonTest < ActionController::TestCase
   def test_render_json_calls_to_json_from_object
     get :render_json_without_options
     assert_equal '{"a":"b"}', @response.body
+  end
+
+  def test_render_json_avoids_view_options
+    get :render_json_inspect_options
+    assert_equal '{"options":{}}', @response.body
   end
 end

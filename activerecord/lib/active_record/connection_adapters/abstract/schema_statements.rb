@@ -345,6 +345,15 @@ module ActiveRecord
       #   # Creates a table called 'assemblies_parts' with no id.
       #   create_join_table(:assemblies, :parts)
       #
+      #   # Creates a table called 'paper_boxes_papers' with no id.
+      #   create_join_table('papers', 'paper_boxes')
+      #
+      # A duplicate prefix is combined into a single prefix. This is useful for
+      # namespaced models like Music::Artist and Music::Record:
+      #
+      #   # Creates a table called 'music_artists_records' with no id.
+      #   create_join_table('music_artists', 'music_records')
+      #
       # You can pass an +options+ hash which can include the following keys:
       # [<tt>:table_name</tt>]
       #   Sets the table name, overriding the default.
@@ -516,7 +525,7 @@ module ActiveRecord
         raise NotImplementedError, "rename_table is not implemented"
       end
 
-      # Drops a table from the database.
+      # Drops a table or tables from the database.
       #
       # [<tt>:force</tt>]
       #   Set to +:cascade+ to drop dependent objects as well.
@@ -527,10 +536,12 @@ module ActiveRecord
       #
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +options+ and the block will be used by #create_table.
-      def drop_table(table_name, **options)
-        schema_cache.clear_data_source_cache!(table_name.to_s)
-        execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
+      # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
+      def drop_table(*table_names, **options)
+        table_names.each do |table_name|
+          schema_cache.clear_data_source_cache!(table_name.to_s)
+          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
+        end
       end
 
       # Add a new +type+ column named +column_name+ to +table_name+.
@@ -682,7 +693,7 @@ module ActiveRecord
       #
       # If the options provided include an +if_exists+ key, it will be used to check if the
       # column does not exist. This will silently ignore the migration rather than raising
-      # if the column was already used.
+      # if the column was already removed.
       #
       #   remove_column(:suppliers, :qualification, if_exists: true)
       def remove_column(table_name, column_name, type = nil, **options)
@@ -843,6 +854,16 @@ module ActiveRecord
       #   CREATE INDEX index_accounts_on_branch_id ON accounts USING btree(branch_id) INCLUDE (party_id)
       #
       # Note: only supported by PostgreSQL.
+      #
+      # ====== Creating an index where NULLs are treated equally
+      #
+      #   add_index(:people, :last_name, nulls_not_distinct: true)
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_people_on_last_name ON people (last_name) NULLS NOT DISTINCT
+      #
+      # Note: only supported by PostgreSQL version 15.0.0 and greater.
       #
       # ====== Creating an index with a specific method
       #
@@ -1151,9 +1172,10 @@ module ActiveRecord
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
         return unless use_foreign_keys?
-        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         options = foreign_key_options(from_table, to_table, options)
+        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
+
         at = create_alter_table from_table
         at.add_foreign_key to_table, options
 
@@ -1192,7 +1214,7 @@ module ActiveRecord
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless use_foreign_keys?
-        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
+        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1313,7 +1335,6 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
-
       # Checks to see if a check constraint exists on a table for a given check constraint definition.
       #
       #   check_constraint_exists?(:products, name: "price_check")
@@ -1323,6 +1344,13 @@ module ActiveRecord
           raise ArgumentError, "At least one of :name or :expression must be supplied"
         end
         check_constraint_for(table_name, **options).present?
+      end
+
+      def remove_constraint(table_name, constraint_name) # :nodoc:
+        at = create_alter_table(table_name)
+        at.drop_constraint(constraint_name)
+
+        execute schema_creation.accept(at)
       end
 
       def dump_schema_information # :nodoc:

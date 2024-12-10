@@ -57,11 +57,12 @@ module ActiveSupport
 
   eager_autoload do
     autoload :BacktraceCleaner
-    autoload :ProxyObject
+    autoload :Benchmark
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
     autoload :Configurable
+    autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
     autoload :Digest
@@ -111,15 +112,23 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone
-    ActiveSupport.deprecator.warn(
-      "`config.active_support.to_time_preserves_timezone` has been deprecated and will be removed in Rails 7.3."
-    )
+    DateAndTime::Compatibility.preserve_timezone
   end
 
   def self.to_time_preserves_timezone=(value)
-    ActiveSupport.deprecator.warn(
-      "`config.active_support.to_time_preserves_timezone` has been deprecated and will be removed in Rails 7.3."
-    )
+    if !value
+      ActiveSupport.deprecator.warn(
+        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.1. " \
+        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
+      )
+    elsif value != :zone
+      ActiveSupport.deprecator.warn(
+        "`to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. " \
+        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
+      )
+    end
+
+    DateAndTime::Compatibility.preserve_timezone = value
   end
 
   def self.utc_to_local_returns_utc_offset_times

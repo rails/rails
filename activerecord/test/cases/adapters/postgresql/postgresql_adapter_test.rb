@@ -474,6 +474,23 @@ module ActiveRecord
         end
       end
 
+      def test_translate_no_connection_exception_to_not_established
+        pid = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+        @connection.pool.checkout.execute("SELECT pg_terminate_backend(#{pid})")
+        # If you run `@connection.execute` after the backend process has been terminated,
+        # you will get the "server closed the connection unexpectedly" rather than "no connection to the server".
+        # Because what we want to test here is an error that occurs during `send_query`,
+        # which is called internally by `@connection.execute`, we will call it explicitly.
+        # The `send_query` changes the internal `PG::Connection#status` to `CONNECTION_BAD`,
+        # so any subsequent queries will get the "no connection to the server" error.
+        # https://github.com/postgres/postgres/blob/REL_17_0/src/interfaces/libpq/fe-exec.c#L1686-L1691
+        @connection.instance_variable_get(:@raw_connection).send_query("SELECT 1")
+
+        assert_raise ActiveRecord::ConnectionNotEstablished do
+          @connection.execute("SELECT 1")
+        end
+      end
+
       def test_reload_type_map_for_newly_defined_types
         @connection.create_enum "feeling", ["good", "bad"]
 
@@ -559,6 +576,24 @@ module ActiveRecord
         end
       ensure
         @connection.execute("DROP DOMAIN example_type")
+      end
+
+      def test_extensions_omits_current_schema_name
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE SCHEMA customschema")
+        @connection.execute("CREATE EXTENSION hstore SCHEMA customschema")
+        assert_includes @connection.extensions, "customschema.hstore"
+      ensure
+        @connection.execute("DROP SCHEMA IF EXISTS customschema CASCADE")
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+      end
+
+      def test_extensions_includes_non_current_schema_name
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE EXTENSION hstore")
+        assert_includes @connection.extensions, "hstore"
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
       end
 
       def test_ignores_warnings_when_behaviour_ignore
@@ -667,6 +702,34 @@ module ActiveRecord
         date = connection.select_value("select '2024-01-01'::date")
         assert_equal "2024-01-01", date
         assert_equal String, date.class
+      end
+
+      def test_disable_extension_with_schema
+        @connection.execute("CREATE SCHEMA custom_schema")
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE EXTENSION hstore SCHEMA custom_schema")
+        result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal [["hstore"]], result.to_a
+
+        @connection.disable_extension "custom_schema.hstore"
+        result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal [], result.to_a
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("DROP SCHEMA IF EXISTS custom_schema CASCADE")
+      end
+
+      def test_disable_extension_without_schema
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
+        @connection.execute("CREATE EXTENSION hstore")
+        result = @connection.query("SELECT extname FROM pg_extension")
+        assert_includes result.to_a, ["hstore"]
+
+        @connection.disable_extension "hstore"
+        result = @connection.query("SELECT extname FROM pg_extension")
+        assert_not_includes result.to_a, ["hstore"]
+      ensure
+        @connection.execute("DROP EXTENSION IF EXISTS hstore")
       end
 
       private

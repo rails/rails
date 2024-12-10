@@ -114,8 +114,8 @@ module ActiveModel
         false
       end
 
-      def map(value) # :nodoc:
-        yield value
+      def map(value, &) # :nodoc:
+        value
       end
 
       def ==(other)

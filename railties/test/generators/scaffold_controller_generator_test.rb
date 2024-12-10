@@ -37,25 +37,28 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@user = User\.new\(user_params\)/, m)
         assert_match(/@user\.save/, m)
+        assert_match(/redirect_to @user/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@user\.update\(user_params\)/, m)
+        assert_match(/redirect_to @user/, m)
         assert_match(/status: :see_other/, m)
       end
 
       assert_instance_method :destroy, content do |m|
         assert_match(/@user\.destroy/, m)
         assert_match(/User was successfully destroyed/, m)
+        assert_match(/redirect_to users_path/, m)
         assert_match(/status: :see_other/, m)
       end
 
       assert_instance_method :set_user, content do |m|
-        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
+        assert_match(/@user = User\.find\(params\.expect\(:id\)\)/, m)
       end
 
       assert_match(/def user_params/, content)
-      assert_match(/params\.require\(:user\)\.permit\(:name, :age\)/, content)
+      assert_match(/params\.expect\(user: \[ :name, :age \]\)/, content)
     end
   end
 
@@ -73,7 +76,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/line_items_controller.rb" do |content|
       assert_match(/def line_item_params/, content)
-      assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :cart_id\)/, content)
+      assert_match(/params\.expect\(line_item: \[ :product_id, :cart_id \]\)/, content)
     end
   end
 
@@ -82,7 +85,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/line_items_controller.rb" do |content|
       assert_match(/def line_item_params/, content)
-      assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :product_type\)/, content)
+      assert_match(/params\.expect\(line_item: \[ :product_id, :product_type \]\)/, content)
     end
   end
 
@@ -91,7 +94,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_match(/def message_params/, content)
-      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
+      assert_match(/params\.expect\(message: \[ :video, photos: \[\] \]\)/, content)
     end
   end
 
@@ -100,7 +103,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_match(/def message_params/, content)
-      assert_match(/params\.require\(:message\)\.permit\(photos: \[\]\)/, content)
+      assert_match(/params\.expect\(message: \[ photos: \[\] \]\)/, content)
     end
   end
 
@@ -159,8 +162,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "test/controllers/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post users_url, params: \{ user: \{  \} \}/, content)
-      assert_match(/patch user_url\(@user\), params: \{ user: \{  \} \}/, content)
+      assert_match(/post users_url, params: \{ user: \{\} \}/, content)
+      assert_match(/patch user_url\(@user\), params: \{ user: \{\} \}/, content)
     end
   end
 
@@ -350,7 +353,16 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_match(/def message_params/, content)
-      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
+      assert_match(/params\.expect\(message: \[ :video, photos: \[\] \]\)/, content)
+    end
+  end
+
+  def test_api_only_doesnt_use_require_or_permit_if_there_are_no_attributes
+    run_generator ["User", "--api"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match(/def user_params/, content)
+      assert_match(/params\.fetch\(:user, \{\}\)/, content)
     end
   end
 

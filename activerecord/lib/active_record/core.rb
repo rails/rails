@@ -89,6 +89,7 @@ module ActiveRecord
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
+      class_attribute :strict_loading_mode, instance_accessor: false, default: :all
 
       class_attribute :has_many_inversing, instance_accessor: false, default: false
 
@@ -102,8 +103,20 @@ module ActiveRecord
 
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
-      # Specifies the attributes that will be included in the output of the #inspect method
-      class_attribute :attributes_for_inspect, instance_accessor: false, default: [:id]
+      ##
+      # :singleton-method:
+      #
+      # Specifies the attributes that will be included in the output of the
+      # #inspect method:
+      #
+      #   Post.attributes_for_inspect = [:id, :title]
+      #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!">"
+      #
+      # When set to +:all+ inspect will list all the record's attributes:
+      #
+      #   Post.attributes_for_inspect = :all
+      #   Post.first.inspect #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+      class_attribute :attributes_for_inspect, instance_accessor: false, default: :all
 
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
@@ -349,12 +362,12 @@ module ActiveRecord
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
       def inspect # :nodoc:
-        if self == Base
+        if self == Base || singleton_class?
           super
         elsif abstract_class?
           "#{super}(abstract)"
-        elsif !connected?
-          "#{super} (call '#{super}.lease_connection' to establish a connection)"
+        elsif !schema_loaded? && !connected?
+          "#{super} (call '#{super}.load_schema' to load schema informations)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
@@ -369,7 +382,7 @@ module ActiveRecord
       end
 
       def predicate_builder # :nodoc:
-        @predicate_builder ||= PredicateBuilder.new(table_metadata)
+        @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
       end
 
       def type_caster # :nodoc:
@@ -414,10 +427,6 @@ module ActiveRecord
           end
         end
 
-        def table_metadata
-          TableMetadata.new(self, arel_table)
-        end
-
         def cached_find_by(keys, values)
           with_connection do |connection|
             statement = cached_find_by_statement(connection, keys) { |params|
@@ -431,8 +440,8 @@ module ActiveRecord
               where(wheres).limit(1)
             }
 
-            begin
-              statement.execute(values.flatten, connection, allow_retry: true).first
+            statement.execute(values.flatten, connection, allow_retry: true).then do |r|
+              r.first
             rescue TypeError
               raise ActiveRecord::StatementInvalid
             end
@@ -528,12 +537,7 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      @attributes = @attributes.deep_dup
-      if self.class.composite_primary_key?
-        @primary_key.each { |key| @attributes.reset(key) }
-      else
-        @attributes.reset(@primary_key)
-      end
+      @attributes = init_attributes(other)
 
       _run_initialize_callbacks
 
@@ -543,6 +547,18 @@ module ActiveRecord
       @_start_transaction_state = nil
 
       super
+    end
+
+    def init_attributes(_) # :nodoc:
+      attrs = @attributes.deep_dup
+
+      if self.class.composite_primary_key?
+        @primary_key.each { |key| attrs.reset(key) }
+      else
+        attrs.reset(@primary_key)
+      end
+
+      attrs
     end
 
     # Populate +coder+ with attributes about this record that should be
@@ -614,7 +630,7 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if primary_key_values_present?
+      if self.class.composite_primary_key? ? primary_key_values_present? : id
         self.class.hash ^ id.hash
       else
         super
@@ -711,11 +727,29 @@ module ActiveRecord
       @strict_loading_mode == :all
     end
 
-    # Marks this record as read only.
+    # Prevents records from being written to the database:
+    #
+    #   customer = Customer.new
+    #   customer.readonly!
+    #   customer.save # raises ActiveRecord::ReadOnlyRecord
     #
     #   customer = Customer.first
     #   customer.readonly!
-    #   customer.save # Raises an ActiveRecord::ReadOnlyRecord
+    #   customer.update(name: 'New Name') # raises ActiveRecord::ReadOnlyRecord
+    #
+    # Read-only records cannot be deleted from the database either:
+    #
+    #   customer = Customer.first
+    #   customer.readonly!
+    #   customer.destroy # raises ActiveRecord::ReadOnlyRecord
+    #
+    # Please, note that the objects themselves are still mutable in memory:
+    #
+    #   customer = Customer.new
+    #   customer.readonly!
+    #   customer.name = 'New Name' # OK
+    #
+    # but you won't be able to persist the changes.
     def readonly!
       @readonly = true
     end
@@ -724,14 +758,28 @@ module ActiveRecord
       self.class.connection_handler
     end
 
-    # Returns the attributes specified by <tt>.attributes_for_inspect</tt> as a nicely formatted string.
+    # Returns the attributes of the record as a nicely formatted string.
+    #
+    #   Post.first.inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+    #
+    # The attributes can be limited by setting <tt>.attributes_for_inspect</tt>.
+    #
+    #   Post.attributes_for_inspect = [:id, :title]
+    #   Post.first.inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!">"
     def inspect
       inspect_with_attributes(attributes_for_inspect)
     end
 
-    # Returns the full contents of the record as a nicely formatted string.
+    # Returns all attributes of the record as a nicely formatted string,
+    # ignoring <tt>.attributes_for_inspect</tt>.
+    #
+    #   Post.first.full_inspect
+    #   #=> "#<Post id: 1, title: "Hello, World!", published_at: "2023-10-23 14:28:11 +0000">"
+    #
     def full_inspect
-      inspect_with_attributes(attribute_names)
+      inspect_with_attributes(all_attributes_for_inspect)
     end
 
     # Takes a PP and prettily prints this record to it, allowing you to get a nice result from <tt>pp record</tt>
@@ -748,9 +796,8 @@ module ActiveRecord
               pp.text attr_name
               pp.text ":"
               pp.breakable
-              value = _read_attribute(attr_name)
-              value = inspection_filter.filter_param(attr_name, value) unless value.nil?
-              pp.pp value
+              value = attribute_for_inspect(attr_name)
+              pp.text value
             end
           end
         else
@@ -785,7 +832,7 @@ module ActiveRecord
 
         @primary_key         = klass.primary_key
         @strict_loading      = klass.strict_loading_by_default
-        @strict_loading_mode = :all
+        @strict_loading_mode = klass.strict_loading_mode
 
         klass.define_attribute_methods
       end
@@ -824,7 +871,13 @@ module ActiveRecord
       end
 
       def attributes_for_inspect
-        self.class.attributes_for_inspect == :all ? attribute_names : self.class.attributes_for_inspect
+        self.class.attributes_for_inspect == :all ? all_attributes_for_inspect : self.class.attributes_for_inspect
+      end
+
+      def all_attributes_for_inspect
+        return [] unless @attributes
+
+        attribute_names
       end
   end
 end

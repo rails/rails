@@ -292,6 +292,16 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal '"schema.name"."table.name"', @connection.quote_table_name('"schema.name"."table.name"')
   end
 
+  def test_where_with_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    assert_equal ["thing1"], Thing1.where("test_schema.things.name": "thing1").map(&:name)
+  end
+
+  def test_pluck_with_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    assert_equal ["thing1"], Thing1.pluck(:"test_schema.things.name")
+  end
+
   def test_classes_with_qualified_schema_name
     assert_equal 0, Thing1.count
     assert_equal 0, Thing2.count
@@ -859,5 +869,92 @@ class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_no_match(/nulls_not_distinct/, output)
+  end
+end
+
+class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+    @connection.drop_table "transportation_modes", if_exists: true
+    @connection.drop_table "vehicles", if_exists: true
+  end
+
+  def test_list_partition_options_is_dumped
+    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
+
+    options = "PARTITION BY LIST (kind)"
+
+    @connection.create_table "trains", id: false, options: options do |t|
+      t.string :name
+      t.string :kind
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_range_partition_options_is_dumped
+    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
+
+    options = "PARTITION BY RANGE (created_at)"
+
+    @connection.create_table "trains", id: false, options: options do |t|
+      t.string :name
+      t.datetime :created_at, null: false
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_inherited_table_options_is_dumped
+    @connection.create_table "transportation_modes" do |t|
+      t.string :name
+      t.string :kind
+    end
+
+    options = "INHERITS (transportation_modes)"
+
+    @connection.create_table "trains", options: options
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_multiple_inherited_table_options_is_dumped
+    @connection.create_table "vehicles" do |t|
+      t.string :name
+    end
+
+    @connection.create_table "transportation_modes" do |t|
+      t.string :kind
+    end
+
+    options = "INHERITS (transportation_modes, vehicles)"
+
+    @connection.create_table "trains", options: options
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_no_partition_options_are_dumped
+    @connection.create_table "trains" do |t|
+      t.string :name
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_no_match("options:", output)
   end
 end

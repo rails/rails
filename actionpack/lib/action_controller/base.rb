@@ -128,7 +128,7 @@ module ActionController
   #
   # Action Controller sends content to the user by using one of five rendering
   # methods. The most versatile and common is the rendering of a template.
-  # Included in the Action Pack is the Action View, which enables rendering of ERB
+  # Also included with \Rails is Action View, which enables rendering of ERB
   # templates. It's automatically configured. The controller passes objects to the
   # view by assigning instance variables:
   #
@@ -185,8 +185,8 @@ module ActionController
   #
   # ## Calling multiple redirects or renders
   #
-  # An action may contain only a single render or a single redirect. Attempting to
-  # try to do either again will result in a DoubleRenderError:
+  # An action may perform only a single render or a single redirect. Attempting to
+  # do either again will result in a DoubleRenderError:
   #
   #     def do_something
   #       redirect_to action: "elsewhere"
@@ -194,10 +194,13 @@ module ActionController
   #     end
   #
   # If you need to redirect on the condition of something, then be sure to add
-  # "and return" to halt execution.
+  # "return" to halt execution.
   #
   #     def do_something
-  #       redirect_to(action: "elsewhere") and return if monkeys.nil?
+  #       if monkeys.nil?
+  #         redirect_to(action: "elsewhere")
+  #         return
+  #       end
   #       render action: "overthere" # won't be called if monkeys is nil
   #     end
   #
@@ -228,7 +231,6 @@ module ActionController
       AbstractController::Rendering,
       AbstractController::Translation,
       AbstractController::AssetPaths,
-
       Helpers,
       UrlFor,
       Redirecting,
@@ -258,26 +260,58 @@ module ActionController
       HttpAuthentication::Token::ControllerMethods,
       DefaultHeaders,
       Logging,
-
-      # Before callbacks should also be executed as early as possible, so also include
-      # them at the bottom.
       AbstractController::Callbacks,
-
-      # Append rescue at the bottom to wrap as much as possible.
       Rescue,
-
-      # Add instrumentations hooks at the bottom, to ensure they instrument all the
-      # methods properly.
       Instrumentation,
-
-      # Params wrapper should come before instrumentation so they are properly showed
-      # in logs
       ParamsWrapper
     ]
 
-    MODULES.each do |mod|
-      include mod
-    end
+    # Note: Documenting these severely degrades the performance of rdoc
+    # :stopdoc:
+    include AbstractController::Rendering
+    include AbstractController::Translation
+    include AbstractController::AssetPaths
+    include Helpers
+    include UrlFor
+    include Redirecting
+    include ActionView::Layouts
+    include Rendering
+    include Renderers::All
+    include ConditionalGet
+    include EtagWithTemplateDigest
+    include EtagWithFlash
+    include Caching
+    include MimeResponds
+    include ImplicitRender
+    include StrongParameters
+    include ParameterEncoding
+    include Cookies
+    include Flash
+    include FormBuilder
+    include RequestForgeryProtection
+    include ContentSecurityPolicy
+    include PermissionsPolicy
+    include RateLimiting
+    include AllowBrowser
+    include Streaming
+    include DataStreaming
+    include HttpAuthentication::Basic::ControllerMethods
+    include HttpAuthentication::Digest::ControllerMethods
+    include HttpAuthentication::Token::ControllerMethods
+    include DefaultHeaders
+    include Logging
+    # Before callbacks should also be executed as early as possible, so also include
+    # them at the bottom.
+    include AbstractController::Callbacks
+    # Append rescue at the bottom to wrap as much as possible.
+    include Rescue
+    # Add instrumentations hooks at the bottom, to ensure they instrument all the
+    # methods properly.
+    include Instrumentation
+    # Params wrapper should come before instrumentation so they are properly showed
+    # in logs
+    include ParamsWrapper
+    # :startdoc:
     setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.

@@ -40,6 +40,19 @@ module ActiveJob
   module Enqueuing
     extend ActiveSupport::Concern
 
+    included do
+      ##
+      # :singleton-method:
+      #
+      # Defines if enqueueing this job from inside an Active Record transaction
+      # automatically defers the enqueue to after the transaction commits.
+      #
+      # It can be set on a per job basis:
+      #  - true forces the job to be deferred.
+      #  - false forces the job to be queued immediately.
+      class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: false
+    end
+
     # Includes the +perform_later+ method for job initialization.
     module ClassMethods
       # Push a job onto the queue. By default the arguments must be either String,

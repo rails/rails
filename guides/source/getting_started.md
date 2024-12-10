@@ -64,8 +64,9 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 
-TIP: New Rails apps come with a preconfigured Dev Container development environment. This
-is the fastest way to get started with Rails. For instructions see [Getting Start with Dev Containers](getting_started_with_devcontainer.html)
+TIP: You can create new Rails apps with a preconfigured Dev Container development environment. This
+is the fastest way to get started with Rails.
+For instructions see [Getting Started with Dev Containers](getting_started_with_devcontainer.html)
 
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
@@ -96,10 +97,10 @@ current version of Ruby installed:
 
 ```bash
 $ ruby --version
-ruby 3.1.0
+ruby 3.2.0
 ```
 
-Rails requires Ruby version 3.1.0 or later. It is preferred to use the latest Ruby version.
+Rails requires Ruby version 3.2.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -135,10 +136,10 @@ run the following in a new terminal:
 
 ```bash
 $ rails --version
-Rails 8.0.0
+Rails 8.1.0
 ```
 
-If it says something like "Rails 8.0.0", you are ready to continue.
+If it says something like "Rails 8.1.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -175,7 +176,7 @@ of the files and folders that Rails creates by default:
 
 | File/Folder | Purpose |
 | ----------- | ------- |
-|app/|Contains the controllers, models, views, helpers, mailers, channels, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|app/|Contains the controllers, models, views, helpers, mailers, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |bin/|Contains the `rails` script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.|
 |config/|Contains configuration for your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack-based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
@@ -187,18 +188,17 @@ of the files and folders that Rails creates by default:
 |public/|Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
 |README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
+|script/|Contains one-off or general purpose [scripts](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/script/USAGE) and [benchmarks](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/benchmark/USAGE).|
 |storage/|Active Storage files for Disk Service. This is covered in [Active Storage Overview](active_storage_overview.html).|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
-|.devcontainer/|This folder contains the configuration for the [development container](https://containers.dev).|
 |.dockerignore|This file tells Docker which files it should not copy into the container.|
 |.gitattributes|This file defines metadata for specific paths in a git repository. This metadata can be used by git and other tools to enhance their behavior. See the [gitattributes documentation](https://git-scm.com/docs/gitattributes) for more information.|
 |.github/|Contains GitHub specific files.|
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more information about ignoring files.|
 |.rubocop.yml|This file contains the configuration for RuboCop.|
 |.ruby-version|This file contains the default Ruby version.|
-|.devcontainer/|This folder contains the Dev Container configuration|
 
 Hello, Rails!
 -------------
@@ -413,7 +413,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[7.2]
+class CreateArticles < ActiveRecord::Migration[8.1]
   def change
     create_table :articles do |t|
       t.string :title
@@ -471,17 +471,17 @@ Let's launch the console with this command:
 $ bin/rails console
 ```
 
-You should see an `irb` prompt like:
+You should see a rails console prompt like:
 
 ```irb
-Loading development environment (Rails 8.0.0)
-irb(main):001:0>
+Loading development environment (Rails 8.1.0)
+blog(dev)>
 ```
 
 At this prompt, we can initialize a new `Article` object:
 
 ```irb
-irb> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
+blog(dev)> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
 ```
 
 It's important to note that we have only *initialized* this object. This object
@@ -490,7 +490,7 @@ moment. To save the object to the database, we must call [`save`](
 https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save):
 
 ```irb
-irb> article.save
+blog(dev)> article.save
 (0.1ms)  begin transaction
 Article Create (0.4ms)  INSERT INTO "articles" ("title", "body", "created_at", "updated_at") VALUES (?, ?, ?, ?)  [["title", "Hello Rails"], ["body", "I am on Rails!"], ["created_at", "2020-01-18 23:47:30.734416"], ["updated_at", "2020-01-18 23:47:30.734416"]]
 (0.9ms)  commit transaction
@@ -502,7 +502,7 @@ indicates that the article has been inserted into our table. And if we take a
 look at the `article` object again, we see something interesting has happened:
 
 ```irb
-irb> article
+blog(dev)> article
 => #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
 ```
 
@@ -514,7 +514,7 @@ https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-fin
 on the model and pass the `id` as an argument:
 
 ```irb
-irb> Article.find(1)
+blog(dev)> Article.find(1)
 => #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
 ```
 
@@ -523,7 +523,7 @@ https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html
 on the model:
 
 ```irb
-irb> Article.all
+blog(dev)> Article.all
 => #<ActiveRecord::Relation [#<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">]>
 ```
 
@@ -567,7 +567,7 @@ file, and replace its contents with:
 </ul>
 ```
 
-The above code is a mixture of HTML and *ERB*. ERB, short for [Embedded Ruby](https://docs.ruby-lang.org/en/3.2/ERB.html), is a templating system that
+The above code is a mixture of HTML and *ERB*. ERB, short for [Embedded Ruby](https://docs.ruby-lang.org/en/master/ERB.html), is a templating system that
 evaluates Ruby code embedded in a document. Here, we can see two types of ERB
 tags: `<% %>` and `<%= %>`. The `<% %>` tag means "evaluate the enclosed Ruby
 code." The `<%= %>` tag means "evaluate the enclosed Ruby code, and output the
@@ -713,6 +713,7 @@ $ bin/rails routes
              POST   /articles(.:format)          articles#create
 edit_article GET    /articles/:id/edit(.:format) articles#edit
              PATCH  /articles/:id(.:format)      articles#update
+             PUT    /articles/:id(.:format)      articles#update
              DELETE /articles/:id(.:format)      articles#destroy
 ```
 
@@ -839,7 +840,7 @@ Let's create `app/views/articles/new.html.erb` with the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </div>
 
   <div>
@@ -927,7 +928,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -982,7 +983,7 @@ display any error messages for `title` and `body`:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %><br>
+    <%= form.textarea :body %><br>
     <% @article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
@@ -1105,7 +1106,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1146,7 +1147,7 @@ the following contents:
 
   <div>
     <%= form.label :body %><br>
-    <%= form.text_area :body %><br>
+    <%= form.textarea :body %><br>
     <% article.errors.full_messages_for(:body).each do |message| %>
       <div><%= message %></div>
     <% end %>
@@ -1262,7 +1263,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body)
+      params.expect(article: [:title, :body])
     end
 end
 ```
@@ -1325,7 +1326,7 @@ This command will generate four files:
 
 | File                                         | Purpose                                                                                                |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| db/migrate/20140120201010_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
+| db/migrate/\<timestamp\>_create_comments.rb  | Migration to create the comments table in your database                                                |
 | app/models/comment.rb                        | The Comment model                                                                                      |
 | test/models/comment_test.rb                  | Testing harness for the comment model                                                                 |
 | test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
@@ -1351,7 +1352,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[7.2]
+class CreateComments < ActiveRecord::Migration[8.1]
   def change
     create_table :comments do |t|
       t.string :commenter
@@ -1492,7 +1493,7 @@ So first, we'll wire up the Article show template
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1516,7 +1517,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body)
+      params.expect(comment: [:commenter, :body])
     end
 end
 ```
@@ -1572,7 +1573,7 @@ add that to the `app/views/articles/show.html.erb`.
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1637,7 +1638,7 @@ following:
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1657,14 +1658,14 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_with model: [ @article, @article.comments.build ] do |form| %>
+<%= form_with model: [ article, article.comments.build ] do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
   </p>
   <p>
     <%= form.label :body %><br>
-    <%= form.text_area :body %>
+    <%= form.textarea :body %>
   </p>
   <p>
     <%= form.submit %>
@@ -1691,16 +1692,13 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= render 'comments/form' %>
+<%= render "comments/form", article: @article %>
 ```
 
 The second render just defines the partial template we want to render,
 `comments/form`. Rails is smart enough to spot the forward slash in that
 string and realize that you want to render the `_form.html.erb` file in
 the `app/views/comments` directory.
-
-The `@article` object is available to any partials rendered in the view because
-we defined it as an instance variable.
 
 ### Using Concerns
 
@@ -1730,8 +1728,13 @@ And next, let's update the database with the generated migrations:
 $ bin/rails db:migrate
 ```
 
-To choose the status for the existing articles and comments you can add a default value to the generated migration files by adding the `default: "public"` option and launch the migrations again. You can also call in a rails console `Article.update_all(status: "public")` and `Comment.update_all(status: "public")`.
+To choose the status for the existing articles and comments you can add a default value to the generated migration files by adding the `default: "public"` option. Once you have made a change to the migration file you can re-run that last step again:
 
+```bash
+$ bin/rails db:migrate:redo
+```
+
+You can also call in a rails console `Article.update_all(status: "public")` and `Comment.update_all(status: "public")`.
 
 TIP: To learn more about migrations, see [Active Record Migrations](
 active_record_migrations.html).
@@ -1742,7 +1745,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 
   private
     def article_params
-      params.require(:article).permit(:title, :body, :status)
+      params.expect(article: [:title, :body, :status])
     end
 ```
 
@@ -1752,7 +1755,7 @@ and in `app/controllers/comments_controller.rb`:
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.expect(comment: [:commenter, :body, :status])
     end
 ```
 
@@ -1765,12 +1768,12 @@ class Article < ApplicationRecord
   validates :title, presence: true
   validates :body, presence: true, length: { minimum: 10 }
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = [ "public", "private", "archived" ]
 
   validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1781,12 +1784,12 @@ and in the `Comment` model:
 class Comment < ApplicationRecord
   belongs_to :article
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = [ "public", "private", "archived" ]
 
   validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1834,7 +1837,7 @@ A concern is only responsible for a focused subset of the model's responsibility
 ```ruby
 module Visible
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1845,14 +1848,14 @@ We can add our status validation to the concern, but this is slightly more compl
 module Visible
   extend ActiveSupport::Concern
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = [ "public", "private", "archived" ]
 
   included do
     validates :status, inclusion: { in: VALID_STATUSES }
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1889,7 +1892,7 @@ Class methods can also be added to concerns. If we want to display a count of pu
 module Visible
   extend ActiveSupport::Concern
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = [ "public", "private", "archived" ]
 
   included do
     validates :status, inclusion: { in: VALID_STATUSES }
@@ -1897,12 +1900,12 @@ module Visible
 
   class_methods do
     def public_count
-      where(status: 'public').count
+      where(status: "public").count
     end
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1998,7 +2001,7 @@ class CommentsController < ApplicationController
 
   private
     def comment_params
-      params.require(:comment).permit(:commenter, :body, :status)
+      params.expect(comment: [:commenter, :body, :status])
     end
 end
 ```

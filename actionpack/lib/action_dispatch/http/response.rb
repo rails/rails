@@ -105,10 +105,22 @@ module ActionDispatch # :nodoc:
         @str_body = nil
       end
 
+      BODY_METHODS = { to_ary: true }
+
+      def respond_to?(method, include_private = false)
+        if BODY_METHODS.key?(method)
+          @buf.respond_to?(method)
+        else
+          super
+        end
+      end
+
       def to_ary
-        @buf.respond_to?(:to_ary) ?
-          @buf.to_ary :
-          @buf.each
+        if @str_body
+          [body]
+        else
+          @buf = @buf.to_ary
+        end
       end
 
       def body
@@ -231,6 +243,18 @@ module ActionDispatch # :nodoc:
     def committed?; synchronize { @committed }; end
     def sent?;      synchronize { @sent };      end
 
+    ##
+    # :method: location
+    #
+    # Location of the response.
+
+    ##
+    # :method: location=
+    #
+    # :call-seq: location=(location)
+    #
+    # Sets the location of the response
+
     # Sets the HTTP status code.
     def status=(status)
       @status = Rack::Utils.status_code(status)
@@ -239,14 +263,27 @@ module ActionDispatch # :nodoc:
     # Sets the HTTP response's content MIME type. For example, in the controller you
     # could write this:
     #
-    #     response.content_type = "text/plain"
+    #     response.content_type = "text/html"
     #
-    # If a character set has been defined for this response (see charset=) then the
+    # This method also accepts a symbol with the extension of the MIME type:
+    #
+    #     response.content_type = :html
+    #
+    # If a character set has been defined for this response (see #charset=) then the
     # character set information will also be included in the content type
     # information.
     def content_type=(content_type)
-      return unless content_type
-      new_header_info = parse_content_type(content_type.to_s)
+      case content_type
+      when NilClass
+        return
+      when Symbol
+        mime_type = Mime[content_type]
+        raise ArgumentError, "Unknown MIME type #{content_type}" unless mime_type
+        new_header_info = ContentTypeHeader.new(mime_type.to_s)
+      else
+        new_header_info = parse_content_type(content_type.to_s)
+      end
+
       prev_header_info = parsed_content_type_header
       charset = new_header_info.charset || prev_header_info.charset
       charset ||= self.class.default_charset unless prev_header_info.mime_type
@@ -316,7 +353,13 @@ module ActionDispatch # :nodoc:
     # Returns the content of the response as a string. This contains the contents of
     # any calls to `render`.
     def body
-      @stream.body
+      if @stream.respond_to?(:to_ary)
+        @stream.to_ary.join
+      elsif @stream.respond_to?(:body)
+        @stream.body
+      else
+        @stream
+      end
     end
 
     def write(string)
@@ -325,11 +368,16 @@ module ActionDispatch # :nodoc:
 
     # Allows you to manually set or override the response body.
     def body=(body)
-      if body.respond_to?(:to_path)
-        @stream = body
-      else
-        synchronize do
-          @stream = build_buffer self, munge_body_object(body)
+      # Prevent ActionController::Metal::Live::Response from committing the response prematurely.
+      synchronize do
+        if body.respond_to?(:to_str)
+          @stream = build_buffer(self, [body])
+        elsif body.respond_to?(:to_path)
+          @stream = body
+        elsif body.respond_to?(:to_ary)
+          @stream = build_buffer(self, body)
+        else
+          @stream = body
         end
       end
     end
@@ -470,10 +518,6 @@ module ActionDispatch # :nodoc:
       Buffer.new response, body
     end
 
-    def munge_body_object(body)
-      body.respond_to?(:each) ? body : [body]
-    end
-
     def assign_default_content_type_and_charset!
       return if media_type
 
@@ -486,6 +530,8 @@ module ActionDispatch # :nodoc:
       def initialize(response)
         @response = response
       end
+
+      attr :response
 
       def close
         # Rack "close" maps to Response#abort, and **not** Response#close (which is used

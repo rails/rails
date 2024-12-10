@@ -34,7 +34,8 @@ module ActiveRecord
     end
 
     def delete_all_versions
-      @pool.with_connection do |connection|
+      # Eagerly check in connection to avoid checking in/out many times in the called method.
+      @pool.with_connection do
         versions.each do |version|
           delete_version(version)
         end

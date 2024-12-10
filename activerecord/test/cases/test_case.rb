@@ -141,9 +141,6 @@ module ActiveRecord
       yield
     ensure
       model.has_many_inversing = old
-      if model != ActiveRecord::Base && !old
-        model.singleton_class.remove_method(:has_many_inversing) # reset the class_attribute
-      end
     end
 
     def with_automatic_scope_inversing(*reflections)
@@ -293,6 +290,10 @@ module ActiveRecord
       end
     end
 
+    def quote_table_name(name)
+      ActiveRecord::Base.adapter_class.quote_table_name(name)
+    end
+
     # Connect to the database
     ARTest.connect
     # Load database schema
@@ -307,7 +308,7 @@ module ActiveRecord
 
   class AbstractMysqlTestCase < TestCase
     def self.run(*args)
-      super if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+      super if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     end
   end
 
@@ -322,7 +323,6 @@ module ActiveRecord
       super if current_adapter?(:TrilogyAdapter)
     end
   end
-
 
   class SQLite3TestCase < TestCase
     def self.run(*args)

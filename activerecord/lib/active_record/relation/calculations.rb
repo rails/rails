@@ -234,7 +234,7 @@ module ActiveRecord
         if operation == "count"
           unless distinct_value || distinct_select?(column_name || select_for_count)
             relation.distinct!
-            relation.select_values = Array(klass.primary_key || table[Arel.star])
+            relation.select_values = Array(model.primary_key || table[Arel.star])
           end
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
           relation.order_values = [] if group_values.empty?
@@ -275,9 +275,13 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
-    #   Comment.joins(:person).pluck(:id, person: [:id])
-    #   # SELECT comments.id, people.id FROM comments INNER JOIN people on comments.person_id = people.id
+    #   Comment.joins(:person).pluck(:id, person: :id)
+    #   # SELECT comments.id, person.id FROM comments INNER JOIN people person ON person.id = comments.person_id
     #   # => [[1, 2], [2, 2]]
+    #
+    #   Comment.joins(:person).pluck(:id, person: [:id, :name])
+    #   # SELECT comments.id, person.id, person.name FROM comments INNER JOIN people person ON person.id = comments.person_id
+    #   # => [[1, 2, 'David'], [2, 2, 'David']]
     #
     #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
@@ -306,16 +310,16 @@ module ActiveRecord
         relation = apply_join_dependency
         relation.pluck(*column_names)
       else
-        klass.disallow_raw_sql!(flattened_args(column_names))
-        columns = arel_columns(column_names)
+        model.disallow_raw_sql!(flattened_args(column_names))
         relation = spawn
+        columns = relation.arel_columns(column_names)
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
-          if where_clause.contradiction?
+          if where_clause.contradiction? && !possible_aggregation?(column_names)
             ActiveRecord::Result.empty(async: @async)
           else
-            klass.with_connection do |c|
-              c.select_all(relation.arel, "#{klass.name} Pluck", async: @async)
+            model.with_connection do |c|
+              c.select_all(relation.arel, "#{model.name} Pluck", async: @async)
             end
           end
         end
@@ -391,8 +395,8 @@ module ActiveRecord
         ActiveRecord::Result.empty
       else
         skip_query_cache_if_necessary do
-          klass.with_connection do |c|
-            c.select_all(relation, "#{klass.name} Ids", async: @async)
+          model.with_connection do |c|
+            c.select_all(relation, "#{model.name} Ids", async: @async)
           end
         end
       end
@@ -408,7 +412,7 @@ module ActiveRecord
 
     private
       def all_attributes?(column_names)
-        (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+        (column_names.map(&:to_s) - model.attribute_names - model.attribute_aliases.keys).empty?
       end
 
       def has_include?(column_name)
@@ -446,11 +450,21 @@ module ActiveRecord
         column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
       end
 
-      def aggregate_column(column_name)
-        return column_name if Arel::Expressions === column_name
+      def possible_aggregation?(column_names)
+        column_names.any? do |column_name|
+          Arel.arel_node?(column_name) ||
+            (column_name.is_a?(String) && column_name.include?("("))
+        end
+      end
 
-        arel_column(column_name.to_s) do |name|
-          column_name == :all ? Arel.sql("*", retryable: true) : Arel.sql(name)
+      def aggregate_column(column_name)
+        case column_name
+        when Arel::Expressions
+          column_name
+        when :all
+          Arel.star
+        else
+          arel_column(column_name)
         end
       end
 
@@ -482,8 +496,8 @@ module ActiveRecord
           ActiveRecord::Result.empty
         else
           skip_query_cache_if_necessary do
-            @klass.with_connection do |c|
-              c.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: @async)
+            model.with_connection do |c|
+              c.select_all(query_builder, "#{model.name} #{operation.capitalize}", async: @async)
             end
           end
         end
@@ -501,16 +515,15 @@ module ActiveRecord
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
         group_fields = group_values
-        group_fields = group_fields.uniq if group_fields.size > 1
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
-          association  = klass._reflect_on_association(group_fields.first)
+          association  = model._reflect_on_association(group_fields.first)
           associated   = association && association.belongs_to? # only count belongs_to associations
           group_fields = Array(association.foreign_key) if associated
         end
         group_fields = arel_columns(group_fields)
 
-        @klass.with_connection do |connection|
+        model.with_connection do |connection|
           column_alias_tracker = ColumnAliasTracker.new(connection)
 
           group_aliases = group_fields.map { |field|
@@ -522,13 +535,13 @@ module ActiveRecord
           column = aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.as(adapter_class.quote_column_name(column_alias))
+          select_value.as(model.adapter_class.quote_column_name(column_alias))
 
           select_values = [select_value]
           select_values += self.select_values unless having_clause.empty?
 
           select_values.concat group_columns.map { |aliaz, field|
-            aliaz = adapter_class.quote_column_name(aliaz)
+            aliaz = model.adapter_class.quote_column_name(aliaz)
             if field.respond_to?(:as)
               field.as(aliaz)
             else
@@ -541,7 +554,7 @@ module ActiveRecord
           relation.select_values = select_values
 
           result = skip_query_cache_if_necessary do
-            connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: @async)
+            connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}", async: @async)
           end
 
           result.then do |calculated_data|
@@ -583,7 +596,7 @@ module ActiveRecord
 
       def type_for(field, &block)
         field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split(".").last
-        @klass.type_for_attribute(field_name, &block)
+        model.type_for_attribute(field_name, &block)
       end
 
       def lookup_cast_type_from_join_dependencies(name, join_dependencies = build_join_dependencies)
@@ -596,15 +609,15 @@ module ActiveRecord
 
       def type_cast_pluck_values(result, columns)
         cast_types = if result.columns.size != columns.size
-          klass.attribute_types
+          model.attribute_types
         else
           join_dependencies = nil
           columns.map.with_index do |column, i|
             column.try(:type_caster) ||
-              klass.attribute_types.fetch(name = result.columns[i]) do
+              model.attribute_types.fetch(name = result.columns[i]) do
                 join_dependencies ||= build_join_dependencies
                 lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
-                  result.column_types[name] || Type.default_value
+                  result.column_types[i] || Type.default_value
               end
           end
         end
@@ -630,22 +643,12 @@ module ActiveRecord
       end
 
       def select_for_count
-        if select_values.present?
-          return select_values.first if select_values.one?
-
-          select_values.map do |field|
-            column = arel_column(field.to_s) do |attr_name|
-              Arel.sql(attr_name)
-            end
-
-            if column.is_a?(Arel::Nodes::SqlLiteral)
-              column
-            else
-              "#{adapter_class.quote_table_name(column.relation.name)}.#{adapter_class.quote_column_name(column.name)}"
-            end
-          end.join(", ")
-        else
+        if select_values.empty?
           :all
+        else
+          with_connection do |conn|
+            arel_columns(select_values).map { |column| conn.visitor.compile(column) }.join(", ")
+          end
         end
       end
 
@@ -660,6 +663,7 @@ module ActiveRecord
         if column_name == :all
           column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
+          relation.unscope!(:order)
         else
           column_alias = Arel.sql("count_column")
           relation.select_values = [ aggregate_column(column_name).as(column_alias) ]

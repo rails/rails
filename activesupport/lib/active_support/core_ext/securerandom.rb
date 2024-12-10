@@ -16,9 +16,9 @@ module SecureRandom
   #
   #   p SecureRandom.base58 # => "4kUgL2pdQMSCQtjE"
   #   p SecureRandom.base58(24) # => "77TMHrHJFvFDwodq8w7Ev2m7"
-  if RUBY_VERSION >= "3.3"
+  if SecureRandom.method(:alphanumeric).parameters.size == 2 # Remove check when Ruby 3.3 is the minimum supported version
     def self.base58(n = 16)
-      SecureRandom.alphanumeric(n, chars: BASE58_ALPHABET)
+      alphanumeric(n, chars: BASE58_ALPHABET)
     end
   else
     def self.base58(n = 16)
@@ -41,9 +41,9 @@ module SecureRandom
   #
   #   p SecureRandom.base36 # => "4kugl2pdqmscqtje"
   #   p SecureRandom.base36(24) # => "77tmhrhjfvfdwodq8w7ev2m7"
-  if RUBY_VERSION >= "3.3"
+  if SecureRandom.method(:alphanumeric).parameters.size == 2 # Remove check when Ruby 3.3 is the minimum supported version
     def self.base36(n = 16)
-      SecureRandom.alphanumeric(n, chars: BASE36_ALPHABET)
+      alphanumeric(n, chars: BASE36_ALPHABET)
     end
   else
     def self.base36(n = 16)

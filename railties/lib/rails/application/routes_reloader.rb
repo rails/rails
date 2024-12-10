@@ -10,7 +10,7 @@ module Rails
       attr_reader :route_sets, :paths, :external_routes, :loaded
       attr_accessor :eager_load
       attr_writer :run_after_load_paths # :nodoc:
-      delegate :execute_if_updated, :execute, :updated?, to: :updater
+      delegate :execute_if_updated, :updated?, to: :updater
 
       def initialize
         @paths      = []
@@ -21,7 +21,6 @@ module Rails
       end
 
       def reload!
-        @loaded = true
         clear!
         load_paths
         finalize!
@@ -30,9 +29,15 @@ module Rails
         revert
       end
 
+      def execute
+        @loaded = true
+        updater.execute
+      end
+
       def execute_unless_loaded
         unless @loaded
           execute
+          ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
           true
         end
       end

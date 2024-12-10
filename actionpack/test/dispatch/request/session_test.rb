@@ -50,6 +50,12 @@ module ActionDispatch
         assert_empty s
       end
 
+      def test_store
+        s = Session.create(store, req, {})
+        s.store("foo", "bar")
+        assert_equal "bar", s["foo"]
+      end
+
       def test_keys
         s = Session.create(store, req, {})
         s["rails"] = "ftw"
@@ -205,7 +211,11 @@ module ActionDispatch
       end
 
       def app
-        @app ||= RoutedRackApp.new(Router)
+        @app ||= RoutedRackApp.new(Router) do |middleware|
+          @cache = ActiveSupport::Cache::MemoryStore.new
+          middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache
+          middleware.use Rack::Lint
+        end
       end
 
       def test_session_follows_rack_api_contract_1

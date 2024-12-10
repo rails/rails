@@ -350,6 +350,68 @@ module ApplicationTests
         db_migrate_and_status database_url_db_name
       end
 
+      test "db:migrate on new db loads schema" do
+        app_file "db/schema.rb", <<-RUBY
+          ActiveRecord::Schema.define(version: 20140423102712) do
+            create_table(:comments) {}
+          end
+        RUBY
+
+        rails "db:migrate"
+        list_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+
+        assert_equal "[\"ar_internal_metadata\", \"comments\", \"schema_migrations\"]", list_tables[]
+      end
+
+      test "db:migrate on multiple new dbs loads schema" do
+        File.write("#{app_path}/config/database.yml", <<~YAML)
+          development:
+            primary:
+              adapter: sqlite3
+              database: storage/test.sqlite3
+            queue:
+              adapter: sqlite3
+              database: storage/test_queue.sqlite3
+        YAML
+
+        app_file "db/schema.rb", <<-RUBY
+          ActiveRecord::Schema.define(version: 20140423102712) do
+            create_table(:comments) {}
+          end
+        RUBY
+
+        app_file "db/queue_schema.rb", <<-RUBY
+          ActiveRecord::Schema.define(version: 20141016001513) do
+            create_table(:executions) {}
+          end
+        RUBY
+
+        rails "db:migrate"
+        primary_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+        queue_tables = lambda { rails("runner", "p ActiveRecord::Base.connects_to(database: { writing: :queue }).first.lease_connection.tables.sort").strip }
+
+        assert_equal "[\"ar_internal_metadata\", \"comments\", \"schema_migrations\"]", primary_tables[]
+        assert_equal "[\"ar_internal_metadata\", \"executions\", \"schema_migrations\"]", queue_tables[]
+      end
+
+      test "db:migrate:reset regenerates the schema from migrations" do
+        app_file "db/migrate/01_a_migration.rb", <<-MIGRATION
+          class AMigration < ActiveRecord::Migration::Current
+             create_table(:comments) {}
+          end
+        MIGRATION
+        rails("db:migrate")
+        app_file "db/migrate/01_a_migration.rb", <<-MIGRATION
+          class AMigration < ActiveRecord::Migration::Current
+             create_table(:comments) { |t| t.string :title }
+          end
+        MIGRATION
+
+        rails("db:migrate:reset")
+
+        assert File.read("#{app_path}/db/schema.rb").include?("title")
+      end
+
       def db_schema_dump
         Dir.chdir(app_path) do
           args = ["generate", "model", "book", "title:string"]
@@ -541,11 +603,11 @@ module ApplicationTests
           end
         RUBY
 
-        list_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip }
+        list_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
 
         assert_equal '["posts"]', list_tables[]
         rails "db:schema:load"
-        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[]
+        assert_equal '["ar_internal_metadata", "comments", "posts", "schema_migrations"]', list_tables[]
 
         add_to_config "config.active_record.schema_format = :sql"
         app_file "db/structure.sql", <<-SQL
@@ -553,7 +615,7 @@ module ApplicationTests
         SQL
 
         rails "db:schema:load"
-        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
+        assert_equal '["ar_internal_metadata", "comments", "posts", "schema_migrations", "users"]', list_tables[]
       end
 
       test "db:schema:load with inflections" do

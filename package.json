@@ -4,8 +4,5 @@
     "actioncable",
     "actiontext",
     "activestorage"
-  ],
-  "dependencies": {
-    "webpack": "^4.17.1"
-  }
+  ]
 }

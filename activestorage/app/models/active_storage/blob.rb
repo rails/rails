@@ -71,9 +71,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     # Works like +find_signed+, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
-    # exception if the +signed_id+ has either expired, has a purpose mismatch, is for another record,
-    # or has been tampered with. It will also raise an +ActiveRecord::RecordNotFound+ exception if
-    # the valid signed id can't find a record.
+    # exception if the +signed_id+ has either expired, has a purpose mismatch, or has been tampered with.
+    # It will also raise an +ActiveRecord::RecordNotFound+ exception if the valid signed id can't find a record.
     def find_signed!(id, record: nil, purpose: :blob_id)
       super(id, purpose: purpose)
     end

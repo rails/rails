@@ -1,2 +1,5 @@
+*   Change `ActionText::RichText#embeds` assignment from `before_save` to `before_validation`
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actiontext/CHANGELOG.md) for previous changes.
+    *Sean Doyle*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actiontext/CHANGELOG.md) for previous changes.

@@ -25,8 +25,9 @@ module ActiveRecord
           joins = []
           chain = []
 
-          reflection.chain.each do |reflection|
-            table, terminated = yield reflection
+          reflection_chain = reflection.chain
+          reflection_chain.each_with_index do |reflection, index|
+            table, terminated = yield reflection, reflection_chain[index..]
             @table ||= table
 
             if terminated

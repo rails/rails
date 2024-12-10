@@ -13,7 +13,7 @@ module ActiveRecord
 
     def test_construction
       relation = Relation.new(FakeKlass, table: :b)
-      assert_equal FakeKlass, relation.klass
+      assert_equal FakeKlass, relation.model
       assert_equal :b, relation.table
       assert_not relation.loaded, "relation is not loaded"
     end
@@ -39,6 +39,26 @@ module ActiveRecord
         values = relation.public_send("#{method}_values")
         assert_equal [], values, method.to_s
         assert_predicate values, :frozen?, method.to_s
+      end
+    end
+
+    def test_multi_values_deduplication_with_merge
+      expected = {
+        unscope:   [ :where ],
+        extending: [ Module.new ],
+        with:      [ foo: Post.all ],
+        select:    [ :id, :id ],
+      }
+      expected.default = [ Object.new ]
+
+      Relation::MULTI_VALUE_METHODS.each do |method|
+        getter, setter = "#{method}_values", "#{method}_values="
+        values = expected[method]
+        relation = Relation.new(FakeKlass)
+        relation.public_send(setter, values)
+
+        assert_equal values, relation.public_send(getter), method
+        assert_equal values, relation.merge(relation).public_send(getter), method
       end
     end
 
@@ -291,8 +311,7 @@ module ActiveRecord
 
     def test_select_quotes_when_using_from_clause
       skip_if_sqlite3_version_includes_quoting_bug
-      quoted_join = ActiveRecord::Base.lease_connection.quote_table_name("join")
-      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      selected = Post.select(:join).from(Post.select("id as #{quote_table_name("join")}")).map(&:join)
       assert_equal Post.pluck(:id).sort, selected.sort
     end
 
@@ -373,7 +392,7 @@ module ActiveRecord
     end
 
     def test_does_not_duplicate_optimizer_hints_on_merge
-      escaped_table = Post.lease_connection.quote_table_name("posts")
+      escaped_table = quote_table_name("posts")
       expected = "SELECT /*+ OMGHINT */ #{escaped_table}.* FROM #{escaped_table}"
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
@@ -423,6 +442,12 @@ module ActiveRecord
     test "no queries on empty IN" do
       assert_queries_count(0) do
         Post.where(id: []).load
+      end
+    end
+
+    test "runs queries when using pick with expression column and empty IN" do
+      assert_queries_count(1) do
+        assert_equal 0, Post.where(id: []).pick(Arel.sql("COUNT(*)"))
       end
     end
 

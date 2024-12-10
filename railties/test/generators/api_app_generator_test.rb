@@ -57,6 +57,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/action_controller\.perform_caching = true/, content)
     end
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/test:system/, content)
+      assert_no_match(/screenshots/, content)
+      assert_no_match(/scan_js/, content)
+      assert_no_match(/google-chrome-stable/, content)
+    end
   end
 
   def test_dockerfile
@@ -71,7 +78,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--api", "--skip-action-cable"]
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "config/cable.yml"
-    assert_no_file "app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/"redis"/, content)
     end
@@ -115,7 +121,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "config/initializers/assets.rb"
     assert_no_file "config/initializers/content_security_policy.rb"
-    assert_no_file "config/initializers/permissions_policy.rb"
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files
@@ -125,6 +130,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.update_bin_files }
     pass
+  end
+
+  def test_app_update_does_not_generate_public_files
+    run_generator
+    run_app_update
+
+    assert_no_file "public/406-unsupported-browser.html"
   end
 
   private
@@ -137,13 +149,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         Rakefile
         Dockerfile
         config.ru
-        app/channels
         app/controllers
         app/mailers
         app/models
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
+        bin/dev
         bin/docker-entrypoint
         bin/rails
         bin/rake
@@ -187,9 +199,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          bin/yarn
          config/initializers/assets.rb
          config/initializers/content_security_policy.rb
-         config/initializers/permissions_policy.rb
-         lib/assets
          test/helpers
+         public/400.html
          public/404.html
          public/422.html
          public/406-unsupported-browser.html

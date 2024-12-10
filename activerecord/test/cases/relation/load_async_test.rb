@@ -7,25 +7,8 @@ require "models/comment"
 require "models/other_dog"
 
 module ActiveRecord
-  module WaitForAsyncTestHelper
-    private
-      def wait_for_async_query(connection = ActiveRecord::Base.lease_connection, timeout: 5)
-        return unless connection.async_enabled?
-
-        executor = connection.pool.async_executor
-        (timeout * 100).times do
-          return unless executor.scheduled_task_count > executor.completed_task_count
-          sleep 0.01
-        end
-
-        raise Timeout::Error, "The async executor wasn't drained after #{timeout} seconds"
-      end
-  end
-
   class LoadAsyncTest < ActiveRecord::TestCase
     include WaitForAsyncTestHelper
-
-    self.use_transactional_tests = false
 
     fixtures :posts, :comments, :categories, :categories_posts
 
@@ -255,8 +238,6 @@ module ActiveRecord
 
   class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
-      self.use_transactional_tests = false
-
       fixtures :posts, :comments
 
       def setup
@@ -378,8 +359,6 @@ module ActiveRecord
   class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
       include WaitForAsyncTestHelper
-
-      self.use_transactional_tests = false
 
       fixtures :posts, :comments
 
@@ -519,8 +498,6 @@ module ActiveRecord
   class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
       include WaitForAsyncTestHelper
-
-      self.use_transactional_tests = false
 
       fixtures :posts, :comments, :other_dogs
 

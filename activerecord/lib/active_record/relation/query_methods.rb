@@ -92,10 +92,11 @@ module ActiveRecord
             @scope.joins!(association)
           end
 
+          association_conditions = Array(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
-            self.not(association => { reflection.association_primary_key => nil })
+            self.not(association => association_conditions)
           else
-            self.not(reflection.table_name => { reflection.association_primary_key => nil })
+            self.not(reflection.table_name => association_conditions)
           end
         end
 
@@ -124,10 +125,11 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
+          association_conditions = Array(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
-            @scope.where!(association => { reflection.association_primary_key => nil })
+            @scope.where!(association => association_conditions)
           else
-            @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
+            @scope.where!(reflection.table_name => association_conditions)
           end
         end
 
@@ -136,9 +138,10 @@ module ActiveRecord
 
       private
         def scope_association_reflection(association)
-          reflection = @scope.klass._reflect_on_association(association)
+          model = @scope.model
+          reflection = model._reflect_on_association(association)
           unless reflection
-            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{model.name}`.")
           end
           reflection
         end
@@ -173,7 +176,7 @@ module ActiveRecord
         end                                    # end
 
         def #{method_name}=(value)             # def includes_values=(value)
-          assert_mutability!                   #   assert_mutability!
+          assert_modifiable!                   #   assert_modifiable!
           @values[:#{name}] = value            #   @values[:includes] = value
         end                                    # end
       CODE
@@ -252,6 +255,10 @@ module ActiveRecord
     def includes!(*args) # :nodoc:
       self.includes_values |= args
       self
+    end
+
+    def all # :nodoc:
+      spawn
     end
 
     # Specify associations +args+ to be eager loaded using a <tt>LEFT OUTER JOIN</tt>.
@@ -419,7 +426,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
-      self.select_values |= fields
+      self.select_values += fields
       self
     end
 
@@ -491,7 +498,8 @@ module ActiveRecord
 
     # Like #with, but modifies relation in place.
     def with!(*args) # :nodoc:
-      self.with_values += args
+      args = process_with_args(args)
+      self.with_values |= args
       self
     end
 
@@ -499,7 +507,7 @@ module ActiveRecord
     #
     #   Post.with_recursive(post_and_replies: [Post.where(id: 42), Post.joins('JOIN post_and_replies ON posts.in_reply_to_id = post_and_replies.id')])
     #   # => ActiveRecord::Relation
-    #   # WITH post_and_replies AS (
+    #   # WITH RECURSIVE post_and_replies AS (
     #   #   (SELECT * FROM posts WHERE id = 42)
     #   #   UNION ALL
     #   #   (SELECT * FROM posts JOIN posts_and_replies ON posts.in_reply_to_id = posts_and_replies.id)
@@ -514,7 +522,8 @@ module ActiveRecord
 
     # Like #with_recursive but modifies the relation in place.
     def with_recursive!(*args) # :nodoc:
-      self.with_values += args
+      args = process_with_args(args)
+      self.with_values |= args
       @with_is_recursive = true
       self
     end
@@ -567,7 +576,7 @@ module ActiveRecord
     end
 
     def group!(*args) # :nodoc:
-      self.group_values += args
+      self.group_values |= args
       self
     end
 
@@ -696,26 +705,39 @@ module ActiveRecord
     #   #     WHEN "conversations"."status" = 0 THEN 3
     #   #   END ASC
     #
-    def in_order_of(column, values)
-      klass.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
+    # +filter+ can be set to +false+ to include all results instead of only the ones specified in +values+.
+    #
+    #   Conversation.in_order_of(:status, [:archived, :active], filter: false)
+    #   # SELECT "conversations".* FROM "conversations"
+    #   #   ORDER BY CASE
+    #   #     WHEN "conversations"."status" = 1 THEN 1
+    #   #     WHEN "conversations"."status" = 0 THEN 2
+    #   #     ELSE 3
+    #   #   END ASC
+    def in_order_of(column, values, filter: true)
+      model.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
       return spawn.none! if values.empty?
 
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      values = values.map { |value| type_caster.type_cast_for_database(column, value) }
+      values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
       arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
-      where_clause =
-        if values.include?(nil)
-          arel_column.in(values.compact).or(arel_column.eq(nil))
-        else
-          arel_column.in(values)
-        end
+      scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
 
-      spawn
-        .order!(build_case_for_value_position(arel_column, values))
-        .where!(where_clause)
+      if filter
+        where_clause =
+          if values.include?(nil)
+            arel_column.in(values.compact).or(arel_column.eq(nil))
+          else
+            arel_column.in(values)
+          end
+
+        scope = scope.where!(where_clause)
+      end
+
+      scope
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -746,7 +768,7 @@ module ActiveRecord
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
-                                     :having, :optimizer_hints])
+                                     :having, :optimizer_hints, :with])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -787,7 +809,7 @@ module ActiveRecord
     end
 
     def unscope!(*args) # :nodoc:
-      self.unscope_values += args
+      self.unscope_values |= args
 
       args.each do |scope|
         case scope
@@ -796,7 +818,7 @@ module ActiveRecord
           if !VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
-          assert_mutability!
+          assert_modifiable!
           @values.delete(scope)
         when Hash
           scope.each do |key, target_value|
@@ -1443,7 +1465,7 @@ module ActiveRecord
       modules << Module.new(&block) if block
       modules.flatten!
 
-      self.extending_values += modules
+      self.extending_values |= modules
       extend(*extending_values) if extending_values.any?
 
       self
@@ -1511,7 +1533,7 @@ module ActiveRecord
 
     # Like #annotate, but modifies relation in place.
     def annotate!(*args) # :nodoc:
-      self.annotate_values += args
+      self.annotate_values |= args
       self
     end
 
@@ -1554,8 +1576,8 @@ module ActiveRecord
       records.flatten!(1)
       records.compact!
 
-      unless records.all?(klass) && relations.all? { |relation| relation.klass == klass }
-        raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to ##{__callee__}."
+      unless records.all?(model) && relations.all? { |relation| relation.model == model }
+        raise ArgumentError, "You must only pass a single or collection of #{model.name} objects to ##{__callee__}."
       end
 
       spawn.excluding!(records + relations.flat_map(&:ids))
@@ -1575,7 +1597,7 @@ module ActiveRecord
 
     def construct_join_dependency(associations, join_type) # :nodoc:
       ActiveRecord::Associations::JoinDependency.new(
-        klass, table, associations, join_type
+        model, table, associations, join_type
       )
     end
 
@@ -1604,15 +1626,15 @@ module ActiveRecord
           elsif opts.include?("?")
             parts = [build_bound_sql_literal(opts, rest)]
           else
-            parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+            parts = [model.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
           end
         when Hash
           opts = opts.transform_keys do |key|
             if key.is_a?(Array)
-              key.map { |k| klass.attribute_aliases[k.to_s] || k.to_s }
+              key.map { |k| model.attribute_aliases[k.to_s] || k.to_s }
             else
               key = key.to_s
-              klass.attribute_aliases[key] || key
+              model.attribute_aliases[key] || key
             end
           end
           references = PredicateBuilder.references(opts)
@@ -1634,6 +1656,22 @@ module ActiveRecord
       def async!
         @async = true
         self
+      end
+
+    protected
+      def arel_columns(columns)
+        columns.flat_map do |field|
+          case field
+          when Symbol, String
+            arel_column(field)
+          when Proc
+            field.call
+          when Hash
+            arel_columns_from_hash(field)
+          else
+            field
+          end
+        end
       end
 
     private
@@ -1705,8 +1743,8 @@ module ActiveRecord
         )
       end
 
-      def assert_mutability!
-        raise ImmutableRelation if @loaded || @arel
+      def assert_modifiable!
+        raise UnmodifiableRelation if @loaded || @arel
       end
 
       def build_arel(connection, aliases = nil)
@@ -1718,22 +1756,17 @@ module ActiveRecord
         arel.having(having_clause.ast) unless having_clause.empty?
         arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
         arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
-        arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
+        arel.group(*arel_columns(group_values)) unless group_values.empty?
 
         build_order(arel)
         build_with(arel)
         build_select(arel)
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
+        arel.comment(*annotate_values) unless annotate_values.empty?
         arel.distinct(distinct_value)
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value
-
-        unless annotate_values.empty?
-          annotates = annotate_values
-          annotates = annotates.uniq if annotates.size > 1
-          arel.comment(*annotates)
-        end
 
         arel
       end
@@ -1808,7 +1841,7 @@ module ActiveRecord
 
         joins = joins_values.dup
         if joins.last.is_a?(ActiveRecord::Associations::JoinDependency)
-          stashed_eager_load = joins.pop if joins.last.base_klass == klass
+          stashed_eager_load = joins.pop if joins.last.base_klass == model
         end
 
         joins.each_with_index do |join, i|
@@ -1865,8 +1898,8 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values))
-        elsif klass.ignored_columns.any? || klass.enumerate_columns_in_select_statements
-          arel.project(*klass.column_names.map { |field| table[field] })
+        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements
+          arel.project(*model.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
         end
@@ -1876,8 +1909,6 @@ module ActiveRecord
         return if with_values.empty?
 
         with_statements = with_values.map do |with_value|
-          raise ArgumentError, "Unsupported argument type: #{with_value} #{with_value.class}" unless with_value.is_a?(Hash)
-
           build_with_value_from_hash(with_value)
         end
 
@@ -1890,12 +1921,26 @@ module ActiveRecord
         end
       end
 
-      def build_with_expression_from_value(value)
+      def build_with_expression_from_value(value, nested = false)
         case value
         when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
-        when ActiveRecord::Relation then value.arel
+        when ActiveRecord::Relation
+          if nested
+            value.arel.ast
+          else
+            value.arel
+          end
         when Arel::SelectManager then value
-        when Array then value.map { |q| build_with_expression_from_value(q) }.reduce { |result, value| result.union(:all, value) }
+        when Array
+          return build_with_expression_from_value(value.first, false) if value.size == 1
+
+          parts = value.map do |query|
+            build_with_expression_from_value(query, true)
+          end
+
+          parts.reduce do |result, value|
+            Arel::Nodes::UnionAll.new(result, value)
+          end
         else
           raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
         end
@@ -1905,48 +1950,60 @@ module ActiveRecord
         with_table = Arel::Table.new(name)
 
         table.join(with_table, kind).on(
-          with_table[klass.model_name.to_s.foreign_key].eq(table[klass.primary_key])
+          with_table[model.model_name.to_s.foreign_key].eq(table[model.primary_key])
         ).join_sources.first
       end
 
-      def arel_columns(columns)
-        columns.flat_map do |field|
-          case field
-          when Symbol
-            arel_column(field.to_s) do |attr_name|
-              adapter_class.quote_table_name(attr_name)
+      def arel_columns_from_hash(fields)
+        fields.flat_map do |table_name, columns|
+          table_name = table_name.name if table_name.is_a?(Symbol)
+          case columns
+          when Symbol, String
+            arel_column_with_table(table_name, columns)
+          when Array
+            columns.map do |column|
+              arel_column_with_table(table_name, column)
             end
-          when String
-            arel_column(field, &:itself)
-          when Proc
-            field.call
-          when Hash
-            arel_columns_from_hash(field)
           else
-            field
+            raise TypeError, "Expected Symbol, String or Array, got: #{columns.class}"
           end
         end
       end
 
-      def arel_column(field)
-        field = klass.attribute_aliases[field] || field
-        from = from_clause.name || from_clause.value
+      def arel_column_with_table(table_name, column_name)
+        self.references_values |= [Arel.sql(table_name, retryable: true)]
 
-        if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
-          table[field]
-        elsif field.match?(/\A\w+\.\w+\z/)
-          table, column = field.split(".")
-          predicate_builder.resolve_arel_attribute(table, column) do
-            lookup_table_klass_from_join_dependencies(table)
+        if column_name.is_a?(Symbol) || !column_name.match?(/\W/)
+          predicate_builder.resolve_arel_attribute(table_name, column_name) do
+            lookup_table_klass_from_join_dependencies(table_name)
           end
         else
+          Arel.sql("#{model.adapter_class.quote_table_name(table_name)}.#{column_name}")
+        end
+      end
+
+      def arel_column(field)
+        field = field.name if is_symbol = field.is_a?(Symbol)
+
+        field = model.attribute_aliases[field] || field.to_s
+        from = from_clause.name || from_clause.value
+
+        if model.columns_hash.key?(field) && (!from || table_name_matches?(from))
+          table[field]
+        elsif /\A(?<table>(?:\w+\.)?\w+)\.(?<column>\w+)\z/ =~ field
+          arel_column_with_table(table, column)
+        elsif block_given?
           yield field
+        elsif Arel.arel_node?(field)
+          field
+        else
+          Arel.sql(is_symbol ? model.adapter_class.quote_table_name(field) : field)
         end
       end
 
       def table_name_matches?(from)
         table_name = Regexp.escape(table.name)
-        quoted_table_name = Regexp.escape(adapter_class.quote_table_name(table.name))
+        quoted_table_name = Regexp.escape(model.adapter_class.quote_table_name(table.name))
         /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i.match?(from.to_s)
       end
 
@@ -2017,7 +2074,7 @@ module ActiveRecord
       end
 
       def preprocess_order_args(order_args)
-        @klass.disallow_raw_sql!(
+        model.disallow_raw_sql!(
           flattened_args(order_args),
           permit: model.adapter_class.column_name_with_order_matcher
         )
@@ -2055,7 +2112,7 @@ module ActiveRecord
 
       def sanitize_order_arguments(order_args)
         order_args.map! do |arg|
-          klass.sanitize_sql_for_order(arg)
+          model.sanitize_sql_for_order(arg)
         end
       end
 
@@ -2063,17 +2120,29 @@ module ActiveRecord
         order_args.flat_map do |arg|
           case arg
           when String, Symbol
-            arg
+            extract_table_name_from(arg)
           when Hash
-            arg.keys.select { |e| e.is_a?(String) || e.is_a?(Symbol) }
+            arg
+              .map do |key, value|
+                case value
+                when Hash
+                  key.to_s
+                else
+                  extract_table_name_from(key) if key.is_a?(String) || key.is_a?(Symbol)
+                end
+              end
+          when Arel::Attribute
+            arg.relation.name
+          when Arel::Nodes::Ordering
+            if arg.expr.is_a?(Arel::Attribute)
+              arg.expr.relation.name
+            end
           end
-        end.filter_map do |arg|
-          arg =~ /^\W?(\w+)\W?\./ && $1
-        end +
-        order_args
-          .select { |e| e.is_a?(Hash) }
-          .flat_map { |e| e.map { |k, v| k if v.is_a?(Hash) } }
-          .compact
+        end.filter_map { |ref| Arel.sql(ref, retryable: true) if ref }
+      end
+
+      def extract_table_name_from(string)
+        string.match(/^\W?(\w+)\W?\./) && $1
       end
 
       def order_column(field)
@@ -2081,17 +2150,18 @@ module ActiveRecord
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
-            Arel.sql(adapter_class.quote_table_name(attr_name), retryable: true)
+            Arel.sql(model.adapter_class.quote_table_name(attr_name), retryable: true)
           end
         end
       end
 
-      def build_case_for_value_position(column, values)
+      def build_case_for_value_position(column, values, filter: true)
         node = Arel::Nodes::Case.new
         values.each.with_index(1) do |value, order|
           node.when(column.eq(value)).then(order)
         end
 
+        node = node.else(values.length + 1) unless filter
         Arel::Nodes::Ascending.new(node)
       end
 
@@ -2149,35 +2219,37 @@ module ActiveRecord
       def process_select_args(fields)
         fields.flat_map do |field|
           if field.is_a?(Hash)
-            arel_columns_from_hash(field)
+            arel_column_aliases_from_hash(field)
           else
             field
           end
         end
       end
 
-      def arel_columns_from_hash(fields)
+      def arel_column_aliases_from_hash(fields)
         fields.flat_map do |key, columns_aliases|
+          table_name = key.is_a?(Symbol) ? key.name : key
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
-              if values[:joins]&.include?(key)
-                references = PredicateBuilder.references({ key.to_s => fields[key] })
-                self.references_values |= references unless references.empty?
-              end
-              arel_column("#{key}.#{column}") do
-                predicate_builder.resolve_arel_attribute(key.to_s, column)
-              end.as(column_alias.to_s)
+              arel_column_with_table(table_name, column)
+                .as(model.adapter_class.quote_column_name(column_alias.to_s))
             end
           when Array
             columns_aliases.map do |column|
-              arel_column("#{key}.#{column}", &:itself)
+              arel_column_with_table(table_name, column)
             end
           when String, Symbol
-            arel_column(key.to_s) do
-              predicate_builder.resolve_arel_attribute(klass.table_name, key.to_s)
-            end.as(columns_aliases.to_s)
+            arel_column(key)
+              .as(model.adapter_class.quote_column_name(columns_aliases.to_s))
           end
+        end
+      end
+
+      def process_with_args(args)
+        args.flat_map do |arg|
+          raise ArgumentError, "Unsupported argument type: #{arg} #{arg.class}" unless arg.is_a?(Hash)
+          arg.map { |k, v| { k => v } }
         end
       end
 
@@ -2190,11 +2262,11 @@ module ActiveRecord
         values = other.values
         STRUCTURAL_VALUE_METHODS.reject do |method|
           v1, v2 = @values[method], values[method]
-          if v1.is_a?(Array)
-            next true unless v2.is_a?(Array)
-            v1 = v1.uniq
-            v2 = v2.uniq
-          end
+
+          # `and`/`or` are focused to combine where-like clauses, so it relaxes
+          # the difference when other's multi values are uninitialized.
+          next true if v1.is_a?(Array) && v2.nil?
+
           v1 == v2
         end
       end

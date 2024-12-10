@@ -6,8 +6,6 @@ require:
   - rubocop-md
 
 AllCops:
-  TargetRubyVersion: 3.1
-  TargetRailsVersion: 8.0
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -16,7 +14,6 @@ AllCops:
     - '**/tmp/**/*'
     - '**/templates/**/*'
     - '**/vendor/**/*'
-    - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'actionmailbox/test/dummy/**/*'
     - 'activestorage/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
@@ -257,6 +254,9 @@ Lint/RedundantCopDisableDirective:
 Lint/RedundantCopEnableDirective:
   Enabled: true
 
+Lint/RedundantRequireStatement:
+  Enabled: true
+
 Lint/RedundantStringCoercion:
   Enabled: true
 
@@ -326,6 +326,9 @@ Style/OpenStructUse:
   Enabled: true
 
 Style/ArrayIntersect:
+  Enabled: true
+
+Style/KeywordArgumentsMerging:
   Enabled: true
 
 Performance/BindCall:

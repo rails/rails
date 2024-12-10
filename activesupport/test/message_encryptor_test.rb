@@ -157,6 +157,10 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_match(/\A#<ActiveSupport::MessageEncryptor:0x[0-9a-f]+>\z/, encryptor.inspect)
   end
 
+  def test_invalid_base64_argument
+    assert_not_decrypted("jrcc<!--esi-->rkls<!--esx-->tyx9")
+  end
+
   private
     def make_codec(**options)
       ActiveSupport::MessageEncryptor.new(@secret, **options)

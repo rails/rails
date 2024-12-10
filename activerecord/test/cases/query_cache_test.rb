@@ -141,6 +141,78 @@ class QueryCacheTest < ActiveRecord::TestCase
     clean_up_connection_handler
   end
 
+  def test_cache_is_not_applied_when_config_is_false
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: false))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :off
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_string
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: "unlimited"))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_integer
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: 42))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal 42, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_nil
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: nil))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal ActiveRecord::ConnectionAdapters::QueryCache::DEFAULT_SIZE, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_query_cache_with_forked_processes
       ActiveRecord::Base.connected_to(role: :reading) do
@@ -493,7 +565,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_not_predicate Task, :connected?
 
     Task.cache do
-      assert_queries_count(1) { Task.find(1); Task.find(1) }
+      assert_queries_count(1) { Task.find(1) }
+      assert_no_queries { Task.find(1) }
     ensure
       ActiveRecord::Base.establish_connection(original_connection)
     end
@@ -1025,7 +1098,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_lru_eviction
-    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(2)
+    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(Concurrent::AtomicFixnum.new, 2)
     store.enabled = true
 
     connection = Post.lease_connection
@@ -1066,5 +1139,52 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     thread_a.join
 
     assert_equal @connection_1, @connection_2
+  end
+end
+
+class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
+  # We need current_transaction to return the null transaction.
+  self.use_transactional_tests = false
+
+  def test_payload_without_open_transaction
+    asserted = false
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      if event.payload[:cached]
+        assert_nil event.payload.fetch(:transaction)
+        asserted = true
+      end
+    end
+    Task.cache do
+      2.times { Task.count }
+    end
+
+    assert asserted
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_payload_with_open_transaction
+    asserted = false
+    expected_transaction = nil
+
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      if event.payload[:cached]
+        assert_same expected_transaction, event.payload[:transaction]
+        asserted = true
+      end
+    end
+
+    Task.transaction do |transaction|
+      expected_transaction = transaction
+
+      Task.cache do
+        2.times { Task.count }
+      end
+    end
+
+    assert asserted
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
   end
 end

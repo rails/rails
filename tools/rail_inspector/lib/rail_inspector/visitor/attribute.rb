@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "syntax_tree"
 
 module RailInspector

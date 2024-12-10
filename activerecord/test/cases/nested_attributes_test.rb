@@ -14,6 +14,7 @@ require "models/owner"
 require "models/pet"
 require "models/entry"
 require "models/message"
+require "models/cpk"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -232,6 +233,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
       )
     end
   end
+
+  def test_updating_models_with_cpk_provided_as_strings
+    book = Cpk::Book.create!(id: [1, 2], shop_id: 3)
+    book.chapters.create!(id: [1, 3], title: "Title")
+
+    assert_queries_count(4) do
+      book.update!(chapters_attributes: { id: ["1", "3"], title: "New title" })
+    end
+    assert_equal 1, book.reload.chapters.count
+    assert_equal "New title", book.chapters.first.title
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
@@ -360,6 +372,15 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
     assert_equal "Arr", @pirate.catchphrase
     assert_equal "Mister Pablo", @pirate.ship.name
+  end
+
+  def test_should_defer_updating_nested_associations_until_after_base_attributes_are_set
+    ship = @pirate.ship
+
+    ship_part = ShipPart.new
+    ship_part.attributes = { ship_attributes: { name: "Prometheus" }, ship_id: ship.id }
+
+    assert_equal "Prometheus", ship_part.ship.name
   end
 
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved

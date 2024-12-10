@@ -162,15 +162,17 @@ module ActiveRecord
 
     def max_updated_column_timestamp
       timestamp_attributes_for_update_in_model
-        .filter_map { |attr| self[attr]&.to_time }
+        .filter_map { |attr| (v = self[attr]) && (v.is_a?(::Time) ? v : v.to_time) }
         .max
     end
 
     # Clear attributes and changed_attributes
     def clear_timestamp_attributes
       all_timestamp_attributes_in_model.each do |attribute_name|
-        self[attribute_name] = nil
-        clear_attribute_change(attribute_name)
+        if self[attribute_name]
+          self[attribute_name] = nil
+          clear_attribute_change(attribute_name)
+        end
       end
     end
   end

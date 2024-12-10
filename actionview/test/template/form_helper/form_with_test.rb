@@ -340,7 +340,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_when_given_nil_model_argument
-    assert_deprecated(ActionView.deprecator) do
+    assert_raises(ArgumentError) do
       form_with(model: nil) do
       end
     end
@@ -350,8 +350,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, id: "create-post") do |f|
       concat f.label(:title) { "The Title" }
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
       concat f.select(:category, %w( animal economy sports ))
       concat f.submit("Create post")
       concat f.button("Create post")
@@ -414,8 +414,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, id: "create-post") do |f|
       concat f.label(:title) { "The Title" }
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
       concat f.select(:category, %w( animal economy sports ))
       concat f.submit("Create post")
     end
@@ -627,12 +627,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
-  def test_form_with_with_collection_check_boxes
+  def test_form_with_with_collection_checkboxes
     post = Post.new
     def post.tag_ids; [1, 3]; end
     collection = (1..3).map { |i| [i, "Tag #{i}"] }
     form_with(model: post) do |f|
-      concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
+      concat f.collection_checkboxes(:tag_ids, collection, :first, :last)
     end
 
     expected = whole_form("/posts") do
@@ -648,15 +648,15 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
-  def test_form_with_with_collection_check_boxes_with_custom_builder_block
+  def test_form_with_with_collection_checkboxes_with_custom_builder_block
     post = Post.new
     def post.tag_ids; [1, 3]; end
     collection = (1..3).map { |i| [i, "Tag #{i}"] }
     form_with(model: post) do |f|
-      rendered_check_boxes = f.collection_check_boxes(:tag_ids, collection, :first, :last) do |b|
-        b.label { b.check_box + b.text }
+      rendered_checkboxes = f.collection_checkboxes(:tag_ids, collection, :first, :last) do |b|
+        b.label { b.checkbox + b.text }
       end
-      concat rendered_check_boxes
+      concat rendered_checkboxes
     end
 
     expected = whole_form("/posts") do
@@ -675,17 +675,17 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
-  def test_form_with_with_collection_check_boxes_with_custom_builder_block_does_not_leak_the_template
+  def test_form_with_with_collection_checkboxes_with_custom_builder_block_does_not_leak_the_template
     post = Post.new
     def post.tag_ids; [1, 3]; end
     def post.id; 1; end
     collection = (1..3).map { |i| [i, "Tag #{i}"] }
 
     form_with(model: post) do |f|
-      rendered_check_boxes = f.collection_check_boxes(:tag_ids, collection, :first, :last) do |b|
-        b.label { b.check_box + b.text }
+      rendered_checkboxes = f.collection_checkboxes(:tag_ids, collection, :first, :last) do |b|
+        b.label { b.checkbox + b.text }
       end
-      concat rendered_check_boxes
+      concat rendered_checkboxes
       concat f.hidden_field :id
     end
 
@@ -706,13 +706,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
-  def test_form_with_index_and_with_collection_check_boxes
+  def test_form_with_index_and_with_collection_checkboxes
     post = Post.new
     def post.tag_ids; [1]; end
     collection = [[1, "Tag 1"]]
 
     form_with(model: post, index: "1") do |f|
-      concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
+      concat f.collection_checkboxes(:tag_ids, collection, :first, :last)
     end
 
     expected = whole_form("/posts") do
@@ -794,8 +794,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, scope: "other_name", id: "create-post") do |f|
       concat f.label(:title, class: "post_title")
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
       concat f.submit("Create post")
     end
 
@@ -814,8 +814,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_with_method_as_part_of_html_options
     form_with(model: @post, url: "/", id: "create-post", html: { method: :delete }) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post", method: "delete") do
@@ -831,8 +831,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_with_method
     form_with(model: @post, url: "/", method: :delete, id: "create-post") do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post", method: "delete") do
@@ -862,8 +862,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_enables_remote_by_default
     form_with(model: @post, url: "/", id: "create-post", method: :patch) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post", method: "patch") do
@@ -882,8 +882,8 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     form_with(model: @post, url: "/", id: "create-post", method: :patch) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post", method: "patch", local: true) do
@@ -953,8 +953,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_without_object
     form_with(scope: :post, id: "create-post") do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/", "create-post") do
@@ -971,8 +971,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, scope: "post[]") do |f|
       concat f.label(:title)
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", method: "patch") do
@@ -989,8 +989,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_with_nil_index_option_override
     form_with(model: @post, scope: "post[]", index: nil) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", method: "patch") do
@@ -2012,8 +2012,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_fields
     @rendered = fields(:post, model: @post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -2028,8 +2028,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_fields_with_index
     @rendered = fields("post[]", model: @post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -2044,8 +2044,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_fields_with_nil_index_option_override
     @rendered = fields("post[]", model: @post, index: nil) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -2060,8 +2060,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_fields_with_index_option_override
     @rendered = fields("post[]", model: @post, index: "abc") do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -2076,8 +2076,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_fields_without_object
     @rendered = fields(:post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -2092,8 +2092,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_fields_with_only_object
     @rendered = fields(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =
@@ -2144,10 +2144,10 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_and_fields
     form_with(model: @post, scope: :post, id: "create-post") do |post_form|
       concat post_form.text_field(:title)
-      concat post_form.text_area(:body)
+      concat post_form.textarea(:body)
 
       concat fields(:parent_post, model: @post) { |parent_fields|
-        concat parent_fields.check_box(:secret)
+        concat parent_fields.checkbox(:secret)
       }
     end
 
@@ -2164,7 +2164,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_and_fields_with_object
     form_with(model: @post, scope: :post, id: "create-post") do |post_form|
       concat post_form.text_field(:title)
-      concat post_form.text_area(:body)
+      concat post_form.textarea(:body)
 
       concat post_form.fields(model: @comment) { |comment_fields|
         concat comment_fields.text_field(:name)
@@ -2208,8 +2208,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_form_with_with_labelled_builder
     form_with(model: @post, builder: LabelledFormBuilder) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", method: "patch") do
@@ -2227,8 +2227,8 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     form_with(model: @post) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected = whole_form("/posts/123", method: "patch") do
@@ -2286,8 +2286,8 @@ class FormWithActsLikeFormForTest < FormWithTest
   def test_fields_with_labelled_builder
     @rendered = fields(:post, model: @post, builder: LabelledFormBuilder) do |f|
       concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+      concat f.textarea(:body)
+      concat f.checkbox(:secret)
     end
 
     expected =

@@ -174,6 +174,37 @@ module ActiveRecord
           config.validate!
         end
       end
+
+      def test_inspect_does_not_show_secrets
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract", password: "hunter2" })
+        assert_equal "#<ActiveRecord::DatabaseConfigurations::HashConfig env_name=default_env name=primary adapter_class=ActiveRecord::ConnectionAdapters::AbstractAdapter>", config.inspect
+      end
+
+      def test_seeds_defaults_to_primary
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract" })
+        assert_equal true, config.seeds?
+
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract", seeds: false })
+        assert_equal false, config.seeds?
+
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract", seeds: true })
+        assert_equal true, config.seeds?
+
+        config = HashConfig.new("default_env", "secondary", { adapter: "abstract" })
+        config.stub(:primary?, false) do # primary? will return nil without proper Base.configurations
+          assert_equal false, config.seeds?
+        end
+
+        config = HashConfig.new("default_env", "secondary", { adapter: "abstract", seeds: false })
+        config.stub(:primary?, false) do # primary? will return nil without proper Base.configurations
+          assert_equal false, config.seeds?
+        end
+
+        config = HashConfig.new("default_env", "secondary", { adapter: "abstract", seeds: true })
+        config.stub(:primary?, false) do # primary? will return nil without proper Base.configurations
+          assert_equal true, config.seeds?
+        end
+      end
     end
   end
 end

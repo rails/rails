@@ -50,11 +50,11 @@ module ActiveRecord
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
         if loaded?
-          target.pluck(reflection.association_primary_key)
+          target.pluck(*reflection.association_primary_key)
         elsif !target.empty?
-          load_target.pluck(reflection.association_primary_key)
+          load_target.pluck(*reflection.association_primary_key)
         else
-          @association_ids ||= scope.pluck(reflection.association_primary_key)
+          @association_ids ||= scope.pluck(*reflection.association_primary_key)
         end
       end
 
@@ -94,7 +94,7 @@ module ActiveRecord
       def find(*args)
         if options[:inverse_of] && loaded?
           args_flatten = args.flatten
-          model = scope.klass
+          model = scope.model
 
           if args_flatten.blank?
             error_message = "Couldn't find #{model.name} without an ID"
@@ -256,20 +256,36 @@ module ActiveRecord
       end
 
       def include?(record)
-        if record.is_a?(reflection.klass)
-          if record.new_record?
-            include_in_memory?(record)
-          else
-            loaded? ? target.include?(record) : scope.exists?(record.id)
-          end
+        klass = reflection.klass
+        return false unless record.is_a?(klass)
+
+        if record.new_record?
+          include_in_memory?(record)
+        elsif loaded?
+          target.include?(record)
         else
-          false
+          record_id = klass.composite_primary_key? ? klass.primary_key.zip(record.id).to_h : record.id
+          scope.exists?(record_id)
         end
       end
 
       def load_target
         if find_target?
           @target = merge_target_lists(find_target, target)
+        elsif target.empty? && set_through_target_for_new_record?
+          reflections = reflection.chain
+          reflections.pop
+          reflections.reverse!
+
+          @target = reflections.reduce(through_association.target) do |middle_target, reflection|
+            if middle_target.empty?
+              break []
+            elsif reflection.collection?
+              middle_target.flat_map { |record| record.association(reflection.source_reflection_name).target }
+            else
+              middle_target.association(reflection.source_reflection_name).target
+            end
+          end
         end
 
         loaded!
@@ -309,6 +325,10 @@ module ActiveRecord
           reflection.strict_loading? ||
           owner.new_record? ||
           target.any? { |record| record.new_record? || record.changed? }
+      end
+
+      def collection?
+        true
       end
 
       private

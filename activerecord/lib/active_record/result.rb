@@ -36,6 +36,59 @@ module ActiveRecord
   class Result
     include Enumerable
 
+    class IndexedRow
+      def initialize(column_indexes, row)
+        @column_indexes = column_indexes
+        @row = row
+      end
+
+      def size
+        @column_indexes.size
+      end
+      alias_method :length, :size
+
+      def each_key(&block)
+        @column_indexes.each_key(&block)
+      end
+
+      def keys
+        @column_indexes.keys
+      end
+
+      def ==(other)
+        if other.is_a?(Hash)
+          to_hash == other
+        else
+          super
+        end
+      end
+
+      def key?(column)
+        @column_indexes.key?(column)
+      end
+
+      def fetch(column)
+        if index = @column_indexes[column]
+          @row[index]
+        elsif block_given?
+          yield
+        else
+          raise KeyError, "key not found: #{column.inspect}"
+        end
+      end
+
+      def [](column)
+        if index = @column_indexes[column]
+          @row[index]
+        end
+      end
+
+      def to_h
+        @column_indexes.transform_values { |index| @row[index] }
+      end
+      alias_method :to_hash, :to_h
+    end
+
     attr_reader :columns, :rows, :column_types
 
     def self.empty(async: false) # :nodoc:
@@ -67,7 +120,9 @@ module ActiveRecord
     end
 
     # Calls the given block once for each element in row collection, passing
-    # row as parameter.
+    # row as parameter. Each row is a Hash-like, read only object.
+    #
+    # To get real hashes, use +.to_a.each+.
     #
     # Returns an +Enumerator+ if no block is given.
     def each(&block)
@@ -134,14 +189,14 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @columns      = columns
-      @rows         = rows.dup
+      @rows = rows.dup
       @column_types = column_types.dup
       @hash_rows    = nil
     end
 
     def freeze # :nodoc:
       hash_rows.freeze
+      indexed_rows.freeze
       super
     end
 
@@ -154,7 +209,14 @@ module ActiveRecord
           hash[columns[index]] = index
           index += 1
         end
-        hash
+        hash.freeze
+      end
+    end
+
+    def indexed_rows # :nodoc:
+      @indexed_rows ||= begin
+        columns = column_indexes
+        @rows.map { |row| IndexedRow.new(columns, row) }.freeze
       end
     end
 

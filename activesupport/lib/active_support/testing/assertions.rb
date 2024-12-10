@@ -19,7 +19,7 @@ module ActiveSupport
       #
       #   assert_not foo, 'foo should be false'
       def assert_not(object, message = nil)
-        message ||= "Expected #{mu_pp(object)} to be nil or false"
+        message ||= -> { "Expected #{mu_pp(object)} to be nil or false" }
         assert !object, message
       end
 
@@ -118,9 +118,13 @@ module ActiveSupport
 
         expressions.zip(exps, before) do |(code, diff), exp, before_value|
           actual = exp.call
-          error  = "#{code.inspect} didn't change by #{diff}, but by #{actual - before_value}"
-          error  = "#{message}.\n#{error}" if message
-          assert_equal(before_value + diff, actual, error)
+          rich_message = -> do
+            code_string = code.respond_to?(:call) ? _callable_to_source_string(code) : code
+            error = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert_equal(before_value + diff, actual, rich_message)
         end
 
         retval
@@ -195,22 +199,32 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_changes", &block)
 
         unless from == UNTRACKED
-          error = "Expected change from #{from.inspect}, got #{before.inspect}"
-          error = "#{message}.\n#{error}" if message
-          assert from === before, error
+          rich_message = -> do
+            error = "Expected change from #{from.inspect}, got #{before.inspect}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert from === before, rich_message
         end
 
         after = exp.call
 
-        error = "#{expression.inspect} didn't change"
-        error = "#{error}. It was already #{to.inspect}" if before == to
-        error = "#{message}.\n#{error}" if message
-        refute_equal before, after, error
+        rich_message = -> do
+          code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
+          error = "`#{code_string}` didn't change"
+          error = "#{error}. It was already #{to.inspect}" if before == to
+          error = "#{message}.\n#{error}" if message
+          error
+        end
+        refute_equal before, after, rich_message
 
         unless to == UNTRACKED
-          error = "Expected change to #{to.inspect}, got #{after.inspect}\n"
-          error = "#{message}.\n#{error}" if message
-          assert to === after, error
+          rich_message = -> do
+            error = "Expected change to #{to.inspect}, got #{after.inspect}\n"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert to === after, rich_message
         end
 
         retval
@@ -242,20 +256,27 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_no_changes", &block)
 
         unless from == UNTRACKED
-          error = "Expected initial value of #{from.inspect}, got #{before.inspect}"
-          error = "#{message}.\n#{error}" if message
-          assert from === before, error
+          rich_message = -> do
+            error = "Expected initial value of #{from.inspect}, got #{before.inspect}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert from === before, rich_message
         end
 
         after = exp.call
 
-        error = "#{expression.inspect} changed"
-        error = "#{message}.\n#{error}" if message
+        rich_message = -> do
+          code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
+          error = "`#{code_string}` changed"
+          error = "#{message}.\n#{error}" if message
+          error
+        end
 
         if before.nil?
-          assert_nil after, error
+          assert_nil after, rich_message
         else
-          assert_equal before, after, error
+          assert_equal before, after, rich_message
         end
 
         retval
@@ -275,6 +296,43 @@ module ActiveSupport
           end
 
           raise
+        end
+
+        def _callable_to_source_string(callable)
+          if defined?(RubyVM::InstructionSequence) && callable.is_a?(Proc)
+            iseq = RubyVM::InstructionSequence.of(callable)
+            source =
+              if iseq.script_lines
+                iseq.script_lines.join("\n")
+              elsif File.readable?(iseq.absolute_path)
+                File.read(iseq.absolute_path)
+              end
+
+            return callable unless source
+
+            location = iseq.to_a[4][:code_location]
+            return callable unless location
+
+            lines = source.lines[(location[0] - 1)..(location[2] - 1)]
+            lines[-1] = lines[-1].byteslice(...location[3])
+            lines[0] = lines[0].byteslice(location[1]...)
+            source = lines.join.strip
+
+            # We ignore procs defined with do/end as they are likely multi-line anyway.
+            if source.start_with?("{")
+              source.delete_suffix!("}")
+              source.delete_prefix!("{")
+              source.strip!
+              # It won't read nice if the callable contains multiple
+              # lines, and it should be a rare occurrence anyway.
+              # Same if it takes arguments.
+              if !source.include?("\n") && !source.start_with?("|")
+                return source
+              end
+            end
+          end
+
+          callable
         end
     end
   end

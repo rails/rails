@@ -469,7 +469,7 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
-        enum status: [proposed: 1, written: 2, published: 3]
+        enum :status, [proposed: 1, written: 2, published: 3]
       end
     end
 
@@ -478,7 +478,7 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
-        enum status: { "" => 1, "active" => 2 }
+        enum :status, { "" => 1, "active" => 2 }
       end
     end
 
@@ -487,7 +487,7 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
-        enum status: ["active", ""]
+        enum :status, ["active", ""]
       end
     end
 
@@ -496,7 +496,16 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
-        enum status: Object.new
+        enum :status, { proposed: Object.new, active: :active }
+      end
+    end
+
+    assert_match(/must be only booleans, integers, symbols or strings/, e.message)
+
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, Object.new
       end
     end
 
@@ -504,11 +513,9 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "reserved enum names" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: [:proposed, :written, :published]
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written, :published]
     end
 
     conflicts = [
@@ -519,18 +526,16 @@ class EnumTest < ActiveRecord::TestCase
 
     conflicts.each_with_index do |name, i|
       e = assert_raises(ArgumentError) do
-        klass.class_eval { enum name => ["value_#{i}"] }
+        klass.class_eval { enum name, ["value_#{i}"] }
       end
       assert_match(/You tried to define an enum named "#{name}" on the model/, e.message)
     end
   end
 
   test "reserved enum values" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: [:proposed, :written, :published]
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written, :published]
     end
 
     conflicts = [
@@ -545,18 +550,18 @@ class EnumTest < ActiveRecord::TestCase
 
     conflicts.each_with_index do |value, i|
       e = assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
-        klass.class_eval { enum "status_#{i}" => [value] }
+        klass.class_eval { enum "status_#{i}", [value] }
       end
       assert_match(/You tried to define an enum named .* on the model/, e.message)
     end
   end
 
   test "can use id as a value with a prefix or suffix" do
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_nothing_raised do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
-        enum status_1: [:id], _prefix: true
-        enum status_2: [:id], _suffix: true
+        enum :status_1, [:id], prefix: true
+        enum :status_2, [:id], suffix: true
       end
     end
   end
@@ -572,7 +577,7 @@ class EnumTest < ActiveRecord::TestCase
       e = assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
         Class.new(ActiveRecord::Base) do
           self.table_name = "books"
-          enum category: [:other, value]
+          enum :category, [:other, value]
         end
       end
       assert_match(/You tried to define an enum named .* on the model/, e.message)
@@ -580,7 +585,7 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "overriding enum method should not raise" do
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_nothing_raised do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
 
@@ -589,7 +594,7 @@ class EnumTest < ActiveRecord::TestCase
           "do publish work..."
         end
 
-        enum status: [:proposed, :written, :published]
+        enum :status, [:proposed, :written, :published]
 
         def written!
           super
@@ -600,12 +605,10 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "validate uniqueness" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        def self.name; "Book"; end
-        enum status: [:proposed, :written]
-        validates_uniqueness_of :status
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "Book"; end
+      enum :status, [:proposed, :written]
+      validates_uniqueness_of :status
     end
     klass.delete_all
     klass.create!(status: "proposed")
@@ -616,12 +619,10 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "validate inclusion of value in array" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        def self.name; "Book"; end
-        enum status: [:proposed, :written]
-        validates_inclusion_of :status, in: ["written"]
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "Book"; end
+      enum :status, [:proposed, :written]
+      validates_inclusion_of :status, in: ["written"]
     end
     invalid_book = klass.new(status: "proposed")
     assert_not_predicate invalid_book, :valid?
@@ -630,18 +631,14 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "enums are distinct per class" do
-    klass1 = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: [:proposed, :written]
-      end
+    klass1 = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written]
     end
 
-    klass2 = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: [:drafted, :uploaded]
-      end
+    klass2 = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:drafted, :uploaded]
     end
 
     book1 = klass1.proposed.create!
@@ -656,10 +653,8 @@ class EnumTest < ActiveRecord::TestCase
   test "enums are inheritable" do
     subklass1 = Class.new(Book)
 
-    subklass2 = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(Book) do
-        enum status: [:drafted, :uploaded]
-      end
+    subklass2 = Class.new(Book) do
+      enum :status, [:drafted, :uploaded]
     end
 
     book1 = subklass1.proposed.create!
@@ -685,33 +680,13 @@ class EnumTest < ActiveRecord::TestCase
     assert_match(/can't modify frozen/, e.message)
   end
 
-  test "declare multiple enums at a time" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: [:proposed, :written, :published],
-             nullable_status: [:single, :married]
-      end
-    end
+  test "declare multiple enums with prefix: true" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
 
-    book1 = klass.proposed.create!
-    assert_predicate book1, :proposed?
+      enum(:status, [:value_1], prefix: true)
 
-    book2 = klass.single.create!
-    assert_predicate book2, :single?
-  end
-
-  test "declare multiple enums with { _prefix: true }" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-
-        enum(
-          status: [:value_1],
-          last_read: [:value_1],
-          _prefix: true
-        )
-      end
+      enum(:last_read, [:value_1], prefix: true)
     end
 
     instance = klass.new
@@ -719,17 +694,13 @@ class EnumTest < ActiveRecord::TestCase
     assert_respond_to instance, :last_read_value_1?
   end
 
-  test "declare multiple enums with { _suffix: true }" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
+  test "declare multiple enums with suffix: true" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
 
-        enum(
-          status: [:value_1],
-          last_read: [:value_1],
-          _suffix: true
-        )
-      end
+      enum(:status, [:value_1], suffix: true)
+
+      enum(:last_read, [:value_1], suffix: true)
     end
 
     instance = klass.new
@@ -738,12 +709,10 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "enum with alias_attribute" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        alias_attribute :aliased_status, :status
-        enum aliased_status: [:proposed, :written, :published]
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      alias_attribute :aliased_status, :status
+      enum :aliased_status, [:proposed, :written, :published]
     end
 
     book = klass.proposed.create!
@@ -753,6 +722,12 @@ class EnumTest < ActiveRecord::TestCase
     book = klass.find(book.id)
     assert_predicate book, :proposed?
     assert_equal "proposed", book.aliased_status
+  end
+
+  test "enum with a hash with symbol values" do
+    book = Book.create!(symbol_status: :proposed)
+    assert_equal "proposed", book.symbol_status
+    assert_predicate book, :symbol_status_proposed?
   end
 
   test "query state by predicate with prefix" do
@@ -826,37 +801,13 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "enum on custom attribute with default" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        attribute :status, default: 2
-        enum status: [:proposed, :written, :published]
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      attribute :status, default: 2
+      enum :status, [:proposed, :written, :published]
     end
 
     assert_equal "published", klass.new.status
-  end
-
-  test "overloaded default by :_default" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: [:proposed, :written, :published], _default: :published
-      end
-    end
-
-    assert_equal "published", klass.new.status
-  end
-
-  test "scopes can be disabled by :_scopes" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: [:proposed, :written], _scopes: false
-      end
-    end
-
-    assert_raises(NoMethodError) { klass.proposed }
   end
 
   test "overloaded default by :default" do
@@ -866,6 +817,61 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_equal "published", klass.new.status
+  end
+
+  test ":_default is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _default: :published
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_default/, error.message)
+  end
+
+  test ":_prefix is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _prefix: true
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_prefix/, error.message)
+  end
+
+  test ":_suffix is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _suffix: true
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_suffix/, error.message)
+  end
+
+  test ":_scopes is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _scopes: false
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_scopes/, error.message)
+  end
+
+  test ":_instance_methods is invalid in the new API" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum :status, [:proposed, :written, :published], _instance_methods: false
+      end
+    end
+
+    assert_match(/invalid option\(s\): :_instance_methods/, error.message)
   end
 
   test "scopes can be disabled by :scopes" do
@@ -901,10 +907,22 @@ class EnumTest < ActiveRecord::TestCase
     assert_respond_to book, :easy_to_read?
   end
 
+  test "enum labels as keyword arguments" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, active: 0, archived: 1
+    end
+
+    book = klass.new
+    assert_predicate book, :active?
+    assert_not_predicate book, :archived?
+  end
+
   test "option names can be used as label" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum :status, default: 0, scopes: 1, prefix: 2, suffix: 3
+      enum :last_read, { default: 0, scopes: 1, prefix: 2, suffix: 3 }, prefix: "p", suffix: true
     end
 
     book = klass.new
@@ -912,14 +930,17 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate book, :scopes?
     assert_not_predicate book, :prefix?
     assert_not_predicate book, :suffix?
+
+    assert_predicate book, :p_default_last_read?
+    assert_not_predicate book, :p_scopes_last_read?
+    assert_not_predicate book, :p_prefix_last_read?
+    assert_not_predicate book, :p_suffix_last_read?
   end
 
   test "scopes are named like methods" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "cats"
-        enum breed: { "American Bobtail" => 0, "Balinese-Javanese" => 1 }
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "cats"
+      enum :breed, { "American Bobtail" => 0, "Balinese-Javanese" => 1 }
     end
 
     assert_respond_to klass, :American_Bobtail
@@ -927,11 +948,9 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "capital characters for enum names" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "computers"
-        enum extendedWarranty: [:extendedSilver, :extendedGold]
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "computers"
+      enum :extendedWarranty, [:extendedSilver, :extendedGold]
     end
 
     computer = klass.extendedSilver.build
@@ -940,11 +959,9 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "unicode characters for enum names" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum language: [:🇺🇸, :🇪🇸, :🇫🇷]
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :language, [:🇺🇸, :🇪🇸, :🇫🇷]
     end
 
     book = klass.🇺🇸.build
@@ -953,11 +970,9 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "mangling collision for enum names" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "computers"
-        enum timezone: [:"Etc/GMT+1", :"Etc/GMT-1"]
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "computers"
+      enum :timezone, [:"Etc/GMT+1", :"Etc/GMT-1"]
     end
 
     computer = klass.public_send(:"Etc/GMT+1").build
@@ -968,11 +983,9 @@ class EnumTest < ActiveRecord::TestCase
   test "deserialize enum value to original hash key" do
     proposed = Struct.new(:to_s).new("proposed")
     written = Struct.new(:to_s).new("written")
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: { proposed => 0, written => 1 }
-      end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, { proposed => 0, written => 1 }
     end
 
     book = klass.create!(status: 0)
@@ -1015,14 +1028,12 @@ class EnumTest < ActiveRecord::TestCase
       " This has caused a conflict with auto generated negative scopes."\
       " Avoid using enum elements starting with 'not' where the positive form is also an element."
 
-    assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        def self.name
-          "Book"
-        end
-        silence_warnings do
-          enum status: [:sent, :not_sent]
-        end
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      silence_warnings do
+        enum :status, [:sent, :not_sent]
       end
     end
 
@@ -1041,14 +1052,12 @@ class EnumTest < ActiveRecord::TestCase
       " This has caused a conflict with auto generated negative scopes."\
       " Avoid using enum elements starting with 'not' where the positive form is also an element."
 
-    assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        def self.name
-          "Book"
-        end
-        silence_warnings do
-          enum status: [:not_sent, :sent]
-        end
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      silence_warnings do
+        enum :status, [:not_sent, :sent]
       end
     end
 
@@ -1063,15 +1072,11 @@ class EnumTest < ActiveRecord::TestCase
 
     ActiveRecord::Base.logger = logger
 
-    assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        def self.name
-          "Book"
-        end
-        silence_warnings do
-          enum status: [:not_sent]
-        end
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
       end
+      enum :status, [:not_sent]
     end
 
     assert_empty(logger.logged(:warn))
@@ -1085,14 +1090,12 @@ class EnumTest < ActiveRecord::TestCase
 
     ActiveRecord::Base.logger = logger
 
-    assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        def self.name
-          "Book"
-        end
-        silence_warnings do
-          enum status: [:not_sent, :sent], _scopes: false
-        end
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      silence_warnings do
+        enum :status, [:not_sent, :sent], scopes: false
       end
     end
 
@@ -1102,12 +1105,10 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "raises for attributes with undeclared type" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(Book) do
-        def self.name; "Book"; end
-        enum typeless_genre: [:adventure, :comic]
-      end
-    end
+    klass = Class.new(Book) do
+    def self.name; "Book"; end
+    enum :typeless_genre, [:adventure, :comic]
+  end
 
     error = assert_raises(RuntimeError) do
       klass.type_for_attribute(:typeless_genre)
@@ -1116,22 +1117,18 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "supports attributes declared with a explicit type" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(Book) do
-        attribute :my_genre, :integer
-        enum my_genre: [:adventure, :comic]
-      end
+    klass = Class.new(Book) do
+      attribute :my_genre, :integer
+      enum :my_genre, [:adventure, :comic]
     end
 
     assert_equal :integer, klass.type_for_attribute(:my_genre).type
   end
 
-  test "default methods can be disabled by :_instance_methods" do
-    klass = assert_deprecated(ActiveRecord.deprecator) do
-      Class.new(ActiveRecord::Base) do
-        self.table_name = "books"
-        enum status: [:proposed, :written], _instance_methods: false
-      end
+  test "default methods can be disabled by :instance_methods" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written], instance_methods: false
     end
 
     instance = klass.new

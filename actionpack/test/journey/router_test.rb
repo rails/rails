@@ -219,7 +219,7 @@ module ActionDispatch
       def test_generate_slash
         params = [ [:controller, "tasks"],
                    [:action, "show"] ]
-        get "/", Hash[params]
+        get "/", **Hash[params]
 
         path, _ = _generate(nil, Hash[params], {})
         assert_equal "/", path
@@ -494,19 +494,19 @@ module ActionDispatch
           end
           path = @route_set.path_for(options, route_name)
           uri = URI.parse path
-          params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
+          params = ActionDispatch::ParamBuilder.from_query_string(uri.query).symbolize_keys
           [uri.path, params]
         end
 
-        def get(*args)
+        def get(...)
           ActionDispatch.deprecator.silence do
-            mapper.get(*args)
+            mapper.get(...)
           end
         end
 
-        def match(*args)
+        def match(...)
           ActionDispatch.deprecator.silence do
-            mapper.match(*args)
+            mapper.match(...)
           end
         end
 

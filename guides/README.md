@@ -10,7 +10,7 @@ The editing files for the Guides rebuild reside in `stylesrc` and use SCSS to im
 
 ## Building the Guides in Development
 
-To generate new guides into static files, type `rake guides:generate` from inside the `guides` folder. If you make changes to the HTML or ERB, you'll need to remove the "output" directory before running this command. The master SCSS files (style.scss, highlight.scss) will compile as part of this process. 
+To generate new guides into static files, type `rake guides:generate` from inside the `guides` folder. If you make changes to the HTML or ERB, you'll need to remove the "output" directory before running this command. The master SCSS files (style.scss, highlight.scss) will compile as part of this process.
 
 ## FAQ
 

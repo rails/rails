@@ -38,6 +38,10 @@ require "models/seminar"
 require "models/session"
 require "models/sharded"
 require "models/cpk"
+require "models/zine"
+require "models/interest"
+require "models/human"
+require "models/account"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -51,6 +55,37 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def setup
     Person.create first_name: "gummy"
     Reader.create person_id: 0, post_id: 0
+  end
+
+  def test_setting_association_on_new_record_sets_through_records
+    subscriber_1, subscriber_2 = Subscriber.create!(nick: "nick 1"), Subscriber.create!(nick: "nick 2")
+    subscription_1 = Subscription.new(subscriber: subscriber_1)
+    subscription_2 = Subscription.new(subscriber: subscriber_2)
+    book = Book.new
+    book.subscriptions = [subscription_1, subscription_2]
+
+    assert_predicate subscriber_1, :persisted?
+    assert_predicate subscriber_2, :persisted?
+    assert_predicate book, :new_record?
+    book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
+    assert_equal [subscriber_1, subscriber_2].sort, book.subscribers.sort
+  end
+
+  def test_setting_association_on_new_record_sets_nested_through_records
+    account_1 = Account.create!(firm_name: "account 1", credit_limit: 100)
+    subscriber_1 = Subscriber.create!(nick: "nick 1", account: account_1)
+    account_2 = Account.create!(firm_name: "account 2", credit_limit: 100)
+    subscriber_2 = Subscriber.create!(nick: "nick 2", account: account_2)
+    subscription_1 = Subscription.new(subscriber: subscriber_1)
+    subscription_2 = Subscription.new(subscriber: subscriber_2)
+    book = Book.new
+    book.subscriptions = [subscription_1, subscription_2]
+
+    assert_predicate subscriber_1, :persisted?
+    assert_predicate subscriber_2, :persisted?
+    assert_predicate book, :new_record?
+    book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
+    assert_equal [account_1, account_2].sort, book.subscriber_accounts.sort
   end
 
   def test_has_many_through_create_record
@@ -1320,6 +1355,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [tags(:general)], post.reload.tags
   end
 
+  def test_has_many_through_with_polymorhic_join_model
+    zine = Zine.create!
+
+    assert_nothing_raised { zine.polymorphic_humans.build.save! }
+
+    assert_equal 1, zine.polymorphic_humans.count
+    assert_equal 1, zine.interests.count
+  end
+
   def test_has_many_through_obeys_order_on_through_association
     owner = owners(:blackbeard)
     assert_includes owner.toys.to_sql, "pets.name desc"
@@ -1620,9 +1664,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       tag_ids = blog_post.tags.to_a.map(&:id)
     end.first
 
-    c = Sharded::Blog.lease_connection
-    quoted_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_tags.blog_id"))
-    quoted_posts_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts_tags.blog_id"))
+    quoted_tags_blog_id = Regexp.escape(quote_table_name("sharded_tags.blog_id"))
+    quoted_posts_tags_blog_id = Regexp.escape(quote_table_name("sharded_blog_posts_tags.blog_id"))
     assert_match(/.* ON.* #{quoted_tags_blog_id} = #{quoted_posts_tags_blog_id} .* WHERE/, sql)
     assert_match(/.* WHERE #{quoted_posts_tags_blog_id} = .*/, sql)
 
@@ -1638,9 +1681,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       blog_post_ids = tag.blog_posts.to_a.map(&:id)
     end.first
 
-    c = Sharded::Blog.lease_connection
-    quoted_blog_posts_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts.blog_id"))
-    quoted_posts_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts_tags.blog_id"))
+    quoted_blog_posts_blog_id = Regexp.escape(quote_table_name("sharded_blog_posts.blog_id"))
+    quoted_posts_tags_blog_id = Regexp.escape(quote_table_name("sharded_blog_posts_tags.blog_id"))
     assert_match(/.* ON.* #{quoted_blog_posts_blog_id} = #{quoted_posts_tags_blog_id} .* WHERE/, sql)
     assert_match(/.* WHERE #{quoted_posts_tags_blog_id} = .*/, sql)
 

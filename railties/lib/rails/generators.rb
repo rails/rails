@@ -23,7 +23,6 @@ module Rails
     autoload :NamedBase,       "rails/generators/named_base"
     autoload :ResourceHelpers, "rails/generators/resource_helpers"
     autoload :TestCase,        "rails/generators/test_case"
-    autoload :Devcontainer,    "rails/generators/devcontainer"
 
     mattr_accessor :namespace
 
@@ -60,6 +59,10 @@ module Rails
         template_engine: :erb
       }
     }
+
+    # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
+    # can change when we FileUtils.cd.
+    RAILS_DEV_PATH = File.expand_path("../../..", __dir__) # :nodoc:
 
     class << self
       def configure!(config) # :nodoc:
@@ -152,8 +155,11 @@ module Rails
             "#{template}:scaffold",
             "#{template}:mailer",
             "action_text:install",
-            "action_mailbox:install"
-          ]
+            "action_mailbox:install",
+            "devcontainer"
+          ].tap do |h|
+            h << "test_unit" if test.to_s != "test_unit"
+          end
         end
       end
 
@@ -268,6 +274,7 @@ module Rails
             #{error.detailed_message}
             Run `bin/rails generate --help` for more options.
           MSG
+          exit 1
         end
       end
 
