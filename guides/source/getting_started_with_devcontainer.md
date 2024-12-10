@@ -60,8 +60,8 @@ take care of installing the correct Ruby and Rails versions for you.
 
 To install `rails-new`, follow the installation instructions [in the README](https://github.com/rails/rails-new?tab=readme-ov-file#installation).
 
-Creating the Blog Application
------------------------------
+Creating the Store Application
+------------------------------
 
 Rails comes with a number of scripts called generators that are designed to make
 your development life easier by creating everything that's necessary to start
@@ -77,27 +77,27 @@ To use `rails-new` to generate your app, open a terminal, navigate to a director
 rights to create files, and run:
 
 ```bash
-$ rails-new blog --devcontainer
+$ rails-new store --devcontainer
 ```
 
-This will create a Rails application called Blog in a `blog` directory.
+This will create a Rails application called Store in a `store` directory.
 
 TIP: You can see all of the command line options that the Rails application
 generator accepts by running `rails-new --help`.
 
-After you create the blog application, switch to its folder:
+After you create the store application, switch to its folder:
 
 ```bash
-$ cd blog
+$ cd store
 ```
 
-The `blog` directory will have a number of generated files and folders that make
+The `store` directory will have a number of generated files and folders that make
 up the structure of a Rails application. Most of the work in this tutorial will
 happen in the `app` folder. For a full rundown of everything in your application
-see the full [Getting Started guide](getting_started.html#creating-the-blog-application).
+see the full [Getting Started guide](getting_started.html).
 
-Opening the Blog Application in a Dev Container
------------------------------------------------
+Opening the Store Application in a Dev Container
+------------------------------------------------
 
 Our new Rails application comes with a dev container already configured and ready to use.
 We will use VS Code to spin up and work with our dev container. Start by launching VS Code
@@ -117,7 +117,7 @@ $ rails --version
 Rails 8.1.0
 ```
 
-You can now continue with the [Getting Started guide](getting_started.html#hello-rails) and
-begin building your Blog application. You will be working within VS Code, which serves as
+You can now continue with the [Getting Started guide](getting_started.html) and
+begin building your Store application. You will be working within VS Code, which serves as
 your entry point to your application's dev container, where you can run code, run tests, and
 run your application.
