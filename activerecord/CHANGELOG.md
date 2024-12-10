@@ -54,6 +54,17 @@
 
     *Matthew Draper*
 
+*   Add schema_format to database configuration file
+
+    ```
+    primary:
+      schema_format: ruby
+    ```
+
+    Useful in multi-database setups to have different formats per-database.
+
+    *T S Vallender*
+
 *   Allow to reset cache counters for multiple records.
 
     ```
