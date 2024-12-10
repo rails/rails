@@ -113,6 +113,13 @@ module Rails
             lib/rails/test_unit/*
             lib/rails/api/generator.rb
           )
+        },
+
+        "globalid" => {
+          dependency: true,
+          include: %w(
+            lib/global_id/*.rb
+          )
         }
       }
 
@@ -134,6 +141,16 @@ module Rails
         # no-op
       end
 
+      def define
+        super
+        Rake::Task[rdoc_task_name].enhance do
+          RDOC_FILES.each do |component, cfg|
+            FileUtils.rm_f(component) if cfg[:dependency]
+          end
+        end
+        self
+      end
+
       def configure_sdoc
         self.title    = "Ruby on Rails API"
         self.rdoc_dir = api_dir
@@ -147,6 +164,8 @@ module Rails
 
       def configure_rdoc_files
         RDOC_FILES.each do |component, cfg|
+          symlink_component_root_dir(component) if cfg[:dependency]
+
           cdr = component_root_dir(component)
 
           Array(cfg[:include]).each do |pattern|
@@ -186,6 +205,12 @@ module Rails
 
       def api_main
         component_root_dir("railties") + "/RDOC_MAIN.md"
+      end
+
+      def symlink_component_root_dir(component)
+        spec = Bundler::CLI::Common.select_spec(component, :regex_match)
+        path = spec.full_gem_path
+        FileUtils.ln_sf(path, component)
       end
     end
 
