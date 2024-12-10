@@ -22,6 +22,7 @@
 !/tmp/pids/
 !/tmp/pids/.keep
 <% end -%>
+<% unless skip_storage? -%>
 
 # Ignore storage (uploaded files in development and any SQLite databases).
 /storage/*
@@ -30,6 +31,7 @@
 /tmp/storage/*
 !/tmp/storage/
 !/tmp/storage/.keep
+<% end -%>
 <% end -%>
 <% unless options.api? -%>
 
