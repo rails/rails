@@ -17,7 +17,7 @@ After reading this guide, you will know about:
 --------------------------------------------------------------------------------
 
 What is Caching?
----------------------------
+----------------
 
 Caching means storing content generated during the request-response cycle and
 reusing it when responding to similar requests. It's like keeping your favorite
@@ -32,7 +32,10 @@ Rails provides a set of caching features out of the box which allows you to not
 only cache data, but also to tackle challenges like cache expiration, cache
 dependencies, and cache invalidation.
 
-In this guide, you’ll explore Rails' comprehensive caching strategies, from page caching to fragment caching and beyond. By mastering these techniques, you’ll empower your Rails applications to serve millions of views while keeping response times low and server bills manageable.
+In this guide, you’ll explore Rails' comprehensive caching strategies, from page
+caching to fragment caching and beyond. By mastering these techniques, you’ll
+empower your Rails applications to serve millions of views while keeping
+response times low and server bills manageable.
 
 Solid Cache
 -----------
@@ -155,7 +158,6 @@ production:
   shards: [cache_shard1, cache_shard2, cache_shard3]
 ``` -->
 
-
 ### Encryption
 
 Solid Cache supports encryption to protect sensitive data. To enable encryption, set the `encrypt` value in your cache configuration:
@@ -168,6 +170,38 @@ production:
 
 You will need to set up your application to use[Active Record Encryption](active_record_encryption.html).
 
+Caching in Development
+----------------------
+
+By default, caching is *enabled* in development mode with
+[`:memory_store`](#activesupport-cache-memorystore).
+This doesn't apply to Action Controller caching, which is disabled
+by default.
+
+To enable Action Controller caching Rails provides the `bin/rails dev:cache` command.
+
+```bash
+$ bin/rails dev:cache
+Development mode is now being cached.
+$ bin/rails dev:cache
+Development mode is no longer being cached.
+```
+
+If you want to use Solid Cache in development, set the `cache_store`
+configuration in `config/environments/development.rb`:
+
+```ruby
+config.cache_store = :solid_cache_store
+```
+and ensure the `cache` database is created and migrated:
+
+```bash
+development:
+  <<: * default
+  database: cache
+```
+
+To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
 
 Basic Caching
 -------------
@@ -839,39 +873,6 @@ You can also set the strong ETag directly on the response.
 ```ruby
 response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 ```
-
-Caching in Development
-----------------------
-
-By default, caching is *enabled* in development mode with
-[`:memory_store`](#activesupport-cache-memorystore).
-This doesn't apply to Action Controller caching, which is disabled
-by default.
-
-To enable Action Controller caching Rails provides the `bin/rails dev:cache` command.
-
-```bash
-$ bin/rails dev:cache
-Development mode is now being cached.
-$ bin/rails dev:cache
-Development mode is no longer being cached.
-```
-
-If you want to use Solid Cache in development, set the `cache_store`
-configuration in `config/environments/development.rb`:
-
-```ruby
-config.cache_store = :solid_cache_store
-```
-and ensure the `cache` database is created and migrated:
-
-```bash
-development:
-  <<: * default
-  database: cache
-```
-
-To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
 
 References
 ----------
