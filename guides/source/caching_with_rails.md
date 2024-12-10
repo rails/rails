@@ -172,17 +172,10 @@ You should also set the `cache_store` configuration in `config/environments/deve
 config.cache_store = :solid_cache_store
 ```
 
-
-
-
-
 Basic Caching
 -------------
 
-This is an introduction to three types of caching techniques: page, action and
-fragment caching. By default Rails provides fragment caching. In order to use
-page and action caching you will need to add `actionpack-page_caching` and
-`actionpack-action_caching` to your `Gemfile`.
+This is an introduction to some of the common types of caching.
 
 By default, Action Controller caching is only enabled in your production environment. You can play
 around with caching locally by running `rails dev:cache`, or by setting
@@ -191,7 +184,7 @@ around with caching locally by running `rails dev:cache`, or by setting
 NOTE: Changing the value of `config.action_controller.perform_caching` will
 only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
-[below](#low-level-caching).
+[below](#low-level-caching-using-rails-cache-fetch).
 
 [`config.action_controller.perform_caching`]: configuring.html#config-action-controller-perform-caching
 
@@ -332,94 +325,7 @@ render(partial: "hotels/hotel", collection: @hotels, formats: :html, cached: tru
 
 Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.
 
-### Managing Dependencies
-
-In order to correctly invalidate the cache, you need to properly define the
-caching dependencies. Rails is clever enough to handle common cases so you don't
-have to specify anything. However, sometimes, when you're dealing with custom
-helpers for instance, you need to explicitly define them.
-
-#### Implicit Dependencies
-
-Most template dependencies can be derived from calls to `render` in the template
-itself. Here are some examples of render calls that `ActionView::Digestor` knows
-how to decode:
-
-```ruby
-render partial: "comments/comment", collection: commentable.comments
-render "comments/comments"
-render "comments/comments"
-render("comments/comments")
-
-render "header" # translates to render("comments/header")
-
-render(@topic)         # translates to render("topics/topic")
-render(topics)         # translates to render("topics/topic")
-render(message.topics) # translates to render("topics/topic")
-```
-
-On the other hand, some calls need to be changed to make caching work properly.
-For instance, if you're passing a custom collection, you'll need to change:
-
-```ruby
-render @project.documents.where(published: true)
-```
-
-to:
-
-```ruby
-render partial: "documents/document", collection: @project.documents.where(published: true)
-```
-
-#### Explicit Dependencies
-
-Sometimes you'll have template dependencies that can't be derived at all. This
-is typically the case when rendering happens in helpers. Here's an example:
-
-```html+erb
-<%= render_sortable_todolists @project.todolists %>
-```
-
-You'll need to use a special comment format to call those out:
-
-```html+erb
-<%# Template Dependency: todolists/todolist %>
-<%= render_sortable_todolists @project.todolists %>
-```
-
-In some cases, like a single table inheritance setup, you might have a bunch of
-explicit dependencies. Instead of writing every template out, you can use a
-wildcard to match any template in a directory:
-
-```html+erb
-<%# Template Dependency: events/* %>
-<%= render_categorizable_events @person.events %>
-```
-
-As for collection caching, if the partial template doesn't start with a clean
-cache call, you can still benefit from collection caching by adding a special
-comment format anywhere in the template, like:
-
-```html+erb
-<%# Template Collection: notification %>
-<% my_helper_that_calls_cache(some_arg, notification) do %>
-  <%= notification.name %>
-<% end %>
-```
-
-#### External Dependencies
-
-If you use a helper method, for example, inside a cached block and you then update
-that helper, you'll have to bump the cache as well. It doesn't really matter how
-you do it, but the MD5 of the template file must change. One recommendation is to
-simply be explicit in a comment, like:
-
-```html+erb
-<%# Helper Dependency Updated: Jul 28, 2015 at 7pm %>
-<%= some_helper_method(person) %>
-```
-
-### Low-Level Caching
+### Low-Level Caching using `Rails.cache.fetch`
 
 Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing any serializable information.
 
@@ -493,6 +399,93 @@ However, it's important to note that query caches are created at the start of
 an action and destroyed at the end of that action and thus persist only for the
 duration of the action. If you'd like to store query results in a more
 persistent fashion, you can with low-level caching.
+
+## Managing Dependencies
+
+In order to correctly invalidate the cache, you need to properly define the
+caching dependencies. Rails is clever enough to handle common cases so you don't
+have to specify anything. However, sometimes, when you're dealing with custom
+helpers for instance, you need to explicitly define them.
+
+### Implicit Dependencies
+
+Most template dependencies can be derived from calls to `render` in the template
+itself. Here are some examples of render calls that [`ActionView::Digestor`](https://edgeapi.rubyonrails.org/classes/ActionView/Digestor.html) knows
+how to decode:
+
+```ruby
+render partial: "comments/comment", collection: commentable.comments
+render "comments/comments"
+render "comments/comments"
+render("comments/comments")
+
+render "header" # translates to render("comments/header")
+
+render(@topic)         # translates to render("topics/topic")
+render(topics)         # translates to render("topics/topic")
+render(message.topics) # translates to render("topics/topic")
+```
+
+On the other hand, some calls need to be changed to make caching work properly.
+For instance, if you're passing a custom collection, you'll need to change:
+
+```ruby
+render @project.documents.where(published: true)
+```
+
+to:
+
+```ruby
+render partial: "documents/document", collection: @project.documents.where(published: true)
+```
+
+### Explicit Dependencies
+
+Sometimes you'll have template dependencies that can't be derived at all. This
+is typically the case when rendering happens in helpers. Here's an example:
+
+```html+erb
+<%= render_sortable_todolists @project.todolists %>
+```
+
+You'll need to use a special comment format to call those out:
+
+```html+erb
+<%# Template Dependency: todolists/todolist %>
+<%= render_sortable_todolists @project.todolists %>
+```
+
+In some cases, like a single table inheritance setup, you might have a bunch of
+explicit dependencies. Instead of writing every template out, you can use a
+wildcard to match any template in a directory:
+
+```html+erb
+<%# Template Dependency: events/* %>
+<%= render_categorizable_events @person.events %>
+```
+
+As for collection caching, if the partial template doesn't start with a clean
+cache call, you can still benefit from collection caching by adding a special
+comment format anywhere in the template, like:
+
+```html+erb
+<%# Template Collection: notification %>
+<% my_helper_that_calls_cache(some_arg, notification) do %>
+  <%= notification.name %>
+<% end %>
+```
+
+### External Dependencies
+
+If you use a helper method, for example, inside a cached block and you then update
+that helper, you'll have to bump the cache as well. It doesn't really matter how
+you do it, but the MD5 of the template file must change. One recommendation is to
+simply be explicit in a comment, like:
+
+```html+erb
+<%# Helper Dependency Updated: Jul 28, 2015 at 7pm %>
+<%= some_helper_method(person) %>
+```
 
 Cache Stores
 ------------
