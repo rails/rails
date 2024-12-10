@@ -1423,6 +1423,10 @@ can define when we render the partial. We'll replace `@product` with `product`.
 <% end %>
 ```
 
+TIP: Using local variables allows partials to be reused multiple times on the
+same page with a different value each time. This comes in handy rendering lists
+of items like an index page.
+
 To use this partial in our `app/views/products/new.html.erb` view, we can
 replace the form with a render call:
 
