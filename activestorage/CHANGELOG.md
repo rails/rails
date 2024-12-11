@@ -26,6 +26,11 @@
     *Russell Porter*
 
 
+## Rails 7.0.8.7 (December 10, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.0.8.6 (October 23, 2024) ##
 
 *   No changes.

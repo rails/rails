@@ -1,3 +1,10 @@
+## Rails 7.0.8.7 (December 10, 2024) ##
+
+*   Update vendored trix version to 1.3.4
+
+    *John Hawthorn*
+
+
 ## Rails 7.0.8.6 (October 23, 2024) ##
 
 *   No changes.

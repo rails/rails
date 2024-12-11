@@ -10,7 +10,7 @@ module ActiveSupport
     MAJOR = 7
     MINOR = 0
     TINY  = 8
-    PRE   = "6"
+    PRE   = "7"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
