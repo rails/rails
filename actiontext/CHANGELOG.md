@@ -1,3 +1,10 @@
+## Rails 8.0.0.1 (December 10, 2024) ##
+
+*   Update vendored trix version to 2.1.10
+
+    *John Hawthorn*
+
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   No changes.

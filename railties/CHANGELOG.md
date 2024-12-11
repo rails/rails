@@ -11,6 +11,11 @@
     *y-yagi*
 
 
+## Rails 8.0.0.1 (December 10, 2024) ##
+
+*   No changes.
+
+
 ## Rails 8.0.0 (November 07, 2024) ##
 
 *   No changes.
