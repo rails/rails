@@ -12,6 +12,7 @@ After reading this guide, you will know:
 * How to enqueue jobs.
 * How to run jobs in the background.
 * How to send emails from your application asynchronously.
+* How to halt a job's lifecycle callback execution.
 
 --------------------------------------------------------------------------------
 
@@ -385,6 +386,23 @@ class GuestsCleanupJob < ApplicationJob
       yield
       # Do something after perform
     end
+end
+```
+
+A callback that `throws :abort` will [halt the callback chain](https://api.rubyonrails.org/classes/ActiveSupport/Callbacks.html)
+and skip the execution of any subsquent before, around and after callbacks:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :default
+
+  before_enqueue do
+    throw :abort if ENV.fetch("DISABLE_GUESTS_CLEANUP_JOB", false)
+  end
+
+  def perform
+    # Do something later
+  end
 end
 ```
 
