@@ -101,6 +101,19 @@ class ModelWithoutAttributesMethod
 end
 
 class AttributeMethodsTest < ActiveModel::TestCase
+  class Topic
+    include ActiveModel::API
+    include ActiveModel::AttributeMethods
+
+    attr_accessor :title
+
+    alias_attribute :heading, :title
+
+    def attributes
+      { "title" => @title }
+    end
+  end
+
   test "method missing works correctly even if attributes method is not defined" do
     assert_raises(NoMethodError) { ModelWithoutAttributesMethod.new.foo }
   end
@@ -410,5 +423,91 @@ class AttributeMethodsTest < ActiveModel::TestCase
     instance = subclass.new("George")
     assert_equal "George", instance.name
     assert_equal "George", instance.nickname
+  end
+
+  test "write_attribute" do
+    topic = Topic.new
+    topic.write_attribute :title, "Still another topic"
+    assert_equal "Still another topic", topic.title
+
+    topic[:title] = "Still another topic: part 2"
+    assert_equal "Still another topic: part 2", topic.title
+
+    topic.write_attribute "title", "Still another topic: part 3"
+    assert_equal "Still another topic: part 3", topic.title
+
+    topic["title"] = "Still another topic: part 4"
+    assert_equal "Still another topic: part 4", topic.title
+  end
+
+  test "write_attribute can write aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+    topic.write_attribute :heading, "New topic"
+
+    assert_equal "New topic", topic.title
+  end
+
+  test "write_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
+    topic = Topic.new
+    assert_raises(ActiveModel::MissingAttributeError) { topic[:no_column_exists] = "Hello!" }
+  end
+
+  test "read_attribute" do
+    topic = Topic.new
+    topic.title = "Don't change the topic"
+    assert_equal "Don't change the topic", topic.read_attribute("title")
+    assert_equal "Don't change the topic", topic["title"]
+
+    assert_equal "Don't change the topic", topic.read_attribute(:title)
+    assert_equal "Don't change the topic", topic[:title]
+  end
+
+  test "read_attribute can read aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+
+    assert_equal "Don't change the topic", topic.read_attribute("heading")
+    assert_equal "Don't change the topic", topic["heading"]
+
+    assert_equal "Don't change the topic", topic.read_attribute(:heading)
+    assert_equal "Don't change the topic", topic[:heading]
+  end
+
+  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
+    topic = Topic.new
+    assert_raises(ActiveModel::MissingAttributeError) { topic[:no_column_exists] }
+    assert_raises(ActiveModel::MissingAttributeError) { topic.read_attribute(:no_column_exists) }
+  end
+
+  test "overridden write_attribute" do
+    topic = Topic.new
+    def topic.write_attribute(attr_name, value)
+      super(attr_name, value.downcase)
+    end
+
+    topic.write_attribute :title, "Yet another topic"
+    assert_equal "yet another topic", topic.title
+
+    topic[:title] = "Yet another topic: part 2"
+    assert_equal "yet another topic: part 2", topic.title
+
+    topic.write_attribute "title", "Yet another topic: part 3"
+    assert_equal "yet another topic: part 3", topic.title
+
+    topic["title"] = "Yet another topic: part 4"
+    assert_equal "yet another topic: part 4", topic.title
+  end
+
+  test "overridden read_attribute" do
+    topic = Topic.new
+    topic.title = "Stop changing the topic"
+    def topic.read_attribute(attr_name)
+      super(attr_name).upcase
+    end
+
+    assert_equal "STOP CHANGING THE TOPIC", topic.read_attribute("title")
+    assert_equal "STOP CHANGING THE TOPIC", topic["title"]
+
+    assert_equal "STOP CHANGING THE TOPIC", topic.read_attribute(:title)
+    assert_equal "STOP CHANGING THE TOPIC", topic[:title]
   end
 end
