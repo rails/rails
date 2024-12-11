@@ -45,7 +45,10 @@ dl dd .interstitial {
     direction: ltr !important;
     text-align: left !important;
 
-    pre {margin: 0;}
+    pre {
+      margin: 0;
+      overflow: visible; // allows for the blue highlight to be seen
+    }
 
     button.clipboard-button {
       color: $gray-100;
