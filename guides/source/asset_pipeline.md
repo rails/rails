@@ -25,7 +25,7 @@ maintainability of the application.
 The Rails Asset Pipeline is managed by
 [**Propshaft**](https://github.com/rails/propshaft) in Rails 8. Propshaft is
 built for an era where transpilation, bundling and compression are less critical
-for basic applications, thanks to better browser support and faster networks and
+for basic applications, thanks to better browser support, faster networks and
 HTTP/2 capabilities.
 
 The simplified design of Propshaft, focuses on essential asset management tasks,
