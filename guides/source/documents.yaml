@@ -170,7 +170,7 @@
     -
       name: Testing Rails Applications
       url: testing.html
-      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to Integration Testing. Enjoy.
+      description: This guide explores how to write tests in Rails. It also covers test configuration and compares approaches to testing an application.
     -
       name: Securing Rails Applications
       url: security.html
