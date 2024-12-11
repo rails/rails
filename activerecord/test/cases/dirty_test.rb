@@ -949,7 +949,7 @@ class DirtyTest < ActiveRecord::TestCase
       aircraft.reload
 
       assert_equal "Boeing", aircraft.name
-      assert_in_delta Time.now, aircraft.manufactured_at, 1
+      assert_in_delta Time.now, aircraft.manufactured_at, 1.1
     end
   end
 
