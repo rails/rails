@@ -32,10 +32,7 @@ Rails provides a set of caching features out of the box which allows you to not
 only cache data, but also to tackle challenges like cache expiration, cache
 dependencies, and cache invalidation.
 
-In this guide, you can explore Rails' comprehensive caching strategies, from page
-caching to fragment caching and beyond. By using these techniques, you can
-empower your Rails applications to serve millions of views while keeping
-response times low and server bills manageable.
+This guide will explore Rails' comprehensive caching strategies, from fragment caching to SQL caching. With these techniques, your Rails application can serve millions of views while keeping response times low and server bills manageable.
 
 Types of Caching
 ----------------
