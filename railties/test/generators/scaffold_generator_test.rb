@@ -3,6 +3,161 @@
 require "plugin_helpers"
 require "generators/generators_test_helper"
 require "rails/generators/rails/scaffold/scaffold_generator"
+require "isolation/abstract_unit"
+
+class ScaffoldGeneratorIntegrationTest < ActiveSupport::TestCase
+  include Rails::Generators::Testing::Assertions
+  include Rails::Generators::Testing::Behavior
+  include ActiveSupport::Testing::Isolation
+  setup :build_app
+  setup { self.class.destination rails_root }
+  teardown :teardown_app
+
+  arguments %w(product_line title:string approved:boolean product:belongs_to user:references)
+
+  def test_scaffold_on_revoke
+    Dir.chdir(app_path) do
+      quietly { `bin/rails generate scaffold #{default_arguments.join(" ")}` }
+      quietly { `bin/rails destroy scaffold product_line` }
+
+      # Model
+      assert_no_file "app/models/product_line.rb"
+      assert_no_file "test/models/product_line_test.rb"
+      assert_no_file "test/fixtures/product_lines.yml"
+      assert_no_migration "db/migrate/create_product_lines.rb"
+
+      # Route
+      assert_file "config/routes.rb" do |route|
+        assert_no_match(/resources :product_lines$/, route)
+      end
+
+      # Controller
+      assert_no_file "app/controllers/product_lines_controller.rb"
+      assert_no_file "test/controllers/product_lines_controller_test.rb"
+
+      # System tests
+      assert_no_file "test/system/product_lines_test.rb"
+
+      # Views
+      assert_no_file "app/views/product_lines"
+      assert_no_file "app/views/layouts/product_lines.html.erb"
+
+      # Helpers
+      assert_no_file "app/helpers/product_lines_helper.rb"
+    end
+  end
+
+  def test_scaffold_with_namespace_on_revoke
+    Dir.chdir(app_path) do
+      quietly { `bin/rails generate scaffold admin/role name:string description:string` }
+      quietly { `bin/rails destroy scaffold admin/role` }
+
+      # Model
+      assert_file "app/models/admin.rb" # ( should not be remove )
+      assert_no_file "app/models/admin/role.rb"
+      assert_no_file "test/models/admin/role_test.rb"
+      assert_no_file "test/fixtures/admin/roles.yml"
+      assert_no_migration "db/migrate/create_admin_roles.rb"
+
+      # Route
+      assert_file "config/routes.rb" do |route|
+        assert_no_match(/namespace :admin do resources :roles end$/, route)
+      end
+
+      # Controller
+      assert_no_file "app/controllers/admin/roles_controller.rb"
+      assert_no_file "test/controllers/admin/roles_controller_test.rb"
+
+      # System tests
+      assert_no_file "test/system/admin/roles_test.rb"
+
+      # Views
+      assert_no_file "app/views/admin/roles"
+      assert_no_file "app/views/layouts/admin/roles.html.erb"
+
+      # Helpers
+      assert_no_file "app/helpers/admin/roles_helper.rb"
+    end
+  end
+
+  def test_scaffold_generator_on_revoke_does_not_mutilate_legacy_map_parameter
+    Dir.chdir(app_path) do
+      quietly { `bin/rails generate scaffold #{default_arguments.join(" ")}` }
+
+      # Add a |map| parameter to the routes block manually
+      route_path = File.expand_path("config/routes.rb", destination_root)
+      content = File.read(route_path).gsub(/\.routes\.draw do/) do |match|
+        "#{match} |map|"
+      end
+      File.write(route_path, content)
+
+      quietly { `bin/rails destroy scaffold product_line` }
+
+      assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
+    end
+  end
+
+  def test_scaffold_generator_on_revoke_does_not_mutilate_routes
+    Dir.chdir(app_path) do
+      quietly { `bin/rails generate scaffold #{default_arguments.join(" ")}` }
+
+      route_path = File.expand_path("config/routes.rb", destination_root)
+      content = File.read(route_path)
+
+      # Remove all of the comments, blank lines, and default actions from the routes file
+      content.gsub!(/^  \#.*\n/, "")
+      content.gsub!(/^  get "up".*\n/, "")
+      content.gsub!(/^  get "service-worker".*\n/, "")
+      content.gsub!(/^  get "manifest".*\n/, "")
+      # Remove ActionDispatch.deprecator.silence block added from TestHelpers::Generation#build_app
+      content.gsub!(/^ActionDispatch.deprecator.silence.+\n/, "")
+      content.gsub!(/^\n/, "")
+
+      File.write(route_path, content)
+
+      assert_file "config/routes.rb", /resources :product_lines/
+      assert_file "config/routes.rb", /\.routes\.draw do\n  resources :product_lines\nend\n\z/
+
+      quietly { `bin/rails destroy scaffold product_line` }
+      assert_file "config/routes.rb", /\.routes\.draw do\nend\n\z/
+
+      assert_file "config/routes.rb" do |route|
+        assert_no_match(/resources :product_lines/, route)
+      end
+    end
+  end
+
+  def test_scaffold_on_revoke_inside_mountable_engine
+    Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+    engine_path = File.join(destination_root, "bukkits")
+
+    Dir.chdir(engine_path) do
+      quietly { `bin/rails generate scaffold User name:string age:integer` }
+
+      assert_predicate Dir.glob("db/migrate/*_create_bukkits_users.rb"), :any?
+
+      quietly { `bin/rails destroy scaffold User` }
+
+      assert_not File.exist?("app/models/bukkits/user.rb")
+      assert_not Dir.glob("db/migrate/*_create_bukkits_users.rb").any?
+      assert_not File.exist?("test/models/bukkits/user_test.rb")
+      assert_not File.exist?("test/fixtures/bukkits/users.yml")
+
+      assert_not File.exist?("app/controllers/bukkits/users_controller.rb")
+      assert_not File.exist?("test/controllers/bukkits/users_controller_test.rb")
+
+      assert_not File.exist?("test/system/bukkits/users_test.rb")
+
+      assert_not File.exist?("app/views/bukkits/users/index.html.erb")
+      assert_not File.exist?("app/views/bukkits/users/edit.html.erb")
+      assert_not File.exist?("app/views/bukkits/users/show.html.erb")
+      assert_not File.exist?("app/views/bukkits/users/new.html.erb")
+      assert_not File.exist?("app/views/bukkits/users/_form.html.erb")
+
+      assert_not File.exist?("app/helpers/bukkits/users_helper.rb")
+    end
+  end
+end
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include PluginHelpers
@@ -185,36 +340,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_scaffold_on_revoke
-    run_generator
-    run_generator ["product_line"], behavior: :revoke
-
-    # Model
-    assert_no_file "app/models/product_line.rb"
-    assert_no_file "test/models/product_line_test.rb"
-    assert_no_file "test/fixtures/product_lines.yml"
-    assert_no_migration "db/migrate/create_product_lines.rb"
-
-    # Route
-    assert_file "config/routes.rb" do |route|
-      assert_no_match(/resources :product_lines$/, route)
-    end
-
-    # Controller
-    assert_no_file "app/controllers/product_lines_controller.rb"
-    assert_no_file "test/controllers/product_lines_controller_test.rb"
-
-    # System tests
-    assert_no_file "test/system/product_lines_test.rb"
-
-    # Views
-    assert_no_file "app/views/product_lines"
-    assert_no_file "app/views/layouts/product_lines.html.erb"
-
-    # Helpers
-    assert_no_file "app/helpers/product_lines_helper.rb"
-  end
-
   def test_scaffold_with_namespace_on_invoke
     run_generator [ "admin/role", "name:string", "description:string" ]
 
@@ -309,73 +434,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_file "app/helpers/admin/roles_helper.rb"
-  end
-
-  def test_scaffold_with_namespace_on_revoke
-    run_generator [ "admin/role", "name:string", "description:string" ]
-    run_generator [ "admin/role" ], behavior: :revoke
-
-    # Model
-    assert_file "app/models/admin.rb" # ( should not be remove )
-    assert_no_file "app/models/admin/role.rb"
-    assert_no_file "test/models/admin/role_test.rb"
-    assert_no_file "test/fixtures/admin/roles.yml"
-    assert_no_migration "db/migrate/create_admin_roles.rb"
-
-    # Route
-    assert_file "config/routes.rb" do |route|
-      assert_no_match(/namespace :admin do resources :roles end$/, route)
-    end
-
-    # Controller
-    assert_no_file "app/controllers/admin/roles_controller.rb"
-    assert_no_file "test/controllers/admin/roles_controller_test.rb"
-
-    # System tests
-    assert_no_file "test/system/admin/roles_test.rb"
-
-    # Views
-    assert_no_file "app/views/admin/roles"
-    assert_no_file "app/views/layouts/admin/roles.html.erb"
-
-    # Helpers
-    assert_no_file "app/helpers/admin/roles_helper.rb"
-  end
-
-  def test_scaffold_generator_on_revoke_does_not_mutilate_legacy_map_parameter
-    run_generator
-
-    # Add a |map| parameter to the routes block manually
-    route_path = File.expand_path("config/routes.rb", destination_root)
-    content = File.read(route_path).gsub(/\.routes\.draw do/) do |match|
-      "#{match} |map|"
-    end
-    File.write(route_path, content)
-
-    run_generator ["product_line"], behavior: :revoke
-
-    assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
-  end
-
-  def test_scaffold_generator_on_revoke_does_not_mutilate_routes
-    run_generator
-
-    route_path = File.expand_path("config/routes.rb", destination_root)
-    content = File.read(route_path)
-
-    # Remove all of the comments, blank lines, and default actions from the routes file
-    content.gsub!(/^  \#.*\n/, "")
-    content.gsub!(/^  get "up".*\n/, "")
-    content.gsub!(/^  get "service-worker".*\n/, "")
-    content.gsub!(/^  get "manifest".*\n/, "")
-    content.gsub!(/^\n/, "")
-
-    File.write(route_path, content)
-    assert_file "config/routes.rb", /\.routes\.draw do\n  resources :product_lines\nend\n\z/
-
-    run_generator ["product_line"], behavior: :revoke
-
-    assert_file "config/routes.rb", /\.routes\.draw do\nend\n\z/
   end
 
   def test_scaffold_generator_ignores_commented_routes
@@ -657,33 +715,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert File.exist?("app/views/bukkits/users/_form.html.erb")
 
       assert File.exist?("app/helpers/bukkits/users_helper.rb")
-    end
-  end
-
-  def test_scaffold_on_revoke_inside_mountable_engine
-    Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
-    engine_path = File.join(destination_root, "bukkits")
-
-    Dir.chdir(engine_path) do
-      quietly { `bin/rails generate scaffold User name:string age:integer` }
-      quietly { `bin/rails destroy scaffold User` }
-
-      assert_not File.exist?("app/models/bukkits/user.rb")
-      assert_not File.exist?("test/models/bukkits/user_test.rb")
-      assert_not File.exist?("test/fixtures/bukkits/users.yml")
-
-      assert_not File.exist?("app/controllers/bukkits/users_controller.rb")
-      assert_not File.exist?("test/controllers/bukkits/users_controller_test.rb")
-
-      assert_not File.exist?("test/system/bukkits/users_test.rb")
-
-      assert_not File.exist?("app/views/bukkits/users/index.html.erb")
-      assert_not File.exist?("app/views/bukkits/users/edit.html.erb")
-      assert_not File.exist?("app/views/bukkits/users/show.html.erb")
-      assert_not File.exist?("app/views/bukkits/users/new.html.erb")
-      assert_not File.exist?("app/views/bukkits/users/_form.html.erb")
-
-      assert_not File.exist?("app/helpers/bukkits/users_helper.rb")
     end
   end
 end
