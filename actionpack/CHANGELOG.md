@@ -1,3 +1,13 @@
+## Rails 7.1.5.1 (December 10, 2024) ##
+
+*   Add validation to content security policies to disallow spaces and semicolons.
+    Developers should use multiple arguments, and different directive methods instead.
+
+    [CVE-2024-54133]
+
+    *Gannon McGibbon*
+
+
 ## Rails 7.1.5 (October 30, 2024) ##
 
 *   No changes.
