@@ -33,7 +33,6 @@ class RedirectSSLTest < SSLTest
 
   def assert_post_redirected(redirect: {}, from: "http://a/b?c=d",
     to: from.sub("http", "https"))
-
     self.app = build_app ssl_options: { redirect: redirect }
 
     post from

@@ -174,7 +174,8 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   def test_on_rotation_can_be_passed_at_the_constructor_level
     older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign({ encoded: "message" })
 
-    rotated = rotated = false  # double assigning to suppress "assigned but unused variable" warning
+    # double assigning to suppress "assigned but unused variable" warning
+    rotated = rotated = false # rubocop:disable Lint/UselessAssignment
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, on_rotation: proc { rotated = true })
     encryptor.rotate secrets[:older], "older sign"
 
@@ -188,7 +189,8 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   def test_on_rotation_option_takes_precedence_over_the_one_given_in_constructor
     older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign({ encoded: "message" })
 
-    rotated = rotated = false  # double assigning to suppress "assigned but unused variable" warning
+    # double assigning to suppress "assigned but unused variable" warning
+    rotated = rotated = false # rubocop:disable Lint/UselessAssignment
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, on_rotation: proc { rotated = true })
     encryptor.rotate secrets[:older], "older sign"
 
