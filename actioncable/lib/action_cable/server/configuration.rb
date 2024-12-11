@@ -13,17 +13,19 @@ module ActionCable
     # configuration in a Rails config initializer.
     class Configuration
       attr_accessor :logger, :log_tags
-      attr_accessor :connection_class, :worker_pool_size
+      attr_accessor :connection_class, :worker_pool_size, :executor_pool_size
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host, :filter_parameters
       attr_accessor :cable, :url, :mount_path
       attr_accessor :precompile_assets
       attr_accessor :health_check_path, :health_check_application
+      attr_writer :pubsub_adapter
 
       def initialize
         @log_tags = []
 
         @connection_class = -> { ActionCable::Connection::Base }
         @worker_pool_size = 4
+        @executor_pool_size = 10
 
         @disable_request_forgery_protection = false
         @allow_same_origin_as_host = true
@@ -34,10 +36,13 @@ module ActionCable
         }
       end
 
-      # Returns constant of subscription adapter specified in config/cable.yml. If the
-      # adapter cannot be found, this will default to the Redis adapter. Also makes
+      # Returns constant of subscription adapter specified in config/cable.yml or directly in the configuration.
+      # If the adapter cannot be found, this will default to the Redis adapter. Also makes
       # sure proper dependencies are required.
       def pubsub_adapter
+        # Provided explicitly in the configuration
+        return @pubsub_adapter.constantize if @pubsub_adapter
+
         adapter = (cable.fetch("adapter") { "redis" })
 
         # Require the adapter itself and give useful feedback about
