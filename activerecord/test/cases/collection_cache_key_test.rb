@@ -97,6 +97,8 @@ module ActiveRecord
     end
 
     test "insert_all will update cache_key" do
+      skip unless supports_insert_on_duplicate_skip?
+
       developers = Developer.all
       cache_key = developers.cache_key
 
@@ -106,6 +108,8 @@ module ActiveRecord
     end
 
     test "upsert_all will update cache_key" do
+      skip unless supports_insert_on_duplicate_update?
+
       developers = Developer.all
       cache_key = developers.cache_key
 
