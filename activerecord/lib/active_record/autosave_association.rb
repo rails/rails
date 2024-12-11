@@ -517,7 +517,7 @@ module ActiveRecord
         return false unless reflection.inverse_of&.polymorphic?
 
         class_name = record._read_attribute(reflection.inverse_of.foreign_type)
-        reflection.active_record != record.class.polymorphic_class_for(class_name)
+        reflection.active_record.polymorphic_name != class_name
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.
