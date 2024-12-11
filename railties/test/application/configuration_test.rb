@@ -4205,6 +4205,34 @@ module ApplicationTests
       assert_nil Rails.application.config.middleware.map(&:name).index("3rd custom middleware")
     end
 
+    test "middleware can be added with a nested stack" do
+      app_file "config/initializers/add_custom_middleware.rb", <<~RUBY
+        class NestedMiddlewareBase
+          def initialize(app, *args); end
+          def new(app); self; end
+        end
+
+        class NestedMiddlewareOne < NestedMiddlewareBase ; end
+        class NestedMiddlewareTwo < NestedMiddlewareBase ; end
+        class NestedMiddlewareThree < NestedMiddlewareBase ; end
+
+        inner_nested_stack = Rails.application.config.middleware.create_stack
+        outer_nested_stack = Rails.application.config.middleware.create_stack
+        Rails.application.config.middleware.unshift(outer_nested_stack)
+        outer_nested_stack.use(NestedMiddlewareOne)
+        outer_nested_stack.use(NestedMiddlewareThree)
+        outer_nested_stack.insert_after(NestedMiddlewareOne, inner_nested_stack)
+        inner_nested_stack.use(NestedMiddlewareTwo)
+      RUBY
+
+      app "development"
+
+      built_middleware = Rails.application.config.middleware.map(&:klass)
+      assert_equal 0, built_middleware.index(NestedMiddlewareOne)
+      assert_equal 1, built_middleware.index(NestedMiddlewareTwo)
+      assert_equal 2, built_middleware.index(NestedMiddlewareThree)
+    end
+
     test "Rails.application.deprecators includes framework deprecators" do
       app "production"
 
