@@ -481,7 +481,7 @@ class FixturesTest < ActiveRecord::TestCase
     create_fixtures("aircrafts")
 
     aircraft = Aircraft.find_by(name: "boeing-with-no-manufactured-at")
-    assert_equal Time.now.utc.strftime("%Y-%m-%d %H:%M:%S"), aircraft.manufactured_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert_in_delta Time.now, aircraft.manufactured_at, 1
   end
 
   def test_insert_with_default_value
