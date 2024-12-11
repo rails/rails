@@ -52,6 +52,10 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+
+    assert_file "test/test_helper.rb" do |content|
+      assert_match(/def login_as(user)/, content)
+    end
   end
 
   def test_authentication_generator_without_bcrypt_in_gemfile
@@ -96,6 +100,10 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+
+    assert_file "test/test_helper.rb" do |content|
+      assert_match(/def login_as(user)/, content)
+    end
   end
 
   def test_model_test_is_skipped_if_test_framework_is_given

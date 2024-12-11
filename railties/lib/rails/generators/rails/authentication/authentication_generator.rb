@@ -52,6 +52,20 @@ module Rails
         generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
       end
 
+      def configure_test_helper
+        inject_into_file "test/test_helper.rb", after: "# Add more helper methods to be used by all tests here...\n" do
+          <<-RUBY
+    def login_as(user)
+      session = user.sessions.create!
+      Current.session = session
+      request = ActionDispatch::Request.new(Rails.application.env_config)
+      cookies = request.cookie_jar
+      cookies.signed[:session_id] = { value: session.id, httponly: true, same_site: :lax }
+    end
+          RUBY
+        end
+      end
+
       hook_for :test_framework
     end
   end
