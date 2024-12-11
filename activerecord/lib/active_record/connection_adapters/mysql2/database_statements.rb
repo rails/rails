@@ -58,12 +58,24 @@ module ActiveRecord
               # of hitting the bug.
               @affected_rows_before_warnings = result&.size || raw_connection.affected_rows
             elsif prepare
-              stmt = @statements[sql] ||= raw_connection.prepare(sql)
+              retry_count = 1
               begin
+                stmt = @statements[sql] ||= raw_connection.prepare(sql)
                 result = stmt.execute(*type_casted_binds)
                 @affected_rows_before_warnings = stmt.affected_rows
-              rescue ::Mysql2::Error
+              rescue ::Mysql2::Error => error
                 @statements.delete(sql)
+                # Sometimes for an unknown reason, we get that error.
+                # It suggest somehow that the prepared statement was deallocated
+                # but the client doesn't know it.
+                # But we know that this error is safe to retry, so we do so after
+                # getting rid of the originally cached statement.
+                if error.error_number == 1243 # ER_UNKNOWN_STMT_HANDLER
+                  if retry_count.positive?
+                    retry_count -= 1
+                    retry
+                  end
+                end
                 raise
               end
             else
