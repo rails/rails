@@ -18,7 +18,7 @@ class Hash
 
   # Destructive +reverse_merge+.
   def reverse_merge!(other_hash)
-    replace(reverse_merge(other_hash))
+    merge!(other_hash) { |key, old, new| old }
   end
   alias_method :reverse_update, :reverse_merge!
   alias_method :with_defaults!, :reverse_merge!
