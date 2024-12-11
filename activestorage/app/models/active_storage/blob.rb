@@ -51,14 +51,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   validates :service_name, presence: true
   validates :checksum, presence: true, unless: :composed
-
-  validate do
-    if service_name_changed? && service_name.present?
-      services.fetch(service_name) do
-        errors.add(:service_name, :invalid)
-      end
-    end
-  end
+  validate :validate_service_name_in_services, if: -> { service_name_changed? && service_name.present? }
 
   class << self
     # You can use the signed ID of a blob to refer to it on the client side without fear of tampering.
@@ -345,6 +338,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   private
+    def validate_service_name_in_services
+      services.fetch(service_name) do
+        errors.add(:service_name, :invalid)
+      end
+    end
+
     def compute_checksum_in_chunks(io)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
 
