@@ -354,15 +354,7 @@ Solid Cache
 
 Solid Cache is a database-backed Active Support cache store and is a great choice for applications that need to cache large amounts of data.
 
-By leveraging the speed of modern SSDs, like NVMe, Solid Cache is designed to overcome the limitations of traditional memory-only caches like Redis and Memcached. You get the following benefits with With Solid Cache:
-
-- Larger Cache Sizes: The cached data is stored on a disk instead of in memory - this allows you to cache large amounts of data without worrying about the high cost. Memory-only caches like Redis and Memcached are expensive to scale because the come with very little storage capacity.
-
-- Cost-Effective: Solid Cache is much more cost-effective than traditional memory-only caches. Memory-only caches are expensive to scale because they require a lot of memory. Solid Cache is much cheaper because it uses disk storage which is much cheaper than memory.
-
-- Simplified Infrastructure: No need for additional dependencies like Redis or Memcached. Additionally, Solid Cache uses a relational database to store cached data, making it simpler to integrate into existing database setups.
-
-While SSDs are slightly slower than RAM, the difference is minimal for most applications. SSDs compensate for this by not needing to be invalidated as frequently, since they can store much more data. As a result, there are fewer cache misses on average, leading to fast response times.
+By leveraging the speed of modern SSDs like NVMe, Solid Cache overcomes the limitations of traditional memory-only caches, offering cost-effective caching with larger storage capacity and simplified infrastructure. While SSDs are slightly slower than RAM, the difference is minimal for most applications. SSDs compensate for this by not needing to be invalidated as frequently, since they can store much more data. As a result, there are fewer cache misses on average, leading to fast response times.
 
 Solid Cache uses a FIFO (First In, First Out) caching strategy, where the first item added to the cache is the first one to be removed when the cache reaches its limit. This approach is simpler but less efficient compared to an LRU (Least Recently Used) cache, which removes the least recently accessed items first, better optimizing for frequently used data. However, Solid Cache compensates for the lower efficiency of FIFO by allowing the cache to live longer, reducing the frequency of invalidations and improving overall performance in many scenarios.
 
