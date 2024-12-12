@@ -419,7 +419,23 @@ In production, the cache store is configured to use the solid cache store:
   config.cache_store = :solid_cache_store
 ```
 
-You can access the cache by calling `Rails.cache`.
+You can access the cache by calling `Rails.cache`. For example:
+
+```ruby
+# Store a value in the cache
+Rails.cache.write('greeting', 'Hello, world!')
+
+# Retrieve the value from the cache
+greeting = Rails.cache.read('greeting')
+puts greeting # Output: Hello, world!
+
+# Fetch a value with a block to set a default if it doesn’t exist
+welcome_message = Rails.cache.fetch('welcome_message') { 'Welcome to Rails!' }
+puts welcome_message # Output: Welcome to Rails!
+
+# Delete a value from the cache
+Rails.cache.delete('greeting')
+```
 
 ### Customizing the Cache Store
 
