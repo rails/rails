@@ -84,7 +84,6 @@ dependencies:
      <%= stylesheet_link_tag "main" %>
     </head>
     <body>
-     <%= javascript_include_tag "jquery" %>
      <%= javascript_include_tag "utilities" %>
      <%= javascript_include_tag "main" %>
     </body>
