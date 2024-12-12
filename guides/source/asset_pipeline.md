@@ -135,8 +135,7 @@ dependencies:
     management](#advanced-asset-management) alongside Propshaft.
 
     Tools like [`js-bundling-rails`](https://github.com/rails/jsbundling-rails)
-    integrates [Webpack](https://webpack.js.org/),
-    [esbuild](https://esbuild.github.io/), or [Vite](https://vite.dev/) into
+    integrates [Bun](https://bun.sh/), [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/) into
     your Rails application, while
     [`css-bundling-rails`](https://github.com/rails/cssbundling-rails) can be
     used to process stylesheets that use [Sass](https://sass-lang.com/) or
