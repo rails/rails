@@ -6,6 +6,7 @@ require "models/category"
 require "models/comment"
 require "models/computer"
 require "models/developer"
+require "models/owner"
 require "models/post"
 require "models/person"
 require "models/pet"
@@ -17,7 +18,7 @@ require "models/warehouse_thing"
 require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags,
+  fixtures :authors, :author_addresses, :comments, :developers, :owners, :posts, :people, :pets, :toys, :tags,
     :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
@@ -60,8 +61,8 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_not_equal "ig", post.title
   end
 
-  def test_update_all_with_joins
-    pets = Pet.joins(:toys).where(toys: { name: "Bone" })
+  def test_update_all_with_joins_and_limit
+    pets = Pet.joins(:toys).where(toys: { name: "Bone" }).limit(2)
 
     assert_equal true, pets.exists?
     sqls = capture_sql do
@@ -82,6 +83,42 @@ class UpdateAllTest < ActiveRecord::TestCase
 
     assert_deprecated("`with` is not supported by `update_all`", ActiveRecord.deprecator) do
       Author.with(limited: Author.where(name: "")).update_all(name: "Bob")
+    end
+  end
+
+  def test_dynamic_update_all_with_one_joined_table
+    update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
+      "toys.name = pets.name"
+    elsif current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+      "name = pets.name"
+    else
+      raise NotImplementedError
+    end
+
+    toys = Toy.joins(:pet)
+    assert_equal 3, toys.count
+    assert_equal 3, toys.update_all(update_fragment)
+
+    toys.each do |toy|
+      assert_equal toy.pet.name, toy.name
+    end
+  end
+
+  def test_dynamic_update_all_with_two_joined_table
+    update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
+      "toys.name = owners.name"
+    elsif current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+      "name = owners.name"
+    else
+      raise NotImplementedError
+    end
+
+    toys = Toy.joins(pet: [:owner])
+    assert_equal 3, toys.count
+    assert_equal 3, toys.update_all(update_fragment)
+
+    toys.each do |toy|
+      assert_equal toy.pet.owner.name, toy.name
     end
   end
 

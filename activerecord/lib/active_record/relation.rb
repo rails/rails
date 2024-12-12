@@ -1407,7 +1407,7 @@ module ActiveRecord
 
       def _increment_attribute(attribute, value = 1)
         bind = predicate_builder.build_bind_attribute(attribute.name, value.abs)
-        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attribute), 0)
+        expr = table.coalesce(attribute, 0)
         expr = value < 0 ? expr - bind : expr + bind
         expr.expr
       end
