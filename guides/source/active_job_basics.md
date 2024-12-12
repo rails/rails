@@ -119,7 +119,7 @@ That's it!
 
 You can enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later). For more details see [Bulk Enqueuing](#bulk-enqueuing).
 
-Default Adapter: Solid Queue
+Default Backend: Solid Queue
 ------------------------------
 
 Solid Queue, which is enabled by default from Rails version 8.0 and onward, is a
@@ -489,7 +489,7 @@ option to `set`:
 MyJob.set(queue: :another_queue).perform_later(record)
 ```
 
-NOTE: If you choose to use an [alternate queueing adapter](#alternate-queuing-adapters) you may need to specify the queues to listen to.
+NOTE: If you choose to use an [alternate queuing backend](#alternate-queuing-backends) you may need to specify the queues to listen to.
 
 [`config.active_job.queue_name_delimiter`]: configuring.html#config-active-job-queue-name-delimiter
 [`config.active_job.queue_name_prefix`]: configuring.html#config-active-job-queue-name-prefix
@@ -508,9 +508,9 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Solid Queue, the default adapter, prioritizes jobs based on the order of the queues.  You can read more about it in the [Order of Queues section](#queue-order). If you're using Solid Queue, and both the order of the queues and the priority option are used, the queue order will take precedence, and the priority option will only apply within each queue.
+Solid Queue, the default queuing backend, prioritizes jobs based on the order of the queues.  You can read more about it in the [Order of Queues section](#queue-order). If you're using Solid Queue, and both the order of the queues and the priority option are used, the queue order will take precedence, and the priority option will only apply within each queue.
 
-Other adapters may allow jobs to be prioritized relative to others within the same queue or across multiple queues. Refer to the documentation of your backend for more information.
+Other queuing backends may allow jobs to be prioritized relative to others within the same queue or across multiple queues. Refer to the documentation of your backend for more information.
 
 Similar to `queue_as`, you can also pass a block to `queue_with_priority` to be evaluated in the job context:
 
@@ -688,7 +688,7 @@ For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
 Solid Queue, the default queue backend, supports bulk enqueuing using
 `enqueue_all`.
 
-[Other backends](#alternate-queuing-adapters) like Sidekiq have a `push_bulk`
+[Other backends](#alternate-queuing-backends) like Sidekiq have a `push_bulk`
 method, which can push a large number of jobs to Redis and prevent the round
 trip network latency. GoodJob also supports bulk enqueuing with the
 `GoodJob::Bulk.enqueue` method.
@@ -894,7 +894,7 @@ Debugging
 
 If you need help figuring out where jobs are coming from, you can enable [verbose logging](debugging_rails_applications.html#verbose-enqueue-logs).
 
-Alternate Queuing Adapters
+Alternate Queuing Backends
 --------------------------
 
 Active Job has other built-in adapters for multiple queuing backends (Sidekiq,
