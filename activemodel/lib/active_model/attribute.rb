@@ -96,6 +96,14 @@ module ActiveModel
       end
     end
 
+    def dup_or_share # :nodoc:
+      if @type.mutable?
+        dup
+      else
+        self # If the underlying type is immutable we can get away with not duping
+      end
+    end
+
     def type_cast(*)
       raise NotImplementedError
     end
