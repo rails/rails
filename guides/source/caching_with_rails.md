@@ -352,7 +352,7 @@ simply be explicit in a comment, like:
 Solid Cache
 -----------
 
-Solid Cache is a database-backed Active Support cache store and is a great choice for applications that need to cache large amounts of data.
+Solid Cache is a database-backed Active Support cache store. Solid Cache allows you keep a much larger cache than is typically possible with traditional memory-only Redis or Memcached stores (thanks to the speed of modern SSD drives).
 
 By leveraging the speed of modern SSDs like NVMe, Solid Cache overcomes the limitations of traditional memory-only caches, offering cost-effective caching with larger storage capacity and simplified infrastructure. While SSDs are slightly slower than RAM, the difference is minimal for most applications. SSDs compensate for this by not needing to be invalidated as frequently, since they can store much more data. As a result, there are fewer cache misses on average, leading to fast response times.
 
