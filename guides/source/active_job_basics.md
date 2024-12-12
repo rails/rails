@@ -543,7 +543,7 @@ option to `set`:
 MyJob.set(queue: :another_queue).perform_later(record)
 ```
 
-NOTE:If you choose to use an [alternate queueing adapter](#alternate-queuing-adapters) you may need to specify the queues to listen to.
+NOTE: If you choose to use an [alternate queueing adapter](#alternate-queuing-adapters) you may need to specify the queues to listen to.
 
 [`config.active_job.queue_name_delimiter`]: configuring.html#config-active-job-queue-name-delimiter
 [`config.active_job.queue_name_prefix`]: configuring.html#config-active-job-queue-name-prefix
