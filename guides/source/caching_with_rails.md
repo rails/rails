@@ -358,7 +358,7 @@ By leveraging the speed of modern SSDs like NVMe, Solid Cache overcomes the limi
 
 Solid Cache uses a FIFO (First In, First Out) caching strategy, where the first item added to the cache is the first one to be removed when the cache reaches its limit. This approach is simpler but less efficient compared to an LRU (Least Recently Used) cache, which removes the least recently accessed items first, better optimizing for frequently used data. However, Solid Cache compensates for the lower efficiency of FIFO by allowing the cache to live longer, reducing the frequency of invalidations.
 
-Solid Cache is enabled by default in Rails app from 8.0. However, if you'd prefer not to utilize it, you can skip Solid Cache:
+Solid Cache is enabled by default from Rails version 8.0 and onward. However, if you'd prefer not to utilize it, you can skip Solid Cache:
 
 ```bash
 rails new app_name --skip-solid
