@@ -22,7 +22,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
     unless Rails.respond_to?(:root)
       @defined_root = true
-      def Rails.root; :defined_root; end # Minitest `stub` expects the method to be defined.
+      Rails.define_singleton_method(:root) { :defined_root } # Minitest `stub` expects the method to be defined.
     end
   end
 
