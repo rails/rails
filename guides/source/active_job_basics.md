@@ -367,7 +367,7 @@ Read more about [Concurrency Controls in the Solid Queue documentation](https://
 
 ### Failed Jobs and Retries
 
-Solid Queue doesn’t provide automatic retries; it relies on Active Job for that. Failed jobs will be stored in the `solid_queue_failed_executions` table. You can inspect and retry them manually, for example:
+Failed jobs will be stored in the `solid_queue_failed_executions` table. You can inspect and retry them manually, for example:
 
 ```ruby
 failed_execution = SolidQueue::FailedExecution.find(1)
