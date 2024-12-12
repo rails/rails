@@ -317,7 +317,7 @@ export default class extends Controller {
 
 This ensures that the correct, digested file is used in your JavaScript code.
 
-If you’re using bundlers like [Webpacker](https://webpack.js.org/) or
+If you’re using bundlers like [Webpack](https://webpack.js.org/) or
 [esbuild](https://esbuild.github.io/), you should let the bundlers handle the
 digesting process. If Propshaft detects that a file already has a digest in the
 filename (e.g., `script-2169cbef.js`), it will skip digesting the file again to
