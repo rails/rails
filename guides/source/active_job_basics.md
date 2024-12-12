@@ -265,7 +265,7 @@ production:
 
 In the above example, workers will fetch jobs from queues starting with "active_storage", like  the `active_storage_analyse` queue and `active_storage_transform` queue. Only when no jobs remain in the `active_storage`-prefixed queues will workers move on to the `mailers` queue.
 
-NOTE: The wildcard `*` (at the end of "production") is only allowed on its own or at the end of a queue name to match all queues with the same prefix. You can't specify queue names such as `*_some_queue`.
+NOTE: The wildcard `*` (like at the end of "active_storage") is only allowed on its own or at the end of a queue name to match all queues with the same prefix. You can't specify queue names such as `*_some_queue`.
 
 WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow down polling performance due to the need for a `DISTINCT` query to identify all matching queues, which can be slow on large tables. For better performance, it’s best to specify exact queue names instead of using wildcards.
 
@@ -273,10 +273,6 @@ Active Job supports positive integer priorities when enqueuing jobs (see [Priori
 
 For example, if you have two queues, `production` and `background`, jobs in the `production` queue will always be processed first, even if some jobs in the `background` queue have a higher priority.
 
-WARNING: You should avoid using the `priority` option if you're relying on the
-order of the queues list. If both the order of the queues and the priority
-option are used, the queue order will take precedence, and the priority option
-will only apply within each queue.
 
 ### Threads, Processes, and Signals
 
