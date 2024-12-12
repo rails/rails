@@ -162,7 +162,7 @@ NOTE: The key `queue` from the database configuration needs to match the key use
 
 #### Development
 
-In development Rails provides an in-process queuing system, which keeps the
+In development Rails provides an asynchronous in-process queuing system, which keeps the
 jobs in RAM. If the process crashes or the machine is reset, then all
 outstanding jobs are lost with the default async backend. This can be fine for
 smaller apps or non-critical jobs in development.
