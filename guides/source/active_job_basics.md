@@ -130,6 +130,56 @@ Besides regular job enqueuing and processing, Solid Queue supports delayed jobs,
 
 ### Set Up
 
+#### Development
+
+In development, Rails provides an asynchronous in-process queuing system, which keeps the
+jobs in RAM. If the process crashes or the machine is reset, then all
+outstanding jobs are lost with the default async backend. This can be fine for
+smaller apps or non-critical jobs in development.
+
+However, if you want to use Solid Queue instead, you
+can configure it in the same way as in the production environment:
+
+```ruby
+# config/environments/development.rb
+config.active_job.queue_adapter = :solid_queue
+config.solid_queue.connects_to = { database: { writing: :queue } }
+```
+
+which sets the `:solid_queue` adapter as the default for Active Job in the production environment, and connects to the `queue` database for writing.
+
+Thereafter, you'd add `queue` to the development database configuration:
+
+```yaml
+# config/database.yml
+development
+  primary:
+    <<: *default
+    database: storage/development.sqlite3
+  queue:
+    <<: *default
+    database: storage/development_queue.sqlite3
+    migrations_paths: db/queue_migrate
+```
+
+NOTE: The key `queue` from the database configuration needs to match the key used in the configuration for `config.solid_queue.connects_to`.
+
+You can run the migrations for the `queue` database to ensure all the tables in queue database are created:
+
+```bash
+$ bin/rails db:migrate:queue
+```
+
+TIP: You can find the default generated schema for the `queue` database in
+`db/queue_schema.rb`. They will contain tables like
+`solid_queue_ready_executions`, `solid_queue_scheduled_executions`, and more.
+
+Finally, to start the queue and start processing jobs you can run:
+
+```bash
+bin/jobs start
+```
+
 #### Production
 
 Solid Queue is already configured for the production environment. If you open `config/environments/production.rb`, you will see the following:
@@ -140,8 +190,6 @@ Solid Queue is already configured for the production environment. If you open `c
 config.active_job.queue_adapter = :solid_queue
 config.solid_queue.connects_to = { database: { writing: :queue } }
 ```
-
-which sets the `:solid_queue` adapter as the default for Active Job in the production environment, and connects to the `queue` database for writing.
 
 Additionally, the database connection for the `queue` database is configured in `config/database.yml`:
 
@@ -157,54 +205,6 @@ production:
     <<: *default
     database: storage/production_queue.sqlite3
     migrations_paths: db/queue_migrate
-```
-
-NOTE: The key `queue` from the database configuration needs to match the key used in the configuration for `config.solid_queue.connects_to`.
-
-#### Development
-
-In development Rails provides an asynchronous in-process queuing system, which keeps the
-jobs in RAM. If the process crashes or the machine is reset, then all
-outstanding jobs are lost with the default async backend. This can be fine for
-smaller apps or non-critical jobs in development.
-
-However, if you want to use Solid Queue instead, you
-can configure it in the same way as in the production environment:
-
-```ruby
-# config/environments/development.rb
-config.active_job.queue_adapter = :solid_queue
-config.solid_queue.connects_to = { database: { writing: :queue } }
-```
-
-with the corresponding database configuration:
-
-```yaml
-# config/database.yml
-development
-  primary:
-    <<: *default
-    database: storage/development.sqlite3
-  queue:
-    <<: *default
-    database: storage/development_queue.sqlite3
-    migrations_paths: db/queue_migrate
-```
-
-Thereafter, you can run the migrations for the `queue` database to ensure all the tables in queue database are created:
-
-```bash
-$ bin/rails db:migrate:queue
-```
-
-TIP: You can find the default generated schema for the `queue` database in
-`db/queue_schema.rb`. They will contain tables like
-`solid_queue_ready_executions`, `solid_queue_scheduled_executions`, and more.
-
-To start the queue and start processing jobs you can run:
-
-```bash
-bin/jobs start
 ```
 
 ### Configuration
