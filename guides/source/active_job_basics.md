@@ -244,26 +244,7 @@ settings. Below are some of the configuration options you can set in `config/que
 | **processes**                        | Number of worker processes forked by the supervisor. Each process can dedicate a CPU core.          | 1                                             |
 | **concurrency_maintenance**          | Whether the dispatcher performs concurrency maintenance work.                                       | true                                          |
 
-You can read more about the [configuration options in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#configuration).
-
-Additionally, you can further configure Solid Queue in your Rails Application by setting the following options in `config/<environment>.rb`:
-
-| **Setting**                            | **Description**                                                                              | **Default**                                                        |
-| -------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **logger**                             | Logger used by Solid Queue.                                                                  | App logger                                                         |
-| **app_executor**                       | Rails executor used to wrap asynchronous operations.                                         | App executor                                                       |
-| **on_thread_error**                    | Custom lambda/Proc to call on thread error.                                                  | `-> (exception) { Rails.error.report(exception, handled: false) }` |
-| **use_skip_locked**                    | Whether to use `FOR UPDATE SKIP LOCKED` for locking reads.                                   | Auto-detected, set to false if DB doesn't support it               |
-| **process_heartbeat_interval**         | Heartbeat interval for processes.                                                            | 60 seconds                                                         |
-| **process_alive_threshold**            | Time to wait before considering a process dead after its last heartbeat.                     | 5 minutes                                                          |
-| **shutdown_timeout**                   | Time the supervisor waits before forcing termination of processes after sending TERM signal. | 5 seconds                                                          |
-| **silence_polling**                    | Whether to silence Active Record logs when polling for jobs.                                 | true                                                               |
-| **supervisor_pidfile**                 | Path to the PID file created by the supervisor.                                              | nil                                                                |
-| **preserve_finished_jobs**             | Whether to keep finished jobs in the database.                                               | true                                                               |
-| **clear_finished_jobs_after**          | Period to keep finished jobs around if `preserve_finished_jobs` is true.                     | 1 day                                                              |
-| **default_concurrency_control_period** | Default duration for concurrency control in jobs.                                            | 3 minutes                                                          |
-
-You can read more about the [additional configuration options in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#other-configuration-settings).
+You can read more about these [configuration options in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#configuration). There are also [additional configuration options](https://github.com/rails/solid_queue?tab=readme-ov-file#other-configuration-settings) that can be set in `config/<environment>.rb` to further configure Solid Queue in your Rails Application.
 
 ### Queue Order
 
@@ -306,27 +287,6 @@ In Solid Queue, parallelism is achieved through threads (configurable via the [`
 
 If a worker is killed unexpectedly (e.g., with a `KILL` signal), in-flight jobs are marked as failed, and errors like `SolidQueue::Processes::ProcessExitError` or `SolidQueue::Processes::ProcessPrunedError` are raised. Heartbeat settings help manage and detect expired processes. Read more about [Threads, Processes and Signals in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#threads-processes-and-signals).
 
-### Lifecycle Hooks
-
-Solid Queue provides lifecycle hooks that let you run code at specific points in the supervisor’s and worker’s lifecycles. The two supervisor lifecycle hooks are:
-
-- `start`: Runs after the supervisor boots but before it forks workers and dispatchers.
-- `stop`: Runs after receiving a shutdown signal (`TERM`, `INT`, or `QUIT`) but before graceful or immediate shutdown begins.
-
-Similarly, there are worker lifecycle hooks:
-
-- `worker_start`: Runs after a worker boots but before it starts polling.
-- `worker_stop`: Runs after receiving a shutdown signal but before the worker shuts down.
-
-You can use methods like `SolidQueue.on_start` and `SolidQueue.on_worker_start` to hook into these lifecycle points. For example:
-
-```ruby
-SolidQueue.on_start { start_metrics_server }
-SolidQueue.on_stop { stop_metrics_server }
-```
-
-Call these hooks before starting Solid Queue, usually in an initializer. Read more about [Lifecycle Hooks in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#lifecycle-hooks).
-
 ### Errors When Enqueuing
 
 Solid Queue raises a `SolidQueue::Job::EnqueueError` when Active Record errors occur during job enqueuing. This is different from the `ActiveJob::EnqueueError` raised by Active Job, which handles the error and makes `perform_later` return false. This makes error handling trickier for jobs enqueued by Rails or third-party gems like `Turbo::Streams::BroadcastJob`.
@@ -364,20 +324,6 @@ end
 This ensures that only one job for a given contact can run at a time, regardless of the job class.
 
 Read more about [Concurrency Controls in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#concurrency-controls).
-
-### Failed Jobs and Retries
-
-Failed jobs will be stored in the `solid_queue_failed_executions` table. You can inspect and retry them manually, for example:
-
-```ruby
-failed_execution = SolidQueue::FailedExecution.find(1)
-failed_execution.error # inspect the error
-
-failed_execution.retry  # Re-enqueues the job
-failed_execution.discard  # Deletes the failed job
-```
-
-For better tracking, you can use a tool like [`mission_control-jobs`](https://github.com/rails/mission_control-jobs) to manage failed jobs. Read more about [Failed Jobs and Retries in the Solid Queue Documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#failed-jobs-and-retries).
 
 ### Error Reporting on Jobs
 
