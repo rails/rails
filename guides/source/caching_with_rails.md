@@ -228,6 +228,17 @@ puts welcome_message # Output: Welcome to Rails!
 Rails.cache.delete("greeting")
 ```
 
+The low level caching works well with Active Record relations and will use a recyclable cache:
+
+```ruby
+products = Product.recent
+Rails.cache.fetch(products) do
+  products.map(&:expensive_parsing)
+end
+```
+
+This will mean there is only one entry in your cache for `Product.recent` and whenever these products change the entry is updated.
+
 #### Avoid Caching Instances of Active Record Objects
 
 Consider this example, which stores a list of Active Record objects representing superusers in the cache:
