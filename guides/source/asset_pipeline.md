@@ -28,7 +28,7 @@ built for an era where transpilation, bundling and compression are less critical
 for basic applications, thanks to better browser support, faster networks and
 HTTP/2 capabilities.
 
-Propshaft focuses on essential asset management tasks and leaves more complex tasks, 
+Propshaft focuses on essential asset management tasks and leaves more complex tasks,
 such as JavaScript and CSS bundling and minification, to specialized tools like
 [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
 [`css-bundling-rails`](https://github.com/rails/cssbundling-rails), which can be
@@ -135,11 +135,14 @@ dependencies:
     management](#advanced-asset-management) alongside Propshaft.
 
     Tools like [`js-bundling-rails`](https://github.com/rails/jsbundling-rails)
-    integrates [Bun](https://bun.sh/), [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/) into
-    your Rails application, while
+    integrates [Bun](https://bun.sh/), [esbuild](https://esbuild.github.io/),
+    [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/)
+    into your Rails application, while
     [`css-bundling-rails`](https://github.com/rails/cssbundling-rails) can be
-    used to process stylesheets that use [Sass](https://sass-lang.com/) or
-    [Tailwind CSS](https://tailwindcss.com/).
+    used to process stylesheets that use [Tailwind
+    CSS](https://tailwindcss.com/), [Bootstrap](https://getbootstrap.com/),
+    [Bulma](https://bulma.io/), [PostCSS](https://postcss.org/), or [Dart
+    Sass](https://sass-lang.com/).
 
     These tools complement Propshaft by handling the complex processing, while
     Propshaft efficiently organizes and serves the final assets.
@@ -151,7 +154,7 @@ subdirectories like `images`, `javascripts`, and `stylesheets`. You can place
 your JavaScript, CSS, image files, and other assets into these directories, and
 Propshaft will manage them during the precompilation process.
 
-You can also add additional asset paths for Propshaft to search by modifying
+You can also specify additional asset paths for Propshaft to search by modifying
 `config.assets.paths` in your `config/initializers/assets.rb` file. For example:
 
 ```ruby
@@ -195,7 +198,7 @@ As mentioned in the [Asset Organization section](#asset-organization), in
 Propshaft, all assets from the paths configured in `config.assets.paths` are
 available for serving and will be copied into the `public/assets` directory.
 
-When fingerprinted, a asset filename  like `styles.css` is renamed to
+When fingerprinted, an asset filename  like `styles.css` is renamed to
 `styles-a1b2c3d4e5f6.css`. This ensures that if `styles.css` is updated, the
 filename changes as well, compelling the browser to download the latest version
 instead of using a potentially outdated cached copy.
@@ -291,7 +294,7 @@ ensures that the browser always fetches the correct version of the asset.
 #### Digested Assets in JavaScript
 
 In JavaScript, you need to manually trigger the asset transformation using the
-`RAILS_ASSET_URL` pseudo-method. Here’s an example:
+`RAILS_ASSET_URL` macro. Here’s an example:
 
 ```javascript
 export default class extends Controller {
@@ -349,18 +352,14 @@ while still allowing them to be part of the precompilation process.
 Working with Propshaft
 ----------------------
 
-From Rails 8.0, Propshaft is the default asset pipeline, so you don’t need to
-install it separately. When you create a new Rails 8 application, Propshaft is
-included by default.
-
-To use Propshaft, you need to configure it properly and organize your assets in
+From Rails 8 onwards, Propshaft is included by default. To use Propshaft, you need to configure it properly and organize your assets in
 a way that Rails can serve them efficiently.
 
 ### Setup
 
 Follow these steps for setup Propshaft in your Rails application:
 
-1. Create a new Rails 8 application:
+1. Create a new Rails application:
 
     ```bash
     $ rails new app_name
@@ -393,7 +392,7 @@ Follow these steps for setup Propshaft in your Rails application:
     }
     ```
 
-3. Link Assets in Your Application Layout
+3. Link assets in your application layout
 
     In your application layout file (usually
     `app/views/layouts/application.html.erb`), you can include your assets using
@@ -417,14 +416,11 @@ Follow these steps for setup Propshaft in your Rails application:
     This layout includes the `main.css` stylesheet and `main.js` JavaScript file
     in your application.
 
-4. Start your Rails server:
+4. Start the Rails server:
 
     ```bash
     $ bin/rails server
     ```
-
-    This command starts your Rails server so you can view your application in a
-    web browser.
 
 5. Preview your application:
 
@@ -433,11 +429,10 @@ Follow these steps for setup Propshaft in your Rails application:
 
 ### Development
 
-In development, Rails and Propshaft are configured for flexibility, allowing
-rapid iteration without manual intervention. This setup makes it easier to
-manage assets as they change frequently during development.
+Rails and Propshaft are configured differently in development than in production,
+to allow rapid iteration without manual intervention.
 
-#### No Caching in Development
+#### No Caching
 
 In development, Rails is configured to bypass asset caching. This means that
 when you modify assets (e.g., CSS, JavaScript), Rails will serve the most
@@ -447,12 +442,12 @@ automatically pull in the latest version each time you reload the page.
 
 #### Automatic Reloading of Assets
 
-If you're using Propshaft on its own, it automatically checks for updates to
+When using Propshaft on its own, it automatically checks for updates to
 assets like JavaScript, CSS, or images with every request. This means you can
 edit these files, reload the browser, and instantly see the changes without
 needing to restart the Rails server.
 
-When using modern JavaScript bundlers such as
+When using JavaScript bundlers such as
 [esbuild](https://esbuild.github.io/) or [Webpack](https://webpack.js.org/)
 alongside Propshaft, the workflow combines both tools effectively:
 
@@ -514,8 +509,8 @@ After doing this, all assets in the load path will be copied (or compiled when
 using [advanced asset management](#advanced-asset-management)) in the
 precompilation step and stamped with a digest hash.
 
-Additionally, you can set ENV["SECRET_KEY_BASE_DUMMY"] to trigger the use of a
-randomly generated secret_key_base that’s stored in a temporary file. This is
+Additionally, you can set `ENV["SECRET_KEY_BASE_DUMMY"]` to trigger the use of a
+randomly generated `secret_key_base` that’s stored in a temporary file. This is
 useful when precompiling assets for production as part of a build step that
 otherwise does not need access to the production secrets.
 
@@ -641,8 +636,7 @@ Will be rendered as full CDN URLs like
 `http://mycdnsubdomain.fictional-cdn.com/assets/smile.png` (digest omitted for
 readability).
 
-If the CDN has a copy of `smile.png`, it will serve it to the browser, and your
-server doesn't even know it was requested. If the CDN does not have a copy, it
+If the CDN has a copy of `smile.png`, it will serve it to the browser,  and the origin server won't even know it was requested. If the CDN does not have a copy, it
 will try to find it at the "origin" `example.com/assets/smile.png`, and then
 store it for future use.
 
@@ -791,7 +785,7 @@ include:
 3. **ES6+**: Modern JavaScript syntax (ES6+) is supported by most modern
    browsers, reducing the need for transpilation and minification.
 
-Therefore, in Rails 8, the asset pipeline powered by Propshaft, no longer
+Therefore, the asset pipeline powered by Propshaft, no longer
 includes transpilation, bundling, or compression by default. However,
 fingerprinting still remains an integral part. You can read more about the
 evolution of asset management techniques and how they directed the change from
