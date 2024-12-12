@@ -783,7 +783,7 @@ include:
 2. **HTTP/2**: The introduction of HTTP/2 has made it easier to serve multiple
    files in parallel, reducing the need for bundling.
 3. **ES6+**: Modern JavaScript syntax (ES6+) is supported by most modern
-   browsers, reducing the need for transpilation and minification.
+   browsers, reducing the need for transpilation.
 
 Therefore, the asset pipeline powered by Propshaft, no longer
 includes transpilation, bundling, or compression by default. However,
@@ -848,27 +848,8 @@ For example, a CSS file that's 200KB may compress to just 50KB when Gzipped.
 Browsers automatically decompress such files upon receipt, saving bandwidth and
 improving speed.
 
-Minification is a form of compression that removes unnecessary characters (like
-whitespace, comments, and newlines).
-
-Before minification:
-
-```javascript
-function add(number1, number2) {
-    // Adds two numbers
-    var sum = number1 + number2;
-    return sum;
-}
-```
-
-After minification:
-
-```javascript
-function add(a,b){return a+b;}
-```
-
-Modern ES6+ syntax is supported by modern browsers, thus reducing the reliance
-on minification.
+However, with CDNs automatically compressing assets, the need for manual
+compression has decreased.
 
 ### Sprockets vs. Propshaft
 
