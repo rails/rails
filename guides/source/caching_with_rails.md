@@ -512,7 +512,7 @@ development:
   database: cache
 ```
 
-To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
+TIP: To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
 
 Other Cache Stores
 ------------------
