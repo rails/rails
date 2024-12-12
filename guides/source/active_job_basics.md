@@ -273,7 +273,6 @@ Active Job supports positive integer priorities when enqueuing jobs (see [Priori
 
 For example, if you have two queues, `production` and `background`, jobs in the `production` queue will always be processed first, even if some jobs in the `background` queue have a higher priority.
 
-
 ### Threads, Processes, and Signals
 
 In Solid Queue, parallelism is achieved through threads (configurable via the [`threads` parameter](#configuration)), processes (via the [`processes` parameter](#configuration)), or horizontal scaling. The supervisor manages processes and responds to the following signals:
@@ -287,7 +286,7 @@ If a worker is killed unexpectedly (e.g., with a `KILL` signal), in-flight jobs 
 
 Solid Queue raises a `SolidQueue::Job::EnqueueError` when Active Record errors occur during job enqueuing. This is different from the `ActiveJob::EnqueueError` raised by Active Job, which handles the error and makes `perform_later` return false. This makes error handling trickier for jobs enqueued by Rails or third-party gems like `Turbo::Streams::BroadcastJob`.
 
-For recurring tasks, any errors encountered while enqueuing are logged, but they won’t bubble up. Read more about [Errors When Enqueuing in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing).
+For recurring tasks, any errors encountered while enqueuing are logged, but they won’t be raised. Read more about [Errors When Enqueuing in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing).
 
 ### Concurrency Controls
 
