@@ -384,18 +384,17 @@ Read more about [Recurring Tasks in the Solid Queue documentation](https://githu
 
 ### Job Tracking and Management
 
-To streamline job tracking and management, consider using a tool like
-[`mission_control-jobs`](https://github.com/rails/mission_control-jobs). This
-tool provides a centralized hub to monitor and manage your application's failed
-jobs, offering detailed insights into their statuses and retry behaviors.
+A tool like [`mission_control-jobs`](https://github.com/rails/mission_control-jobs) can help centralize the monitoring and management of failed jobs. It provides insights into job statuses, failure reasons, and retry behaviors, enabling you to track and resolve issues more effectively.
 
-For example, if a job to process a large file fails due to a timeout,
-mission_control-jobs lets you inspect the failure reason, check job metadata
-(such as arguments and execution history), and decide whether to retry, requeue,
-or discard the job.
+For instance, if a job fails to process a large file due to a timeout, `mission_control-jobs` allows you to inspect the failure, review the job’s arguments and execution history, and decide whether to retry, requeue, or discard it.
 
-Additionally, you can pair this tool with retry strategies to handle transient
-errors effectively.
+Pairing this tool with retry strategies helps address transient errors. For example:
+
+```ruby
+retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
+```
+
+This configuration retries the job up to three times with a 5-second delay between attempts in case of a database deadlock.
 
 Queues
 ------
