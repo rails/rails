@@ -225,8 +225,8 @@ default: &default
 
 In order to understand the configuration options for Solid Queue, you must understand the different types of roles:
 
-- **Workers**: They pick up jobs that are ready to run. These jobs are taken from the `solid_queue_ready_executions` table.
 - **Dispatchers**: They select jobs scheduled to run for the future. When it's time for these jobs to run, dispatchers move them from the `solid_queue_scheduled_executions` table to the `solid_queue_ready_executions` table so workers can pick them up. They also manage concurrency-related maintenance.
+- **Workers**: They pick up jobs that are ready to run. These jobs are taken from the `solid_queue_ready_executions` table.
 - **Scheduler**: This takes care of recurring tasks, adding jobs to the queue when they're due.
 - **Supervisor**: It oversees the whole system, managing workers and dispatchers. It starts and stops them as needed, monitors their health, and ensures everything runs smoothly.
 
