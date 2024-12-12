@@ -1002,4 +1002,3 @@ Here is a noncomprehensive list of documentation:
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
 - [Good Job](https://github.com/bensheldon/good_job#readme)
-- [Solid Queue](https://github.com/rails/solid_queue?tab=readme-ov-file#solid-queue)
