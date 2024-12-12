@@ -403,7 +403,11 @@ module ActiveRecord
         type ||= column.sql_type
 
         unless options.key?(:default)
-          options[:default] = column.default
+          options[:default] = if column.default_function
+            -> { column.default_function }
+          else
+            column.default
+          end
         end
 
         unless options.key?(:null)
@@ -759,14 +763,13 @@ module ActiveRecord
           end
         end
 
-        def handle_warnings(sql)
+        def handle_warnings(_initial_result, sql)
           return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
-          @affected_rows_before_warnings = @raw_connection.affected_rows
           warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
           result = [
-            ["Warning", nil, "Query had warning_count=#{warning_count} but ‘SHOW WARNINGS’ did not return the warnings. Check MySQL logs or database configuration."],
+            ["Warning", nil, "Query had warning_count=#{warning_count} but `SHOW WARNINGS` did not return the warnings. Check MySQL logs or database configuration."],
           ] if result.count == 0
           result.each do |level, code, message|
             warning = SQLWarning.new(message, code, level, sql, @pool)

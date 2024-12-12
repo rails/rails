@@ -945,13 +945,11 @@ class DirtyTest < ActiveRecord::TestCase
       aircraft = Aircraft.new(name: "Boeing")
       assert_equal "Boeing", aircraft.name
 
-      time_before_saving = Time.now
       aircraft.save!
-      time_after_saving = Time.now
       aircraft.reload
 
       assert_equal "Boeing", aircraft.name
-      assert_includes time_before_saving - 1..time_after_saving + 1, aircraft.manufactured_at
+      assert_in_delta Time.now, aircraft.manufactured_at, 1.1
     end
   end
 

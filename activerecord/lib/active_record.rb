@@ -259,6 +259,9 @@ module ActiveRecord
   ##
   # :singleton-method: db_warnings_ignore
   # Specify allowlist of database warnings.
+  # Can be a string, regular expression, or an error code from the database.
+  #
+  #   ActiveRecord::Base.db_warnings_ignore = [/`SHOW WARNINGS` did not return the warnings/, "01000"]
   singleton_class.attr_accessor :db_warnings_ignore
   self.db_warnings_ignore = []
 
@@ -550,7 +553,7 @@ module ActiveRecord
       if active_connection = pool.active_connection
         current_transaction = active_connection.current_transaction
 
-        if current_transaction.open? && current_transaction.joinable? && !current_transaction.state.invalidated?
+        if current_transaction.open? && current_transaction.joinable?
           open_transactions << current_transaction
         end
       end

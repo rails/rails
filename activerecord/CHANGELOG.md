@@ -6,6 +6,10 @@
 
     *Nick Schwaderer*
 
+*   Fix MySQL default functions getting dropped when changing a column's nullability.
+
+    *Bastian Bartmann*
+
 *   SQLite extensions can be configured in `config/database.yml`.
 
     The database configuration option `extensions:` allows an application to load SQLite extensions

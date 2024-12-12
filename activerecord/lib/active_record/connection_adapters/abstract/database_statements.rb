@@ -553,13 +553,20 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
+              result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
+              end
+              handle_warnings(result, sql)
+              result
             end
           end
         end
 
         def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
           raise NotImplementedError
+        end
+
+        def handle_warnings(raw_result, sql)
         end
 
         # Receive a native adapter result object and returns an ActiveRecord::Result object.

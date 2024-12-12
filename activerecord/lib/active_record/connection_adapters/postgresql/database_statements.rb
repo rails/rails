@@ -163,7 +163,6 @@ module ActiveRecord
             end
 
             verified!
-            handle_warnings(result)
 
             notification_payload[:affected_rows] = result.cmd_tuples
             notification_payload[:row_count] = result.count
@@ -215,7 +214,7 @@ module ActiveRecord
             pk unless pk.is_a?(Array)
           end
 
-          def handle_warnings(sql)
+          def handle_warnings(result, sql)
             @notice_receiver_sql_warnings.each do |warning|
               next if warning_ignored?(warning)
 
