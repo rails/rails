@@ -122,7 +122,7 @@ You can enqueue multiple jobs at once using [`perform_all_later`](https://api.ru
 Default Adapter: Solid Queue
 ------------------------------
 
-Solid Queue, which is enabled by default from Rails version 8.0 and onward is a
+Solid Queue, which is enabled by default from Rails version 8.0 and onward, is a
 database-backed queuing system for Active Job, allowing you to queue large
 amounts of data without requiring additional dependencies such as Redis.
 
