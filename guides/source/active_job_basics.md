@@ -258,16 +258,16 @@ only then will it move onto the second, and so on.
 # config/queue.yml
 production:
   workers:
-    - queues:[production*, background]
+    - queues:[active_storage*, mailers]
       threads: 3
       polling_interval: 5
 ```
 
-In the above example, workers will fetch jobs from queues starting with "production", then "background" when no `production*` jobs remain.
+In the above example, workers will fetch jobs from queues starting with "active_storage", like  the `active_storage_analyse` queue and `active_storage_transform` queue. Only when no jobs remain in the `active_storage`-prefixed queues will workers move on to the `mailers` queue.
 
 NOTE: The wildcard `*` (at the end of "production") is only allowed on its own or at the end of a queue name to match all queues with the same prefix. You can't specify queue names such as `*_some_queue`.
 
-WARNING: Using wildcard queue names (e.g., `queues: production*`) can slow down polling performance due to the need for a `DISTINCT` query to identify all matching queues, which can be slow on large tables. For better performance, it’s best to specify exact queue names instead of using wildcards.
+WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow down polling performance due to the need for a `DISTINCT` query to identify all matching queues, which can be slow on large tables. For better performance, it’s best to specify exact queue names instead of using wildcards.
 
 Active Job supports positive integer priorities when enqueuing jobs. You can read more about the [Priority section](#priority). This setup is helpful when you have jobs with different levels of importance or urgency in the same queue. Within a single queue, jobs are picked based on their priority (with lower values being higher priority). However, when you have multiple queues, the order of the queues themselves takes priority.
 
