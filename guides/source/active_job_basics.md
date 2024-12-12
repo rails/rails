@@ -230,7 +230,7 @@ In order to understand the configuration options for Solid Queue, you must under
 - **Scheduler**: This takes care of recurring tasks, adding jobs to the queue when they're due.
 - **Supervisor**: It oversees the whole system, managing workers and dispatchers. It starts and stops them as needed, monitors their health, and ensures everything runs smoothly.
 
-Everything is optional in the `config/queue.yml`. If no configuration at all is
+Everything is optional in the `config/queue.yml`. If no configuration is
 provided, Solid Queue will run with one dispatcher and one worker with default
 settings. Below are some of the configuration options you can set in `config/queue.yml`:
 
