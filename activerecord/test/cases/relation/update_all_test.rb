@@ -345,25 +345,25 @@ class UpdateAllTest < ActiveRecord::TestCase
         test_update_with_order_succeeds.call("id DESC")
       end
     end
+  end
 
-    def test_update_all_with_order_and_limit_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:welcome).body
-      assert_not_equal "bulk update!", posts(:thinking).body
-    end
+  def test_update_all_with_order_and_limit_updates_subset_only
+    author = authors(:david)
+    limited_posts = author.posts_sorted_by_id_limited
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
+    assert_equal "bulk update!", posts(:welcome).body
+    assert_not_equal "bulk update!", posts(:thinking).body
+  end
 
-    def test_update_all_with_order_and_limit_and_offset_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited.offset(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:thinking).body
-      assert_not_equal "bulk update!", posts(:welcome).body
-    end
+  def test_update_all_with_order_and_limit_and_offset_updates_subset_only
+    author = authors(:david)
+    limited_posts = author.posts_sorted_by_id_limited.offset(1)
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
+    assert_equal "bulk update!", posts(:thinking).body
+    assert_not_equal "bulk update!", posts(:welcome).body
   end
 end
