@@ -12,6 +12,7 @@ After reading this guide, you will know:
 * How to configure and use Solid Queue.
 * How to run jobs in the background.
 * How to send emails from your application asynchronously.
+
 --------------------------------------------------------------------------------
 
 What is Active Job?
