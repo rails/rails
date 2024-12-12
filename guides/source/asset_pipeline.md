@@ -45,7 +45,7 @@ setup, you can use the `--skip-asset-pipeline` option:
 $ rails new app_name --skip-asset-pipeline
 ```
 
-NOTE: Before Rails version 8, the asset pipeline in Rails was powered by
+NOTE: Before Rails 8, the asset pipeline was powered by
 [Sprockets](https://github.com/rails/sprockets). You can read about the
 [Sprockets Asset
 Pipeline](https://guides.rubyonrails.org/v7.2/asset_pipeline.html) in previous
