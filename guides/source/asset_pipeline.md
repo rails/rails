@@ -529,7 +529,7 @@ $ RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 rails assets:precompile
 
 By default, assets are served from the `/assets` directory.
 
-WARNING: Do not run the precompile command in development mode. Running it in
+WARNING: Running the precompile command in
 development generates a marker file named `.manifest.json`, which tells the
 application that it can serve the compiled assets. As a result, any changes you
 make to your source assets won't be reflected in the browser until the
