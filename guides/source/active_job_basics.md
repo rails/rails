@@ -403,8 +403,6 @@ class ApplicationMailer < ActionMailer::Base
 end
 ```
 
-Read more [Error Reporting on Jobs in the Solid Queue Documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#error-reporting-on-jobs).
-
 ### Transactional Integrity on Jobs
 
 By default, Solid Queue uses a separate database from your main application. This avoids issues with transactional integrity, which ensures that jobs are only enqueued if the transaction commits.
