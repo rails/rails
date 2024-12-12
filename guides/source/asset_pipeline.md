@@ -930,7 +930,7 @@ handle asset digesting and serving.
 
 Some key steps in the migration include:
 
-1. Remove several sprocket gems using the `bundle remove <gem name>`:
+1. Remove some gems using the following:
 
     ```bash
     bundle remove sprockets
