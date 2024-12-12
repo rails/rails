@@ -382,6 +382,21 @@ Each task specifies a `class` or `command` and a `schedule` (parsed using [Fugit
 
 Read more about [Recurring Tasks in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks)
 
+### Job Tracking and Management
+
+To streamline job tracking and management, consider using a tool like
+[`mission_control-jobs`](https://github.com/rails/mission_control-jobs). This
+tool provides a centralized hub to monitor and manage your application's failed
+jobs, offering detailed insights into their statuses and retry behaviors.
+
+For example, if a job to process a large file fails due to a timeout,
+mission_control-jobs lets you inspect the failure reason, check job metadata
+(such as arguments and execution history), and decide whether to retry, requeue,
+or discard the job.
+
+Additionally, you can pair this tool with retry strategies to handle transient
+errors effectively.
+
 Queues
 ------
 
