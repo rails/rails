@@ -951,7 +951,7 @@ If you need help figuring out where jobs are coming from, you can enable [verbos
 Alternate Queuing Adapters
 --------------------------
 
-Active Job have other built-in adapters for multiple queuing backends (Sidekiq,
+Active Job has other built-in adapters for multiple queuing backends (Sidekiq,
 Resque, Delayed Job, and others). To get an up-to-date list of the adapters
 see the API Documentation for [`ActiveJob::QueueAdapters`][].
 
