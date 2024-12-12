@@ -375,21 +375,13 @@ production:
 
 Each task specifies a `class` or `command` and a `schedule` (parsed using [Fugit](https://github.com/floraison/fugit)). You can also pass arguments to jobs, such as in the example for `MyJob` where `args` are passed. This can be passed as a single argument, a hash, or an array of arguments that can also include kwargs as the last element in the array. This allows jobs to run periodically or at specified times.
 
-Read more about [Recurring Tasks in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks)
+Read more about [Recurring Tasks in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks).
 
 ### Job Tracking and Management
 
 A tool like [`mission_control-jobs`](https://github.com/rails/mission_control-jobs) can help centralize the monitoring and management of failed jobs. It provides insights into job statuses, failure reasons, and retry behaviors, enabling you to track and resolve issues more effectively.
 
 For instance, if a job fails to process a large file due to a timeout, `mission_control-jobs` allows you to inspect the failure, review the job’s arguments and execution history, and decide whether to retry, requeue, or discard it.
-
-Pairing this tool with retry strategies helps address transient errors. For example:
-
-```ruby
-retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
-```
-
-This configuration retries the job up to three times with a 5-second delay between attempts in case of a database deadlock.
 
 Queues
 ------
