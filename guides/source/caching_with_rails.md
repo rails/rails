@@ -11,7 +11,7 @@ After reading this guide, you will know about:
 * Types of caching strategies including Fragment and Russian Doll caching.
 * How to manage the caching dependencies.
 * Alternative cache stores.
-* Cache Keys
+* Cache keys.
 * Conditional GET support.
 
 --------------------------------------------------------------------------------
