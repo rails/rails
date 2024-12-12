@@ -209,7 +209,7 @@ bin/jobs start
 
 ### Configuration
 
-The configuration options for Solid Queue are defined `config/queue.yml`. Here is an example of the default configuration:
+The configuration options for Solid Queue are defined  in `config/queue.yml`. Here is an example of the default configuration:
 
 ```yaml
 default: &default
