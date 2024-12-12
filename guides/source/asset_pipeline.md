@@ -38,7 +38,7 @@ emphasizes generating digest-based URLs for assets, allowing browsers to cache
 them, thus minimizing the need for intricate compilation and bundling.
 
 The [Propshaft](https://github.com/rails/propshaft) gem is enabled by default in
-new Rails 8 applications. If, for some reason, you want to disable it during
+new applications. If, for some reason, you want to disable it during
 setup, you can use the `--skip-asset-pipeline` option:
 
 ```bash
