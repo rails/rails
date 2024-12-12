@@ -180,8 +180,8 @@ section](#fingerprinting-versioning-with-digest-based-urls).
 
 ### Fingerprinting: Versioning with digest-based URLs
 
-In Rails, asset versioning helps manage cache behavior by adding unique
-identifiers to asset filenames. It does this by using fingerprinting.
+In Rails, asset versioning uses fingerprinting to add unique identifiers to
+asset filenames.
 
 Fingerprinting is a technique that makes the name of a file dependent on its
 content. A digest of the file's content is generated and appended to the
@@ -366,9 +366,6 @@ Follow these steps for setup Propshaft in your Rails application:
     ```bash
     $ rails new app_name
     ```
-
-    This command generates a new Rails application with Propshaft included by
-    default.
 
 2. Organize your assets:
 
@@ -938,11 +935,11 @@ Propshaft](https://github.com/rails/propshaft/blob/main/UPGRADING.md).
 
 ## Advanced Asset Management
 
-Over the years, there have been multiple default approaches for handling assets.
-As the web evolved, we began to see more JavaScript-heavy applications. In The
-Rails Doctrine we believe that [The Menu Is
-Omakase](https://rubyonrails.org/doctrine#omakase) so we focused on the default
-setup within Propshaft.
+Over the years, there have been multiple default approaches for handling assets,
+and as the web evolved, we began to see more JavaScript-heavy applications. In
+The Rails Doctrine we believe that [The Menu Is
+Omakase](https://rubyonrails.org/doctrine#omakase), so Propshaft focuses on
+delivering a production-ready setup with modern browsers by default.
 
 There is no one-size-fits-all solution for the various JavaScript and CSS
 frameworks and extensions available. However, there are other bundling libraries
@@ -1014,10 +1011,10 @@ delivered via the Rails asset pipeline.
    CSS as you make changes, providing a smooth and responsive workflow.
 4. In production, the gem ensures your stylesheets are compiled and ready for
    deployment. During the `assets:precompile` step, it installs all
-   `package.json` dependencies via `bun`, `yarn`, `pnpm` or `npm` and runs the `build:css` task.
-   to process your stylesheet entry points. The resulting CSS output is then
-   digested by the asset pipeline and copied into the `public/assets` directory,
-   just like other asset pipeline files.
+   `package.json` dependencies via `bun`, `yarn`, `pnpm` or `npm` and runs the
+   `build:css` task. to process your stylesheet entry points. The resulting CSS
+   output is then digested by the asset pipeline and copied into the
+   `public/assets` directory, just like other asset pipeline files.
 
 This integration simplifies the process of preparing production-ready styles
 while ensuring all your CSS is managed and processed efficiently.
