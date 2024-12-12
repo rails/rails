@@ -23,14 +23,14 @@ and optimizes the management of these assets to enhance the performance and
 maintainability of the application.
 
 The Rails Asset Pipeline is managed by
-[**Propshaft**](https://github.com/rails/propshaft). Propshaft is
-built for an era where transpilation, bundling and compression are less critical
-for basic applications, thanks to better browser support, faster networks and
-HTTP/2 capabilities.
+[**Propshaft**](https://github.com/rails/propshaft). Propshaft is built for an
+era where transpilation, bundling and compression are less critical for basic
+applications, thanks to better browser support, faster networks and HTTP/2
+capabilities.
 
-Propshaft focuses on essential asset management tasks and leaves more complex tasks,
-such as JavaScript and CSS bundling and minification, to specialized tools like
-[`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
+Propshaft focuses on essential asset management tasks and leaves more complex
+tasks, such as JavaScript and CSS bundling and minification, to specialized
+tools like [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
 [`css-bundling-rails`](https://github.com/rails/cssbundling-rails), which can be
 added separately to your application. Propshaft focuses on
 [fingerprinting](#fingerprinting-versioning-with-digest-based-urls) and
@@ -38,8 +38,8 @@ emphasizes generating digest-based URLs for assets, allowing browsers to cache
 them, thus minimizing the need for intricate compilation and bundling.
 
 The [Propshaft](https://github.com/rails/propshaft) gem is enabled by default in
-new applications. If, for some reason, you want to disable it during
-setup, you can use the `--skip-asset-pipeline` option:
+new applications. If, for some reason, you want to disable it during setup, you
+can use the `--skip-asset-pipeline` option:
 
 ```bash
 $ rails new app_name --skip-asset-pipeline
@@ -89,7 +89,8 @@ dependencies:
     </body>
     ```
 
-    This is important if, for instance, `main.js` relies on `utilities.js` to be loaded first.
+    This is important if, for instance, `main.js` relies on `utilities.js` to be
+    loaded first.
 
 2. Use Modules in JavaScript (ES6)
 
@@ -352,8 +353,9 @@ while still allowing them to be part of the precompilation process.
 Working with Propshaft
 ----------------------
 
-From Rails 8 onwards, Propshaft is included by default. To use Propshaft, you need to configure it properly and organize your assets in
-a way that Rails can serve them efficiently.
+From Rails 8 onwards, Propshaft is included by default. To use Propshaft, you
+need to configure it properly and organize your assets in a way that Rails can
+serve them efficiently.
 
 ### Setup
 
@@ -429,8 +431,8 @@ Follow these steps for setup Propshaft in your Rails application:
 
 ### Development
 
-Rails and Propshaft are configured differently in development than in production,
-to allow rapid iteration without manual intervention.
+Rails and Propshaft are configured differently in development than in
+production, to allow rapid iteration without manual intervention.
 
 #### No Caching
 
@@ -442,14 +444,14 @@ automatically pull in the latest version each time you reload the page.
 
 #### Automatic Reloading of Assets
 
-When using Propshaft on its own, it automatically checks for updates to
-assets like JavaScript, CSS, or images with every request. This means you can
-edit these files, reload the browser, and instantly see the changes without
-needing to restart the Rails server.
+When using Propshaft on its own, it automatically checks for updates to assets
+like JavaScript, CSS, or images with every request. This means you can edit
+these files, reload the browser, and instantly see the changes without needing
+to restart the Rails server.
 
-When using JavaScript bundlers such as
-[esbuild](https://esbuild.github.io/) or [Webpack](https://webpack.js.org/)
-alongside Propshaft, the workflow combines both tools effectively:
+When using JavaScript bundlers such as [esbuild](https://esbuild.github.io/) or
+[Webpack](https://webpack.js.org/) alongside Propshaft, the workflow combines
+both tools effectively:
 
 - The bundler watches for changes in your JavaScript and CSS files, compiles
   them into the appropriate build directory, and keeps the files up to date.
@@ -520,13 +522,14 @@ $ RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 rails assets:precompile
 
 By default, assets are served from the `/assets` directory.
 
-WARNING: Running the precompile command in
-development generates a marker file named `.manifest.json`, which tells the
-application that it can serve the compiled assets. As a result, any changes you
-make to your source assets won't be reflected in the browser until the
-precompiled assets are updated. If your assets stop updating in development
-mode, the solution is to remove the `.manifest.json` file located in
-`public/assets/`.  You can use the `rails assets:clobber` command to delete all your precompiled assets and the `.manifest.json` file. This will force Rails to recompile the assets on the fly,
+WARNING: Running the precompile command in development generates a marker file
+named `.manifest.json`, which tells the application that it can serve the
+compiled assets. As a result, any changes you make to your source assets won't
+be reflected in the browser until the precompiled assets are updated. If your
+assets stop updating in development mode, the solution is to remove the
+`.manifest.json` file located in `public/assets/`.  You can use the `rails
+assets:clobber` command to delete all your precompiled assets and the
+`.manifest.json` file. This will force Rails to recompile the assets on the fly,
 reflecting the latest changes.
 
 NOTE: Always ensure that the expected compiled filenames end with `.js` or
@@ -636,8 +639,9 @@ Will be rendered as full CDN URLs like
 `http://mycdnsubdomain.fictional-cdn.com/assets/smile.png` (digest omitted for
 readability).
 
-If the CDN has a copy of `smile.png`, it will serve it to the browser,  and the origin server won't even know it was requested. If the CDN does not have a copy, it
-will try to find it at the "origin" `example.com/assets/smile.png`, and then
+If the CDN has a copy of `smile.png`, it will serve it to the browser,  and the
+origin server won't even know it was requested. If the CDN does not have a copy,
+it will try to find it at the "origin" `example.com/assets/smile.png`, and then
 store it for future use.
 
 If you want to serve only some assets from your CDN, you can use custom `:host`
@@ -785,11 +789,11 @@ include:
 3. **ES6+**: Modern JavaScript syntax (ES6+) is supported by most modern
    browsers, reducing the need for transpilation.
 
-Therefore, the asset pipeline powered by Propshaft, no longer
-includes transpilation, bundling, or compression by default. However,
-fingerprinting still remains an integral part. You can read more about the
-evolution of asset management techniques and how they directed the change from
-Sprockets to Propshaft below.
+Therefore, the asset pipeline powered by Propshaft, no longer includes
+transpilation, bundling, or compression by default. However, fingerprinting
+still remains an integral part. You can read more about the evolution of asset
+management techniques and how they directed the change from Sprockets to
+Propshaft below.
 
 #### Transpilation ❌
 
