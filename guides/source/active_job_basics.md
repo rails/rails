@@ -126,7 +126,7 @@ Solid Queue, which is enabled by default from Rails version 8.0 and onward is a
 database-backed queuing system for Active Job, allowing you to queue large
 amounts of data without requiring additional dependencies such as Redis.
 
-Besides regular job enqueuing and processing, Solid Queue supports delayed jobs, concurrency controls, numeric priorities per job, priorities by queue order and more.
+Besides regular job enqueuing and processing, Solid Queue supports delayed jobs, concurrency controls, numeric priorities per job, priorities by queue order, and more.
 
 ### Set Up
 
