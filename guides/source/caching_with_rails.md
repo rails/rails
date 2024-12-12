@@ -409,7 +409,7 @@ You can access the cache by calling `Rails.cache`.
 
 ### Customizing the Cache Store
 
-Solid Cache can be customized through the config/cache.yml file or .
+Solid Cache can be customized through the config/cache.yml file:
 
 ```yaml
 default: &default
