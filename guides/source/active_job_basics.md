@@ -322,7 +322,7 @@ Read more about [Concurrency Controls in the Solid Queue documentation](https://
 
 ### Error Reporting on Jobs
 
-If your error tracking service doesn’t automatically report job errors, you can manually hook into Active Job to report exceptions. For example, you can add a `rescue_from` block in `ApplicationJob`:
+If your error tracking service doesn’t automatically report job errors, you can manually hook into Active Job to report them. For example, you can add a `rescue_from` block in `ApplicationJob`:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
