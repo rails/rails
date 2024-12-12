@@ -266,12 +266,11 @@ You can read more about the [additional configuration options in the Solid Queue
 
 ### Queue Order
 
-As per the configuration options in the [Configuration
-Options](#configuration-options), the `queues` configuration option will list
-the queues that workers will pick jobs from. In a list of queues, the order
-matters. Workers will pick jobs from the first queue in the list - once there
-are no more jobs in the first queue, only then will it move onto the second, and
-so on.
+As per the configuration options in the [Configuration section](#configuration),
+the `queues` configuration option will list the queues that workers will pick
+jobs from. In a list of queues, the order matters. Workers will pick jobs from
+the first queue in the list - once there are no more jobs in the first queue,
+only then will it move onto the second, and so on.
 
 ```yaml
 # config/queue.yml
@@ -564,7 +563,7 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Solid Queue, the default adapter, prioritizes jobs based on the order of the queues.  You can read more about it in the [Order of Queues section](#order-of-queues-in-solid-queue). If you're using Solid Queue, and both the order of the queues and the priority option are used, the queue order will take precedence, and the priority option will only apply within each queue.
+Solid Queue, the default adapter, prioritizes jobs based on the order of the queues.  You can read more about it in the [Order of Queues section](#queue-order). If you're using Solid Queue, and both the order of the queues and the priority option are used, the queue order will take precedence, and the priority option will only apply within each queue.
 
 Other adapters may allow jobs to be prioritized relative to others within the same queue or across multiple queues. Refer to the documentation of your backend for more information.
 
@@ -740,14 +739,14 @@ can be used to find out if a given job was successfully enqueued.
 
 ### Queue Backend Support
 
-For `perform_all_later`, bulk enqueuing needs to be backed by the [queue
-backend](#backends).
+For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
+Solid Queue, the default queue backend, supports bulk enqueuing using
+`enqueue_all`.
 
-For example, Sidekiq has a `push_bulk` method, which can push a large number of
-jobs to Redis and prevent the round trip network latency. GoodJob also supports
-bulk enqueuing with the `GoodJob::Bulk.enqueue` method. The new queue backend
-[`Solid Queue`](https://github.com/rails/solid_queue/pull/93) has added
-support for bulk enqueuing as well.
+[Other backends](#alternate-queuing-adapters) like Sidekiq have a `push_bulk`
+method, which can push a large number of jobs to Redis and prevent the round
+trip network latency. GoodJob also supports bulk enqueuing with the
+`GoodJob::Bulk.enqueue` method.
 
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
 enqueue jobs one by one.
