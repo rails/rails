@@ -535,7 +535,7 @@ application that it can serve the compiled assets. As a result, any changes you
 make to your source assets won't be reflected in the browser until the
 precompiled assets are updated. If your assets stop updating in development
 mode, the solution is to remove the `.manifest.json` file located in
-`public/assets/`. This will force Rails to recompile the assets on the fly,
+`public/assets/`.  You can use the `rails assets:clobber` command to delete all your precompiled assets and the `.manifest.json` file. This will force Rails to recompile the assets on the fly,
 reflecting the latest changes.
 
 NOTE: Always ensure that the expected compiled filenames end with `.js` or
