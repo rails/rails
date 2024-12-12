@@ -282,7 +282,7 @@ production:
       polling_interval: 5
 ```
 
-In the above example, will fetch jobs from queues starting with "production", then "background" when no `production*` jobs remain.
+In the above example, workers will fetch jobs from queues starting with "production", then "background" when no `production*` jobs remain.
 
 NOTE: The wildcard `*` (at the end of "production") is only allowed on its own or at the end of a queue name to match all queues with the same prefix. You can't specify queue names such as `*_some_queue`.
 
