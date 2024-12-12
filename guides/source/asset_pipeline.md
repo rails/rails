@@ -90,8 +90,7 @@ dependencies:
     </body>
     ```
 
-    This is important if, for instance, `main.js` relies on `jquery.js` or
-    `utilities.js` to be loaded first.
+    This is important if, for instance, `main.js` relies on `utilities.js` to be loaded first.
 
 2. Use Modules in JavaScript (ES6)
 
