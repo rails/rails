@@ -1014,7 +1014,7 @@ delivered via the Rails asset pipeline.
    CSS as you make changes, providing a smooth and responsive workflow.
 4. In production, the gem ensures your stylesheets are compiled and ready for
    deployment. During the `assets:precompile` step, it installs all
-   `package.json` dependencies via `yarn` and runs the `yarn build:css` command
+   `package.json` dependencies via `bun`, `yarn`, `pnpm` or `npm` and runs the `build:css` task.
    to process your stylesheet entry points. The resulting CSS output is then
    digested by the asset pipeline and copied into the `public/assets` directory,
    just like other asset pipeline files.
