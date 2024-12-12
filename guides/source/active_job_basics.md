@@ -269,7 +269,7 @@ NOTE: The wildcard `*` (at the end of "production") is only allowed on its own o
 
 WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow down polling performance due to the need for a `DISTINCT` query to identify all matching queues, which can be slow on large tables. For better performance, it’s best to specify exact queue names instead of using wildcards.
 
-Active Job supports positive integer priorities when enqueuing jobs. You can read more about the [Priority section](#priority). This setup is helpful when you have jobs with different levels of importance or urgency in the same queue. Within a single queue, jobs are picked based on their priority (with lower values being higher priority). However, when you have multiple queues, the order of the queues themselves takes priority.
+Active Job supports positive integer priorities when enqueuing jobs (see [Priority section](#priority)). Within a single queue, jobs are picked based on their priority (with lower integers being higher priority). However, when you have multiple queues, the order of the queues themselves takes priority.
 
 For example, if you have two queues, `production` and `background`, jobs in the `production` queue will always be processed first, even if some jobs in the `background` queue have a higher priority.
 
