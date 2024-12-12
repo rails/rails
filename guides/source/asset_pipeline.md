@@ -28,9 +28,8 @@ built for an era where transpilation, bundling and compression are less critical
 for basic applications, thanks to better browser support, faster networks and
 HTTP/2 capabilities.
 
-The simplified design of Propshaft, focuses on essential asset management tasks,
-and it leaves more complex tasks, such as JavaScript and CSS bundling and
-minification, to specialized tools like
+Propshaft focuses on essential asset management tasks and leaves more complex tasks, 
+such as JavaScript and CSS bundling and minification, to specialized tools like
 [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
 [`css-bundling-rails`](https://github.com/rails/cssbundling-rails), which can be
 added separately to your application. Propshaft focuses on
