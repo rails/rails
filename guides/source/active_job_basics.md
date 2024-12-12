@@ -356,7 +356,7 @@ class ApplicationJob < ActiveJob::Base
 end
 ```
 
-You can also configure Solid Queue to use the same database as your app while avoiding transactional integrity issues by setting up a separate database connection for Solid Queue jobs.Read more about [Transactional Integrity in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#jobs-and-transactional-integrity)
+You can also configure Solid Queue to use the same database as your app while avoiding transactional integrity issues by setting up a separate database connection for Solid Queue jobs. Read more about [Transactional Integrity in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#jobs-and-transactional-integrity)
 
 ### Recurring Tasks
 
