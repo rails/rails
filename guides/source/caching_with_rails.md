@@ -272,7 +272,7 @@ helpers for instance, you need to explicitly define them.
 ### Implicit Dependencies
 
 Most template dependencies can be derived from calls to `render` in the template
-itself. Here are some examples of render calls that [`ActionView::Digestor`](https://edgeapi.rubyonrails.org/classes/ActionView/Digestor.html) knows
+itself. Here are some examples of render calls that [`ActionView::Digestor`](https://api.rubyonrails.org/classes/ActionView/Digestor.html) knows
 how to decode:
 
 ```ruby
