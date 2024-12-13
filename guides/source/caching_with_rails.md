@@ -380,7 +380,7 @@ rails new app_name --skip-solid
 
 WARNING: Both Solid Cache and Solid Queue are bundled behind the `--skip-solid` flag. If you still want to use Solid Queue but not Solid Cache, you can enable Solid Queue by running `rails app:enable-solid-queue`.
 
-### Configuring the database
+### Configuring the Database
 
 To use Solid Cache, you can configure the database connection in your `config/database.yml` file. Here's an example configuration for a SQLite database:
 
