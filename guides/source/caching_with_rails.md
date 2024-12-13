@@ -22,8 +22,8 @@ What is Caching?
 
 Caching means storing content generated during the request-response cycle and
 reusing it when responding to similar requests. It's like keeping your favorite
-coffee mug right on your desk instead of in the kitchen cabinet — it’s ready when
-you need it, saving you time and effort.
+coffee mug right on your desk instead of in the kitchen cabinet — it’s ready
+when you need it, saving you time and effort.
 
 Caching is one of the most effective ways to boost an application's performance.
 It allows websites running on modest infrastructure — a single server with a
@@ -375,12 +375,12 @@ Solid Cache
 
 Solid Cache is a database-backed Active Support cache store. It leverages the
 speed of modern [SSDs](https://en.wikipedia.org/wiki/Solid-state_drive) (Solid
-State Drives) to offer cost-effective caching with larger
-storage capacity and simplified infrastructure. While SSDs are slightly slower
-than RAM, the difference is minimal for most applications. SSDs compensate for
-this by not needing to be invalidated as frequently, since they can store much
-more data. As a result, there are fewer cache misses on average, leading to fast
-response times.
+State Drives) to offer cost-effective caching with larger storage capacity and
+simplified infrastructure. While SSDs are slightly slower than RAM, the
+difference is minimal for most applications. SSDs compensate for this by not
+needing to be invalidated as frequently, since they can store much more data. As
+a result, there are fewer cache misses on average, leading to fast response
+times.
 
 Solid Cache uses a FIFO (First In, First Out) caching strategy, where the first
 item added to the cache is the first one to be removed when the cache reaches
@@ -397,11 +397,15 @@ you'd prefer not to utilize it, you can skip Solid Cache:
 rails new app_name --skip-solid
 ```
 
-WARNING: Both Solid Cache and Solid Queue are bundled behind the `--skip-solid` flag. If you still want to use Solid Queue but not Solid Cache, you can enable Solid Queue by running `rails app:enable-solid-queue`.
+WARNING: Both Solid Cache and Solid Queue are bundled behind the `--skip-solid`
+flag. If you still want to use Solid Queue but not Solid Cache, you can enable
+Solid Queue by running `rails app:enable-solid-queue`.
 
 ### Configuring the Database
 
-To use Solid Cache, you can configure the database connection in your `config/database.yml` file. Here's an example configuration for a SQLite database:
+To use Solid Cache, you can configure the database connection in your
+`config/database.yml` file. Here's an example configuration for a SQLite
+database:
 
 ```yaml
 production:
@@ -414,7 +418,9 @@ production:
     migrations_paths: db/cache_migrate
 ```
 
-In this configuration, the `cache` database is used to store cached data. You can also specify a different database adapter, like MySQL or PostgreSQL, if you prefer.
+In this configuration, the `cache` database is used to store cached data. You
+can also specify a different database adapter, like MySQL or PostgreSQL, if you
+prefer.
 
 ```yaml
 production:
@@ -429,9 +435,13 @@ production:
     migrations_paths: db/cache_migrate
 ```
 
-If `database` or [`databases`](#sharding-the-cache) is not specified in the cache configuration, Solid Cache will use the ActiveRecord::Base connection pool. This means that cache reads and writes will be part of any wrapping database transaction.
+If `database` or [`databases`](#sharding-the-cache) is not specified in the
+cache configuration, Solid Cache will use the ActiveRecord::Base connection
+pool. This means that cache reads and writes will be part of any wrapping
+database transaction.
 
-In production, the cache store is configured to use the Solid Cache store by default:
+In production, the cache store is configured to use the Solid Cache store by
+default:
 
 ```yaml
   # config/environments/production.rb
@@ -455,19 +465,32 @@ default: &default
     namespace: <%= Rails.env %>
 ```
 
-For the full list of keys for store_options see [Cache configuration](https://github.com/rails/solid_cache#cache-configuration).
+For the full list of keys for store_options see [Cache
+configuration](https://github.com/rails/solid_cache#cache-configuration).
 
-Here, you can adjust the `max_age` and `max_size` options to control the age and size of the cache entries.
+Here, you can adjust the `max_age` and `max_size` options to control the age and
+size of the cache entries.
 
 ### Handling Cache Expiration
 
-Solid Cache tracks cache writes by incrementing a counter with each write. When the counter reaches 50% of the `expiry_batch_size` from the [Cache configuration](https://github.com/rails/solid_cache#cache-configuration), a background task is triggered to handle cache expiry. This approach ensures cache records expire faster than they are written when the cache needs to shrink.
+Solid Cache tracks cache writes by incrementing a counter with each write. When
+the counter reaches 50% of the `expiry_batch_size` from the [Cache
+configuration](https://github.com/rails/solid_cache#cache-configuration), a
+background task is triggered to handle cache expiry. This approach ensures cache
+records expire faster than they are written when the cache needs to shrink.
 
-The background task only runs when there are writes, so the process stays idle when the cache is not being updated. If you prefer to run the expiry process in a background job instead of a thread, set `expiry_method` from the[Cache configuration](https://github.com/rails/solid_cache#cache-configuration) to `:job`.
+The background task only runs when there are writes, so the process stays idle
+when the cache is not being updated. If you prefer to run the expiry process in
+a background job instead of a thread, set `expiry_method` from the[Cache
+configuration](https://github.com/rails/solid_cache#cache-configuration) to
+`:job`.
 
 ### Sharding the Cache
 
-If you need more scalability, Solid Cache supports sharding — splitting the cache across multiple databases. This spreads the load, making your cache even more powerful. To enable sharding, add multiple cache databases to your database.yml:
+If you need more scalability, Solid Cache supports sharding — splitting the
+cache across multiple databases. This spreads the load, making your cache even
+more powerful. To enable sharding, add multiple cache databases to your
+database.yml:
 
 ```yaml
 # config/database.yml
@@ -493,7 +516,8 @@ production:
 
 ### Encryption
 
-Solid Cache supports encryption to protect sensitive data. To enable encryption, set the `encrypt` value in your cache configuration:
+Solid Cache supports encryption to protect sensitive data. To enable encryption,
+set the `encrypt` value in your cache configuration:
 
 ```yaml
 # config/cache.yml
@@ -501,16 +525,17 @@ production:
   encrypt: true
 ```
 
-You will need to set up your application to use[Active Record Encryption](active_record_encryption.html).
+You will need to set up your application to use[Active Record
+Encryption](active_record_encryption.html).
 
 ### Caching in Development
 
 By default, caching is *enabled* in development mode with
-[`:memory_store`](#activesupport-cache-memorystore).
-This doesn't apply to Action Controller caching, which is disabled
-by default.
+[`:memory_store`](#activesupport-cache-memorystore). This doesn't apply to
+Action Controller caching, which is disabled by default.
 
-To enable Action Controller caching Rails provides the `bin/rails dev:cache` command.
+To enable Action Controller caching Rails provides the `bin/rails dev:cache`
+command.
 
 ```bash
 $ bin/rails dev:cache
@@ -533,7 +558,8 @@ development:
   database: cache
 ```
 
-TIP: To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
+TIP: To disable caching set `cache_store` to
+[`:null_store`](#activesupport-cache-nullstore)
 
 Other Cache Stores
 ------------------
