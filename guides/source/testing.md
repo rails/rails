@@ -3,7 +3,7 @@
 Testing Rails Applications
 ==========================
 
-This guide covers built-in mechanisms in Rails for testing your application.
+This guide explores how to write tests in Rails.
 
 After reading this guide, you will know:
 
@@ -35,7 +35,7 @@ creation of a new application.
 ### Test Setup
 
 Rails creates a `test` directory for you as soon as you create a Rails project
-using `rails new` _application_name_. If you list the contents of this directory
+using `bin/rails new` _application_name_. If you list the contents of this directory
 then you will see:
 
 ```bash
@@ -47,10 +47,14 @@ application_system_test_case.rb  controllers/                     helpers/      
 
 The `helpers`, `mailers`, and `models` directories store tests for [view
 helpers](#testing-view-helpers), [mailers](#testing-mailers), and
-[models](#testing-models), respectively. The `controllers` directory is used for
+[models](#testing-models), respectively.
+
+The `controllers` directory is used for
 [tests related to controllers](#functional-testing-for-controllers), routes, and
 views, where HTTP requests will be simulated and assertions made on the
-outcomes. The `integration` directory is reserved for [tests that cover
+outcomes.
+
+The `integration` directory is reserved for [tests that cover
 interactions between controllers](#integration-testing).
 
 The `system` test directory holds [system tests](#system-testing), which are
@@ -82,9 +86,9 @@ Each environment's configuration can be modified similarly. In this case, we can
 modify our test environment by changing the options found in
 `config/environments/test.rb`.
 
-NOTE: Your tests are run under `RAILS_ENV=test`.
+NOTE: Your tests are run under `RAILS_ENV=test`. This is set by Rails automatically.
 
-### Rails Meets Minitest
+### Writing Your First Test
 
 We introduced the `bin/rails generate model` command in the [Getting Started
 with Rails](getting_started.html#mvc-and-you-generating-a-model) guide.
@@ -191,18 +195,21 @@ To see how a test failure is reported, you can add a failing test to the
 will not save without meeting certain criteria; hence, if the article saves
 successfully, the test will fail, demonstrating a test failure.
 
-```ruby
-test "should not save article without title" do
-  article = Article.new
-  assert_not article.save
+```ruby#4-7
+require "test_helper"
+
+class ArticleTest < ActiveSupport::TestCase
+  test "should not save article without title" do
+    article = Article.new
+    assert_not article.save
+  end
 end
 ```
 
-Here is the output if this newly added test is run (with `6` being the line
-number where the test is defined):
+Here is the output if this newly added test is run:
 
 ```bash
-$ bin/rails test test/models/article_test.rb:6
+$ bin/rails test test/models/article_test.rb
 Running 1 tests in a single process (parallelization threshold is 50)
 Run options: --seed 44656
 
@@ -211,11 +218,11 @@ Run options: --seed 44656
 F
 
 Failure:
-ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/models/article_test.rb:6]:
+ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/models/article_test.rb:4]:
 Expected true to be nil or false
 
 
-bin/rails test test/models/article_test.rb:6
+bin/rails test test/models/article_test.rb:4
 
 
 
@@ -275,7 +282,7 @@ Finished in 0.027476s, 36.3952 runs/s, 36.3952 assertions/s.
 
 The small green dot displayed means that the test has passed successfully.
 
-NOTE: In that process, a test was written first which fails for a desired
+TIP: In the process above, a test was written first which fails for a desired
 functionality, then after, some code was written which adds the functionality.
 Finally, the test was run again to ensure it passes. This approach to software
 development is referred to as _Test-Driven Development_ (TDD).
@@ -357,7 +364,7 @@ This test should now pass.
 ### Minitest Assertions
 
 By now you've caught a glimpse of some of the assertions that are available.
-Assertions are the worker bees of testing. They are the ones that actually
+Assertions are the foundation blocks of testing. They are the ones that actually
 perform the checks to ensure that things are going as planned.
 
 Here's an extract of the assertions you can use with
@@ -365,41 +372,41 @@ Here's an extract of the assertions you can use with
 used by Rails. The `[msg]` parameter is an optional string message you can
 specify to make your test failure messages clearer.
 
-| Assertion                                                        | Purpose |
-| ---------------------------------------------------------------- | ------- |
-| `assert( test, [msg] )`                                          | Ensures that `test` is true.|
-| `assert_not( test, [msg] )`                                      | Ensures that `test` is false.|
-| `assert_equal( expected, actual, [msg] )`                        | Ensures that `expected == actual` is true.|
-| `assert_not_equal( expected, actual, [msg] )`                    | Ensures that `expected != actual` is true.|
-| `assert_same( expected, actual, [msg] )`                         | Ensures that `expected.equal?(actual)` is true.|
-| `assert_not_same( expected, actual, [msg] )`                     | Ensures that `expected.equal?(actual)` is false.|
-| `assert_nil( obj, [msg] )`                                       | Ensures that `obj.nil?` is true.|
-| `assert_not_nil( obj, [msg] )`                                   | Ensures that `obj.nil?` is false.|
-| `assert_empty( obj, [msg] )`                                     | Ensures that `obj` is `empty?`.|
-| `assert_not_empty( obj, [msg] )`                                 | Ensures that `obj` is not `empty?`.|
-| `assert_match( regexp, string, [msg] )`                          | Ensures that a string matches the regular expression.|
-| `assert_no_match( regexp, string, [msg] )`                       | Ensures that a string doesn't match the regular expression.|
-| `assert_includes( collection, obj, [msg] )`                      | Ensures that `obj` is in `collection`.|
-| `assert_not_includes( collection, obj, [msg] )`                  | Ensures that `obj` is not in `collection`.|
-| `assert_in_delta( expected, actual, [delta], [msg] )`            | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
-| `assert_not_in_delta( expected, actual, [delta], [msg] )`        | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
-| `assert_in_epsilon ( expected, actual, [epsilon], [msg] )`       | Ensures that the numbers `expected` and `actual` have a relative error less than `epsilon`.|
-| `assert_not_in_epsilon ( expected, actual, [epsilon], [msg] )`   | Ensures that the numbers `expected` and `actual` have a relative error not less than `epsilon`.|
-| `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
-| `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
-| `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
-| `assert_not_instance_of( class, obj, [msg] )`                    | Ensures that `obj` is not an instance of `class`.|
-| `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is an instance of `class` or is descending from it.|
-| `assert_not_kind_of( class, obj, [msg] )`                        | Ensures that `obj` is not an instance of `class` and is not descending from it.|
-| `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` responds to `symbol`.|
-| `assert_not_respond_to( obj, symbol, [msg] )`                    | Ensures that `obj` does not respond to `symbol`.|
-| `assert_operator( obj1, operator, [obj2], [msg] )`               | Ensures that `obj1.operator(obj2)` is true.|
-| `assert_not_operator( obj1, operator, [obj2], [msg] )`           | Ensures that `obj1.operator(obj2)` is false.|
-| `assert_predicate ( obj, predicate, [msg] )`                     | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
-| `assert_not_predicate ( obj, predicate, [msg] )`                 | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
-| `assert_error_reported(class) { block }`                         | Ensures that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
-| `assert_no_error_reported { block }`                             | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
-| `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
+| Assertion                                                      | Purpose |
+| -------------------------------------------------------------- | ------- |
+| `assert(test, [msg])`                                          | Ensures that `test` is true.|
+| `assert_not(test, [msg])`                                      | Ensures that `test` is false.|
+| `assert_equal(expected, actual, [msg])`                        | Ensures that `expected == actual` is true.|
+| `assert_not_equal(expected, actual, [msg])`                    | Ensures that `expected != actual` is true.|
+| `assert_same(expected, actual, [msg])`                         | Ensures that `expected.equal?(actual)` is true.|
+| `assert_not_same(expected, actual, [msg])`                     | Ensures that `expected.equal?(actual)` is false.|
+| `assert_nil(obj, [msg])`                                       | Ensures that `obj.nil?` is true.|
+| `assert_not_nil(obj, [msg])`                                   | Ensures that `obj.nil?` is false.|
+| `assert_empty(obj, [msg])`                                     | Ensures that `obj` is `empty?`.|
+| `assert_not_empty(obj, [msg])`                                 | Ensures that `obj` is not `empty?`.|
+| `assert_match(regexp, string, [msg])`                          | Ensures that a string matches the regular expression.|
+| `assert_no_match(regexp, string, [msg])`                       | Ensures that a string doesn't match the regular expression.|
+| `assert_includes(collection, obj, [msg])`                      | Ensures that `obj` is in `collection`.|
+| `assert_not_includes(collection, obj, [msg])`                  | Ensures that `obj` is not in `collection`.|
+| `assert_in_delta(expected, actual, [delta], [msg])`            | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
+| `assert_not_in_delta(expected, actual, [delta], [msg])`        | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
+| `assert_in_epsilon(expected, actual, [epsilon], [msg])`        | Ensures that the numbers `expected` and `actual` have a relative error less than `epsilon`.|
+| `assert_not_in_epsilon(expected, actual, [epsilon], [msg])`    | Ensures that the numbers `expected` and `actual` have a relative error not less than `epsilon`.|
+| `assert_throws(symbol, [msg]) { block }`                       | Ensures that the given block throws the symbol.|
+| `assert_raises(exception1, exception2, ...) { block }`         | Ensures that the given block raises one of the given exceptions.|
+| `assert_instance_of(class, obj, [msg])`                        | Ensures that `obj` is an instance of `class`.|
+| `assert_not_instance_of(class, obj, [msg])`                    | Ensures that `obj` is not an instance of `class`.|
+| `assert_kind_of(class, obj, [msg])`                            | Ensures that `obj` is an instance of `class` or is descending from it.|
+| `assert_not_kind_of(class, obj, [msg])`                        | Ensures that `obj` is not an instance of `class` and is not descending from it.|
+| `assert_respond_to(obj, symbol, [msg])`                        | Ensures that `obj` responds to `symbol`.|
+| `assert_not_respond_to(obj, symbol, [msg])`                    | Ensures that `obj` does not respond to `symbol`.|
+| `assert_operator(obj1, operator, [obj2], [msg])`               | Ensures that `obj1.operator(obj2)` is true.|
+| `assert_not_operator(obj1, operator, [obj2], [msg])`           | Ensures that `obj1.operator(obj2)` is false.|
+| `assert_predicate(obj, predicate, [msg])`                      | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
+| `assert_not_predicate(obj, predicate, [msg])`                  | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
+| `assert_error_reported(class) { block }`                       | Ensures that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
+| `assert_no_error_reported { block }`                           | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
+| `flunk([msg])`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive
 and more up-to-date list, please check the [minitest API
@@ -423,46 +430,30 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_changes(expressions, message = nil, from:, to:, &block)`][] | Test that the result of evaluating an expression is changed after invoking the passed in block.|
 | [`assert_no_changes(expressions, message = nil, &block)`][] | Test the result of evaluating an expression is not changed after invoking the passed in block.|
 | [`assert_nothing_raised { block }`][] | Ensures that the given block doesn't raise any exceptions.|
-| [`assert_recognizes(expected_options, path, extras={}, message=nil)`][] | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
-| [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`][] | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extra parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
-| [`assert_routing(expected_path, options, defaults={}, extras = {}, message=nil)`][] | Asserts that `path` and `options` match both ways; in other words, it verifies that `path` generates `options` and then that `options` generates `path`. This essentially combines `assert_recognizes` and `assert_generates` into one step. The extras hash allows you to specify options that would normally be provided as a query string to the action. The message parameter allows you to specify a custom error message to display upon failure.|
+| [`assert_recognizes(expected_options, path, extras = {}, message = nil)`][] | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
+| [`assert_generates(expected_path, options, defaults = {}, extras = {}, message = nil)`][] | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extra parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
+| [`assert_routing(expected_path, options, defaults = {}, extras = {}, message = nil)`][] | Asserts that `path` and `options` match both ways; in other words, it verifies that `path` generates `options` and then that `options` generates `path`. This essentially combines `assert_recognizes` and `assert_generates` into one step. The extras hash allows you to specify options that would normally be provided as a query string to the action. The message parameter allows you to specify a custom error message to display upon failure.|
 | [`assert_response(type, message = nil)`][] | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](https://rubydoc.info/gems/rack/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](https://rubydoc.info/gems/rack/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
-| [`assert_redirected_to(options = {}, message=nil)`][] | Asserts that the response is a redirect to a URL matching the given options. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
+| [`assert_redirected_to(options = {}, message = nil)`][] | Asserts that the response is a redirect to a URL matching the given options. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
 | [`assert_queries_count(count = nil, include_schema: false, &block)`][] | Asserts that `&block` generates an `int` number of SQL queries.|
 | [`assert_no_queries(include_schema: false, &block)`][] | Asserts that `&block` generates no SQL queries.|
 | [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`][] | Asserts that `&block` generates SQL queries that match the pattern.|
 | [`assert_no_queries_match(pattern, &block)`][] | Asserts that `&block` generates no SQL queries that match the pattern.|
 
-[`assert_difference(expressions, difference = 1, message = nil) {...}`]:
-    https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference)
-[`assert_no_difference(expressions, message = nil, &block)`]:
-    https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference
-[`assert_changes(expressions, message = nil, from:, to:, &block)`]:
-    https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_changes
-[`assert_no_changes(expressions, message = nil, &block)`]:
-    https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_changes
-[`assert_nothing_raised { block }`]:
-    https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_nothing_raised
-[`assert_recognizes(expected_options, path, extras={}, message=nil)`]:
-    https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes
-[`assert_generates(expected_path, options, defaults={}, extras = {},
-    message=nil)`]:
-    https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates
-[`assert_routing(expected_path, options, defaults={}, extras = {},
-    message=nil)`]:
-    https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_routing
-[`assert_response(type, message = nil)`]:
-    https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_response
-[`assert_redirected_to(options = {}, message=nil)`]:
-    https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_redirected_to
-[`assert_queries_count(count = nil, include_schema: false, &block)`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_count
-[`assert_no_queries(include_schema: false, &block)`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries
-[`assert_queries_match(pattern, count: nil, include_schema: false, &block)`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_match
-[`assert_no_queries_match(pattern, &block)`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries_match
+[`assert_difference(expressions, difference = 1, message = nil) {...}`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference)
+[`assert_no_difference(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference
+[`assert_changes(expressions, message = nil, from:, to:, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_changes
+[`assert_no_changes(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_changes
+[`assert_nothing_raised { block }`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_nothing_raised
+[`assert_recognizes(expected_options, path, extras = {}, message = nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes
+[`assert_generates(expected_path, options, defaults = {}, extras = {}, message = nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates
+[`assert_routing(expected_path, options, defaults = {}, extras = {}, message = nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_routing
+[`assert_response(type, message = nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_response
+[`assert_redirected_to(options = {}, message = nil)`]: https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_redirected_to
+[`assert_queries_count(count = nil, include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_count
+[`assert_no_queries(include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries
+[`assert_queries_match(pattern, count: nil, include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_match
+[`assert_no_queries_match(pattern, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries_match
 
 You'll see the usage of some of these assertions in the next chapter.
 
@@ -483,53 +474,8 @@ cases. In fact, Rails provides the following classes for you to inherit from:
 Each of these classes include `Minitest::Assertions`, allowing us to use all of
 the basic assertions in your tests.
 
-NOTE: For more information on `minitest`, refer to the [minitest
+TIP: For more information on `minitest`, refer to the [minitest
 documentation](http://docs.seattlerb.org/minitest).
-
-### Transactions
-
-By default, Rails automatically wraps tests in a database transaction that is
-rolled back once completed. This makes tests independent of each other and means
-that changes to the database are only visible within a single test.
-
-```ruby
-class MyTest < ActiveSupport::TestCase
-  test "newly created users are active by default" do
-    # Since the test is implicitly wrapped in a database transaction, the user
-    # created here won't be seen by other tests.
-    assert User.create.active?
-  end
-end
-```
-
-The method
-[`ActiveRecord::Base.current_transaction`](https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-current_transaction)
-still acts as intended, though:
-
-```ruby
-class MyTest < ActiveSupport::TestCase
-  test "Active Record current_transaction method works as expected" do
-    # The implicit transaction around tests does not interfere with the
-    # application-level semantics of the current_transaction.
-    assert User.current_transaction.blank?
-  end
-end
-```
-
-If there are [multiple writing databases](active_record_multiple_databases.html)
-in place, tests are wrapped in as many respective transactions, and all of them
-are rolled back.
-
-#### Opting-out of Test Transactions
-
-Individual test cases can opt-out:
-
-```ruby
-class MyTest < ActiveSupport::TestCase
-  # No implicit database transaction wraps the tests in this test case.
-  self.use_transactional_tests = false
-end
-```
 
 ### The Rails Test Runner
 
@@ -673,7 +619,7 @@ documentation](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
 
 #### What are Fixtures?
 
-_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your
+_Fixtures_ is a fancy word for a consistent set of test data. Fixtures allow you to populate your
 testing database with predefined data before your tests run. Fixtures are
 database independent and written in YAML. There is one file per model.
 
@@ -685,6 +631,7 @@ Fixtures are stored in your `test/fixtures` directory.
 
 #### YAML
 
+[YAML](https://en.wikipedia.org/wiki/YAML) is a human-readable data serialization language.
 YAML-formatted fixtures are a human-friendly way to describe your sample data.
 These types of fixtures have the **.yml** file extension (as in `users.yml`).
 
@@ -713,15 +660,15 @@ a reference node between two different fixtures. Here's an example with a
 
 ```yaml
 # test/fixtures/categories.yml
-about:
-  name: About
+web_frameworks:
+  name: Web Frameworks
 ```
 
 ```yaml
 # test/fixtures/articles.yml
 first:
   title: Welcome to Rails!
-  category: about
+  category: web_frameworks
 ```
 
 ```yaml
@@ -733,9 +680,9 @@ first_content:
 ```
 
 Notice the `category` key of the `first` Article found in
-`fixtures/articles.yml` has a value of `about`, and that the `record` key of the
+`fixtures/articles.yml` has a value of `web_frameworks`, and that the `record` key of the
 `first_content` entry found in `fixtures/action_text/rich_texts.yml` has a value
-of `first (Article)`. This hints to Active Record to load the Category `about`
+of `first (Article)`. This hints to Active Record to load the Category `web_frameworks`
 found in `fixtures/categories.yml` for the former, and Action Text to load the
 Article `first` found in `fixtures/articles.yml` for the latter.
 
@@ -832,7 +779,7 @@ users(:david)
 # this will return the property for david called id
 users(:david).id
 
-# methods available to the User class can also be accessed
+# methods available to the User object can also be accessed
 david = users(:david)
 david.call(david.partner)
 ```
@@ -845,6 +792,50 @@ example:
 users(:david, :steve)
 ```
 
+### Transactions
+
+By default, Rails automatically wraps tests in a database transaction that is
+rolled back once completed. This makes tests independent of each other and means
+that changes to the database are only visible within a single test.
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  test "newly created users are active by default" do
+    # Since the test is implicitly wrapped in a database transaction, the user
+    # created here won't be seen by other tests.
+    assert User.create.active?
+  end
+end
+```
+
+The method
+[`ActiveRecord::Base.current_transaction`](https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-current_transaction)
+still acts as intended, though:
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  test "Active Record current_transaction method works as expected" do
+    # The implicit transaction around tests does not interfere with the
+    # application-level semantics of the current_transaction.
+    assert User.current_transaction.blank?
+  end
+end
+```
+
+If there are [multiple writing databases](active_record_multiple_databases.html)
+in place, tests are wrapped in as many respective transactions, and all of them
+are rolled back.
+
+#### Opting-out of Test Transactions
+
+Individual test cases can opt-out:
+
+```ruby
+class MyTest < ActiveSupport::TestCase
+  # No implicit database transaction wraps the tests in this test case.
+  self.use_transactional_tests = false
+end
+```
 
 Testing Models
 --------------
@@ -943,7 +934,7 @@ end
 ```
 
 In the `test_should_get_index` test, Rails simulates a request on the action
-called `index`, making sure the request was successful and also ensuring that
+called `index`, making sure the request was successful, and also ensuring that
 the right response body has been generated.
 
 The `get` method kicks off the web request and populates the results into the
@@ -1003,7 +994,7 @@ end
 You can now run this test and it will pass.
 
 NOTE: If you followed the steps in the [Basic
-Authentication](getting_started.html#basic-authentication) section, you'll need
+Authentication](getting_started.html#adding-authentication) section, you'll need
 to add authorization to every request header to get all the tests passing:
 
 ```ruby
@@ -1023,7 +1014,7 @@ request. There are 6 request types supported in Rails functional tests:
 * `delete`
 
 All of the request types have equivalent methods that you can use. In a typical
-C.R.U.D. application you'll be using `post`, `get`, `put`, and `delete` most
+CRUD application you'll be using `post`, `get`, `put`, and `delete` most
 often.
 
 NOTE: Functional tests do not verify whether the specified request type is
@@ -1225,14 +1216,14 @@ test "should update article" do
   patch article_url(article), params: { article: { title: "updated" } }
 
   assert_redirected_to article_path(article)
-  # Reload association to fetch updated data and assert that title is updated.
+  # Reload article to refresh data and assert that title is updated.
   article.reload
   assert_equal "updated", article.title
 end
 ```
 
 Notice that there is some duplication in these three tests - they both access
-the same article fixture data. It is possible to D.R.Y. ('Don't Repeat
+the same article fixture data. It is possible to DRY ('Don't Repeat
 Yourself') the implementation by using the `setup` and `teardown` methods
 provided by `ActiveSupport::Callbacks`.
 
