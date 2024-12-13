@@ -879,7 +879,7 @@ module ActiveRecord
         #
         #   validate_check_constraint :products, name: "price_check"
         #
-        # The +options+ hash accepts the same keys as add_check_constraint[rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint].
+        # The +options+ hash accepts the same keys as {add_check_constraint}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint].
         def validate_check_constraint(table_name, **options)
           chk_name_to_validate = check_constraint_for!(table_name, **options).name
 
