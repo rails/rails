@@ -220,7 +220,7 @@ For example:
 
 ```html+erb
 <% if authenticated? %>
-  <%= button_to "Sign Out", session_path, method: :delete  %></li>
+  <%= button_to "Sign Out", session_path, method: :delete  %>
 <% else %>
   <%= link_to "Sign In", new_session_path %>
 <% end %>
