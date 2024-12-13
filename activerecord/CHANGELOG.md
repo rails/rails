@@ -1,3 +1,7 @@
+*   Fix removing foreign keys with :restrict action for MySQ
+
+    *fatkodima*
+
 *   Fix a race condition in `ActiveRecord::Base#method_missing` when lazily defining attributes.
 
     If multiple thread were concurrently triggering attribute definition on the same model,

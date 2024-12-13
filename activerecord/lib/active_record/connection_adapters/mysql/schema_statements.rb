@@ -85,6 +85,13 @@ module ActiveRecord
           super
         end
 
+        def remove_foreign_key(from_table, to_table = nil, **options)
+          # RESTRICT is by default in MySQL.
+          options.delete(:on_update) if options[:on_update] == :restrict
+          options.delete(:on_delete) if options[:on_delete] == :restrict
+          super
+        end
+
         def internal_string_options_for_primary_key
           super.tap do |options|
             if !row_format_dynamic_by_default? && CHARSETS_OF_4BYTES_MAXLEN.include?(charset)

@@ -443,6 +443,13 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
             @connection.foreign_keys("astronauts").map { |fk| [fk.from_table, fk.to_table, fk.column] }
         end
 
+        def test_remove_foreign_key_with_restrict_action
+          @connection.add_foreign_key :astronauts, :rockets, on_delete: :restrict
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+          @connection.remove_foreign_key :astronauts, :rockets, on_delete: :restrict
+          assert_empty @connection.foreign_keys("astronauts")
+        end
+
         if ActiveRecord::Base.lease_connection.supports_validate_constraints?
           def test_add_invalid_foreign_key
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
