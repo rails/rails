@@ -354,9 +354,7 @@ Solid Cache
 
 Solid Cache is a database-backed Active Support cache store. It leverages the
 speed of modern [SSDs](https://en.wikipedia.org/wiki/Solid-state_drive) (Solid
-State Drives) like [NVMe](https://en.wikipedia.org/wiki/NVM_Express)
-(Non-Volatile Memory Express), which helps overcome the limitations of
-traditional memory-only caches, offering cost-effective caching with larger
+State Drives) to offer cost-effective caching with larger
 storage capacity and simplified infrastructure. While SSDs are slightly slower
 than RAM, the difference is minimal for most applications. SSDs compensate for
 this by not needing to be invalidated as frequently, since they can store much
