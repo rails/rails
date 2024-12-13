@@ -1,3 +1,5 @@
+## Rails 8.0.1 (December 13, 2024) ##
+
 *   Fix a crash in ERB template error highlighting when the error occurs on a
     line in the compiled template that is past the end of the source template.
 

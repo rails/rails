@@ -1,3 +1,5 @@
+## Rails 8.0.1 (December 13, 2024) ##
+
 *   Add `ActionDispatch::Request::Session#store` method to conform Rack spec.
 
     *Yaroslav*

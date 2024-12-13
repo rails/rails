@@ -1,3 +1,5 @@
+## Rails 8.0.1 (December 13, 2024) ##
+
 *   Ensure the Postgresql adapter always use a dedicated connection even during system tests.
 
     Fix an issue with the Action Cable Postgresql adapter causing deadlock or various weird

@@ -1,3 +1,5 @@
+## Rails 8.0.1 (December 13, 2024) ##
+
 *   Skip generation system tests related code for CI when `--skip-system-test` is given.
 
     *fatkodima*

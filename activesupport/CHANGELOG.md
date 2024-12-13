@@ -1,3 +1,5 @@
+## Rails 8.0.1 (December 13, 2024) ##
+
 *   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
 
     *Martin Emde*
