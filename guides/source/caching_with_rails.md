@@ -191,7 +191,7 @@ Will load a file named `hotels/hotel.html.erb` in any file MIME type, for exampl
 
 Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing any serializable information.
 
-The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method handles both _reading from_ and _writing to_ the cache. When called with a single argument, it fetches and returns the cached value for the given key. If a block is passed, the block is executed only on a cache miss. The block's return value is written to the cache under the given cache key and returned. In case of cache hit, the cached value is returned directly without executing the block.
+An efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method handles both _reading from_ and _writing to_ the cache. When called with a single argument, it fetches and returns the cached value for the given key. If a block is passed, the block is executed only on a cache miss. The block's return value is written to the cache under the given cache key and returned. In case of cache hit, the cached value is returned directly without executing the block.
 
 Consider the following example. An application has a `Product` model with an instance method that looks up the product's price on a competing website. The data returned by this method would be perfect for low-level caching:
 
