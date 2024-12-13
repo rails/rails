@@ -187,7 +187,7 @@ render(partial: "hotels/hotel", collection: @hotels, formats: :html, cached: tru
 
 Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.
 
-### Low-Level Caching using `Rails.cache.fetch`
+### Low-Level Caching using `Rails.cache`
 
 Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing any serializable information.
 
