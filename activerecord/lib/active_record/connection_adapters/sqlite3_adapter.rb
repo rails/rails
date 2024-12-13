@@ -199,7 +199,12 @@ module ActiveRecord
         !(@raw_connection.nil? || @raw_connection.closed?)
       end
 
-      alias_method :active?, :connected?
+      def active?
+        if connected?
+          verified!
+          true
+        end
+      end
 
       alias :reset! :reconnect!
 
