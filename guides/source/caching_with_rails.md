@@ -412,7 +412,7 @@ production:
 
 If `database` or [`databases`](#sharding-the-cache) is not specified in the cache configuration, Solid Cache will use the ActiveRecord::Base connection pool. This means that cache reads and writes will be part of any wrapping database transaction.
 
-In production, the cache store is configured to use the solid cache store:
+In production, the cache store is configured to use the Solid Cache store by default:
 
 ```yaml
   # config/environments/production.rb
