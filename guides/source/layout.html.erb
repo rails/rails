@@ -13,7 +13,7 @@
 
   <link rel="apple-touch-icon" href="images/icon.png">
 
-  <link rel="canonical" href="<%= @canonical %>">
+  <link rel="canonical" href="<%= canonical_url(@path) %>">
 
   <script src="<%= digest_path('javascripts/@hotwired--turbo.js') %>" data-turbo-track="reload"></script>
   <script src="<%= digest_path('javascripts/clipboard.js') %>" data-turbo-track="reload"></script>
