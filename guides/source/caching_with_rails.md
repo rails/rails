@@ -538,7 +538,7 @@ Caching).
 
 ### Configuration
 
-You can set up your a different cache store by setting the
+You can set up a different cache store by setting the
 `config.cache_store` configuration option. Other parameters can be passed as
 arguments to the cache store's constructor:
 
