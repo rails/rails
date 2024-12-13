@@ -1,3 +1,14 @@
+*   Remember when a database connection has recently been verified (for
+    two seconds, by default), to avoid repeated reverifications during a
+    single request.
+
+    This should recreate a similar rate of verification as in Rails 7.1,
+    where connections are leased for the duration of a request, and thus
+    only verified once.
+
+    *Matthew Draper*
+
+
 ## Rails 8.0.1 (December 13, 2024) ##
 
 *   Fix removing foreign keys with :restrict action for MySQ
