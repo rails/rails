@@ -194,10 +194,8 @@
       name: The Asset Pipeline
       url: asset_pipeline.html
       description: >
-        The asset pipeline provides a framework to concatenate and minify or
-        compress JavaScript, CSS and image assets. It also adds the ability to
-        write these assets in other languages and pre-processors such as
-        CoffeeScript, Sass, and ERB.
+        The asset pipeline guide explains how to use Propshaft, a framework that
+        handles essential asset management tasks.
     -
       name: Working with JavaScript in Rails
       url: working_with_javascript_in_rails.html
