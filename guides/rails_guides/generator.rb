@@ -194,8 +194,7 @@ module RailsGuides
           language:      @language,
           direction:     @direction,
           uuid:          SecureRandom.uuid,
-          digest_paths:  @digest_paths,
-          canonical_url: canonical_url(output_file)
+          digest_paths:  @digest_paths
         )
         view.extend(Helpers)
 
@@ -224,12 +223,6 @@ module RailsGuides
         File.open(output_path, "w") do |f|
           f.write(result)
         end if !dry_run?
-      end
-
-      def canonical_url(path)
-        url = "https://guides.rubyonrails.org/"
-        url += path unless path == "index.html"
-        url
       end
 
       def warn_about_broken_links(html)
