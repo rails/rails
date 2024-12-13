@@ -5,34 +5,42 @@ Caching with Rails: An Overview
 
 This guide is an introduction to speeding up your Rails application with caching.
 
-Caching means to store content generated during the request-response cycle and
-to reuse it when responding to similar requests.
-
-Caching is often the most effective way to boost an application's performance.
-Through caching, websites running on a single server with a single database
-can sustain a load of thousands of concurrent users.
-
-Rails provides a set of caching features out of the box. This guide will teach
-you the scope and purpose of each one of them. Master these techniques and your
-Rails applications can serve millions of views without exorbitant response times
-or server bills.
-
 After reading this guide, you will know:
 
-* Fragment and Russian doll caching.
+* What caching is.
+* The types of caching strategies.
 * How to manage the caching dependencies.
-* Alternative cache stores.
+* Solid Cache - a database-backed Active Support cache store.
+* Other cache stores.
+* Cache keys.
 * Conditional GET support.
 
 --------------------------------------------------------------------------------
 
-Basic Caching
--------------
+What is Caching?
+----------------
 
-This is an introduction to three types of caching techniques: page, action and
-fragment caching. By default Rails provides fragment caching. In order to use
-page and action caching you will need to add `actionpack-page_caching` and
-`actionpack-action_caching` to your `Gemfile`.
+Caching means storing content generated during the request-response cycle and
+reusing it when responding to similar requests. It's like keeping your favorite
+coffee mug right on your desk instead of in the kitchen cabinet — it’s ready
+when you need it, saving you time and effort.
+
+Caching is one of the most effective ways to boost an application's performance.
+It allows websites running on modest infrastructure — a single server with a
+single database — to sustain thousands of concurrent users.
+
+Rails provides a set of caching features out of the box which allows you to not
+only cache data, but also to tackle challenges like cache expiration, cache
+dependencies, and cache invalidation.
+
+This guide will explore Rails' comprehensive caching strategies, from fragment
+caching to SQL caching. With these techniques, your Rails application can serve
+millions of views while keeping response times low and server bills manageable.
+
+Types of Caching
+----------------
+
+This is an introduction to some of the common types of caching.
 
 By default, Action Controller caching is only enabled in your production environment. You can play
 around with caching locally by running `rails dev:cache`, or by setting
@@ -41,26 +49,9 @@ around with caching locally by running `rails dev:cache`, or by setting
 NOTE: Changing the value of `config.action_controller.perform_caching` will
 only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
-[below](#low-level-caching).
+[below](#low-level-caching-using-rails-cache).
 
 [`config.action_controller.perform_caching`]: configuring.html#config-action-controller-perform-caching
-
-### Page Caching
-
-Page caching is a Rails mechanism which allows the request for a generated page
-to be fulfilled by the web server (i.e. Apache or NGINX) without having to go
-through the entire Rails stack. While this is super fast it can't be applied to
-every situation (such as pages that need authentication). Also, because the
-web server is serving a file directly from the filesystem you will need to
-implement cache expiration.
-
-INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching).
-
-### Action Caching
-
-Page Caching cannot be used for actions that have before filters - for example, pages that require authentication. This is where Action Caching comes in. Action Caching works like Page Caching except the incoming web request hits the Rails stack so that before filters can be run on it before the cache is served. This allows authentication and other restrictions to be run while still serving the result of the output from a cached copy.
-
-INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_caching gem](https://github.com/rails/actionpack-action_caching). See [DHH's key-based cache expiration overview](https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
 
 ### Fragment Caching
 
@@ -199,98 +190,11 @@ render(partial: "hotels/hotel", collection: @hotels, formats: :html, cached: tru
 
 Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.
 
-### Managing Dependencies
-
-In order to correctly invalidate the cache, you need to properly define the
-caching dependencies. Rails is clever enough to handle common cases so you don't
-have to specify anything. However, sometimes, when you're dealing with custom
-helpers for instance, you need to explicitly define them.
-
-#### Implicit Dependencies
-
-Most template dependencies can be derived from calls to `render` in the template
-itself. Here are some examples of render calls that `ActionView::Digestor` knows
-how to decode:
-
-```ruby
-render partial: "comments/comment", collection: commentable.comments
-render "comments/comments"
-render "comments/comments"
-render("comments/comments")
-
-render "header" # translates to render("comments/header")
-
-render(@topic)         # translates to render("topics/topic")
-render(topics)         # translates to render("topics/topic")
-render(message.topics) # translates to render("topics/topic")
-```
-
-On the other hand, some calls need to be changed to make caching work properly.
-For instance, if you're passing a custom collection, you'll need to change:
-
-```ruby
-render @project.documents.where(published: true)
-```
-
-to:
-
-```ruby
-render partial: "documents/document", collection: @project.documents.where(published: true)
-```
-
-#### Explicit Dependencies
-
-Sometimes you'll have template dependencies that can't be derived at all. This
-is typically the case when rendering happens in helpers. Here's an example:
-
-```html+erb
-<%= render_sortable_todolists @project.todolists %>
-```
-
-You'll need to use a special comment format to call those out:
-
-```html+erb
-<%# Template Dependency: todolists/todolist %>
-<%= render_sortable_todolists @project.todolists %>
-```
-
-In some cases, like a single table inheritance setup, you might have a bunch of
-explicit dependencies. Instead of writing every template out, you can use a
-wildcard to match any template in a directory:
-
-```html+erb
-<%# Template Dependency: events/* %>
-<%= render_categorizable_events @person.events %>
-```
-
-As for collection caching, if the partial template doesn't start with a clean
-cache call, you can still benefit from collection caching by adding a special
-comment format anywhere in the template, like:
-
-```html+erb
-<%# Template Collection: notification %>
-<% my_helper_that_calls_cache(some_arg, notification) do %>
-  <%= notification.name %>
-<% end %>
-```
-
-#### External Dependencies
-
-If you use a helper method, for example, inside a cached block and you then update
-that helper, you'll have to bump the cache as well. It doesn't really matter how
-you do it, but the MD5 of the template file must change. One recommendation is to
-simply be explicit in a comment, like:
-
-```html+erb
-<%# Helper Dependency Updated: Jul 28, 2015 at 7pm %>
-<%= some_helper_method(person) %>
-```
-
-### Low-Level Caching
+### Low-Level Caching using `Rails.cache`
 
 Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing any serializable information.
 
-The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, that block will be executed in the event of a cache miss. The return value of the block will be written to the cache under the given cache key, and that return value will be returned. In case of cache hit, the cached value will be returned without executing the block.
+An efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method handles both _reading from_ and _writing to_ the cache. When called with a single argument, it fetches and returns the cached value for the given key. If a block is passed, the block is executed only on a cache miss. The block's return value is written to the cache under the given cache key and returned. In case of cache hit, the cached value is returned directly without executing the block.
 
 Consider the following example. An application has a `Product` model with an instance method that looks up the product's price on a competing website. The data returned by this method would be perfect for low-level caching:
 
@@ -305,6 +209,24 @@ end
 ```
 
 NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching, you need to generate a cache key.
+
+Below are some more examples of how to use low-level caching:
+
+```ruby
+# Store a value in the cache
+Rails.cache.write("greeting", "Hello, world!")
+
+# Retrieve the value from the cache
+greeting = Rails.cache.read("greeting")
+puts greeting # Output: Hello, world!
+
+# Fetch a value with a block to set a default if it doesn’t exist
+welcome_message = Rails.cache.fetch("welcome_message") { "Welcome to Rails!" }
+puts welcome_message # Output: Welcome to Rails!
+
+# Delete a value from the cache
+Rails.cache.delete("greeting")
+```
 
 #### Avoid Caching Instances of Active Record Objects
 
@@ -354,22 +276,301 @@ class ProductsController < ApplicationController
 end
 ```
 
-The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory.
+The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory. However, each retrieval still instantiates new instances of the queried objects.
 
-However, it's important to note that query caches are created at the start of
-an action and destroyed at the end of that action and thus persist only for the
-duration of the action. If you'd like to store query results in a more
-persistent fashion, you can with low-level caching.
+NOTE: Query caches are created at the start of an action and destroyed at the
+end of that action and thus persist only for the duration of the action. If
+you'd like to store query results in a more persistent fashion, you can with
+low-level caching.
 
-Cache Stores
-------------
+## Managing Dependencies
 
-Rails provides different stores for the cached data (apart from SQL and page
-caching).
+In order to correctly invalidate the cache, you need to properly define the
+caching dependencies. Rails is clever enough to handle common cases so you don't
+have to specify anything. However, sometimes, when you're dealing with custom
+helpers for instance, you need to explicitly define them.
+
+### Implicit Dependencies
+
+Most template dependencies can be derived from calls to `render` in the template
+itself. Here are some examples of render calls that [`ActionView::Digestor`](https://api.rubyonrails.org/classes/ActionView/Digestor.html) knows
+how to decode:
+
+```ruby
+render partial: "comments/comment", collection: commentable.comments
+render "comments/comments"
+render "comments/comments"
+render("comments/comments")
+
+render "header" # translates to render("comments/header")
+
+render(@topic)         # translates to render("topics/topic")
+render(topics)         # translates to render("topics/topic")
+render(message.topics) # translates to render("topics/topic")
+```
+
+On the other hand, some calls need to be changed to make caching work properly.
+For instance, if you're passing a custom collection, you'll need to change:
+
+```ruby
+render @project.documents.where(published: true)
+```
+
+to:
+
+```ruby
+render partial: "documents/document", collection: @project.documents.where(published: true)
+```
+
+### Explicit Dependencies
+
+Sometimes you'll have template dependencies that can't be derived at all. This
+is typically the case when rendering happens in helpers. Here's an example:
+
+```html+erb
+<%= render_sortable_todolists @project.todolists %>
+```
+
+You'll need to use a special comment format to call those out:
+
+```html+erb
+<%# Template Dependency: todolists/todolist %>
+<%= render_sortable_todolists @project.todolists %>
+```
+
+In some cases, like a single table inheritance setup, you might have a bunch of
+explicit dependencies. Instead of writing every template out, you can use a
+wildcard to match any template in a directory:
+
+```html+erb
+<%# Template Dependency: events/* %>
+<%= render_categorizable_events @person.events %>
+```
+
+As for collection caching, if the partial template doesn't start with a clean
+cache call, you can still benefit from collection caching by adding a special
+comment format anywhere in the template, like:
+
+```html+erb
+<%# Template Collection: notification %>
+<% my_helper_that_calls_cache(some_arg, notification) do %>
+  <%= notification.name %>
+<% end %>
+```
+
+### External Dependencies
+
+If you use a helper method, for example, inside a cached block and you then update
+that helper, you'll have to bump the cache as well. It doesn't really matter how
+you do it, but the MD5 of the template file must change. One recommendation is to
+simply be explicit in a comment, like:
+
+```html+erb
+<%# Helper Dependency Updated: Jul 28, 2015 at 7pm %>
+<%= some_helper_method(person) %>
+```
+
+Solid Cache
+-----------
+
+Solid Cache is a database-backed Active Support cache store. It leverages the
+speed of modern [SSDs](https://en.wikipedia.org/wiki/Solid-state_drive) (Solid
+State Drives) to offer cost-effective caching with larger storage capacity and
+simplified infrastructure. While SSDs are slightly slower than RAM, the
+difference is minimal for most applications. SSDs compensate for this by not
+needing to be invalidated as frequently, since they can store much more data. As
+a result, there are fewer cache misses on average, leading to fast response
+times.
+
+Solid Cache uses a FIFO (First In, First Out) caching strategy, where the first
+item added to the cache is the first one to be removed when the cache reaches
+its limit. This approach is simpler but less efficient compared to an LRU (Least
+Recently Used) cache, which removes the least recently accessed items first,
+better optimizing for frequently used data. However, Solid Cache compensates for
+the lower efficiency of FIFO by allowing the cache to live longer, reducing the
+frequency of invalidations.
+
+Solid Cache is enabled by default from Rails version 8.0 and onward. However, if
+you'd prefer not to utilize it, you can skip Solid Cache:
+
+```bash
+rails new app_name --skip-solid
+```
+
+WARNING: Both Solid Cache and Solid Queue are bundled behind the `--skip-solid`
+flag. If you still want to use Solid Queue but not Solid Cache, you can enable
+Solid Queue by running `rails app:enable-solid-queue`.
+
+### Configuring the Database
+
+To use Solid Cache, you can configure the database connection in your
+`config/database.yml` file. Here's an example configuration for a SQLite
+database:
+
+```yaml
+production:
+  primary:
+    <<: *default
+    database: storage/production.sqlite3
+  cache:
+    <<: *default
+    database: storage/production_cache.sqlite3
+    migrations_paths: db/cache_migrate
+```
+
+In this configuration, the `cache` database is used to store cached data. You
+can also specify a different database adapter, like MySQL or PostgreSQL, if you
+prefer.
+
+```yaml
+production:
+  primary: &primary_production
+    <<: *default
+    database: app_production
+    username: app
+    password: <%= ENV["APP_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: app_production_cache
+    migrations_paths: db/cache_migrate
+```
+
+If `database` or [`databases`](#sharding-the-cache) is not specified in the
+cache configuration, Solid Cache will use the ActiveRecord::Base connection
+pool. This means that cache reads and writes will be part of any wrapping
+database transaction.
+
+In production, the cache store is configured to use the Solid Cache store by
+default:
+
+```yaml
+  # config/environments/production.rb
+  config.cache_store = :solid_cache_store
+```
+
+You can [access the cache by calling
+`Rails.cache`](#low-level-caching-using-rails-cache)
+
+
+### Customizing the Cache Store
+
+Solid Cache can be customized through the config/cache.yml file:
+
+```yaml
+default: &default
+  store_options:
+    # Cap age of oldest cache entry to fulfill retention policies
+    max_age: <%= 60.days.to_i %>
+    max_size: <%= 256.megabytes %>
+    namespace: <%= Rails.env %>
+```
+
+For the full list of keys for store_options see [Cache
+configuration](https://github.com/rails/solid_cache#cache-configuration).
+
+Here, you can adjust the `max_age` and `max_size` options to control the age and
+size of the cache entries.
+
+### Handling Cache Expiration
+
+Solid Cache tracks cache writes by incrementing a counter with each write. When
+the counter reaches 50% of the `expiry_batch_size` from the [Cache
+configuration](https://github.com/rails/solid_cache#cache-configuration), a
+background task is triggered to handle cache expiry. This approach ensures cache
+records expire faster than they are written when the cache needs to shrink.
+
+The background task only runs when there are writes, so the process stays idle
+when the cache is not being updated. If you prefer to run the expiry process in
+a background job instead of a thread, set `expiry_method` from the[Cache
+configuration](https://github.com/rails/solid_cache#cache-configuration) to
+`:job`.
+
+### Sharding the Cache
+
+If you need more scalability, Solid Cache supports sharding — splitting the
+cache across multiple databases. This spreads the load, making your cache even
+more powerful. To enable sharding, add multiple cache databases to your
+database.yml:
+
+```yaml
+# config/database.yml
+production:
+  cache_shard1:
+    database: cache1_production
+    host: cache1-db
+  cache_shard2:
+    database: cache2_production
+    host: cache2-db
+  cache_shard3:
+    database: cache3_production
+    host: cache3-db
+```
+
+Additionally, you must specify the shards in the cache configuration:
+
+```yaml
+# config/cache.yml
+production:
+  databases: [cache_shard1, cache_shard2, cache_shard3]
+```
+
+### Encryption
+
+Solid Cache supports encryption to protect sensitive data. To enable encryption,
+set the `encrypt` value in your cache configuration:
+
+```yaml
+# config/cache.yml
+production:
+  encrypt: true
+```
+
+You will need to set up your application to use[Active Record
+Encryption](active_record_encryption.html).
+
+### Caching in Development
+
+By default, caching is *enabled* in development mode with
+[`:memory_store`](#activesupport-cache-memorystore). This doesn't apply to
+Action Controller caching, which is disabled by default.
+
+To enable Action Controller caching Rails provides the `bin/rails dev:cache`
+command.
+
+```bash
+$ bin/rails dev:cache
+Development mode is now being cached.
+$ bin/rails dev:cache
+Development mode is no longer being cached.
+```
+
+If you want to use Solid Cache in development, set the `cache_store`
+configuration in `config/environments/development.rb`:
+
+```ruby
+config.cache_store = :solid_cache_store
+```
+
+and ensure the `cache` database is created and migrated:
+
+```bash
+development:
+  <<: * default
+  database: cache
+```
+
+TIP: To disable caching set `cache_store` to
+[`:null_store`](#activesupport-cache-nullstore)
+
+Other Cache Stores
+------------------
+
+Rails provides different stores for the cached data (with the exception of SQL
+Caching).
 
 ### Configuration
 
-You can set up your application's default cache store by setting the
+You can set up a different cache store by setting the
 `config.cache_store` configuration option. Other parameters can be passed as
 arguments to the cache store's constructor:
 
@@ -383,10 +584,11 @@ You can access the cache by calling `Rails.cache`.
 
 #### Connection Pool Options
 
-By default, [`:mem_cache_store`](#activesupport-cache-memcachestore) and
-[`:redis_cache_store`](#activesupport-cache-rediscachestore) are configured to use
-connection pooling. This means that if you're using Puma, or another threaded server,
-you can have multiple threads performing queries to the cache store at the same time.
+[`:mem_cache_store`](#activesupport-cache-memcachestore) and
+[`:redis_cache_store`](#activesupport-cache-rediscachestore) are configured to
+use connection pooling. This means that if you're using Puma, or another
+threaded server, you can have multiple threads performing queries to the cache
+store at the same time.
 
 If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
 
@@ -460,8 +662,6 @@ share a cache by using a shared file system, but that setup is not recommended.
 As the cache will grow until the disk is full, it is recommended to
 periodically clear out old entries.
 
-This is the default cache store implementation (at `"#{root}/tmp/cache/"`) if
-no explicit `config.cache_store` is supplied.
 
 [`ActiveSupport::Cache::FileStore`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
 
@@ -717,28 +917,3 @@ You can also set the strong ETag directly on the response.
 ```ruby
 response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 ```
-
-Caching in Development
-----------------------
-
-By default, caching is *enabled* in development mode with
-[`:memory_store`](#activesupport-cache-memorystore).
-This doesn't apply to Action Controller caching, which is disabled
-by default.
-
-To enable Action Controller caching Rails provides the `bin/rails dev:cache` command.
-
-```bash
-$ bin/rails dev:cache
-Development mode is now being cached.
-$ bin/rails dev:cache
-Development mode is no longer being cached.
-```
-
-To disable caching set `cache_store` to [`:null_store`](#activesupport-cache-nullstore)
-
-References
-----------
-
-* [DHH's article on key-based expiration](https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works)
-* [Ryan Bates' Railscast on cache digests](http://railscasts.com/episodes/387-cache-digests)
