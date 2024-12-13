@@ -550,6 +550,7 @@ configuration in `config/environments/development.rb`:
 ```ruby
 config.cache_store = :solid_cache_store
 ```
+
 and ensure the `cache` database is created and migrated:
 
 ```bash
