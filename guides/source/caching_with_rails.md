@@ -5,12 +5,13 @@ Caching with Rails: An Overview
 
 This guide is an introduction to speeding up your Rails application with caching.
 
-After reading this guide, you will know about:
+After reading this guide, you will know:
 
-* Solid Cache - a database-backed Active Support cache store.
-* Types of caching strategies including Fragment and Russian Doll caching.
+* What caching is.
+* The types of caching strategies.
 * How to manage the caching dependencies.
-* Alternative cache stores.
+* Solid Cache - a database-backed Active Support cache store.
+* Other cache stores.
 * Cache keys.
 * Conditional GET support.
 
@@ -32,7 +33,9 @@ Rails provides a set of caching features out of the box which allows you to not
 only cache data, but also to tackle challenges like cache expiration, cache
 dependencies, and cache invalidation.
 
-This guide will explore Rails' comprehensive caching strategies, from fragment caching to SQL caching. With these techniques, your Rails application can serve millions of views while keeping response times low and server bills manageable.
+This guide will explore Rails' comprehensive caching strategies, from fragment
+caching to SQL caching. With these techniques, your Rails application can serve
+millions of views while keeping response times low and server bills manageable.
 
 Types of Caching
 ----------------
@@ -46,7 +49,7 @@ around with caching locally by running `rails dev:cache`, or by setting
 NOTE: Changing the value of `config.action_controller.perform_caching` will
 only have an effect on the caching provided by Action Controller.
 For instance, it will not impact low-level caching, that we address
-[below](#low-level-caching-using-rails-cache-fetch).
+[below](#low-level-caching-using-rails-cache).
 
 [`config.action_controller.perform_caching`]: configuring.html#config-action-controller-perform-caching
 
@@ -207,6 +210,24 @@ end
 
 NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching, you need to generate a cache key.
 
+Below are some more examples of how to use low-level caching:
+
+```ruby
+# Store a value in the cache
+Rails.cache.write('greeting', 'Hello, world!')
+
+# Retrieve the value from the cache
+greeting = Rails.cache.read('greeting')
+puts greeting # Output: Hello, world!
+
+# Fetch a value with a block to set a default if it doesn’t exist
+welcome_message = Rails.cache.fetch('welcome_message') { 'Welcome to Rails!' }
+puts welcome_message # Output: Welcome to Rails!
+
+# Delete a value from the cache
+Rails.cache.delete('greeting')
+```
+
 #### Avoid Caching Instances of Active Record Objects
 
 Consider this example, which stores a list of Active Record objects representing superusers in the cache:
@@ -255,12 +276,12 @@ class ProductsController < ApplicationController
 end
 ```
 
-The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory.
+The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory. However, each retrieval still instantiates new instances of the queried objects.
 
-However, it's important to note that query caches are created at the start of
-an action and destroyed at the end of that action and thus persist only for the
-duration of the action. If you'd like to store query results in a more
-persistent fashion, you can with low-level caching.
+NOTE: Query caches are created at the start of an action and destroyed at the
+end of that action and thus persist only for the duration of the action. If
+you'd like to store query results in a more persistent fashion, you can with
+low-level caching.
 
 ## Managing Dependencies
 
@@ -417,23 +438,9 @@ In production, the cache store is configured to use the Solid Cache store by def
   config.cache_store = :solid_cache_store
 ```
 
-You can access the cache by calling `Rails.cache`. For example:
+You can [access the cache by calling
+`Rails.cache`](#low-level-caching-using-rails-cache)
 
-```ruby
-# Store a value in the cache
-Rails.cache.write('greeting', 'Hello, world!')
-
-# Retrieve the value from the cache
-greeting = Rails.cache.read('greeting')
-puts greeting # Output: Hello, world!
-
-# Fetch a value with a block to set a default if it doesn’t exist
-welcome_message = Rails.cache.fetch('welcome_message') { 'Welcome to Rails!' }
-puts welcome_message # Output: Welcome to Rails!
-
-# Delete a value from the cache
-Rails.cache.delete('greeting')
-```
 
 ### Customizing the Cache Store
 
@@ -883,9 +890,3 @@ You can also set the strong ETag directly on the response.
 ```ruby
 response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
 ```
-
-References
-----------
-
-* [DHH's article on key-based expiration](https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works)
-* [Ryan Bates' Railscast on cache digests](http://railscasts.com/episodes/387-cache-digests)
