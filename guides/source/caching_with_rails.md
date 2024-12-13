@@ -458,7 +458,7 @@ Here, you can adjust the `max_age` and `max_size` options to control the age and
 
 Solid Cache tracks cache writes by incrementing a counter with each write. When the counter reaches 50% of the `expiry_batch_size` from the [Cache configuration](https://github.com/rails/solid_cache#cache-configuration), a background task is triggered to handle cache expiry. This approach ensures cache records expire faster than they are written when the cache needs to shrink.
 
-The background task only runs when there are writes, so the process stays idle when the cache is not being updated. If you prefer to run the expiry process in a background job instead of a thread, set `expiry_method` from the[Cache configuration](https://github.com/rails/solid_cache#cache-configuration) to `:job`, which will enqueue a `SolidCache::ExpiryJob`.
+The background task only runs when there are writes, so the process stays idle when the cache is not being updated. If you prefer to run the expiry process in a background job instead of a thread, set `expiry_method` from the[Cache configuration](https://github.com/rails/solid_cache#cache-configuration) to `:job`.
 
 ### Sharding the Cache
 
