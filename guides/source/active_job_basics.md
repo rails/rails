@@ -117,7 +117,9 @@ That's it!
 
 ### Enqueue Jobs in Bulk
 
-You can enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later). For more details see [Bulk Enqueuing](#bulk-enqueuing).
+You can enqueue multiple jobs at once using
+[`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later).
+For more details see [Bulk Enqueuing](#bulk-enqueuing).
 
 Default Backend: Solid Queue
 ------------------------------
@@ -126,19 +128,21 @@ Solid Queue, which is enabled by default from Rails version 8.0 and onward, is a
 database-backed queuing system for Active Job, allowing you to queue large
 amounts of data without requiring additional dependencies such as Redis.
 
-Besides regular job enqueuing and processing, Solid Queue supports delayed jobs, concurrency controls, numeric priorities per job, priorities by queue order, and more.
+Besides regular job enqueuing and processing, Solid Queue supports delayed jobs,
+concurrency controls, numeric priorities per job, priorities by queue order, and
+more.
 
 ### Set Up
 
 #### Development
 
-In development, Rails provides an asynchronous in-process queuing system, which keeps the
-jobs in RAM. If the process crashes or the machine is reset, then all
+In development, Rails provides an asynchronous in-process queuing system, which
+keeps the jobs in RAM. If the process crashes or the machine is reset, then all
 outstanding jobs are lost with the default async backend. This can be fine for
 smaller apps or non-critical jobs in development.
 
-However, if you use Solid Queue instead, you
-can configure it in the same way as in the production environment:
+However, if you use Solid Queue instead, you can configure it in the same way as
+in the production environment:
 
 ```ruby
 # config/environments/development.rb
@@ -146,7 +150,8 @@ config.active_job.queue_adapter = :solid_queue
 config.solid_queue.connects_to = { database: { writing: :queue } }
 ```
 
-which sets the `:solid_queue` adapter as the default for Active Job in the production environment, and connects to the `queue` database for writing.
+which sets the `:solid_queue` adapter as the default for Active Job in the
+production environment, and connects to the `queue` database for writing.
 
 Thereafter, you'd add `queue` to the development database configuration:
 
@@ -162,9 +167,11 @@ development
     migrations_paths: db/queue_migrate
 ```
 
-NOTE: The key `queue` from the database configuration needs to match the key used in the configuration for `config.solid_queue.connects_to`.
+NOTE: The key `queue` from the database configuration needs to match the key
+used in the configuration for `config.solid_queue.connects_to`.
 
-You can run the migrations for the `queue` database to ensure all the tables in queue database are created:
+You can run the migrations for the `queue` database to ensure all the tables in
+queue database are created:
 
 ```bash
 $ bin/rails db:migrate:queue
@@ -182,7 +189,8 @@ bin/jobs start
 
 #### Production
 
-Solid Queue is already configured for the production environment. If you open `config/environments/production.rb`, you will see the following:
+Solid Queue is already configured for the production environment. If you open
+`config/environments/production.rb`, you will see the following:
 
 ```ruby
 # config/environments/production.rb
@@ -191,7 +199,8 @@ config.active_job.queue_adapter = :solid_queue
 config.solid_queue.connects_to = { database: { writing: :queue } }
 ```
 
-Additionally, the database connection for the `queue` database is configured in `config/database.yml`:
+Additionally, the database connection for the `queue` database is configured in
+`config/database.yml`:
 
 ```yaml
 # config/database.yml
@@ -209,7 +218,8 @@ production:
 
 ### Configuration
 
-The configuration options for Solid Queue are defined in `config/queue.yml`. Here is an example of the default configuration:
+The configuration options for Solid Queue are defined in `config/queue.yml`.
+Here is an example of the default configuration:
 
 ```yaml
 default: &default
@@ -223,16 +233,26 @@ default: &default
       polling_interval: 0.1
 ```
 
-In order to understand the configuration options for Solid Queue, you must understand the different types of roles:
+In order to understand the configuration options for Solid Queue, you must
+understand the different types of roles:
 
-- **Dispatchers**: They select jobs scheduled to run for the future. When it's time for these jobs to run, dispatchers move them from the `solid_queue_scheduled_executions` table to the `solid_queue_ready_executions` table so workers can pick them up. They also manage concurrency-related maintenance.
-- **Workers**: They pick up jobs that are ready to run. These jobs are taken from the `solid_queue_ready_executions` table.
-- **Scheduler**: This takes care of recurring tasks, adding jobs to the queue when they're due.
-- **Supervisor**: It oversees the whole system, managing workers and dispatchers. It starts and stops them as needed, monitors their health, and ensures everything runs smoothly.
+- **Dispatchers**: They select jobs scheduled to run for the future. When it's
+  time for these jobs to run, dispatchers move them from the
+  `solid_queue_scheduled_executions` table to the `solid_queue_ready_executions`
+  table so workers can pick them up. They also manage concurrency-related
+  maintenance.
+- **Workers**: They pick up jobs that are ready to run. These jobs are taken
+  from the `solid_queue_ready_executions` table.
+- **Scheduler**: This takes care of recurring tasks, adding jobs to the queue
+  when they're due.
+- **Supervisor**: It oversees the whole system, managing workers and
+  dispatchers. It starts and stops them as needed, monitors their health, and
+  ensures everything runs smoothly.
 
 Everything is optional in the `config/queue.yml`. If no configuration is
 provided, Solid Queue will run with one dispatcher and one worker with default
-settings. Below are some of the configuration options you can set in `config/queue.yml`:
+settings. Below are some of the configuration options you can set in
+`config/queue.yml`:
 
 | **Option**                           | **Description**                                                                                     | **Default Value**                             |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -244,7 +264,12 @@ settings. Below are some of the configuration options you can set in `config/que
 | **processes**                        | Number of worker processes forked by the supervisor. Each process can dedicate a CPU core.          | 1                                             |
 | **concurrency_maintenance**          | Whether the dispatcher performs concurrency maintenance work.                                       | true                                          |
 
-You can read more about these [configuration options in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#configuration). There are also [additional configuration options](https://github.com/rails/solid_queue?tab=readme-ov-file#other-configuration-settings) that can be set in `config/<environment>.rb` to further configure Solid Queue in your Rails Application.
+You can read more about these [configuration options in the Solid Queue
+documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#configuration).
+There are also [additional configuration
+options](https://github.com/rails/solid_queue?tab=readme-ov-file#other-configuration-settings)
+that can be set in `config/<environment>.rb` to further configure Solid Queue in
+your Rails Application.
 
 ### Queue Order
 
@@ -263,34 +288,66 @@ production:
       polling_interval: 5
 ```
 
-In the above example, workers will fetch jobs from queues starting with "active_storage", like  the `active_storage_analyse` queue and `active_storage_transform` queue. Only when no jobs remain in the `active_storage`-prefixed queues will workers move on to the `mailers` queue.
+In the above example, workers will fetch jobs from queues starting with
+"active_storage", like  the `active_storage_analyse` queue and
+`active_storage_transform` queue. Only when no jobs remain in the
+`active_storage`-prefixed queues will workers move on to the `mailers` queue.
 
-NOTE: The wildcard `*` (like at the end of "active_storage") is only allowed on its own or at the end of a queue name to match all queues with the same prefix. You can't specify queue names such as `*_some_queue`.
+NOTE: The wildcard `*` (like at the end of "active_storage") is only allowed on
+its own or at the end of a queue name to match all queues with the same prefix.
+You can't specify queue names such as `*_some_queue`.
 
-WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow down polling performance due to the need for a `DISTINCT` query to identify all matching queues, which can be slow on large tables. For better performance, it’s best to specify exact queue names instead of using wildcards.
+WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow
+down polling performance due to the need for a `DISTINCT` query to identify all
+matching queues, which can be slow on large tables. For better performance, it’s
+best to specify exact queue names instead of using wildcards.
 
-Active Job supports positive integer priorities when enqueuing jobs (see [Priority section](#priority)). Within a single queue, jobs are picked based on their priority (with lower integers being higher priority). However, when you have multiple queues, the order of the queues themselves takes priority.
+Active Job supports positive integer priorities when enqueuing jobs (see
+[Priority section](#priority)). Within a single queue, jobs are picked based on
+their priority (with lower integers being higher priority). However, when you
+have multiple queues, the order of the queues themselves takes priority.
 
-For example, if you have two queues, `production` and `background`, jobs in the `production` queue will always be processed first, even if some jobs in the `background` queue have a higher priority.
+For example, if you have two queues, `production` and `background`, jobs in the
+`production` queue will always be processed first, even if some jobs in the
+`background` queue have a higher priority.
 
 ### Threads, Processes, and Signals
 
-In Solid Queue, parallelism is achieved through threads (configurable via the [`threads` parameter](#configuration)), processes (via the [`processes` parameter](#configuration)), or horizontal scaling. The supervisor manages processes and responds to the following signals:
+In Solid Queue, parallelism is achieved through threads (configurable via the
+[`threads` parameter](#configuration)), processes (via the [`processes`
+parameter](#configuration)), or horizontal scaling. The supervisor manages
+processes and responds to the following signals:
 
-- **TERM, INT**: Starts graceful termination, sending a TERM signal and waiting up to `SolidQueue.shutdown_timeout`. If not finished, a QUIT signal forces processes to exit.
+- **TERM, INT**: Starts graceful termination, sending a TERM signal and waiting
+  up to `SolidQueue.shutdown_timeout`. If not finished, a QUIT signal forces
+  processes to exit.
 - **QUIT**: Forces immediate termination of processes.
 
-If a worker is killed unexpectedly (e.g., with a `KILL` signal), in-flight jobs are marked as failed, and errors like `SolidQueue::Processes::ProcessExitError` or `SolidQueue::Processes::ProcessPrunedError` are raised. Heartbeat settings help manage and detect expired processes. Read more about [Threads, Processes and Signals in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#threads-processes-and-signals).
+If a worker is killed unexpectedly (e.g., with a `KILL` signal), in-flight jobs
+are marked as failed, and errors like `SolidQueue::Processes::ProcessExitError`
+or `SolidQueue::Processes::ProcessPrunedError` are raised. Heartbeat settings
+help manage and detect expired processes. Read more about [Threads, Processes
+and Signals in the Solid Queue
+documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#threads-processes-and-signals).
 
 ### Errors When Enqueuing
 
-Solid Queue raises a `SolidQueue::Job::EnqueueError` when Active Record errors occur during job enqueuing. This is different from the `ActiveJob::EnqueueError` raised by Active Job, which handles the error and makes `perform_later` return false. This makes error handling trickier for jobs enqueued by Rails or third-party gems like `Turbo::Streams::BroadcastJob`.
+Solid Queue raises a `SolidQueue::Job::EnqueueError` when Active Record errors
+occur during job enqueuing. This is different from the `ActiveJob::EnqueueError`
+raised by Active Job, which handles the error and makes `perform_later` return
+false. This makes error handling trickier for jobs enqueued by Rails or
+third-party gems like `Turbo::Streams::BroadcastJob`.
 
-For recurring tasks, any errors encountered while enqueuing are logged, but they won’t be raised. Read more about [Errors When Enqueuing in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing).
+For recurring tasks, any errors encountered while enqueuing are logged, but they
+won’t be raised. Read more about [Errors When Enqueuing in the Solid Queue
+documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing).
 
 ### Concurrency Controls
 
-Solid Queue extends Active Job with concurrency controls, allowing you to limit how many jobs of a certain type or with specific arguments can run at the same time. If a job exceeds the limit, it will be blocked until another job finishes or the duration expires. For example:
+Solid Queue extends Active Job with concurrency controls, allowing you to limit
+how many jobs of a certain type or with specific arguments can run at the same
+time. If a job exceeds the limit, it will be blocked until another job finishes
+or the duration expires. For example:
 
 ```ruby
 class MyJob < ApplicationJob
@@ -302,9 +359,12 @@ class MyJob < ApplicationJob
 end
 ```
 
-In this example, only two `MyJob` instances for the same account will run concurrently. After that, other jobs will be blocked until one completes.
+In this example, only two `MyJob` instances for the same account will run
+concurrently. After that, other jobs will be blocked until one completes.
 
-The `group` parameter can be used to control concurrency across different job types. For instance, two different job classes that use the same group will have their concurrency limited together:
+The `group` parameter can be used to control concurrency across different job
+types. For instance, two different job classes that use the same group will have
+their concurrency limited together:
 
 ```ruby
 class Box::MovePostingsByContactToDesignatedBoxJob < ApplicationJob
@@ -316,13 +376,17 @@ class Bundle::RebundlePostingsJob < ApplicationJob
 end
 ```
 
-This ensures that only one job for a given contact can run at a time, regardless of the job class.
+This ensures that only one job for a given contact can run at a time, regardless
+of the job class.
 
-Read more about [Concurrency Controls in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#concurrency-controls).
+Read more about [Concurrency Controls in the Solid Queue
+documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#concurrency-controls).
 
 ### Error Reporting on Jobs
 
-If your error tracking service doesn’t automatically report job errors, you can manually hook into Active Job to report them. For example, you can add a `rescue_from` block in `ApplicationJob`:
+If your error tracking service doesn’t automatically report job errors, you can
+manually hook into Active Job to report them. For example, you can add a
+`rescue_from` block in `ApplicationJob`:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
@@ -333,7 +397,8 @@ class ApplicationJob < ActiveJob::Base
 end
 ```
 
-If you use ActionMailer, you’ll need to handle errors for `MailDeliveryJob` separately:
+If you use ActionMailer, you’ll need to handle errors for `MailDeliveryJob`
+separately:
 
 ```ruby
 class ApplicationMailer < ActionMailer::Base
@@ -346,9 +411,14 @@ end
 
 ### Transactional Integrity on Jobs
 
-By default, Solid Queue uses a separate database from your main application. This avoids issues with transactional integrity, which ensures that jobs are only enqueued if the transaction commits.
+By default, Solid Queue uses a separate database from your main application.
+This avoids issues with transactional integrity, which ensures that jobs are
+only enqueued if the transaction commits.
 
-However, if you use Solid Queue in the same database as your app, you can enable transactional integrity with Active Job’s `enqueue_after_transaction_commit` option which can be enabled for individual jobs or all jobs through `ApplicationJob`:
+However, if you use Solid Queue in the same database as your app, you can enable
+transactional integrity with Active Job’s `enqueue_after_transaction_commit`
+option which can be enabled for individual jobs or all jobs through
+`ApplicationJob`:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
@@ -356,11 +426,17 @@ class ApplicationJob < ActiveJob::Base
 end
 ```
 
-You can also configure Solid Queue to use the same database as your app while avoiding transactional integrity issues by setting up a separate database connection for Solid Queue jobs. Read more about [Transactional Integrity in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#jobs-and-transactional-integrity)
+You can also configure Solid Queue to use the same database as your app while
+avoiding transactional integrity issues by setting up a separate database
+connection for Solid Queue jobs. Read more about [Transactional Integrity in the
+Solid Queue
+documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#jobs-and-transactional-integrity)
 
 ### Recurring Tasks
 
-Solid Queue supports recurring tasks, similar to cron jobs. These tasks are defined in a configuration file (by default, `config/recurring.yml`) and can be scheduled at specific times. Here's an example of a task configuration:
+Solid Queue supports recurring tasks, similar to cron jobs. These tasks are
+defined in a configuration file (by default, `config/recurring.yml`) and can be
+scheduled at specific times. Here's an example of a task configuration:
 
 ```yaml
 production:
@@ -373,15 +449,28 @@ production:
     schedule: every day at 9am
 ```
 
-Each task specifies a `class` or `command` and a `schedule` (parsed using [Fugit](https://github.com/floraison/fugit)). You can also pass arguments to jobs, such as in the example for `MyJob` where `args` are passed. This can be passed as a single argument, a hash, or an array of arguments that can also include kwargs as the last element in the array. This allows jobs to run periodically or at specified times.
+Each task specifies a `class` or `command` and a `schedule` (parsed using
+[Fugit](https://github.com/floraison/fugit)). You can also pass arguments to
+jobs, such as in the example for `MyJob` where `args` are passed. This can be
+passed as a single argument, a hash, or an array of arguments that can also
+include kwargs as the last element in the array. This allows jobs to run
+periodically or at specified times.
 
-Read more about [Recurring Tasks in the Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks).
+Read more about [Recurring Tasks in the Solid Queue
+documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks).
 
 ### Job Tracking and Management
 
-A tool like [`mission_control-jobs`](https://github.com/rails/mission_control-jobs) can help centralize the monitoring and management of failed jobs. It provides insights into job statuses, failure reasons, and retry behaviors, enabling you to track and resolve issues more effectively.
+A tool like
+[`mission_control-jobs`](https://github.com/rails/mission_control-jobs) can help
+centralize the monitoring and management of failed jobs. It provides insights
+into job statuses, failure reasons, and retry behaviors, enabling you to track
+and resolve issues more effectively.
 
-For instance, if a job fails to process a large file due to a timeout, `mission_control-jobs` allows you to inspect the failure, review the job’s arguments and execution history, and decide whether to retry, requeue, or discard it.
+For instance, if a job fails to process a large file due to a timeout,
+`mission_control-jobs` allows you to inspect the failure, review the job’s
+arguments and execution history, and decide whether to retry, requeue, or
+discard it.
 
 Queues
 ------
@@ -500,7 +589,8 @@ NOTE: If you choose to use an [alternate queuing backend](#alternate-queuing-bac
 Priority
 --------
 
-You can schedule a job to run with a specific priority using `queue_with_priority`:
+You can schedule a job to run with a specific priority using
+`queue_with_priority`:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -509,11 +599,18 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Solid Queue, the default queuing backend, prioritizes jobs based on the order of the queues.  You can read more about it in the [Order of Queues section](#queue-order). If you're using Solid Queue, and both the order of the queues and the priority option are used, the queue order will take precedence, and the priority option will only apply within each queue.
+Solid Queue, the default queuing backend, prioritizes jobs based on the order of
+the queues.  You can read more about it in the [Order of Queues
+section](#queue-order). If you're using Solid Queue, and both the order of the
+queues and the priority option are used, the queue order will take precedence,
+and the priority option will only apply within each queue.
 
-Other queuing backends may allow jobs to be prioritized relative to others within the same queue or across multiple queues. Refer to the documentation of your backend for more information.
+Other queuing backends may allow jobs to be prioritized relative to others
+within the same queue or across multiple queues. Refer to the documentation of
+your backend for more information.
 
-Similar to `queue_as`, you can also pass a block to `queue_with_priority` to be evaluated in the job context:
+Similar to `queue_as`, you can also pass a block to `queue_with_priority` to be
+evaluated in the job context:
 
 ```ruby
 class ProcessVideoJob < ApplicationJob
@@ -542,11 +639,13 @@ You can also pass a `:priority` option to `set`:
 MyJob.set(priority: 50).perform_later(record)
 ```
 
-NOTE: If a lower priority number performs before or after a higher priority number depends on the
-adapter implementation. Refer to documentation of your backend for more information.
-Adapter authors are encouraged to treat a lower number as more important.
+NOTE: If a lower priority number performs before or after a higher priority
+number depends on the adapter implementation. Refer to documentation of your
+backend for more information. Adapter authors are encouraged to treat a lower
+number as more important.
 
-[`queue_with_priority`]: https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
+[`queue_with_priority`]:
+    https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
 
 Callbacks
 ---------
