@@ -87,8 +87,13 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           result = query(<<~SQL, "SCHEMA")
-            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid
+            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
+                            ARRAY(
+                              SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
+                              FROM generate_subscripts(d.indkey, 1) AS k
+                              ORDER BY k
+                            ) AS columns
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -105,9 +110,10 @@ module ActiveRecord
             unique = row[1]
             indkey = row[2].split(" ").map(&:to_i)
             inddef = row[3]
-            oid = row[4]
-            comment = row[5]
-            valid = row[6]
+            comment = row[4]
+            valid = row[5]
+            columns = row[6]
+
             using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
 
             orders = {}
@@ -117,7 +123,8 @@ module ActiveRecord
             if indkey.include?(0)
               columns = expressions
             else
-              columns = column_names_from_column_numbers(oid, indkey)
+              decoder = PG::TextDecoder::Array.new
+              columns = decoder.decode(columns)
 
               # prevent INCLUDE columns from being matched
               columns.reject! { |c| include_columns.include?(c) }
