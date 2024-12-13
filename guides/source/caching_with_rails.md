@@ -214,18 +214,18 @@ Below are some more examples of how to use low-level caching:
 
 ```ruby
 # Store a value in the cache
-Rails.cache.write('greeting', 'Hello, world!')
+Rails.cache.write("greeting", "Hello, world!")
 
 # Retrieve the value from the cache
-greeting = Rails.cache.read('greeting')
+greeting = Rails.cache.read("greeting")
 puts greeting # Output: Hello, world!
 
 # Fetch a value with a block to set a default if it doesn’t exist
-welcome_message = Rails.cache.fetch('welcome_message') { 'Welcome to Rails!' }
+welcome_message = Rails.cache.fetch("welcome_message") { "Welcome to Rails!" }
 puts welcome_message # Output: Welcome to Rails!
 
 # Delete a value from the cache
-Rails.cache.delete('greeting')
+Rails.cache.delete("greeting")
 ```
 
 #### Avoid Caching Instances of Active Record Objects
