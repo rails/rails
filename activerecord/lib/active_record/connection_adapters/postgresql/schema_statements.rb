@@ -620,15 +620,13 @@ module ActiveRecord
           fk_info.map do |row|
             to_table = Utils.unquote_identifier(row["to_table"])
 
-            first_if_only_one = ->(arr) { arr.size == 1 ? arr.first : arr }
-
-            column = first_if_only_one.call(decode_string_array(row["conkey_names"]))
-            primary_key = first_if_only_one.call(decode_string_array(row["confkey_names"]))
+            column = decode_string_array(row["conkey_names"])
+            primary_key = decode_string_array(row["confkey_names"])
 
             options = {
-              column: column,
+              column: column.size == 1 ? column.first : column,
               name: row["name"],
-              primary_key: primary_key
+              primary_key: primary_key.size == 1 ? primary_key.first : primary_key
             }
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
@@ -1173,11 +1171,7 @@ module ActiveRecord
           end
 
           def decode_string_array(value)
-            array_decoder.decode(value)
-          end
-
-          def array_decoder
-            @array_decoder ||= PG::TextDecoder::Array.new
+            PG::TextDecoder::Array.new.decode(value)
           end
       end
     end
