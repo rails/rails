@@ -55,6 +55,7 @@ module RailsGuides
 
         text.downcase.gsub(/\?/, "-questionmark")
                      .gsub(/!/, "-bang")
+                     .gsub(/\[\]/, "-squarebrackets")
                      .gsub(/[#{escaped_chars}]+/, " ").strip
                      .gsub(/\s+/, "-")
       end
