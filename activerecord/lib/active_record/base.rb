@@ -328,7 +328,6 @@ module ActiveRecord # :nodoc:
     include TokenFor
     include SignedId
     include Suppressor
-    include Normalization
     include Marshalling::Methods
 
     self.param_delimiter = "_"

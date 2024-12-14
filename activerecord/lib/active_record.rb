@@ -62,7 +62,6 @@ module ActiveRecord
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
-  autoload :Normalization
   autoload :Persistence
   autoload :QueryCache
   autoload :QueryLogs
@@ -178,6 +177,8 @@ module ActiveRecord
     autoload :PostgreSQLDatabaseTasks, "active_record/tasks/postgresql_database_tasks"
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
+
+  Normalization = ActiveModel::Attributes::Normalization
 
   singleton_class.attr_accessor :disable_prepared_statements
   self.disable_prepared_statements = false
