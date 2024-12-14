@@ -11,7 +11,7 @@
 
 ## Rails 8.0.1 (December 13, 2024) ##
 
-*   Fix removing foreign keys with :restrict action for MySQ
+*   Fix removing foreign keys with :restrict action for MySQL.
 
     *fatkodima*
 
