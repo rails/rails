@@ -1,3 +1,14 @@
+*   Fix autosave associations to no longer validated unmodified associated records.
+
+    Active Record was incorrectly performing validation on associated record that
+    weren't created nor modified as part of the transaction:
+
+    ```ruby
+    Post.create!(author: User.find(1)) # Fail if user is invalid
+    ```
+
+    *Jean Boussier*
+
 *   Remember when a database connection has recently been verified (for
     two seconds, by default), to avoid repeated reverifications during a
     single request.
