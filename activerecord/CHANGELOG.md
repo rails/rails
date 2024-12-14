@@ -2,7 +2,7 @@
 
     A not rare issue when working with serialized attributes is that the serialized representation of an object
     can change over time. Either because you are migrating from one serializer to the other (e.g. YAML to JSON or to msgpack),
-    or because the serializer used subtly changed it's output.
+    or because the serializer used subtly changed its output.
 
     One example is libyaml that used to have some extra trailing whitespaces, and recently fixed that.
     When this sorts of thing happen, you end up with lots of records that report being changed even though
@@ -12,7 +12,7 @@
     can't assume the deserialized object has a working `==` method. Hence why this new functionality is opt-in.
 
     ```ruby
-    serialized :config, type: Hash, coder: JSON, comparable: true
+    serialize :config, type: Hash, coder: JSON, comparable: true
     ```
 
     *Jean Boussier*
