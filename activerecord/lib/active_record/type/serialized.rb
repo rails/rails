@@ -9,9 +9,10 @@ module ActiveRecord
 
       attr_reader :subtype, :coder
 
-      def initialize(subtype, coder)
+      def initialize(subtype, coder, comparable: false)
         @subtype = subtype
         @coder = coder
+        @comparable = comparable
         super(subtype)
       end
 
@@ -34,9 +35,15 @@ module ActiveRecord
 
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
-        raw_new_value = encoded(value)
-        raw_old_value.nil? != raw_new_value.nil? ||
-          subtype.changed_in_place?(raw_old_value, raw_new_value)
+
+        if @comparable
+          old_value = deserialize(raw_old_value)
+          old_value != value
+        else
+          raw_new_value = encoded(value)
+          raw_old_value.nil? != raw_new_value.nil? ||
+            subtype.changed_in_place?(raw_old_value, raw_new_value)
+        end
       end
 
       def accessor
