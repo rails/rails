@@ -33,9 +33,30 @@ module ActiveRecord
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
+    def before_setup
+      super
+      @before_setup_connections = []
+      ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+        pool.connections.each do |conn|
+          @before_setup_connections << conn
+        end
+      end
+    end
+
     def after_teardown
       super
       check_connection_leaks
+
+      @after_teardown_connections = []
+      ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+        pool.connections.each do |conn|
+          @after_teardown_connections << conn
+        end
+      end
+
+      if @after_teardown_connections.size > @before_setup_connections.size
+        raise "Connections leaked\n#{(@after_teardown_connections - @before_setup_connections).inspect}"
+      end
     end
 
     def check_connection_leaks
