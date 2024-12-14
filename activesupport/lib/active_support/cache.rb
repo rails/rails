@@ -777,6 +777,8 @@ module ActiveSupport
         # this method to translate a pattern that matches names into one that
         # matches namespaced keys.
         def key_matcher(pattern, options) # :doc:
+          return namespace_key(pattern, options) if pattern.is_a?(String)
+
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source

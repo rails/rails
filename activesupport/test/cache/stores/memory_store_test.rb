@@ -83,6 +83,38 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
   end
 
+  def test_delete_matched
+    @cache.write("my_key", "my_value")
+    assert_equal "my_value", @cache.read("my_key")
+    @cache.delete_matched("my_key")
+    assert_nil @cache.read("my_key")
+  end
+
+  def test_delete_matched_with_regex
+    @cache.write("my_key", "my_value")
+    assert_equal "my_value", @cache.read("my_key")
+    @cache.delete_matched(/my_key/)
+    assert_nil @cache.read("my_key")
+  end
+
+  def test_namespaced_delete_matched
+    namespaced_cache = lookup_store(namespace: "foo")
+
+    namespaced_cache.write("my_key", "my_value")
+    assert_equal "my_value", namespaced_cache.read("my_key")
+    namespaced_cache.delete_matched("my_key")
+    assert_nil namespaced_cache.read("my_key")
+  end
+
+  def test_namespaced_delete_matched_with_regex
+    namespaced_cache = lookup_store(namespace: "foo")
+
+    namespaced_cache.write("my_key", "my_value")
+    assert_equal "my_value", namespaced_cache.read("my_key")
+    namespaced_cache.delete_matched(/my_key/)
+    assert_nil namespaced_cache.read("my_key")
+  end
+
   private
     def compression_always_disabled_by_default?
       true
