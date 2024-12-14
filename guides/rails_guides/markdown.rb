@@ -185,15 +185,15 @@ module RailsGuides
         case hierarchy.size
         when 1
           @index_counter[2] = @index_counter[3] = @index_counter[4] = 0
-          "#{@index_counter[1] += 1}"
+          "#{@index_counter[1] += 1}."
         when 2
           @index_counter[3] = @index_counter[4] = 0
-          "#{@index_counter[1]}.#{@index_counter[2] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2] += 1}."
         when 3
           @index_counter[4] = 0
-          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3] += 1}."
         when 4
-          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3]}.#{@index_counter[4] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3]}.#{@index_counter[4] += 1}."
         end
       end
 
