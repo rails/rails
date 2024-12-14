@@ -863,6 +863,30 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_with_unpersisted_records_deprecation
+    author = Author.create!(name: "DHH")
+    author.books.build(title: "Unpersisted Book")
+    author.books.load
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      author.books.insert_all([{ title: "New Book" }])
+    end
+
+    assert_equal 2, author.books.to_a.size
+    assert_equal ["Unpersisted Book", "New Book"], author.books.pluck(:title)
+  end
+
+  def test_insert_all_resets_without_unpersisted_records
+    author = Author.create!(name: "DHH")
+    author.books.load
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      author.books.insert_all([{ title: "New Book" }])
+    end
+
+    assert_not author.books.loaded?
+  end
+
   private
     def capture_log_output
       output = StringIO.new

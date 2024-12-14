@@ -1,3 +1,11 @@
+*   Deprecate using `insert_all`/`upsert_all` with unpersisted records in associations.
+
+    Using these methods on associations containing unpersisted records will now
+    show a deprecation warning, as the unpersisted records will be lost after
+    the operation. This will become an error in Rails 8.2.
+
+    *Nick Schwaderer*
+
 *   Fix MySQL default functions getting dropped when changing a column's nullability.
 
     *Bastian Bartmann*
