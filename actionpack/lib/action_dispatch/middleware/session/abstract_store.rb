@@ -43,11 +43,11 @@ module ActionDispatch
     end
 
     module StaleSessionCheck
-      def load_session(env)
+      def load_session(req)
         stale_session_check! { super }
       end
 
-      def extract_session_id(env)
+      def extract_session_id(req)
         stale_session_check! { super }
       end
 
