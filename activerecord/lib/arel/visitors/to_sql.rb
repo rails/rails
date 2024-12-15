@@ -106,7 +106,7 @@ module Arel # :nodoc: all
             row.each_with_index do |value, k|
               collector << ", " unless k == 0
               case value
-              when Nodes::SqlLiteral, Nodes::BindParam, ActiveModel::Attribute
+              when Nodes::Node, Nodes::SqlLiteral, ActiveModel::Attribute
                 collector = visit(value, collector)
               else
                 collector << quote(value).to_s
