@@ -1283,10 +1283,12 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def test_route_error_with_missing_controller
     set.draw do
-      get    "/people" => "missing#index"
+      get    "/people" => "does_not_exists#index"
     end
 
-    assert_raises(ActionController::RoutingError) { request_path_params "/people" }
+    assert_raises(ActionDispatch::MissingController, match: "uninitialized constant DoesNotExistsController") do
+      request_path_params "/people"
+    end
   end
 
   def test_recognize_with_encoded_id_and_regex
