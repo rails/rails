@@ -13,8 +13,12 @@ class RDoc::Generator::API < RDoc::Generator::SDoc # :nodoc:
     if visited.empty?
       classes = classes.reject { |klass| active_storage?(klass) }
       core_exts = classes.extract! { |klass| core_extension?(klass) }
+      mail_exts = classes.extract! { |klass| mail_extension?(klass) }
 
-      super.unshift([ "Core extensions", "", "", build_core_ext_subtree(core_exts, visited) ])
+      super + [
+        ["Core extensions", "", "", build_core_ext_subtree(core_exts, visited)],
+        ["Mail extensions", "", "", build_core_ext_subtree(mail_exts, visited)]
+      ]
     else
       super
     end
@@ -30,6 +34,10 @@ class RDoc::Generator::API < RDoc::Generator::SDoc # :nodoc:
 
     def core_extension?(klass)
       klass.name != "ActiveSupport" && klass.in_files.any? { |file| file.absolute_name.include?("core_ext") }
+    end
+
+    def mail_extension?(klass)
+      klass.name != "ActionMailbox" && klass.in_files.any? { |file| file.absolute_name.include?("mail_ext") }
     end
 
     def active_storage?(klass)
