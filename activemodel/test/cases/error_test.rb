@@ -45,6 +45,18 @@ class ErrorTest < ActiveModel::TestCase
     assert_equal({ foo: :bar }, error.options)
   end
 
+  def with_i18n_customize_full_message
+    ActiveModel::Error.i18n_customize_full_message = true
+    yield
+    ActiveModel::Error.i18n_customize_full_message = false
+  end
+
+  def with_custom_translations
+    yield
+    I18n.backend.reload!
+    I18n.backend.translations(do_init: true)
+  end
+
   test "initialize without type" do
     error = ActiveModel::Error.new(Person.new, :name)
     assert_equal :invalid, error.type
@@ -188,6 +200,105 @@ class ErrorTest < ActiveModel::TestCase
     I18n.with_locale(:unknown) {
       assert_equal "name can't be blank", error.full_message
     }
+  end
+
+  test "full_message uses custom format of models" do
+    with_i18n_customize_full_message do
+      errors = ActiveModel::Errors.new(Manager.new)
+      errors.add(:name, :custom_error_name)
+      errors.add(:age, :custom_error_age)
+
+      with_custom_translations do
+        I18n.backend.store_translations(:en,
+          activemodel: {
+            errors: {
+              models: {
+                "error_test/manager" => {
+                  format: "%{message}",
+                  attributes: {
+                    name: { custom_error_name: "custom_error_name" },
+                    age: { custom_error_age: "custom_error_age" }
+                  }
+                }
+              }
+            }
+          }
+        )
+        I18n.with_locale(:en) {
+          assert_equal ["custom_error_name", "custom_error_age"],
+          errors.full_messages
+        }
+      end
+    end
+  end
+
+
+  test "full_message uses custom format of model attributes" do
+    with_i18n_customize_full_message do
+      errors = ActiveModel::Errors.new(Manager.new)
+      errors.add(:name, :custom_error_name_1)
+      errors.add(:name, :custom_error_name_2)
+      errors.add(:age, :custom_error_age)
+
+      with_custom_translations do
+        I18n.backend.store_translations(:en,
+          activemodel: {
+            errors: {
+              models: {
+                "error_test/manager" => {
+                  attributes: {
+                    name: {
+                      format: "%{message}",
+                      custom_error_name_1: "custom_error_name_1",
+                      custom_error_name_2: "custom_error_name_2"
+                    },
+                    age: { custom_error_age: "custom_error_age" }
+                  }
+                }
+              }
+            }
+          }
+        )
+        I18n.with_locale(:en) {
+          assert_equal ["custom_error_name_1", "custom_error_name_2", "age custom_error_age"],
+          errors.full_messages
+        }
+      end
+    end
+  end
+
+  test "full_message uses custom format of model attribute error keys" do
+    with_i18n_customize_full_message do
+      errors = ActiveModel::Errors.new(Manager.new)
+      errors.add(:name, :custom_error_name_1)
+      errors.add(:name, :custom_error_name_2)
+
+      with_custom_translations do
+        I18n.backend.store_translations(:en,
+          activemodel: {
+            errors: {
+              models: {
+                "error_test/manager" => {
+                  attributes: {
+                    name: {
+                      custom_error_name_1: {
+                        format: "%{message}",
+                        message: "custom_error_name_1"
+                      },
+                      custom_error_name_2: "custom_error_name_2"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        )
+        I18n.with_locale(:en) {
+          assert_equal ["custom_error_name_1", "name custom_error_name_2"],
+          errors.full_messages
+        }
+      end
+    end
   end
 
   test "equality by base attribute, type and options" do
