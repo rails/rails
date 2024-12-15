@@ -1,3 +1,7 @@
+*   Fix stack overflow error in dependency tracker when dealing with circular dependencies
+
+    *Jean Boussier*
+
 ## Rails 8.0.1 (December 13, 2024) ##
 
 *   Fix a crash in ERB template error highlighting when the error occurs on a
