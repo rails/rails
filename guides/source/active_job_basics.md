@@ -160,7 +160,7 @@ Thereafter, you'd add `queue` to the development database configuration:
 
 ```yaml
 # config/database.yml
-development
+development:
   primary:
     <<: *default
     database: storage/development.sqlite3
