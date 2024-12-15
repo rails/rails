@@ -273,17 +273,15 @@ module ActiveRecord
         if find_target?
           @target = merge_target_lists(find_target, target)
         elsif target.empty? && set_through_target_for_new_record?
-          reflections = reflection.chain
-          reflections.pop
-          reflections.reverse!
+          reflections = reflection.chain.reverse!
 
-          @target = reflections.reduce(through_association.target) do |middle_target, reflection|
-            if middle_target.empty?
+          @target = reflections.each_cons(2).reduce(through_association.target) do |middle_target, (middle_reflection, through_reflection)|
+            if middle_target.nil? || (middle_reflection.collection? && middle_target.empty?)
               break []
-            elsif reflection.collection?
-              middle_target.flat_map { |record| record.association(reflection.source_reflection_name).target }
+            elsif middle_reflection.collection?
+              middle_target.flat_map { |record| record.association(through_reflection.source_reflection_name).load_target }
             else
-              middle_target.association(reflection.source_reflection_name).target
+              middle_target.association(through_reflection.source_reflection_name).load_target
             end
           end
         end

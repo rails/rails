@@ -193,9 +193,9 @@ module ActiveRecord
           reflections.pop
           reflections.reverse!
 
-          @target = reflections.reduce(through_association.target) do |middle_target, reflection|
+          @target = reflections.reduce(through_association.target) do |middle_target, through_reflection|
             break unless middle_target
-            middle_target.association(reflection.source_reflection_name).target
+            middle_target.association(through_reflection.source_reflection_name).load_target
           end
         end
 
