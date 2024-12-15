@@ -92,7 +92,8 @@ module ActiveRecord
       private
         DECRYPT_ERRORS = [OpenSSL::Cipher::CipherError, Errors::EncryptedContentIntegrity, Errors::Decryption]
         ENCODING_ERRORS = [EncodingError, Errors::Encoding]
-        THRESHOLD_TO_JUSTIFY_COMPRESSION = 140.bytes
+        # The minimum data length (in bytes) for when compression becomes justified.
+        THRESHOLD_TO_JUSTIFY_COMPRESSION = 140
 
         def default_key_provider
           ActiveRecord::Encryption.key_provider
