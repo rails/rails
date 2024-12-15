@@ -1,3 +1,9 @@
+*   `nil.to_query("key")` now returns `key`.
+
+    Previously it would return `key=`, preventing round tripping with `Rack::Utils.parse_nested_query`.
+
+    *Erol Fornoles*
+
 *   Avoid wrapping redis in a `ConnectionPool` when using `ActiveSupport::Cache::RedisCacheStore` if the `:redis`
     option is already a `ConnectionPool`.
 
