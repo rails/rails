@@ -51,6 +51,22 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
+  test "mirroring to an overridden service after attaching it" do
+    with_service("mirror") do
+      perform_enqueued_jobs do
+        @user.avatar_with_service.attach fixture_file_upload("racecar.jpg")
+      end
+
+      blob = @user.avatar_with_service.blob
+
+      ActiveStorage::Blob.service.mirrors.each do |mirror|
+        assert_not mirror.exist?(blob.key)
+      end
+
+      assert blob.service.mirrors.first.exist?(blob.key)
+    end
+  end
+
   test "directly-uploaded blob identification for one attached occurs before validation" do
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
