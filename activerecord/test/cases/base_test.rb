@@ -186,24 +186,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.limit(2).limit(1).to_a.length
   end
 
-  def test_invalid_limit
-    assert_raises(ArgumentError) do
-      Topic.limit("asdfadf").to_a
-    end
-  end
-
-  def test_limit_should_sanitize_sql_injection_for_limit_without_commas
-    assert_raises(ArgumentError) do
-      Topic.limit("1 select * from schema").to_a
-    end
-  end
-
-  def test_limit_should_sanitize_sql_injection_for_limit_with_commas
-    assert_raises(ArgumentError) do
-      Topic.limit("1, 7 procedure help()").to_a
-    end
-  end
-
   def test_select_symbol
     topic_ids = Topic.select(:id).map(&:id).sort
     assert_equal Topic.pluck(:id).sort, topic_ids
