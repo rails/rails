@@ -1,3 +1,7 @@
+*   Fix stack overflow error in dependency tracker when dealing with circular dependencies
+
+    *Jean Boussier*
+
 *   Fix a crash in ERB template error highlighting when the error occurs on a
     line in the compiled template that is past the end of the source template.
 
