@@ -19,6 +19,8 @@
           <a class="trace-frames trace-frames-<%= error_index %>" data-exception-object-id="<%= frame[:exception_object_id] %>" data-frame-id="<%= frame[:id] %>" href="#">
             <%= frame[:trace] %>
           </a>
+          &nbsp;
+          <a title="<%= I18n.t 'trace_customize' %>" href="<%= respond_to?(:ext_editor) ? ext_editor(frame) : int_editor(frame) -%>">&#128279;</a>
           <br>
         <% end %>
       </code>
