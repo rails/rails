@@ -1,3 +1,36 @@
+*   Support serialized attributes (i.e. JSON) in fixtures.
+
+    Given a model with a serialized attribute
+
+    ```rb
+    # app/models/user.rb
+    class User
+      serialize :preferences, coder: JSON
+    end
+    ```
+
+    It's now possible to write fixtures as
+
+    ```yaml
+    # test/fixtures/users.yml
+    glaszig:
+      name: glaszig
+      preferences:
+        active: true
+        notifications: [ news, offers ]
+    ```
+
+    Instead of
+
+    ```yaml
+    # test/fixtures/users.yml
+    glaszig:
+      name: glaszig
+      preferences: <%= { active: true, notifications: [ news, offers ] }.to_json %>
+    ```
+
+    *glaszig*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding

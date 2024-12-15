@@ -90,6 +90,7 @@ module ActiveRecord
           model_class.composite_primary_key? ? generate_composite_primary_key : generate_primary_key
           resolve_enums
           resolve_sti_reflections
+          serialize_attributes
         end
 
         def reflection_class
@@ -202,6 +203,21 @@ module ActiveRecord
             end
             @table_rows.tables[table_name].concat(joins)
           end
+        end
+
+        def serialize_attributes
+          model_class.column_names.each do |column_name|
+            if coder = attribute_coder(column_name)
+              @row[column_name] = coder.dump(@row[column_name])
+            end
+          end
+        end
+
+        def attribute_coder(column_name)
+          return if @row[column_name].nil? || String === @row[column_name]
+
+          type = model_class.type_for_attribute(column_name)
+          type.coder if type.respond_to?(:coder)
         end
     end
   end
