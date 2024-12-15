@@ -3991,13 +3991,10 @@ For example, when an action of `ArticlesController` is called Rails tries optimi
 
 ```ruby
 def default_helper_module!
-  module_name = name.delete_suffix("Controller")
-  module_path = module_name.underscore
-  helper module_path
-rescue LoadError => e
-  raise e unless e.is_missing? "helpers/#{module_path}_helper"
+  helper_prefix = name.delete_suffix("Controller")
+  helper(helper_prefix)
 rescue NameError => e
-  raise e unless e.missing_name? "#{module_name}Helper"
+  raise unless e.missing_name?("#{helper_prefix}Helper")
 end
 ```
 
