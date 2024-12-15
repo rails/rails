@@ -175,6 +175,7 @@ module ActiveModel
       @uncountable  = @plural == @singular
       @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name))
       @human        = ActiveSupport::Inflector.humanize(@element)
+      @plural_human = ActiveSupport::Inflector.pluralize(@human, locale)
       @collection   = ActiveSupport::Inflector.tableize(@name)
       @param_key    = (namespace ? _singularize(@unnamespaced) : @singular)
       @i18n_key     = @name.underscore.to_sym
@@ -195,14 +196,15 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human(options = {})
-      return @human if i18n_keys.empty? || i18n_scope.empty?
+      fallback = plural_count?(options[:count]) ? @plural_human : @human
+      return fallback if i18n_keys.empty? || i18n_scope.empty?
 
       key, *defaults = i18n_keys
       defaults << options[:default] if options[:default]
       defaults << MISSING_TRANSLATION
 
       translation = I18n.translate(key, scope: i18n_scope, count: 1, **options, default: defaults)
-      translation = @human if translation == MISSING_TRANSLATION
+      translation = fallback if translation == MISSING_TRANSLATION
       translation
     end
 
@@ -215,6 +217,10 @@ module ActiveModel
 
       def _singularize(string)
         ActiveSupport::Inflector.underscore(string).tr("/", "_")
+      end
+
+      def plural_count?(count)
+        (count || 1) != 1
       end
 
       def i18n_keys
