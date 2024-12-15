@@ -67,11 +67,21 @@ module Enumerable
   #   %i( title body ).index_with { |attr_name| post.public_send(attr_name) }
   #   # => { title: "hey there", body: "what's up?" }
   #
-  # If an argument is passed instead of a block, it will be used as the value
-  # for all elements:
+  # If an argument is passed instead of a block, the same object instance will be used
+  # as the value for all elements:
   #
-  #   %i( created_at updated_at ).index_with(Time.now)
-  #   # => { created_at: 2020-03-09 22:31:47, updated_at: 2020-03-09 22:31:47 }
+  #   names = ['Maceo']
+  #   pets = %i( cats dogs ).index_with(names)
+  #   # => {:cats=>["Maceo"], :dogs=>["Maceo"]}
+  #
+  # Since it's the same object instance on all values a change to the variable
+  # is a change on all values:
+  #
+  #   names << 'Max'
+  #   pets
+  #   # => {:cats=>["Maceo", "Max"], :dogs=>["Maceo", "Max"]}
+  #
+  # If this is not desired, use the block variant instead.
   def index_with(default = (no_default = true))
     if block_given?
       result = {}
