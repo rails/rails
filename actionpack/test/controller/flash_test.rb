@@ -253,7 +253,8 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
   )
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
-  SIGNED_COOKIE_SALT = "signed cookie"
+  ENCRYPTED_COOKIE_SALT = "encrypted cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "encrypted signed cookie"
 
   class TestController < ActionController::Base
     add_flash_types :bar
@@ -377,7 +378,8 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       options[:env] ||= {}
       options[:env]["action_dispatch.key_generator"] ||= Generator
       options[:env]["action_dispatch.cookies_rotations"] = Rotations
-      options[:env]["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      options[:env]["action_dispatch.encrypted_cookie_salt"] = ENCRYPTED_COOKIE_SALT
+      options[:env]["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
       super(path, **options)
     end
 
