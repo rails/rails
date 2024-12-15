@@ -344,6 +344,27 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { topic.increment! }
   end
 
+  def test_increment_new_record
+    topic = Topic.new
+
+    assert_difference -> { topic.replies_count }, +1 do
+      assert_no_queries do
+        topic.increment!(:replies_count)
+      end
+    end
+  end
+
+  def test_increment_destroyed_record
+    topic = topics(:first)
+    topic.destroy
+
+    assert_no_queries do
+      assert_raises FrozenError do
+        topic.increment!(:replies_count)
+      end
+    end
+  end
+
   def test_destroy_many
     clients = Client.find([2, 3])
 

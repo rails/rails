@@ -641,12 +641,15 @@ module ActiveRecord
     # This means that any other modified attributes will still be dirty.
     # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
+    # If the record isn't yet saved or was destroyed, the database is unmodified.
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
-      change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
-      self.class.update_counters(id, attribute => change, touch: touch)
-      public_send(:"clear_#{attribute}_change")
+      if persisted?
+        change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
+        self.class.update_counters(id, attribute => change, touch: touch)
+        public_send(:"clear_#{attribute}_change")
+      end
       self
     end
 
