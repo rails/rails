@@ -232,8 +232,11 @@ module ActiveSupport
         end
       end
 
-      unless error.frozen?
-        error.instance_variable_set(:@__rails_error_reported, true)
+      while error
+        unless error.frozen?
+          error.instance_variable_set(:@__rails_error_reported, true)
+        end
+        error = error.cause
       end
 
       nil
