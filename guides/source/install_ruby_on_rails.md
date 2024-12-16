@@ -14,7 +14,7 @@ You can also use:
 
 Alternatively, you can use Dev Containers to run Rails without installing Ruby or Rails directly on your machine. Check out the [Getting Started with Dev Containers](getting_started_with_devcontainer.html) guide to learn more.
 
-For this guide this guide though, we'll demostrate installing Ruby with Mise.
+For this guide,  we'll demonstrate installing Ruby with Mise.
 
 
 --------------------------------------------------------------------------------
