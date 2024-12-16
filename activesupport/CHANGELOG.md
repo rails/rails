@@ -1,3 +1,10 @@
+*   Improve `ErrorSubscriber` to also mark error causes as reported.
+
+    This avoid some cases of errors being reported twice, notably in views because of how
+    errors are wrapped in `ActionView::Template::Error`.
+
+    *Jean Boussier*
+
 *   Fix `Module#module_parent_name` to return the correct name after the module has been named.
 
     When called on an anonymous module, the return value wouldn't change after the module was given a name
