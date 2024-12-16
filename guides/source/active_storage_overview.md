@@ -869,9 +869,32 @@ Analyzing Files
 
 Active Storage analyzes files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
-Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and `audio` booleans to indicate the presence of those channels. Audio analysis provides `duration` and `bit_rate` attributes.
+Analysis extracts and stores metadata from the file associated with a blob using relevant analyzers. Active Storage comes with built-in analyzers for images and videos. See [ActiveStorage::Analyzer::ImageAnalyzer][] and [ActiveStorage::Analyzer::VideoAnalyzer][] for information about the specific attributes they extract and the third-party libraries they require.
+
+To choose the analyzer for a blob, Active Storage calls `accept?` on each registered analyzer in order. It uses
+all analyzers for which `accept?` returns true when given the blob. If no registered analyzer accepts the blob, no
+metadata is extracted from it.
+
+In a Rails application, add or remove analyzers by manipulating `Rails.application.config.active_storage.analyzers`
+in an initializer:
+
+```ruby
+# Add a custom analyzer for Microsoft Office documents:
+Rails.application.config.active_storage.analyzers.append DOCXAnalyzer
+
+# Remove the built-in video analyzer:
+Rails.application.config.active_storage.analyzers.delete ActiveStorage::Analyzer::VideoAnalyzer
+```
+
+Outside of a Rails application, manipulate `ActiveStorage.analyzers` instead.
+
+You won't ordinarily need to call `ActiveStorage::Blob#analyze` from a Rails application. New blobs are automatically and asynchronously analyzed via `ActiveStorage::Blob#analyze_later` when they're attached for the first time.
+
+The built-in image analysis provides `width` and `height` attributes. The built-in video analysis provides these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and `audio` booleans to indicate the presence of those channels. Audio analysis provides `duration` and `bit_rate` attributes.
 
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
+[ActiveStorage::Analyzer::ImageAnalyzer]: https://api.rubyonrails.org/classes/ActiveStorage/Analyzer/ImageAnalyzer.html
+[ActiveStorage::Analyzer::VideoAnalyzer]: https://api.rubyonrails.org/classes/ActiveStorage/Analyzer/VideoAnalyzer.html
 
 Displaying Images, Videos, and PDFs
 ---------------
