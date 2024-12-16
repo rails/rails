@@ -11,7 +11,7 @@ You can also use:
 - [ASDF](https://asdf-vm.com)
 - [rbenv](https://rbenv.org)
 - [chruby](https://github.com/postmodern/chruby)
-
+Please refer https://www.ruby-lang.org/en/documentation/installation/#managers to explore alternate options.
 Alternatively, you can use Dev Containers to run Rails without installing Ruby or Rails directly on your machine. Check out the [Getting Started with Dev Containers](getting_started_with_devcontainer.html) guide to learn more.
 
 For this guide,  we'll demonstrate installing Ruby with Mise.
