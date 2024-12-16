@@ -75,11 +75,15 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   #
   #   avatar.variant(:thumb).processed.url
   #
+  # or use multiple pre-defined variants:
+  #
+  #   avatar.variant(:thumb, :rotate_90).processed.url
+  #
   # See ActiveStorage::Blob::Representable#variant for more information.
   #
-  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # Raises an +ArgumentError+ if +transformations+ includes a +Symbol+ which is an
   # unknown pre-defined variant of the attachment.
-  def variant(transformations)
+  def variant(*transformations)
     transformations = transformations_by_name(transformations)
     blob.variant(transformations)
   end
@@ -94,11 +98,15 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   #
   #   video.preview(:thumb).processed.url
   #
+  # or use multiple pre-defined variants:
+  #
+  #   avatar.preview(:thumb, :rotate_90).processed.url
+  #
   # See ActiveStorage::Blob::Representable#preview for more information.
   #
-  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # Raises an +ArgumentError+ if +transformations+ includes a +Symbol+ which is an
   # unknown pre-defined variant of the attachment.
-  def preview(transformations)
+  def preview(*transformations)
     transformations = transformations_by_name(transformations)
     blob.preview(transformations)
   end
@@ -113,11 +121,15 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   #
   #   avatar.representation(:thumb).processed.url
   #
+  # or use multiple pre-defined variants:
+  #
+  #   avatar.representation(:thumb, :rotate_90).processed.url
+  #
   # See ActiveStorage::Blob::Representable#representation for more information.
   #
-  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # Raises an +ArgumentError+ if +transformations+ includes a +Symbol+ which is an
   # unknown pre-defined variant of the attachment.
-  def representation(transformations)
+  def representation(*transformations)
     transformations = transformations_by_name(transformations)
     blob.representation(transformations)
   end
@@ -161,6 +173,8 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
     def transformations_by_name(transformations)
       case transformations
+      when Array
+        transformations.map { |variant_name| transformations_by_name(variant_name) }.reduce(&:merge)
       when Symbol
         variant_name = transformations
         named_variants.fetch(variant_name) do
