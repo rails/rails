@@ -1,3 +1,17 @@
+*   Fix `Module#module_parent_name` to return the correct name after the module has been named.
+
+    When called on an anonymous module, the return value wouldn't change after the module was given a name
+    later by being assigned to a constant.
+
+    ```ruby
+    mod = Module.new
+    mod.module_parent_name # => "Object"
+    MyModule::Something = mod
+    mod.module_parent_name # => "MyModule"
+    ```
+
+    *Jean Boussier*
+
 *   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
 
     *Martin Emde*
