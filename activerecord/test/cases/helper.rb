@@ -90,6 +90,8 @@ class ActiveRecord::TestCase
         end
 
         raise Timeout::Error, "The async executor wasn't drained after #{timeout} seconds"
+      ensure
+        connection.throw_away!
       end
   end
 end
