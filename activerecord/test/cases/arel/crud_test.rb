@@ -31,7 +31,7 @@ module Arel
     end
   end
 
-  describe "crud" do
+  class CrudTest < Arel::Spec
     describe "insert" do
       it "should call insert on the connection" do
         table = Table.new :users
