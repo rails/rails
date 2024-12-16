@@ -15,7 +15,9 @@
 * If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/rails/rails/issues/new). Be sure to include a **title and clear description**, as much relevant information as possible, and a **code sample** or an **executable test case** demonstrating the expected behavior that is not occurring.
 
 * If possible, use the relevant bug report templates to create the issue. Simply copy the content of the appropriate template into a .rb file, make the necessary changes to demonstrate the issue, and **paste the content into the issue description**:
-  * [**Active Record** (models, database) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
+  * **Active Record** (models, database(s)) issues:
+    * [Single database configuration](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
+    * [Multiple databases configuration](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_multiple_databases.rb)
   * [**Action Pack** (controllers, routing) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
   * [**Generic template** for other issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
