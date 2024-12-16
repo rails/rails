@@ -112,7 +112,7 @@ module ActiveRecord
             inddef = row[3]
             comment = row[4]
             valid = row[5]
-            columns = row[6]
+            columns = decode_string_array(row[6])
 
             using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
 
@@ -123,9 +123,6 @@ module ActiveRecord
             if indkey.include?(0)
               columns = expressions
             else
-              decoder = PG::TextDecoder::Array.new
-              columns = decoder.decode(columns)
-
               # prevent INCLUDE columns from being matched
               columns.reject! { |c| include_columns.include?(c) }
 
@@ -591,36 +588,45 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conkey, c.confkey, c.conrelid, c.confrelid
+            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid,
+              (
+                SELECT array_agg(a.attname ORDER BY idx)
+                FROM (
+                  SELECT idx, c.conkey[idx] AS conkey_elem
+                  FROM generate_subscripts(c.conkey, 1) AS idx
+                ) indexed_conkeys
+                JOIN pg_attribute a ON a.attrelid = t1.oid
+                AND a.attnum = indexed_conkeys.conkey_elem
+              ) AS conkey_names,
+              (
+                SELECT array_agg(a.attname ORDER BY idx)
+                FROM (
+                  SELECT idx, c.confkey[idx] AS confkey_elem
+                  FROM generate_subscripts(c.confkey, 1) AS idx
+                ) indexed_confkeys
+                JOIN pg_attribute a ON a.attrelid = t2.oid
+                AND a.attnum = indexed_confkeys.confkey_elem
+              ) AS confkey_names
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
-            JOIN pg_attribute a1 ON a1.attnum = c.conkey[1] AND a1.attrelid = t1.oid
-            JOIN pg_attribute a2 ON a2.attnum = c.confkey[1] AND a2.attrelid = t2.oid
-            JOIN pg_namespace t3 ON c.connamespace = t3.oid
+            JOIN pg_namespace n ON c.connamespace = n.oid
             WHERE c.contype = 'f'
               AND t1.relname = #{scope[:name]}
-              AND t3.nspname = #{scope[:schema]}
+              AND n.nspname = #{scope[:schema]}
             ORDER BY c.conname
           SQL
 
           fk_info.map do |row|
             to_table = Utils.unquote_identifier(row["to_table"])
-            conkey = row["conkey"].scan(/\d+/).map(&:to_i)
-            confkey = row["confkey"].scan(/\d+/).map(&:to_i)
 
-            if conkey.size > 1
-              column = column_names_from_column_numbers(row["conrelid"], conkey)
-              primary_key = column_names_from_column_numbers(row["confrelid"], confkey)
-            else
-              column = Utils.unquote_identifier(row["column"])
-              primary_key = row["primary_key"]
-            end
+            column = decode_string_array(row["conkey_names"])
+            primary_key = decode_string_array(row["confkey_names"])
 
             options = {
-              column: column,
+              column: column.size == 1 ? column.first : column,
               name: row["name"],
-              primary_key: primary_key
+              primary_key: primary_key.size == 1 ? primary_key.first : primary_key
             }
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
@@ -705,7 +711,16 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT c.conname, c.conrelid, c.conkey, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef
+            SELECT c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
+            (
+              SELECT array_agg(a.attname ORDER BY idx)
+              FROM (
+                SELECT idx, c.conkey[idx] AS conkey_elem
+                FROM generate_subscripts(c.conkey, 1) AS idx
+              ) indexed_conkeys
+              JOIN pg_attribute a ON a.attrelid = t.oid
+              AND a.attnum = indexed_conkeys.conkey_elem
+            ) AS conkey_names
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             JOIN pg_namespace n ON n.oid = c.connamespace
@@ -715,8 +730,7 @@ module ActiveRecord
           SQL
 
           unique_info.map do |row|
-            conkey = row["conkey"].delete("{}").split(",").map(&:to_i)
-            columns = column_names_from_column_numbers(row["conrelid"], conkey)
+            columns = decode_string_array(row["conkey_names"])
 
             nulls_not_distinct = row["constraintdef"].start_with?("UNIQUE NULLS NOT DISTINCT")
             deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
@@ -1156,13 +1170,8 @@ module ActiveRecord
             [name.schema, name.identifier]
           end
 
-          def column_names_from_column_numbers(table_oid, column_numbers)
-            Hash[query(<<~SQL, "SCHEMA")].values_at(*column_numbers).compact
-              SELECT a.attnum, a.attname
-              FROM pg_attribute a
-              WHERE a.attrelid = #{table_oid}
-              AND a.attnum IN (#{column_numbers.join(", ")})
-            SQL
+          def decode_string_array(value)
+            PG::TextDecoder::Array.new.decode(value)
           end
       end
     end
