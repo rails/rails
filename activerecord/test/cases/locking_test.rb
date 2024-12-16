@@ -716,6 +716,10 @@ class PessimisticLockingTest < ActiveRecord::TestCase
       Person.columns; Reader.columns
     end
 
+    def teardown
+      Person.lease_connection.throw_away!
+    end
+
     # Test typical find.
     def test_typical_find_with_lock
       assert_nothing_raised do
