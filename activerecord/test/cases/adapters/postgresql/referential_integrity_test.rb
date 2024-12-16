@@ -129,6 +129,39 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "referential_integrity_test_schema", if_exists: true
   end
 
+  def test_all_foreign_keys_valid_having_foreign_keys_with_partitioned_table
+    @connection.execute <<~SQL
+      CREATE TABLE table_referenced_by_partioned_table (
+        id          BIGSERIAL,
+        PRIMARY KEY(id)
+      );
+
+      CREATE TABLE partitioned_table_with_foreign_key (
+        id          BIGSERIAL,
+        company_id   INT      NOT NULL,
+        PRIMARY KEY(company_id, id),
+        CONSTRAINT fk_reference FOREIGN KEY(company_id)
+                                  REFERENCES table_referenced_by_partioned_table(id)
+      ) PARTITION BY LIST (company_id);
+
+      CREATE TABLE partitioned_table_with_foreign_key_1 PARTITION OF partitioned_table_with_foreign_key FOR VALUES IN (1);
+    SQL
+
+    @connection.check_all_foreign_keys_valid!
+
+    result = @connection.execute <<~SQL
+      SELECT count(*) AS count
+      FROM pg_constraint
+      WHERE convalidated = false
+        AND conrelid::regclass IN ('partitioned_table_with_foreign_key'::regclass, 'partitioned_table_with_foreign_key_1'::regclass);
+    SQL
+
+    assert_equal 0, result.first["count"]
+  ensure
+    @connection.drop_table "partitioned_table_with_foreign_key", if_exists: true, force: true
+    @connection.drop_table "table_referenced_by_partioned_table", if_exists: true
+  end
+
   private
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
