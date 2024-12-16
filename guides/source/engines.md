@@ -624,8 +624,8 @@ there isn't an application handy to test this out in, generate one using the
 $ rails new unicorn
 ```
 
-Usually, specifying the engine inside the `Gemfile` would be done by specifying it
-as a normal, everyday gem.
+Usually, specifying the engine inside the `unicorn` application's `Gemfile` would 
+be done by specifying it as a normal, everyday gem.
 
 ```ruby
 gem "devise"
@@ -638,6 +638,7 @@ you will need to specify the `:path` option in your `Gemfile`:
 gem "blorgh", path: "engines/blorgh"
 ```
 
+Create an `engines` directory inside `unicorn` and copy the `blorgh` engine into it.  
 Then run `bundle` to install the gem.
 
 As described earlier, by placing the gem in the `Gemfile` it will be loaded when
