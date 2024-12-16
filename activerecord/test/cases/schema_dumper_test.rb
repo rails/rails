@@ -167,6 +167,26 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
+  def test_table_columns_not_sorted_by_default
+    column_names = column_definition_lines(dump_table_schema("companies")).flatten.filter_map do |line|
+      $1 if line !~ /t\.index/ && line.match(/t\..*"(\w+)"/)
+    end
+
+    assert_equal %w[type firm_id firm_name name client_of rating account_id description status], column_names
+  end
+
+  def test_table_columns_sorted_correct_order_when_sort_table_columns_enabled
+    original_schema_dumper_sort_table_columns = ActiveRecord::SchemaDumper.sort_table_columns
+    ActiveRecord::SchemaDumper.sort_table_columns = true
+    column_names = column_definition_lines(dump_table_schema("companies")).flatten.filter_map do |line|
+      $1 if line !~ /t\.index/ && line.match(/t\..*"(\w+)"/)
+    end
+
+    assert_equal %w[account_id client_of description firm_id firm_name name rating status type], column_names
+  ensure
+    ActiveRecord::SchemaDumper.sort_table_columns = original_schema_dumper_sort_table_columns
+  end
+
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
