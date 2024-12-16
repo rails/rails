@@ -47,8 +47,20 @@ module ActiveRecord
       class_attribute :destroy_association_async_batch_size, instance_writer: false, instance_predicate: false, default: nil
 
       ##
-      # Contains the database configuration - as is typically stored in config/database.yml -
-      # as an ActiveRecord::DatabaseConfigurations object.
+      # Sets the database configuration:
+      #
+      #   ActiveRecord::Base.configurations = {
+      #     "development" => { "adapter" => "abstract", "database" => "dev-db" }
+      #   }
+      def self.configurations=(config)
+        @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
+      end
+      self.configurations = {}
+
+      ##
+      # Contains the database configuration - as is typically stored in
+      # config/database.yml - as an ActiveRecord::DatabaseConfigurations
+      # object.
       #
       # For example, the following database.yml...
       #
@@ -68,12 +80,6 @@ module ActiveRecord
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
       #       @name="primary", @config={adapter: "sqlite3", database: "storage/production.sqlite3"}>
       #   ]>
-      def self.configurations=(config)
-        @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
-      end
-      self.configurations = {}
-
-      # Returns a fully resolved ActiveRecord::DatabaseConfigurations object.
       def self.configurations
         @@configurations
       end
