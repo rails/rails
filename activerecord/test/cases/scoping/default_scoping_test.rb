@@ -714,6 +714,11 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
   unless in_memory_db?
     self.use_transactional_tests = false
 
+    def teardown
+      ThreadsafeDeveloper.lease_connection.disconnect!
+      ThreadsafeDeveloper.lease_connection.pool.flush
+    end
+
     def test_default_scoping_with_threads
       2.times do
         Thread.new {
@@ -721,6 +726,8 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
           DeveloperOrderedBySalary.lease_connection.close
         }.join
       end
+    ensure
+      DeveloperOrderedBySalary.lease_connection.throw_away!
     end
 
     def test_default_scope_is_threadsafe
@@ -746,6 +753,7 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
       threads.each(&:join)
     ensure
       ThreadsafeDeveloper.unscoped.destroy_all
+      ThreadsafeDeveloper.lease_connection.throw_away!
     end
   end
 end

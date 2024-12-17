@@ -15,6 +15,8 @@ module ActiveRecord
       end
 
       def teardown
+        @connection.disconnect!
+        @pool.flush
         SchemaReflection.check_schema_cache_dump_version = @check_schema_cache_dump_version_was
       end
 
