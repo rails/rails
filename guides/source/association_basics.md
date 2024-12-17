@@ -2770,7 +2770,7 @@ The `:association_foreign_key` can be found on a `has_and_belongs_to_many`
 relationship. By convention, Rails assumes that the column in the join table
 used to hold the foreign key pointing to the other model is the name of that
 model with the suffix `_id` added. The `:association_foreign_key` option lets
-you set the name of the foreign key directly For example:
+you set the name of the foreign key directly. For example:
 
 ```ruby
 class User < ApplicationRecord
@@ -3301,4 +3301,4 @@ end
 In this example, the `find_and_log` method performs a query on the association
 and logs the query details using the owner's logger. The method accesses the
 owner's logger via `proxy_association.owner` and the association's name via
-`proxy_association.reflection`.name.
+`proxy_association.reflection.name`.
