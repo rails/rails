@@ -850,7 +850,7 @@ class PessimisticLockingTest < ActiveRecord::TestCase
         end
 
         b = Thread.new do
-          b_wakeup.wait
+          b_wakeup.wait(0.1)
           t2 = Time.now
           Person.transaction(&block)
           a_wakeup.set

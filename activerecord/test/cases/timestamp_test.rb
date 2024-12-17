@@ -596,5 +596,6 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
     assert_equal ["created_at", "updated_at"], indexes.flat_map(&:columns).sort
   ensure
     ActiveRecord::Base.lease_connection.drop_table(:foos)
+    ActiveRecord::Base.lease_connection.throw_away!
   end
 end

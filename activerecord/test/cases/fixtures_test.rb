@@ -1688,6 +1688,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
     def teardown
       ActiveRecord::Base.configurations = @prev_configs
       ActiveRecord::Base.connection_handler = @old_handler
+      teardown_shared_connection_pool
       clean_up_connection_handler
     end
 
