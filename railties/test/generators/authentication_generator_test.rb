@@ -14,6 +14,20 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       end
     RUBY
 
+    FileUtils.mkdir_p("#{destination_root}/config/environments")
+    File.write("#{destination_root}/config/environments/test.rb", <<~RUBY)
+      Rails.application.configure do
+      end
+    RUBY
+
+    FileUtils.mkdir("#{destination_root}/test")
+    File.write("#{destination_root}/test/test_helper.rb", <<~RUBY)
+      module ActiveSupport
+        class TestCase
+        end
+      end
+    RUBY
+
     copy_gemfile
 
     copy_routes
@@ -52,6 +66,11 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+    assert_file "test/controllers/sessions_controller_test.rb"
+
+    assert_file "test/test_helpers/session_test_helper.rb"
+    assert_file "test/test_helper.rb", /    include SessionTestHelper\n/
+    assert_file "config/environments/test.rb", %r{config.autoload_paths \+= %w\[ test/test_helpers \]}
   end
 
   def test_authentication_generator_without_bcrypt_in_gemfile
