@@ -41,6 +41,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_async_equal 318, Account.async_sum(Account.arel_table[:credit_limit])
   end
 
+  def test_should_sum_with_qualified_name_on_loaded
+    accounts = Account.all
+
+    assert_not_predicate accounts, :loaded?
+    assert_equal 318, accounts.sum("accounts.credit_limit")
+
+    accounts.load
+
+    assert_predicate accounts, :loaded?
+    assert_equal 318, accounts.sum("accounts.credit_limit")
+  end
+
   def test_should_average_field
     assert_equal 53.0, Account.average(:credit_limit)
     assert_async_equal 53.0, Account.async_average(:credit_limit)

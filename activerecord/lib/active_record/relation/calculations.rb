@@ -406,6 +406,15 @@ module ActiveRecord
       async.ids
     end
 
+    protected
+      def aggregate_column(column_name)
+        return column_name if Arel::Expressions === column_name
+
+        arel_column(column_name.to_s) do |name|
+          column_name == :all ? Arel.sql("*", retryable: true) : Arel.sql(name)
+        end
+      end
+
     private
       def all_attributes?(column_names)
         (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
@@ -446,14 +455,6 @@ module ActiveRecord
         column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
       end
 
-      def aggregate_column(column_name)
-        return column_name if Arel::Expressions === column_name
-
-        arel_column(column_name.to_s) do |name|
-          column_name == :all ? Arel.sql("*", retryable: true) : Arel.sql(name)
-        end
-      end
-
       def operation_over_aggregate_column(column, operation, distinct)
         operation == "count" ? column.count(distinct) : column.public_send(operation)
       end
@@ -469,7 +470,7 @@ module ActiveRecord
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
           relation = unscope(:order).distinct!(false)
 
-          column = aggregate_column(column_name)
+          column = relation.aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
           select_value.distinct = true if operation == "sum" && distinct
 
@@ -519,7 +520,9 @@ module ActiveRecord
           }
           group_columns = group_aliases.zip(group_fields)
 
-          column = aggregate_column(column_name)
+          relation = except(:group).distinct!(false)
+
+          column = relation.aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
           select_value = operation_over_aggregate_column(column, operation, distinct)
           select_value.as(adapter_class.quote_column_name(column_alias))
@@ -536,7 +539,6 @@ module ActiveRecord
             end
           }
 
-          relation = except(:group).distinct!(false)
           relation.group_values  = group_fields
           relation.select_values = select_values
 
@@ -662,7 +664,7 @@ module ActiveRecord
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
         else
           column_alias = Arel.sql("count_column")
-          relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
+          relation.select_values = [ relation.aggregate_column(column_name).as(column_alias) ]
         end
 
         subquery_alias = Arel.sql("subquery_for_count", retryable: true)
