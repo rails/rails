@@ -509,7 +509,9 @@ module ActiveRecord
           associated   = association && association.belongs_to? # only count belongs_to associations
           group_fields = Array(association.foreign_key) if associated
         end
-        group_fields = arel_columns(group_fields)
+
+        relation = except(:group).distinct!(false)
+        group_fields = relation.arel_columns(group_fields)
 
         @klass.with_connection do |connection|
           column_alias_tracker = ColumnAliasTracker.new(connection)
@@ -519,8 +521,6 @@ module ActiveRecord
             column_alias_tracker.alias_for(field.to_s.downcase)
           }
           group_columns = group_aliases.zip(group_fields)
-
-          relation = except(:group).distinct!(false)
 
           column = relation.aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
