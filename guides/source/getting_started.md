@@ -1738,7 +1738,7 @@ Now, let's add a rich text description field to our product.
 First, add the following to the `Product` model:
 
 ```ruby#2
-class Product
+class Product < ApplicationRecord
   has_rich_text :description
   validates :name, presence: true
 end
@@ -1806,7 +1806,7 @@ We can also use Active Storage directly. Let's add a featured image to the
 `Product` model.
 
 ```ruby#2
-class Product
+class Product < ApplicationRecord
   has_one_attached :featured_image
   has_rich_text :description
   validates :name, presence: true
