@@ -36,3 +36,7 @@ en:
       in: "must be in %{count}"
       odd: "must be odd"
       even: "must be even"
+      must_contain_lowercase: "must contain at least one lowercase letter"
+      must_contain_uppercase: "must contain at least one uppercase letter"
+      must_contain_number: "must contain at least one number"
+      must_contain_special_character: "must contain at least one special character"

@@ -41,6 +41,7 @@ module ActiveModel
   autoload :AttributeRegistration
   autoload :BlockValidator, "active_model/validator"
   autoload :Callbacks
+  autoload :ComplexPassword
   autoload :Conversion
   autoload :Dirty
   autoload :EachValidator, "active_model/validator"
