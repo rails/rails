@@ -784,11 +784,8 @@ Update, Delete (CRUD). This translates to 8 typical routes:
   record
 * Show - Renders a specific record for viewing
 * Edit - Renders a form for updating a specific record
-* Update (entire resource) - Handles the form submission to update the entire resource.
-  This is typically triggered by a PUT request, replacing all attributes of the resource.
-* Update (specific attributes only) - Handles the form submission to update specific
-  attributes of the resource. This is typically triggered by a PATCH request,
-  making partial updates to the resource.
+* Update (full) - Handles the edit form submission, handling errors and updating the entire record, and typically triggered by a PUT request.
+* Update (partial) - Handles the edit form submission, handling errors and updating specific attributes of the record, and typically triggered by a PATCH request.
 * Destroy - Handles deleting a specific record
 
 We can add routes for these CRUD actions with the following:
