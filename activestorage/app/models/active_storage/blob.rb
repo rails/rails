@@ -321,7 +321,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # methods in most circumstances.
   def delete
     service.delete(key)
-    service.delete_prefixed("variants/#{key}/") if image?
+    service.delete_prefixed("variants/#{key}/") if image? && ActiveStorage.track_variants
   end
 
   # Destroys the blob record and then deletes the file on the service. This is the recommended way to dispose of unwanted
