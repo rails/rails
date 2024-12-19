@@ -522,8 +522,8 @@ module ActiveRecord
       end
 
       def teardown
-        @connection.reconnect!
-        assert_predicate @connection, :active?
+        @connection.throw_away!
+        assert_not_predicate @connection, :active?
         assert_not_predicate @connection, :transaction_open?
         assert_not raw_transaction_open?(@connection)
       end
