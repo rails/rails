@@ -773,15 +773,10 @@ get "/blog/:title", to: "blog#show"
 Rails will capture `hello-world` out of `/blog/hello-world` and this can be used
 to look up the blog post with the matching title.
 
-
-```ruby
-get "/blog/:slug", to: "blog#show"
-```
-
 #### CRUD Routes
 
 There are 4 common actions you will generally need for a resource: Create, Read,
-Update, Delete (CRUD). This translates to 7 typical routes:
+Update, Delete (CRUD). This translates to 8 typical routes:
 
 * Index - Shows all the records
 * New - Renders a form for creating a new record
@@ -789,8 +784,11 @@ Update, Delete (CRUD). This translates to 7 typical routes:
   record
 * Show - Renders a specific record for viewing
 * Edit - Renders a form for updating a specific record
-* Update - Handles the edit form submission, handling errors and updating the
-  record
+* Update (entire resource) - Handles the form submission to update the entire resource.
+  This is typically triggered by a PUT request, replacing all attributes of the resource.
+* Update (specific attributes only) - Handles the form submission to update specific
+  attributes of the resource. This is typically triggered by a PATCH request,
+  making partial updates to the resource.
 * Destroy - Handles deleting a specific record
 
 We can add routes for these CRUD actions with the following:
