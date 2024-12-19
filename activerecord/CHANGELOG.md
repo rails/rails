@@ -1,3 +1,7 @@
+*   Raise `ActiveRecord::ReadOnlyError` when attempting a locking query in readonly mode.
+
+    *Joshua Young*
+
 *   Serialized attributes can now be marked as comparable.
 
     A not rare issue when working with serialized attributes is that the serialized representation of an object

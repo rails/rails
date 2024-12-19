@@ -89,5 +89,44 @@ module ActiveRecord
           super(@conn, table_name, definition, &block)
         end
     end
+
+    class SQLite3AdapterPreventWritesLocksTest < ActiveRecord::SQLite3TestCase
+      include DdlHelper
+
+      self.use_transactional_tests = false
+
+      def setup
+        @conn = ActiveRecord::Base.lease_connection
+      end
+
+      def test_immediate_transaction_raises_error_while_preventing_writes
+        with_example_table "id int, data string" do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @conn.execute("BEGIN IMMEDIATE TRANSACTION")
+            end
+          end
+        end
+      end
+
+      def test_exclusive_transaction_raises_error_while_preventing_writes
+        with_example_table "id int, data string" do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @conn.execute("BEGIN EXCLUSIVE TRANSACTION")
+            end
+          end
+        end
+      end
+
+      private
+        def with_example_table(definition = nil, table_name = "ex", &block)
+          definition ||= <<~SQL
+            id integer PRIMARY KEY AUTOINCREMENT,
+            number integer
+          SQL
+          super(@conn, table_name, definition, &block)
+        end
+    end
   end
 end

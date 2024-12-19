@@ -20,6 +20,22 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
+        LOCK_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_lock_query_regexp(
+          # table-level locks
+          :lock_table, :lock_tables, :unlock_table, :unlock_tables,
+          # row-level locks
+          :for_update, :for_share,
+          # read lock for table flushing
+          :read_lock
+        ) # :nodoc:
+        private_constant :LOCK_QUERY
+
+        def lock_query?(sql) # :nodoc:
+          LOCK_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          LOCK_QUERY.match?(sql.b)
+        end
+
         def high_precision_current_timestamp
           HIGH_PRECISION_CURRENT_TIMESTAMP
         end
