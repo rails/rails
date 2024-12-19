@@ -98,5 +98,139 @@ module ActiveRecord
           super(@connection, "ex", definition, &block)
         end
     end
+
+    class PostgreSQLAdapterPreventWritesLocksTest < ActiveRecord::PostgreSQLTestCase
+      include DdlHelper
+      include ConnectionHelper
+
+      def setup
+        @connection = ActiveRecord::Base.lease_connection
+      end
+
+      def test_for_update_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("SELECT * FROM ex FOR UPDATE")
+            end
+          end
+        end
+      end
+
+      def test_for_no_key_update_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("SELECT * FROM ex FOR NO KEY UPDATE")
+            end
+          end
+        end
+      end
+
+      def test_for_share_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("SELECT * FROM ex FOR SHARE")
+            end
+          end
+        end
+      end
+
+      def test_for_key_share_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("SELECT * FROM ex FOR KEY SHARE")
+            end
+          end
+        end
+      end
+
+      def test_access_share_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("LOCK TABLE ex IN ACCESS SHARE MODE")
+            end
+          end
+        end
+      end
+
+      def test_row_share_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("LOCK TABLE ex IN ROW SHARE MODE")
+            end
+          end
+        end
+      end
+
+      def test_row_exclusive_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("LOCK TABLE ex IN ROW EXCLUSIVE MODE")
+            end
+          end
+        end
+      end
+
+      def test_share_update_exclusive_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("LOCK TABLE ex IN SHARE UPDATE EXCLUSIVE MODE")
+            end
+          end
+        end
+      end
+
+      def test_share_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("LOCK TABLE ex IN SHARE MODE")
+            end
+          end
+        end
+      end
+
+      def test_share_row_exclusive_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("LOCK TABLE ex IN SHARE ROW EXCLUSIVE MODE")
+            end
+          end
+        end
+      end
+
+      def test_exclusive_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("LOCK TABLE ex IN EXCLUSIVE MODE")
+            end
+          end
+        end
+      end
+
+      def test_access_exclusive_raises_error_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("LOCK TABLE ex IN ACCESS EXCLUSIVE MODE")
+            end
+          end
+        end
+      end
+
+      private
+        def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
+          super(@connection, "ex", definition, &block)
+        end
+    end
   end
 end

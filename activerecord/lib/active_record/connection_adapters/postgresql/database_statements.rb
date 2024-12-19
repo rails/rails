@@ -27,6 +27,21 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
+        LOCK_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_lock_query_regexp(
+          # table-level locks
+          :in_access_share_mode, :in_row_share_mode, :in_row_exclusive_mode, :in_share_update_exclusive_mode,
+          :in_share_mode, :in_share_row_exclusive_mode, :in_exclusive_mode, :in_access_exclusive_mode,
+          # row-level locks
+          :for_update, :for_no_key_update, :for_share, :for_key_share
+        ) # :nodoc:
+        private_constant :LOCK_QUERY
+
+        def lock_query?(sql) # :nodoc:
+          LOCK_QUERY.match?(sql)
+        rescue ArgumentError # Invalid encoding
+          LOCK_QUERY.match?(sql.b)
+        end
+
         # Executes an SQL statement, returning a PG::Result object on success
         # or raising a PG::Error exception otherwise.
         #
