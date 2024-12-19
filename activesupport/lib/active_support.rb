@@ -91,6 +91,10 @@ module ActiveSupport
   autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
 
+  include Deprecation::DeprecatedConstantAccessor
+
+  deprecate_constant :Configurable, "class_attribute :config, default: {}", deprecator: ActiveSupport.deprecator
+
   def self.eager_load!
     super
 
