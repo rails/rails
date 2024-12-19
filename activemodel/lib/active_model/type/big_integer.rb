@@ -23,32 +23,15 @@ module ActiveModel
     # All casting and serialization are performed in the same way as the
     # standard ActiveModel::Type::Integer type.
     class BigInteger < Integer
-      def serialize(value) # :nodoc:
-        case value
-        when ::Integer
-          # noop
-        when ::String
-          int = value.to_i
-          if int.zero? && value != "0"
-            return if non_numeric_string?(value)
-          end
-          value = int
-        else
-          value = super
-        end
-
-        value
-      end
-
-      def serialize_cast_value(value) # :nodoc:
-        value
-      end
-
       def serializable?(value, &_)
         true
       end
 
       private
+        def ensure_within_range!(_value)
+          # noop
+        end
+
         def max_value
           ::Float::INFINITY
         end

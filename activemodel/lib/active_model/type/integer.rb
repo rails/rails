@@ -77,18 +77,13 @@ module ActiveModel
           value = super
         end
 
-        if out_of_range?(value)
-          raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
-        end
+        ensure_within_range!(value)
 
         value
       end
 
       def serialize_cast_value(value) # :nodoc:
-        if out_of_range?(value)
-          raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
-        end
-
+        ensure_within_range!(value)
         value
       end
 
@@ -100,6 +95,13 @@ module ActiveModel
       end
 
       private
+
+        def ensure_within_range!(value)
+          return unless out_of_range?(value)
+
+          raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
+        end
+
         def out_of_range?(value)
           value && (@max <= value || @min > value)
         end
