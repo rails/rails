@@ -10,6 +10,7 @@
 
     *Edouard-chin*
 
+
 ## Rails 8.0.1 (December 13, 2024) ##
 
 *   No changes.
