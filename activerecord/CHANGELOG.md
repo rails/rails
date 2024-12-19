@@ -1,3 +1,8 @@
+*   Fix incorrect callback execution order when `config.active_record.run_after_transaction_callbacks_in_order_defined = true`
+    and using `after_commit` and `after_rollback` callbacks with `prepend: true`.
+
+    *Joshua Young*
+
 *   Serialized attributes can now be marked as comparable.
 
     A not rare issue when working with serialized attributes is that the serialized representation of an object
