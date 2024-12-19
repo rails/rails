@@ -444,8 +444,7 @@ module ActiveRecord
           relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
         end
 
-        case conditions
-        when Array, Hash
+        if conditions.is_a?(Array) && !conditions.first.is_a?(Array) || conditions.is_a?(Hash)
           relation.where!(conditions) unless conditions.empty?
         else
           relation.where!(primary_key => conditions) unless conditions == :none
