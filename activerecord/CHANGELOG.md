@@ -1,3 +1,36 @@
+*   Support serialized attributes (i.e. JSON) in fixtures.
+
+    Given a model with a serialized attribute
+
+    ```rb
+    # app/models/user.rb
+    class User
+      serialize :preferences, coder: JSON
+    end
+    ```
+
+    It's now possible to write fixtures as
+
+    ```yaml
+    # test/fixtures/users.yml
+    glaszig:
+      name: glaszig
+      preferences:
+        active: true
+        notifications: [ news, offers ]
+    ```
+
+    Instead of
+
+    ```yaml
+    # test/fixtures/users.yml
+    glaszig:
+      name: glaszig
+      preferences: <%= { active: true, notifications: [ news, offers ] }.to_json %>
+    ```
+
+    *glaszig*
+
 *   Serialized attributes can now be marked as comparable.
 
     A not rare issue when working with serialized attributes is that the serialized representation of an object

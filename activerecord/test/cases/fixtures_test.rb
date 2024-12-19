@@ -1866,3 +1866,16 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
     end
   end
 end
+
+class FixturesWithSerializedAttributesTest < ActiveRecord::TestCase
+  model = Class.new(TrafficLight) do
+    serialize :state, coder: JSON
+  end
+
+  set_fixture_class traffic_lights: model
+  fixtures :traffic_lights
+
+  def test_supports_json_attributes
+    assert_equal ["Green", "Red", "Orange"], traffic_lights(:uk).state
+  end
+end
