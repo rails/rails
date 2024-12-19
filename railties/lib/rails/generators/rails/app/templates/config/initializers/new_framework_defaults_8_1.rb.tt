@@ -8,3 +8,8 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+
+###
+# Controls whether or not `<form>` elements rendered by `form_tag` without a block will render `</form>`
+#++
+# Rails.application.config.action_view.closes_form_tag_without_block = true

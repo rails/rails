@@ -778,6 +778,9 @@ module ActionView
 
           html_options = html_options_for_form_with(url, model, **options)
           form_tag_with_body(html_options, output)
+        elsif ActionView::Helpers::FormTagHelper.closes_form_tag_without_block
+          html_options = html_options_for_form_with(url, model, **options)
+          form_tag_with_body(html_options, output)
         else
           html_options = html_options_for_form_with(url, model, **options)
           form_tag_html(html_options)

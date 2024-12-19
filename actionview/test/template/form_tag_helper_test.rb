@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 
 class FormTagHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -127,6 +128,14 @@ class FormTagHelperTest < ActionView::TestCase
     actual = form_tag
     expected = whole_form
     assert_dom_equal expected, actual
+  end
+
+  def test_form_tag_without_block_renders_with_closing_tag
+    ActionView::Helpers::FormTagHelper.with closes_form_tag_without_block: true do
+      actual = form_tag({}, { "multipart" => true })
+      expected = whole_form("http://www.example.com", enctype: true)
+      assert_dom_equal expected + "</form>", actual
+    end
   end
 
   def test_form_tag_multipart
