@@ -18,11 +18,10 @@ module ActionCable
 
       attr_reader :executor
 
-      def initialize(max_size: 5)
-        @executor = Concurrent::ThreadPoolExecutor.new(
+      def initialize(size: 5)
+        @executor = Concurrent::FixedThreadPool.new(
+          size,
           name: "ActionCable",
-          min_threads: 1,
-          max_threads: max_size,
           max_queue: 0,
         )
       end

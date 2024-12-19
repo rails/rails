@@ -37,6 +37,6 @@ class TestServer
   end
 
   def worker_pool
-    @worker_pool ||= ActionCable::Server::Worker.new(max_size: 5)
+    @worker_pool ||= ActionCable::Server::Worker.new(size: 5)
   end
 end
