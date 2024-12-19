@@ -5,8 +5,9 @@ module ActiveModel
     module ResolveValue # :nodoc:
       def resolve_value(record, value)
         case value
-        when Proc
-          if value.arity == 0
+        when ActiveSupport::Callable
+          arity = value.respond_to?(:arity) ? value.arity : value.method(:call).arity
+          if arity == 0
             value.call
           else
             value.call(record)
@@ -14,11 +15,7 @@ module ActiveModel
         when Symbol
           record.send(value)
         else
-          if value.respond_to?(:call)
-            value.call(record)
-          else
-            value
-          end
+          value
         end
       end
     end
