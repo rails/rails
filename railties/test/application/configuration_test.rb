@@ -815,6 +815,28 @@ module ApplicationTests
       assert File.exist?(app_path("tmp/local_secret.txt"))
     end
 
+    test "application will use ENV['SECRET_KEY_BASE'] if present in local env" do
+      env_var_secret = "env_var_secret"
+      ENV["SECRET_KEY_BASE"] = env_var_secret
+
+      app "development"
+
+      assert_equal env_var_secret, app.secret_key_base
+    ensure
+      ENV.delete "SECRET_KEY_BASE"
+    end
+
+    test "application will use secret_key_base from credentials if present in local env" do
+      credentials_secret = "credentials_secret"
+      add_to_config <<-RUBY
+        Rails.application.credentials.secret_key_base = "#{credentials_secret}"
+      RUBY
+
+      app "development"
+
+      assert_equal credentials_secret, app.secret_key_base
+    end
+
     test "application will not generate secret_key_base in tmp file if blank in production" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.credentials.secret_key_base = nil
@@ -846,8 +868,31 @@ module ApplicationTests
       assert_nothing_raised do
         app "production"
       end
+
+      assert_not_nil app.secret_key_base
+      assert File.exist?(app_path("tmp/local_secret.txt"))
     ensure
-      ENV["SECRET_KEY_BASE_DUMMY"] = nil
+      ENV.delete "SECRET_KEY_BASE_DUMMY"
+    end
+
+    test "always use tmp file secret when dummy secret_key_base is used in production" do
+      secret = "tmp_file_secret"
+      ENV["SECRET_KEY_BASE_DUMMY"] = "1"
+      ENV["SECRET_KEY_BASE"] = "env_secret"
+
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = "credentials_secret"
+      RUBY
+
+      app_dir("tmp")
+      File.binwrite(app_path("tmp/local_secret.txt"), secret)
+
+      app "production"
+
+      assert_equal secret, app.secret_key_base
+    ensure
+      ENV.delete "SECRET_KEY_BASE_DUMMY"
+      ENV.delete "SECRET_KEY_BASE"
     end
 
     test "raise when secret_key_base is not a type of string" do
