@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "active_support/core_ext/object/with"
 
 class FormWithTest < ActionView::TestCase
   include RenderERBUtils
@@ -160,6 +161,22 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
     expected = whole_form { "Hello world!" }
     assert_dom_equal expected, @rendered
+  end
+
+  def test_form_with_rendered_without_block_closes_form_tag_when_configured_to
+    ActionView::Helpers::FormTagHelper.with closes_form_tag_without_block: true do
+      output_buffer = render_erb("<%= form_with(url: false) %>")
+
+      assert_match %r|</form>\Z|, output_buffer, "includes closing </form> tag"
+    end
+  end
+
+  def test_form_with_rendered_without_block_does_not_close_form_tag_when_configured_not_to
+    ActionView::Helpers::FormTagHelper.with closes_form_tag_without_block: false do
+      output_buffer = render_erb("<%= form_with(url: false) %>")
+
+      assert_no_match %r|</form>\Z|, output_buffer, "excludes closing </form> tag"
+    end
   end
 
   def test_form_with_with_block_and_method_in_erb
