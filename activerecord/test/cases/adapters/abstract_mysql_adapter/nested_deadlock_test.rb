@@ -29,6 +29,9 @@ module ActiveRecord
       ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
       ActiveRecord::Base.lease_connection.drop_table "samples", if_exists: true
 
+      ActiveRecord::Base.lease_connection.disconnect!
+      ActiveRecord::Base.lease_connection.pool.flush
+
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
     end

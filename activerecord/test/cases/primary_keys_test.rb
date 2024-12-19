@@ -305,6 +305,7 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
 
   def teardown
     @connection.drop_table(:auto_increments, if_exists: true)
+    @connection.throw_away!
   end
 
   def test_primary_key_with_integer

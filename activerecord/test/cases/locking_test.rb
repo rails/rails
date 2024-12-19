@@ -716,6 +716,10 @@ class PessimisticLockingTest < ActiveRecord::TestCase
       Person.columns; Reader.columns
     end
 
+    def teardown
+      Person.lease_connection.throw_away!
+    end
+
     # Test typical find.
     def test_typical_find_with_lock
       assert_nothing_raised do
@@ -846,7 +850,7 @@ class PessimisticLockingTest < ActiveRecord::TestCase
         end
 
         b = Thread.new do
-          b_wakeup.wait
+          b_wakeup.wait(0.1)
           t2 = Time.now
           Person.transaction(&block)
           a_wakeup.set

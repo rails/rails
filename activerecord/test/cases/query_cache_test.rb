@@ -38,6 +38,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     Task.connection_pool.clear_query_cache
     ActiveRecord::Base.connection_pool.disable_query_cache!
     super
+    ActiveRecord::Base.lease_connection.disconnect!
+    ActiveRecord::Base.lease_connection.pool.flush
   end
 
   def test_execute_clear_cache

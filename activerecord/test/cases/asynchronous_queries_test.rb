@@ -31,6 +31,9 @@ module AsynchronousQueriesSharedTests
         end
       end
     end
+  ensure
+    @connection.throw_away!
+    @connection.pool.flush!
   end
 
   def test_async_query_cache
@@ -91,6 +94,11 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.lease_connection
   end
 
+  def teardown
+    @connection.throw_away!
+    @connection.pool.flush!
+  end
+
   def test_async_select_all
     status = {}
 
@@ -123,6 +131,11 @@ class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.lease_connection
     @connection.materialize_transactions
+  end
+
+  def teardown
+    @connection.throw_away!
+    @connection.pool.flush!
   end
 end
 

@@ -214,6 +214,7 @@ module ActiveRecord
             ActiveRecord::Base.establish_connection(db)
             ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions
             ActiveRecord::Base.connection_pool.internal_metadata.delete_all_entries
+            ActiveRecord::Base.remove_connection
           end
           ActiveRecord::Base.configurations = old_configurations
           ActiveRecord::Base.establish_connection(:arunit)

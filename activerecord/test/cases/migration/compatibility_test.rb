@@ -30,6 +30,8 @@ module ActiveRecord
 
       teardown do
         connection.drop_table :testings rescue nil
+        connection.throw_away!
+        connection.pool.flush!
         ActiveRecord::Migration.verbose = @verbose_was
         @schema_migration.delete_all_versions rescue nil
       end
@@ -952,6 +954,8 @@ module LegacyPolymorphicReferenceIndexTestCases
     ActiveRecord::Migration.verbose = @verbose_was
     @schema_migration.delete_all_versions rescue nil
     connection.drop_table :testings rescue nil
+    @connection.disconnect!
+    @pool.flush
   end
 
   def test_create_table_with_polymorphic_reference_uses_all_column_names_in_index
