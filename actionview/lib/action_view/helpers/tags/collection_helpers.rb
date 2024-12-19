@@ -106,7 +106,8 @@ module ActionView
 
           def hidden_field
             hidden_name = @html_options[:name] || hidden_field_name
-            @template_object.hidden_field_tag(hidden_name, "", id: nil)
+            options = { id: nil, form: @html_options[:form] }
+            @template_object.hidden_field_tag(hidden_name, "", options)
           end
 
           def hidden_field_name
