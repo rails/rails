@@ -30,5 +30,11 @@ module ActionDispatch
       SERVER_TIMING = "server-timing"
       STRICT_TRANSPORT_SECURITY = "strict-transport-security"
     end
+
+    if Gem::Version.new(Rack::RELEASE) < Gem::Version.new("3.1")
+      UNPROCESSABLE_CONTENT = :unprocessable_entity
+    else
+      UNPROCESSABLE_CONTENT = :unprocessable_content
+    end
   end
 end
