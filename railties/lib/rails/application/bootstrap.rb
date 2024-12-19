@@ -10,6 +10,11 @@ module Rails
     module Bootstrap
       include Initializable
 
+      # Don't run load hooks too early.
+      initializer :pause_load_hooks do |app|
+        ActiveSupport.load_hooks.pause
+      end
+
       initializer :load_environment_hook, group: :all do end
 
       initializer :load_active_support, group: :all do
