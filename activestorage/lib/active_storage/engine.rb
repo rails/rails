@@ -21,6 +21,8 @@ require "active_storage/service/registry"
 
 require "active_storage/reflection"
 
+require "active_storage/rotation_configuration"
+
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
     isolate_namespace ActiveStorage
@@ -31,6 +33,7 @@ module ActiveStorage
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
+    config.active_storage.key_rotations = ActiveStorage::RotationConfiguration.new
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -133,6 +136,11 @@ module ActiveStorage
     initializer "active_storage.verifier" do
       config.after_initialize do |app|
         ActiveStorage.verifier = app.message_verifier("ActiveStorage")
+
+        app.config.active_storage.key_rotations.each do |(*secrets)|
+          options = secrets.extract_options!
+          ActiveStorage.verifier.rotate(*secrets, **options)
+        end
       end
     end
 
