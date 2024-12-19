@@ -169,17 +169,13 @@ module ActiveSupport
     # so that you can write class macros here.
     # When you define more than one +prepended+ block, it raises an exception.
     def prepended(base = nil, &block)
-      if base.nil?
-        if instance_variable_defined?(:@_prepended_block)
-          if @_prepended_block.source_location != block.source_location
-            raise MultiplePrependBlocks
-          end
-        else
-          @_prepended_block = block
-        end
-      else
-        super
+      return super if base
+
+      if instance_variable_defined?(:@_prepended_block) && @_prepended_block.source_location != block.source_location
+        raise MultiplePrependBlocks
       end
+
+      @_prepended_block ||= block
     end
 
     # Define class methods from given block.
