@@ -1,3 +1,16 @@
+*   A Blob will no longer autosave associated Attachment.
+
+    This fixes an issue where a record with an attachment would have
+    its dirty attributes reset, preventing your `after commit` callbacks
+    on that record to behave as expected.
+
+    Note that this change doesn't require any changes on your application
+    and is supposed to be internal. Active Storage Attachment will continue
+    to be autosaved (through a different relation).
+
+    *Edouard-chin*
+
+
 ## Rails 7.2.2.1 (December 10, 2024) ##
 
 *   No changes.
