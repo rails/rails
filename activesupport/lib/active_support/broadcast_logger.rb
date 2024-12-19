@@ -76,7 +76,6 @@ module ActiveSupport
 
     # Returns all the logger that are part of this broadcast.
     attr_reader :broadcasts
-    attr_reader :formatter
     attr_accessor :progname
 
     def initialize(*loggers)
@@ -105,62 +104,24 @@ module ActiveSupport
       @broadcasts.delete(logger)
     end
 
+    # Forward all standard Logger methods to each logger in the broadcast.
+    LOGGER_METHODS = %w[
+      << log add debug info warn error fatal unknown
+      debug! info! warn! error! fatal!
+      level= sev_threshold= local_level local_level= close
+      formatter formatter=
+    ]
+    LOGGER_METHODS.each do |method|
+      class_eval <<-RUBY, __FILE__, __LINE__ + 1
+        def #{method}(...)
+          dispatch(:#{method}, ...)
+        end
+      RUBY
+    end
+
+    # Returns the lowest level of all the loggers in the broadcast.
     def level
       @broadcasts.map(&:level).min
-    end
-
-    def <<(message)
-      dispatch { |logger| logger.<<(message) }
-    end
-
-    def add(...)
-      dispatch { |logger| logger.add(...) }
-    end
-    alias_method :log, :add
-
-    def debug(...)
-      dispatch { |logger| logger.debug(...) }
-    end
-
-    def info(...)
-      dispatch { |logger| logger.info(...) }
-    end
-
-    def warn(...)
-      dispatch { |logger| logger.warn(...) }
-    end
-
-    def error(...)
-      dispatch { |logger| logger.error(...) }
-    end
-
-    def fatal(...)
-      dispatch { |logger| logger.fatal(...) }
-    end
-
-    def unknown(...)
-      dispatch { |logger| logger.unknown(...) }
-    end
-
-    def formatter=(formatter)
-      dispatch { |logger| logger.formatter = formatter }
-
-      @formatter = formatter
-    end
-
-    def level=(level)
-      dispatch { |logger| logger.level = level }
-    end
-    alias_method :sev_threshold=, :level=
-
-    def local_level=(level)
-      dispatch do |logger|
-        logger.local_level = level if logger.respond_to?(:local_level=)
-      end
-    end
-
-    def close
-      dispatch { |logger| logger.close }
     end
 
     # +True+ if the log level allows entries with severity Logger::DEBUG to be written
@@ -169,20 +130,10 @@ module ActiveSupport
       @broadcasts.any? { |logger| logger.debug? }
     end
 
-    # Sets the log level to Logger::DEBUG for the whole broadcast.
-    def debug!
-      dispatch { |logger| logger.debug! }
-    end
-
     # +True+ if the log level allows entries with severity Logger::INFO to be written
     # to at least one broadcast. +False+ otherwise.
     def info?
       @broadcasts.any? { |logger| logger.info? }
-    end
-
-    # Sets the log level to Logger::INFO for the whole broadcast.
-    def info!
-      dispatch { |logger| logger.info! }
     end
 
     # +True+ if the log level allows entries with severity Logger::WARN to be written
@@ -191,20 +142,10 @@ module ActiveSupport
       @broadcasts.any? { |logger| logger.warn? }
     end
 
-    # Sets the log level to Logger::WARN for the whole broadcast.
-    def warn!
-      dispatch { |logger| logger.warn! }
-    end
-
     # +True+ if the log level allows entries with severity Logger::ERROR to be written
     # to at least one broadcast. +False+ otherwise.
     def error?
       @broadcasts.any? { |logger| logger.error? }
-    end
-
-    # Sets the log level to Logger::ERROR for the whole broadcast.
-    def error!
-      dispatch { |logger| logger.error! }
     end
 
     # +True+ if the log level allows entries with severity Logger::FATAL to be written
@@ -213,23 +154,34 @@ module ActiveSupport
       @broadcasts.any? { |logger| logger.fatal? }
     end
 
-    # Sets the log level to Logger::FATAL for the whole broadcast.
-    def fatal!
-      dispatch { |logger| logger.fatal! }
-    end
-
     def initialize_copy(other)
       @broadcasts = []
       @progname = other.progname.dup
-      @formatter = other.formatter.dup
 
       broadcast_to(*other.broadcasts.map(&:dup))
     end
 
     private
-      def dispatch(&block)
-        @broadcasts.each { |logger| block.call(logger) }
-        true
+      def dispatch(method, *args, **kwargs, &block)
+        if block_given?
+          # Maintain semantics that the first logger yields the block
+          # as normal, but subsequent loggers won't re-execute the block.
+          # Instead, the initial result is immediately returned.
+          called, result = false, nil
+          block = proc { |*args, **kwargs|
+            if called then result
+            else
+              called = true
+              result = yield(*args, **kwargs)
+            end
+          }
+        end
+
+        @broadcasts.map { |logger|
+          if logger.respond_to?(method)
+            logger.send(method, *args, **kwargs, &block)
+          end
+        }.first
       end
 
       def method_missing(name, ...)
