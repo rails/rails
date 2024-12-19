@@ -63,9 +63,12 @@ module ActionCable
           end
         end
 
-        def start_periodic_timer(callback, every:)
-          connection.server.event_loop.timer every do
-            connection.worker_pool.async_exec self, connection: connection, &callback
+        def start_periodic_timer(timer_callback, every:)
+          # A callback must be executed within the channel context
+          callback = -> { instance_exec(&timer_callback) }
+
+          connection.executor.timer(every) do
+            connection.perform_work callback, :call
           end
         end
 
