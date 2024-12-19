@@ -87,8 +87,10 @@ module ActiveJob
       job = event.payload[:job]
       ex = event.payload[:exception_object]
       if ex
+        cleaned_backtrace = backtrace_cleaner.clean(ex.backtrace)
+
         error do
-          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(cleaned_backtrace).join("\n")
         end
       elsif event.payload[:aborted]
         error do
