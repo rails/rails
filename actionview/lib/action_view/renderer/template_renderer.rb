@@ -105,7 +105,7 @@ module ActionView
             all_details = @details.merge(formats: @lookup_context.default_formats)
             raise unless template_exists?(layout, nil, false, [], **all_details)
           end
-        when Proc
+        when ActiveSupport::Callable
           resolve_layout(layout.call(@lookup_context, formats), keys, formats)
         else
           layout
