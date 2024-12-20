@@ -413,22 +413,6 @@ module ActiveRecord
           nil
         end
 
-        def primary_keys(table_name) # :nodoc:
-          query_values(<<~SQL, "SCHEMA")
-            SELECT a.attname
-              FROM (
-                     SELECT indrelid, indkey, generate_subscripts(indkey, 1) idx
-                       FROM pg_index
-                      WHERE indrelid = #{quote(quote_table_name(table_name))}::regclass
-                        AND indisprimary
-                   ) i
-              JOIN pg_attribute a
-                ON a.attrelid = i.indrelid
-               AND a.attnum = i.indkey[i.idx]
-             ORDER BY i.idx
-          SQL
-        end
-
         # Renames a table.
         # Also renames a table's primary key sequence if the sequence name exists and
         # matches the Active Record default.
@@ -985,11 +969,11 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field, _definitions)
-            column_name, type, default, notnull, oid, fmod, collation, comment, identity, attgenerated = field
+            column_name, default, type, primary, primary_idx, not_null, oid, fmod, collation, comment, identity, generated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
 
-            if attgenerated.present?
+            if generated.present?
               default_function = default
             else
               default_function = extract_default_function(default_value, default)
@@ -1004,13 +988,15 @@ module ActiveRecord
               get_oid_type(oid.to_i, fmod.to_i, column_name, type),
               default_value,
               type_metadata,
-              !notnull,
+              primary,
+              primary_idx,
+              !not_null,
               default_function,
               collation: collation,
               comment: comment.presence,
               serial: serial,
               identity: identity.presence,
-              generated: attgenerated
+              generated: generated
             )
           end
 

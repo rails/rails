@@ -1029,15 +1029,30 @@ module ActiveRecord
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name)
           query(<<~SQL, "SCHEMA")
-              SELECT a.attname, format_type(a.atttypid, a.atttypmod),
-                     pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
-                     c.collname, col_description(a.attrelid, a.attnum) AS comment,
+              WITH pk AS (
+                SELECT i.indrelid,
+                       u.indkey,
+                       u.ordinality AS idx
+                  FROM pg_index i, unnest(i.indkey) WITH ORDINALITY u(indkey, ordinality)
+                 WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass AND i.indisprimary
+              )
+              SELECT a.attname,
+                     pg_get_expr(d.adbin, d.adrelid),
+                     format_type(a.atttypid, a.atttypmod),
+                     CASE WHEN pk.indrelid IS NOT NULL THEN true ELSE false END AS attisprimary,
+                     pk.idx AS attprimaryidx,
+                     a.attnotnull,
+                     a.atttypid,
+                     a.atttypmod,
+                     c.collname,
+                     col_description(a.attrelid, a.attnum) AS comment,
                      #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
                      #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                 LEFT JOIN pg_type t ON a.atttypid = t.oid
                 LEFT JOIN pg_collation c ON a.attcollation = c.oid AND a.attcollation <> t.typcollation
+                LEFT JOIN pk ON a.attrelid = pk.indrelid AND a.attnum = pk.indkey
                WHERE a.attrelid = #{quote(quote_table_name(table_name))}::regclass
                  AND a.attnum > 0 AND NOT a.attisdropped
                ORDER BY a.attnum
