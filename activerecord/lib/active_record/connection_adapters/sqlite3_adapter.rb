@@ -307,11 +307,6 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def primary_keys(table_name) # :nodoc:
-        pks = table_structure(table_name).select { |f| f["pk"] > 0 }
-        pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
-      end
-
       def remove_index(table_name, column_name = nil, **options) # :nodoc:
         return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
 

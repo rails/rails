@@ -402,15 +402,15 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_composite_primary_key
-    assert_equal ["region", "code"], @connection.primary_keys("uber_barcodes")
+    assert_equal ["region", "code"], @connection.primary_key("uber_barcodes")
   end
 
   def test_composite_primary_key_with_reserved_words
-    assert_equal ["from", "to"], @connection.primary_keys("travels")
+    assert_equal ["from", "to"], @connection.primary_key("travels")
   end
 
   def test_composite_primary_key_out_of_order
-    assert_equal ["code", "region"], @connection.primary_keys("barcodes_reverse")
+    assert_equal ["code", "region"], @connection.primary_key("barcodes_reverse")
   end
 
   def test_assigning_a_composite_primary_key

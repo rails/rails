@@ -211,6 +211,8 @@ module ActiveRecord
               field["Field"],
               default,
               type_metadata,
+              field["Key"] == "PRI" && field["SeqInIndex"],
+              field["SeqInIndex"],
               field["Null"] == "YES",
               default_function,
               collation: field["Collation"],
