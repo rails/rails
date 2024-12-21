@@ -42,11 +42,17 @@ module ActiveRecord
 
   module DatabaseTasksHelper
     def assert_called_for_configs(method_name, configs, &block)
-      mock = Minitest::Mock.new
-      configs.each { |config| mock.expect(:call, nil, config) }
+      with_stubbed_temporary_connection do
+        mock = Minitest::Mock.new
+        configs.each { |config| mock.expect(:call, nil, config) }
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(method_name, mock, &block)
-      assert_mock(mock)
+        ActiveRecord::Tasks::DatabaseTasks.stub(method_name, mock, &block)
+        assert_mock(mock)
+      end
+    end
+
+    def with_stubbed_temporary_connection(&block)
+      ActiveRecord::Tasks::DatabaseTasks.stub(:with_temporary_connection, ->(*, &block) { block.call }, &block)
     end
   end
 
@@ -503,9 +509,11 @@ module ActiveRecord
           :create,
           [config_for("test", "primary")]
         ) do
-          ActiveRecord::Tasks::DatabaseTasks.create_current(
-            ActiveSupport::StringInquirer.new("test")
-          )
+          with_stubbed_temporary_connection do
+            ActiveRecord::Tasks::DatabaseTasks.create_current(
+              ActiveSupport::StringInquirer.new("test")
+            )
+          end
         end
       end
     end
@@ -517,9 +525,11 @@ module ActiveRecord
           :create,
           [config_for("production", "primary")]
         ) do
-          ActiveRecord::Tasks::DatabaseTasks.create_current(
-            ActiveSupport::StringInquirer.new("production")
-          )
+          with_stubbed_temporary_connection do
+            ActiveRecord::Tasks::DatabaseTasks.create_current(
+              ActiveSupport::StringInquirer.new("production")
+            )
+          end
         end
       end
     end
@@ -845,9 +855,11 @@ module ActiveRecord
           :drop,
           [config_for("test", "primary")]
         ) do
-          ActiveRecord::Tasks::DatabaseTasks.drop_current(
-            ActiveSupport::StringInquirer.new("test")
-          )
+          with_stubbed_temporary_connection do
+            ActiveRecord::Tasks::DatabaseTasks.drop_current(
+              ActiveSupport::StringInquirer.new("test")
+            )
+          end
         end
       end
     end
@@ -859,9 +871,11 @@ module ActiveRecord
           :drop,
           [config_for("production", "primary")]
         ) do
-          ActiveRecord::Tasks::DatabaseTasks.drop_current(
-            ActiveSupport::StringInquirer.new("production")
-          )
+          with_stubbed_temporary_connection do
+            ActiveRecord::Tasks::DatabaseTasks.drop_current(
+              ActiveSupport::StringInquirer.new("production")
+            )
+          end
         end
       end
     end
