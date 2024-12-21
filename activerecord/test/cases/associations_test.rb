@@ -918,6 +918,24 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_through_ordered_records
+    alexandre = Author.create!(name: "Alexandre")
+    neal = Author.create!(name: "Neal")
+    victor = Author.create!(name: "Victor")
+
+    mary = authors(:mary)
+    AuthorFavorite.create!(author: mary, favorite_author: neal)
+    AuthorFavorite.create!(author: mary, favorite_author: victor)
+
+    bob = authors(:bob)
+    AuthorFavorite.create!(author: bob, favorite_author: alexandre)
+    AuthorFavorite.create!(author: bob, favorite_author: victor)
+
+    ActiveRecord::Associations::Preloader.new(records: [mary, bob], associations: :favorite_non_bob_authors).call
+    assert_equal [neal, victor], mary.favorite_non_bob_authors
+    assert_equal [alexandre, victor], bob.favorite_non_bob_authors
+  end
+
   def test_preload_with_instance_dependent_scope
     david = authors(:david)
     david2 = Author.create!(name: "David")
