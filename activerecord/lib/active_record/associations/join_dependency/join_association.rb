@@ -63,11 +63,17 @@ module ActiveRecord
                 end
               end
 
-              joins << join_type.new(table, Arel::Nodes::On.new(nodes))
+              if join_using_subquery?(scope)
+                arel.constraints.delete_at(0)
+                arel.constraints.unshift(*others)
+                joins << join_type.new(arel.as(table.name), Arel::Nodes::On.new(nodes))
+              else
+                joins << join_type.new(table, Arel::Nodes::On.new(nodes))
 
-              if others && !others.empty?
-                joins.concat arel.join_sources
-                append_constraints(connection, joins.last, others)
+                if others && !others.empty?
+                  joins.concat arel.join_sources
+                  append_constraints(connection, joins.last, others)
+                end
               end
 
               # The current table in this iteration becomes the foreign table in the next
@@ -99,6 +105,16 @@ module ActiveRecord
               right = join.right
               right.expr = Arel::Nodes::And.new(constraints.unshift right.expr)
             end
+          end
+
+          def join_using_subquery?(scope)
+            !scope.from_clause.empty? ||
+              !scope.with_values.empty? ||
+              !scope.select_values.empty? ||
+              !scope.group_values.empty? ||
+              !scope.limit_value.nil? ||
+              !scope.offset_value.nil? ||
+              !scope.distinct_value.nil?
           end
       end
     end
