@@ -3416,6 +3416,18 @@ module ApplicationTests
       assert_equal true, ActionDispatch::Http::Cache::Request.strict_freshness
     end
 
+    test "Rails.application.config.active_support.to_time_preserves_timezone can be configured in an initializer" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.2"'
+
+      app_file "config/initializers/new_framework_defaults_8_0.rb", <<-RUBY
+        Rails.application.config.active_support.to_time_preserves_timezone = :zone
+      RUBY
+
+      app "development"
+
+      assert_equal :zone, ActiveSupport.to_time_preserves_timezone
+    end
 
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
