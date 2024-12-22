@@ -60,8 +60,6 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           Rocket.reset_column_information
           Astronaut.reset_table_name
           Astronaut.reset_column_information
-          @connection.throw_away!
-          @connection.pool.flush!
         end
 
         def test_change_column_of_parent_table

@@ -13,10 +13,6 @@ class TestFixturesTest < ActiveRecord::TestCase
     @klass.include(ActiveRecord::TestFixtures)
   end
 
-  teardown do
-    clean_up_connection_handler
-  end
-
   def test_use_transactional_tests_defaults_to_true
     assert_equal true, @klass.use_transactional_tests
   end
@@ -71,7 +67,6 @@ class TestFixturesTest < ActiveRecord::TestCase
       assert_predicate(test_result, :passed?)
     ensure
       ActiveRecord::Base.connection_handler = old_handler
-      teardown_shared_connection_pool
       clean_up_connection_handler
       FileUtils.rm_r(tmp_dir)
     end

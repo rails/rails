@@ -16,8 +16,6 @@ module ActiveRecord
 
       def teardown
         SchemaReflection.check_schema_cache_dump_version = @check_schema_cache_dump_version_was
-        clean_up_connection_handler
-        ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
       end
 
       def new_bound_reflection(pool = @pool)

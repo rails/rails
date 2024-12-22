@@ -2469,7 +2469,6 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
 
     def teardown
       Subscriber.delete_all
-      Subscriber.lease_connection.pool.flush!
     end
 
     def test_multiple_find_or_create_by_within_transactions

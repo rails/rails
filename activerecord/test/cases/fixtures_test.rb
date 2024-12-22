@@ -58,7 +58,6 @@ class FixturesTest < ActiveRecord::TestCase
 
   def teardown
     Arel::Table.engine = ActiveRecord::Base
-    clean_up_connection_handler
   end
 
   def test_clean_fixtures
@@ -1689,7 +1688,6 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
     def teardown
       ActiveRecord::Base.configurations = @prev_configs
       ActiveRecord::Base.connection_handler = @old_handler
-      teardown_shared_connection_pool
       clean_up_connection_handler
     end
 

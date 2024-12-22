@@ -714,11 +714,6 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
   unless in_memory_db?
     self.use_transactional_tests = false
 
-    def teardown
-      clean_up_connection_handler
-      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
-    end
-
     def test_default_scoping_with_threads
       2.times do
         Thread.new {

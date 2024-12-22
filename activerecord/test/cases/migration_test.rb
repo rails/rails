@@ -76,8 +76,6 @@ class MigrationTest < ActiveRecord::TestCase
     Person.lease_connection.remove_column("people", "middle_name") rescue nil
     Person.lease_connection.add_column("people", "first_name", :string)
     Person.reset_column_information
-    Person.lease_connection.throw_away!
-    Person.lease_connection.pool.disconnect!
 
     ActiveRecord::Migration.verbose = @verbose_was
   end

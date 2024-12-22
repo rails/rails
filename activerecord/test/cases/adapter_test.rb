@@ -14,10 +14,6 @@ module ActiveRecord
       @connection.materialize_transactions
     end
 
-    def teardown
-      clean_up_connection_handler
-    end
-
     ##
     # PostgreSQL does not support null bytes in strings
     unless current_adapter?(:PostgreSQLAdapter) ||

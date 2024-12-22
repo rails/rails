@@ -9,11 +9,6 @@ module ActiveRecord
 
       self.use_transactional_tests = false
 
-      def teardown
-        super
-        clean_up_connection_handler
-      end
-
       def test_add_column_newline_default
         string = "foo\nbar"
         add_column "test_models", "command", :string, default: string

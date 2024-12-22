@@ -1037,10 +1037,6 @@ end
 class SetCallbackTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
-  def teardown
-    clean_up_connection_handler
-  end
-
   class TopicWithHistory < ActiveRecord::Base
     self.table_name = :topics
     self.run_commit_callbacks_on_first_saved_instances_in_transaction = true

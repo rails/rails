@@ -44,7 +44,6 @@ module ActiveRecord
         super
         @pool.disconnect!
         ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
-        clean_up_connection_handler
       end
 
       def test_checkout_after_close

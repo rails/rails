@@ -16,8 +16,6 @@ class ActiveRecordTest < ActiveRecord::TestCase
 
       ActiveRecord::Base.lease_connection.connect!
       assert_predicate ActiveRecord::Base, :connected?
-    ensure
-      clean_up_connection_handler
     end
   end
 end

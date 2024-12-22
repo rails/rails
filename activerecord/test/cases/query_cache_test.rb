@@ -38,8 +38,6 @@ class QueryCacheTest < ActiveRecord::TestCase
     Task.connection_pool.clear_query_cache
     ActiveRecord::Base.connection_pool.disable_query_cache!
     super
-    clean_up_connection_handler
-    ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
   end
 
   def test_execute_clear_cache
@@ -909,7 +907,6 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
   def teardown
     ActiveRecord::Base.lease_connection.disable_query_cache!
     ActiveRecord::Base.lease_connection.drop_table("json_objs", if_exists: true)
-    clean_up_connection_handler
   end
 end
 

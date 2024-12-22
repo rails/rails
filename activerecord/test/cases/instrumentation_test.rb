@@ -184,11 +184,6 @@ module ActiveRecord
   end
 
   module TransactionInSqlActiveRecordPayloadTests
-    def teardown
-      ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-      clean_up_connection_handler
-    end
-
     def test_payload_without_an_open_transaction
       asserted = false
 

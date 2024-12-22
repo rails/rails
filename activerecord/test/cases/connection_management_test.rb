@@ -30,11 +30,6 @@ module ActiveRecord
         assert ActiveRecord::Base.connection_handler.active_connections?(:all)
       end
 
-      def teardown
-        teardown_shared_connection_pool
-        clean_up_connection_handler
-      end
-
       def test_app_delegation
         manager = middleware(@app)
 
@@ -53,8 +48,6 @@ module ActiveRecord
         _, _, body = @management.call(@env)
         body.close
         assert_not ActiveRecord::Base.connection_handler.active_connections?(:all)
-      ensure
-        ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
       end
 
       test "connections are cleared even if inside a non-joinable transaction" do
