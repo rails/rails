@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "rack"
 
 module ActiveRecord
   module ConnectionAdapters
