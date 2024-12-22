@@ -114,8 +114,6 @@ module ActiveRecord
         assert_raises FutureResult::Canceled do
           app.future_result.to_a
         end
-      ensure
-        ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
       end
 
       test "doesn't clear active connections when running in a test case" do

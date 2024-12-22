@@ -1133,8 +1133,6 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_not Topic.find(1).approved?, "First shouldn't have been approved"
     assert_predicate Topic.find(2), :approved?, "Second should still be approved"
-  ensure
-    ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
