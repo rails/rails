@@ -5,7 +5,6 @@ require "models/topic"
 require "models/task"
 require "models/category"
 require "models/post"
-require "rack"
 
 class QueryCacheTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
