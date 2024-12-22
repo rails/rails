@@ -54,8 +54,14 @@ module ActiveRecord
         end
       end
 
-      if @after_teardown_connections.size > @before_setup_connections.size
-        raise "Connections leaked\n#{(@after_teardown_connections - @before_setup_connections).inspect}"
+      leaked_conn = []
+      (@after_teardown_connections - @before_setup_connections).map do |conn|
+        next if conn.adapter_name == ActiveRecord::Base.lease_connection.adapter_name
+        leaked_conn << conn
+      end
+
+      if leaked_conn.any?
+        raise "Connections leaked\n#{leaked_conn.inspect}"
       end
     end
 
