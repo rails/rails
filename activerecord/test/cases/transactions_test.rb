@@ -87,6 +87,9 @@ module TransactionCallbacksTests
       assert_equal 0, called
     end
     assert_equal 1, called
+  ensure
+    original_connection = ARUnit2Model.remove_connection
+    ARUnit2Model.establish_connection(original_connection)
   end
 
   def test_transaction_after_commit_callback
@@ -139,6 +142,9 @@ module TransactionCallbacksTests
     assert_raises ActiveRecord::ActiveRecordError, match: /Cannot register callbacks on a finalized transaction/ do
       committed_transaction.after_commit { nil }
     end
+  ensure
+    original_connection = ARUnit2Model.remove_connection
+    ARUnit2Model.establish_connection(original_connection)
   end
 
   def test_transaction_after_rollback_callback
@@ -200,6 +206,10 @@ class TransactionTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by(&:id)
+  end
+
+  def teardown
+    clean_up_connection_handler
   end
 
   def test_blank?
@@ -1123,6 +1133,8 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_not Topic.find(1).approved?, "First shouldn't have been approved"
     assert_predicate Topic.find(2), :approved?, "Second should still be approved"
+  ensure
+    ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
@@ -1702,6 +1714,10 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
     fixtures :topics, :developers
 
+    def teardown
+      clean_up_connection_handler
+    end
+
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread
@@ -1719,6 +1735,8 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
       end
 
       threads.each(&:join)
+    ensure
+      Topic.connection_handler.clear_all_connections!(:all)
     end
 
     # Test for dirty reads among simultaneous transactions.
@@ -1769,6 +1787,8 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
       end
 
       assert_equal original_salary, Developer.find(1).salary
+    ensure
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
   end
 end

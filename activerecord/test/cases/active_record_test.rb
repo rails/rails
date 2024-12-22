@@ -6,11 +6,6 @@ require "rack"
 class ActiveRecordTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
-  def teardown
-    ActiveRecord::Base.lease_connection.disconnect!
-    ActiveRecord::Base.lease_connection.pool.flush
-  end
-
   unless in_memory_db?
     test ".disconnect_all! closes all connections" do
       ActiveRecord::Base.lease_connection.connect!
@@ -21,6 +16,8 @@ class ActiveRecordTest < ActiveRecord::TestCase
 
       ActiveRecord::Base.lease_connection.connect!
       assert_predicate ActiveRecord::Base, :connected?
+    ensure
+      clean_up_connection_handler
     end
   end
 end

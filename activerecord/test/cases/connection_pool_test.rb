@@ -44,6 +44,7 @@ module ActiveRecord
         super
         @pool.disconnect!
         ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
+        clean_up_connection_handler
       end
 
       def test_checkout_after_close
@@ -112,6 +113,8 @@ module ActiveRecord
         assert_no_queries do
           pool.with_connection { |_conn| }
         end
+      ensure
+        ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
       end
 
       def test_active_connection_in_use
@@ -901,6 +904,8 @@ module ActiveRecord
         assert_not_predicate @pool, :connected?
         assert_same pin_connection, @pool.checkout
         assert_predicate @pool, :connected?
+      ensure
+        ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
       end
 
       def test_pin_connection_synchronize_the_connection

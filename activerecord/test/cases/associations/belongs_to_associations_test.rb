@@ -1847,6 +1847,10 @@ class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
 
   fixtures :companies
 
+  def teardown
+    clean_up_connection_handler
+  end
+
   unless in_memory_db?
     def test_async_load_belongs_to
       client = Client.find(3)

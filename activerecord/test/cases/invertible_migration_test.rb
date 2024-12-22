@@ -252,6 +252,7 @@ module ActiveRecord
         end
       end
       ActiveRecord::Migration.verbose = @verbose_was
+      clean_up_connection_handler
     end
 
     def test_no_reverse

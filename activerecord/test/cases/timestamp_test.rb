@@ -574,6 +574,10 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
   include DdlHelper
   self.use_transactional_tests = false
 
+  def teardown
+    clean_up_connection_handler
+  end
+
   class TimestampAttributePost < ActiveRecord::Base
     attr_accessor :created_at, :updated_at
   end
@@ -596,6 +600,5 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
     assert_equal ["created_at", "updated_at"], indexes.flat_map(&:columns).sort
   ensure
     ActiveRecord::Base.lease_connection.drop_table(:foos)
-    ActiveRecord::Base.lease_connection.throw_away!
   end
 end

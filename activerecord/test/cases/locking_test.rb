@@ -717,7 +717,7 @@ class PessimisticLockingTest < ActiveRecord::TestCase
     end
 
     def teardown
-      Person.lease_connection.throw_away!
+      clean_up_connection_handler
     end
 
     # Test typical find.

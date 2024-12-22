@@ -863,6 +863,7 @@ class BaseCompatibilityTest < ActiveRecord::TestCase
   def teardown
     ActiveRecord::Migration.verbose = @verbose_was
     @schema_migration.delete_all_versions rescue nil
+    clean_up_connection_handler
   end
 end
 
@@ -1085,6 +1086,7 @@ module LegacyPrimaryKeyTestCases
       ActiveRecord::Migration.verbose = @verbose_was
       ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil
       LegacyPrimaryKey.reset_column_information
+      clean_up_connection_handler
     end
 
     def test_legacy_primary_key_should_be_auto_incremented

@@ -14,6 +14,10 @@ class MultipleDbTest < ActiveRecord::TestCase
     @entrants = create_fixtures("entrants")
   end
 
+  def teardown
+    clean_up_connection_handler
+  end
+
   def test_connected
     assert_not_nil Entrant.lease_connection
     assert_not_nil Course.lease_connection

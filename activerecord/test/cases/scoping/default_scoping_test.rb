@@ -715,8 +715,8 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
     def teardown
-      ThreadsafeDeveloper.lease_connection.disconnect!
-      ThreadsafeDeveloper.lease_connection.pool.flush
+      clean_up_connection_handler
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
 
     def test_default_scoping_with_threads
@@ -726,8 +726,6 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
           DeveloperOrderedBySalary.lease_connection.close
         }.join
       end
-    ensure
-      DeveloperOrderedBySalary.lease_connection.throw_away!
     end
 
     def test_default_scope_is_threadsafe
@@ -753,7 +751,6 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
       threads.each(&:join)
     ensure
       ThreadsafeDeveloper.unscoped.destroy_all
-      ThreadsafeDeveloper.lease_connection.throw_away!
     end
   end
 end
