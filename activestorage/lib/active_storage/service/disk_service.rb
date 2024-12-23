@@ -2,7 +2,6 @@
 
 require "fileutils"
 require "pathname"
-require "openssl"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
@@ -11,11 +10,12 @@ module ActiveStorage
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
-    attr_accessor :root
+    attr_accessor :checksum_algorithm, :root
 
-    def initialize(root:, public: false, **options)
+    def initialize(root:, public: false, checksum_algorithm: :MD5, **options)
       @root = root
       @public = public
+      @checksum_algorithm = checksum_algorithm.to_sym
     end
 
     def upload(key, io, checksum: nil, **)
@@ -161,7 +161,7 @@ module ActiveStorage
       end
 
       def ensure_integrity_of(key, checksum)
-        unless ActiveStorage.checksum_implementation.file(path_for(key)).base64digest == checksum
+        unless ActiveStorage::Checksum.for(checksum_algorithm).file(path_for(key)).base64digest == checksum
           delete key
           raise ActiveStorage::IntegrityError
         end
