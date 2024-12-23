@@ -510,16 +510,18 @@ module Rails
 
       def secret_key_base
         @secret_key_base || begin
-          self.secret_key_base = if generate_local_secret?
+          self.secret_key_base = if ENV["SECRET_KEY_BASE_DUMMY"]
             generate_local_secret
           else
-            ENV["SECRET_KEY_BASE"] || Rails.application.credentials.secret_key_base
+            ENV["SECRET_KEY_BASE"] ||
+              Rails.application.credentials.secret_key_base ||
+              (Rails.env.local? && generate_local_secret)
           end
         end
       end
 
       def secret_key_base=(new_secret_key_base)
-        if new_secret_key_base.nil? && generate_local_secret?
+        if new_secret_key_base.nil? && Rails.env.local?
           @secret_key_base = generate_local_secret
         elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
           @secret_key_base = new_secret_key_base
@@ -646,10 +648,6 @@ module Rails
           end
 
           File.binread(key_file)
-        end
-
-        def generate_local_secret?
-          Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
         end
     end
   end
