@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Use the MYSQL_PASSWORD environment variable to set the password
+MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+# Execute the SQL commands
+mysql -u root -p"${MYSQL_PASSWORD}" <<EOF
+<% if options[:database].in?(%w[trilogy mariadb-trilogy]) -%>
+# Switch to mysql_native_password for compatibility with trilogy
+# Trilogy does not support caching_sha2_password over non-TLS connections
+# Reference: https://github.com/trilogy-libraries/trilogy/pull/165
+ALTER USER '<%= app_name %>'@'%' IDENTIFIED WITH mysql_native_password BY '${MYSQL_PASSWORD}';
+<% end -%>
+# Grant non-admin privileges to application user
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, REFERENCES, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EVENT, TRIGGER ON *.* TO '<%= app_name %>'@'%';
+EOF

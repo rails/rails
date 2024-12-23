@@ -44,6 +44,29 @@ module Rails
         def host
           "127.0.0.1"
         end
+
+        def init_template
+          "mysql-init.sh.tt"
+        end
+
+        def kamal_db_config(app_name)
+          {
+            "db" => {
+              "image" => "mysql:8.0",
+              "roles" => ["web"],
+              "port" => "127.0.0.1:3306:3306",
+              "env" => {
+                "clear" => {
+                  "MYSQL_ROOT_HOST" => "%",
+                  "MYSQL_USER" => app_name
+                },
+                "secret" => %w(MYSQL_ROOT_PASSWORD MYSQL_PASSWORD),
+              },
+              "directories" => ["data:/var/lib/mysql"],
+              "files" => ["db/init.sh:/docker-entrypoint-initdb.d/init.sh"]
+            }
+          }
+        end
       end
 
       module MariaDB
@@ -64,6 +87,29 @@ module Rails
             "environment" => {
               "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
             },
+          }
+        end
+
+        def init_template
+          "mariadb-init.sh.tt"
+        end
+
+        def kamal_db_config(app_name)
+          {
+            "db" => {
+              "image" => "mariadb:10.5",
+              "roles" => ["web"],
+              "port" => "127.0.0.1:3306:3306",
+              "env" => {
+                "clear" => {
+                  "MARIADB_ROOT_HOST" => "%",
+                  "MARIADB_USER" => app_name
+                },
+                "secret" => %w(MARIADB_ROOT_PASSWORD MARIADB_PASSWORD),
+              },
+              "directories" => ["data:/var/lib/mysql"],
+              "files" => ["db/init.sh:/docker-entrypoint-initdb.d/init.sh"]
+            }
           }
         end
       end
@@ -139,6 +185,14 @@ module Rails
         "#{name}-data"
       end
 
+      def init_template
+        nil
+      end
+
+      def kamal_db_config(app_name)
+        raise NotImplementedError
+      end
+
       class MySQL2 < Database
         include MySQL
 
@@ -204,6 +258,23 @@ module Rails
         def feature_name
           "ghcr.io/rails/devcontainer/features/postgres-client"
         end
+
+        def kamal_db_config(app_name)
+          {
+            "db" => {
+              "image" => "postgres:15",
+              "roles" => ["web"],
+              "port" => "127.0.0.1:5432:5432",
+              "env" => {
+                "clear" => {
+                  "POSTGRES_USER" => app_name
+                },
+                "secret" => %w(POSTGRES_PASSWORD),
+              },
+              "directories" => ["data:/var/lib/postgresql/data"]
+            }
+          }
+        end
       end
 
       class Trilogy < Database
@@ -262,6 +333,10 @@ module Rails
         def feature_name
           "ghcr.io/rails/devcontainer/features/sqlite3"
         end
+
+        def kamal_db_config(app_name)
+          nil
+        end
       end
 
       class MariaDBMySQL2 < MySQL2
@@ -281,6 +356,8 @@ module Rails
         def base_package; end
         def build_package; end
         def feature_name; end
+        def init_template; end
+        def kamal_db_config(app_name); end
       end
     end
   end

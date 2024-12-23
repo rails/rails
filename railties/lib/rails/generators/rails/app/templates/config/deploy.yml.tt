@@ -35,6 +35,9 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
+<% if kamal_accessories_config_yaml -%>
+    - <%= app_name.upcase %>_DATABASE_PASSWORD
+<% end -%>
 <% if skip_solid? -%>
   # clear:
   #   # Set number of cores available to the application on each server (default: 1).
@@ -104,22 +107,13 @@ builder:
 #   user: app
 
 # Use accessory services (secrets come from .kamal/secrets).
+<% if kamal_accessories_config_yaml -%>
+# Set value of <%= app_name.upcase %>_DATABASE_PASSWORD env in .kamal/secrets
+# and deploy with `bin/kamal setup`
+<%= kamal_accessories_config_yaml %>
+<% else -%>
 # accessories:
-#   db:
-#     image: mysql:8.0
-#     host: 192.168.0.2
-#     # Change to 3306 to expose port to the world instead of just local network.
-#     port: "127.0.0.1:3306:3306"
-#     env:
-#       clear:
-#         MYSQL_ROOT_HOST: '%'
-#       secret:
-#         - MYSQL_ROOT_PASSWORD
-#     files:
-#       - config/mysql/production.cnf:/etc/mysql/my.cnf
-#       - db/production.sql:/docker-entrypoint-initdb.d/setup.sql
-#     directories:
-#       - data:/var/lib/mysql
+<% end -%>
 #   redis:
 #     image: valkey/valkey:8
 #     host: 192.168.0.2
