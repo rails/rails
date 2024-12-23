@@ -14,7 +14,7 @@ module ActiveStorage
   class Service::MirrorService < Service
     attr_reader :primary, :mirrors
 
-    delegate :download, :download_chunk, :exist?, :url,
+    delegate :checksum_algorithm, :download, :download_chunk, :exist?, :url,
       :url_for_direct_upload, :headers_for_direct_upload, :path_for, :compose, to: :primary
 
     # Stitch together from named services.

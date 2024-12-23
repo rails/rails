@@ -1,3 +1,7 @@
+*   Add support for alternative MD5 implementation through `config.active_storage.checksum_implementation`.
+
+    *Matt Pasquini*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:
@@ -10,8 +14,6 @@
     ```
 
     *Sean Doyle*
-
-*   Add support for alternative MD5 implementation through `config.active_storage.checksum_implementation`.
 
     Also automatically degrade to using the slower `Digest::MD5` implementation if `OpenSSL::Digest::MD5`
     is found to be disabled because of OpenSSL FIPS mode.

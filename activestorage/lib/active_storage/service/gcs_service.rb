@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-gem "google-cloud-storage", "~> 1.11"
 require "google/apis/iamcredentials_v1"
 require "google/cloud/storage"
 
@@ -13,9 +12,17 @@ module ActiveStorage
     class MetadataServerError < ActiveStorage::Error; end
     class MetadataServerNotFoundError < ActiveStorage::Error; end
 
-    def initialize(public: false, **config)
+    attr_reader :checksum_algorithm
+
+    SUPPORTED_CHECKSUMS = [
+      :CRC32c,
+      :MD5
+    ]
+
+    def initialize(public: false, checksum_algorithm: :MD5, **config)
       @config = config
       @public = public
+      @checksum_algorithm = checksum_algorithm.to_sym
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil, custom_metadata: {})
@@ -25,7 +32,8 @@ module ActiveStorage
         # binary and attachment when the file's content type requires it. The only way to force them is to
         # store them as object's metadata.
         content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
-        bucket.create_file(io, key, md5: checksum, cache_control: @config[:cache_control], content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
+
+        bucket.create_file(io, key, **gcs_upload_checksum_params(checksum), cache_control: @config[:cache_control], content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
       rescue Google::Cloud::InvalidArgumentError
         raise ActiveStorage::IntegrityError
       end
@@ -105,7 +113,7 @@ module ActiveStorage
         headers.merge!(custom_metadata_headers(custom_metadata))
 
         args = {
-          content_md5: checksum,
+          **gcs_signing_checksum_params(checksum),
           expires: expires_in,
           headers: headers,
           method: "PUT",
@@ -128,7 +136,7 @@ module ActiveStorage
     def headers_for_direct_upload(key, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      headers = { "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
+      headers = { "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata), **custom_checksum_headers(checksum) }
       if @config[:cache_control].present?
         headers["Cache-Control"] = @config[:cache_control]
       end
@@ -227,6 +235,27 @@ module ActiveStorage
 
       def custom_metadata_headers(metadata)
         metadata.transform_keys { |key| "x-goog-meta-#{key}" }
+      end
+
+      def gcs_upload_checksum_params(checksum)
+        return {} unless checksum
+        { checksum_algorithm.downcase => checksum }
+      end
+
+      def gcs_signing_checksum_params(checksum)
+        return { content_md5: checksum } if checksum_algorithm == :MD5
+        {}
+      end
+
+      def custom_checksum_headers(checksum)
+        case checksum_algorithm
+        when :MD5
+          { "Content-MD5" => checksum }
+        when :CRC32c
+          { "x-goog-hash" => "CRC32c=#{checksum}" }
+        when nil
+          {}
+        end
       end
   end
 end

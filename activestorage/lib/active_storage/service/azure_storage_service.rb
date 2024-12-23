@@ -12,9 +12,14 @@ module ActiveStorage
   # Wraps the Microsoft Azure Storage Blob Service as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::AzureStorageService < Service
-    attr_reader :client, :container, :signer
+    attr_reader :checksum_algorithm, :client, :container, :signer
 
-    def initialize(storage_account_name:, storage_access_key:, container:, public: false, **options)
+    SUPPORTED_CHECKSUMS = [
+      :CRC64,
+      :MD5,
+    ]
+
+    def initialize(storage_account_name:, storage_access_key:, container:, public: false, checksum_algorithm: :MD5, **options)
       ActiveStorage.deprecator.warn <<~MSG.squish
         `ActiveStorage::Service::AzureStorageService` is deprecated and will be
         removed in Rails 8.1.
@@ -26,6 +31,7 @@ module ActiveStorage
       @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container
       @public = public
+      @checksum_algorithm = checksum_algorithm.to_sym
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, custom_metadata: {}, **)
@@ -33,7 +39,7 @@ module ActiveStorage
         handle_errors do
           content_disposition = content_disposition_with(filename: filename, type: disposition) if disposition && filename
 
-          client.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
+          client.create_block_blob(container, key, IO.try_convert(io) || io, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata, **custom_checksum_headers(checksum))
         end
       end
     end
@@ -113,7 +119,7 @@ module ActiveStorage
     def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob", **custom_metadata_headers(custom_metadata) }
+      { "Content-Type" => content_type, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob", **custom_metadata_headers(custom_metadata), **custom_checksum_headers(checksum) }
     end
 
     def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
@@ -196,6 +202,17 @@ module ActiveStorage
 
       def custom_metadata_headers(metadata)
         metadata.transform_keys { |key| "x-ms-meta-#{key}" }
+      end
+
+      def custom_checksum_headers(checksum)
+        case checksum_algorithm
+        when :MD5
+          { "Content-MD5" => checksum }
+        when :CRC64
+          { "x-ms-content-crc64" => checksum }
+        when nil
+          {}
+        end
       end
   end
 end
