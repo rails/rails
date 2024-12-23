@@ -182,7 +182,7 @@ You can report any unexpected error by calling
 When called in production, this method will return nil after the error is
 reported and the execution of your code will continue.
 
-When called in development, the error will be wrapped in a new error class (to
+When called in development or test, the error will be wrapped in a new error class (to
 ensure it's not being rescued higher in the stack) and surfaced to the developer
 for debugging.
 
