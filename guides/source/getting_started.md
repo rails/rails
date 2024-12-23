@@ -2932,7 +2932,7 @@ Here are some ideas:
 We also recommend learning more by reading other Ruby on Rails Guides:
 
 * [Active Record Basics](active_record_basics.html)
-* [Layouts and Rendering in Rails]()
+* [Layouts and Rendering in Rails](layouts_and_rendering.html)
 * [Testing Rails Applications](testing.html)
 * [Debugging Rails Applications](debugging_rails_applications.html)
 * [Securing Rails Applications](security.html)
