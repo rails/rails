@@ -1,3 +1,9 @@
+*   Layouts have access to local variables passed to `render`.
+
+    This fixes #31680 which was a regression in Rails 5.1.
+
+    *Mike Dalessio*
+
 *   Improve error highlighting of multi-line methods in ERB templates or
     templates where the error occurs within a do-end block.
 
