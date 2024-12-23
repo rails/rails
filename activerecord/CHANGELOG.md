@@ -1,3 +1,14 @@
+*   Introduce versions formatter for the schema dumper.
+
+    It is now possible to override how schema dumper formats versions information inside the
+    `structure.sql` file. Currently, the versions are simply sorted in the decreasing order.
+    Within large teams, this can potentially cause many merge conflicts near the top of the list.
+
+    Now, the custom formatter can be provided with a custom sorting logic (e.g. by hash values
+    of the versions), which can greatly reduce the number of conflicts.
+
+    *fatkodima*
+
 *   Serialized attributes can now be marked as comparable.
 
     A not rare issue when working with serialized attributes is that the serialized representation of an object

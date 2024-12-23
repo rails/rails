@@ -1353,7 +1353,7 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
-      def dump_schema_information # :nodoc:
+      def dump_schema_versions # :nodoc:
         versions = pool.schema_migration.versions
         insert_versions_sql(versions) if versions.any?
       end
@@ -1876,16 +1876,8 @@ module ActiveRecord
         end
 
         def insert_versions_sql(versions)
-          sm_table = quote_table_name(pool.schema_migration.table_name)
-
-          if versions.is_a?(Array)
-            sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-            sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
-            sql << ";"
-            sql
-          else
-            "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
-          end
+          versions_formatter = ActiveRecord.schema_versions_formatter.new(self)
+          versions_formatter.format(versions)
         end
 
         def data_source_sql(name = nil, type: nil)
