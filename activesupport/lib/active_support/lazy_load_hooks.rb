@@ -43,9 +43,7 @@ module ActiveSupport
   module LazyLoadHooks
     def self.extended(base) # :nodoc:
       base.class_eval do
-        @load_hooks = Hash.new { |h, k| h[k] = [] }
-        @loaded     = Hash.new { |h, k| h[k] = [] }
-        @run_once   = Hash.new { |h, k| h[k] = [] }
+        @load_hooks = LoadHooksTracker.new
       end
     end
 
@@ -58,11 +56,7 @@ module ActiveSupport
     # * <tt>:yield</tt> - Yields the object that run_load_hooks to +block+.
     # * <tt>:run_once</tt> - Given +block+ will run only once.
     def on_load(name, options = {}, &block)
-      @loaded[name].each do |base|
-        execute_hook(name, base, options, block)
-      end
-
-      @load_hooks[name] << [block, options]
+      load_hooks.on_load(name, options, block)
     end
 
     # Executes all blocks registered to +name+ via on_load, using +base+ as the
@@ -73,34 +67,83 @@ module ActiveSupport
     # In the case of the above example, it will execute all hooks registered
     # for +:active_record+ within the class +ActiveRecord::Base+.
     def run_load_hooks(name, base = Object)
-      @loaded[name] << base
-      @load_hooks[name].each do |hook, options|
-        execute_hook(name, base, options, hook)
-      end
+      load_hooks.run(name, base)
     end
 
-    private
-      def with_execution_control(name, block, once)
-        unless @run_once[name].include?(block)
-          @run_once[name] << block if once
+    def load_hooks # :nodoc:
+      @load_hooks
+    end
 
-          yield
+    class LoadHooksTracker # :nodoc:
+      def initialize
+        @load_hooks = Hash.new { |h, k| h[k] = [] }
+        @loaded     = Hash.new { |h, k| h[k] = [] }
+        @run_once   = Hash.new { |h, k| h[k] = [] }
+        @registered = []
+        @paused     = false
+      end
+
+      def on_load(name, options = {}, block)
+        @loaded[name].each do |base|
+          register(name, base, options, block)
+        end
+
+        @load_hooks[name] << [block, options]
+      end
+
+      def run(name, base = Object)
+        @loaded[name] << base
+        @load_hooks[name].each do |hook, options|
+          register(name, base, options, hook)
         end
       end
 
-      def execute_hook(name, base, options, block)
-        with_execution_control(name, block, options[:run_once]) do
-          if options[:yield]
-            block.call(base)
+      # Pause running load hooks.
+      def pause
+        @paused = true
+      end
+
+      # Start running load hooks. Runs all load hooks that have
+      # been added while paused.
+      def start
+        @paused = false
+        while hook = @registered.shift
+          name, base, options, hook = hook
+          execute(name, base, options, hook)
+        end
+      end
+
+      private
+        def register(name, base, option, block)
+          if @paused
+            @registered << [name, base, option, block]
           else
-            if base.is_a?(Module)
-              base.class_eval(&block)
+            execute(name, base, option, block)
+          end
+        end
+
+        def with_execution_control(name, block, once)
+          unless @run_once[name].include?(block)
+            @run_once[name] << block if once
+
+            yield
+          end
+        end
+
+        def execute(name, base, options, block)
+          with_execution_control(name, block, options[:run_once]) do
+            if options[:yield]
+              block.call(base)
             else
-              base.instance_eval(&block)
+              if base.is_a?(Module)
+                base.class_eval(&block)
+              else
+                base.instance_eval(&block)
+              end
             end
           end
         end
-      end
+    end
   end
 
   extend LazyLoadHooks

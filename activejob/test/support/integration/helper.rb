@@ -24,6 +24,8 @@ Rails.backtrace_cleaner.remove_silencers!
 require_relative "test_case_helpers"
 ActiveSupport::TestCase.include(TestCaseHelpers)
 
+require_relative "jobs_manager"
+JobsManager.current_manager.setup
 JobsManager.current_manager.start_workers
 
 Minitest.after_run do

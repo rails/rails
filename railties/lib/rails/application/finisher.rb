@@ -67,6 +67,10 @@ module Rails
         end
       end
 
+      initializer :start_load_hooks do |app|
+        ActiveSupport.load_hooks.start
+      end
+
       # This needs to happen before eager load so it happens
       # in exactly the same point regardless of config.eager_load
       initializer :run_prepare_callbacks do |app|
