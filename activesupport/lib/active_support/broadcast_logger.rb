@@ -218,6 +218,24 @@ module ActiveSupport
       dispatch { |logger| logger.fatal! }
     end
 
+    # Adjust the log level for all loggers for the duration of the block, then restore it.
+    # Return the value produced by the block.
+    #
+    #   logger.with_level(:debug) do
+    #     logger.debug("debug") # Logged
+    #     logger.info("hello")  # Not logged
+    #   end
+    def with_level(level, broadcasts = @broadcasts.dup, &block)
+      # This is implemented to prevent one call to `BroadcastLogger.with_level(&block)`
+      # from invoking `block` once for each logger being broadcast to, which would be
+      # the behavior if we relied on `method_missing` and `dispatch` here.
+      return block.call if broadcasts.empty?
+
+      broadcasts[0].with_level(level) do
+        with_level(level, broadcasts[1..], &block)
+      end
+    end
+
     def initialize_copy(other)
       @broadcasts = []
       @progname = other.progname.dup
