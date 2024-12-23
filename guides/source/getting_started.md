@@ -1862,7 +1862,7 @@ Rails makes it easy to translate your app into other languages.
 The `translate` or `t` helper in our views looks up a translation by name and
 returns the text for the current locale.
 
-In `app/products/index.html.erb`, let's update the header tag to use a
+In `app/views/products/index.html.erb`, let's update the header tag to use a
 translation.
 
 ```erb
