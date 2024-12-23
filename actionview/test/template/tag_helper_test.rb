@@ -243,9 +243,19 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<div>content</div>",
                  tag.div { "content" }
     assert_equal "<div id=\"header\"><span>hello</span></div>",
-                 tag.div(id: "header") { |tag| tag.span "hello" }
+                 tag.div(id: "header") { tag.span "hello" }
     assert_equal "<div id=\"header\"><div class=\"world\"><span>hello</span></div></div>",
-                 tag.div(id: "header") { |tag| tag.div(class: "world") { tag.span "hello" } }
+                 tag.div(id: "header") { tag.div(class: "world") { tag.span "hello" } }
+  end
+
+  def test_tag_builder_nested_with_multiple_children_including_false
+    assert_equal "<div id=\"header\"><span>hello</span><span>world</span></div>",
+                 tag.div(id: "header") { |b|
+                   b << tag.span("hello")
+                   b << false && tag.span("This will be ignored")
+                   b << tag.span("This will be ignored too") if false
+                   b << tag.span("world")
+                 }
   end
 
   def test_content_tag_with_block_in_erb
