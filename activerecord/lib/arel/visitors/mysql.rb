@@ -106,6 +106,26 @@ module Arel # :nodoc: all
             core.projections = [Arel.sql(quote_column_name(key.name), retryable: true)]
           end
         end
+
+        def visit_Arel_Nodes_DeleteStatement(o, collector)
+          o = prepare_delete_statement(o)
+          if has_join_sources?(o)
+            collector << "DELETE "
+            visit o.relation.left, collector
+            collector << " FROM "
+          elsif has_table_alias(o)
+            collector << "DELETE "
+            collector << "#{quote_table_name(o.relation.table_alias)}"
+            collector << " FROM "
+          else
+            collector << "DELETE FROM "
+          end
+          collector = visit o.relation, collector
+
+          collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+          collect_nodes_for o.orders, collector, " ORDER BY "
+          maybe_visit o.limit, collector
+        end
     end
   end
 end
