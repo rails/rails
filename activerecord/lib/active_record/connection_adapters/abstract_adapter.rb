@@ -84,9 +84,13 @@ module ActiveRecord
       private_constant :DEFAULT_READ_QUERY
 
       def self.build_read_query_regexp(*parts) # :nodoc:
-        parts += DEFAULT_READ_QUERY
-        parts = parts.map { |part| /#{part}/i }
+        parts.concat(DEFAULT_READ_QUERY).map! { |part| /#{part}/i }
         /\A(?:[(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
+      end
+
+      def self.build_lock_query_regexp(*parts) # :nodoc:
+        parts.map! { |part| /#{part.to_s.tr('_', ' ')}/i }
+        /(?:#{Regexp.union(*parts)})/
       end
 
       def self.find_cmd_and_exec(commands, *args) # :doc:
@@ -207,6 +211,12 @@ module ActiveRecord
       def check_if_write_query(sql) # :nodoc:
         if preventing_writes? && write_query?(sql)
           raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+      end
+
+      def check_if_lock_query(sql) # :nodoc:
+        if preventing_writes? && lock_query?(sql)
+          raise ActiveRecord::ReadOnlyError, "Lock query attempted while in readonly mode: #{sql}"
         end
       end
 
