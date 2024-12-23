@@ -26,6 +26,8 @@ module ActionView
       mattr_accessor :image_decoding
       mattr_accessor :preload_links_header
       mattr_accessor :apply_stylesheet_media_default
+      mattr_accessor :auto_include_nonce_for_scripts
+      mattr_accessor :auto_include_nonce_for_styles
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #
@@ -135,7 +137,7 @@ module ActionView
             "src" => href,
             "crossorigin" => crossorigin
           }.merge!(options)
-          if tag_options["nonce"] == true
+          if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_scripts)
             tag_options["nonce"] = content_security_policy_nonce
           end
           content_tag("script", "", tag_options)
@@ -225,7 +227,7 @@ module ActionView
             "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
-          if tag_options["nonce"] == true
+          if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_styles)
             tag_options["nonce"] = content_security_policy_nonce
           end
 
