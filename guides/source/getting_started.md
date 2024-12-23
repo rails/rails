@@ -1457,7 +1457,7 @@ The last feature we need to implement is deleting products. We will add a
 `destroy` action to our `ProductsController` to handle `DELETE /products/:id`
 requests.
 
-Adding `destroy` to `before_action :set_product` let's us set the `@product`
+Adding `destroy` to `before_action :set_product` lets us set the `@product`
 instance variable in the same way we do for the other actions.
 
 ```ruby#2,35-38
