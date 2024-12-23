@@ -171,6 +171,11 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_not_predicate error.backtrace_locations, :empty?
   end
 
+  test "#report accepts an error message" do
+    assert_nil @reporter.report("Oops")
+    assert_equal [["Oops", true, :warning, "application", {}]], @subscriber.events.map { |event| [event[0].message, *event[1..-1]] }
+  end
+
   test "#record passes through the return value" do
     result = @reporter.record do
       2 + 2
@@ -208,6 +213,18 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_includes raised_error.message, "RuntimeError: Oops"
     assert_not_nil raised_error.cause
     assert_same error, raised_error.cause
+    assert_includes raised_error.backtrace.first, "#{__FILE__}:#{raise_line}"
+  end
+
+  test "#unexpected accepts an error message in development and test" do
+    @reporter.debug_mode = true
+    raise_line = __LINE__ + 2
+    raised_error = assert_raises ActiveSupport::ErrorReporter::UnexpectedError do
+      @reporter.unexpected("Oops")
+    end
+
+    assert_includes raised_error.message, "RuntimeError: Oops"
+    assert_not_nil raised_error.cause
     assert_includes raised_error.backtrace.first, "#{__FILE__}:#{raise_line}"
   end
 
