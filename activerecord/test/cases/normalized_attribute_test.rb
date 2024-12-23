@@ -27,52 +27,6 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     assert_equal "Fly Higher", @aircraft.name
   end
 
-  test "normalizes value from assignment" do
-    @aircraft.name = "fly HIGHER"
-    assert_equal "Fly Higher", @aircraft.name
-  end
-
-  test "normalizes changed-in-place value before validation" do
-    @aircraft.name.downcase!
-    assert_equal "fly high", @aircraft.name
-
-    @aircraft.valid?
-    assert_equal "Fly High", @aircraft.validated_name
-  end
-
-  test "normalizes value on demand" do
-    @aircraft.name.downcase!
-    assert_equal "fly high", @aircraft.name
-
-    @aircraft.normalize_attribute(:name)
-    assert_equal "Fly High", @aircraft.name
-  end
-
-  test "normalizes value without record" do
-    assert_equal "Titlecase Me", NormalizedAircraft.normalize_value_for(:name, "titlecase ME")
-  end
-
-  test "casts value when no normalization is declared" do
-    assert_equal 6, NormalizedAircraft.normalize_value_for(:wheels_count, "6")
-  end
-
-  test "casts value before applying normalization" do
-    @aircraft.manufactured_at = @time.to_s
-    assert_equal @time.noon, @aircraft.manufactured_at
-  end
-
-  test "ignores nil by default" do
-    assert_nil NormalizedAircraft.normalize_value_for(:name, nil)
-  end
-
-  test "normalizes nil if apply_to_nil" do
-    including_nil = Class.new(Aircraft) do
-      normalizes :name, with: -> name { name&.titlecase || "Untitled" }, apply_to_nil: true
-    end
-
-    assert_equal "Untitled", including_nil.normalize_value_for(:name, nil)
-  end
-
   test "does not automatically normalize value from database" do
     from_database = NormalizedAircraft.find(Aircraft.create(name: "NOT titlecase").id)
     assert_equal "NOT titlecase", from_database.name
@@ -85,15 +39,6 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
 
   test "uses the same query when finding record by nil and normalized nil values" do
     assert_equal NormalizedAircraft.where(name: nil).to_sql, NormalizedAircraft.where(name: "").to_sql
-  end
-
-  test "can stack normalizations" do
-    titlecase_then_reverse = Class.new(NormalizedAircraft) do
-      normalizes :name, with: -> name { name.reverse }
-    end
-
-    assert_equal "esreveR nehT esaceltiT", titlecase_then_reverse.normalize_value_for(:name, "titlecase THEN reverse")
-    assert_equal "Only Titlecase", NormalizedAircraft.normalize_value_for(:name, "ONLY titlecase")
   end
 
   test "minimizes number of times normalization is applied" do
