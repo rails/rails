@@ -2708,11 +2708,11 @@ full coverage of the application features.
 
 Learn more about [Testing Rails Applications](testing.html)
 
-Consistently Formatted Code with Rubocop
+Consistently Formatted Code with RuboCop
 ----------------------------------------
 
 When writing code we may sometimes use inconsistent formatting. Rails comes with
-a linter called Rubocop that helps keep our code formatted consistently.
+a linter called RuboCop that helps keep our code formatted consistently.
 
 We can check our code for consistency by running:
 
@@ -2729,7 +2729,7 @@ Inspecting 53 files
 53 files inspected, no offenses detected
 ```
 
-Rubocop can automatically fix offsenses using the `--autocorrect` flag (or its short version `-a`).
+RuboCop can automatically fix offenses using the `--autocorrect` flag (or its short version `-a`).
 
 ```
 $ bin/rubocop -a
