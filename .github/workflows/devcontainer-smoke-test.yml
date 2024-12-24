@@ -42,7 +42,10 @@ jobs:
           imageTag: sqlite3
           push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
-          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+          runCmd: |
+            bin/rails g scaffold Post
+            rails db:migrate_without_schema
+            bin/rails test
 
       - name: Stop all containers
         run: docker ps -q | xargs docker stop
@@ -59,7 +62,11 @@ jobs:
           imageTag: postgresql
           push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
-          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test && bin/rails test:system
+          runCmd: |
+            bin/rails g scaffold Post
+            rails db:migrate_without_schema
+            bin/rails test
+            bin/rails test:system
 
       - name: Stop all containers
         run: docker ps -q | xargs docker stop
@@ -76,7 +83,10 @@ jobs:
           imageTag: mysql
           push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
-          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+          runCmd: |
+            bin/rails g scaffold Post
+            rails db:migrate_without_schema
+            bin/rails test
 
       - name: Stop all containers
         run: docker ps -q | xargs docker stop
@@ -93,7 +103,10 @@ jobs:
           imageTag: trilogy
           push: ${{ github.repository == 'rails/rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
-          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+          runCmd: |
+            bin/rails g scaffold Post
+            rails db:migrate_without_schema
+            bin/rails test
 
       - name: Stop all containers
         run: docker ps -q | xargs docker stop
