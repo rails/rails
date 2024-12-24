@@ -2745,10 +2745,11 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_support.raise_on_invalid_cache_expiration_time`
 
-Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
-`write` are given an invalid `expires_at` or `expires_in` time.
+Specifies whether an `ArgumentError` should be raised if `Rails.cache`
+[`fetch`][ActiveSupport::Cache::Store#fetch] or [`write`][ActiveSupport::Cache::Store#write]
+are given an invalid `expires_at` or `expires_in` time.
 
-Options are `true`, and `false`. If `false`, the exception will be reported
+Options are `true` and `false`. If `false`, the exception will be reported
 as `handled` and logged instead.
 
 The default value depends on the `config.load_defaults` target version:
@@ -2757,6 +2758,9 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.1                   | `true`               |
+
+[ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
+[ActiveSupport::Cache::Store#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-write
 
 ### Configuring Active Job
 
