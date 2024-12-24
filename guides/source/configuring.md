@@ -2768,7 +2768,7 @@ Specifies the logger to use within cache store operations.
 
 #### `ActiveSupport.utc_to_local_returns_utc_offset_times`
 
-Configures `ActiveSupport::TimeZone.utc_to_local` to return a time with a UTC
+Configures [`ActiveSupport::TimeZone.utc_to_local`][] to return a time with a UTC
 offset instead of a UTC time incorporating that offset.
 
 The default value depends on the `config.load_defaults` target version:
@@ -2777,6 +2777,8 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 6.1                   | `true`               |
+
+[`ActiveSupport::TimeZone.utc_to_local`]: https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html#method-i-utc_to_local
 
 #### `config.active_support.raise_on_invalid_cache_expiration_time`
 
