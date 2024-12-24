@@ -445,8 +445,8 @@ module Rails
 
       private
         # Define log for backwards compatibility. If just one argument is sent,
-        # invoke say, otherwise invoke say_status. Differently from say and
-        # similarly to say_status, this method respects the quiet? option given.
+        # invoke +say+, otherwise invoke +say_status+. Differently from +say+ and
+        # similarly to +say_status+, this method respects the +quiet?+ option given.
         def log(*args) # :doc:
           if args.size == 1
             say args.first.to_s unless options.quiet?
@@ -456,7 +456,7 @@ module Rails
           end
         end
 
-        # Runs the supplied command using either "rake ..." or "rails ..."
+        # Runs the supplied command using either +rake+ or +rails+
         # based on the executor parameter provided.
         def execute_command(executor, command, options = {}) # :doc:
           log executor, command
