@@ -445,11 +445,10 @@ module Rails
 
       private
         # Define log for backwards compatibility. If just one argument is sent,
-        # invoke say, otherwise invoke say_status. Differently from say and
-        # similarly to say_status, this method respects the quiet? option given.
+        # invoke say, otherwise invoke say_status.
         def log(*args) # :doc:
           if args.size == 1
-            say args.first.to_s unless options.quiet?
+            say args.first.to_s
           else
             args << (behavior == :invoke ? :green : :red)
             say_status(*args)
