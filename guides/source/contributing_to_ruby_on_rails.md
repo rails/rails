@@ -41,6 +41,7 @@ Having a way to reproduce your issue will help people confirm, investigate, and 
 
 * Template for Active Record (models, database) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
 * Template for testing Active Record (migration) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
+* Template for Active Record Encryption issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_encryption.rb)
 * Template for Action Pack (controllers, routing) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
 * Template for Action View (views, helpers) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
 * Template for Active Job issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)

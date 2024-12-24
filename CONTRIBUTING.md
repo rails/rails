@@ -16,6 +16,13 @@
 
 * If possible, use the relevant bug report templates to create the issue. Simply copy the content of the appropriate template into a .rb file, make the necessary changes to demonstrate the issue, and **paste the content into the issue description**:
   * [**Active Record** (models, database) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
+  * [**Active Record Migrations** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
+  * [**Active Record Encryption** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_encryption.rb)
+  * [**Action View** (views, helpers) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
+  * [**Active Job** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
+  * [**Active Storage** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
+  * [**Action Mailer** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
+  * [**Action Mailbox** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
   * [**Action Pack** (controllers, routing) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
   * [**Generic template** for other issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
