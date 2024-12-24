@@ -27,10 +27,13 @@ module ActiveSupport
   # it easy to stamp log lines with subdomains, request ids, and anything else
   # to aid debugging of multi-user production applications.
   module TaggedLogging
-    module Formatter # :nodoc:
-      # This method is invoked when a log event occurs.
-      def call(severity, timestamp, progname, msg)
-        super(severity, timestamp, progname, tag_stack.format_message(msg))
+    class TagProcessor # :nodoc:
+      def call(msg, logger)
+        if logger.formatter.nil?
+          logger.formatter ||= Logger::SimpleFormatter.new
+        end
+
+        tag_stack.format_message(msg)
       end
 
       def tagged(*tags)
@@ -118,33 +121,43 @@ module ActiveSupport
       new ActiveSupport::Logger.new(*args, **kwargs)
     end
 
-    def self.new(logger)
-      logger = logger.clone
+    def self.new(logger) # :nodoc:
+      # Workaround for https://bugs.ruby-lang.org/issues/20250
+      # Can be removed when Ruby 3.4 is the least supported version.
+      logger.formatter.object_id if logger.formatter.is_a?(Proc)
 
-      if logger.formatter
-        logger.formatter = logger.formatter.clone
-
-        # Workaround for https://bugs.ruby-lang.org/issues/20250
-        # Can be removed when Ruby 3.4 is the least supported version.
-        logger.formatter.object_id if logger.formatter.is_a?(Proc)
+      if logger.is_a?(TaggedLogging)
+        logger.clone
       else
-        # Ensure we set a default formatter so we aren't extending nil!
-        logger.formatter = ActiveSupport::Logger::SimpleFormatter.new
+        logger.extend(TaggedLogging)
       end
-
-      logger.formatter.extend Formatter
-      logger.extend(self)
     end
 
-    delegate :push_tags, :pop_tags, :clear_tags!, to: :formatter
+    def self.extended(base)
+      base.tag_processor = TagProcessor.new
+      base.extend(ActiveSupport::LogProcessor)
+
+      base.processors << base.tag_processor
+    end
+
+    def initialize_clone(_)
+      self.tag_processor = TagProcessor.new
+      self.processors = [tag_processor]
+
+      super
+    end
+
+    delegate :push_tags, :pop_tags, :clear_tags!, to: :tag_processor
+    attr_accessor :tag_processor
 
     def tagged(*tags)
       if block_given?
-        formatter.tagged(*tags) { yield self }
+        tag_processor.tagged(*tags) { yield(self) }
       else
-        logger = ActiveSupport::TaggedLogging.new(self)
-        logger.formatter.extend LocalTagStorage
-        logger.push_tags(*formatter.current_tags, *tags)
+        logger = clone
+        logger.tag_processor.extend(LocalTagStorage)
+        logger.tag_processor.push_tags(*tag_processor.current_tags, *tags)
+
         logger
       end
     end
