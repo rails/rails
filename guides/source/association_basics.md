@@ -1623,7 +1623,7 @@ In our example, `imageable_id` could be the ID of either an `Employee` or a
 either `Employee` or `Product`.
 
 While creating the polymorphic association manually is acceptable, it is instead
-recommended to use `t.references` or its alias `t.belong_to` and specify
+recommended to use `t.references` or its alias `t.belongs_to` and specify
 `polymorphic: true` so that Rails knows that the association is polymorphic, and
 it automatically adds both the foreign key and type columns to the table.
 
