@@ -490,12 +490,16 @@ module Rails
         end
         alias rebase_indentation optimize_indentation
 
-        # Indent the +Gemfile+ to the depth of @indentation
+        # Returns a string corresponding to the current indentation level
+        # (i.e. 2 * <code>@indentation</code> spaces). See also
+        # #with_indentation, which can be used to manage the indentation level.
         def indentation # :doc:
           "  " * @indentation
         end
 
-        # Manage +Gemfile+ indentation for a DSL action block
+        # Increases the current indentation indentation level for the duration
+        # of the given block, and decreases it after the block ends. Call
+        # #indentation to get an indentation string.
         def with_indentation(&block) # :doc:
           @indentation += 1
           instance_eval(&block)
