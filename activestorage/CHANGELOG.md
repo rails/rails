@@ -1,3 +1,7 @@
+*   Add support for alternative MD5 implementation through `config.active_storage.digest_class` to support when OpenSSL is running with FIPS mode enabled
+
+    *Matt Pasquini*
+
 *   A Blob will no longer autosave associated Attachment.
 
     This fixes an issue where a record with an attachment would have
