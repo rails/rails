@@ -64,9 +64,29 @@ class ClientTest < ActionCable::TestCase
   def setup
     ActionCable.instance_variable_set(:@server, nil)
     server = ActionCable.server
-    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+    server.config.logger =
+      if %w[1 t true].include?(ENV["LOG"])
+        Logger.new($stdout).tap { |l| l.level = Logger::DEBUG }
+      else
+        Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+      end
 
     server.config.cable = ActiveSupport::HashWithIndifferentAccess.new(adapter: "async")
+    server.pubsub.define_singleton_method(:wait_subscribers) do |channel, count: nil, timeout: 2|
+      sync = subscriber_map.instance_variable_get(:@sync)
+
+      loop do
+        list = sync.synchronize do
+          (subscriber_map.instance_variable_get(:@subscribers)[channel] || []).dup
+        end
+        return if count && list.size == count
+        return if !count && list.any?
+        sleep 0.1
+        timeout -= 0.1
+        raise "Timeout waiting for subscribers" if timeout <= 0
+      end
+    end
+
     server.config.connection_class = -> { ClientTest::Connection }
 
     # and now the "real" setup for our test:
@@ -304,7 +324,7 @@ class ClientTest < ActionCable::TestCase
       channel = subscriptions.first[1]
       assert_called(channel, :unsubscribed) do
         c.close
-        sleep 0.1 # Data takes a moment to process
+        app.pubsub.wait_subscribers("global", count: 0)
       end
 
       # All data is removed: No more connection or subscription information!
@@ -319,7 +339,9 @@ class ClientTest < ActionCable::TestCase
       c = websocket_client(port, "/?id=1")
       assert_equal({ "type" => "welcome" }, c.read_message)
 
-      sleep 0.1 # make sure connections is registered
+      # Make sure connections is registered
+      app.pubsub.wait_subscribers("action_cable/1")
+
       app.remote_connections.where(id: "1").disconnect
 
       assert_equal({ "type" => "disconnect", "reason" => "remote", "reconnect" => true }, c.read_message)
@@ -336,7 +358,7 @@ class ClientTest < ActionCable::TestCase
       c = websocket_client(port, "/?id=2")
       assert_equal({ "type" => "welcome" }, c.read_message)
 
-      sleep 0.1 # make sure connections is registered
+      app.pubsub.wait_subscribers("action_cable/2")
       app.remote_connections.where(id: "2").disconnect(reconnect: false)
 
       assert_equal({ "type" => "disconnect", "reason" => "remote", "reconnect" => false }, c.read_message)

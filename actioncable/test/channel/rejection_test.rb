@@ -2,7 +2,7 @@
 
 require "test_helper"
 require "minitest/mock"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 
 class ActionCable::Channel::RejectionTest < ActionCable::TestCase
@@ -17,7 +17,7 @@ class ActionCable::Channel::RejectionTest < ActionCable::TestCase
 
   setup do
     @user = User.new "lifo"
-    @connection = TestConnection.new(@user)
+    @connection = TestSocket.new(@user)
   end
 
   test "subscription rejection" do

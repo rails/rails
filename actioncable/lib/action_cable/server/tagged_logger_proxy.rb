@@ -3,13 +3,12 @@
 # :markup: markdown
 
 module ActionCable
-  module Connection
+  module Server
     # # Action Cable Connection TaggedLoggerProxy
     #
-    # Allows the use of per-connection tags against the server logger. This wouldn't
-    # work using the traditional ActiveSupport::TaggedLogging enhanced Rails.logger,
-    # as that logger will reset the tags between requests. The connection is
-    # long-lived, so it needs its own set of tags for its independent duration.
+    # Allows the use of per-connection tags against the server logger. This wouldn't work using the traditional
+    # ActiveSupport::TaggedLogging enhanced Rails.logger, as that logger will reset the tags between requests.
+    # The connection is long-lived, so it needs its own set of tags for its independent duration.
     class TaggedLoggerProxy
       attr_reader :tags
 
