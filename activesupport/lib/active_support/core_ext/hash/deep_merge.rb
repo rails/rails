@@ -36,6 +36,7 @@ class Hash
   #--
   # Implemented by ActiveSupport::DeepMergeable#deep_merge!.
 
+  ##
   def deep_merge?(other) # :nodoc:
     other.is_a?(Hash)
   end
