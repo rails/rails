@@ -163,57 +163,57 @@ module ActiveSupport
       dispatch { |logger| logger.close }
     end
 
-    # +True+ if the log level allows entries with severity Logger::DEBUG to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::DEBUG+ to be written
+    # to at least one broadcast. False otherwise.
     def debug?
       @broadcasts.any? { |logger| logger.debug? }
     end
 
-    # Sets the log level to Logger::DEBUG for the whole broadcast.
+    # Sets the log level to +Logger::DEBUG+ for the whole broadcast.
     def debug!
       dispatch { |logger| logger.debug! }
     end
 
-    # +True+ if the log level allows entries with severity Logger::INFO to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::INFO+ to be written
+    # to at least one broadcast. False otherwise.
     def info?
       @broadcasts.any? { |logger| logger.info? }
     end
 
-    # Sets the log level to Logger::INFO for the whole broadcast.
+    # Sets the log level to +Logger::INFO+ for the whole broadcast.
     def info!
       dispatch { |logger| logger.info! }
     end
 
-    # +True+ if the log level allows entries with severity Logger::WARN to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::WARN+ to be written
+    # to at least one broadcast. False otherwise.
     def warn?
       @broadcasts.any? { |logger| logger.warn? }
     end
 
-    # Sets the log level to Logger::WARN for the whole broadcast.
+    # Sets the log level to +Logger::WARN+ for the whole broadcast.
     def warn!
       dispatch { |logger| logger.warn! }
     end
 
-    # +True+ if the log level allows entries with severity Logger::ERROR to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::ERROR+ to be written
+    # to at least one broadcast. False otherwise.
     def error?
       @broadcasts.any? { |logger| logger.error? }
     end
 
-    # Sets the log level to Logger::ERROR for the whole broadcast.
+    # Sets the log level to +Logger::ERROR+ for the whole broadcast.
     def error!
       dispatch { |logger| logger.error! }
     end
 
-    # +True+ if the log level allows entries with severity Logger::FATAL to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::FATAL+ to be written
+    # to at least one broadcast. False otherwise.
     def fatal?
       @broadcasts.any? { |logger| logger.fatal? }
     end
 
-    # Sets the log level to Logger::FATAL for the whole broadcast.
+    # Sets the log level to +Logger::FATAL+ for the whole broadcast.
     def fatal!
       dispatch { |logger| logger.fatal! }
     end
