@@ -1,3 +1,10 @@
+*   Deprecate the `validate: false` option for `check_constraint`.
+
+    PostgreSQL ignores the `NOT VALID` option for check constraints within a `CREATE TABLE` statement.
+    To enable the `NOT VALID` option, use `add_check_constraint` which generates an `ALTER TABLE` statement.
+
+    *Yasuo Honda*
+
 *   Change the payload name of `sql.active_record` notification for eager
     loading from "SQL" to "#{model.name} Eager Load".
 

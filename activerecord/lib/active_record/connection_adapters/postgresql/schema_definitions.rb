@@ -261,6 +261,17 @@ module ActiveRecord
           unique_constraints << new_unique_constraint_definition(column_name, options)
         end
 
+        def check_constraint(expression, **options)
+          if options[:validate] == false
+            ActiveRecord.deprecator.warn(<<~MSG)
+              Providing `validate: false` for `check_constraint` is deprecated because it is ignored by the PostgreSQL.
+              Use the `add_check_constraint` with `validate: false` to create a check constraint that is `NOT VALID`.
+            MSG
+          end
+
+          super
+        end
+
         def new_exclusion_constraint_definition(expression, options) # :nodoc:
           options = @conn.exclusion_constraint_options(name, expression, options)
           ExclusionConstraintDefinition.new(name, expression, options)
