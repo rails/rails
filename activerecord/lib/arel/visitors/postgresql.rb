@@ -4,6 +4,62 @@ module Arel # :nodoc: all
   module Visitors
     class PostgreSQL < Arel::Visitors::ToSql
       private
+        def visit_Arel_Nodes_UpdateStatement(o, collector)
+          collector.retryable = false
+          o = prepare_update_statement(o)
+
+          collector << "UPDATE "
+
+          # UPDATE with JOIN is in the form of:
+          #
+          #   UPDATE t1
+          #   SET ..
+          #   FROM t2
+          #   WHERE t1.join_id = t2.join_id
+          #
+          # Or if more than one join is present:
+          #
+          #   UPDATE t1
+          #   SET ..
+          #   FROM t2
+          #   JOIN t3 ON t2.join_id = t3.join_id
+          #   WHERE t1.join_id = t2.join_id
+          if has_join_sources?(o)
+            visit o.relation.left, collector
+            collect_nodes_for o.values, collector, " SET "
+            collector << " FROM "
+            first_join, *remaining_joins = o.relation.right
+            visit first_join.left, collector
+
+            if remaining_joins && !remaining_joins.empty?
+              collector << " "
+              remaining_joins.each do |join|
+                visit join, collector
+              end
+            end
+
+            collect_nodes_for [first_join.right.expr] + o.wheres, collector, " WHERE ", " AND "
+          else
+            collector = visit o.relation, collector
+            collect_nodes_for o.values, collector, " SET "
+            collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+          end
+
+          collect_nodes_for o.orders, collector, " ORDER BY "
+          maybe_visit o.limit, collector
+        end
+
+        # In the simple case, PostgreSQL allows us to place FROM or JOINs directly into the UPDATE
+        # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
+        # these, we must use a subquery.
+        def prepare_update_statement(o)
+          if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o)
+            o
+          else
+            super
+          end
+        end
+
         def visit_Arel_Nodes_Matches(o, collector)
           op = o.case_sensitive ? " LIKE " : " ILIKE "
           collector = infix_value o, collector, op
