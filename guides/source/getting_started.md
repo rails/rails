@@ -612,7 +612,7 @@ end
 
 You might remember that Rails automatically reloads changes during development.
 However, if the console is running when you make updates to the code, you'll
-need to manually refresh it. So let' do this now by running 'reload!'.
+need to manually refresh it. So let's do this now by running 'reload!'.
 
 ```irb
 store(dev)> reload!
