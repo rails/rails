@@ -90,7 +90,7 @@ module ActiveRecord
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
                             pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
                             ARRAY(
-                              SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
+                              SELECT REPLACE(pg_get_indexdef(d.indexrelid, k + 1, true), '"', '')
                               FROM generate_subscripts(d.indkey, 1) AS k
                               ORDER BY k
                             ) AS columns
