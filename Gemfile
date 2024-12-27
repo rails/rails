@@ -45,10 +45,6 @@ gem "uri", ">= 0.13.1", require: false
 
 gem "prism"
 
-group :lint do
-  gem "syntax_tree", "6.1.1", require: false
-end
-
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
