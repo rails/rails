@@ -1212,12 +1212,16 @@ to change the default behavior:
 
 ```ruby
 class CustomSchemaVersionsFormatter
+  def initialize(connection)
+    @connection = connection
+  end
+
   def format(versions)
     # Special sorting of versions to reduce the likelihood of conflicts.
     sorted_versions = versions.sort { |a, b| b.to_s.reverse <=> a.to_s.reverse }
 
     sql = +"INSERT INTO schema_migrations (version) VALUES\n"
-    sql << sorted_versions.map { |v| "(#{connection.quote(v)})" }.join(",\n")
+    sql << sorted_versions.map { |v| "(#{@connection.quote(v)})" }.join(",\n")
     sql << ";"
     sql
   end
