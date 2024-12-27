@@ -38,7 +38,7 @@ module ActiveModel
       @value = value unless value.nil?
     end
 
-    def value
+    def value(&_)
       # `defined?` is cheaper than `||=` when we get back falsy values
       @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
