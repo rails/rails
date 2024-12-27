@@ -119,6 +119,12 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      # Determines whether the SQL statement is a lock query, specifically one that
+      # cannot be executed inside a read-only transaction.
+      def lock_query?(sql)
+        raise NotImplementedError
+      end
+
       # Executes the SQL statement in the context of this connection and returns
       # the raw result from the connection adapter.
       #
@@ -580,6 +586,7 @@ module ActiveRecord
 
         def preprocess_query(sql)
           check_if_write_query(sql)
+          check_if_lock_query(sql)
           mark_transaction_written_if_write(sql)
 
           # We call tranformers after the write checks so we don't add extra parsing work.

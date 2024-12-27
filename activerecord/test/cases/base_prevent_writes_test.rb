@@ -94,3 +94,51 @@ class BasePreventWritesTest < ActiveRecord::TestCase
     end
   end
 end
+
+class BasePreventWritesLocksTest < BasePreventWritesTest
+  if !in_memory_db?
+    test "pessimistic lock with .lock" do
+      Bird.create!(name: "Bluejay")
+      ActiveRecord::Base.while_preventing_writes do
+        error = assert_raises ActiveRecord::ReadOnlyError do
+          Bird.lock.find "Bluejay"
+        end
+
+        assert_match %r/\ALock query attempted while in readonly mode: SELECT .* FOR UPDATE/, error.message
+      end
+    end
+
+    test "pessimistic lock with #lock!" do
+      bird = Bird.create!(name: "Bluejay")
+      ActiveRecord::Base.while_preventing_writes do
+        error = assert_raises ActiveRecord::ReadOnlyError do
+          bird.lock!
+        end
+
+        assert_match %r/\ALock query attempted while in readonly mode: SELECT .* FOR UPDATE/, error.message
+      end
+    end
+
+    test "pessimistic lock with #with_lock" do
+      bird = Bird.create!(name: "Bluejay")
+      ActiveRecord::Base.while_preventing_writes do
+        error = assert_raises ActiveRecord::ReadOnlyError do
+          bird.with_lock { }
+        end
+
+        assert_match %r/\ALock query attempted while in readonly mode: SELECT .* FOR UPDATE/, error.message
+      end
+    end
+
+    test "pessimistic lock with comment" do
+      Bird.create!(name: "Bluejay")
+      ActiveRecord::Base.while_preventing_writes do
+        error = assert_raises ActiveRecord::ReadOnlyError do
+          Bird.annotate("locking to find BlueJay").lock.find "Bluejay"
+        end
+
+        assert_match %r/\ALock query attempted while in readonly mode: SELECT .* \/\* locking to find BlueJay \*\/ .* FOR UPDATE/, error.message
+      end
+    end
+  end
+end
