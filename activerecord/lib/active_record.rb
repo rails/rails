@@ -404,6 +404,12 @@ module ActiveRecord
   self.migration_strategy = Migration::DefaultStrategy
 
   ##
+  # :singleton-method: schema_versions_formatter
+  # Specify the formatter used by schema dumper to format versions information.
+  singleton_class.attr_accessor :schema_versions_formatter
+  self.schema_versions_formatter = Migration::DefaultSchemaVersionsFormatter
+
+  ##
   # :singleton-method: dump_schema_after_migration
   # Specify whether schema dump should happen at the end of the
   # bin/rails db:migrate command. This is true by default, which is useful for the

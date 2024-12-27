@@ -18,19 +18,19 @@ class SchemaDumperTest < ActiveRecord::TestCase
     @@standard_dump ||= dump_all_table_schema
   end
 
-  def test_dump_schema_information_with_empty_versions
+  def test_dump_schema_versions_with_empty_versions
     @schema_migration.delete_all_versions
-    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     assert_no_match(/INSERT INTO/, schema_info)
   end
 
-  def test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
+  def test_dump_schema_versions_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.shuffle.each do |v|
       @schema_migration.create_version(v)
     end
 
-    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     expected = <<~STR
     INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
     ('20100301010101'),
