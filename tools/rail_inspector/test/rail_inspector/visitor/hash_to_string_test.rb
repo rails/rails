@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require "syntax_tree"
-
+require "test_helper"
 require "rail_inspector/visitor/hash_to_string"
 
 class HashToStringTest < Minitest::Test
@@ -26,7 +25,7 @@ class HashToStringTest < Minitest::Test
 
   private
     def string_for(hash_as_string)
-      ast = SyntaxTree.parse(hash_as_string)
+      ast = Prism.parse(hash_as_string).value
       visitor = RailInspector::Visitor::HashToString.new
       visitor.visit(ast)
       visitor.to_s
