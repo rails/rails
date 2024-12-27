@@ -77,10 +77,10 @@ To use `rails-new` to generate your app, open a terminal, navigate to a director
 rights to create files, and run:
 
 ```bash
-$ rails-new store --devcontainer
+$ rails-new --rails-version 8.0.1 store --devcontainer
 ```
 
-This will create a Rails application called Store in a `store` directory.
+This command creates a new Rails application named `Store` inside a directory called `store`. You can replace the specified Rails version (8.0.1) with any other [Rails version](https://rubyonrails.org/category/releases) as needed. Note that the order of the arguments is crucial for `rails-new` to work correctly.
 
 TIP: You can see all of the command line options that the Rails application
 generator accepts by running `rails-new --help`.
@@ -114,7 +114,7 @@ You can open the terminal within VS Code to verify that Rails is installed:
 
 ```bash
 $ rails --version
-Rails 8.1.0
+Rails 8.0.1
 ```
 
 You can now continue with the [Getting Started guide](getting_started.html) and
