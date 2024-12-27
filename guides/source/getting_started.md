@@ -29,7 +29,7 @@ basics of Ruby so that you understand some of the basic terms and vocabulary you
 will see in this tutorial.
 
 - [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-- [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/books/free-programming-books-langs.md#ruby)
+- [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/main/books/free-programming-books-langs.md#ruby)
 
 Rails Philosophy
 ----------------
