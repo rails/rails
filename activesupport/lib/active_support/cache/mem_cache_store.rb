@@ -110,9 +110,6 @@ module ActiveSupport
       # * <tt>raw: true</tt> - Sends the value directly to the server as raw
       #   bytes. The value must be a string or number. You can use memcached
       #   direct operations like +increment+ and +decrement+ only on raw values.
-      #
-      # * <tt>unless_exist: true</tt> - Prevents overwriting an existing cache
-      #   entry.
 
       # Increment a cached integer value using the memcached incr atomic operator.
       # Returns the updated value.
