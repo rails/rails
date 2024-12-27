@@ -1768,7 +1768,7 @@ Next, we generate the `Car`, `Motorcycle`, and `Bicycle` models that inherit
 from Vehicle. These models won't have their own tables; instead, they will use
 the `vehicles` table.
 
-To generate the`Car` model:
+To generate the `Car` model:
 
 ```bash
 $ bin/rails generate model car --parent=Vehicle
