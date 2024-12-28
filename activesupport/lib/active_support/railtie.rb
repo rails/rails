@@ -97,7 +97,9 @@ module ActiveSupport
     end
 
     initializer "active_support.to_time_preserves_timezone" do |app|
-      ActiveSupport.to_time_preserves_timezone = app.config.active_support.to_time_preserves_timezone
+      config.after_initialize do
+        ActiveSupport.to_time_preserves_timezone = app.config.active_support.to_time_preserves_timezone
+      end
     end
 
     # Sets the default week start
