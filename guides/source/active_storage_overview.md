@@ -1516,7 +1516,7 @@ test.
 Next, create fixture files for the Active Storage classes:
 
 ```yml
-# active_storage/attachments.yml
+# test/fixtures/active_storage/attachments.yml
 david_avatar:
   name: avatar
   record: david (User)
@@ -1524,7 +1524,7 @@ david_avatar:
 ```
 
 ```yml
-# active_storage/blobs.yml
+# test/fixtures/active_storage/blobs.yml
 david_avatar_blob: <%= ActiveStorage::FixtureSet.blob filename: "david.png", service_name: "test_fixtures" %>
 ```
 
