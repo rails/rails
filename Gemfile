@@ -117,7 +117,7 @@ group :cable do
 
   gem "redis-namespace"
 
-  gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
+  gem "websocket-client-simple", require: false
 end
 
 # Active Storage
