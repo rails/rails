@@ -1,13 +1,4 @@
 GIT
-  remote: https://github.com/matthewd/websocket-client-simple.git
-  revision: e161305f1a466b9398d86df3b1731b03362da91b
-  branch: close-race
-  specs:
-    websocket-client-simple (0.3.0)
-      event_emitter
-      websocket
-
-GIT
   remote: https://github.com/nahi/httpclient.git
   revision: d57cc6d5ffee1b566b5c189fe6dc8cc89570b812
   branch: master
@@ -660,6 +651,9 @@ GEM
       hashdiff (>= 0.4.0, < 2.0.0)
     webrick (1.8.2)
     websocket (1.2.11)
+    websocket-client-simple (0.8.0)
+      event_emitter
+      websocket
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -757,7 +751,7 @@ DEPENDENCIES
   web-console
   webmock
   webrick
-  websocket-client-simple!
+  websocket-client-simple
 
 BUNDLED WITH
    2.5.16
