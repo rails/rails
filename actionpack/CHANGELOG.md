@@ -1,3 +1,9 @@
+*   Fix `url_for` to handle `:path_params` gracefully when it's not a `Hash`.
+
+    Prevents various security scanners from causing exceptions.
+
+    *Martin Emde*
+
 *   Fix `ActionDispatch::Executor` to unwrap exceptions like other error reporting middlewares.
 
     *Jean Boussier*
