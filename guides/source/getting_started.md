@@ -676,7 +676,7 @@ Routes
 
 In Rails, a route is the part of the URL that determines how an incoming HTTP
 request is directed to the appropriate controller and action for processing.
-First, let's do a quick refresher of URLs and HTTP Request methods.
+First, let's do a quick refresher on URLs and HTTP Request methods.
 
 ### Parts of a URL
 
