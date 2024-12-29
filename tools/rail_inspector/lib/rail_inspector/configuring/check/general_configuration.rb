@@ -14,7 +14,7 @@ module RailInspector
           def call
             visitor = Visitor::Attribute.new
             visitor.visit(app_config_tree)
-            visitor.attribute_map[APP_CONFIG_CONST]["attr_accessor"]
+            visitor.attribute_map[APP_CONFIG_CONST][:attr_accessor]
           end
 
           private
