@@ -45,10 +45,6 @@ gem "uri", ">= 0.13.1", require: false
 
 gem "prism"
 
-group :lint do
-  gem "syntax_tree", "6.1.1", require: false
-end
-
 group :rubocop do
   # Rubocop has to be locked in the Gemfile because CI ignores Gemfile.lock
   # We don't want rubocop to start failing whenever rubocop makes a new release.
