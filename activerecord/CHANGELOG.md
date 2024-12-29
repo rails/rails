@@ -1,3 +1,7 @@
+*   Fix a potential race condition with system tests and transactional fixtures.
+
+    *Sjoerd Lagarde*
+
 *   Fix autosave associations to no longer validated unmodified associated records.
 
     Active Record was incorrectly performing validation on associated record that
