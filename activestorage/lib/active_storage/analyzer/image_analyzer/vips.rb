@@ -27,7 +27,7 @@ module ActiveStorage
           end
 
           if image
-            yield image
+            yield image, file
           else
             {}
           end
