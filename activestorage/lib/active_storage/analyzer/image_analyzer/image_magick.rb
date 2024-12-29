@@ -23,7 +23,7 @@ module ActiveStorage
           end
 
           if image.valid?
-            yield image
+            yield image, file
           else
             logger.info "Skipping image analysis because ImageMagick doesn't support the file"
             {}
