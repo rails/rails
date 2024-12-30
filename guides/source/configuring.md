@@ -1554,7 +1554,7 @@ For queries to actually be performed asynchronously, it must be set to either `:
 for applications with only a single database, or applications which only ever query one database shard at a time.
 
 `:multi_thread_pool` will use one pool per database, and each pool size can be configured individually in `database.yml` through the
-`max_threads` and `min_thread` properties. This can be useful to applications regularly querying multiple databases at a time, and that need to more precisely define the max concurrency.
+`max_threads` and `min_threads` properties. This can be useful to applications regularly querying multiple databases at a time, and that need to more precisely define the max concurrency.
 
 #### `config.active_record.global_executor_concurrency`
 
