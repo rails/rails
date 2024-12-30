@@ -825,7 +825,7 @@ it will do with what the previous action put in the flash.
 
 #### Displaying flash messages
 
-If a previous action _has_ set a flash message, it's a good idea of display that
+If a previous action _has_ set a flash message, it's a good idea to display that
 to the user. We can accomplish this consistently by adding the HTML for
 displaying any flash messages in the application's default layout. Here's an
 example from `app/views/layouts/application.html.erb`:
