@@ -1,3 +1,7 @@
+*   Better handle procs with splat arguments in `set_callback`.
+
+    *Radamés Roriz*
+
 *   Fix `String#mb_chars` to not mutate the receiver.
 
     Previously it would call `force_encoding` on the receiver,
