@@ -1,3 +1,10 @@
+*   Fix `String#mb_chars` to not mutate the receiver.
+
+    Previously it would call `force_encoding` on the receiver,
+    now it dups the receiver first.
+
+    *Jean Boussier*
+
 *   Improve `ErrorSubscriber` to also mark error causes as reported.
 
     This avoid some cases of errors being reported twice, notably in views because of how
