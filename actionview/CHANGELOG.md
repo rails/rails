@@ -1,3 +1,7 @@
+*   Remove deprecated rails-ujs included in the output of `assets:precompile`
+
+    *Taketo Takashima*
+
 *   Improve error highlighting of multi-line methods in ERB templates or
     templates where the error occurs within a do-end block.
 
