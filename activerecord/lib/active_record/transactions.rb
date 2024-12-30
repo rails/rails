@@ -423,7 +423,8 @@ module ActiveRecord
     end
 
     def trigger_transactional_callbacks? # :nodoc:
-      (@_new_record_before_last_commit || _trigger_update_callback) && persisted? ||
+      (@_new_record_before_last_commit && !persisted? && has_transactional_callbacks?) ||
+        (@_new_record_before_last_commit || _trigger_update_callback) && persisted? ||
         _trigger_destroy_callback && destroyed?
     end
 
