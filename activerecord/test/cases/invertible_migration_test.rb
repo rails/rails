@@ -154,6 +154,14 @@ module ActiveRecord
       end
     end
 
+    class DropTableMigration < SilentMigration
+      def change
+        drop_table("horses") do |t|
+          t.string :name
+        end
+      end
+    end
+
     class LegacyMigration < ActiveRecord::Migration::Current
       def self.up
         create_table("horses") do |t|
@@ -431,6 +439,20 @@ module ActiveRecord
       ensure
         enable_extension!("hstore", ActiveRecord::Base.lease_connection)
       end
+    end
+
+    def test_migrate_revert_drop_table
+      connection = ActiveRecord::Base.lease_connection
+      migration1 = InvertibleMigration.new
+      migration1.migrate(:up)
+      assert connection.table_exists?("horses")
+
+      migration2 = DropTableMigration.new
+      migration2.migrate(:up)
+      assert_not connection.table_exists?("horses")
+
+      migration2.migrate(:down)
+      assert connection.table_exists?("horses")
     end
 
     def test_revert_order
