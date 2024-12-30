@@ -658,6 +658,8 @@ module ActiveSupport
       #   version, the read will be treated as a cache miss. This feature is
       #   used to support recyclable cache keys.
       #
+      # * +:unless_exist+ - Prevents overwriting an existing cache entry.
+      #
       # Other options will be handled by the specific cache store implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
