@@ -1742,13 +1742,12 @@ Single Table Inheritance (STI)
 ------------------------------
 
 Single Table Inheritance (STI) is a pattern in Rails that allows multiple models
-to be stored in a single database table. This is useful when you have different
-types of entities that share common attributes and behavior but also have
-specific behaviors.
+to be stored in a single database table. This is useful when different types of entities
+share common attributes and behavior but also have unique characteristics.
 
-For example, suppose we have `Car`, `Motorcycle`, and `Bicycle` models. These
-models will share fields like `color` and `price`, but each will have unique
-behaviors. They will also each have their own controller.
+For instance, imagine we have `Car`, `Motorcycle`, and `Bicycle` models.
+These models might share fields like color and price, but each will have specific
+behaviors and its own controller.
 
 ### Generating the Base Vehicle Model
 
