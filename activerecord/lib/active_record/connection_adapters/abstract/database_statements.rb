@@ -110,8 +110,8 @@ module ActiveRecord
         query(...).map(&:first)
       end
 
-      def query(...) # :nodoc:
-        internal_exec_query(...).rows
+      def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+        internal_exec_query(sql, name, allow_retry:, materialize_transactions:).rows
       end
 
       # Determines whether the SQL statement is a write query.
@@ -553,13 +553,20 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
+              result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
+              end
+              handle_warnings(result, sql)
+              result
             end
           end
         end
 
         def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
           raise NotImplementedError
+        end
+
+        def handle_warnings(raw_result, sql)
         end
 
         # Receive a native adapter result object and returns an ActiveRecord::Result object.
@@ -674,7 +681,7 @@ module ActiveRecord
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
 
-            # We make sure to run query transformers on the orignal thread
+            # We make sure to run query transformers on the original thread
             sql = preprocess_query(sql)
             future_result = async.new(
               pool,

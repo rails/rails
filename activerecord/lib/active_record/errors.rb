@@ -339,15 +339,15 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml.
+          Database not found: #{db_name}. Available database configurations can be found in config/database.yml.
 
           To resolve this error:
 
-          - Did you not create the database, or did you delete it? To create the database, run:
+          - Create the database by running:
 
               bin/rails db:create
 
-          - Has the database name changed? Verify that config/database.yml contains the correct database name.
+          - Verify that config/database.yml contains the correct database name.
         MSG
       end
     end
@@ -490,6 +490,7 @@ module ActiveRecord
   #   end
   #
   #   relation = Task.all
+  #   relation.load
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.

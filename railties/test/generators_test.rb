@@ -181,18 +181,18 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_fallbacks_for_generators_on_find_by_namespace
     Rails::Generators.fallbacks[:remarkable] = :test_unit
-    klass = Rails::Generators.find_by_namespace(:plugin, :remarkable)
+    klass = Rails::Generators.find_by_namespace(:integration, :remarkable)
     assert klass
-    assert_equal "test_unit:plugin", klass.namespace
+    assert_equal "test_unit:integration", klass.namespace
   ensure
     Rails::Generators.fallbacks.delete(:remarkable)
   end
 
   def test_fallbacks_for_generators_on_find_by_namespace_with_context
     Rails::Generators.fallbacks[:remarkable] = :test_unit
-    klass = Rails::Generators.find_by_namespace(:remarkable, :rails, :plugin)
+    klass = Rails::Generators.find_by_namespace(:remarkable, :rails, :integration)
     assert klass
-    assert_equal "test_unit:plugin", klass.namespace
+    assert_equal "test_unit:integration", klass.namespace
   ensure
     Rails::Generators.fallbacks.delete(:remarkable)
   end

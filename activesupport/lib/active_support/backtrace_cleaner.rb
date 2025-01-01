@@ -79,7 +79,7 @@ module ActiveSupport
     #
     #   # Will turn "/my/rails/root/app/models/person.rb" into "app/models/person.rb"
     #   root = "#{Rails.root}/"
-    #   backtrace_cleaner.add_filter { |line| line.start_with?(root) ? line.from(root.size) : line }
+    #   backtrace_cleaner.add_filter { |line| line.delete_prefix(root) }
     def add_filter(&block)
       @filters << block
     end

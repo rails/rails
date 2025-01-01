@@ -1,12 +1,11 @@
-## Rails 8.0.0.beta1 (September 26, 2024) ##
+*   In the Active Job bug report template set the queue adapter to the
+    test adapter so that `assert_enqueued_with` can pass.
 
-*   The guide _Classic to Zeitwerk HOWTO_ that documented how to migrate from
-    the `classic` autoloader to Zeitwerk has been deleted.
+    *Andrew White*
 
-    The last version of this guide can be found
-    [here](https://guides.rubyonrails.org/v7.2/classic_to_zeitwerk_howto.html),
-    in case you need it.
+*   Ensure all bug report templates set `config.secret_key_base` to avoid
+    generation of `tmp/local_secret.txt` files when running the report template.
 
-    *Petrik de Heus*
+    *Andrew White*
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/guides/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/guides/CHANGELOG.md) for previous changes.

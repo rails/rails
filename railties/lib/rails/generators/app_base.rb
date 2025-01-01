@@ -71,7 +71,8 @@ module Rails
         class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: nil,
                                            desc: "Skip Action Cable files"
 
-        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil
+        class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil,
+                                           desc: "Skip the asset pipeline setup"
 
         class_option :skip_javascript,     type: :boolean, aliases: ["-J", "--skip-js"], default: (true if name == "plugin"),
                                            desc: "Skip JavaScript files"
@@ -110,7 +111,7 @@ module Rails
                                            desc: "Skip Kamal setup"
 
         class_option :skip_solid,          type: :boolean, default: nil,
-                                           desc: "Skip Solid Cache & Queue setup"
+                                           desc: "Skip Solid Cache, Queue, and Cable setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
@@ -609,6 +610,14 @@ module Rails
         packages.compact.sort
       end
 
+      def ci_packages
+        if depends_on_system_test?
+          dockerfile_build_packages << "google-chrome-stable"
+        else
+          dockerfile_build_packages
+        end
+      end
+
       def css_gemfile_entry
         return if options[:api]
         return unless options[:css]
@@ -657,10 +666,6 @@ module Rails
 
       def bundle_install?
         !(options[:skip_bundle] || options[:pretend])
-      end
-
-      def bundler_windows_platforms
-        Gem.rubygems_version >= Gem::Version.new("3.3.22") ? "windows" : "mswin mswin64 mingw x64_mingw"
       end
 
       def depends_on_system_test?

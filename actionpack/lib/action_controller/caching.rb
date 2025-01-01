@@ -9,9 +9,8 @@ module ActionController
   # of calculations, renderings, and database calls around for subsequent
   # requests.
   #
-  # You can read more about each approach by clicking the modules below.
-  #
   # Note: To turn off all caching provided by Action Controller, set
+  #
   #     config.action_controller.perform_caching = false
   #
   # ## Caching stores

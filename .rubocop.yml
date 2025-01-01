@@ -215,6 +215,9 @@ Layout/TrailingWhitespace:
 Style/RedundantPercentQ:
   Enabled: true
 
+Lint/NestedMethodDefinition:
+  Enabled: true
+
 Lint/AmbiguousOperator:
   Enabled: true
 
@@ -326,6 +329,9 @@ Style/OpenStructUse:
   Enabled: true
 
 Style/ArrayIntersect:
+  Enabled: true
+
+Style/KeywordArgumentsMerging:
   Enabled: true
 
 Performance/BindCall:

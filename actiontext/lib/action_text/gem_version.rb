@@ -10,9 +10,9 @@ module ActionText
 
   module VERSION
     MAJOR = 8
-    MINOR = 0
+    MINOR = 1
     TINY  = 0
-    PRE   = "beta1"
+    PRE   = "alpha"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

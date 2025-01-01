@@ -128,7 +128,7 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
 
   def test_hook_uses_class_eval_when_base_is_a_class
     ActiveSupport.on_load(:uses_class_eval) do
-      def first_wrestler
+      def first_wrestler # rubocop:disable Lint/NestedMethodDefinition
         "John Cena"
       end
     end
@@ -142,7 +142,7 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
   def test_hook_uses_class_eval_when_base_is_a_module
     mod = Module.new
     ActiveSupport.on_load(:uses_class_eval2) do
-      def last_wrestler
+      def last_wrestler # rubocop:disable Lint/NestedMethodDefinition
         "Dwayne Johnson"
       end
     end
@@ -157,7 +157,7 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
 
   def test_hook_uses_instance_eval_when_base_is_an_instance
     ActiveSupport.on_load(:uses_instance_eval) do
-      def second_wrestler
+      def second_wrestler # rubocop:disable Lint/NestedMethodDefinition
         "Hulk Hogan"
       end
     end

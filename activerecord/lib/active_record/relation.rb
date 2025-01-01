@@ -76,7 +76,7 @@ module ActiveRecord
 
     def initialize(model, table: nil, predicate_builder: nil, values: {})
       if table
-        predicate_builder ||= PredicateBuilder.new(TableMetadata.new(model, table))
+        predicate_builder ||= model.predicate_builder.with(TableMetadata.new(model, table))
       else
         table = model.arel_table
         predicate_builder ||= model.predicate_builder
@@ -820,7 +820,7 @@ module ActiveRecord
     #
     # [:returning]
     #   (PostgreSQL, SQLite3, and MariaDB only) An array of attributes to return for all successfully
-    #   inserted records, which by default is the primary key.
+    #   upserted records, which by default is the primary key.
     #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
     #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
     #   clause entirely.

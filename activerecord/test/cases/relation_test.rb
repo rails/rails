@@ -42,6 +42,26 @@ module ActiveRecord
       end
     end
 
+    def test_multi_values_deduplication_with_merge
+      expected = {
+        unscope:   [ :where ],
+        extending: [ Module.new ],
+        with:      [ foo: Post.all ],
+        select:    [ :id, :id ],
+      }
+      expected.default = [ Object.new ]
+
+      Relation::MULTI_VALUE_METHODS.each do |method|
+        getter, setter = "#{method}_values", "#{method}_values="
+        values = expected[method]
+        relation = Relation.new(FakeKlass)
+        relation.public_send(setter, values)
+
+        assert_equal values, relation.public_send(getter), method
+        assert_equal values, relation.merge(relation).public_send(getter), method
+      end
+    end
+
     def test_extensions
       relation = Relation.new(FakeKlass)
       assert_equal [], relation.extensions
@@ -422,6 +442,12 @@ module ActiveRecord
     test "no queries on empty IN" do
       assert_queries_count(0) do
         Post.where(id: []).load
+      end
+    end
+
+    test "runs queries when using pick with expression column and empty IN" do
+      assert_queries_count(1) do
+        assert_equal 0, Post.where(id: []).pick(Arel.sql("COUNT(*)"))
       end
     end
 

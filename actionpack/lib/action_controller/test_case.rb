@@ -108,7 +108,7 @@ module ActionController
             set_header k, "application/x-www-form-urlencoded"
           end
 
-          case content_mime_type.to_sym
+          case content_mime_type&.to_sym
           when nil
             raise "Unknown Content-Type: #{content_type}"
           when :json
@@ -123,7 +123,7 @@ module ActionController
           end
         end
 
-        data_stream = StringIO.new(data)
+        data_stream = StringIO.new(data.b)
         set_header "CONTENT_LENGTH", data_stream.length.to_s
         set_header "rack.input", data_stream
       end

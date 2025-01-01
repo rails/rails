@@ -1,23 +1,13 @@
-## Rails 8.0.0.beta1 (September 26, 2024) ##
+*   A Blob will no longer autosave associated Attachment.
 
-*   Deprecate `ActiveStorage::Service::AzureStorageService`.
+    This fixes an issue where a record with an attachment would have
+    its dirty attributes reset, preventing your `after commit` callbacks
+    on that record to behave as expected.
 
-    *zzak*
+    Note that this change doesn't require any changes on your application
+    and is supposed to be internal. Active Storage Attachment will continue
+    to be autosaved (through a different relation).
 
-*   Improve `ActiveStorage::Filename#sanitized` method to handle special characters more effectively.
-    Replace the characters `"*?<>` with `-` if they exist in the Filename to match the Filename convention of Win OS.
+    *Edouard-chin*
 
-    *Luong Viet Dung(Martin)*
-
-*   Improve InvariableError, UnpreviewableError and UnrepresentableError message.
-
-    Include Blob ID and content_type in the messages.
-
-    *Petrik de Heus*
-
-*   Mark proxied files as `immutable` in their Cache-Control header
-
-    *Nate Matykiewicz*
-
-
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activestorage/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activestorage/CHANGELOG.md) for previous changes.

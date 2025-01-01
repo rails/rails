@@ -492,6 +492,7 @@ module ActiveRecord
         becoming.instance_variable_set(:@attributes, @attributes)
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)
+        becoming.instance_variable_set(:@previously_new_record, previously_new_record?)
         becoming.instance_variable_set(:@destroyed, destroyed?)
         becoming.errors.copy!(errors)
       end
@@ -640,8 +641,15 @@ module ActiveRecord
     # This means that any other modified attributes will still be dirty.
     # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
+    #
+    # This method raises an ActiveRecord::ActiveRecordError when called on new
+    # objects, or when at least one of the attributes is marked as readonly.
+    #
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
+      raise ActiveRecordError, "cannot update a new record" if new_record?
+      raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
+
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       self.class.update_counters(id, attribute => change, touch: touch)
@@ -930,7 +938,7 @@ module ActiveRecord
           )
 
           returning_columns.zip(returning_values).each do |column, value|
-            _write_attribute(column, value) if !_read_attribute(column)
+            _write_attribute(column, type_for_attribute(column).deserialize(value)) if !_read_attribute(column)
           end if returning_values
         end
 

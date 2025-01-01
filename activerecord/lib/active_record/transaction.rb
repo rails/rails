@@ -26,7 +26,7 @@ module ActiveRecord
   #    # We are inside a real and not finalized transaction.
   #  end
   #
-  # Closed transactions are `blank?` too.
+  # Closed transactions are +blank?+ too.
   #
   # == Callbacks
   #
@@ -101,9 +101,6 @@ module ActiveRecord
     #
     # If the entire chain of nested transactions are all successfully committed,
     # the block is never called.
-    #
-    # If the transaction is already finalized, attempting to register a callback
-    # will raise ActiveRecord::ActiveRecordError.
     def after_rollback(&block)
       @internal_transaction&.after_rollback(&block)
     end
@@ -115,7 +112,7 @@ module ActiveRecord
 
     # Returns true if the transaction doesn't exist or is finalized.
     def closed?
-      @internal_transaction.nil? || @internal_transaction.state.finalized?
+      @internal_transaction.nil? || @internal_transaction.closed?
     end
 
     alias_method :blank?, :closed?

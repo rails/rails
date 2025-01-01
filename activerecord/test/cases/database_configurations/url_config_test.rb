@@ -21,7 +21,10 @@ module ActiveRecord
         assert_equal false, config.query_cache
 
         config = UrlConfig.new("default_env", "primary", "postgres://localhost/foo?query_cache=42", {})
-        assert_equal "42", config.query_cache
+        assert_equal 42, config.query_cache
+
+        config = UrlConfig.new("default_env", "primary", "postgres://localhost/foo?query_cache=forever", {})
+        assert_equal "forever", config.query_cache
       end
 
       def test_replica_parsing

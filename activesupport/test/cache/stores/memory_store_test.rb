@@ -44,13 +44,9 @@ class MemoryStoreTest < ActiveSupport::TestCase
     size = 3
     size.times { |i| @cache.write(i.to_s, i) }
 
-    events = with_instrumentation "cleanup" do
+    assert_notification("cache_cleanup.active_support", size: size, store: @cache.class.name) do
       @cache.cleanup
     end
-
-    assert_equal %w[cache_cleanup.active_support], events.map(&:name)
-    assert_equal size, events[0].payload[:size]
-    assert_equal @cache.class.name, events[0].payload[:store]
   end
 
   def test_nil_coder_bypasses_mutation_safeguard

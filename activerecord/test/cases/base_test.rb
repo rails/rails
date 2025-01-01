@@ -1117,14 +1117,16 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     def test_default_in_local_time
-      with_timezone_config default: :local do
-        default = Default.new
+      with_env_tz do
+        with_timezone_config default: :local do
+          default = Default.new
 
-        assert_equal Date.new(2004, 1, 1), default.fixed_date
-        assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+          assert_equal Date.new(2004, 1, 1), default.fixed_date
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
 
-        if current_adapter?(:PostgreSQLAdapter)
-          assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
         end
       end
     end
@@ -1153,6 +1155,29 @@ class BasicsTest < ActiveRecord::TestCase
           if current_adapter?(:PostgreSQLAdapter)
             assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
           end
+        end
+      end
+    end
+
+    def test_switching_default_time_zone
+      with_env_tz do
+        2.times do
+          with_timezone_config default: :local do
+            assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          end
+          with_timezone_config default: :utc do
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          end
+        end
+      end
+    end
+
+    def test_mutating_time_objects
+      with_env_tz do
+        with_timezone_config default: :local do
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          assert_equal Time.utc(2004, 1, 1, 5, 0, 0, 0), Default.new.fixed_time.utc
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
         end
       end
     end
@@ -1343,6 +1368,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal k.reset_sequence_name, orig_name
   end
 
+  def test_sequence_name_for_cpk_model
+    assert_nil Cpk::Book.sequence_name
+  end
+
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
     res2 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
@@ -1495,7 +1524,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_predicate post, :new_record?, "should be a new record"
   end
 
-  def test_marshalling_with_associations
+  def test_marshalling_with_associations_6_1
     post = Post.new
     post.comments.build
 
@@ -1503,6 +1532,21 @@ class BasicsTest < ActiveRecord::TestCase
     post       = Marshal.load(marshalled)
 
     assert_equal 1, post.comments.length
+  end
+
+  def test_marshalling_with_associations_7_1
+    previous_format_version = ActiveRecord::Marshalling.format_version
+    ActiveRecord::Marshalling.format_version = 7.1
+
+    post = Post.new
+    post.comments.build
+
+    marshalled = Marshal.dump(post)
+    post       = Marshal.load(marshalled)
+
+    assert_equal 1, post.comments.length
+  ensure
+    ActiveRecord::Marshalling.format_version = previous_format_version
   end
 
   if Process.respond_to?(:fork) && !in_memory_db?

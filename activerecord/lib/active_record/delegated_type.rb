@@ -229,7 +229,7 @@ module ActiveRecord
     #   Entry#message_uuid      # => returns entryable_uuid, when entryable_type == "Message", otherwise nil
     #   Entry#comment_uuid      # => returns entryable_uuid, when entryable_type == "Comment", otherwise nil
     def delegated_type(role, types:, **options)
-      belongs_to role, options.delete(:scope), **options.merge(polymorphic: true)
+      belongs_to role, options.delete(:scope), **options, polymorphic: true
       define_delegated_type_methods role, types: types, options: options
     end
 

@@ -15,27 +15,17 @@ class JobRuntimeTest < ActiveSupport::TestCase
   test "job notification payload includes db_runtime" do
     ActiveRecord::RuntimeRegistry.sql_runtime = 0.0
 
-    assert_equal 42, notification_payload[:db_runtime]
+    event = capture_notifications("perform.active_job") { TestJob.perform_now }.first
+
+    assert_equal 42, event.payload[:db_runtime]
   end
 
   test "db_runtime tracks database runtime for job only" do
     ActiveRecord::RuntimeRegistry.sql_runtime = 100.0
 
-    assert_equal 42.0, notification_payload[:db_runtime]
+    event = capture_notifications("perform.active_job") { TestJob.perform_now }.first
+
+    assert_equal 42.0, event.payload[:db_runtime]
     assert_equal 142.0, ActiveRecord::RuntimeRegistry.sql_runtime
   end
-
-  private
-    def notification_payload
-      payload = nil
-      subscriber = ActiveSupport::Notifications.subscribe("perform.active_job") do |*, _payload|
-        payload = _payload
-      end
-
-      TestJob.perform_now
-
-      ActiveSupport::Notifications.unsubscribe(subscriber)
-
-      payload
-    end
 end

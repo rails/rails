@@ -45,10 +45,6 @@ gem "uri", ">= 0.13.1", require: false
 
 gem "prism"
 
-group :lint do
-  gem "syntax_tree", "6.1.1", require: false
-end
-
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
@@ -104,11 +100,9 @@ group :job do
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
-  gem "delayed_job", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
-  gem "delayed_job_active_record", require: false
 end
 
 # Action Cable
@@ -119,7 +113,7 @@ group :cable do
 
   gem "redis-namespace"
 
-  gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
+  gem "websocket-client-simple", require: false
 end
 
 # Active Storage

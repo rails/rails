@@ -1026,11 +1026,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_multiple_associations_with_same_table_has_many_and_habtm
-    # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
-    def assert_equal_after_sort(item1, item2, item3 = nil)
-      assert_equal(item1.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id })
-      assert_equal(item3.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id }) if item3
-    end
     # Test regular association, association with conditions, association with
     # STI, and association with conditions assured not to be true
     post_types = [:posts, :other_posts, :special_posts]
@@ -1141,12 +1136,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_association_loading_notification
-    notifications = messages_for("instantiation.active_record") do
+    payload = capture_notifications("instantiation.active_record") do
       Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
-    end
-
-    message = notifications.first
-    payload = message.last
+    end.first.payload
     count = Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
 
     # eagerloaded row count should be greater than just developer count
@@ -1155,25 +1147,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_base_messages
-    notifications = messages_for("instantiation.active_record") do
-      Developer.all.to_a
-    end
-    message = notifications.first
-    payload = message.last
-
-    assert_equal Developer.all.to_a.count, payload[:record_count]
-    assert_equal Developer.name, payload[:class_name]
-  end
-
-  def messages_for(name)
-    notifications = []
-    ActiveSupport::Notifications.subscribe(name) do |*args|
-      notifications << args
-    end
-    yield
-    notifications
-  ensure
-    ActiveSupport::Notifications.unsubscribe(name)
+    expected_payload = { record_count: Developer.all.to_a.count, class_name: Developer.name }
+    assert_notification("instantiation.active_record", expected_payload) { Developer.all.to_a }
   end
 
   def test_load_with_sti_sharing_association
@@ -1769,5 +1744,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
   private
     def find_all_ordered(klass, include = nil)
       klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a
+    end
+
+    # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
+    def assert_equal_after_sort(item1, item2, item3 = nil)
+      assert_equal(item1.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id })
+      assert_equal(item3.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id }) if item3
     end
 end

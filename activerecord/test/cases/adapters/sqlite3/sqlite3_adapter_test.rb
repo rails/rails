@@ -15,6 +15,12 @@ module ActiveRecord
       class DualEncoding < ActiveRecord::Base
       end
 
+      class SQLiteExtensionSpec
+        def self.to_path
+          "/path/to/sqlite3_extension"
+        end
+      end
+
       def setup
         @conn = SQLite3Adapter.new(
           database: ":memory:",
@@ -698,6 +704,15 @@ module ActiveRecord
         end
       end
 
+      def test_partial_index_with_comment
+        with_example_table do
+          @conn.add_index "ex", :id, name: "fun", where: "number > 0 /*tag:test*/"
+          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          assert_equal ["id"], index.columns
+          assert_equal "number > 0", index.where
+        end
+      end
+
       if ActiveRecord::Base.lease_connection.supports_expression_index?
         def test_expression_index
           with_example_table do
@@ -1078,6 +1093,30 @@ module ActiveRecord
         with_example_table("id integer, shop_id integer, PRIMARY KEY (shop_id, id)", "cpk_table") do
           assert_not @conn.columns("cpk_table").any?(&:rowid)
         end
+      end
+
+      def test_sqlite_extensions_are_constantized_for_the_client_constructor
+        mock_adapter = Class.new(SQLite3Adapter) do
+          class << self
+            attr_reader :new_client_arg
+
+            def new_client(config)
+              @new_client_arg = config
+            end
+          end
+        end
+
+        conn = mock_adapter.new({
+          database: ":memory:",
+          adapter: "sqlite3",
+          extensions: [
+            "/string/literal/path",
+            "ActiveRecord::ConnectionAdapters::SQLite3AdapterTest::SQLiteExtensionSpec",
+          ]
+        })
+        conn.send(:connect)
+
+        assert_equal(["/string/literal/path", SQLiteExtensionSpec], conn.class.new_client_arg[:extensions])
       end
 
       private

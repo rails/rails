@@ -13,8 +13,10 @@ servers:
   #     - 192.168.0.1
   #   cmd: bin/jobs
 
-# Enable SSL auto certification via Let's Encrypt (and allow for multiple apps on one server).
-# Set ssl: false if using something like Cloudflare to terminate SSL (but keep host!).
+# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
+# Remove this section when using multiple web servers and ensure you terminate SSL at your load balancer.
+#
+# Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: true
   host: app.example.com
@@ -36,7 +38,7 @@ env:
 <% if skip_solid? -%>
   # clear:
   #   # Set number of cores available to the application on each server (default: 1).
-  #   WEB_CONCURRENCY: 2
+  #   WEB_CONCURRENCY: auto
 
   #   # Match this to any external database server to configure Active Record correctly
   #   DB_HOST: 192.168.0.2
@@ -69,7 +71,7 @@ aliases:
   console: app exec --interactive --reuse "bin/rails console"
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
-  dbc: app exec --interactive --reuse "bin/rails dbconsole"
+  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
 
 <% unless skip_storage? %>
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
@@ -119,7 +121,7 @@ builder:
 #     directories:
 #       - data:/var/lib/mysql
 #   redis:
-#     image: redis:7.0
+#     image: valkey/valkey:8
 #     host: 192.168.0.2
 #     port: 6379
 #     directories:

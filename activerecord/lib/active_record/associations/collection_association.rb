@@ -272,6 +272,18 @@ module ActiveRecord
       def load_target
         if find_target?
           @target = merge_target_lists(find_target, target)
+        elsif target.empty? && set_through_target_for_new_record?
+          reflections = reflection.chain.reverse!
+
+          @target = reflections.each_cons(2).reduce(through_association.target) do |middle_target, (middle_reflection, through_reflection)|
+            if middle_target.nil? || (middle_reflection.collection? && middle_target.empty?)
+              break []
+            elsif middle_reflection.collection?
+              middle_target.flat_map { |record| record.association(through_reflection.source_reflection_name).load_target }.compact
+            else
+              middle_target.association(through_reflection.source_reflection_name).load_target
+            end
+          end
         end
 
         loaded!

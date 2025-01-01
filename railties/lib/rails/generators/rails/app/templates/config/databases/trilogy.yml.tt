@@ -1,4 +1,4 @@
-# MySQL. Versions 5.5.8 and up are supported.
+# MySQL. Versions 5.6.4 and up are supported.
 #
 # Install the MySQL driver
 #   gem install trilogy
@@ -15,14 +15,13 @@ default: &default
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
   password:
-<% if database.socket -%>
-  socket: <%= database.socket %>
-<% else -%>
   host: <%%= ENV.fetch("DB_HOST") { "<%= database.host %>" } %>
-<% end -%>
 
 development:
   <<: *default
+<% if database.socket -%>
+  socket: <%= database.socket %>
+<% end -%>
   database: <%= app_name %>_development
 
 # Warning: The database defined as "test" will be erased and
@@ -30,6 +29,9 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
+<% if database.socket -%>
+  socket: <%= database.socket %>
+<% end -%>
   database: <%= app_name %>_test
 
 # As with config/credentials.yml, you never want to store sensitive information,

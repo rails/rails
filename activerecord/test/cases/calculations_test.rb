@@ -41,6 +41,32 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_async_equal 318, Account.async_sum(Account.arel_table[:credit_limit])
   end
 
+  def test_should_sum_with_qualified_name_on_loaded
+    accounts = Account.all
+
+    assert_not_predicate accounts, :loaded?
+    assert_equal 318, accounts.sum("accounts.credit_limit")
+
+    accounts.load
+
+    assert_predicate accounts, :loaded?
+    assert_equal 318, accounts.sum("accounts.credit_limit")
+  end
+
+  def test_should_count_with_group_by_qualified_name_on_loaded
+    accounts = Account.group("accounts.id")
+
+    expected = { 1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1, 6 => 1 }
+
+    assert_not_predicate accounts, :loaded?
+    assert_equal expected, accounts.count
+
+    accounts.load
+
+    assert_predicate accounts, :loaded?
+    assert_equal expected, accounts.count
+  end
+
   def test_should_average_field
     assert_equal 53.0, Account.average(:credit_limit)
     assert_async_equal 53.0, Account.async_average(:credit_limit)
@@ -817,6 +843,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
+  def test_sum_with_grouped_calculation
+    expected = { 0 => 0, 1 => 0, 3 => 0 }
+
+    assert_equal(expected, Post.group(:tags_count).sum)
+  end
+
   def test_from_option_with_specified_index
     edges = Edge.from("edges /*! USE INDEX(unique_edge_index) */")
     assert_equal Edge.count(:all), edges.count(:all)
@@ -1239,6 +1271,18 @@ class CalculationsTest < ActiveRecord::TestCase
     takes_relation = Topic.select(:approved, :id).order(:id)
     assert_equal [1, 2, 3, 4, 5], takes_relation.pluck(:id)
     assert_equal [false, true, true, true, true], takes_relation.pluck(:approved)
+  end
+
+  def test_pluck_with_qualified_name_on_loaded
+    topics = Topic.joins(:replies).order(:id)
+
+    assert_not_predicate topics, :loaded?
+    assert_equal [[1, 2], [3, 4]], topics.pluck("topics.id", "replies.id")
+
+    topics.load
+
+    assert_predicate topics, :loaded?
+    assert_equal [[1, 2], [3, 4]], topics.pluck("topics.id", "replies.id")
   end
 
   def test_pluck_columns_with_same_name

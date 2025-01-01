@@ -261,13 +261,13 @@ module ActionDispatch
         end
 
         (@exception.backtrace_locations || []).map do |loc|
-          if built_methods.key?(loc.label.to_s)
+          if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__
             else
               loc
             end
-            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.label.to_s])
+            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.base_label])
           else
             loc
           end

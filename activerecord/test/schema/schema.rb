@@ -138,6 +138,7 @@ ActiveRecord::Schema.define do
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
+    t.column :symbol_status, :string, default: "proposed"
     t.string :isbn
     t.string :external_id
     t.column :original_name, :string
@@ -809,6 +810,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :minimalistics, force: true do |t|
+    t.bigint :expires_at
   end
 
   create_table :mixed_case_monkeys, force: true, id: false do |t|
@@ -1171,6 +1173,7 @@ ActiveRecord::Schema.define do
     t.integer :books_count, null: false, default: 0
     t.integer :update_count, null: false, default: 0
     t.index :nick, unique: true
+    t.references :account
   end
 
   create_table :subscriptions, force: true do |t|

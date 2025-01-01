@@ -189,6 +189,8 @@ module CallbacksTest
     before_save Proc.new { |r| r.history << "b00m" }, if: Proc.new { |r| false }
     before_save Proc.new { |r| r.history << [:before_save, :proc] }, unless: Proc.new { |r| false }
     before_save Proc.new { |r| r.history << "b00m" }, unless: Proc.new { |r| true }
+    before_save Proc.new { |r| r.history << "b00m" }, unless: proc(&:history)
+    before_save Proc.new { |r| r.history << "b00m" }, unless: lambda(&:history)
     # symbol
     before_save Proc.new { |r| r.history << [:before_save, :symbol] }, if: :yes
     before_save Proc.new { |r| r.history << "b00m" }, if: :no
@@ -256,7 +258,7 @@ module CallbacksTest
       end
     end
 
-    def respond_to_missing?(sym)
+    def respond_to_missing?(sym, include_private = false)
       sym.match?(/^(log|wrap)_/) || super
     end
   end

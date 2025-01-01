@@ -29,6 +29,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  spec.add_dependency "syntax_tree", "6.1.1"
+  spec.add_dependency "prism", "~> 1.2"
   spec.add_dependency "thor", "~> 1.0"
 end

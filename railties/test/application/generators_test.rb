@@ -188,7 +188,9 @@ module ApplicationTests
       end
 
       quietly do
-        Rails::Command.invoke(:generate, ["check_argv", "expected"]) # should not raise
+        assert_nothing_raised do
+          Rails::Command.invoke(:generate, ["check_argv", "expected"]) # should not raise
+        end
       end
     end
 
@@ -201,6 +203,15 @@ module ApplicationTests
         output = rails("destroy", "--help")
         assert_no_match "active_record:migration", output
       end
+    end
+
+    test "help hides test_unit when using another test_framework" do
+      add_to_config <<-RUBY
+        config.generators.test_framework :rspec
+      RUBY
+
+      output = rails("generate", "--help")
+      assert_no_match "test_unit", output
     end
 
     test "skip collision check" do

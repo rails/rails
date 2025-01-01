@@ -257,7 +257,8 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_nested_attributes
-    def User.nested_attributes_options
+    assert_not_respond_to User, :nested_attributes_options
+    User.define_singleton_method(:nested_attributes_options) do
       { person: {} }
     end
 
@@ -268,6 +269,8 @@ class ParamsWrapperTest < ActionController::TestCase
         assert_parameters("username" => "sikachu", "person_attributes" => { "title" => "Developer" }, "user" => { "username" => "sikachu", "person_attributes" => { "title" => "Developer" } })
       end
     end
+  ensure
+    User.singleton_class.undef_method(:nested_attributes_options)
   end
 end
 

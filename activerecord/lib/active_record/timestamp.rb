@@ -169,8 +169,10 @@ module ActiveRecord
     # Clear attributes and changed_attributes
     def clear_timestamp_attributes
       all_timestamp_attributes_in_model.each do |attribute_name|
-        self[attribute_name] = nil
-        clear_attribute_change(attribute_name)
+        if self[attribute_name]
+          self[attribute_name] = nil
+          clear_attribute_change(attribute_name)
+        end
       end
     end
   end

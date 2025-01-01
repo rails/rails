@@ -58,7 +58,7 @@ module ActionController
 
     module ClassMethods
       def make_response!(request)
-        if request.get_header("HTTP_VERSION") == "HTTP/1.0"
+        if (request.get_header("SERVER_PROTOCOL") || request.get_header("HTTP_VERSION")) == "HTTP/1.0"
           super
         else
           Live::Response.new.tap do |res|
@@ -170,12 +170,6 @@ module ActionController
         @aborted = false
         @ignore_disconnect = false
       end
-
-      # ActionDispatch::Response delegates #to_ary to the internal
-      # ActionDispatch::Response::Buffer, defining #to_ary is an indicator that the
-      # response body can be buffered and/or cached by Rack middlewares, this is not
-      # the case for Live responses so we undefine it for this Buffer subclass.
-      undef_method :to_ary
 
       def write(string)
         unless @response.committed?
@@ -332,7 +326,8 @@ module ActionController
     # or other running data where you don't want the entire file buffered in memory
     # first. Similar to send_data, but where the data is generated live.
     #
-    # Options:
+    # #### Options:
+    #
     # *   `:filename` - suggests a filename for the browser to use.
     # *   `:type` - specifies an HTTP content type. You can specify either a string
     #     or a symbol for a registered type with `Mime::Type.register`, for example

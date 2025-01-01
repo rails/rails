@@ -327,6 +327,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_hidden_field_tag_with_autocomplete
+    actual = hidden_field_tag "username", "me@example.com", autocomplete: "username"
+    expected = %(<input id="username" name="username" type="hidden" value="me@example.com" autocomplete="username" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_hidden_field_tag_with_autocomplete_false
+    actual = hidden_field_tag "id", 3, autocomplete: nil
+    expected = %(<input id="id" name="id" type="hidden" value="3" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_hidden_field_tag_id_sanitized
     input_elem = root_elem(hidden_field_tag("item[][title]"))
     assert_match VALID_HTML_ID, input_elem["id"]

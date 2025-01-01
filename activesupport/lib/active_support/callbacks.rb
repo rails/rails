@@ -498,9 +498,10 @@ module ActiveSupport
           when Conditionals::Value
             ProcCall.new(filter)
           when ::Proc
-            if filter.arity > 1
+            case filter.arity
+            when 2
               InstanceExec2.new(filter)
-            elsif filter.arity > 0
+            when 1, -2
               InstanceExec1.new(filter)
             else
               InstanceExec0.new(filter)
@@ -933,7 +934,10 @@ module ActiveSupport
           end
 
           def set_callbacks(name, callbacks) # :nodoc:
-            unless singleton_class.method_defined?(:__callbacks, false)
+            # HACK: We're making assumption on how `class_attribute` is implemented
+            # to save constantly duping the callback hash. If this desync with class_attribute
+            # we'll lose the optimization, but won't cause an actual behavior bug.
+            unless singleton_class.private_method_defined?(:__class_attr__callbacks, false)
               self.__callbacks = __callbacks.dup
             end
             self.__callbacks[name.to_sym] = callbacks

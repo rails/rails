@@ -209,6 +209,12 @@ module RenderTestCases
     end
   end
 
+  def test_render_template_with_syntax_error
+    e = assert_raises(ActionView::Template::Error) { silence_warnings { @view.render(template: "test/syntax_error") } }
+    assert_match %r!syntax!, e.message
+    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
+  end
+
   def test_render_runtime_error
     ex = assert_raises(ActionView::Template::Error) {
       @view.render(template: "test/runtime_error")
@@ -344,12 +350,6 @@ module RenderTestCases
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
-  end
-
-  def test_render_template_with_syntax_error
-    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
-    assert_match %r!syntax!, e.message
-    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
   end
 
   def test_render_partial_with_errors

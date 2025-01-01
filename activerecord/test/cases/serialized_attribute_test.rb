@@ -697,4 +697,29 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     topic = Topic.new(content: Time.now)
     assert topic.save
   end
+
+  def test_changed_in_place_compare_serialized_representation
+    Topic.serialize :content, type: Hash
+    topic = Topic.create!(content: { "a" => 1, "b" => 2 })
+
+    topic.content = { "a" => 1, "b" => 2 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = { "b" => 2, "a" => 1 }
+    assert_predicate topic, :content_changed?
+  end
+
+  def test_changed_in_place_compare_deserialized_representation_when_comparable_is_set
+    Topic.serialize :content, type: Hash, comparable: true
+    topic = Topic.create!(content: { "a" => 1, "b" => 2 })
+
+    topic.content = { "a" => 1, "b" => 2 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = { "b" => 2, "a" => 1 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = {}
+    assert_predicate topic, :content_changed?
+  end
 end
