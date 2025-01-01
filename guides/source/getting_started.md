@@ -1545,7 +1545,7 @@ Head back to your terminal and run the following command:
 $ bin/rails generate authentication
 ```
 
-Then migrate the database to add the User and Session tables.
+Then migrate the database to add the tables for User and Session models.
 
 ```bash
 $ bin/rails db:migrate
@@ -2340,6 +2340,8 @@ class Product < ApplicationRecord
 
   validates :name, presence: true
   validates :inventory_count, numericality: { greater_than_or_equal_to: 0 }
+
+  # ...
 end
 ```
 
