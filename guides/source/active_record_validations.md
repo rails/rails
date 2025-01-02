@@ -1156,7 +1156,7 @@ empty string for example.
 
 ```ruby
 class Topic < ApplicationRecord
-  validates :title, length: { is: 5 }, allow_blank: true
+  validates :title, length: { is: 6 }, allow_blank: true
 end
 ```
 
@@ -1166,7 +1166,7 @@ irb> Topic.create(title: "").valid?
 irb> Topic.create(title: nil).valid?
 => true
 irb> Topic.create(title: "short").valid?
-=> false # 'short' is not of length 5, so validation fails even though it's not blank
+=> false # 'short' is not of length 6, so validation fails even though it's not blank
 ```
 
 ### `:message`
