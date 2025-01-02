@@ -1943,7 +1943,7 @@ object capable of parsing the view partial's rendered content.
 
 To transform the `String` content returned by the `rendered` method into an
 object, define a parser by calling
-[`register_parser`](https://apidock.com/rails/v7.1.3.4/ActionView/TestCase/Behavior/ClassMethods/register_parser).
+[`register_parser`](https://api.rubyonrails.org/classes/ActionView/TestCase/Behavior/ClassMethods.html#method-i-register_parser).
 Calling `register_parser :rss` defines a `rendered.rss` helper method. For
 example, to parse rendered [RSS content][] into an object with `rendered.rss`,
 register a call to `RSS::Parser.parse`:
