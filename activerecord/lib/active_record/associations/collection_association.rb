@@ -233,7 +233,7 @@ module ActiveRecord
         if loaded? || @association_ids || reflection.has_active_cached_counter?
           size.zero?
         else
-          target.empty? && !scope.exists?
+          (target.empty? || target.all?(&:destroyed?)) && !scope.exists?
         end
       end
 
