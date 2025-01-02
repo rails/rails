@@ -1,0 +1,24 @@
+name: "rails-bot: Label PRs"
+on:
+  # This event runs in the context of the base of the pull request, rather than
+  # in the context of the merge commit, as the pull_request event does. This
+  # prevents execution of unsafe code from the head of the pull request that
+  # could alter your repository or steal any secrets you use in your workflow.
+  # This event allows your workflow to do things like label or comment on pull
+  # requests from forks. Avoid using this event if you need to build or run
+  # code from the pull request.
+  #
+  # https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#pull_request_target
+  pull_request_target:
+
+jobs:
+  labeler:
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
